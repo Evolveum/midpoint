@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
+import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpJob;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -80,12 +81,12 @@ public class PrimaryChangeAspectHelper {
      * DeltaIn contains a delta that has to be approved. Workflow answers simply yes/no.
      * Therefore, we either copy DeltaIn to DeltaOut, or generate an empty list of modifications.
      */
-    public List<ObjectDelta<Objectable>> prepareDeltaOut(ProcessEvent event, PcpJob pcpJob, OperationResult result) throws SchemaException {
-        List<ObjectDelta<Objectable>> deltaIn = pcpJob.retrieveDeltasToProcess();
+    public ObjectTreeDeltas prepareDeltaOut(ProcessEvent event, PcpJob pcpJob, OperationResult result) throws SchemaException {
+        ObjectTreeDeltas deltaIn = pcpJob.retrieveDeltasToProcess();
         if (ApprovalUtils.isApproved(event.getAnswer())) {
-            return new ArrayList<>(deltaIn);
+            return deltaIn;
         } else {
-            return new ArrayList<>();
+            return null;
         }
     }
 

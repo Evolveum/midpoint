@@ -38,7 +38,7 @@ import com.evolveum.midpoint.wf.impl.processes.addrole.AddRoleVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.processors.primary.ChangesRequested;
+import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildJobCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
@@ -87,11 +87,11 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
     //region ------------------------------------------------------------ Things that execute on request arrival
 
     @Override
-    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ChangesRequested changesRequested, Task taskFromModel, OperationResult result) throws SchemaException {
-        if (!isFocusRelevant(modelContext)) {
+    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException {
+        if (!isFocusRelevant(modelContext) || objectTreeDeltas.getFocusChange() == null) {
             return null;
         }
-        List<ApprovalRequest<AssignmentType>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, changesRequested.getFocusChange(), result);
+        List<ApprovalRequest<AssignmentType>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, objectTreeDeltas.getFocusChange(), result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return null;
         }

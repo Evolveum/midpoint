@@ -11280,6 +11280,7 @@
                     <xsd:element name="modifyUserAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="addResourceAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="modifyResourceAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="addEntitlementAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="otherAspect" type="tns:GenericPcpAspectConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
@@ -11420,7 +11421,7 @@
     </xsd:complexType>
     <xsd:element name="associationAddition" type="tns:AssociationAdditionType"/>
 
-    <xsd:complexType name="ChangesRequestedType">
+    <xsd:complexType name="ObjectTreeDeltasType">
         <xsd:annotation>
             <xsd:documentation>
                 Container for ChangesRequested (focus primary delta and/or projection primary deltas).
@@ -11437,7 +11438,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="projectionPrimaryDelta" type="tns:ProjectionChangeRequested" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="projectionPrimaryDelta" type="tns:ProjectionObjectDeltaType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -11446,9 +11447,9 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="changesRequested" type="tns:ChangesRequestedType"/>
+    <xsd:element name="objectTreeDeltas" type="tns:ObjectTreeDeltasType"/>
 
-    <xsd:complexType name="ProjectionChangeRequested">
+    <xsd:complexType name="ProjectionObjectDeltaType">
         <xsd:annotation>
 
             <xsd:documentation>

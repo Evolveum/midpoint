@@ -33,7 +33,7 @@ public class PcpJob extends Job {
         return getPcp().getWfTaskUtil();
     }
 
-    public void storeResultingDeltas(List<ObjectDelta<Objectable>> deltas) throws SchemaException {
+    public void storeResultingDeltas(ObjectTreeDeltas deltas) throws SchemaException {
         getWfTaskUtil().storeResultingDeltas(deltas, getTask());
     }
 
@@ -41,7 +41,7 @@ public class PcpJob extends Job {
         getWfTaskUtil().addApprovedBy(getTask(), approvedBy);
     }
 
-    public List<ObjectDelta<Objectable>> retrieveDeltasToProcess() throws SchemaException {
+    public ObjectTreeDeltas retrieveDeltasToProcess() throws SchemaException {
         return getWfTaskUtil().retrieveDeltasToProcess(getTask());
     }
 }

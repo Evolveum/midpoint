@@ -15,18 +15,17 @@
   ~ limitations under the License.
   -->
 
-<shadow oid="20000000-0000-0000-3333-000000000002"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<account
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
-	<name>testers</name>
-	<resourceRef oid="10000000-0000-0000-0000-000000000004" />
-	<objectClass>ri:GroupObjectClass</objectClass>
-	<kind>entitlement</kind>
-	<intent>group</intent>
+	<name>elisabeth</name>
+	<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+	<objectClass>ri:AccountObjectClass</objectClass>
+	<intent>default</intent>
 	<attributes>
-		<icfs:name>testers</icfs:name>
-        <icfs:uid>testers</icfs:uid>
+		<icfs:name>elisabeth</icfs:name>
 	</attributes>
-</shadow>
+</account>

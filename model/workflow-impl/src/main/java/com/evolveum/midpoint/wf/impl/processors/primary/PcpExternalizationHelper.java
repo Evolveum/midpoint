@@ -69,7 +69,7 @@ public class PcpExternalizationHelper {
             ObjectType objectToBeAdded = (ObjectType) prismContext.parseObject(objectXml, PrismContext.LANG_XML).asObjectable();
             state.setObjectToBeAdded(objectToBeAdded);
         }
-        state.setFocusDelta(miscDataUtil.getObjectDeltaType(variables, true));
+        //state.setFocusDelta(miscDataUtil.getFocusPrimaryObjectDeltaType(variables, true));
         state.asPrismContainerValue().setConcreteType(PrimaryChangeProcessorState.COMPLEX_TYPE);
         return state;
     }
@@ -87,7 +87,7 @@ public class PcpExternalizationHelper {
             }
         }
 
-        wic.setObjectDelta(miscDataUtil.getObjectDeltaType(processInstanceVariables, true));
+        wic.setObjectDelta(miscDataUtil.getFocusPrimaryObjectDeltaType(processInstanceVariables, true));
 
         PrismObject<? extends ObjectType> objectAfter = pcpRepoAccessHelper.getObjectAfter(processInstanceVariables, wic.getObjectDelta(), objectBefore, prismContext, result);
         if (objectAfter != null) {

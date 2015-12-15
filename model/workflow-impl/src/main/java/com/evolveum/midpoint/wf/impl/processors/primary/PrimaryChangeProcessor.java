@@ -24,9 +24,7 @@ import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -62,6 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
+import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -141,14 +140,14 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             return null;
         }
 
-        ChangesRequested changesRequested = ChangesRequested.extractFromModelContext(context);
-        if (changesRequested.isEmpty()) {
+        ObjectTreeDeltas objectTreeDeltas = ObjectTreeDeltas.extractFromModelContext(context);
+        if (objectTreeDeltas.isEmpty()) {
             return null;
         }
 
         // examine the request using process aspects
 
-        ChangesRequested changesBeingDecomposed = changesRequested.clone();
+        ObjectTreeDeltas changesBeingDecomposed = objectTreeDeltas.clone();
         List<PcpChildJobCreationInstruction> jobCreationInstructions = gatherStartInstructions(context, wfConfigurationType, changesBeingDecomposed, taskFromModel, result);
 
         // start the process(es)
@@ -163,7 +162,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     private List<PcpChildJobCreationInstruction> gatherStartInstructions(ModelContext<? extends ObjectType> context,
                                                                          WfConfigurationType wfConfigurationType,
-                                                                         ChangesRequested changesBeingDecomposed,
+                                                                         ObjectTreeDeltas changesBeingDecomposed,
                                                                          Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException {
         List<PcpChildJobCreationInstruction> startProcessInstructions = new ArrayList<>();
 
@@ -181,7 +180,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             }
             List<PcpChildJobCreationInstruction> instructions = aspect.prepareJobCreationInstructions(
                     context, wfConfigurationType, changesBeingDecomposed, taskFromModel, result);
-            logAspectResult(aspect, instructions);
+            logAspectResult(aspect, instructions, changesBeingDecomposed);
             if (instructions != null) {
                 startProcessInstructions.addAll(instructions);
             }
@@ -224,18 +223,19 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         return rv;
     }
 
-    private void logAspectResult(PrimaryChangeAspect aspect, List<? extends JobCreationInstruction> instructions) {
+    private void logAspectResult(PrimaryChangeAspect aspect, List<? extends JobCreationInstruction> instructions, ObjectTreeDeltas changesBeingDecomposed) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Aspect " + aspect.getClass() + " returned the following process start instructions (count: " + (instructions == null ? "(null)" : instructions.size()) + "):");
             if (instructions != null) {
                 for (JobCreationInstruction instruction : instructions) {
                     LOGGER.trace(instruction.debugDump(0));
                 }
+                LOGGER.trace("Remaining delta(s):\n{}", changesBeingDecomposed.debugDump());
             }
         }
     }
 
-    private HookOperationMode startJobs(List<PcpChildJobCreationInstruction> instructions, final ModelContext context, final ChangesRequested changesWithoutApproval, Task taskFromModel, OperationResult result) {
+    private HookOperationMode startJobs(List<PcpChildJobCreationInstruction> instructions, final ModelContext context, final ObjectTreeDeltas changesWithoutApproval, Task taskFromModel, OperationResult result) {
 
         try {
 
@@ -277,7 +277,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
     }
 
-    private Job createRootJob(ModelContext context, ChangesRequested changesWithoutApproval, Task taskFromModel, OperationResult result, ExecutionMode executionMode) throws SchemaException, ObjectNotFoundException {
+    private Job createRootJob(ModelContext context, ObjectTreeDeltas changesWithoutApproval, Task taskFromModel, OperationResult result, ExecutionMode executionMode) throws SchemaException, ObjectNotFoundException {
         LensContext contextForRootTask = determineContextForRootTask(context, changesWithoutApproval, executionMode);
         JobCreationInstruction instructionForRoot = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel, contextForRootTask);
         if (executionMode != ExecutionMode.ALL_IMMEDIATELY) {
@@ -288,7 +288,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
     // Child job0 - in modes 2, 3 we have to prepare first child that executes all changes that do not require approval
-    private Job createJob0(ModelContext context, ChangesRequested changesWithoutApproval, Job rootJob, ExecutionMode executionMode, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private Job createJob0(ModelContext context, ObjectTreeDeltas changesWithoutApproval, Job rootJob, ExecutionMode executionMode, OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (changesWithoutApproval != null && !changesWithoutApproval.isEmpty() && executionMode != ExecutionMode.ALL_AFTERWARDS) {
             ModelContext modelContext = contextCopyWithDeltaReplaced(context, changesWithoutApproval);
             JobCreationInstruction instruction0 = JobCreationInstruction.createModelOperationChildJob(rootJob, modelContext);
@@ -304,7 +304,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
     }
 
-    private LensContext determineContextForRootTask(ModelContext context, ChangesRequested changesWithoutApproval, ExecutionMode executionMode) throws SchemaException {
+    private LensContext determineContextForRootTask(ModelContext context, ObjectTreeDeltas changesWithoutApproval, ExecutionMode executionMode) throws SchemaException {
         LensContext contextForRootTask;
         if (executionMode == ExecutionMode.ALL_AFTERWARDS) {
             contextForRootTask = contextCopyWithDeltaReplaced(context, changesWithoutApproval);
@@ -316,18 +316,16 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         return contextForRootTask;
     }
 
-    private LensContext contextCopyWithDeltaReplaced(ModelContext context, ChangesRequested changes) throws SchemaException {
+    private LensContext contextCopyWithDeltaReplaced(ModelContext context, ObjectTreeDeltas changes) throws SchemaException {
+        Validate.notNull(changes, "changes");
         LensContext contextCopy = ((LensContext) context).clone();
 
-        if (changes == null) {
-            contextCopy.replacePrimaryFocusDelta(null);
-        } else {
-            contextCopy.replacePrimaryFocusDelta(changes.getFocusChange());
-            for (Object o : changes.getProjectionChangeMapEntries()) {
-                // because of some compiler quirk
-                Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> change = (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>) o;
-                context.findProjectionContext(change.getKey()).setPrimaryDelta(change.getValue());
-            }
+        contextCopy.replacePrimaryFocusDelta(changes.getFocusChange());
+        Map<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> changeMap = changes.getProjectionChangeMap();
+        Collection<ModelProjectionContext> projectionContexts = contextCopy.getProjectionContexts();
+        for (ModelProjectionContext projectionContext : projectionContexts) {
+            ObjectDelta<ShadowType> projectionDelta = changeMap.get(projectionContext.getResourceShadowDiscriminator());
+            projectionContext.setPrimaryDelta(projectionDelta);
         }
         return contextCopy;
     }
@@ -405,18 +403,21 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     public AuditEventRecord prepareProcessInstanceAuditRecord(Map<String, Object> variables, Job job, AuditEventStage stage, OperationResult result) {
         AuditEventRecord auditEventRecord = baseAuditHelper.prepareProcessInstanceAuditRecord(variables, job, stage, result);
 
-        List<ObjectDelta<Objectable>> deltas = null;
+        ObjectTreeDeltas deltas = null;
         try {
             if (stage == AuditEventStage.REQUEST) {
                 deltas = wfTaskUtil.retrieveDeltasToProcess(job.getTask());
+                //LOGGER.info("### deltas to process = {}", deltas);
             } else {
                 deltas = wfTaskUtil.retrieveResultingDeltas(job.getTask());
+                //LOGGER.info("### resulting deltas = {}", deltas);
             }
         } catch (SchemaException e) {
             LoggingUtils.logException(LOGGER, "Couldn't retrieve delta(s) from task " + job.getTask(), e);
         }
         if (deltas != null) {
-            for (ObjectDelta delta : deltas) {
+            List<ObjectDelta> deltaList = deltas.getDeltaList();
+            for (ObjectDelta delta : deltaList) {
                 auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
             }
         }
@@ -431,11 +432,14 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     @Override
     public AuditEventRecord prepareWorkItemAuditRecord(TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException {
         AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemAuditRecord(taskEvent, stage, result);
-        ObjectDelta delta;
+        ObjectTreeDeltas deltas = null;
         try {
-            delta = miscDataUtil.getObjectDelta(taskEvent.getVariables(), true);
-            if (delta != null) {
-                auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
+            deltas = miscDataUtil.getObjectTreeDeltas(taskEvent.getVariables(), true);
+            if (deltas != null) {
+                List<ObjectDelta> deltaList = deltas.getDeltaList();
+                for (ObjectDelta delta : deltaList) {
+                    auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
+                }
             }
         } catch (JAXBException|SchemaException e) {
             LoggingUtils.logException(LOGGER, "Couldn't retrieve delta to be approved", e);
@@ -470,6 +474,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
     public void registerChangeAspect(PrimaryChangeAspect changeAspect) {
+        LOGGER.trace("Registering aspect implemented by {}", changeAspect.getClass());
         allChangeAspects.add(changeAspect);
     }
 

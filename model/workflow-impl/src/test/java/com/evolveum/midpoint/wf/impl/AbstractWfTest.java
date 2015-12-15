@@ -29,6 +29,7 @@ import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -67,10 +68,12 @@ import com.evolveum.midpoint.wf.processors.primary.PcpTaskExtensionItemsNames;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTreeDeltasType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBusinessConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UriStack;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
@@ -96,6 +99,7 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
 
 /**
  * @author semancik
@@ -149,6 +153,12 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
 
     public static final String GROUP_TESTERS_OID = "20000000-0000-0000-3333-000000000002";
     public static final String GROUP_TESTERS_FILENAME = AbstractIntegrationTest.COMMON_DIR_PATH + "/group-testers-dummy.xml";
+    public static final String GROUP_TESTERS_NAME = "testers";
+
+    public static final File USER_ELISABETH_FILE = new File(TEST_RESOURCE_DIR, "user-elisabeth.xml");
+    public static final String USER_ELISABETH_OID = "c0c010c0-d34d-b33f-f00d-111111112222";
+
+    public static final File ACCOUNT_SHADOW_ELISABETH_DUMMY_FILE = new File(COMMON_DIR, "account-shadow-elisabeth-dummy.xml");
 
     public AbstractWfTest() throws JAXBException {
 		super();
@@ -182,6 +192,8 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
         assertEquals("Wrong OID of Role2's approver", R2BOSS_OID, approver.getOid());
 
         importObjectFromFile(GROUP_TESTERS_FILENAME, initResult);
+
+        dummyResourceCtl.addGroup(GROUP_TESTERS_NAME);
 	}
 
     protected void checkUserApprovers(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -241,10 +253,20 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
             if (record.getEventStage() != AuditEventStage.EXECUTION) {
                 continue;
             }
+            if (record.getDeltas().size() != 1) {
+                fail("Wrong # of deltas in work item audit record: " + record.getDeltas().size());
+            }
             ObjectDelta<? extends ObjectType> delta = record.getDeltas().iterator().next().getObjectDelta();
-            AssignmentType assignmentType = (AssignmentType) ((PrismContainerValue) delta.getModifications().iterator().next().getValuesToAdd().iterator().next()).asContainerable();
-            String oid = assignmentType.getTargetRef().getOid();
-            assertNotNull("Unexpected role to approve: " + oid, expectedResults.containsKey(oid));
+            Containerable valueToAdd = ((PrismContainerValue) delta.getModifications().iterator().next().getValuesToAdd().iterator().next()).asContainerable();
+            String oid;
+            if (valueToAdd instanceof AssignmentType) {
+                oid = ((AssignmentType) valueToAdd).getTargetRef().getOid();
+            } else if (valueToAdd instanceof ShadowAssociationType) {
+                oid = ((ShadowAssociationType) valueToAdd).getShadowRef().getOid();
+            } else {
+                continue;
+            }
+            assertNotNull("Unexpected target to approve: " + oid, expectedResults.containsKey(oid));
             assertEquals("Unexpected result for " + oid, expectedResults.get(oid), WorkflowResult.fromStandardWfAnswer(record.getResult()));
         }
     }
@@ -281,7 +303,7 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
         abstract boolean checkObjectOnSubtasks();
         boolean approvedAutomatically() { return false; }
         LensContext createModelContext(OperationResult result) throws Exception { return null; }
-        void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception { }
+        void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception { }
         void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception { }
         void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception { }
         boolean decideOnApproval(String executionId) throws Exception { return true; }
@@ -402,7 +424,7 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
                 Task subtask = subtasks.get(i);
                 //assertEquals("Subtask #" + i + " is not recurring: " + subtask, TaskRecurrence.RECURRING, subtask.getRecurrenceStatus());
                 //assertEquals("Incorrect execution status of subtask #" + i + ": " + subtask, TaskExecutionStatus.RUNNABLE, subtask.getExecutionStatus());
-                PrismProperty<ObjectDelta> deltas = subtask.getExtensionProperty(PcpTaskExtensionItemsNames.WFDELTA_TO_PROCESS_PROPERTY_NAME);
+                PrismProperty<ObjectTreeDeltasType> deltas = subtask.getExtensionProperty(PcpTaskExtensionItemsNames.WFDELTAS_TO_PROCESS_PROPERTY_NAME);
                 assertNotNull("There are no modifications in subtask #" + i + ": " + subtask, deltas);
                 assertEquals("Incorrect number of modifications in subtask #" + i + ": " + subtask, 1, deltas.getRealValues().size());
                 // todo check correctness of the modification?

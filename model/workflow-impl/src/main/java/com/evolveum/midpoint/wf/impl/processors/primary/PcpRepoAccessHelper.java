@@ -29,7 +29,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.processes.common.StringHolder;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -94,7 +93,7 @@ public class PcpRepoAccessHelper {
         if (deltaType != null) {
             delta = DeltaConvertor.createObjectDelta(deltaType, prismContext);
         } else {
-            delta = miscDataUtil.getObjectDelta(variables, true);
+            delta = miscDataUtil.getFocusPrimaryDelta(variables, true);
         }
 
         if (delta == null) {

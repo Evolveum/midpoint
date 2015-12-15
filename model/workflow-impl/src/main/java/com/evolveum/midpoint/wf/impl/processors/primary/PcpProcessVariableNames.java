@@ -29,14 +29,8 @@ public class PcpProcessVariableNames {
     // Object that is about to be added (for ADD operation). [ObjectType]
     public static final String VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED = "midPointObjectToBeAdded";
 
-    // XML representation of the delta to be approved. (Note that technically a process
-    // can approve more deltas; if necessary, this variable would have to be changed.)
-    // [StringHolder]
-    @Deprecated         // use more generic "changes requested" variable
-    public static final String VARIABLE_MIDPOINT_DELTA = "midPointDelta";
-
     // XML representation of the deltas to be approved. (Note that technically a process
     // can approve more than one focus/projection deltas; if necessary, this variable would have to be changed.)
     // [StringHolder]
-    public static final String VARIABLE_MIDPOINT_CHANGES_REQUESTED = "midPointChangesRequested";
+    public static final String VARIABLE_MIDPOINT_OBJECT_TREE_DELTAS = "midPointObjectTreeDeltas";
 }

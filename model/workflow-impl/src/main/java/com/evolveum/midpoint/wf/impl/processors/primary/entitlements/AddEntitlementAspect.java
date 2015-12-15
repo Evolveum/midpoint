@@ -18,18 +18,14 @@ package com.evolveum.midpoint.wf.impl.processors.primary.entitlements;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -42,15 +38,13 @@ import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.processors.primary.ChangesRequested;
+import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildJobCreationInstruction;
-import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspectHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.assignments.AssignmentHelper;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AssignmentCreationApprovalFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AssociationCreationApprovalFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
 import org.apache.commons.lang.Validate;
@@ -63,6 +57,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Aspect for adding entitlements.
@@ -72,7 +67,7 @@ import java.util.Map;
  * @author mederly
  */
 @Component
-public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
+public class AddEntitlementAspect extends BasePrimaryChangeAspect {
 
     private static final Trace LOGGER = TraceManager.getTrace(AddEntitlementAspect.class);
 
@@ -91,11 +86,11 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
     //region ------------------------------------------------------------ Things that execute on request arrival
 
     @Override
-    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ChangesRequested changesRequested, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (!isFocusRelevant(modelContext)) {
             return null;
         }
-        List<ApprovalRequest<AssociationAdditionType>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, changesRequested, result);
+        List<ApprovalRequest<AssociationAdditionType>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, objectTreeDeltas, result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return null;
         }
@@ -108,14 +103,13 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
     }
 
     private List<ApprovalRequest<AssociationAdditionType>> getApprovalRequests(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType,
-                                                                             ChangesRequested changes, OperationResult result) {
+                                                                             ObjectTreeDeltas changes, OperationResult result) {
 
         List<ApprovalRequest<AssociationAdditionType>> requests = new ArrayList<>();
 
         PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(wfConfigurationType, this);
-        for (Object o : changes.getProjectionChangeMapEntries()) {
-            Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry =
-                (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>) o;
+        Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> entries = changes.getProjectionChangeMapEntries();
+        for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry : entries) {
             ObjectDelta<ShadowType> delta = entry.getValue();
             if (delta.isAdd()) {
                 requests.addAll(getApprovalRequestsFromShadowAdd(config, entry.getValue(), entry.getKey(), result));
@@ -254,8 +248,8 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
             instruction.prepareCommonAttributes(this, modelContext, assigneeOid, requester);
 
             // prepare and set the delta that has to be approved
-            ChangesRequested changesRequested = entitlementAdditionToDelta(modelContext, associationAddition, assigneeOid);
-            instruction.setChangesRequestedProcessAndTaskVariables(changesRequested);
+            ObjectTreeDeltas objectTreeDeltas = entitlementAdditionToDelta(modelContext, associationAddition, assigneeOid);
+            instruction.setObjectTreeDeltasProcessAndTaskVariables(objectTreeDeltas);
 
             // set the names of midPoint task and activiti process instance
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";
@@ -274,15 +268,15 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
         return instructions;
     }
 
-    // creates an ChangesRequested that will be executed after successful approval of the given assignment
-    private ChangesRequested entitlementAdditionToDelta(ModelContext<?> modelContext, AssociationAdditionType addition, String objectOid)
+    // creates an ObjectTreeDeltas that will be executed after successful approval of the given assignment
+    private ObjectTreeDeltas entitlementAdditionToDelta(ModelContext<?> modelContext, AssociationAdditionType addition, String objectOid)
             throws SchemaException {
-        ChangesRequested changes = new ChangesRequested();
+        ObjectTreeDeltas changes = new ObjectTreeDeltas(prismContext);
         ResourceShadowDiscriminator shadowDiscriminator =
                 ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(addition.getResourceShadowDiscriminator());
         String projectionOid = modelContext.findProjectionContext(shadowDiscriminator).getOid();
         ObjectDelta<ShadowType> objectDelta = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
-                .item(ShadowType.F_ASSOCIATION).add(addition.getAssociation())
+                .item(ShadowType.F_ASSOCIATION).add(addition.getAssociation().clone())
                 .asObjectDelta(projectionOid);
 
         changes.addProjectionChange(shadowDiscriminator, objectDelta);
@@ -351,10 +345,10 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
     protected ApprovalRequest<AssociationAdditionType>
     createApprovalRequest(PcpAspectConfigurationType config, ShadowAssociationType association,
                           ResourceShadowDiscriminator resourceShadowDiscriminator) {
-        AssociationAdditionType eat = new AssociationAdditionType();
-        eat.setAssociation(association);
-        eat.setResourceShadowDiscriminator(resourceShadowDiscriminator.toResourceShadowDiscriminatorType());
-        return new ApprovalRequestImpl<>(eat, config, prismContext);
+        AssociationAdditionType aat = new AssociationAdditionType(prismContext);
+        aat.setAssociation(association);
+        aat.setResourceShadowDiscriminator(resourceShadowDiscriminator.toResourceShadowDiscriminatorType());
+        return new ApprovalRequestImpl<>(aat, config, prismContext);
     }
 
     // retrieves the relevant target for a given assignment - a role, an org, or a resource

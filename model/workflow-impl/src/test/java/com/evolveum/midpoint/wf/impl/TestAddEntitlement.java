@@ -18,10 +18,8 @@ package com.evolveum.midpoint.wf.impl;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -32,11 +30,11 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.processes.common.WorkflowResult;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.python.antlr.base.mod;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -46,9 +44,9 @@ import org.testng.annotations.Test;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.File;
-import java.util.Arrays;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author mederly
@@ -59,21 +57,23 @@ public class TestAddEntitlement extends AbstractWfTest {
 
     protected static final Trace LOGGER = TraceManager.getTrace(TestAddEntitlement.class);
 
-    private static final File ELISABETH_FILE = new File(TEST_RESOURCE_DIR, "user-elisabeth.xml");
-    private static final String USER_ELISABETH_OID = "c0c010c0-d34d-b33f-f00d-111111112222";
-
-    private static final File REQ_USER_JACK_MODIFY_ADD_ENTITLEMENT_TESTERS = new File(TEST_RESOURCE_DIR, "user-jack-modify-add-entitlement-testers.xml");
+    private static final File REQ_SHADOW_MODIFY_ADD_ENTITLEMENT_TESTERS = new File(TEST_RESOURCE_DIR, "shadow-modify-add-entitlement-testers.xml");
 
     public TestAddEntitlement() throws JAXBException {
 		super();
 	}
 
     private String jackAccountShadowOid;
+    private String elisabethAccountShadowOid;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+
         modifyUserAddAccount(USER_JACK_OID, ACCOUNT_SHADOW_JACK_DUMMY_FILE, initTask, initResult);
+
+        importObjectFromFile(USER_ELISABETH_FILE, initResult);
+        modifyUserAddAccount(USER_ELISABETH_OID, ACCOUNT_SHADOW_ELISABETH_DUMMY_FILE, initTask, initResult);
     }
 
     /**
@@ -83,10 +83,25 @@ public class TestAddEntitlement extends AbstractWfTest {
     public void test010AddJackToTesters() throws Exception {
         TestUtil.displayTestTile(this, "test010AddJackToTesters");
         executeTest("test010AddJackToTesters", USER_JACK_OID, new TestDetails() {
-            @Override int subtaskCount() { return 1; }
-            @Override boolean immediate() { return false; }
-            @Override boolean checkObjectOnSubtasks() { return true; }
-            @Override boolean removeAssignmentsBeforeTest() { return false; }
+            @Override
+            int subtaskCount() {
+                return 1;
+            }
+
+            @Override
+            boolean immediate() {
+                return false;
+            }
+
+            @Override
+            boolean checkObjectOnSubtasks() {
+                return true;
+            }
+
+            @Override
+            boolean removeAssignmentsBeforeTest() {
+                return false;
+            }
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
@@ -99,30 +114,35 @@ public class TestAddEntitlement extends AbstractWfTest {
 
                 LensProjectionContext accountContext = fillContextWithAccount(context, jackAccountShadowOid, result);
 
-                ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(REQ_USER_JACK_MODIFY_ADD_ENTITLEMENT_TESTERS, ObjectModificationType.COMPLEX_TYPE);
-                ObjectDelta shadowDelta = DeltaConvertor.createObjectDelta(modElement, context.getFocusClass(), prismContext);
+                ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(REQ_SHADOW_MODIFY_ADD_ENTITLEMENT_TESTERS, ObjectModificationType.COMPLEX_TYPE);
+                ObjectDelta shadowDelta = DeltaConvertor.createObjectDelta(modElement, ShadowType.class, prismContext);
                 shadowDelta.setOid(jackAccountShadowOid);
                 accountContext.setPrimaryDelta(shadowDelta);
                 return context;
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
-//                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
-//                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
-                //assertNotAssignedRole(USER_ELISABETH_OID, ROLE_R3_OID, task, result);
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
+                IntegrationTestTools.display("model context from the root task", taskModelContext);
+                assertEquals("Wrong # of projection contexts in root task", 1, taskModelContext.getProjectionContexts().size());
+                assertTrue("There are modifications in primary focus delta", ObjectDelta.isNullOrEmpty(taskModelContext.getFocusContext().getPrimaryDelta()));
+                assertTrue("There are modifications left in primary projection delta",
+                        ObjectDelta.isNullOrEmpty(
+                                ((LensProjectionContext) (taskModelContext.getProjectionContexts().iterator().next()))
+                                        .getPrimaryDelta()));
+                ShadowType account = getObject(ShadowType.class, jackAccountShadowOid).asObjectable();
+                IntegrationTestTools.display("jack dummy account after first clockwork run", account);
+                assertEquals("Unexpected associations present", 0, account.getAssociation().size());
             }
 
             @Override
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
-                //assertAssignedRole(USER_ELISABETH_OID, ROLE_R3_OID, task, result);
-                //checkDummyTransportMessages("simpleUserNotifier", 1);
-                //checkWorkItemAuditRecords(createResultMap(ROLE_R3_OID, WorkflowResult.APPROVED));
-//                checkUserApprovers(USER_ELISABETH_OID, Arrays.asList(R1BOSS_OID), result);
-//                checkUserApproversForCreate(USER_ELISABETH_OID, Arrays.asList(R1BOSS_OID), result);   // this one should remain from test010
                 ShadowType account = getObject(ShadowType.class, jackAccountShadowOid).asObjectable();
                 IntegrationTestTools.display("jack dummy account", account);
                 assertHasAssociation(account, new QName("group"), GROUP_TESTERS_OID);
+
+                checkWorkItemAuditRecords(createResultMap(GROUP_TESTERS_OID, WorkflowResult.APPROVED));
             }
 
             @Override
@@ -132,10 +152,71 @@ public class TestAddEntitlement extends AbstractWfTest {
         });
 	}
 
+    /**
+     * Add entitlement to user elisabeth (rejected)
+     */
+    @Test
+    public void test020AddElisabethToTestersRejected() throws Exception {
+        TestUtil.displayTestTile(this, "test020AddElisabethToTestersRejected");
+        executeTest("test020AddElisabethToTestersRejected", USER_ELISABETH_OID, new TestDetails() {
+            @Override int subtaskCount() { return 1; }
+            @Override boolean immediate() { return false; }
+            @Override boolean checkObjectOnSubtasks() { return true; }
+            @Override boolean removeAssignmentsBeforeTest() { return false; }
+
+            @Override
+            public LensContext createModelContext(OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserAccountContext();
+                fillContextWithUser(context, USER_ELISABETH_OID, result);
+
+                UserType elisabeth = context.getFocusContext().getObjectCurrent().asObjectable();
+                AssertJUnit.assertEquals("Elisabeth has wrong number of accounts", 1, elisabeth.getLinkRef().size());
+                elisabethAccountShadowOid = elisabeth.getLinkRef().get(0).getOid();
+
+                LensProjectionContext accountContext = fillContextWithAccount(context, elisabethAccountShadowOid, result);
+
+                ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(REQ_SHADOW_MODIFY_ADD_ENTITLEMENT_TESTERS, ObjectModificationType.COMPLEX_TYPE);
+                ObjectDelta shadowDelta = DeltaConvertor.createObjectDelta(modElement, ShadowType.class, prismContext);
+                shadowDelta.setOid(elisabethAccountShadowOid);
+                accountContext.setPrimaryDelta(shadowDelta);
+                return context;
+            }
+
+            @Override
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
+                IntegrationTestTools.display("model context from the root task", taskModelContext);
+                assertEquals("Wrong # of projection contexts in root task", 1, taskModelContext.getProjectionContexts().size());
+                assertTrue("There are modifications in primary focus delta", ObjectDelta.isNullOrEmpty(taskModelContext.getFocusContext().getPrimaryDelta()));
+                assertTrue("There are modifications left in primary projection delta",
+                        ObjectDelta.isNullOrEmpty(
+                                ((LensProjectionContext) (taskModelContext.getProjectionContexts().iterator().next()))
+                                        .getPrimaryDelta()));
+                ShadowType account = getObject(ShadowType.class, elisabethAccountShadowOid).asObjectable();
+                IntegrationTestTools.display("elisabeth dummy account after first clockwork run", account);
+                assertEquals("Unexpected associations present", 0, account.getAssociation().size());
+            }
+
+            @Override
+            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+                ShadowType account = getObject(ShadowType.class, elisabethAccountShadowOid).asObjectable();
+                IntegrationTestTools.display("elisabeth dummy account", account);
+                assertEquals("Unexpected associations present", 0, account.getAssociation().size());
+
+                checkWorkItemAuditRecords(createResultMap(GROUP_TESTERS_OID, WorkflowResult.REJECTED));
+            }
+
+            @Override
+            boolean decideOnApproval(String executionId) throws Exception {
+                return false;
+            }
+        });
+    }
+
     public void assertHasAssociation(ShadowType shadow, QName associationName, String entitlementOid) {
         for (ShadowAssociationType association : shadow.getAssociation()) {
             if (QNameUtil.match(association.getName(), associationName) &&
-                    entitlementOid.equals(association.getShadowRef().getOid() != null)) {
+                    entitlementOid.equals(association.getShadowRef().getOid())) {
                 return;
             }
         }

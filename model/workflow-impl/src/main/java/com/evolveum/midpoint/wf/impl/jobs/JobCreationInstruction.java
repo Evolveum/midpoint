@@ -16,16 +16,6 @@
 
 package com.evolveum.midpoint.wf.impl.jobs;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.Item;
@@ -33,8 +23,6 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskRecurrence;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -43,19 +31,23 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.processes.ProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UriStackEntry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A generic instruction to start a workflow process and/or a task (using umbrella term "a job").
@@ -335,19 +327,6 @@ public class JobCreationInstruction implements DebugDumpable {
             property.addRealValue(realValue);
         }
         taskVariables.put(definition.getName(), property);
-    }
-
-    // a bit of hack - why should JobCreationInstruction deal with deltas? - but nevertheless quite useful
-    public void addTaskDeltasVariable(PrismPropertyDefinition<ObjectDeltaType> definition, Collection<ObjectDelta> deltas) throws SchemaException {
-        List<ObjectDeltaType> deltaTypes = new ArrayList<ObjectDeltaType>(deltas.size());
-        for (ObjectDelta<? extends ObjectType> delta : deltas) {
-            deltaTypes.add(DeltaConvertor.toObjectDeltaType(delta));
-        }
-        addTaskVariableValues(definition, deltaTypes);
-    }
-
-    public void addTaskDeltasVariable(PrismPropertyDefinition<ObjectDeltaType> definition, ObjectDelta delta) throws SchemaException {
-        addTaskDeltasVariable(definition, Arrays.asList(delta));
     }
 
     public void addTaskModelContext(ModelContext modelContext) throws SchemaException {

@@ -33,7 +33,7 @@ import com.evolveum.midpoint.wf.impl.processes.addrole.AddRoleVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
-import com.evolveum.midpoint.wf.impl.processors.primary.ChangesRequested;
+import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildJobCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
@@ -78,14 +78,14 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
     private ItemApprovalProcessInterface itemApprovalProcessInterface;
 
     @Override
-    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ChangesRequested changesRequested, Task taskFromModel, OperationResult result) throws SchemaException {
+    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException {
 
         List<ApprovalRequest<String>> approvalRequestList = new ArrayList<ApprovalRequest<String>>();
         List<PcpChildJobCreationInstruction> instructions = new ArrayList<>();
 
-        ObjectDelta changeRequested = changesRequested.getFocusChange();
+        ObjectDelta changeRequested = objectTreeDeltas.getFocusChange();
 
-        if (changeRequested.getChangeType() != ChangeType.MODIFY) {
+        if (changeRequested == null || changeRequested.getChangeType() != ChangeType.MODIFY) {
             return null;
         }
 

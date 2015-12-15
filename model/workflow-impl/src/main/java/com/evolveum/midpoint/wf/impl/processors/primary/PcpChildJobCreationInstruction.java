@@ -19,15 +19,8 @@ package com.evolveum.midpoint.wf.impl.processors.primary;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.DeltaConversionOptions;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -36,16 +29,7 @@ import com.evolveum.midpoint.wf.impl.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processes.common.StringHolder;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ChangesRequestedType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionChangeRequested;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import org.apache.commons.lang.Validate;
-
-import javax.xml.bind.JAXBException;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author mederly
@@ -99,57 +83,39 @@ public class PcpChildJobCreationInstruction extends JobCreationInstruction {
         }
     }
 
+    @Deprecated
     public void setDeltaProcessAndTaskVariables(ObjectDelta delta) {
-        try {
-            addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_DELTA, new StringHolder(DeltaConvertor.toObjectDeltaTypeXml(delta)));
-        } catch(JAXBException e) {
-            throw new SystemException("Couldn't store primary delta into the process variable due to JAXB exception", e);
-        } catch (SchemaException e) {
-            throw new SystemException("Couldn't store primary delta into the process variable due to schema exception", e);
-        }
-
-        try {
-            addTaskDeltasVariable(getChangeProcessor().getWorkflowManager().getWfTaskUtil().getWfDeltaToProcessPropertyDefinition(), delta);
-        } catch (SchemaException e) {
-            throw new SystemException("Couldn't store primary delta into the task variable due to schema exception", e);
-        }
+//        try {
+//            addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_DELTA, new StringHolder(DeltaConvertor.toObjectDeltaTypeXml(delta)));
+//        } catch(JAXBException e) {
+//            throw new SystemException("Couldn't store primary delta into the process variable due to JAXB exception", e);
+//        } catch (SchemaException e) {
+//            throw new SystemException("Couldn't store primary delta into the process variable due to schema exception", e);
+//        }
+//
+//        try {
+//            addTaskDeltasVariable(getChangeProcessor().getWorkflowManager().getWfTaskUtil().getWfDeltaToProcessPropertyDefinition(), delta);
+//        } catch (SchemaException e) {
+//            throw new SystemException("Couldn't store primary delta into the task variable due to schema exception", e);
+//        }
+//
+        setObjectTreeDeltasProcessAndTaskVariables(new ObjectTreeDeltas(delta, getChangeProcessor().getPrismContext()));
     }
 
-    public void setChangesRequestedProcessAndTaskVariables(ChangesRequested changesRequested) {
+    public void setObjectTreeDeltasProcessAndTaskVariables(ObjectTreeDeltas objectTreeDeltas) {
         try {
-            addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_CHANGES_REQUESTED,
-                    new StringHolder(toChangesRequestedTypeXml(changesRequested)));
-        } catch(JAXBException e) {
-            throw new SystemException("Couldn't store primary delta into the process variable due to JAXB exception", e);
+            addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TREE_DELTAS,
+                    new StringHolder(ObjectTreeDeltas.toObjectTreeDeltasTypeXml(objectTreeDeltas)));
         } catch (SchemaException e) {
-            throw new SystemException("Couldn't store primary delta into the process variable due to schema exception", e);
+            throw new SystemException("Couldn't store primary delta(s) into the process variable due to schema exception", e);
         }
 
         try {
-            addTaskDeltasVariable(getChangeProcessor().getWorkflowManager().getWfTaskUtil().getWfDeltaToProcessPropertyDefinition(), changesRequested);
+            addTaskVariable(getChangeProcessor().getWorkflowManager().getWfTaskUtil().getWfDeltasToProcessPropertyDefinition(),
+                    ObjectTreeDeltas.toObjectTreeDeltasType(objectTreeDeltas));
         } catch (SchemaException e) {
-            throw new SystemException("Couldn't store primary delta into the task variable due to schema exception", e);
+            throw new SystemException("Couldn't store primary delta(s) into the task variable due to schema exception", e);
         }
-    }
-
-    private String toChangesRequestedTypeXml(ChangesRequested changesRequested) throws SchemaException {
-        if (changesRequested == null) {
-            return null;
-        }
-        ChangesRequestedType rv = new ChangesRequestedType();
-        if (changesRequested.getFocusChange() != null) {
-            rv.setFocusPrimaryDelta(DeltaConvertor.toObjectDeltaType(changesRequested.getFocusChange()));
-        }
-        Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> entries =
-                (Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>>) changesRequested.getProjectionChangeMapEntries();
-        for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry : entries) {
-            ProjectionChangeRequested projChange = new ProjectionChangeRequested();
-            projChange.setResourceShadowDiscriminator(entry.getKey().toResourceShadowDiscriminatorType());
-            projChange.setPrimaryDelta(DeltaConvertor.toObjectDeltaType(entry.getValue()));
-            rv.getProjectionPrimaryDelta().add(projChange);
-        }
-        return getChangeProcessor().getPrismContext().serializeAtomicValue(
-                rv, SchemaConstantsGenerated.C_C, PrismContext.LANG_XML, serializationOptions);
     }
 
     @Override
