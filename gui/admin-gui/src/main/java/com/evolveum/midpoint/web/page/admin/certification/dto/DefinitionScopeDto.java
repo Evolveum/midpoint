@@ -1,9 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationScopeType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
-import javax.xml.namespace.QName;
 import java.io.Serializable;
 
 /**
@@ -20,11 +18,11 @@ public class DefinitionScopeDto implements Serializable {
     public static final String F_INCLUDE_RESOURCES = "includeResources";
     public static final String F_INCLUDE_ROLES = "includeRoles";
     public static final String F_INCLUDE_ORGS = "includeOrgs";
-    public static final String F_ENABLED_ITEMS_ONLY = "enabledItemsOnly";
+    public static final String F_INCLUDE_ENABLED_ITEMS_ONLY = "enabledItemsOnly";
 
     private String name;
     private String description;
-    private QName objectType;
+    private DefinitionScopeObjectType objectType;
     private SearchFilterType searchFilter;
     private boolean includeAssignments;
     private boolean includeInducements;
@@ -49,11 +47,11 @@ public class DefinitionScopeDto implements Serializable {
         this.description = description;
     }
 
-    public QName getObjectType() {
+    public DefinitionScopeObjectType getObjectType() {
         return objectType;
     }
 
-    public void setObjectType(QName objectType) {
+    public void setObjectType(DefinitionScopeObjectType objectType) {
         this.objectType = objectType;
     }
 

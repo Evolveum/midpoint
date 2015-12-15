@@ -32,29 +32,39 @@
           <td><wicket:message key="PageCertDefinition.scopeDescription"/></td>
           <td>
               <div class="col-md-6">
-                  <input type="text" class="form-control input-sm" wicket:id="description"/>
+                  <textarea wicket:id="description" class="form-control input-sm" rows="2"></textarea>
               </div>
           </td>
         </tr>
         <tr>
           <td><wicket:message key="PageCertDefinition.scopeObjectType"/></td>
-          <td>TODO: UserType or RoleType or ...</td>   <!-- TODO make editable -->
+          <td>
+              <div class="col-xs-8">
+                  <div class="row">
+                      <div class="col-xs-9">
+                          <div wicket:id="objectTypeChooser"/>
+                      </div>
+                  </div>
+              </div>
+          </td>
         </tr>
         <tr>
           <td><wicket:message key="PageCertDefinition.scopeSearchFilter"/></td>
-          <td>TODO: search filter</td>  <!-- TODO make editable -->
+          <td>
+              <!--<div wicket:id="searchFilterEditor"/>-->
+          </td>
         </tr>
         <tr>
           <td><wicket:message key="PageCertDefinition.scopeAssignmentsInducements"/></td>
           <td>
             <div>
               <label style="margin-right:30px;">
-                <input type="checkbox"/>
+                  <input type="checkbox" wicket:id="includeAssignments">
                 <wicket:message key="PageCertDefinition.scopeIncludeAssignments"/>
               </label>
               <label>
-                <input type="checkbox"/>
-                <wicket:message key="PageCertDefinition.scopeIncludeInducements"/>
+                  <input type="checkbox" wicket:id="includeInducements">
+                  <wicket:message key="PageCertDefinition.scopeIncludeInducements"/>
               </label>
             </div>
           </td>
@@ -64,15 +74,15 @@
           <td>
             <div>
               <label style="margin-right:30px;">
-                <input type="checkbox">
+                  <input type="checkbox" wicket:id="includeResources">
                 <wicket:message key="PageCertDefinition.scopeIncludeResources"/>
               </label>
               <label style="margin-right:30px;">
-                <input type="checkbox">
+                  <input type="checkbox" wicket:id="includeRoles">
                 <wicket:message key="PageCertDefinition.scopeIncludeRoles"/>
               </label>
               <label>
-                <input type="checkbox">
+                  <input type="checkbox" wicket:id="includeOrgs">
                 <wicket:message key="PageCertDefinition.scopeIncludeOrgs"/>
               </label>
             </div>
@@ -82,8 +92,8 @@
           <td><wicket:message key="PageCertDefinition.scopeIncludeByStatus"/></td>
           <td>
             <label>
-              <input type="checkbox"/>
-              <wicket:message key="PageCertDefinition.scopeEnabledItemsOnly"/>
+                <input type="checkbox" wicket:id="includeEnabledItemsOnly">
+                <wicket:message key="PageCertDefinition.scopeEnabledItemsOnly"/>
             </label>
           </td>
         </tr>

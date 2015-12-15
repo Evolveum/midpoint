@@ -41,6 +41,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateInput;
+import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.assignment.ACAttributeDto;
 import com.evolveum.midpoint.web.component.assignment.ACAttributePanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
@@ -74,6 +76,8 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -82,6 +86,7 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -102,7 +107,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class StageEditorPanel extends SimplePanel<AssignmentEditorDto> {
+public class StageEditorPanel extends SimplePanel<StageDefinitionDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(StageEditorPanel.class);
 
@@ -141,15 +146,15 @@ public class StageEditorPanel extends SimplePanel<AssignmentEditorDto> {
 
     private IModel<List<ACAttributeDto>> attributesModel;
 
-    public StageEditorPanel(String id) {
-        super(id);
+    public StageEditorPanel(String id, IModel<StageDefinitionDto> model) {
+        super(id, model);
 
         initPanelLayout();
     }
 
     private void initPanelLayout() {
         WebMarkupContainer headerRow = new WebMarkupContainer(ID_HEADER_ROW);
-        headerRow.add(AttributeModifier.append("class", createHeaderClassModel(getModel())));
+//        headerRow.add(AttributeModifier.append("class", createHeaderClassModel(getModel())));
         headerRow.setOutputMarkupId(true);
         add(headerRow);
 
@@ -228,16 +233,17 @@ public class StageEditorPanel extends SimplePanel<AssignmentEditorDto> {
 
 
     private void nameClickPerformed(AjaxRequestTarget target) {
-//        AssignmentEditorDto dto = getModel().getObject();
-//        boolean minimized = dto.isMinimized();
-//        if (minimized) {
-////            dto.startEditing();//todo ???
-//        }
-//
-//        dto.setMinimized(!minimized);
-//
-//        target.add(get(ID_MAIN));
-//        target.add(get(ID_HEADER_ROW));
+        TabbedPanel tabbedPanel = this.findParent(TabbedPanel.class);
+        IModel<List<ITab>> tabsModel = tabbedPanel.getTabs();
+        List<ITab> tabsList = tabsModel.getObject();
+        tabsList.add(new AbstractTab(createStringResource("PageCertDefinition.xmlDefinition")) {
+            @Override
+            public WebMarkupContainer getPanel(String panelId) {
+                return new StageDefinitionPanel(panelId, getModel());
+            }
+        });
+        tabbedPanel.setSelectedTab(tabsList.size() - 1);
+        target.add(tabbedPanel);
     }
 
 }

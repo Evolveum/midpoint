@@ -38,26 +38,34 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeDto;
+import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.roles.component.MultiplicityPolicyDialog;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -91,6 +99,8 @@ public class PageCertDefinition extends PageAdminCertification {
 	private static final String ID_CAMPAIGNS_TOTAL = "campaignsTotal";
 	private static final String ID_LAST_STARTED = "campaignLastStarted";
 	private static final String ID_LAST_CLOSED = "campaignLastClosed";
+	private static final String ID_OWNER_VALUE_CONTAINER = "ownerValueContainer";
+	private static final String ID_OWNER_INPUT = "ownerInput";
 
 	private static final String ID_BACK_BUTTON = "backButton";
 	private static final String ID_SAVE_BUTTON = "saveButton";
@@ -178,7 +188,7 @@ public class PageCertDefinition extends PageAdminCertification {
 		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.stagesDefinition")) {
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new DefinitionStagesPanel(panelId, definitionModel);
+                return new DefinitionStagesPanel(panelId, new PropertyModel<List<StageDefinitionDto>>(definitionModel, CertDefinitionDto.F_STAGE_DEFINITION));
             }
         });
 
@@ -247,12 +257,12 @@ public class PageCertDefinition extends PageAdminCertification {
         });
         mainForm.add(descriptionField);
 
-        PropertyModel ownerModel = new PropertyModel<>(definitionModel, CertDefinitionDto.F_OWNER);
+        final PropertyModel ownerModel = new PropertyModel<>(definitionModel, CertDefinitionDto.F_OWNER);
 
         List<PrismReferenceValue> values = new ArrayList<>();
         values.add(definitionModel.getObject() == null ? new PrismReferenceValue() : definitionModel.getObject().getOwner());
-        final ValueChoosePanel ownerNameField = new ValueChoosePanel(ID_OWNER, ownerModel, values
-                ,false, UserType.class);
+//        final ValueChoosePanel ownerNameField = new ValueChoosePanel(ID_OWNER, ownerModel, values
+//                ,false, UserType.class);
 //        {
 //            @Override
 //            protected void choosePerformed(AjaxRequestTarget target, ObjectType object) {
@@ -262,22 +272,35 @@ public class PageCertDefinition extends PageAdminCertification {
 ////                target.add(comp);
 //            }
 //            };
-        ownerNameField.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isEnabled() {
-                return true;
-            }
-        });
-        ownerNameField.setOutputMarkupId(true);
-        mainForm.add(ownerNameField);
+//        ownerNameField.setOutputMarkupId(true);
+
+        final WebMarkupContainer valueContainer = new WebMarkupContainer(ID_OWNER_VALUE_CONTAINER);
+        valueContainer.setOutputMarkupId(true);
+        valueContainer.add(new AttributeModifier("class", "row"));
+        add(valueContainer);
+
+        Panel input =  new ValueChoosePanel(ID_OWNER_INPUT, ownerModel, values
+                ,false, UserType.class);
+//        {
+//            @Override
+//            protected void choosePerformed(AjaxRequestTarget target, ObjectType object) {
+//                super.choosePerformed(target, object);
+//
+//                Component comp = this.getParent();
+//                target.add(comp);
+//            }
+//            };
+//TODO for now selected value is not displayed in the input control
+        //but it is set to model and can be saved
+        input.add(new AttributeModifier("class", "col-xs-9"));
+        valueContainer.add(input);
+        mainForm.add(valueContainer);
 
         mainForm.add(new Label(ID_NUMBER_OF_STAGES, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
         mainForm.add(new Label(ID_REVIEW_STAGE_CAMPAIGNS, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
         mainForm.add(new Label(ID_CAMPAIGNS_TOTAL, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
         mainForm.add(new Label(ID_LAST_STARTED, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
         mainForm.add(new Label(ID_LAST_CLOSED, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
-
-
 	}
 
 	private void initButtons(final Form mainForm) {

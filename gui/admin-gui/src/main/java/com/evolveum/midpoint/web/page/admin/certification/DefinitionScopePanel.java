@@ -16,16 +16,16 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
-import com.evolveum.midpoint.web.component.AceEditor;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationAssignmentReviewScopeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationObjectBasedScopeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationScopeType;
-import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.html.form.TextField;
+import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeObjectType;
+import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -37,6 +37,14 @@ public class DefinitionScopePanel extends SimplePanel<DefinitionScopeDto> {
 
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
+    private static final String ID_OBJECT_TYPE_CHOOSER = "objectTypeChooser";
+    private static final String ID_SEARCH_FILTER = "searchFilterEditor";
+    private static final String ID_INCLUDE_RESOURCES = "includeResources";
+    private static final String ID_INCLUDE_ROLES = "includeRoles";
+    private static final String ID_INCLUDE_INDUCEMENTS = "includeInducements";
+    private static final String ID_INCLUDE_ASSIGNMENTS = "includeAssignments";
+    private static final String ID_INCLUDE_ORGS = "includeOrgs";
+    private static final String ID_INCLUDE_ENABLED_ITEMS_ONLY = "includeEnabledItemsOnly";
 
     public DefinitionScopePanel(String id, IModel<DefinitionScopeDto> model) {
         super(id, model);
@@ -53,7 +61,7 @@ public class DefinitionScopePanel extends SimplePanel<DefinitionScopeDto> {
         });
         add(nameField);
 
-        final TextField descriptionField = new TextField(ID_DESCRIPTION, new PropertyModel<>(getModel(), DefinitionScopeDto.F_DESCRIPTION));
+        final TextArea descriptionField = new TextArea(ID_DESCRIPTION, new PropertyModel<>(getModel(), DefinitionScopeDto.F_DESCRIPTION));
         descriptionField.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isEnabled() {
@@ -62,5 +70,55 @@ public class DefinitionScopePanel extends SimplePanel<DefinitionScopeDto> {
         });
         add(descriptionField);
 
+        DropDownChoicePanel objectTypeChooser = new DropDownChoicePanel(ID_OBJECT_TYPE_CHOOSER,
+                new PropertyModel(getModel(), DefinitionScopeDto.F_OBJECT_TYPE),
+                WebMiscUtil.createReadonlyModelFromEnum(DefinitionScopeObjectType.class),
+                new IChoiceRenderer<DefinitionScopeObjectType>() {
+
+                    @Override
+                    public Object getDisplayValue(DefinitionScopeObjectType item) {
+                        return item.name();
+                    }
+
+                    @Override
+                    public String getIdValue(DefinitionScopeObjectType item, int index) {
+                        return Integer.toString(index);
+                    }
+                });
+        add(objectTypeChooser);
+
+//        AceEditorPanel queryPanel = new AceEditorPanel(ID_SEARCH_FILTER, null, new PropertyModel(getModel(), DefinitionScopeDto.F_SEARCH_FILTER));
+//        add(queryPanel);
+
+        add(new AjaxCheckBox(ID_INCLUDE_ASSIGNMENTS, new PropertyModel<Boolean>(getModel(), DefinitionScopeDto.F_INCLUDE_ASSIGNMENTS)) {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        });
+        add(new AjaxCheckBox(ID_INCLUDE_INDUCEMENTS, new PropertyModel<Boolean>(getModel(), DefinitionScopeDto.F_INCLUDE_INDUCEMENTS)) {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        });
+        add(new AjaxCheckBox(ID_INCLUDE_RESOURCES, new PropertyModel<Boolean>(getModel(), DefinitionScopeDto.F_INCLUDE_RESOURCES)) {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        });
+        add(new AjaxCheckBox(ID_INCLUDE_ROLES, new PropertyModel<Boolean>(getModel(), DefinitionScopeDto.F_INCLUDE_RESOURCES)) {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        });
+        add(new AjaxCheckBox(ID_INCLUDE_ORGS, new PropertyModel<Boolean>(getModel(), DefinitionScopeDto.F_INCLUDE_ORGS)) {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        });
+        add(new AjaxCheckBox(ID_INCLUDE_ENABLED_ITEMS_ONLY, new PropertyModel<Boolean>(getModel(), DefinitionScopeDto.F_INCLUDE_ENABLED_ITEMS_ONLY)) {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        });
     }
 }
