@@ -22,6 +22,7 @@
     <name>All user assignments</name>
     <description>Certifies all users' assignments. Everything is certified by the administrator.</description>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"><!-- administrator --></ownerRef>
     <remediationDefinition>
         <style>automated</style>
     </remediationDefinition>
