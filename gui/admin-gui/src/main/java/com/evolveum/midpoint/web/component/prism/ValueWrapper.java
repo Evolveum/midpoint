@@ -173,15 +173,12 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("ValueWrapper(\n");
+		sb.append("ValueWrapper:\n");
 		DebugUtil.debugDumpWithLabel(sb, "status", status == null?null:status.toString(), indent+1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "value", value, indent+1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "oldValue", oldValue, indent+1);
-		sb.append("\n");
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append(")");
 		return sb.toString();
 	}
 }

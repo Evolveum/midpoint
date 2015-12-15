@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -235,14 +236,12 @@ public class PropertyWrapper<I extends Item> implements ItemWrapper, Serializabl
         StringBuilder builder = new StringBuilder();
         builder.append("PropertyWrapper(");
         builder.append(getDisplayName());
-        builder.append(", ");
+        builder.append(" (");
         builder.append(status);
-        builder.append(",values=[");
-        for (ValueWrapper wrapper : getValues()) {
-            builder.append(wrapper.toString());
-            builder.append(",");
-        }
-        builder.append("])");
+        builder.append(") ");
+        builder.append(getValues() == null ? null :  getValues().size());
+		builder.append(" values)");
+        builder.append(")");
         return builder.toString();
     }
 
@@ -269,7 +268,8 @@ public class PropertyWrapper<I extends Item> implements ItemWrapper, Serializabl
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("PropertyWrapper(\n");
+		sb.append(getDebugName());
+		sb.append(": ").append(PrettyPrinter.prettyPrint(getName())).append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "displayName", displayName, indent+1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "status", status == null?null:status.toString(), indent+1);
@@ -280,11 +280,14 @@ public class PropertyWrapper<I extends Item> implements ItemWrapper, Serializabl
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "property", property == null?null:property.toString(), indent+1);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "values", values, indent+1);
+		DebugUtil.debugDumpLabel(sb, "values", indent+1);
 		sb.append("\n");
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append(")");
+		DebugUtil.debugDump(sb, values, indent+2, false);
 		return sb.toString();
+	}
+
+	protected String getDebugName() {
+		return "PropertyWrapper";
 	}
 
 }

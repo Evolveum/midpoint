@@ -366,13 +366,11 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 				}
 
 				PrismContainer<ShadowAssociationType> associationContainer = object
-						.findContainer(ShadowType.F_ASSOCIATION);
-				if (associationContainer != null) {
-					container = new ContainerWrapper(this, associationContainer, ContainerStatus.MODIFYING,
-							new ItemPath(ShadowType.F_ASSOCIATION), pageBase);
-					addSubresult(container.getResult());
-					containers.add(container);
-				}
+						.findOrCreateContainer(ShadowType.F_ASSOCIATION);
+				container = new ContainerWrapper(this, associationContainer, ContainerStatus.MODIFYING,
+						new ItemPath(ShadowType.F_ASSOCIATION), pageBase);
+				addSubresult(container.getResult());
+				containers.add(container);
 			} else if (ResourceType.class.isAssignableFrom(clazz)) {
 				containers = createResourceContainers(pageBase);
 			} else if (ReportType.class.isAssignableFrom(clazz)) {
@@ -582,38 +580,23 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 
 		for (ContainerWrapper containerWrapper : getContainers()) {
             //create ContainerDelta for association container
-            //TODO create correct procession for association container data
+            //HACK HACK HACK create correct procession for association container data
             //according to its structure
             if (containerWrapper.getItemDefinition().getName().equals(ShadowType.F_ASSOCIATION)) {
-                ContainerDelta containerDelta = ContainerDelta.createDelta(ShadowType.F_ASSOCIATION, containerWrapper.getItemDefinition());
-                List<ItemWrapper> itemsList = (List<ItemWrapper>) containerWrapper.getItems();
-                //TODO how to get the correct item (instead of index)?
-                int index = 0;
-                for (ItemWrapper vals : itemsList) {
-                    List<ValueWrapper> valuesList = (List<ValueWrapper>) itemsList.get(index).getValues();
-                    if (vals instanceof PropertyWrapper) {
-                        PropertyWrapper assocValue =(PropertyWrapper) vals;
-                        if (assocValue.getStatus() == ValueStatus.DELETED) {
-                            PrismContainer prismContainer = containerWrapper.getItem();
-                            List<PrismContainerValue> containerValues = prismContainer.getValues();
-                            for (PrismContainerValue containerValue : containerValues){
-                                if (containerValues.indexOf(containerValue) == index){
-                                    containerDelta.addValueToDelete(containerValue.clone());
-                                }
-                            }
-                        } else if (assocValue.getStatus().equals(ValueStatus.ADDED)){
-                           PrismContainer prismContainer = containerWrapper.getItem();
-                            List<PrismContainerValue> containerValues = prismContainer.getValues();
-                            for (PrismContainerValue containerValue : containerValues){
-                                if (containerValues.indexOf(containerValue) == index){
-                                    containerDelta.addValueToAdd(containerValue.clone());
-                                }
-                            }
+                ContainerDelta<ShadowAssociationType> associationDelta = ContainerDelta.createDelta(ShadowType.F_ASSOCIATION, containerWrapper.getItemDefinition());
+                List<AssociationWrapper> associationItemWrappers = (List<AssociationWrapper>) containerWrapper.getItems();
+                for (AssociationWrapper associationItemWrapper : associationItemWrappers) {
+                    List<ValueWrapper> assocValueWrappers = associationItemWrapper.getValues();
+                    for (ValueWrapper assocValueWrapper: assocValueWrappers) {
+                    	PrismContainerValue<ShadowAssociationType> assocValue = (PrismContainerValue<ShadowAssociationType>) assocValueWrapper.getValue();
+                        if (assocValueWrapper.getStatus() == ValueStatus.DELETED) {
+                        	associationDelta.addValueToDelete(assocValue.clone());
+                        } else if (assocValueWrapper.getStatus().equals(ValueStatus.ADDED)){
+                            associationDelta.addValueToAdd(assocValue.clone());
                         }
                     }
-                    index++;
                 }
-                delta.addModification(containerDelta);
+                delta.addModification(associationDelta);
             } else {
                 if (!containerWrapper.hasChanged()) {
                     continue;
@@ -645,6 +628,8 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 		// returning container to previous order
 		Collections.sort(containers, new ItemWrapperComparator());
 
+		// Make sure we have all the definitions
+		object.getPrismContext().adopt(delta);
 		return delta;
 	}
 
@@ -902,15 +887,13 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
+		builder.append("ObjectWrapper(");
 		builder.append(ContainerWrapper.getDisplayNameFromItem(object));
-		builder.append(", ");
+		builder.append(" (");
 		builder.append(status);
-		builder.append("\n");
-		for (ContainerWrapper wrapper : getContainers()) {
-			builder.append("\t");
-			builder.append(wrapper.toString());
-			builder.append("\n");
-		}
+		builder.append(") ");
+		builder.append(getContainers() == null ? null :  getContainers().size());
+		builder.append(" containers)");
 		return builder.toString();
 	}
 

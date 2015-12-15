@@ -135,16 +135,19 @@ public class AssociationValueChoosePanel <C extends ObjectType> extends SimplePa
     protected void replace(Object object) {
     	//TODO  be careful , non systematic hack
         ShadowType shadowType = (ShadowType) object;
-        PrismContainerValue<ShadowAssociationType> old = getModel().getObject();
-        ShadowAssociationType assocType = new ShadowAssociationType();
+        ValueWrapper<PrismContainerValue<ShadowAssociationType>> oldCValueWrapper = model.getObject();
+        AssociationWrapper associationWrapper = (AssociationWrapper) oldCValueWrapper.getItem();
+        PrismContainer<ShadowAssociationType> container = (PrismContainer<ShadowAssociationType>) associationWrapper.getItem();
+        container.remove((PrismContainerValue)oldCValueWrapper.getValue());
+        PrismContainerValue<ShadowAssociationType> newValue = container.createNewValue();
+        ShadowAssociationType assocType = newValue.asContainerable();
         ObjectReferenceType shadowRef = new ObjectReferenceType();
         shadowRef.setOid(shadowType.getOid());
         shadowRef.asReferenceValue().setObject(shadowType.asPrismObject());
 		assocType.setShadowRef(shadowRef);
 		assocType.setName(model.getObject().getItem().getName());
-		PrismContainerValue<ShadowAssociationType> ppv = assocType.asPrismContainerValue();
-        getModel().setObject(ppv);
-        LOGGER.trace("Replaced value of {} with {} ({})", this, ppv, assocType);
+        getModel().setObject(newValue);
+        LOGGER.trace("Replaced value of {} with {} ({})", this, newValue, assocType);
     }
 
     protected void initDialog(final Class<C> type, List<PrismPropertyValue> values) {

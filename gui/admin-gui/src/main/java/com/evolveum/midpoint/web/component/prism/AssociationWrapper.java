@@ -37,11 +37,16 @@ public class AssociationWrapper extends PropertyWrapper {
 
 	@Override
 	public ValueWrapper createAddedValue() {
-		ItemDefinition definition = getDefinition();
-
-        ValueWrapper wrapper = new ValueWrapper(this, new PrismContainerValue<ShadowAssociationType>(null), ValueStatus.ADDED);
+		PrismContainer<ShadowAssociationType> container = (PrismContainer<ShadowAssociationType>)getItem();
+		PrismContainerValue<ShadowAssociationType> cval = container.createNewValue();
+        ValueWrapper wrapper = new ValueWrapper(this, cval, ValueStatus.ADDED);
 
         return wrapper;
+	}
+	
+	@Override
+	protected String getDebugName() {
+		return "AssociationWrapper";
 	}
 	
 }

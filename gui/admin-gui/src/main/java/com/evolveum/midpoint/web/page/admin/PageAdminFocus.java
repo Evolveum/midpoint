@@ -1236,6 +1236,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 		for (FocusProjectionDto accDto : accounts) {
 			if (accDto.isLoadedOK()) {
 				ObjectWrapper accountWrapper = accDto.getObject();
+				accountWrapper.revive(getPrismContext());
 				ObjectDelta delta = accountWrapper.getObjectDelta();
 				PrismReferenceValue refValue = new PrismReferenceValue(null, OriginType.USER_ACTION, null);
 
@@ -1279,6 +1280,7 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 		for (FocusProjectionDto orgDto : orgs) {
 			if (orgDto.isLoadedOK()) {
 				ObjectWrapper orgWrapper = orgDto.getObject();
+				orgWrapper.revive(getPrismContext());
 				ObjectDelta delta = orgWrapper.getObjectDelta();
 				PrismReferenceValue refValue = new PrismReferenceValue(null, OriginType.USER_ACTION, null);
 
