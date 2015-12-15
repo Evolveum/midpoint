@@ -25,8 +25,10 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 
 /**
@@ -48,6 +50,7 @@ public class CertDefinitionDto implements Serializable {
     private String ownerName;
     private String xml;
     private PrismReferenceValue owner;
+    private String scopeSearchFilter;
 
     public CertDefinitionDto(AccessCertificationDefinitionType definition, PageBase page, Task task, OperationResult result) {
         this.oldDefinition = definition.clone();
@@ -130,7 +133,7 @@ public class CertDefinitionDto implements Serializable {
             dto.setDescription(scopeTypeObj.getDescription());
             if (scopeTypeObj instanceof AccessCertificationObjectBasedScopeType) {
                 AccessCertificationObjectBasedScopeType objScopeType = (AccessCertificationObjectBasedScopeType) scopeTypeObj;
-                dto.setObjectType(objScopeType.getObjectType());
+                dto.setObjectType(DefinitionScopeObjectType.valueOf(objScopeType.getObjectType().getLocalPart()));
                 dto.setSearchFilter(objScopeType.getSearchFilter());
                 if (objScopeType instanceof AccessCertificationAssignmentReviewScopeType) {
                     AccessCertificationAssignmentReviewScopeType assignmentScope =
@@ -156,7 +159,7 @@ public class CertDefinitionDto implements Serializable {
             scopeTypeObj = new AccessCertificationAssignmentReviewScopeType();
             scopeTypeObj.setName(definitionScopeDto.getName());
             scopeTypeObj.setDescription(definitionScopeDto.getDescription());
-            scopeTypeObj.setObjectType(definitionScopeDto.getObjectType());
+            scopeTypeObj.setObjectType(definitionScopeDto.getObjectType() != null ? new QName(definitionScopeDto.getObjectType().name()) : null);
             scopeTypeObj.setSearchFilter(definitionScopeDto.getSearchFilter());
             scopeTypeObj.setIncludeAssignments(definitionScopeDto.isIncludeAssignments());
             scopeTypeObj.setIncludeInducements(definitionScopeDto.isIncludeInducements());
