@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.ROExtStringId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -59,6 +60,7 @@ public class ROExtString implements ROExtValue {
     @ForeignKey(name = "fk_object_ext_string")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
+    @NotQueryable
     public RObject getOwner() {
         return owner;
     }

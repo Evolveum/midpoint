@@ -25,7 +25,7 @@
     <parent>
         <groupId>com.evolveum.midpoint</groupId>
         <artifactId>midpoint</artifactId>
-        <version>3.3-SNAPSHOT</version>
+        <version>3.4-SNAPSHOT</version>
     </parent>
     <pluginRepositories>
         <pluginRepository>
@@ -74,11 +74,12 @@
         <activiti-spring.version>5.17.0</activiti-spring.version>
         <commons-email.version>1.3</commons-email.version>
         <xmlsec.version>2.0.1</xmlsec.version>
-        <connid.version>1.4.1.23</connid.version>
-        <jasper.version>6.0.0</jasper.version>
+        <connid.version>1.4.2.0</connid.version>
+        <jasper.version>6.1.1</jasper.version>
         <derby.version>10.11.1.1</derby.version>
         <wro4j.version>1.7.1</wro4j.version>
         <jackson.version>2.3.3</jackson.version>
+        <surefire.version>2.19</surefire.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -252,7 +253,7 @@
             <dependency>
                 <groupId>commons-collections</groupId>
                 <artifactId>commons-collections</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.2</version>
             </dependency>
             <dependency>
                 <groupId>commons-configuration</groupId>
@@ -462,7 +463,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
-                <version>1.4.2.0-SNAPSHOT</version>
+                <version>1.4.2.0</version>
                 <exclusions>
 					<exclusion> <!-- Version in dependency of org.apache.servicemix.bundles:org.apache.servicemix.bundles.dom4j conflicts with xalan -->
                         <groupId>xml-apis</groupId>
@@ -626,7 +627,7 @@
             <dependency>
 			    <groupId>org.forgerock.opendj</groupId>
 			    <artifactId>opendj-ldap-sdk</artifactId>
-			    <version>2.6.0</version>
+			    <version>${opendj.version}</version>
 			</dependency>
             <dependency>
                 <groupId>org.apache.velocity</groupId>
@@ -673,6 +674,32 @@
                     <exclusion> <!-- Conflicting version with Spring core -->
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                    <exclusion> <!-- Causes problems with OpenDJ -->
+                        <groupId>bouncycastle</groupId>
+                        <artifactId>bcmail-jdk14</artifactId>
+                    </exclusion>
+                    <exclusion> <!-- Causes problems with OpenDJ -->
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcmail-jdk14</artifactId>
+                    </exclusion>
+                    <exclusion> <!-- Causes problems with OpenDJ -->
+                        <groupId>bouncycastle</groupId>
+                        <artifactId>bcprov-jdk14</artifactId>
+                    </exclusion>
+                    <exclusion> <!-- Causes problems with OpenDJ -->
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcprov-jdk14</artifactId>
+                    </exclusion>
+                    <exclusion> <!-- Causes problems with OpenDJ -->
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bctsp-jdk14</artifactId>
+                    </exclusion>
+                    <exclusion> <!-- Pulled in by castor-xml. Conflicts with itself (depends both on stax-api 1.0-2 and 1.0.1) 
+                                     Note: the 1.0-2 and 1.0.1 have differeng group IDs (but same java packages),
+                                           so dependency convergence will not detect this. -->
+                        <groupId>javax.xml.stream</groupId>
+                        <artifactId>stax-api</artifactId>
                     </exclusion>
                     <!-- use in midPoint 3.2
                     <exclusion>
@@ -832,7 +859,7 @@
 	        <dependency>
 				<groupId>org.codehaus.groovy.modules.http-builder</groupId>
 				<artifactId>http-builder</artifactId>
-				<version>0.7</version>
+				<version>0.7.1</version>
 				 <exclusions>
 	                <exclusion> <!-- Version conflict -->
 	                    <groupId>commons-logging</groupId>
@@ -844,6 +871,26 @@
 				<groupId>joda-time</groupId>
 				<artifactId>joda-time</artifactId>
 				<version>2.6</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.directory.api</groupId>
+				<artifactId>api-all</artifactId>
+				<version>1.0.0-M32-e1</version>
+				<exclusions>
+	                <exclusion>
+	                    <artifactId>slf4j-api</artifactId>
+	                    <groupId>org.slf4j</groupId>
+	                </exclusion>
+	                <exclusion> <!-- Version conflict with xalan -->
+					    <groupId>xml-apis</groupId>
+	    				<artifactId>xml-apis</artifactId>
+	                </exclusion>
+	            </exclusions>
+			</dependency>
+			<dependency>
+				<groupId>javax.mail</groupId>
+				<artifactId>javax.mail-api </artifactId>
+				<version>1.5.4</version>
 			</dependency>
         </dependencies>
     </dependencyManagement>
@@ -1012,7 +1059,45 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
-                        <version>2.17</version>
+                        <version>${surefire.version}</version>
+                        <executions>
+                        	<execution>
+                        		<id>default-test</id> <!-- unit tests -->
+                        		<phase>test</phase>
+                        		<goals>
+                        			<goal>test</goal>
+                        		</goals>
+                        		<configuration>
+                        			<suiteXmlFiles>
+		                                <suiteXmlFile>testng-unit.xml</suiteXmlFile>
+		                            </suiteXmlFiles>
+		                            <properties>
+			                            <property>
+			                                <name>suitename</name>
+			                                <value>Unit</value>
+			                            </property>
+			                        </properties>
+                        		</configuration>
+                        	</execution>
+                        	<execution>
+                        		<id>integration-test</id>
+                        		<phase>integration-test</phase>
+                        		<goals>
+                        			<goal>test</goal>
+                        		</goals>
+                        		<configuration>
+                        			<suiteXmlFiles>
+		                                <suiteXmlFile>testng-integration.xml</suiteXmlFile>
+		                            </suiteXmlFiles>
+		                            <properties>
+			                            <property>
+			                                <name>suitename</name>
+			                                <value>Integration</value>
+			                            </property>
+			                        </properties>
+                        		</configuration>
+                        	</execution>
+                        </executions>
                         <configuration>
                         	<parallel>false</parallel>
                         	<forkCount>1</forkCount>
@@ -1023,9 +1108,6 @@
                             <!-- 							<perCoreThreadCount>false</perCoreThreadCount> -->
                             <!-- 							<reportFormat>plain</reportFormat> -->
                             <trimStackTrace>false</trimStackTrace>
-                            <suiteXmlFiles>
-                                <suiteXmlFile>testng.xml</suiteXmlFile>
-                            </suiteXmlFiles>
                         	<properties>
 								<property>
 									<name>listener</name>
@@ -1052,7 +1134,7 @@
                             <dependency>
                                 <groupId>org.apache.maven.surefire</groupId>
                                 <artifactId>surefire-testng</artifactId>
-                                <version>2.17</version>
+                                <version>${surefire.version}</version>
                             </dependency>
                         </dependencies>
                     </plugin>
@@ -1221,6 +1303,7 @@
 					<plugin>
 					  <!-- Skip all tests by default. We only want selected tests to run. -->
 					  <artifactId>maven-surefire-plugin</artifactId>
+					  <version>${surefire.version}</version>
 					  <configuration>
 					    <skip>true</skip>
 					  </configuration>
@@ -1235,6 +1318,7 @@
 					<plugin>
 					  <!-- Skip all tests by default. We only want selected tests to run. -->
 					  <artifactId>maven-surefire-plugin</artifactId>
+					  <version>${surefire.version}</version>
 					  <configuration>
 					    <skip>true</skip>
 					  </configuration>
@@ -1249,6 +1333,7 @@
 					<plugin>
 					  <!-- Skip all tests by default. We only want selected tests to run. -->
 					  <artifactId>maven-surefire-plugin</artifactId>
+					  <version>${surefire.version}</version>
 					  <configuration>
 					    <skip>true</skip>
 					  </configuration>
@@ -1263,10 +1348,35 @@
 					<plugin>
 					  <!-- Skip all tests by default. We only want selected tests to run. -->
 					  <artifactId>maven-surefire-plugin</artifactId>
+					  <version>${surefire.version}</version>
 					  <configuration>
 					    <skip>true</skip>
 					  </configuration>
 					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>java8</id>
+			<build>
+				<plugins>
+					<plugin>
+					  <groupId>org.apache.maven.plugins</groupId>
+					  <artifactId>maven-javadoc-plugin</artifactId>
+					  <version>2.10.3</version>
+					  <executions>
+				        <execution>
+				            <id>javadoc-jar</id>
+				            <goals>
+				                <goal>jar</goal>
+				            </goals>
+				            <configuration>
+				                <additionalparam>-Xdoclint:none</additionalparam>
+				                <failOnError>false</failOnError>
+				            </configuration>
+				        </execution>
+				    </executions>
+				</plugin>
 				</plugins>
 			</build>
 		</profile>
@@ -1286,6 +1396,11 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-aspects</artifactId>
             <version>${spring.version}</version>
+        </dependency>
+    	<dependency> <!-- Not used, but required for surefire plugin not to complain -->
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

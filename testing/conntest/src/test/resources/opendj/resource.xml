@@ -308,7 +308,6 @@
 					<q:not>
 						<q:equal>
 							<q:path>c:employeeNumber</q:path>
-							<q:value/>
 						</q:equal>
 					</q:not>
 				</q:and>
@@ -344,7 +343,7 @@
 				<q:equal>
 					<q:path>c:name</q:path>
 					<expression>
-					<path>$shadow/attributes/cn</path>
+						<path>$shadow/attributes/cn</path>
 					</expression>
 				</q:equal>
 			</correlation>

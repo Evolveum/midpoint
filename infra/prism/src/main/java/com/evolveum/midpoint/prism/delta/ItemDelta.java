@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,6 +82,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 
 	protected ItemDelta(ItemPath parentPath, QName elementName, D itemDefinition, PrismContext prismContext) {
         //checkPrismContext(prismContext, itemDefinition);
+		ItemPath.checkNoReferences(parentPath);
         this.prismContext = prismContext;
 		this.elementName = elementName;
 		this.parentPath = parentPath;
@@ -90,6 +91,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 
 	protected ItemDelta(ItemPath path, D itemDefinition, PrismContext prismContext) {
         //checkPrismContext(prismContext, itemDefinition);
+		ItemPath.checkNoReferences(path);
         this.prismContext = prismContext;
 
 		if (path == null) {
@@ -133,6 +135,9 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 
 	@Override
 	public ItemPath getPath() {
+		if (getParentPath() == null) {
+			throw new IllegalStateException("No parent path in "+this);
+		}
 		return getParentPath().subPath(elementName);
 	}
 
@@ -146,6 +151,10 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 
 	@Override
 	public void accept(Visitor visitor) {
+		accept(visitor, true);
+	}
+	
+	public void accept(Visitor visitor, boolean includeOldValues) {
 		visitor.visit(this);
 		if (getValuesToAdd() != null) {
 			for (V pval : getValuesToAdd()) {
@@ -162,7 +171,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 				pval.accept(visitor);
 			}
 		}
-		if (getEstimatedOldValues() != null) {
+		if (includeOldValues && getEstimatedOldValues() != null) {
 			for (V pval : getEstimatedOldValues()) {
 				pval.accept(visitor);
 			}
@@ -511,9 +520,11 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		} else {
 			valuesToReplace.clear();
 		}
-		valuesToReplace.add(newValue);
-		newValue.setParent(this);
-		newValue.recompute();
+		if (newValue != null) {
+			valuesToReplace.add(newValue);
+			newValue.setParent(this);
+			newValue.recompute();
+		}
 	}
 	
 	public void mergeValuesToReplace(Collection<V> newValues) {
@@ -763,6 +774,19 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
         while (deltasIterator.hasNext()) {
         	ItemDelta<?,?> delta = deltasIterator.next();
             if (deltaType.isAssignableFrom(delta.getClass()) && delta.getPath().equivalent(propertyPath)) {
+                deltasIterator.remove();
+            }
+        }
+    }
+    
+    public static <D extends ItemDelta> void removeItemDelta(Collection<? extends ItemDelta> deltas, ItemDelta deltaToRemove) {
+        if (deltas == null) {
+            return;
+        }
+        Iterator<? extends ItemDelta> deltasIterator = deltas.iterator();
+        while (deltasIterator.hasNext()) {
+        	ItemDelta<?,?> delta = deltasIterator.next();
+            if (delta.equals(deltaToRemove)) {
                 deltasIterator.remove();
             }
         }
@@ -1063,6 +1087,15 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		for (ItemDelta delta : deltas) {
 			delta.applyToMatchingPath(propertyContainer);
 		}
+	}
+
+	public void applyTo(PrismContainerValue containerValue) throws SchemaException {
+		ItemPath deltaPath = getPath();
+		if (ItemPath.isNullOrEmpty(deltaPath)) {
+			throw new IllegalArgumentException("Cannot apply empty-path delta " + this + " directly to a PrismContainerValue " + containerValue);
+		}
+		Item subItem = containerValue.findOrCreateItem(deltaPath, getItemClass(), getDefinition());
+		applyToMatchingPath(subItem);
 	}
 	
 	public void applyTo(Item item) throws SchemaException {

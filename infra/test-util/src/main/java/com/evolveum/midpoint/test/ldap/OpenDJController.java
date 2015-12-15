@@ -414,6 +414,18 @@ public class OpenDJController extends AbstractResourceController {
 	public boolean isRunning() {
 		return EmbeddedUtils.isRunning();
 	}
+	
+	public void assumeRunning() {
+		if (!isRunning()) {
+			start();
+		}
+	}
+	
+	public void assumeStopped() {
+		if (isRunning()) {
+			stop();
+		}
+	}
 
 	/**
 	 * Delete a directory and its contents.
@@ -453,7 +465,7 @@ public class OpenDJController extends AbstractResourceController {
 	
 	// Generic utility methods
 	
-	public SearchResultEntry searchByEntryUuid(String entryUuid) throws DirectoryException {
+	public Entry searchByEntryUuid(String entryUuid) throws DirectoryException {
 		InternalSearchOperation op = getInternalConnection().processSearch(
 				"dc=example,dc=com", SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
 				100, false, "(entryUUID=" + entryUuid + ")", getSearchAttributes());
@@ -468,15 +480,15 @@ public class OpenDJController extends AbstractResourceController {
 		return searchEntries.get(0);
 	}
 
-	public SearchResultEntry searchAndAssertByEntryUuid(String entryUuid) throws DirectoryException {
-		SearchResultEntry entry = searchByEntryUuid(entryUuid);
+	public Entry searchAndAssertByEntryUuid(String entryUuid) throws DirectoryException {
+		Entry entry = searchByEntryUuid(entryUuid);
 		if (entry == null) {
 			AssertJUnit.fail("Entry UUID "+entryUuid+" not found");
 		}
 		return entry;
 	}
 	
-	public SearchResultEntry searchSingle(String filter) throws DirectoryException {
+	public Entry searchSingle(String filter) throws DirectoryException {
 		InternalSearchOperation op = getInternalConnection().processSearch(
 				getSuffix(), SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
 				100, false, filter, getSearchAttributes());
@@ -489,11 +501,11 @@ public class OpenDJController extends AbstractResourceController {
 		return op.getSearchEntries().get(0);
 	}
 	
-	public SearchResultEntry searchByUid(String string) throws DirectoryException {
+	public Entry searchByUid(String string) throws DirectoryException {
 		return searchSingle("(uid=" + string + ")");
 	}
 	
-	public SearchResultEntry fetchEntry(String dn) throws DirectoryException {
+	public Entry fetchEntry(String dn) throws DirectoryException {
 		InternalSearchOperation op = getInternalConnection().processSearch(
 				dn, SearchScope.BASE_OBJECT, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
 				100, false, "(objectclass=*)", getSearchAttributes());
@@ -506,8 +518,8 @@ public class OpenDJController extends AbstractResourceController {
 		return op.getSearchEntries().get(0);
 	}
 	
-	public SearchResultEntry fetchAndAssertEntry(String dn, String objectClass) throws DirectoryException {
-		SearchResultEntry entry = fetchEntry(dn);
+	public Entry fetchAndAssertEntry(String dn, String objectClass) throws DirectoryException {
+		Entry entry = fetchEntry(dn);
 		AssertJUnit.assertNotNull("No entry for DN "+dn, entry);
 		assertDn(entry, dn);
 		assertObjectClass(entry, objectClass);
@@ -521,7 +533,7 @@ public class OpenDJController extends AbstractResourceController {
 		return attrs;
 	}
 
-	public boolean isAccountEnabled(SearchResultEntry ldapEntry) {
+	public boolean isAccountEnabled(Entry ldapEntry) {
 		String pwpAccountDisabled = getAttributeValue(ldapEntry, "ds-pwp-account-disabled");
 		if (pwpAccountDisabled != null && pwpAccountDisabled.equals("true")) {
 			return false;
@@ -529,7 +541,7 @@ public class OpenDJController extends AbstractResourceController {
 		return true;
 	}
 
-	public static String getAttributeValue(SearchResultEntry response, String name) {
+	public static String getAttributeValue(Entry response, String name) {
 		List<Attribute> attrs = response.getAttribute(name.toLowerCase());
 		if (attrs == null || attrs.size() == 0) {
 			return null;
@@ -540,7 +552,7 @@ public class OpenDJController extends AbstractResourceController {
 		return attribute.iterator().next().getValue().toString();
 	}
 	
-	public static byte[] getAttributeValueBinary(SearchResultEntry response, String name) {
+	public static byte[] getAttributeValueBinary(Entry response, String name) {
 		List<Attribute> attrs = response.getAttribute(name.toLowerCase());
 		if (attrs == null || attrs.size() == 0) {
 			return null;
@@ -552,7 +564,7 @@ public class OpenDJController extends AbstractResourceController {
 		return value.toByteArray();
 	}
 	
-	public static Collection<String> getAttributeValues(SearchResultEntry response, String name) {
+	public static Collection<String> getAttributeValues(Entry response, String name) {
 		List<Attribute> attrs = response.getAttribute(name.toLowerCase());
 		if (attrs == null || attrs.size() == 0) {
 			return null;
@@ -569,12 +581,12 @@ public class OpenDJController extends AbstractResourceController {
 		return values;
 	}
 
-	public static String getDn(SearchResultEntry response) {
+	public static String getDn(Entry response) {
 		DN dn = response.getDN();
 		return dn.toString();
 	}
 	
-	public static void assertDn(SearchResultEntry response, String expected) throws DirectoryException {
+	public static void assertDn(Entry response, String expected) throws DirectoryException {
 		DN actualDn = response.getDN();
 		if (actualDn.compareTo(DN.decode(expected)) != 0) {
 			AssertJUnit.fail("Wrong DN, expected "+expected+" but was "+actualDn.toString());
@@ -582,25 +594,25 @@ public class OpenDJController extends AbstractResourceController {
 	}
 	
 	public void assertNoEntry(String dn) throws DirectoryException {
-		SearchResultEntry entry = fetchEntry(dn);
+		Entry entry = fetchEntry(dn);
 		if (entry != null) {
 			AssertJUnit.fail("Found entry for dn "+dn+" while not expecting it: "+entry);
 		}
 	}
 	
-	public static void assertObjectClass(SearchResultEntry response, String expected) throws DirectoryException {
+	public static void assertObjectClass(Entry response, String expected) throws DirectoryException {
 		Collection<String> objectClassValues = getAttributeValues(response, "objectClass");
 		AssertJUnit.assertTrue("Wrong objectclass for entry "+getDn(response)+", expected "+expected+" but got "+objectClassValues,
 				objectClassValues.contains(expected));
 	}
 	
-	public static void assertNoObjectClass(SearchResultEntry response, String unexpected) throws DirectoryException {
+	public static void assertNoObjectClass(Entry response, String unexpected) throws DirectoryException {
 		Collection<String> objectClassValues = getAttributeValues(response, "objectClass");
 		AssertJUnit.assertFalse("Unexpected objectclass for entry "+getDn(response)+": "+unexpected+", got "+objectClassValues,
 				objectClassValues.contains(unexpected));
 	}
 
-	public void assertUniqueMember(SearchResultEntry groupEntry, String accountDn) throws DirectoryException {
+	public void assertUniqueMember(Entry groupEntry, String accountDn) throws DirectoryException {
 		Collection<String> members = getAttributeValues(groupEntry, "uniqueMember");
 		assertContainsDn("No member "+accountDn+" in group "+getDn(groupEntry),
 				members, accountDn);
@@ -619,22 +631,22 @@ public class OpenDJController extends AbstractResourceController {
 	}
 	
 	public void assertUniqueMember(String groupDn, String accountDn) throws DirectoryException {
-		SearchResultEntry groupEntry = fetchEntry(groupDn);
+		Entry groupEntry = fetchEntry(groupDn);
 		assertUniqueMember(groupEntry, accountDn);
 	}
 	
 	public void assertNoUniqueMember(String groupDn, String accountDn) throws DirectoryException {
-		SearchResultEntry groupEntry = fetchEntry(groupDn);
+		Entry groupEntry = fetchEntry(groupDn);
 		assertNoUniqueMember(groupEntry, accountDn);
 	}
 	
-	public void assertNoUniqueMember(SearchResultEntry groupEntry, String accountDn) {
+	public void assertNoUniqueMember(Entry groupEntry, String accountDn) {
 		Collection<String> members = getAttributeValues(groupEntry, "uniqueMember");
 		MidPointAsserts.assertNotContainsCaseIgnore("Member "+accountDn+" in group "+getDn(groupEntry),
 				members, accountDn);
 	}
 
-	public static void assertAttribute(SearchResultEntry response, String name, String... values) {
+	public static void assertAttribute(Entry response, String name, String... values) {
 		List<Attribute> attrs = response.getAttribute(name.toLowerCase());
 		if (attrs == null || attrs.size() == 0) {
 			if (values.length == 0) {
@@ -667,7 +679,7 @@ public class OpenDJController extends AbstractResourceController {
 		}
 	}
 	
-	public static void assertNoAttribute(SearchResultEntry response, String name) {
+	public static void assertNoAttribute(Entry response, String name) {
 		List<Attribute> attrs = response.getAttribute(name.toLowerCase());
 		if (attrs == null || attrs.size() == 0) {
 			return;
@@ -684,7 +696,7 @@ public class OpenDJController extends AbstractResourceController {
 		AssertJUnit.fail("Attribute "+name+" exists while not expecting it: "+attribute);
 	}
 	
-	public void assertActive(SearchResultEntry response, boolean active) {
+	public void assertActive(Entry response, boolean active) {
 		assertEquals("Unexpected activation of entry "+response, active, isAccountEnabled(response));
 	}
 	
@@ -797,7 +809,7 @@ public class OpenDJController extends AbstractResourceController {
 	}
 
     public Collection<String> getGroupUniqueMembers(String groupDn) throws DirectoryException {
-        SearchResultEntry groupEntry = fetchEntry(groupDn);
+    	Entry groupEntry = fetchEntry(groupDn);
         if (groupEntry == null) {
             throw new IllegalArgumentException(groupDn + " was not found");
         }

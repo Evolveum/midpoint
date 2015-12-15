@@ -41,9 +41,9 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
@@ -61,8 +61,10 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private DeltaSetTriple<Construction<F>> constructions;
 	private DeltaSetTriple<EvaluatedAbstractRoleImpl> roles;
 	private Collection<PrismReferenceValue> orgRefVals;
+	private Collection<PrismReferenceValue> membershipRefVals;
 	private Collection<Authorization> authorizations;
 	private Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> focusMappings;
+	private Collection<AdminGuiConfigurationType> adminGuiConfigurations;
 	private PrismObject<?> target;
 	private boolean isValid;
 	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
@@ -73,8 +75,10 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		constructions = new DeltaSetTriple<>();
 		roles = new DeltaSetTriple<>();
 		orgRefVals = new ArrayList<>();
+		membershipRefVals = new ArrayList<>();
 		authorizations = new ArrayList<>();
 		focusMappings = new ArrayList<>();
+		adminGuiConfigurations = new ArrayList<>(); 
 	}
 
 	public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
@@ -104,13 +108,13 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	 *
 	 * @return
 	 */
-	public DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(OperationResult result) throws SchemaException, ObjectNotFoundException {
+	public DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		DeltaSetTriple<EvaluatedConstruction> rv = new DeltaSetTriple<>();
 		for (PlusMinusZero whichSet : PlusMinusZero.values()) {
 			Collection<Construction<F>> constructionSet = constructions.getSet(whichSet);
 			if (constructionSet != null) {
 				for (Construction<F> construction : constructionSet) {
-					rv.addToSet(whichSet, new EvaluatedConstructionImpl(construction, result));
+					rv.addToSet(whichSet, new EvaluatedConstructionImpl(construction, task, result));
 				}
 			}
 		}
@@ -155,6 +159,14 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	public void addOrgRefVal(PrismReferenceValue org) {
 		orgRefVals.add(org);
 	}
+	
+	public Collection<PrismReferenceValue> getMembershipRefVals() {
+		return membershipRefVals;
+	}
+
+	public void addMembershipRefVal(PrismReferenceValue org) {
+		membershipRefVals.add(org);
+	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#getAuthorizations()
@@ -168,6 +180,14 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		authorizations.add(authorization);
 	}
 	
+	public Collection<AdminGuiConfigurationType> getAdminGuiConfigurations() {
+		return adminGuiConfigurations;
+	}
+	
+	public void addAdminGuiConfiguration(AdminGuiConfigurationType adminGuiConfiguration) {
+		adminGuiConfigurations.add(adminGuiConfiguration);
+	}
+
 	public Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> getFocusMappings() {
 		return focusMappings;
 	}
@@ -208,10 +228,10 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		this.forceRecon = forceRecon;
 	}
 
-	public Collection<ResourceType> getResources(OperationResult result) throws ObjectNotFoundException, SchemaException {
+	public Collection<ResourceType> getResources(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		Collection<ResourceType> resources = new ArrayList<ResourceType>();
 		for (Construction<F> acctConstr: constructions.getAllValues()) {
-			resources.add(acctConstr.getResource(result));
+			resources.add(acctConstr.getResource(task, result));
 		}
 		return resources;
 	}

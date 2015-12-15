@@ -31,7 +31,7 @@ public abstract class UnaryLogicalRestriction<T extends UnaryLogicalFilter> exte
     private static final Trace LOGGER = TraceManager.getTrace(UnaryLogicalRestriction.class);
 
     @Override
-    public boolean canHandle(ObjectFilter filter, QueryContext context) {
+    public boolean canHandle(ObjectFilter filter) {
         if (filter instanceof UnaryLogicalFilter) {
             return true;
         }

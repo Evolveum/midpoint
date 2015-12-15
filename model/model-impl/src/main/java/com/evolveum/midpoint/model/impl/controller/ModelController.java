@@ -21,9 +21,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -31,7 +29,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.model.api.ProgressListener;
-import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
@@ -40,8 +37,7 @@ import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
-import com.evolveum.midpoint.prism.parser.XNodeSerializer;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -51,7 +47,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 
 import org.apache.commons.lang.StringUtils;
@@ -65,18 +60,10 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.common.InternalsConfig;
-import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.common.refinery.LayerRefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.LayerRefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
@@ -88,35 +75,21 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.util.Utils;
-import com.evolveum.midpoint.prism.DisplayableValueImpl;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.query.AllFilter;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -126,7 +99,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ObjectSelector;
 import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -134,17 +106,13 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -157,39 +125,19 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * This used to be an interface, but it was switched to class for simplicity. I
@@ -206,7 +154,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author Radovan Semancik
  */
 @Component
-public class ModelController implements ModelService, ModelInteractionService, TaskService, WorkflowService, ScriptingService, AccessCertificationService {
+public class ModelController implements ModelService, TaskService, WorkflowService, ScriptingService, AccessCertificationService {
 
 	// Constants for OperationResult
 	public static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
@@ -438,7 +386,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			return;
 		}
 		ItemPath path = selector.getPath();
-		resolve (object, path, option, task, result);
+		ItemPath.checkNoReferences(path);
+		resolve(object, path, option, task, result);
 	}
 		
 	private <O extends ObjectType> void resolve(PrismObject<?> object, ItemPath path, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
@@ -486,7 +435,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			PolicyViolationException, SecurityViolationException {
 
-        Collection<ObjectDeltaOperation<? extends ObjectType>> retval = new ArrayList<>();
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ArrayList<>();
 
 		OperationResult result = parentResult.createSubresult(EXECUTE_CHANGES);
 		result.addParam(OperationResult.PARAM_OPTIONS, options);
@@ -534,151 +483,184 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				// Go directly to repository
 				AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.EXECUTE_CHANGES_RAW, AuditEventStage.REQUEST);
 				auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(deltas));
+				// we don't know auxiliary information (resource, objectName) at this moment -- so we do nothing
 				auditService.audit(auditRecord, task);
-				for(ObjectDelta<? extends ObjectType> delta: deltas) {
-                    OperationResult result1 = result.createSubresult(EXECUTE_CHANGE);
+				try {
+					for (ObjectDelta<? extends ObjectType> delta : deltas) {
+						OperationResult result1 = result.createSubresult(EXECUTE_CHANGE);
 
-					// MID-2486
-					if (delta.getObjectTypeClass() == ShadowType.class || delta.getObjectTypeClass() == ResourceType.class) {
+						// MID-2486
+						if (delta.getObjectTypeClass() == ShadowType.class || delta.getObjectTypeClass() == ResourceType.class) {
+							try {
+								provisioning.applyDefinition(delta, result1);
+							} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | RuntimeException e) {
+								// we can tolerate this - if there's a real problem with definition, repo call below will fail
+								LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't apply definition on shadow/resource raw-mode delta {} -- continuing the operation.", e, delta);
+								result1.muteLastSubresultError();
+							}
+						}
+
+						PrismObject objectToDetermineDetailsForAudit = null;
 						try {
-							provisioning.applyDefinition(delta, result1);
-						} catch (SchemaException|ObjectNotFoundException|CommunicationException|ConfigurationException|RuntimeException e) {
-							// we can tolerate this - if there's a real problem with definition, repo call below will fail
-							LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't apply definition on shadow/resource raw-mode delta {} -- continuing the operation.", e, delta);
-							result1.muteLastSubresultError();
+							if (delta.isAdd()) {
+								RepoAddOptions repoOptions = new RepoAddOptions();
+								if (ModelExecuteOptions.isNoCrypt(options)) {
+									repoOptions.setAllowUnencryptedValues(true);
+								}
+								if (ModelExecuteOptions.isOverwrite(options)) {
+									repoOptions.setOverwrite(true);
+								}
+								PrismObject<? extends ObjectType> objectToAdd = delta.getObjectToAdd();
+								securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), null, objectToAdd, null, null, null, result1);
+								String oid;
+								try {
+									oid = cacheRepositoryService.addObject(objectToAdd, repoOptions, result1);
+									task.recordObjectActionExecuted(objectToAdd, null, oid, ChangeType.ADD, task.getChannel(), null);
+								} catch (Throwable t) {
+									task.recordObjectActionExecuted(objectToAdd, null, null, ChangeType.ADD, task.getChannel(), t);
+									throw t;
+								}
+								delta.setOid(oid);
+								objectToDetermineDetailsForAudit = objectToAdd;
+							} else if (delta.isDelete()) {
+								QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
+								try {
+									if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
+										// getting the object is avoided in case of administrator's request in order to allow deleting malformed (unreadable) objects
+										PrismObject<? extends ObjectType> existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
+										securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, existingObject, null, null, null, result1);
+										objectToDetermineDetailsForAudit = existingObject;
+									}    // TODO get object name also when running as administrator?
+									try {
+										if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
+											Utils.clearRequestee(task);
+											provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
+													ProvisioningOperationOptions.createRaw(), null, task, result1);
+										} else {
+											cacheRepositoryService.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
+													result1);
+										}
+										task.recordObjectActionExecuted(objectToDetermineDetailsForAudit, delta.getObjectTypeClass(), delta.getOid(), ChangeType.DELETE, task.getChannel(), null);
+									} catch (Throwable t) {
+										task.recordObjectActionExecuted(objectToDetermineDetailsForAudit, delta.getObjectTypeClass(), delta.getOid(), ChangeType.DELETE, task.getChannel(), t);
+										throw t;
+									}
+								} finally {
+									QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
+								}
+							} else if (delta.isModify()) {
+								QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
+								try {
+									PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
+									objectToDetermineDetailsForAudit = existingObject;
+									securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, existingObject, delta, null, null, result1);
+									try {
+										cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(),
+												delta.getModifications(), result1);
+										task.recordObjectActionExecuted(existingObject, ChangeType.MODIFY, null);
+									} catch (Throwable t) {
+										task.recordObjectActionExecuted(existingObject, ChangeType.MODIFY, t);
+										throw t;
+									}
+								} finally {
+									QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
+								}
+								if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {    // treat filters that already exist in the object (case #2 above)
+									reevaluateSearchFilters(delta.getObjectTypeClass(), delta.getOid(), task, result1);
+								}
+							} else {
+								throw new IllegalArgumentException("Wrong delta type " + delta.getChangeType() + " in " + delta);
+							}
+						} catch (ObjectAlreadyExistsException | SchemaException | ObjectNotFoundException | ConfigurationException | CommunicationException | SecurityViolationException | RuntimeException e) {
+							ModelUtils.recordFatalError(result1, e);
+							throw e;
+						} finally {		// to have a record with the failed delta as well
+							result1.computeStatus();
+							ObjectDeltaOperation<? extends ObjectType> odoToAudit = new ObjectDeltaOperation<>(delta, result1);
+							if (objectToDetermineDetailsForAudit != null) {
+								odoToAudit.setObjectName(objectToDetermineDetailsForAudit.getName());
+								if (objectToDetermineDetailsForAudit.asObjectable() instanceof ShadowType) {
+									ShadowType shadow = (ShadowType) objectToDetermineDetailsForAudit.asObjectable();
+									odoToAudit.setResourceOid(ShadowUtil.getResourceOid(shadow));
+									odoToAudit.setResourceName(ShadowUtil.getResourceName(shadow));
+								}
+							}
+							executedDeltas.add(odoToAudit);
 						}
 					}
+				} finally {
+					cleanupOperationResult(result);
+					auditRecord.setTimestamp(System.currentTimeMillis());
+					auditRecord.setOutcome(result.getStatus());
+					auditRecord.setEventStage(AuditEventStage.EXECUTION);
+					auditRecord.getDeltas().clear();
+					auditRecord.getDeltas().addAll(executedDeltas);
+					auditService.audit(auditRecord, task);
 
-					try {
-                        if (delta.isAdd()) {
-                            RepoAddOptions repoOptions = new RepoAddOptions();
-                            if (ModelExecuteOptions.isNoCrypt(options)) {
-                                repoOptions.setAllowUnencryptedValues(true);
-                            }
-                            if (ModelExecuteOptions.isOverwrite(options)) {
-                                repoOptions.setOverwrite(true);
-                            }
-                            securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), null, delta.getObjectToAdd(), null, null, null, result1);
-                            String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), repoOptions, result1);
-                            delta.setOid(oid);
-                        } else if (delta.isDelete()) {
-                            QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
-                            try {
-                                if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
-                                    // getting the object is avoided in case of administrator's request in order to allow deleting malformed (unreadable) objects
-                                    PrismObject<? extends ObjectType> existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
-                                    securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, existingObject, null, null, null, result1);
-                                }
-                                if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
-                                    Utils.clearRequestee(task);
-                                    provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
-                                            ProvisioningOperationOptions.createRaw(), null, task, result1);
-                                } else {
-                                    cacheRepositoryService.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
-                                            result1);
-                                }
-                            } finally {
-                                QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
-                            }
-                        } else if (delta.isModify()) {
-                            QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
-                            try {
-                                PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
-                                securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, existingObject, delta, null, null, result1);
-                                cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(),
-                                        delta.getModifications(), result1);
-                            } finally {
-                                QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
-                            }
-							if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {	// treat filters that already exist in the object (case #2 above)
-								reevaluateSearchFilters(delta.getObjectTypeClass(), delta.getOid(), result1);
-							}
-                        } else {
-                            throw new IllegalArgumentException("Wrong delta type "+delta.getChangeType()+" in "+delta);
-                        }
-                    } catch (ObjectAlreadyExistsException|SchemaException|ObjectNotFoundException|ConfigurationException|CommunicationException|SecurityViolationException|RuntimeException e) {
-                        ModelUtils.recordFatalError(result1, e);
-                        throw e;
-                    }
-                    result1.computeStatus();
-                    retval.add(new ObjectDeltaOperation<>(delta, result1));
+					task.markObjectActionExecutedBoundary();
 				}
-				auditRecord.setTimestamp(null);
-				auditRecord.setOutcome(OperationResultStatus.SUCCESS);
-				auditRecord.setEventStage(AuditEventStage.EXECUTION);
-				auditService.audit(auditRecord, task);
-				
+
 			} else {
 
-				LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
+				try {
+					LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
 
-				if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {
-					String m = "ReevaluateSearchFilters option is not fully supported for non-raw operations yet. Filters already present in the object will not be touched.";
-					LOGGER.warn("{} Context = {}", m, context.debugDump());
-					result.createSubresult(CLASS_NAME_WITH_DOT+"reevaluateSearchFilters").recordWarning(m);
+					if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {
+						String m = "ReevaluateSearchFilters option is not fully supported for non-raw operations yet. Filters already present in the object will not be touched.";
+						LOGGER.warn("{} Context = {}", m, context.debugDump());
+						result.createSubresult(CLASS_NAME_WITH_DOT+"reevaluateSearchFilters").recordWarning(m);
+					}
+
+					context.setProgressListeners(statusListeners);
+					// Note: Request authorization happens inside clockwork
+
+					clockwork.run(context, task, result);
+
+					// prepare return value
+					if (context.getFocusContext() != null) {
+						executedDeltas.addAll(context.getFocusContext().getExecutedDeltas());
+					}
+					for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
+						executedDeltas.addAll(projectionContext.getExecutedDeltas());
+					}
+
+					cleanupOperationResult(result);
+
+				} catch (ObjectAlreadyExistsException|ObjectNotFoundException|SchemaException|ExpressionEvaluationException|
+						CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException|RuntimeException e) {
+					ModelUtils.recordFatalError(result, e);
+					throw e;
+				} finally {
+					task.markObjectActionExecutedBoundary();
 				}
-
-				context.setProgressListeners(statusListeners);
-				// Note: Request authorization happens inside clockwork
-				clockwork.run(context, task, result);
-
-                // prepare return value
-                if (context.getFocusContext() != null) {
-                    retval.addAll(context.getFocusContext().getExecutedDeltas());
-                }
-                for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
-                    retval.addAll(projectionContext.getExecutedDeltas());
-                }
 			}
 
-            // Clockwork.run sets "in-progress" flag just at the root level
-            // and result.computeStatus() would erase it.
-            // So we deal with it in a special way, in order to preserve this information for the user.
-            if (result.isInProgress()) {
-                result.computeStatus();
-                if (result.isSuccess()) {
-                    result.recordInProgress();
-                }
-            } else {
-                result.computeStatus();
-            }
-            
-            result.cleanupResult();
-			
-		} catch (ObjectAlreadyExistsException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (ObjectNotFoundException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (SchemaException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (ExpressionEvaluationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (CommunicationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (ConfigurationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (PolicyViolationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (SecurityViolationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (RuntimeException e) {
+		} catch (RuntimeException e) {		// just for sure (TODO split this method into two: raw and non-raw case)
 			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} finally {
 			RepositoryCache.exit();
 		}
-        return retval;
+        return executedDeltas;
 	}
 
-	private <T extends ObjectType> void reevaluateSearchFilters(Class<T> objectTypeClass, String oid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+	protected void cleanupOperationResult(OperationResult result) {
+		// Clockwork.run sets "in-progress" flag just at the root level
+		// and result.computeStatus() would erase it.
+		// So we deal with it in a special way, in order to preserve this information for the user.
+		if (result.isInProgress()) {
+            result.computeStatus();
+            if (result.isSuccess()) {
+                result.recordInProgress();
+            }
+        } else {
+            result.computeStatus();
+        }
+
+		result.cleanupResult();
+	}
+
+	private <T extends ObjectType> void reevaluateSearchFilters(Class<T> objectTypeClass, String oid, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 		OperationResult result = parentResult.createSubresult(CLASS_NAME_WITH_DOT+"reevaluateSearchFilters");
 		try {
 			PrismObject<T> storedObject = cacheRepositoryService.getObject(objectTypeClass, oid, null, result);
@@ -689,7 +671,13 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				LOGGER.trace("reevaluateSearchFilters found delta: {}", delta.debugDump());
 			}
 			if (!delta.isEmpty()) {
-				cacheRepositoryService.modifyObject(objectTypeClass, oid, delta.getModifications(), result);
+				try {
+					cacheRepositoryService.modifyObject(objectTypeClass, oid, delta.getModifications(), result);
+					task.recordObjectActionExecuted(updatedObject, ChangeType.MODIFY, null);
+				} catch (Throwable t) {
+					task.recordObjectActionExecuted(updatedObject, ChangeType.MODIFY, t);
+					throw t;
+				}
 			}
 			result.recordSuccess();
 		} catch (SchemaException|ObjectNotFoundException|ObjectAlreadyExistsException|RuntimeException e) {
@@ -808,417 +796,6 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 	}
 
-//	private void encrypt(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
-//			OperationResult result) {
-//		// Encrypt values even before we log anything. We want to avoid showing unencrypted values in the logfiles
-//		if (!ModelExecuteOptions.isNoCrypt(options)) {
-//			for(ObjectDelta<? extends ObjectType> delta: deltas) {				
-//				try {
-//					CryptoUtil.encryptValues(protector, delta);
-//				} catch (EncryptionException e) {
-//					result.recordFatalError(e);
-//					throw new SystemException(e.getMessage(), e);
-//				}
-//			}
-//		}
-//	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.api.ModelInteractionService#previewChanges(com.evolveum.midpoint.prism.delta.ObjectDelta, com.evolveum.midpoint.schema.result.OperationResult)
-	 */
-	@Override
-	public <F extends ObjectType> ModelContext<F> previewChanges(
-			Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult parentResult)
-			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-		
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Preview changes input:\n{}", DebugUtil.debugDump(deltas));
-		}
-		int size = 0;
-		if (deltas != null) {
-			size = deltas.size();
-		}
-		Collection<ObjectDelta<? extends ObjectType>> clonedDeltas = new ArrayList<ObjectDelta<? extends ObjectType>>(size);
-		if (deltas != null) {
-			for (ObjectDelta delta : deltas){
-				clonedDeltas.add(delta.clone());
-			}
-		}
-		
-		OperationResult result = parentResult.createSubresult(PREVIEW_CHANGES);
-		LensContext<F> context = null;
-		
-		try {
-			
-			//used cloned deltas instead of origin deltas, because some of the values should be lost later..
-			context = contextFactory.createContext(clonedDeltas, options, task, result);
-//			context.setOptions(options);
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.trace("Preview changes context:\n{}", context.debugDump());
-			}
-		
-			
-			projector.projectAllWaves(context, "preview", task, result);
-			context.distributeResource();
-			
-		} catch (ConfigurationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (SecurityViolationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (CommunicationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (ObjectNotFoundException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (SchemaException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (ObjectAlreadyExistsException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (ExpressionEvaluationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (PolicyViolationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (RuntimeException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		}
-
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Preview changes output:\n{}", context.debugDump());
-		}
-		
-		result.computeStatus();
-		result.cleanupResult();
-
-		return context;
-	}
-	
-	@Override
-	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
-		OperationResult result = parentResult.createMinorSubresult(GET_EDIT_OBJECT_DEFINITION);
-		PrismObjectDefinition<O> objectDefinition = object.getDefinition().deepClone(true);
-		// TODO: maybe we need to expose owner resolver in the interface?
-		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
-		}
-		if (securityConstraints == null) {
-			// Nothing allowed => everything denied
-			result.setStatus(OperationResultStatus.NOT_APPLICABLE);
-			return null;
-		}
-		
-		ObjectTemplateType objectTemplateType;
-		try {
-			objectTemplateType = schemaTransformer.determineObjectTemplate(object.getCompileTimeClass(), phase, result);
-		} catch (ConfigurationException | ObjectNotFoundException e) {
-			result.recordFatalError(e);
-			throw e;
-		}
-		schemaTransformer.applyObjectTemplateToDefinition(objectDefinition, objectTemplateType, result);
-		
-		schemaTransformer.applySecurityConstraints(objectDefinition, securityConstraints, phase);
-		
-		if (object.canRepresent(ShadowType.class)) {
-			PrismObject<ShadowType> shadow = (PrismObject<ShadowType>)object;
-			String resourceOid = ShadowUtil.getResourceOid(shadow);
-			PrismObject<ResourceType> resource;
-			try {
-				resource = provisioning.getObject(ResourceType.class, resourceOid, null, null, result);
-			} catch (CommunicationException | SecurityViolationException e) {
-				throw new ConfigurationException(e.getMessage(), e);
-			}
-			RefinedObjectClassDefinition refinedObjectClassDefinition = getEditObjectClassDefinition(shadow, resource, phase);
-			objectDefinition.getComplexTypeDefinition().replaceDefinition(ShadowType.F_ATTRIBUTES, 
-					refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
-		}
-		
-		result.computeStatus();
-		return objectDefinition;
-	}
-	
-	
-
-	
-    
-    @Override
-	public RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, AuthorizationPhaseType phase)
-			throws SchemaException {
-    	// TODO: maybe we need to expose owner resolver in the interface?
-		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(shadow, null);
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Security constrains for {}:\n{}", shadow, securityConstraints==null?"null":securityConstraints.debugDump());
-		}
-		if (securityConstraints == null) {
-			return null;
-		}
-    	
-    	RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-    	ShadowType shadowType = shadow.asObjectable();
-    	ShadowKindType kind = shadowType.getKind();
-    	String intent = shadowType.getIntent();
-        RefinedObjectClassDefinition rocd;
-    	if (kind != null) {
-    		rocd = refinedSchema.getRefinedDefinition(kind, intent);
-    	} else {
-    		QName objectClassName = shadowType.getObjectClass();
-    		if (objectClassName == null) {
-    			// No data. Fall back to the default
-    			rocd = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
-    		} else {
-    			rocd = refinedSchema.getRefinedDefinition(objectClassName);
-    		}
-    	}
-        LayerRefinedObjectClassDefinition layeredROCD = rocd.forLayer(LayerType.PRESENTATION);
-
-    	ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
-		AuthorizationDecisionType attributesReadDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.READ.getUrl(), 
-    			securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase), phase);
-		AuthorizationDecisionType attributesAddDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.ADD.getUrl(),
-				securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase), phase);
-		AuthorizationDecisionType attributesModifyDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.MODIFY.getUrl(),
-				securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase), phase);
-		LOGGER.trace("Attributes container access read:{}, add:{}, modify:{}", new Object[]{attributesReadDecision, attributesAddDecision, attributesModifyDecision});
-
-        /*
-         *  We are going to modify attribute definitions list.
-         *  So let's make a (shallow) clone here, although it is probably not strictly necessary.
-         */
-        layeredROCD = layeredROCD.clone();
-        for (LayerRefinedAttributeDefinition rAttrDef: layeredROCD.getAttributeDefinitions()) {
-			ItemPath attributePath = new ItemPath(ShadowType.F_ATTRIBUTES, rAttrDef.getName());
-			AuthorizationDecisionType attributeReadDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.READ.getUrl(), attributesReadDecision, phase);
-			AuthorizationDecisionType attributeAddDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.ADD.getUrl(), attributesAddDecision, phase);
-			AuthorizationDecisionType attributeModifyDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.MODIFY.getUrl(), attributesModifyDecision, phase);
-			LOGGER.trace("Attribute {} access read:{}, add:{}, modify:{}", new Object[]{rAttrDef.getName(), attributeReadDecision, attributeAddDecision, attributeModifyDecision});
-			if (attributeReadDecision != AuthorizationDecisionType.ALLOW) {
-				rAttrDef.setOverrideCanRead(false);
-			}
-			if (attributeAddDecision != AuthorizationDecisionType.ALLOW) {
-				rAttrDef.setOverrideCanAdd(false);
-			}
-			if (attributeModifyDecision != AuthorizationDecisionType.ALLOW) {
-				rAttrDef.setOverrideCanModify(false);
-			}
-		}
-
-        // TODO what about activation and credentials?
-    	
-    	return layeredROCD;
-	}
-
-	@Override
-	public Collection<? extends DisplayableValue<String>> getActionUrls() {
-		return Arrays.asList(ModelAuthorizationAction.values());
-	}
-
-	@Override
-	public <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, OperationResult parentResult) 
-			throws ObjectNotFoundException, SchemaException, ConfigurationException {
-		OperationResult result = parentResult.createMinorSubresult(GET_ASSIGNABLE_ROLE_SPECIFICATION);
-		
-		RoleSelectionSpecification spec = new RoleSelectionSpecification();
-		
-		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(focus, null);
-		AuthorizationDecisionType decision = securityConstraints.findItemDecision(new ItemPath(FocusType.F_ASSIGNMENT), 
-				ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
-		if (decision == AuthorizationDecisionType.ALLOW) {
-			 getAllRoleTypesSpec(spec, result);
-			result.recordSuccess();
-			return spec;
-		}
-		if (decision == AuthorizationDecisionType.DENY) {
-			result.recordSuccess();
-			spec.setNoRoleTypes();
-			spec.setFilter(NoneFilter.createNone());
-			return spec;
-		}
-		decision = securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
-		if (decision == AuthorizationDecisionType.ALLOW) {
-			getAllRoleTypesSpec(spec, result);
-			result.recordSuccess();
-			return spec;
-		}
-		if (decision == AuthorizationDecisionType.DENY) {
-			result.recordSuccess();
-			spec.setNoRoleTypes();
-			spec.setFilter(NoneFilter.createNone());
-			return spec;
-		}
-		
-		try {
-			ObjectFilter filter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.ASSIGN.getUrl(), 
-					AuthorizationPhaseType.REQUEST, RoleType.class, focus, AllFilter.createAll());
-			LOGGER.trace("assignableRoleSpec filter: {}", filter);
-			spec.setFilter(filter);
-			if (filter instanceof NoneFilter) {
-				result.recordSuccess();
-				spec.setNoRoleTypes();
-				return spec;
-			} else if (filter == null || filter instanceof AllFilter) {
-				getAllRoleTypesSpec(spec, result);
-				result.recordSuccess();
-				return spec;
-			} else if (filter instanceof OrFilter) {
-				for (ObjectFilter subfilter: ((OrFilter)filter).getConditions()) {
-					DisplayableValue<String> roleTypeDval =  getRoleSelectionSpec(subfilter);
-					if (roleTypeDval == null) {
-						// This branch of the OR clause does not have any constraint for roleType
-						// therefore all role types are possible (regardless of other branches, this is OR)
-						spec = new RoleSelectionSpecification();
-						spec.setFilter(filter);
-						getAllRoleTypesSpec(spec, result);
-						result.recordSuccess();
-						return spec;
-					} else {
-						spec.addRoleType(roleTypeDval);
-					}
-				}
-			} else {
-				DisplayableValue<String> roleTypeDval = getRoleSelectionSpec(filter);
-				if (roleTypeDval == null) {
-					getAllRoleTypesSpec(spec, result);
-					result.recordSuccess();
-					return spec;					
-				} else {
-					spec.addRoleType(roleTypeDval);
-				}
-			}
-			result.recordSuccess();
-			return spec;
-		} catch (SchemaException | ConfigurationException | ObjectNotFoundException e) {
-			result.recordFatalError(e);
-			throw e;
-		}
-	}
-
-	private RoleSelectionSpecification getAllRoleTypesSpec(RoleSelectionSpecification spec, OperationResult result) 
-			throws ObjectNotFoundException, SchemaException, ConfigurationException {
-		ObjectTemplateType objectTemplateType = schemaTransformer.determineObjectTemplate(RoleType.class, AuthorizationPhaseType.REQUEST, result);
-		if (objectTemplateType == null) {
-			return spec;
-		}
-		for(ObjectTemplateItemDefinitionType itemDef: objectTemplateType.getItem()) {
-			ItemPathType ref = itemDef.getRef();
-			if (ref == null) {
-				continue;
-			}
-			ItemPath itemPath = ref.getItemPath();
-			QName itemName = ItemPath.getName(itemPath.first());
-			if (itemName == null) {
-				continue;
-			}
-			if (QNameUtil.match(RoleType.F_ROLE_TYPE, itemName)) {
-				ObjectReferenceType valueEnumerationRef = itemDef.getValueEnumerationRef();
-				if (valueEnumerationRef == null || valueEnumerationRef.getOid() == null) {
-					return spec;
-				}
-				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
-		    			GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
-				PrismObject<LookupTableType> lookup = cacheRepositoryService.getObject(LookupTableType.class, valueEnumerationRef.getOid(), 
-						options, result);
-				for (LookupTableRowType row: lookup.asObjectable().getRow()) {
-					PolyStringType polyLabel = row.getLabel();
-					String key = row.getKey();
-					String label = key;
-					if (polyLabel != null) {
-						label = polyLabel.getOrig();
-					}
-					DisplayableValue<String> roleTypeDval = new DisplayableValueImpl<>(key, label, null);
-					spec.addRoleType(roleTypeDval);
-				}
-				return spec;
-			}
-		}
-		return spec;
-	}
-
-	private DisplayableValue<String> getRoleSelectionSpec(ObjectFilter filter) throws SchemaException {
-		if (filter instanceof EqualFilter<?>) {
-			return getRoleSelectionSpecEq((EqualFilter)filter);
-		} else if (filter instanceof AndFilter) {
-			for (ObjectFilter subfilter: ((AndFilter)filter).getConditions()) {
-				if (subfilter instanceof EqualFilter<?>) {
-					DisplayableValue<String> roleTypeDval = getRoleSelectionSpecEq((EqualFilter)subfilter);
-					if (roleTypeDval != null) {
-						return roleTypeDval;
-					}
-				}
-			}
-			return null;
-		} else if (filter instanceof TypeFilter) {
-			return getRoleSelectionSpec(((TypeFilter)filter).getFilter());
-		} else {
-			throw new UnsupportedOperationException("Unexpected filter "+filter);
-		}
-	}
-	
-	private DisplayableValue<String> getRoleSelectionSpecEq(EqualFilter<String> eqFilter) throws SchemaException {
-		if (QNameUtil.match(RoleType.F_ROLE_TYPE,eqFilter.getElementName())) {
-			List<PrismPropertyValue<String>> ppvs = eqFilter.getValues();
-			if (ppvs.size() > 1) {
-				throw new SchemaException("More than one value in roleType search filter");
-			}
-			String roleType = ppvs.get(0).getValue();
-			DisplayableValue<String> roleTypeDval = new DisplayableValueImpl<>(roleType, roleType, null);
-			return roleTypeDval;
-		}
-		return null;
-	}
-	
-	@Override
-	public CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		// TODO: check for user membership in an organization (later versions)
-		
-		OperationResult result = parentResult.createMinorSubresult(GET_CREDENTIALS_POLICY);
-		try {
-			PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
-			if (systemConfiguration == null) {
-				result.recordNotApplicableIfUnknown();
-				return null;
-			}
-			ObjectReferenceType secPolicyRef = systemConfiguration.asObjectable().getGlobalSecurityPolicyRef();
-			if (secPolicyRef == null) {
-				result.recordNotApplicableIfUnknown();
-				return null;			
-			}
-			SecurityPolicyType securityPolicyType;
-			securityPolicyType = objectResolver.resolve(secPolicyRef, SecurityPolicyType.class, null, "security policy referred from system configuration", result);
-			if (securityPolicyType == null) {
-				result.recordNotApplicableIfUnknown();
-				return null;			
-			}
-			CredentialsPolicyType credentialsPolicyType = securityPolicyType.getCredentials();
-			result.recordSuccess();
-			return credentialsPolicyType;
-		} catch (ObjectNotFoundException | SchemaException e) {
-			result.recordFatalError(e);
-			throw e;
-		}
-
-	}
-
-	private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
-        PrismObject<SystemConfigurationType> config = cacheRepositoryService.getObject(SystemConfigurationType.class,
-                SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
-
-        if (LOGGER.isTraceEnabled()) {
-        	if (config == null) {
-        		LOGGER.warn("No system configuration object");
-        	} else {
-        		LOGGER.trace("System configuration version read from repo: " + config.getVersion());
-        	}
-        }
-        return config;
-    }
-
 	@Override
 	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -1267,7 +844,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
                 }
                 switch (searchProvider) {
                     case REPOSITORY: list = cacheRepositoryService.searchObjects(type, query, options, result); break;
-                    case PROVISIONING: list = provisioning.searchObjects(type, query, options, result); break;
+                    case PROVISIONING: list = provisioning.searchObjects(type, query, options, task, result); break;
                     case TASK_MANAGER: list = taskManager.searchObjects(type, query, options, result); break;
                     case WORKFLOW: throw new UnsupportedOperationException();
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);
@@ -1388,8 +965,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			
 			try {
                 switch (searchProvider) {
-                    case REPOSITORY: metadata = cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, options, result); break;
-                    case PROVISIONING: metadata = provisioning.searchObjectsIterative(type, query, options, internalHandler, result); break;
+                    case REPOSITORY: metadata = cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, options, false, result); break;		// TODO move strictSequential flag to model API in some form
+                    case PROVISIONING: metadata = provisioning.searchObjectsIterative(type, query, options, internalHandler, task, result); break;
                     case TASK_MANAGER: throw new UnsupportedOperationException("searchIterative in task manager is currently not supported");
                     case WORKFLOW: throw new UnsupportedOperationException("searchIterative in task manager is currently not supported");
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);
@@ -1469,7 +1046,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
                 objectManager = ObjectTypes.ObjectManager.REPOSITORY;
             }
             switch (objectManager) {
-                case PROVISIONING: count = provisioning.countObjects(type, query, null, parentResult); break;
+                case PROVISIONING: count = provisioning.countObjects(type, query, null, task, parentResult); break;
                 case REPOSITORY: count = cacheRepositoryService.countObjects(type, query, parentResult); break;
                 case TASK_MANAGER: count = taskManager.countObjects(type, query, parentResult); break;
                 default: throw new AssertionError("Unexpected objectManager: " + objectManager);
@@ -1503,6 +1080,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 	
 	@Override
+	@Deprecated
 	public PrismObject<UserType> findShadowOwner(String accountOid, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException {
 		Validate.notEmpty(accountOid, "Account oid must not be null or empty.");
@@ -1560,6 +1138,61 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		
 		return user;
 	}
+	
+	@Override
+	public PrismObject<? extends FocusType> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException {
+		Validate.notEmpty(shadowOid, "Account oid must not be null or empty.");
+		Validate.notNull(parentResult, "Result type must not be null.");
+
+		RepositoryCache.enter();
+
+		PrismObject<? extends FocusType> focus = null;
+		
+		LOGGER.trace("Listing account shadow owner for account with oid {}.", new Object[]{shadowOid});
+
+		OperationResult result = parentResult.createSubresult(LIST_ACCOUNT_SHADOW_OWNER);
+		result.addParams(new String[] { "accountOid" }, shadowOid);
+
+		try {
+			
+			focus = cacheRepositoryService.searchShadowOwner(shadowOid, options, result);
+			result.recordSuccess();
+		} catch (RuntimeException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
+					+ " for account with oid {}", ex, shadowOid);
+			result.recordFatalError("Couldn't list account shadow owner for account with oid '"
+					+ shadowOid + "'.", ex);
+			throw ex;
+		} catch (Error ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
+					+ " for account with oid {}", ex, shadowOid);
+			result.recordFatalError("Couldn't list account shadow owner for account with oid '"
+					+ shadowOid + "'.", ex);
+			throw ex;
+		} finally {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(result.dump(false));
+			}
+			RepositoryCache.exit();
+			result.cleanupResult();
+		}
+
+		if (focus != null) {
+			try {
+				schemaTransformer.applySchemasAndSecurity(focus, null, null, task, result);
+			} catch (SchemaException | SecurityViolationException | ConfigurationException
+					| ObjectNotFoundException ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
+						+ " for account with oid {}", ex, shadowOid);
+				result.recordFatalError("Couldn't list account shadow owner for account with oid '"
+						+ shadowOid + "'.", ex);
+				throw ex;
+			}
+		}
+		
+		return focus;
+	}
 
 	@Override
 	public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid,
@@ -1587,7 +1220,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 
 			try {
 
-				list = provisioning.listResourceObjects(resourceOid, objectClass, paging, result);
+				list = provisioning.listResourceObjects(resourceOid, objectClass, paging, task, result);
 
 			} catch (SchemaException ex) {
 				ModelUtils.recordFatalError(result, ex);
@@ -1871,7 +1504,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 
 		PrismObject<SystemConfigurationType> systemConfiguration;
 		try {
-			systemConfiguration = getSystemConfiguration(result);
+			systemConfiguration = objectResolver.getSystemConfiguration(result);
 			systemConfigurationHandler.postInit(systemConfiguration, result);
 		} catch (ObjectNotFoundException e) {
 			String message = "No system configuration found, skipping application of initial system settings";
@@ -1896,11 +1529,6 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		result.cleanupResult();
 	}
 
-    @Override
-    public <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
-        return LensContext.fromLensContextType(wrappedContext, prismContext, provisioning, result);
-    }
-    
     private <O extends ObjectType> ObjectQuery preProcessQuerySecurity(Class<O> objectType, ObjectQuery origQuery) throws SchemaException {
     	ObjectFilter origFilter = null;
     	if (origQuery != null) {

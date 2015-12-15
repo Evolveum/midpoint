@@ -60,7 +60,7 @@ This resource definition contains only the very basic definitions for midPoint t
 				<icfcldap:port>1389</icfcldap:port>
 				<icfcldap:host>localhost</icfcldap:host>
 				<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
-				<icfcldap:bindDn>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:bindDn>
+				<icfcldap:bindDn>cn=idm,ou=Administrators,dc=example,dc=com</icfcldap:bindDn>
 				<icfcldap:bindPassword>
 	                    <t:clearValue>secret</t:clearValue>
 	            </icfcldap:bindPassword>
@@ -89,6 +89,16 @@ This resource definition contains only the very basic definitions for midPoint t
 			 the resource on the first use of this resource definition.
 		 -->
 
+		<schema>
+		    <!-- workaround to MID-2723 -->
+		    <generationConstraints>
+		        <generateObjectClass>ri:inetOrgPerson</generateObjectClass>
+		        <generateObjectClass>ri:groupOfUniqueNames</generateObjectClass>
+		        <generateObjectClass>ri:groupOfNames</generateObjectClass>
+		        <generateObjectClass>ri:organizationalUnit</generateObjectClass>
+		    </generationConstraints>
+		</schema>
+
         <!-- Resource Schema Handling definition.
              This part defines how the schema defined above will be used by
              midPoint. It defines expressions and limitations for individual
@@ -106,5 +116,5 @@ This resource definition contains only the very basic definitions for midPoint t
         -->
 
 	</resource>
-
+	
 </objects>

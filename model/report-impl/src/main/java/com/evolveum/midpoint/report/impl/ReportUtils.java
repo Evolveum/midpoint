@@ -20,9 +20,9 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+
 import java.io.File;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -53,6 +53,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import java.lang.reflect.Method;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.MissingResourceException;
 
 /**
@@ -81,6 +82,14 @@ public class ReportUtils {
         }
 
         return timestamp;
+    }
+
+    public static String prettyPrintForReport(XMLGregorianCalendar dateTime) {
+        if (dateTime == null) {
+            return "";
+        }
+        SimpleDateFormat formatDate = new SimpleDateFormat();
+        return formatDate.format(new Date(dateTime.toGregorianCalendar().getTimeInMillis()));
     }
 
     public static String getDateTime() {
@@ -155,7 +164,7 @@ public class ReportUtils {
         String val = (defaultValue == null) ? key : defaultValue;
         ResourceBundle bundle;
         try {
-            bundle = ResourceBundle.getBundle("com.evolveum.midpoint.web.security.MidPointApplication");
+            bundle = ResourceBundle.getBundle("localization/Midpoint", new Locale("en", "US"));
         } catch (MissingResourceException e) {
             return (defaultValue != null) ? defaultValue : key; //workaround for Jasper Studio
         }
@@ -178,13 +187,22 @@ public class ReportUtils {
     }
 
     public static String prettyPrintForReport(PrismPropertyValue ppv) {
-        return prettyPrintForReport(ppv.getValue());
+        String retPPV;
+        try {
+            retPPV = prettyPrintForReport(ppv.getValue());
+        } catch (Throwable t) {
+            return "N/A"; // rare case e.g. for password-type in resource
+        }
+        return retPPV;
     }
 
     public static String prettyPrintForReport(PrismContainerValue pcv) {
         StringBuilder sb = new StringBuilder();
         for (Iterator<Item> iter = pcv.getItems().iterator(); iter.hasNext();) {
             Item item = iter.next();
+            if ("metadata".equals(item.getElementName().getLocalPart())) {
+                continue;
+            }
             sb.append(prettyPrintForReport(item.getElementName()));
             sb.append("=");
             sb.append("{");
@@ -202,9 +220,36 @@ public class ReportUtils {
     }
 
     public static String prettyPrintForReport(PrismReferenceValue prv) {
+        return prettyPrintForReport(prv, true);
+    }
+
+    public static String prettyPrintForReport(PrismReferenceValue prv, boolean showType) {
         StringBuilder sb = new StringBuilder();
-        sb.append(prettyPrintForReport(prv.getTargetType()));
-        sb.append(": ");
+        if (showType) {
+            sb.append(prettyPrintForReport(prv.getTargetType()));
+            sb.append(": ");
+        }
+        if (prv.getTargetName() != null) {
+            sb.append(prv.getTargetName());
+        } else {
+            sb.append(prv.getOid());
+        }
+        return sb.toString();
+    }
+
+    public static String prettyPrintForReport(ObjectReferenceType prv) {
+        return prettyPrintForReport(prv, true);
+    }
+
+    public static String prettyPrintForReport(ObjectReferenceType prv, boolean showType) {
+        if (prv == null) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        if (showType || prv.getTargetName() == null) {
+            sb.append(prettyPrintForReport(prv.getType()));
+            sb.append(": ");
+        }
         if (prv.getTargetName() != null) {
             sb.append(prv.getTargetName());
         } else {
@@ -290,7 +335,7 @@ public class ReportUtils {
         String str = PrettyPrinter.prettyPrint(value);
         if (str.length() > 1000) {
             return str.substring(0, 1000);
-        }        
+        }
         return str;
 
     }
@@ -428,6 +473,7 @@ public class ReportUtils {
         }
 
         sb.append("}");
+        sb.append("\n");
         return sb.toString();
     }
 
@@ -435,14 +481,22 @@ public class ReportUtils {
         return ort.getDescription();
     }
 
-    private static String printChangeType(ObjectDeltaType delta, String opName) {
+    private static String printChangeType(String objectName, ObjectDeltaType delta, String opName, String resourceName) {
         StringBuilder sb = new StringBuilder();
         sb.append(opName);
         sb.append(" ");
         sb.append(delta.getObjectType().getLocalPart());
-        if (delta.getOid() != null) {
+        if (StringUtils.isNotBlank(objectName)) {
+            sb.append(": ");
+            sb.append(objectName);
+        } else if (delta.getOid() != null) {
             sb.append(": ");
             sb.append(delta.getOid());
+        }
+        if (StringUtils.isNotBlank(resourceName)) {
+            sb.append(" - ");
+            sb.append("Resource: ");
+            sb.append(resourceName);
         }
         sb.append("\n");
         return sb.toString();
@@ -451,24 +505,23 @@ public class ReportUtils {
     public static String printDelta(List<ObjectDeltaType> delta) {
         StringBuilder sb = new StringBuilder();
         for (ObjectDeltaType d : delta) {
-            sb.append(printDelta(d));
+            sb.append(printDelta(d, null, null));
             sb.append("\n");
         }
         return sb.toString();
     }
 
-    public static String printDelta(ObjectDeltaType delta) {
+    public static String printDelta(ObjectDeltaType delta, String objectName, String resourceName) {
         StringBuilder sb = new StringBuilder();
 
         switch (delta.getChangeType()) {
             case MODIFY:
                 Collection<ItemDeltaType> modificationDeltas = delta.getItemDelta();
                 if (modificationDeltas != null && !modificationDeltas.isEmpty()) {
-                    sb.append(printChangeType(delta, "Modify"));
+                    sb.append(printChangeType(objectName, delta, "Modify", resourceName));
                 }
                 for (ItemDeltaType itemDelta : modificationDeltas) {
                     sb.append(prettyPrintForReport(itemDelta));
-                    sb.append("\n");
                 }
                 sb.setLength(Math.max(sb.length() - 1, 0));
                 break;
@@ -476,10 +529,12 @@ public class ReportUtils {
             case ADD:
                 ObjectType objectToAdd = (ObjectType) delta.getObjectToAdd();
                 if (objectToAdd != null) {
-                    sb.append(printChangeType(delta, "Add"));
-                    sb.append(prettyPrintForReport(objectToAdd.getClass().getSimpleName()));
-                    sb.append("=");
-                    sb.append(objectToAdd.getName().toString());
+                    sb.append(printChangeType(objectName, delta, "Add", resourceName));
+                    if (objectToAdd.getName() != null) {
+                        sb.append(prettyPrintForReport(objectToAdd.getClass().getSimpleName()));
+                        sb.append("=");
+                        sb.append(objectToAdd.getName().toString());
+                    }
                     sb.append(" {");
                     sb.append(prettyPrintForReport(objectToAdd));
                     sb.append("}");
@@ -487,7 +542,7 @@ public class ReportUtils {
                 break;
 
             case DELETE:
-                sb.append(printChangeType(delta, "Delete"));
+                sb.append(printChangeType(objectName, delta, "Delete", resourceName));
                 break;
         }
 

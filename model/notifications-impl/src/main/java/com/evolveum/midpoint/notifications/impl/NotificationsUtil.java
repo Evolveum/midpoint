@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.notifications.impl;
 
+import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -23,6 +24,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -132,5 +134,26 @@ public class NotificationsUtil {
                 return null;
             }
         }
+    }
+
+    // TODO move to some other class?
+    public void addRequesterAndChannelInformation(StringBuilder body, Event event, OperationResult result) {
+        if (event.getRequester() != null) {
+            body.append("Requester: ");
+            try {
+                ObjectType requester = event.getRequester().resolveObjectType(result);
+                if (requester instanceof UserType) {
+                    UserType requesterUser = (UserType) requester;
+                    body.append(requesterUser.getFullName()).append(" (").append(requester.getName()).append(")");
+                } else {
+                    body.append(ObjectTypeUtil.toShortString(requester));
+                }
+            } catch (RuntimeException e) {
+                body.append("couldn't be determined: ").append(e.getMessage());
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine requester for a notification", e);
+            }
+            body.append("\n");
+        }
+        body.append("Channel: ").append(event.getChannel()).append("\n\n");
     }
 }

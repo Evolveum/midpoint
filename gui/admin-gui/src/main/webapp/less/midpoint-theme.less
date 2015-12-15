@@ -1,0 +1,229 @@
+.skin-blue-light .main-header {
+  & .logo {
+    //background-color: red;
+
+    & > span {
+      height: 100%;
+      width: 100%;
+      display: inline-block;
+      background: url("../img/midpoint_logo_white_180.png") no-repeat 10px 3px;
+    }
+  }
+
+  & nav.navbar.navbar-static-top {
+    //background-color: red;
+  }
+}
+
+#wicketDebugLink {
+  bottom: 55px !important;
+}
+
+div.wicket-debug-buttons {
+  border: 1px solid #000000;
+  background-color: #ffffff;
+  opacity: 0.7;
+  bottom: 85px;
+  display: block;
+  position: fixed;
+  right: 10px;
+  z-index: 1000000;
+
+  a {
+    color: #0000ff;
+    display: block;
+    padding: 3px 20px;
+  }
+}
+
+div.navbar-custom-menu {
+  margin-right: 14px;
+}
+
+//Used in top right locale combo selection
+div.btn-group.bootstrap-select.select-picker-sm {
+  margin-top: 10px;
+}
+
+// for just to use fake form.form-inline (as div) in form.form-horizontal. Used in button bars.
+div.form-inline > div.form-group {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+li.dropdown.user.user-menu {
+  & > ul.dropdown-menu {
+    border-color: #367fa9;
+
+    & > li.user-footer {
+      border-color: #367fa9;
+      border-bottom-right-radius: 4px;
+      border-bottom-left-radius: 4px;
+    }
+  }
+}
+
+//table context menu border fix
+th.cog, td.cog {
+  & ul.dropdown-menu.pull-right {
+    border-color: #337ab7;
+  }
+}
+//end table context menu border fix
+
+//disabled menu css fixes
+.sidebar-menu .treeview-menu > li > span {
+  display: block;
+  font-size: 14px;
+  padding: 5px 5px 5px 15px;
+}
+
+.sidebar-menu .treeview-menu > li > span > .fa,
+.sidebar-menu .treeview-menu > li > span > .glyphicon,
+.sidebar-menu .treeview-menu > li > span > .ion {
+  width: 20px;
+}
+
+.skin-blue-light .treeview-menu > li.active > span,
+.skin-blue-light .treeview-menu > li > span:hover {
+  color: #000;
+}
+//end of disabled menu css fixes
+
+.user-thumbnail-helper {
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.user-thumbnail {
+  background-color: #FFFFFF;
+  border-radius: 4px;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  vertical-align: middle;
+}
+
+.userpanel-icon-helper {
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.userpanel-icon {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  height: 25px;
+  width: 25px;
+  max-width: 100%;
+  max-height: 100%;
+  vertical-align: middle;
+}
+
+.userpanel-photo {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  height: 115px;
+  width: 115px;
+  max-width: 100%;
+  max-height: 100%;
+  vertical-align: middle;
+}
+
+// Summary panel (panel above the edit user/role/org forms)
+
+.info-box.summary-panel-user {
+	border-top: 3px solid #dd4b39;
+	min-height: 93px;
+}
+
+.info-box.summary-panel-role {
+	border-top: 3px solid #F39C12;
+	min-height: 93px;
+}
+
+.info-box.summary-panel-org {
+	border-top: 3px solid #00C0EF;
+	min-height: 93px;
+}
+
+.info-box-icon.summary-panel-user {
+	color: #FFF !important;
+	background-color: #dd4b39;
+	padding: 3px;
+	white-space: nowrap;
+	text-align: center;
+	line-height: 0px;
+    border-radius: 0;
+}
+
+.info-box-icon.summary-panel-role {
+	color: #FFF !important;
+	background-color: #F39C12;
+	padding: 3px;
+	white-space: nowrap;
+	text-align: center;
+	line-height: 0px;
+    border-radius: 0;
+}
+
+.info-box-icon.summary-panel-org {
+	color: #FFF !important;
+	background-color: #00C0EF;
+	padding: 3px;
+	white-space: nowrap;
+	text-align: center;
+	line-height: 0px;
+    border-radius: 0;
+}
+
+.summary-panel-identifier {
+	white-space: pre-wrap;
+	color: #808080;
+	font-weight: normal;
+}
+
+.summary-panel-title {
+	white-space: pre-wrap;
+}
+
+.summary-panel-organization {
+	font-size: 16px;
+	display: block;
+	white-space: pre-wrap;
+}
+
+.summary-content-box {
+	display: block;
+}
+
+.summary-text-box {
+	display: inline-block;
+}
+
+.summary-tag-box {
+	float: right;
+	width: 120px;
+}
+
+.summary-tag {
+	display: block;
+}
+
+.summary-tag-icon {
+	width: 20px;
+}
+
+// form input for binary data upload (used e.g. for photo)
+
+.form-object-value-binary-box {
+	width: 100%;
+	padding: 0px;
+}
+
+.form-object-value-binary-file-input {
+	width: 65%;
+	vertical-align: middle;
+	display: inline !important;
+}

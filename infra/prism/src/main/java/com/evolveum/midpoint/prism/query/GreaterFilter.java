@@ -16,25 +16,17 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import org.apache.commons.lang.Validate;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -49,14 +41,18 @@ public class GreaterFilter<T> extends ComparativeFilter<T> {
 	GreaterFilter(ItemPath parentPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals) {
 		super(parentPath, definition, value, equals);
 	}
+
+	GreaterFilter(ItemPath parentPath, PrismPropertyDefinition<T> definition, ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals) {
+		super(parentPath, definition, rightSidePath, rightSideDefinition, equals);
+	}
 	
 	public static <T, O extends Objectable> GreaterFilter createGreater(ItemPath parentPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals){
 		return new GreaterFilter(parentPath, definition, value, equals);
 	}
 	
-	public static <T, O extends Objectable> GreaterFilter createGreater(ItemPath parentPath, PrismObjectDefinition<O> containerDef,
+	public static <T, C extends Containerable> GreaterFilter createGreater(ItemPath parentPath, PrismContainerDefinition<C> containerDef,
 			PrismPropertyValue<T> value, boolean equals) throws SchemaException {
-		PrismPropertyDefinition def = (PrismPropertyDefinition) findItemDefinition(parentPath, containerDef);
+		PrismPropertyDefinition def = (PrismPropertyDefinition) FilterUtils.findItemDefinition(parentPath, containerDef);
 		return createGreater(parentPath, def, value, equals);
 	}
 
@@ -70,9 +66,9 @@ public class GreaterFilter<T> extends ComparativeFilter<T> {
 		return createGreater(parentPath, itemDefinition, value, equals);
 	}
 
-	public static <T, O extends Objectable> GreaterFilter createGreater(ItemPath parentPath, PrismObjectDefinition<O> containerDef,
+	public static <T, C extends Containerable> GreaterFilter createGreater(ItemPath parentPath, PrismContainerDefinition<C> containerDef,
 			T realValue, boolean equals) throws SchemaException {
-		PrismPropertyDefinition def = (PrismPropertyDefinition) findItemDefinition(parentPath, containerDef);
+		PrismPropertyDefinition def = (PrismPropertyDefinition) FilterUtils.findItemDefinition(parentPath, containerDef);
 		return createGreater(parentPath, def, realValue, equals);
 	}
 
@@ -84,14 +80,16 @@ public class GreaterFilter<T> extends ComparativeFilter<T> {
 	public static <T, O extends Objectable> GreaterFilter createGreater(ItemPath path, Class<O> type, PrismContext prismContext, T realValue, boolean equals)
 			throws SchemaException {
 	
-		PrismPropertyDefinition def = (PrismPropertyDefinition) findItemDefinition(path, type, prismContext);
+		PrismPropertyDefinition def = (PrismPropertyDefinition) FilterUtils.findItemDefinition(path, type, prismContext);
 		
 		return createGreater(path, def, realValue, equals);
 	}
 	
 	@Override
 	public GreaterFilter clone() {
-		return new GreaterFilter(getFullPath(), getDefinition(), (PrismPropertyValue<T>) getValues().get(0), isEquals());
+		GreaterFilter clone = new GreaterFilter(getFullPath(), getDefinition(), getSingleValue(), isEquals());
+		clone.copyRightSideThingsFrom(this);
+		return clone;
 	}
 
 	@Override
@@ -139,4 +137,7 @@ public class GreaterFilter<T> extends ComparativeFilter<T> {
 		return getFullPath();
 	}
 
+	public static GreaterFilter createGreaterThanItem(ItemPath itemPath, PrismPropertyDefinition propertyDefinition, ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals) {
+		return new GreaterFilter(itemPath, propertyDefinition, rightSidePath, rightSideDefinition, equals);
+	}
 }

@@ -41,6 +41,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -78,8 +79,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -443,6 +448,52 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         IntegrationTestTools.assertAttribute(accountNew, dummyResourceCtl.getAttributeFullnameQName(), "Jack Sparrow");	
 	}
 	
+	@Test
+    public void test130GetAdminGuiConfig() throws Exception {
+		final String TEST_NAME = "test130GetAdminGuiConfig";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+		AdminGuiConfigurationType adminGuiConfiguration = modelInteractionService.getAdminGuiConfiguration(task, result);
+
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		assertAdminGuiConfigurations(adminGuiConfiguration, 0, 1, 1);
+		RichHyperlinkType link = adminGuiConfiguration.getUserDashboardLink().get(0);
+		assertEquals("Bad link label", "Foo", link.getLabel());
+		assertEquals("Bad link targetUrl", "/foo", link.getTargetUrl());
+	}
+	
+	@Test
+    public void test150GetGuybrushRefinedObjectClassDef() throws Exception {
+		final String TEST_NAME = "test150GetGuybrushRefinedObjectClassDef";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<ShadowType> shadow = getShadowModel(ACCOUNT_SHADOW_GUYBRUSH_OID);
+        
+		// WHEN
+		RefinedObjectClassDefinition rOCDef = modelInteractionService.getEditObjectClassDefinition(shadow, resourceDummy, AuthorizationPhaseType.REQUEST);
+
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		display("Refined object class", rOCDef);
+		assertNotNull("Null config", rOCDef);
+		
+		display("Password credentials outbound", rOCDef.getPasswordOutbound());
+		assertNotNull("Assert not null", rOCDef.getPasswordOutbound());
+	}
 	
 	@Test
     public void test200ModifyUserDeleteAccount() throws Exception {

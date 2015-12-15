@@ -1,55 +1,36 @@
 package com.evolveum.midpoint.web.page.admin.home;
 
-import java.net.URLDecoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.NullArgumentException;
-import org.apache.velocity.app.event.implement.EscapeJavaScriptReference;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.util.encoding.UrlDecoder;
-import org.apache.wicket.util.string.StringValue;
-import org.aspectj.util.LangUtil.ProcessController.Thrown;
-import org.eclipse.core.internal.runtime.PrintStackUtil;
 
-import ch.qos.logback.classic.Logger;
-
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -59,28 +40,16 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.component.MyPasswordQuestionsPanel;
-import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
-import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordQuestionsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnswerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -127,6 +96,11 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 
 	}
 
+    public PageMyPasswordQuestions(IModel<PasswordQuestionsDto> model){
+        this.model = model;
+        initLayout();
+    }
+
 	public PageMyPasswordQuestions(final PrismObject<UserType> userToEdit) {
 		userModel = new LoadableModel<ObjectWrapper>(false) {
 
@@ -170,39 +144,38 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 
 	public List<SecurityQuestionAnswerDTO> createUsersSecurityQuestionsList(PrismObject<UserType> user){
 		LOGGER.debug("Security Questions Loading for user: "+ user.getOid());
-		List<SecurityQuestionAnswerType> secQuestAnsList= user.asObjectable().getCredentials().getSecurityQuestions().getQuestionAnswer();
+        if (user.asObjectable().getCredentials() != null && user.asObjectable().getCredentials().getSecurityQuestions() != null) {
+            List<SecurityQuestionAnswerType> secQuestAnsList = user.asObjectable().getCredentials().getSecurityQuestions().getQuestionAnswer();
 
-		if (secQuestAnsList!=null){
-			
-			LOGGER.debug("User SecurityQuestion ANswer List is Not null");
-			List<SecurityQuestionAnswerDTO> secQuestAnswListDTO =new ArrayList<SecurityQuestionAnswerDTO>();
-			for (Iterator iterator = secQuestAnsList.iterator(); iterator
-					.hasNext();) {
-				SecurityQuestionAnswerType securityQuestionAnswerType = (SecurityQuestionAnswerType) iterator
-						.next();
-				
-				Protector protector = getPrismContext().getDefaultProtector();
-				String decoded="";
-				if (securityQuestionAnswerType.getQuestionAnswer().getEncryptedDataType() != null) {
-					try {
-						decoded = protector.decryptString(securityQuestionAnswerType.getQuestionAnswer());
+            if (secQuestAnsList != null) {
 
-					} catch (EncryptionException e) {
-						LoggingUtils.logException(LOGGER, "Couldn't decrypt user answer", e);
-						
-					}
-				}
-				//LOGGER.debug("SecAnswerIdentifier:"+securityQuestionAnswerType.getQuestionIdentifier());
-				secQuestAnswListDTO.add(new SecurityQuestionAnswerDTO(securityQuestionAnswerType.getQuestionIdentifier(), decoded)); 
-			}
+                LOGGER.debug("User SecurityQuestion ANswer List is Not null");
+                List<SecurityQuestionAnswerDTO> secQuestAnswListDTO = new ArrayList<SecurityQuestionAnswerDTO>();
+                for (Iterator iterator = secQuestAnsList.iterator(); iterator
+                        .hasNext(); ) {
+                    SecurityQuestionAnswerType securityQuestionAnswerType = (SecurityQuestionAnswerType) iterator
+                            .next();
 
-			return secQuestAnswListDTO;
-		}
-		else{
-			return null;
-		}
+                    Protector protector = getPrismContext().getDefaultProtector();
+                    String decoded = "";
+                    if (securityQuestionAnswerType.getQuestionAnswer().getEncryptedDataType() != null) {
+                        try {
+                            decoded = protector.decryptString(securityQuestionAnswerType.getQuestionAnswer());
 
-	}
+                        } catch (EncryptionException e) {
+                            LoggingUtils.logException(LOGGER, "Couldn't decrypt user answer", e);
+
+                        }
+                    }
+                    //LOGGER.debug("SecAnswerIdentifier:"+securityQuestionAnswerType.getQuestionIdentifier());
+                    secQuestAnswListDTO.add(new SecurityQuestionAnswerDTO(securityQuestionAnswerType.getQuestionIdentifier(), decoded));
+                }
+
+                return secQuestAnswListDTO;
+            }
+        }
+        return null;
+    }
 
 
 	public void initLayout(){
@@ -223,15 +196,19 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 				//	SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
 					//task, result);
 				
-			CredentialsPolicyType credPolicy=getModelInteractionService().getCredentialsPolicy(null, result);
+			CredentialsPolicyType credPolicy=getModelInteractionService().getCredentialsPolicy(null, null, result);
 		
 		//	PrismObject<SecurityPolicyType> securityPolicy = getModelService().getObject(SecurityPolicyType.class,config.asObjectable().getGlobalSecurityPolicyRef().getOid(), null, task, subResult);
 			//Global Policy set question numbers
-			questionNumber=	credPolicy.getSecurityQuestions().getQuestionNumber();
-			
-			// Actual Policy Question List										
-			policyQuestionList = credPolicy.getSecurityQuestions().getQuestion();
-			
+                if (credPolicy != null && credPolicy.getSecurityQuestions() != null) {
+                    questionNumber = credPolicy.getSecurityQuestions().getQuestionNumber();
+
+                    // Actual Policy Question List
+                    policyQuestionList = credPolicy.getSecurityQuestions().getQuestion();
+                } else {
+                    questionNumber = 0;
+                    policyQuestionList = new ArrayList<SecurityQuestionDefinitionType>();
+                }
 			}catch(Exception ex){
 				ex.printStackTrace();
 						
@@ -469,8 +446,13 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 	}
 
 	private void cancelPerformed(AjaxRequestTarget target){
-		setResponsePage(PageDashboard.class);		
-	}
+        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+                AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
+            setResponsePage(PageDashboard.class);
+        } else {
+            setResponsePage(PageSelfDashboard.class);
+        }
+    }
 
 	private ObjectWrapper loadUserWrapper(PrismObject<UserType> userToEdit) {
 		OperationResult result = new OperationResult(OPERATION_LOAD_USER);

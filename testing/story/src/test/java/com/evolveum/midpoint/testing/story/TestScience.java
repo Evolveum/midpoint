@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.testing.story;
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -186,8 +186,8 @@ public class TestScience  extends AbstractStoryTest {
 	}
 	
 	@Test
-	public void test100jackAssignRoleStatistics() throws Exception {
-		final String TEST_NAME = "test100jackAssignRoleStatistics";
+	public void test100JackAssignRoleStatistics() throws Exception {
+		final String TEST_NAME = "test100JackAssignRoleStatistics";
 		TestUtil.displayTestTile(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
 		
@@ -229,8 +229,8 @@ public class TestScience  extends AbstractStoryTest {
 	}
 	
 	@Test
-	public void test101unassignRoleStats() throws Exception{
-		final String TEST_NAME = "test101unassignRoleStats";
+	public void test101UnassignRoleStats() throws Exception{
+		final String TEST_NAME = "test101UnassignRoleStats";
 		TestUtil.displayTestTile(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
 		
@@ -279,8 +279,8 @@ public class TestScience  extends AbstractStoryTest {
 	}
 	
 	@Test
-	public void test102assignRoleStats() throws Exception{
-		final String TEST_NAME = "test102assignRoleStats";
+	public void test102AssignRoleStats() throws Exception{
+		final String TEST_NAME = "test102AssignRoleStats";
 		TestUtil.displayTestTile(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
 		
@@ -327,15 +327,17 @@ public class TestScience  extends AbstractStoryTest {
 	
 	
 	@Test
-	public void test200delteUserJack() throws Exception {
-		final String TEST_NAME = "test200delteUserJack";
+	public void test200DelteUserJack() throws Exception {
+		final String TEST_NAME = "test200DelteUserJack";
 		TestUtil.displayTestTile(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
 		
 		OperationResult result = task.getResult();
 		
+		// WHEN
 		deleteObject(UserType.class, USER_JACK_OID, task, result);
 		
+		// THEN
 		result.computeStatus();
 		
 		IntegrationTestTools.display("Result: ", result);
@@ -344,16 +346,8 @@ public class TestScience  extends AbstractStoryTest {
 			AssertJUnit.fail("Expected success or handled error, but got "+result.getStatus());
 		}
 		
-		try {
-			repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
-			AssertJUnit.fail("Unexpected user jack. It must not exist.");
-		} catch (ObjectNotFoundException ex){
-			//this is OK
-		}
-		
+		assertNoObject(UserType.class, USER_JACK_OID, task, result);
 				
-	}
-	
-		
+	}		
 
 }

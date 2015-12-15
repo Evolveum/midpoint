@@ -12,6 +12,10 @@ AS
   BEGIN
     SET NOCOUNT ON;
 
+    DELETE FROM m_sequence;
+    DELETE FROM m_acc_cert_case_reference;
+    DELETE FROM m_acc_cert_decision;
+    DELETE FROM m_acc_cert_case;
     DELETE FROM m_acc_cert_campaign;
     DELETE FROM m_acc_cert_definition;
     DELETE FROM m_audit_delta;
@@ -48,7 +52,7 @@ AS
     DELETE FROM m_user_employee_type;
     DELETE FROM m_user_organization;
     DELETE FROM m_user_organizational_unit;
-    DELETE FROM m_user_photo;
+    DELETE FROM m_focus_photo;
     DELETE FROM m_user;
     DELETE FROM m_report;
     DELETE FROM m_report_output;

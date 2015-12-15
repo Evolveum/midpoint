@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -219,6 +220,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	public ObjectDelta<ShadowType> getSecondaryDelta() {
 		return secondaryDelta;
 	}
+
+	@Override
+	public ObjectDeltaObject<ShadowType> getObjectDeltaObject() throws SchemaException {
+		return new ObjectDeltaObject<>(getObjectCurrent(), getDelta(), getObjectNew());
+	}
+
 
 	@Override
 	public void setSecondaryDelta(ObjectDelta<ShadowType> secondaryDelta) {
@@ -1343,5 +1350,15 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
 	public void setToBeArchived(boolean toBeArchived) {
 		this.toBeArchived = toBeArchived;
+	}
+
+	public String getResourceOid() {
+		if (resource != null) {
+			return resource.getOid();
+		} else if (resourceShadowDiscriminator != null) {
+			return resourceShadowDiscriminator.getResourceOid();
+		} else {
+			return null;
+		}
 	}
 }

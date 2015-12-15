@@ -83,7 +83,7 @@ public class CertCampaignListItemDto extends Selectable implements InlineMenuabl
     }
 
     public Integer getCurrentStageNumber() {
-        int currentStage = campaign.getCurrentStageNumber();
+        int currentStage = campaign.getStageNumber();
         if (AccessCertificationCampaignStateType.IN_REVIEW_STAGE.equals(campaign.getState()) ||
                 AccessCertificationCampaignStateType.REVIEW_STAGE_DONE.equals(campaign.getState())) {
             return currentStage;
@@ -100,7 +100,7 @@ public class CertCampaignListItemDto extends Selectable implements InlineMenuabl
         AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
         XMLGregorianCalendar end;
         Boolean stageLevelInfo;
-        if (campaign.getCurrentStageNumber() == 0) {
+        if (campaign.getStageNumber() == 0) {
             end = campaign.getEnd();
             stageLevelInfo = false;
         } else if (currentStage != null) {

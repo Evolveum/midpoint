@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -91,7 +90,7 @@ public class ResourceTypeUtil {
 			return resource.getConnector();
 		} else if (resource.getConnectorRef() != null) {
 			return resolver.resolve(resource.getConnectorRef(), ConnectorType.class,
-					null, "resolving connector in " + resource, parentResult);
+					null, "resolving connector in " + resource, null, parentResult);		// TODO task
 		} else {
 			return null;
 		}

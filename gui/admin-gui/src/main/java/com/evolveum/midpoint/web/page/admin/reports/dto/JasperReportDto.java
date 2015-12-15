@@ -16,7 +16,7 @@ import net.sf.jasperreports.engine.xml.JRXmlWriter;
 
 import org.apache.commons.codec.binary.Base64;
 
-
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 //import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -66,8 +66,22 @@ public class JasperReportDto implements Serializable{
 				}
 				if (onlyForPromptingParams && !parameter.isForPrompting()){
 					continue;
+					
 				}
-				parameters.add(new JasperReportParameterDto(parameter.getName(), parameter.getValueClass(), parameter.getValueClassName(), parameter.isForPrompting()));
+				
+				JasperReportParameterDto p = new JasperReportParameterDto(parameter.getName(), parameter.getValueClass(), parameter.getValueClassName(), parameter.isForPrompting());
+				
+				if (parameter.getDescription() != null){
+					p.setDescription(parameter.getDescription());
+				}
+				if (parameter.getNestedType() != null){
+					p.setNestedType(parameter.getNestedType());
+				}
+				
+				if (parameter.hasProperties()){                                        
+					p.setProperties(parameter.getPropertiesMap());
+				}
+				parameters.add(p);
 			}
 			
 			for (JasperReportParameterDto param : parameters){
@@ -109,7 +123,9 @@ public class JasperReportDto implements Serializable{
 //			design.remadgetFields().
 			design.getFieldsList().clear();
 			design.getParametersList().clear();
-		for (JasperReportFieldDto field : fields){
+            design.getFieldsMap().clear();
+            design.getParametersMap().clear();
+            for (JasperReportFieldDto field : fields){
 			if (field.isEmpty()){
 				continue;
 			}
@@ -129,6 +145,10 @@ public class JasperReportDto implements Serializable{
 			p.setValueClass(Class.forName(param.getTypeAsString()));
 			p.setName(param.getName());
 			p.setForPrompting(param.isForPrompting());
+			p.setDescription(param.getDescription());
+			p.setNestedType(param.getNestedType());
+			p.getPropertiesMap().setBaseProperties(param.getProperties());
+//			p.getPropertiesMap().setProperty(propName, value);
 			design.addParameter(p);
 		}
 		

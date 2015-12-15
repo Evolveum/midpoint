@@ -24,24 +24,31 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
+import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.task.api.LightweightTaskHandler;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
 import com.evolveum.midpoint.task.api.TaskRecurrence;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskWaitingReason;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UriStack;
@@ -341,6 +348,11 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public <T> void setExtensionPropertyValueTransient(QName propertyName, T value) throws SchemaException {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
     public <T extends Containerable> void setExtensionContainerValue(QName containerName, T value)
             throws SchemaException {
         throw new UnsupportedOperationException("not implemented yet.");
@@ -370,6 +382,10 @@ public class SimpleTaskAdapter implements Task {
     public void setProgressImmediate(long progress, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
         throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
+    public void setProgressTransient(long value) {
     }
 
     @Override
@@ -649,7 +665,11 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public void startLightweightHandler() {
+    }
 
+    @Override
+    public OperationStatsType getAggregatedLiveOperationStats() {
+        return null;
     }
 
     @Override
@@ -665,5 +685,97 @@ public class SimpleTaskAdapter implements Task {
     @Override
     public void setExpectedTotalImmediate(Long value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
         //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void recordState(String message) {
+    }
+
+    @Override
+    public void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName, ProvisioningOperation operation, boolean success, int count, long duration) {
+    }
+
+    @Override
+    public void recordNotificationOperation(String transportName, boolean success, long duration) {
+    }
+
+    @Override
+    public void recordMappingOperation(String objectOid, String objectName, String mappingName, long duration) {
+    }
+
+    @Override
+    public void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception, SynchronizationInformation.Record increment) {
+    }
+
+    @Override
+    public void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
+    }
+
+    @Override
+    public void resetEnvironmentalPerformanceInformation(EnvironmentalPerformanceInformationType value) {
+    }
+
+    @Override
+    public void resetSynchronizationInformation(SynchronizationInformationType value) {
+    }
+
+    @Override
+    public void resetIterativeTaskInformation(IterativeTaskInformationType value) {
+    }
+
+    @Override
+    public void recordIterativeOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception) {
+    }
+
+    @Override
+    public void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
+    }
+
+    @Override
+    public void recordIterativeOperationEnd(ShadowType shadow, long started, Throwable exception) {
+    }
+
+    @Override
+    public void recordIterativeOperationStart(ShadowType shadow) {
+    }
+
+    @Override
+    public void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid, ChangeType changeType, String channel, Throwable exception) {
+    }
+
+    @Override
+    public void resetActionsExecutedInformation(ActionsExecutedInformationType value) {
+    }
+
+    @Override
+    public void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, Throwable exception) {
+    }
+
+    @Override
+    public <T extends ObjectType> void recordObjectActionExecuted(PrismObject<T> objectOld, Class<T> objectTypeClass, String oid, ChangeType delete, String channel, Throwable o) {
+    }
+
+    @Override
+    public void markObjectActionExecutedBoundary() {
+    }
+
+    @Override
+    public OperationStatsType getStoredOperationStats() {
+        return null;
+    }
+
+    @Override
+    public void startCollectingOperationStatsFromZero(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics) {
+
+    }
+
+    @Override
+    public void startCollectingOperationStatsFromStoredValues(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics) {
+
+    }
+
+    @Override
+    public void storeOperationStats() {
+
     }
 }

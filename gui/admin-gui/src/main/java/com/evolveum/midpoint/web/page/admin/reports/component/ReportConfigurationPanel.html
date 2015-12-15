@@ -22,13 +22,16 @@
             <h3 style="margin-left: 20px;"><wicket:message key="ReportConfigurationPanel.title.basic"/></h3>
 
             <div class="form-group" wicket:id="name" />
-            <div class="form-group" wicket:id="description" />
-            
-            <div class="form-group" wicket:id="exportType" />
+            <div class="form-group" wicket:id="description" />            
+            <div class="form-group" wicket:id="exportType" />                        
             
         </div>
         <div class="col-md-6">
-            <!--<div wicket:id="properties"/>-->
+            <h3 style="margin-left: 20px;"><wicket:message key="ReportConfigurationPanel.title.advanced"/></h3>
+            <div class="form-group" wicket:id="maxPages" />            
+            <div class="form-group" wicket:id="timeout" />
+            <div class="form-group" wicket:id="virtualizer" />
+            <div class="form-group" wicket:id="virtualizerKickOn" />              
         </div>
     </div>
 

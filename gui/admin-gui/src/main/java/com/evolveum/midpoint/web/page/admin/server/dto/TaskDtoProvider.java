@@ -91,13 +91,13 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
                             getModelInteractionService(), getTaskManager(), options, result, (PageBase)component);
                     getAvailableData().add(taskDto);
                 } catch (Exception ex) {
-                    LoggingUtils.logException(LOGGER, "Unhandled exception when getting task {} details", ex, task.getOid());
+                    LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when getting task {} details", ex, task.getOid());
                     result.recordPartialError("Couldn't get details of task " + task.getOid(), ex);
                     // todo display the result somehow
                 }
             }
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Unhandled exception when listing tasks", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing tasks", ex);
             result.recordFatalError("Couldn't list tasks.", ex);
         } finally {
             if (result.hasUnknownStatus()) {
@@ -116,7 +116,7 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
             count = getModel().countObjects(TaskType.class, getQuery(), null, task, result);
             result.recomputeStatus();
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Unhandled exception when counting tasks", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when counting tasks", ex);
             result.recordFatalError("Couldn't count tasks.", ex);
         }
         if (!result.isSuccess()) {

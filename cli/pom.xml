@@ -22,13 +22,13 @@
 
     <name>midPoint CLI Interface</name>
     <artifactId>cli</artifactId>
-    <version>3.3-SNAPSHOT</version>
+    <version>3.4-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
         <artifactId>parent</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.3-SNAPSHOT</version>
+        <version>3.4-SNAPSHOT</version>
         <relativePath>../build-system/pom.xml</relativePath>
     </parent>
 
@@ -104,4 +104,11 @@
             </resource>
         </resources>
     </build>
+    <dependencies> 
+    	<dependency> <!-- Not used, but required for surefire plugin not to complain -->
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

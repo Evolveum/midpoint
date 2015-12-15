@@ -18,8 +18,7 @@ package com.evolveum.midpoint.web.page.admin.reports.dto;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -31,6 +30,7 @@ public class ReportOutputSearchDto extends Selectable {
     public static final String F_FILE_TYPE = "fileType";
     public static final String F_TYPE = "type";
     public static final String F_TEXT = "text";
+    public static final String F_REPORT_TYPES = "reportTypes";
 
     private Map<String, String> reportTypeMap = new HashMap<>();
     private ExportType fileType;
@@ -70,5 +70,14 @@ public class ReportOutputSearchDto extends Selectable {
 
     public void setFileType(ExportType fileType) {
         this.fileType = fileType;
+    }
+
+    public List<String> getReportTypes() {
+        List<String> list = new ArrayList<>();
+        list.addAll(reportTypeMap.keySet());
+
+        Collections.sort(list);
+
+        return list;
     }
 }

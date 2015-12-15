@@ -22,69 +22,85 @@
 		<form wicket:id="mainForm" class="form-horizontal">
             <div class="row">
                 <div class="col-md-6">
-                    <h3><wicket:message key="pageResource.resource" /></h3>
-                    <table class="table table-condensed table-striped">
-                        <tr>
-                            <td><wicket:message key="pageResource.oid" />:</td>
-                            <td style="padding-left: 20px;"><div
-                                    wicket:id="resourceOid" /></td>
-                        </tr>
-                        <tr>
-                            <td><wicket:message key="pageResource.name" />:</td>
-                            <td style="padding-left: 20px;"><div
-                                    wicket:id="resourceName" /></td>
-                        </tr>
-                        <tr>
-                            <td><wicket:message key="pageResource.type" />:</td>
-                            <td style="padding-left: 20px;"><div
-                                    wicket:id="resourceType" /></td>
-                        </tr>
-                        <tr>
-                            <td><wicket:message key="pageResource.version" />:</td>
-                            <td style="padding-left: 20px;"><div
-                                    wicket:id="resourceVersion" /></td>
-                        </tr>
-                        <tr>
-                            <td><wicket:message key="pageResource.progress" />:</td>
-                            <td style="padding-left: 20px;"><div
-                                    wicket:id="resourceProgress" /></td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="col-md-3">
-                    <h3><wicket:message key="pageResource.status" /></h3>
-                    <div wicket:id="connectors">
-                        <table class="table table-condensed table-striped">
-                            <tr>
-                                <td><wicket:message key="pageResource.overallStatus" /></td>
-                                <td style="padding-left: 20px;"><i wicket:id="overallStatus" /></td>
-                            </tr>
-                            <tr>
-                                <td><wicket:message key="pageResource.confValidation" /></td>
-                                <td style="padding-left: 20px;"><i wicket:id="confValidation" /></td>
-                            </tr>
-                            <tr>
-                                <td><wicket:message key="pageResource.conInitialization" /></td>
-                                <td style="padding-left: 20px;"><i wicket:id="conInitialization" /></td>
-                            </tr>
-                            <tr>
-                                <td><wicket:message key="pageResource.conConnection" /></td>
-                                <td style="padding-left: 20px;"><i wicket:id="conConnection" /></td>
-                            </tr>
-                            <tr>
-                                <td><wicket:message key="pageResource.conSchema" /></td>
-                                <td style="padding-left: 20px;"><i wicket:id="conSchema" /></td>
-                            </tr>
-                        </table>
+                    <div class="box box-success">
+                        <div class="box-header with-border">
+                            <h3 class="box-title"><wicket:message key="pageResource.resource" /></h3>
+                        </div>
+                        <div class="box-body no-padding">
+                            <table class="table table-striped">
+                                <tr>
+                                    <td><wicket:message key="pageResource.oid" />:</td>
+                                    <td style="padding-left: 20px;"><div
+                                            wicket:id="resourceOid" /></td>
+                                </tr>
+                                <tr>
+                                    <td><wicket:message key="pageResource.name" />:</td>
+                                    <td style="padding-left: 20px;"><div
+                                            wicket:id="resourceName" /></td>
+                                </tr>
+                                <tr>
+                                    <td><wicket:message key="pageResource.type" />:</td>
+                                    <td style="padding-left: 20px;"><div
+                                            wicket:id="resourceType" /></td>
+                                </tr>
+                                <tr>
+                                    <td><wicket:message key="pageResource.version" />:</td>
+                                    <td style="padding-left: 20px;"><div
+                                            wicket:id="resourceVersion" /></td>
+                                </tr>
+                                <tr>
+                                    <td><wicket:message key="pageResource.progress" />:</td>
+                                    <td style="padding-left: 20px;"><div
+                                            wicket:id="resourceProgress" /></td>
+                                </tr>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <h3><wicket:message key="pageResource.capabilities" /></h3>
-                    <table class="table table-condensed table-striped">
-                        <tr wicket:id="listCapabilities">
-                            <td><span wicket:id="capabilities" /></td>
-                        </tr>
-                    </table>
+                    <div class="box box-warning">
+                        <div class="box-header with-border">
+                            <h3 class="box-title"><wicket:message key="pageResource.status" /></h3>
+                        </div>
+                        <div class="box-body no-padding" wicket:id="connectors">
+                            <table class="table table-striped">
+                                <tr>
+                                    <td><wicket:message key="pageResource.overallStatus" /></td>
+                                    <td style="padding-left: 20px;"><i wicket:id="overallStatus" /></td>
+                                </tr>
+                                <tr>
+                                    <td><wicket:message key="pageResource.confValidation" /></td>
+                                    <td style="padding-left: 20px;"><i wicket:id="confValidation" /></td>
+                                </tr>
+                                <tr>
+                                    <td><wicket:message key="pageResource.conInitialization" /></td>
+                                    <td style="padding-left: 20px;"><i wicket:id="conInitialization" /></td>
+                                </tr>
+                                <tr>
+                                    <td><wicket:message key="pageResource.conConnection" /></td>
+                                    <td style="padding-left: 20px;"><i wicket:id="conConnection" /></td>
+                                </tr>
+                                <tr>
+                                    <td><wicket:message key="pageResource.conSchema" /></td>
+                                    <td style="padding-left: 20px;"><i wicket:id="conSchema" /></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title"><wicket:message key="pageResource.capabilities" /></h3>
+                        </div>
+                        <div class="box-body no-padding">
+                            <table class="table table-striped">
+                                <tr wicket:id="listCapabilities">
+                                    <td><span wicket:id="capabilities" /></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 

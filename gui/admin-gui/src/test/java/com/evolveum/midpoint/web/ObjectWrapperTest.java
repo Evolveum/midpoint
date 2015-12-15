@@ -43,7 +43,7 @@ public class ObjectWrapperTest extends BaseGuiTest {
     public void testEmptyPolyString() throws Exception {
         PrismObject<UserType> user = prismContext.parseObject(new File("./src/test/resources/wrapper/user.xml"));
 
-        ObjectWrapper wrapper = new ObjectWrapper(null, null, user, null, ContainerStatus.MODIFYING, null);
+        ObjectWrapper<UserType> wrapper = new ObjectWrapper<UserType>(null, null, user, null, ContainerStatus.MODIFYING, null);
         //simulate change on honorific prefix
         ContainerWrapper containerWrapper = null;
         for (ContainerWrapper container : wrapper.getContainers()) {
@@ -54,7 +54,7 @@ public class ObjectWrapperTest extends BaseGuiTest {
         }
 
         PropertyWrapper propertyWrapper = (PropertyWrapper) containerWrapper.findPropertyWrapper(UserType.F_HONORIFIC_SUFFIX);
-        ValueWrapper valueWrapper = propertyWrapper.getValues().get(0);
+        ValueWrapper valueWrapper = (ValueWrapper) propertyWrapper.getValues().get(0);
         PolyString value = (PolyString) ((PrismPropertyValue) valueWrapper.getValue()).getValue();
 
         Field orig = PolyString.class.getDeclaredField("orig");

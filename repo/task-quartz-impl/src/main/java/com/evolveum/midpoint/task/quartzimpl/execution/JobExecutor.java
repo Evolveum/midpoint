@@ -550,7 +550,11 @@ mainCycle:
             task.setLastRunFinishTimestamp(System.currentTimeMillis());
             if (runResult.getOperationResult() != null) {
                 OperationResult taskResult = runResult.getOperationResult().clone();
-                taskResult.cleanupResult();
+                try {
+                    taskResult.cleanupResult();
+                } catch (Throwable ex) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Problem with task result cleanup - continuing", ex);
+                }
                 task.setResult(taskResult);
             }
             task.setNode(null);

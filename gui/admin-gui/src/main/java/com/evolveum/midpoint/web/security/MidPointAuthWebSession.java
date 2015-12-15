@@ -70,10 +70,13 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession {
         super(request);
         Injector.get().inject(this);
 
-        if (getLocale() == null) {
+        Locale locale = getLocale();
+        LOGGER.debug("Found locale {}", locale);
+        if (locale == null || !MidPointApplication.containsLocale(locale)) {
             //default locale for web application
-            setLocale(new Locale("en", "US"));
+            setLocale(MidPointApplication.getDefaultLocale());
         }
+        LOGGER.debug("Using {} as locale", getLocale());
     }
 
     @Override
@@ -109,8 +112,9 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession {
 
             auditEvent(authentication, username, OperationResultStatus.SUCCESS);
         } catch (AuthenticationException ex) {
-            ComponentStringResourceLoader comp = new ComponentStringResourceLoader();
-            error(comp.loadStringResource(MidPointApplication.class, ex.getMessage(), getLocale(), "", ""));
+            String key = ex.getMessage() != null ? ex.getMessage() : "web.security.provider.unavailable";
+            MidPointApplication app = (MidPointApplication) getSession().getApplication();
+            error(app.getString(key));
 
             LOGGER.debug("Couldn't authenticate user.", ex);
             authenticated = false;

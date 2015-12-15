@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -609,7 +610,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     }
 
 	/**
-	 * Change user fullname. See if the change propagates correctly. Also see that there are no side-effects.
+	 * Change user fullname. Fullname has normal mapping on default dummy. 
+	 * See if the change propagates correctly. Also see that there are no side-effects.
 	 */
 	@Test
     public void test380ModifyUserWallyFullName() throws Exception {
@@ -623,7 +625,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         prepareNotifications();
         
         DummyAccount wallyDummyAccount = dummyResourceGreen.getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
-                
+        
 		/// WHEN
         TestUtil.displayWhen(TEST_NAME);
         modifyUserReplace(userWallyOid, UserType.F_FULL_NAME, task, result, PrismTestUtil.createPolyString("Bloodnose"));
@@ -632,42 +634,120 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         waitForSyncTaskNextRunAssertSuccess(resourceDummy);
         waitForSyncTaskNextRunAssertSuccess(resourceDummyBlue);
         waitForSyncTaskNextRunAssertSuccess(resourceDummyGreen);
-		
+
+        // Run green recon twice here. If the recon already searched for current state of the
+        // wally account, the old value ("Wally B. Feed") is stored in the memory. Even if we rewrite
+        // the account state by this operation the value already read into memory will be used instead
+        // and it will be propagated to other resources. The next recon run should fix it in the user.
+        // But as the mapping to default dummy is normal, the recon will not fix it on the resource.
+        waitForSyncTaskNextRunAssertSuccess(resourceDummyGreen);
+        
         // THEN
         TestUtil.displayThen(TEST_NAME);
-                
-        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
-        if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
-        PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Bloodnose");
-        assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
-        PrismObject<ShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, dummyResource, "default", "Bloodnose");
-        assertShadowOperationalData(accountWallyDefault, SynchronizationSituationType.LINKED);
-        
         
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
         assertNotNull("User wally disappeared", userWally);
         assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Bloodnose", null, "Bloodnose from Sync");
+               
+        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
+        PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Bloodnose");
+        assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
+        
+        PrismObject<ShadowType> accountWallyDefault = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummy);
+        String fullNameDummyAttribute = IntegrationTestTools.getAttributeValue(accountWallyDefault.asObjectable(), 
+        		new QName(ResourceTypeUtil.getResourceNamespace(resourceDummy), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
+        if (!"Bloodnose".equals(fullNameDummyAttribute) && !"Wally B. Feed".equals(fullNameDummyAttribute)) {
+        	AssertJUnit.fail("Wrong full name on default dummy resource: "+fullNameDummyAttribute);
+        }
+        assertShadowOperationalData(accountWallyDefault, SynchronizationSituationType.LINKED);
        
         assertLinks(userWally, 3);
 
         assertLinked(userWally, accountWallyGreen);
         assertLinked(userWally, accountWallyBlue);
         assertLinked(userWally, accountWallyDefault);
-                
+        
         assertUsers(7 + getNumberOfExtraDummyUsers());
 
-        // notifications
         notificationManager.setDisabled(true);
-//        checkDummyTransportMessages("accountPasswordNotifier", 0);
-//        checkDummyTransportMessages("userPasswordNotifier", 0);
-//        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 2);        // not on blue (weak mapping)
-//        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
-//        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
-//        checkDummyTransportMessagesAtLeast("simpleUserNotifier", 1);                  // (sometimes?) changed twice: 1.fullname, 2.familyname (from user template) -- i dont quite understand why twice, but this seems to be the fact
-//        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
-
     }
+
+	/**
+	 * Change user locality. Locality has strong mapping on default dummy. 
+	 * See if the change propagates correctly. Also see that there are no side-effects.
+	 */
+	@Test
+    public void test382ModifyUserWallyLocality() throws Exception {
+		final String TEST_NAME = "test382ModifyUserWallyLocality";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        rememberTimeBeforeSync();
+        prepareNotifications();
+        
+        DummyAccount wallyDummyAccount = dummyResourceGreen.getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
+        
+		/// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(userWallyOid, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Plunder island"));
+        
+        // Wait for sync tasks to pick up the change and have some chance to screw things
+        waitForSyncTaskNextRunAssertSuccess(resourceDummy);
+        waitForSyncTaskNextRunAssertSuccess(resourceDummyBlue);
+        waitForSyncTaskNextRunAssertSuccess(resourceDummyGreen);
+
+        // Run green recon twice here. If the recon already searched for current state of the
+        // wally account, the old value is stored in the memory. Even if we rewrite
+        // the account state by this operation the value already read into memory will be used instead
+        // and it will be propagated to other resources. The next recon run should fix it.
+        // Both in user and on the resource.
+        waitForSyncTaskNextRunAssertSuccess(resourceDummyGreen);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
+        display("User wally", userWally);
+        assertNotNull("User wally disappeared", userWally);
+        assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Bloodnose", null, "Bloodnose from Sync");
+        PrismAsserts.assertPropertyValue(userWally, UserType.F_LOCALITY, PrismTestUtil.createPolyString("Plunder island"));
+               
+        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
+        PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Bloodnose");
+        assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
+        
+        PrismObject<ShadowType> accountWallyDefault = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummy);
+        String fullNameDummyAttribute = IntegrationTestTools.getAttributeValue(accountWallyDefault.asObjectable(), 
+        		new QName(ResourceTypeUtil.getResourceNamespace(resourceDummy), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
+        if (!"Bloodnose".equals(fullNameDummyAttribute) && !"Wally B. Feed".equals(fullNameDummyAttribute)) {
+        	AssertJUnit.fail("Wrong full name on default dummy resource: "+fullNameDummyAttribute);
+        }
+        assertShadowOperationalData(accountWallyDefault, SynchronizationSituationType.LINKED);
+        assertShadowOperationalData(accountWallyDefault, SynchronizationSituationType.LINKED);
+       
+        assertDummyAccountAttribute(RESOURCE_DUMMY_GREEN_NAME, ACCOUNT_WALLY_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Plunder island");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_WALLY_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Scabb Island");
+        assertDummyAccountAttribute(null, ACCOUNT_WALLY_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Plunder island");
+        
+        assertLinks(userWally, 3);
+
+        assertLinked(userWally, accountWallyGreen);
+        assertLinked(userWally, accountWallyBlue);
+        assertLinked(userWally, accountWallyDefault);
+        
+        assertUsers(7 + getNumberOfExtraDummyUsers());
+
+        notificationManager.setDisabled(true);
+    }
+	
 	
 	/**
 	 * Delete default dummy account.

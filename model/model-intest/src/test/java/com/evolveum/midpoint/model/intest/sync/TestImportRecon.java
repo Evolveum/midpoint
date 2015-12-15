@@ -578,11 +578,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Script history", dummyResource.getScriptHistory());
         
         ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
-        addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
-        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
-        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
         addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
+        addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
+        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
+        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
         //assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
@@ -728,11 +728,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Script history", dummyResource.getScriptHistory());
         
         ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
-        addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
-        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
-        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
         addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
+        addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
+        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
+        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
@@ -799,12 +799,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         display("Script history", dummyResource.getScriptHistory());
         ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
+        addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
         // Guybrush is broken.
         addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true, false);
-        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
-        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
-        addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
+        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
+        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
         // Task result
@@ -884,11 +884,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Script history", dummyResource.getScriptHistory());
         
         ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
-        addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
-        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
-        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
         addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
+        addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
+        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
+        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
@@ -975,10 +975,10 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
         addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", false);
-        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
-        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
-        addReconScripts(scripts, ACCOUNT_HTM_NAME, ACCOUNT_HTM_FULL_NAME, true);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
+        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
+        addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
+        addReconScripts(scripts, ACCOUNT_HTM_NAME, ACCOUNT_HTM_FULL_NAME, true);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
         assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_OID); // the second modification is unlink
@@ -1658,8 +1658,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
-        PrismObject<ShadowType> accountStan = PrismTestUtil.parseObject(ACCOUNT_TAUGUSTUS_FILE);
-		provisioningService.addObject(accountStan, null, null, task, result);
+        PrismObject<ShadowType> accountTaugustus = PrismTestUtil.parseObject(ACCOUNT_TAUGUSTUS_FILE);
+		provisioningService.addObject(accountTaugustus, null, null, task, result);
         
         // Preconditions
         assertUsers(11);
@@ -1688,7 +1688,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByOid(USER_BARBOSSA_OID);
         assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);
         assertImportedUserByUsername(ACCOUNT_STAN_NAME, RESOURCE_DUMMY_OID);
-        assertImportedUserByUsername(USER_AUGUSTUS_NAME, RESOURCE_DUMMY_OID);
+        PrismObject<UserType> userAugustusAfter = assertImportedUserByUsername(USER_AUGUSTUS_NAME, RESOURCE_DUMMY_OID);
         
         // These are protected accounts, they should not be imported
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
@@ -1697,6 +1697,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertUsers(12);
         
         assertShadowKindIntent(ACCOUNT_TAUGUSTUS_OID, ShadowKindType.ACCOUNT, INTENT_TEST);
+        
+        display("User augustus after", userAugustusAfter);
+        assertLinks(userAugustusAfter, 1);
+        PrismAsserts.assertPropertyValue(userAugustusAfter, UserType.F_ORGANIZATIONAL_UNIT, 
+        		PrismTestUtil.createPolyString("The crew of Titanicum Augusticum"));
         
         // Check audit
         assertImportAuditModifications(1);
@@ -1743,7 +1748,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByOid(USER_BARBOSSA_OID);
         assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);
         assertImportedUserByUsername(ACCOUNT_STAN_NAME, RESOURCE_DUMMY_OID);
-        assertImportedUserByUsername(USER_AUGUSTUS_NAME, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_OID);
+        PrismObject<UserType> userAugustusAfter = assertImportedUserByUsername(USER_AUGUSTUS_NAME, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_OID);
         
         // These are protected accounts, they should not be imported
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
@@ -1753,6 +1758,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         assertShadowKindIntent(ACCOUNT_AUGUSTUS_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
         assertShadowKindIntent(ACCOUNT_TAUGUSTUS_OID, ShadowKindType.ACCOUNT, INTENT_TEST);
+        
+        display("User augustus after", userAugustusAfter);
+        assertLinks(userAugustusAfter, 2);
+        // Gives wrong results now. See MID-2532
+//        PrismAsserts.assertPropertyValue(userAugustusAfter, UserType.F_ORGANIZATIONAL_UNIT, 
+//        		PrismTestUtil.createPolyString("The crew of Titanicum Augusticum"),
+//        		PrismTestUtil.createPolyString("The crew of Boatum Mailum"));
         
         // Check audit
         assertImportAuditModifications(1);
@@ -2139,10 +2151,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		assertImportedUser(user, resourceOids);
 	}
 		
-	private void assertImportedUserByUsername(String username, String... resourceOids) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	private PrismObject<UserType> assertImportedUserByUsername(String username, String... resourceOids) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		PrismObject<UserType> user = findUserByUsername(username);
 		assertNotNull("No user "+username, user);
 		assertImportedUser(user, resourceOids);
+		return user;
 	}
 		
 	private void assertImportedUser(PrismObject<UserType> user, String... resourceOids) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {

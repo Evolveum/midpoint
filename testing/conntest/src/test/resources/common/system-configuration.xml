@@ -40,12 +40,8 @@
 	        <package>com.evolveum.midpoint</package>
       	</classLogger>
         <classLogger>
-	        <level>INFO</level>
+	        <level>DEBUG</level>
 	        <package>com.evolveum.midpoint.model</package>
-      	</classLogger>
-        <classLogger>
-	        <level>INFO</level>
-	        <package>com.evolveum.midpoint.provisioning</package>
       	</classLogger>
         <classLogger>
 	        <level>INFO</level>
@@ -56,30 +52,42 @@
 	        <package>org.identityconnectors.framework</package>
       	</classLogger>
         <classLogger>
-	        <level>TRACE</level>
+	        <level>DEBUG</level>
 	        <package>com.evolveum.polygon</package>
       	</classLogger>
         <classLogger>
+	        <level>TRACE</level>
+	        <package>com.evolveum.polygon.connector.ldap</package>
+      	</classLogger>
+        <classLogger>
 	        <level>DEBUG</level>
-	        <package>com.evolveum.polygon.connector.ldap.SchemaTranslator</package>
+	        <package>com.evolveum.polygon.connector.ldap.schema.SchemaTranslator</package>
       	</classLogger>
         <classLogger>
 	        <level>DEBUG</level>
 	        <package>com.evolveum.midpoint.model.impl.lens.Clockwork</package>
       	</classLogger>
         <classLogger>
-	        <level>TRACE</level>
+	        <level>DEBUG</level>
 	        <package>com.evolveum.midpoint.provisioning</package>
       	</classLogger>
       	<classLogger>
-	        <level>INFO</level>
+	        <level>WARN</level>
 	        <package>com.evolveum.midpoint.provisioning.impl.ResourceManager</package>
       	</classLogger>
         <classLogger>
             <c:level>TRACE</c:level>
             <c:package>com.evolveum.midpoint.test</c:package>
         </classLogger>
-
+        <classLogger>
+            <c:level>TRACE</c:level>
+            <c:package>com.evolveum.midpoint.testing.conntest</c:package>
+        </classLogger>
+        <classLogger>
+            <c:level>WARN</c:level>
+            <c:package>org.apache.directory</c:package>
+        </classLogger>
+        
 		<appender xsi:type="c:FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
             <fileName>target/test.log</fileName>

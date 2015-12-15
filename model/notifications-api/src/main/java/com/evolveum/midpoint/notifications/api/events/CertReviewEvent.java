@@ -57,7 +57,7 @@ public class CertReviewEvent extends AccessCertificationEvent {
     public Collection<AccessCertificationCaseType> getCasesWithoutResponse() {
         List<AccessCertificationCaseType> rv = new ArrayList<>();
         for (AccessCertificationCaseType aCase : cases) {
-            if (!hasResponse(aCase, getRequesteeOid(), campaign.getCurrentStageNumber())) {
+            if (!hasResponse(aCase, getRequesteeOid(), campaign.getStageNumber())) {
                 rv.add(aCase);
             }
         }

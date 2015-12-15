@@ -101,7 +101,15 @@ It also contains inbound mappings and definition to enable synchronization.
 
              This is the part where most of the customization takes place.
         -->
-   
+		<schema>
+			<!-- workaround to MID-2723 -->
+			<generationConstraints>
+				<generateObjectClass>ri:inetOrgPerson</generateObjectClass>
+				<generateObjectClass>ri:groupOfUniqueNames</generateObjectClass>
+				<generateObjectClass>ri:groupOfNames</generateObjectClass>
+				<generateObjectClass>ri:organizationalUnit</generateObjectClass>
+			</generationConstraints>
+		</schema>
 	
 	<schemaHandling>
 		<objectType>
@@ -262,9 +270,6 @@ It also contains inbound mappings and definition to enable synchronization.
 				<maxIterations>5</maxIterations>
 			</iteration>
 			
-<!--                        <protected>-->
-<!--                <icfs:name>cn=idm,ou=Administrators,dc=example,dc=com</icfs:name>-->
-<!--            </protected>-->
 			<protected>
 				<filter>
 					<q:equal>

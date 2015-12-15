@@ -14,10 +14,10 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -85,7 +85,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnswerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -220,13 +219,18 @@ public class PageSecurityQuestions extends PageBase {
 			try {
 				config = getPageBase().getModelService().getObject(SystemConfigurationType.class,
 						SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task, result);
-				PrismObject<SecurityPolicyType> securityPolicy;
-				securityPolicy = getModelService().getObject(SecurityPolicyType.class,
-						config.asObjectable().getGlobalSecurityPolicyRef().getOid(), null, task, subResult);
-				questionNumber = securityPolicy.asObjectable().getCredentials().getSecurityQuestions()
-						.getQuestionNumber();
-				policyQuestionList = securityPolicy.asObjectable().getCredentials().getSecurityQuestions()
-						.getQuestion();
+                if (config.asObjectable().getGlobalSecurityPolicyRef() != null) {
+                    PrismObject<SecurityPolicyType> securityPolicy;
+                    securityPolicy = getModelService().getObject(SecurityPolicyType.class,
+                            config.asObjectable().getGlobalSecurityPolicyRef().getOid(), null, task, subResult);
+                    questionNumber = securityPolicy.asObjectable().getCredentials() != null &&
+                            securityPolicy.asObjectable().getCredentials().getSecurityQuestions() != null ?
+                            securityPolicy.asObjectable().getCredentials().getSecurityQuestions().getQuestionNumber() : 0;
+                    policyQuestionList = securityPolicy.asObjectable().getCredentials() != null &&
+                            securityPolicy.asObjectable().getCredentials().getSecurityQuestions() != null ?
+                            securityPolicy.asObjectable().getCredentials().getSecurityQuestions().getQuestion() :
+                            new ArrayList<SecurityQuestionDefinitionType>();
+                }
 
 				List<SecurityQuestionAnswerDTO> userQuestionList = model.getObject().getSecurityAnswers();
 
@@ -353,10 +357,11 @@ public class PageSecurityQuestions extends PageBase {
 			throw new RestartResponseException(PageSecurityQuestions.class);
 		}
 
-		OperationResult result = new OperationResult(OPERATION_LOAD_USER);
+		Task task = createSimpleTask(OPERATION_LOAD_USER);
+		OperationResult result = task.getResult();
 		PrismObject<UserType> user = WebModelUtils.loadObject(UserType.class,
-				getSession().getAttribute(SESSION_ATTRIBUTE_POID).toString(), result,
-				PageSecurityQuestions.this);
+				getSession().getAttribute(SESSION_ATTRIBUTE_POID).toString(), 
+				PageSecurityQuestions.this, task, result);
 
 		result.computeStatus();
 
@@ -385,22 +390,24 @@ public class PageSecurityQuestions extends PageBase {
 			MyPasswordQuestionsPanel type = (MyPasswordQuestionsPanel) iterator.next();
 
 			List<SecurityQuestionAnswerDTO> userQuestionList = model.getObject().getSecurityAnswers();
-			for (Iterator iterator2 = userQuestionList.iterator(); iterator2.hasNext();) {
-				SecurityQuestionAnswerDTO securityQuestionAnswerDTO = (SecurityQuestionAnswerDTO) iterator2
-						.next();
-				// TODO do this in a proper way, what is this.
-				String results = StringEscapeUtils.unescapeHtml((type
-						.get(MyPasswordQuestionsPanel.F_QUESTION)).getDefaultModelObjectAsString());
-				if (getQuestionIdentifierFromQuestion(results).trim().equalsIgnoreCase(
-						securityQuestionAnswerDTO.getPwdQuestion().trim())) {
+            if (userQuestionList != null) {
+                for (Iterator iterator2 = userQuestionList.iterator(); iterator2.hasNext(); ) {
+                    SecurityQuestionAnswerDTO securityQuestionAnswerDTO = (SecurityQuestionAnswerDTO) iterator2
+                            .next();
+                    // TODO do this in a proper way, what is this.
+                    String results = StringEscapeUtils.unescapeHtml((type
+                            .get(MyPasswordQuestionsPanel.F_QUESTION)).getDefaultModelObjectAsString());
+                    if (getQuestionIdentifierFromQuestion(results).trim().equalsIgnoreCase(
+                            securityQuestionAnswerDTO.getPwdQuestion().trim())) {
 
-					if (((TextField<String>) type.get(MyPasswordQuestionsPanel.F_ANSWER)).getModelObject()
-							.equalsIgnoreCase(securityQuestionAnswerDTO.getPwdAnswer())) {
-						correctAnswers++;
-					}
-				}
+                        if (((TextField<String>) type.get(MyPasswordQuestionsPanel.F_ANSWER)).getModelObject()
+                                .equalsIgnoreCase(securityQuestionAnswerDTO.getPwdAnswer())) {
+                            correctAnswers++;
+                        }
+                    }
 
-			}
+                }
+            }
 
 		}
 
@@ -444,8 +451,13 @@ public class PageSecurityQuestions extends PageBase {
 	}
 
 	private void cancelPerformed(AjaxRequestTarget target) {
-		setResponsePage(PageDashboard.class);
-	}
+        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+                AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
+            setResponsePage(PageDashboard.class);
+        } else {
+            setResponsePage(PageSelfDashboard.class);
+        }
+    }
 
 	// TODO securityQuestionList'i cikar
 
@@ -561,13 +573,13 @@ public class PageSecurityQuestions extends PageBase {
 			try {
 
 				// System.out.println("try");
-				if (getModelInteractionService().getCredentialsPolicy(null, parentResult)
+				if (getModelInteractionService().getCredentialsPolicy(null, null, parentResult)
 						.getSecurityQuestions().getResetMethod().getResetType()
 						.equals(CredentialsResetTypeType.SECURITY_QUESTIONS)) {
 					// System.out.println("ifff");
 					getSession().setAttribute("pwdReset", newPassword);
 					setResponsePage(PageShowPassword.class);
-				} else if (getModelInteractionService().getCredentialsPolicy(null, parentResult)
+				} else if (getModelInteractionService().getCredentialsPolicy(null, null, parentResult)
 						.getSecurityQuestions().getResetMethod().getResetType()
 						.equals(CredentialsResetTypeType.SECURITY_QUESTIONS_EMAIL)) {
 					// System.out.println("ifff2");

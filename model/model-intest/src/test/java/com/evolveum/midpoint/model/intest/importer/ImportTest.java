@@ -261,7 +261,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 
 		// THEN
 		result.computeStatus();
-		display("Result after dupicate import", result);
+		display("Result after duplicate import", result);
 		assertFalse("Unexpected success", result.isSuccess());
 
 		// All three users should fail. First two because of OID conflict,
@@ -275,7 +275,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		
 		// Check audit
         display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(3);
+        dummyAuditService.assertRecords(6);		// 3 requests + 3 failed executions
 	}
 	
 	// Import the same thing again, this time with overwrite option. This should go well.
@@ -338,7 +338,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		
 		// Check audit
         display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(7);
+        dummyAuditService.assertRecords(8);		// 1 failed, 7 succeeded
 	}
 
 	

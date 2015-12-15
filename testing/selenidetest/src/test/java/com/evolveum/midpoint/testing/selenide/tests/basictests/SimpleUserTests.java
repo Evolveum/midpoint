@@ -3,6 +3,7 @@ package com.evolveum.midpoint.testing.selenide.tests.basictests;
 import com.evolveum.midpoint.testing.selenide.tests.AbstractSelenideTest;
 import org.openqa.selenium.By;
 import org.springframework.stereotype.Component;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
@@ -18,6 +19,7 @@ import static com.codeborne.selenide.Selenide.close;
  * Created by Kate on 14.08.2015.
  */
 @Component
+@Listeners({com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class})
 public class SimpleUserTests extends AbstractSelenideTest {
     //test data
     public static final String UPDATED_STRING = "_updated";
@@ -55,6 +57,9 @@ public class SimpleUserTests extends AbstractSelenideTest {
      */
     @Test (priority = 1)
     public void test002createUserWithAllFieldsTest() {
+        //click elsewhere
+        $(By.partialLinkText("Dashboard")).click();
+
         //create user with filled user name only
         Map<String, String> userAttributesMap = getAllUserAttributesMap();
         createUser(ALL_FIELDS_USER_NAME, userAttributesMap);
@@ -72,13 +77,13 @@ public class SimpleUserTests extends AbstractSelenideTest {
     /**
      * Updating user fields
      */
-    @Test(dependsOnMethods = {"test001createUserWithUserNameOnlyTest"}, priority = 3)
+    @Test(priority = 2)
     public void test003editUserTest() {
         //open user's Edit page
         openUsersEditPage(SIMPLE_USER_NAME);
 
         //click on the menu icon in the User details section
-        $(byText("User details")).parent().parent().find(byAttribute("about", "dropdownMenu"))
+        $(byText("Details")).parent().parent().find(byAttribute("about", "dropdownMenu"))
                 .shouldBe(visible).click();
         //click on Show empty fields menu item
         $(By.linkText("Show empty fields")).shouldBe(visible).click();
@@ -116,22 +121,22 @@ public class SimpleUserTests extends AbstractSelenideTest {
     /**
      * Cancelling of user update
      */
-    @Test(dependsOnMethods = {"test001createUserWithUserNameOnlyTest"}, priority = 2)
+    @Test(priority = 3)
     public void test004cancelUserUpdateTest() {
         //create user
         createUser(NOT_UPDATED_USER_NAME, new HashMap<String, String>());
         //open user's Edit page
         openUsersEditPage(NOT_UPDATED_USER_NAME);
         //click on the menu icon in the User details section
-        $(byText("User details")).parent().parent().find(byAttribute("about", "dropdownMenu"))
+        $(byText("Details")).parent().parent().find(byAttribute("about", "dropdownMenu"))
                 .shouldBe(visible).click();
         //click on Show empty fields menu item
         $(By.linkText("Show empty fields")).shouldBe(visible).click();
 
         //update Name field
-        $(By.name("userForm:body:containers:0:container:properties:0:property:values:0:value:valueContainer:input:input"))
+        $(By.name(AbstractSelenideTest.USER_NAME_FIELD_NAME))
                 .shouldBe(visible).clear();
-        $(By.name("userForm:body:containers:0:container:properties:0:property:values:0:value:valueContainer:input:input"))
+        $(By.name(AbstractSelenideTest.USER_NAME_FIELD_NAME))
                 .shouldBe(visible).setValue(NOT_UPDATED_USER_NAME + "_updated");
 
         //click Back button
@@ -202,26 +207,28 @@ public class SimpleUserTests extends AbstractSelenideTest {
 
     @Test (priority = 7)
     public void test008pagingThroughUsersList(){
+//        login();
+
         //import 100 users from xml file
         importObjectFromFile(USER_LIST_XML_FILEPATH);
         //open user's list page
         openListUsersPage();
         //check if administrator user is present on the first list user page
-        $(By.linkText(ADMIN_LOGIN)).shouldBe(visible);
+        $(By.linkText("name0")).shouldBe(visible);
         //click on the second number page
         $(By.linkText("2")).shouldBe(visible).click();
         //check that administrator user isn't present on the second list user page
-        $(By.linkText(ADMIN_LOGIN)).shouldNotBe(visible);
+        $(By.linkText("name0")).shouldNotBe(visible);
         //check paging message shows the correct page numbers
-        $(By.name("table:table:bottomToolbars:toolbars:2:td:pageSize:popButton")).parent().shouldHave(text("Displaying 11 to 20"));
+        $(By.className("dataTables_info")).shouldHave(text("Displaying 11 to 20"));
         //click on the next  page button
         $(By.linkText(">")).shouldBe(visible).click();
         //check paging message shows the correct page numbers
-        $(By.name("table:table:bottomToolbars:toolbars:2:td:pageSize:popButton")).parent().shouldHave(text("Displaying 21 to 30"));
+        $(By.className("dataTables_info")).shouldHave(text("Displaying 21 to 30"));
         //click on the previous page button
         $(By.linkText("<")).shouldBe(visible).click();
         //check paging message shows the correct page numbers
-        $(By.name("table:table:bottomToolbars:toolbars:2:td:pageSize:popButton")).parent().shouldHave(text("Displaying 11 to 20"));
+        $(By.className("dataTables_info")).shouldHave(text("Displaying 11 to 20"));
 
     }
 

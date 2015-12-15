@@ -88,6 +88,8 @@ class IcfUtil {
     private static final String JAVA_EXCEPTION_PACKAGE = AlreadyExistsException.class.getPackage().getName();
     private static final String DOT_NET_ARGUMENT_EXCEPTION = "System.ArgumentException";
 
+    private static final String CONNECTIONS_EXCEPTION_CLASS_NAME = "CommunicationsException";
+
     static Throwable processIcfException(Throwable icfException, ConnectorInstanceIcfImpl conn,
 			OperationResult icfResult) {
 		return processIcfException(icfException, conn.getHumanReadableName(), icfResult);
@@ -166,7 +168,17 @@ class IcfUtil {
 			icfResult.recordFatalError("Configuration error: "+icfException.getMessage(), newEx);
 			return newEx;
 		}
-		
+        //fix of MiD-2645
+        //exception brought by the connector is java.lang.RuntimeException with cause=CommunicationsException
+        //this exception is to be analyzed here before the following if clause
+        if (icfException.getCause() != null){
+            String exCauseClassName = icfException.getCause().getClass().getSimpleName();
+            if (exCauseClassName.equals(CONNECTIONS_EXCEPTION_CLASS_NAME) ){
+                Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connect error", icfException));
+                icfResult.recordFatalError("Connect error: " + icfException.getMessage(), newEx);
+                return newEx;
+            }
+        }
 		if (icfException.getClass().getPackage().equals(NullPointerException.class.getPackage())) {
 			// There are java.lang exceptions, they are safe to pass through
 			icfResult.recordFatalError(icfException);
@@ -279,7 +291,8 @@ class IcfUtil {
     private static Exception lookForKnownCause(Throwable ex,
 			Throwable originalException, OperationResult parentResult) {
 		if (ex instanceof FileNotFoundException) {
-			Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(createMessageFromAllExceptions(null, ex));
+            //fix MID-2711 consider FileNotFoundException as CommunicationException
+			Exception newEx = new com.evolveum.midpoint.util.exception.CommunicationException(createMessageFromAllExceptions(null, ex));
 			parentResult.recordFatalError("File not found: "+ex.getMessage(), newEx);
 			return newEx;
 		} else if (ex instanceof NameAlreadyBoundException) {
@@ -432,7 +445,9 @@ class IcfUtil {
 	private static void addAllExceptionsToMessage(StringBuilder sb, Throwable ex) {
 		sb.append(ex.getClass().getName());
 		sb.append("(");
-		sb.append(ex.getMessage());
+		// Make sure that no non-printable chars shall pass
+		// e.g. AD LDAP produces non-printable chars in the messages
+		sb.append(ex.getMessage().replaceAll("\\p{C}", "?"));
 		sb.append(")");
 		if (ex.getCause() != null) {
 			sb.append("->");

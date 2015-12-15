@@ -21,6 +21,7 @@ import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -212,11 +213,11 @@ public class PageInternals extends PageAdminConfiguration {
     private void updateInternalConfig(AjaxRequestTarget target){
         internalsModel.getObject().saveInternalsConfig();
 
-        LOGGER.trace("Updated internals config, consistencyChecks={},encryptionChecks={},readEncryptionChecks={}",
+        LOGGER.trace("Updated internals config, consistencyChecks={},encryptionChecks={},readEncryptionChecks={}, QNameUtil.tolerateUndeclaredPrefixes={}",
                 new Object[]{InternalsConfig.consistencyChecks, InternalsConfig.encryptionChecks,
-                        InternalsConfig.readEncryptionChecks});
+                        InternalsConfig.readEncryptionChecks, QNameUtil.isTolerateUndeclaredPrefixes()});
         success(getString("PageInternals.message.internalsConfigUpdate", InternalsConfig.consistencyChecks,
-                InternalsConfig.encryptionChecks, InternalsConfig.readEncryptionChecks));
+                InternalsConfig.encryptionChecks, InternalsConfig.readEncryptionChecks, QNameUtil.isTolerateUndeclaredPrefixes()));
         target.add(getFeedbackPanel(), getInternalsConfigForm());
     }
 

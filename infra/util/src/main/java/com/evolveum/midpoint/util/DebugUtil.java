@@ -180,21 +180,25 @@ public class DebugUtil {
 	
 	public static void debugDumpWithLabel(StringBuilder sb, String label, String val, int indent) {
 		debugDumpLabel(sb, label, indent);
+		sb.append(" ");
 		sb.append(val);
 	}
 
 	public static void debugDumpWithLabel(StringBuilder sb, String label, boolean val, int indent) {
 		debugDumpLabel(sb, label, indent);
+		sb.append(" ");
 		sb.append(val);
 	}
 
 	public static void debugDumpWithLabel(StringBuilder sb, String label, int val, int indent) {
 		debugDumpLabel(sb, label, indent);
+		sb.append(" ");
 		sb.append(val);
 	}
 
 	public static void debugDumpWithLabel(StringBuilder sb, String label, long val, int indent) {
 		debugDumpLabel(sb, label, indent);
+		sb.append(" ");
 		sb.append(val);
 	}
 

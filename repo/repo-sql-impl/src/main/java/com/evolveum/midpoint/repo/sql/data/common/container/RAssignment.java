@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -26,13 +27,22 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
+import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
+import com.evolveum.midpoint.repo.sql.query.definition.VirtualEntity;
+import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
@@ -41,6 +51,7 @@ import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -49,10 +60,32 @@ import java.util.Set;
  */
 @JaxbType(type = AssignmentType.class)
 @Entity
+@QueryEntity(
+        entities = {
+//                @VirtualEntity(
+//                        jaxbName = @JaxbName(localPart = "metadata"),
+//                        jaxbType = MetadataType.class,
+//                        jpaName = "",
+//                        jpaType = Serializable.class            // dummy value (ignored)
+//                )
+//                ,
+//                @VirtualEntity(
+//                        jaxbName = @JaxbName(localPart = "construction"),
+//                        jaxbType = ConstructionType.class,
+//                        jpaName = "",
+//                        jpaType = Serializable.class            // dummy value (ignored)
+//                )
+        }
+)
 @IdClass(RContainerId.class)
+// TODO prefix last 4 index names with "iAssignment" (some day)
 @Table(name = "m_assignment", indexes = {
         @Index(name = "iAssignmentAdministrative", columnList = "administrativeStatus"),
-        @Index(name = "iAssignmentEffective", columnList = "effectiveStatus")})
+        @Index(name = "iAssignmentEffective", columnList = "effectiveStatus"),
+        @Index(name = "iTargetRefTargetOid", columnList = "targetRef_targetOid"),
+        @Index(name = "iTenantRefTargetOid", columnList = "tenantRef_targetOid"),
+        @Index(name = "iOrgRefTargetOid", columnList = "orgRef_targetOid"),
+        @Index(name = "iResourceRefTargetOid", columnList = "resourceRef_targetOid")})
 public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     public static final String F_OWNER = "owner";
@@ -78,6 +111,8 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     private REmbeddedReference targetRef;
     private Integer order;
     private REmbeddedReference tenantRef;
+    private REmbeddedReference orgRef;
+    private REmbeddedReference resourceRef;
     //metadata
     private XMLGregorianCalendar createTimestamp;
     private REmbeddedReference creatorRef;
@@ -102,11 +137,13 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinTable(foreignKey = @ForeignKey(name = "fk_assignment_owner"))
+    @NotQueryable
     public RObject getOwner() {
         return owner;
     }
 
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
+    @OwnerIdGetter()
     public String getOwnerOid() {
         if (owner != null && ownerOid == null) {
             ownerOid = owner.getOid();
@@ -118,6 +155,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
     @Column(name = "id")
+    @IdQueryProperty
     public Integer getId() {
         return id;
     }
@@ -135,6 +173,17 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     @Embedded
     public REmbeddedReference getTenantRef() {
         return tenantRef;
+    }
+
+    @Embedded
+    public REmbeddedReference getOrgRef() {
+        return orgRef;
+    }
+
+    @Embedded
+    @JaxbPath(itemPath = { @JaxbName(localPart = "construction"), @JaxbName(localPart = "resourceRef") })
+    public REmbeddedReference getResourceRef() {
+        return resourceRef;
     }
 
     @org.hibernate.annotations.ForeignKey(name = "none")
@@ -164,6 +213,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     @org.hibernate.annotations.ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     //@JoinTable(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createApproverRef") })
     public Set<RAssignmentReference> getCreateApproverRef() {
         if (createApproverRef == null) {
             createApproverRef = new HashSet<>();
@@ -171,20 +221,24 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return createApproverRef;
     }
 
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createChannel") })
     public String getCreateChannel() {
         return createChannel;
     }
 
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createTimestamp") })
     public XMLGregorianCalendar getCreateTimestamp() {
         return createTimestamp;
     }
 
     @Embedded
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "creatorRef") })
     public REmbeddedReference getCreatorRef() {
         return creatorRef;
     }
 
     @Embedded
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifierRef") })
     public REmbeddedReference getModifierRef() {
         return modifierRef;
     }
@@ -193,6 +247,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     @OneToMany(mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
 //    @JoinTable(foreignKey = @ForeignKey(name = "none"))
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyApproverRef") })
     public Set<RAssignmentReference> getModifyApproverRef() {
         if (modifyApproverRef == null) {
             modifyApproverRef = new HashSet<>();
@@ -200,10 +255,12 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return modifyApproverRef;
     }
 
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyChannel") })
     public String getModifyChannel() {
         return modifyChannel;
     }
 
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyTimestamp") })
     public XMLGregorianCalendar getModifyTimestamp() {
         return modifyTimestamp;
     }
@@ -287,6 +344,14 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         this.tenantRef = tenantRef;
     }
 
+    public void setOrgRef(REmbeddedReference orgRef) {
+        this.orgRef = orgRef;
+    }
+
+    public void setResourceRef(REmbeddedReference resourceRef) {
+        this.resourceRef = resourceRef;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -302,6 +367,8 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         if (order != null ? !order.equals(that.order) : that.order != null)
             return false;
         if (tenantRef != null ? !tenantRef.equals(that.tenantRef) : that.tenantRef != null) return false;
+        if (orgRef != null ? !orgRef.equals(that.orgRef) : that.orgRef != null) return false;
+        if (resourceRef != null ? !resourceRef.equals(that.resourceRef) : that.resourceRef != null) return false;
 
         if (!MetadataFactory.equals(this, that)) return false;
 
@@ -358,6 +425,23 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
         repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), prismContext));
 
+        repo.setOrgRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOrgRef(), prismContext));
+
+        if (jaxb.getConstruction() != null) {
+            repo.setResourceRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConstruction().getResourceRef(), prismContext));
+        }
+
         MetadataFactory.fromJAXB(jaxb.getMetadata(), repo, prismContext);
+    }
+
+    @Override
+    public String toString() {
+        return "RAssignment{" +
+                "id=" + id +
+                ", ownerOid='" + ownerOid + '\'' +
+                ", owner=" + owner +
+                ", targetRef=" + targetRef +
+                ", resourceRef=" + resourceRef +
+                '}';
     }
 }

@@ -44,9 +44,9 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
     private static final String OPERATION_COUNT_RESOURCES = DOT_CLASS + "countResources";
 
     private ObjectDataProvider resourceProvider;
-    private IModel<List<FocusShadowDto>> accountsModel;
+    private IModel<List<FocusProjectionDto>> accountsModel;
 
-    public SimpleUserResourceProvider(Component component, IModel<List<FocusShadowDto>> accountsModel) {
+    public SimpleUserResourceProvider(Component component, IModel<List<FocusProjectionDto>> accountsModel) {
         super(component);
         Validate.notNull(accountsModel, "Accounts model must not be null.");
         this.accountsModel = accountsModel;
@@ -99,12 +99,12 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
     private Set<String> createUsedResourceOidSet() {
         Set<String> set = new HashSet<>();
 
-        List<FocusShadowDto> accounts = accountsModel.getObject();
+        List<FocusProjectionDto> accounts = accountsModel.getObject();
         if (accounts == null) {
             return set;
         }
 
-        for (FocusShadowDto account : accounts) {
+        for (FocusProjectionDto account : accounts) {
             if(account.isLoadedOK()){
                 PrismObject<ShadowType> prismAccount = account.getObject().getObject();
                 PrismReference resourceRef = prismAccount.findReference(ShadowType.F_RESOURCE_REF);

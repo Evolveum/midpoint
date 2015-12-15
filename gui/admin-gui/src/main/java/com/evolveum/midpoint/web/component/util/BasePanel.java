@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,41 +16,41 @@
 
 package com.evolveum.midpoint.web.component.util;
 
-import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
 /**
  * @author lazyman
+ * @author semancik
  */
-@Deprecated
-public abstract class BasePanel<T> extends Panel {
+public class BasePanel<T> extends Panel {
 
     private IModel<T> model;
-    private boolean initialized;
+
+    public BasePanel(String id) {
+        this(id, null);
+    }
 
     public BasePanel(String id, IModel<T> model) {
         super(id);
-
-        this.model = model;
+        this.model = model == null ? createModel() : model;
     }
 
-    @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
-
-        if (initialized) {
-            return;
-        }
-        initLayout();
-        initialized = true;
+    public IModel<T> createModel() {
+        return null;
     }
 
-    protected IModel<T> getModel() {
+    public IModel<T> getModel() {
         return model;
+    }
+
+    public T getModelObject() {
+        return model != null ? model.getObject() : null;
     }
 
     public String getString(String resourceKey, Object... objects) {
@@ -62,18 +62,44 @@ public abstract class BasePanel<T> extends Panel {
     }
 
     public StringResourceModel createStringResource(Enum e) {
-        String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
-        return createStringResource(resourceKey);
+        return createStringResource(e, null);
     }
 
-    public PageBase getPageBase() {
-        return (PageBase) getPage();
+    public StringResourceModel createStringResource(Enum e, String prefix) {
+        return createStringResource(e, prefix, null);
     }
 
-    protected void initLayout() {
+    public StringResourceModel createStringResource(Enum e, String prefix, String nullKey) {
+        StringBuilder sb = new StringBuilder();
+        if (StringUtils.isNotEmpty(prefix)) {
+            sb.append(prefix).append('.');
+        }
+
+        if (e == null) {
+            if (StringUtils.isNotEmpty(nullKey)) {
+                sb.append(nullKey);
+            } else {
+                sb = new StringBuilder();
+            }
+        } else {
+            sb.append(e.getDeclaringClass().getSimpleName()).append('.');
+            sb.append(e.name());
+        }
+
+        return createStringResource(sb.toString());
     }
 
     protected String createComponentPath(String... components) {
         return StringUtils.join(components, ":");
+    }
+
+    public WebApplicationConfiguration getWebApplicationConfiguration() {
+        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        return application.getWebApplicationConfiguration();
+    }
+
+    @Override
+    public MidPointAuthWebSession getSession() {
+        return (MidPointAuthWebSession) super.getSession();
     }
 }

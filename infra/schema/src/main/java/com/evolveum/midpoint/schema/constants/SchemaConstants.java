@@ -152,6 +152,7 @@ public abstract class SchemaConstants {
 	public static final String CHANGE_CHANNEL_RECON_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_RECON);
 	public static final QName CHANGE_CHANNEL_RECOMPUTE = new QName(NS_PROVISIONING_CHANNEL, "recompute");
 	public static final QName CHANGE_CHANNEL_DISCOVERY = new QName(NS_PROVISIONING_CHANNEL, "discovery");
+	public static final String CHANGE_CHANNEL_DISCOVERY_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_DISCOVERY);
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_PROVISIONING_CHANNEL, "import");
 
 	public static final String NS_MODEL = NS_MIDPOINT_PUBLIC + "/model";
@@ -186,12 +187,14 @@ public abstract class SchemaConstants {
 	
 	public static final QName MODEL_EXTENSION_OBJECT_TYPE = new QName(NS_MODEL_EXTENSION, "objectType");
     public static final QName MODEL_EXTENSION_OBJECT_QUERY = new QName(NS_MODEL_EXTENSION, "objectQuery");
+    public static final QName MODEL_EXTENSION_OBJECT_DELTA = new QName(NS_MODEL_EXTENSION, "objectDelta");
 	public static final QName MODEL_EXTENSION_WORKER_THREADS = new QName(NS_MODEL_EXTENSION, "workerThreads");
 	public static final QName MODEL_EXTENSION_OPTION_RAW = new QName(NS_MODEL_EXTENSION, "optionRaw");
 
 	public static final QName MODEL_EXTENSION_DIAGNOSE = new QName(NS_MODEL_EXTENSION, "diagnose");
 	public static final QName MODEL_EXTENSION_FIX = new QName(NS_MODEL_EXTENSION, "fix");
 	public static final QName MODEL_EXTENSION_DUPLICATE_SHADOWS_RESOLVER = new QName(NS_MODEL_EXTENSION, "duplicateShadowsResolver");
+	public static final QName MODEL_EXTENSION_CHECK_DUPLICATES_ON_PRIMARY_IDENTIFIERS_ONLY = new QName(NS_MODEL_EXTENSION, "checkDuplicatesOnPrimaryIdentifiersOnly");
 
     public static final String NS_GUI = NS_MIDPOINT_PUBLIC + "/gui";
 	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-3";

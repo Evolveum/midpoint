@@ -212,6 +212,17 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		delta.setValuesToReplace(new ArrayList<PrismPropertyValue>());
 		return delta;
 	}
+
+	public static <O extends Objectable> PropertyDelta createReplaceEmptyDelta(PrismObjectDefinition<O> objectDefinition,
+																			   ItemPath propertyPath) {
+		PrismPropertyDefinition propertyDefinition = objectDefinition.findPropertyDefinition(propertyPath);
+		if (propertyDefinition == null) {
+			throw new IllegalArgumentException("No definition for "+propertyPath+" in "+objectDefinition);
+		}
+		PropertyDelta delta = new PropertyDelta(propertyPath, propertyDefinition, objectDefinition.getPrismContext());             // hoping the prismContext is there
+		delta.setValuesToReplace(new ArrayList<PrismPropertyValue>());
+		return delta;
+	}
 	
 	public static <O extends Objectable, T> PropertyDelta<T> createReplaceDeltaOrEmptyDelta(PrismObjectDefinition<O> objectDefinition,
 			QName propertyName, T realValue) {

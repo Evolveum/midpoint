@@ -25,6 +25,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -73,19 +74,25 @@ public class TextAreaFormGroup extends SimplePanel<String> {
         }
         labelContainer.add(l);
 
-        Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
-        tooltipLabel.add(new AttributeAppender("data-original-title", getString(tooltipKey)));
-        tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
-        tooltipLabel.add(new VisibleEnableBehaviour(){
+		Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
+        tooltipLabel.add(new AttributeAppender("data-original-title", new AbstractReadOnlyModel<String>() {
 
             @Override
-            public boolean isVisible() {
-                return tooltipKey != null;
-            }
-        });
-        tooltipLabel.setOutputMarkupId(true);
-        tooltipLabel.setOutputMarkupPlaceholderTag(true);
-        labelContainer.add(tooltipLabel);
+            public String getObject() {
+                return getString(tooltipKey);
+		}
+        }));
+		tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
+		tooltipLabel.add(new VisibleEnableBehaviour() {
+
+			@Override
+			public boolean isVisible() {
+				return tooltipKey != null;
+			}
+		});
+		tooltipLabel.setOutputMarkupId(true);
+		tooltipLabel.setOutputMarkupPlaceholderTag(true);
+		labelContainer.add(tooltipLabel);		
 
         WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
         if (StringUtils.isNotEmpty(textSize)) {

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -45,6 +46,7 @@ import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.apache.commons.lang.Validate;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import java.util.*;
@@ -141,7 +143,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         PrismContext prismContext = expressionFactory.getPrismContext();
         QName approverOidName = new QName(SchemaConstants.NS_C, "approverOid");
         PrismPropertyDefinition<String> approverOidDef = new PrismPropertyDefinition(approverOidName, DOMUtil.XSD_STRING, prismContext);
-        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(approverExpression, approverOidDef, "approverExpression", result);
+        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(approverExpression, approverOidDef, "approverExpression", task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, "approverExpression", task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = expression.evaluate(params);
 
@@ -164,7 +166,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         PrismContext prismContext = expressionFactory.getPrismContext();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<Boolean> resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
-        Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, "automatic approval expression", result);
+        Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, "automatic approval expression", task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, 
         		"automatic approval expression", task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = expression.evaluate(params);
@@ -228,7 +230,15 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
             }
         }
 
-        // todo object delta, etc
+        ObjectDelta objectDelta = null;
+        try {
+            objectDelta = miscDataUtil.getObjectDelta(execution.getVariables(), true);
+        } catch (JAXBException e) {
+            throw new SchemaException("Couldn't get object delta: " + e.getMessage(), e);
+        }
+        variables.addVariableDefinition(SchemaConstants.T_OBJECT_DELTA, objectDelta);
+
+        // todo other variables?
 
         return variables;
     }

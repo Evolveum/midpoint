@@ -16,14 +16,8 @@
 package com.evolveum.midpoint.test.util;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-
-import org.opends.server.types.ObjectClass;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -32,7 +26,6 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -57,8 +50,8 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
 
 	@Override
 	public <T extends ObjectType> T resolve(ObjectReferenceType ref, Class<T> expectedType,
-			Collection<SelectorOptions<GetOperationOptions>> options, String contextDescription,
-			OperationResult result) throws ObjectNotFoundException, SchemaException {
+											Collection<SelectorOptions<GetOperationOptions>> options, String contextDescription,
+											Object task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		File file = new File( directory, oidToFilename(ref.getOid()));
 		if (file.exists()) {
 			try {
@@ -77,8 +70,8 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
 
 	@Override
 	public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler,
-			OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
+													   Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler,
+													   Object task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
 			CommunicationException, ConfigurationException, SecurityViolationException {
 		throw new UnsupportedOperationException();
 	}

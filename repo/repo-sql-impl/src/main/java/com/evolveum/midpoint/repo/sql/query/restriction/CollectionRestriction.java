@@ -32,8 +32,8 @@ import org.hibernate.criterion.Criterion;
 public class CollectionRestriction extends ItemRestriction<ValueFilter> {
 
     @Override
-    public boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException {
-        if (!super.canHandle(filter, context)) {
+    public boolean canHandle(ObjectFilter filter) throws QueryException {
+        if (!super.canHandle(filter)) {
             return false;
         }
 
@@ -57,6 +57,8 @@ public class CollectionRestriction extends ItemRestriction<ValueFilter> {
         String alias = context.getAlias(fullPath);
         Object value = getValueFromFilter(filter, (PropertyDefinition) def.getDefinition());
 
+        // TODO what about not-null ?
+
         //custom propertyPath handling for PolyString (it's embedded entity, not a primitive)
         if (value instanceof PolyString) {
             return createCriterion(alias, value, filter);
@@ -66,7 +68,7 @@ public class CollectionRestriction extends ItemRestriction<ValueFilter> {
     }
 
     @Override
-    public Restriction cloneInstance() {
+    public Restriction newInstance() {
         return new CollectionRestriction();
     }
 }

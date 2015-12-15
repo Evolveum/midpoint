@@ -24,11 +24,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
-import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang.BooleanUtils;
@@ -175,7 +172,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 				LOGGER.trace("Query after extension: {}", query.debugDump());
 			}
 			
-			resultValues = executeSearchUsingCache(targetTypeClass, targetTypeQName, query, params, contextDescription, params.getResult());
+			resultValues = executeSearchUsingCache(targetTypeClass, targetTypeQName, query, params, contextDescription, task, params.getResult());
 		}
 			
 		if (resultValues.isEmpty() && getExpressionEvaluatorType().isCreateOnDemand() == Boolean.TRUE &&
@@ -202,14 +199,14 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		return null;
 	}
 
-	private <O extends ObjectType> List<V> executeSearchUsingCache(Class<O> targetTypeClass,
-														 final QName targetTypeQName, ObjectQuery query, final ExpressionEvaluationContext params, String contextDescription, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	private <O extends ObjectType> List<V> executeSearchUsingCache(Class<O> targetTypeClass, final QName targetTypeQName, ObjectQuery query,
+																   final ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 		ObjectSearchStrategyType searchStrategy = getSearchStrategy();
 
 		AbstractSearchExpressionEvaluatorCache cache = getCache();
 		if (cache == null) {
-			return executeSearch(null, targetTypeClass, targetTypeQName, query, searchStrategy, params, contextDescription, result);
+			return executeSearch(null, targetTypeClass, targetTypeQName, query, searchStrategy, params, contextDescription, task, result);
 		}
 
 		List<V> list = cache.getQueryResult(targetTypeClass, query, searchStrategy, params, prismContext);
@@ -219,7 +216,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		}
 		LOGGER.trace("Cache: MISS {} ({})", query, targetTypeClass.getSimpleName());
 		List<PrismObject> rawResult = new ArrayList<>();
-		list = executeSearch(rawResult, targetTypeClass, targetTypeQName, query, searchStrategy, params, contextDescription, result);
+		list = executeSearch(rawResult, targetTypeClass, targetTypeQName, query, searchStrategy, params, contextDescription, task, result);
 		if (list != null && !list.isEmpty()) {
 			// we don't want to cache negative results (e.g. if used with focal objects it might mean that they would be attempted to create multiple times)
 			cache.putQueryResult(targetTypeClass, query, searchStrategy, params, list, rawResult, prismContext);
@@ -242,7 +239,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 														 Class<O> targetTypeClass, final QName targetTypeQName, ObjectQuery query,
 														 ObjectSearchStrategyType searchStrategy,
 														 ExpressionEvaluationContext params, String contextDescription,
-														 OperationResult result)
+														 Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 
@@ -256,18 +253,18 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 
 		switch (searchStrategy) {
 			case IN_REPOSITORY:
-				return executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, false, false, params, contextDescription, result);
+				return executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, false, false, params, contextDescription, task, result);
 			case ON_RESOURCE:
-				return executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, true, true, params, contextDescription, result);
+				return executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, true, true, params, contextDescription, task, result);
 			case ON_RESOURCE_IF_NEEDED:
-				List<V> inRepo = executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, false, false, params, contextDescription, result);
+				List<V> inRepo = executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, false, false, params, contextDescription, task, result);
 				if (!inRepo.isEmpty()) {
 					return inRepo;
 				}
 				if (rawResult != null) {
 					rawResult.clear();
 				}
-				return executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, true, false, params, contextDescription, result);
+				return executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, true, false, params, contextDescription, task, result);
 			default:
 				throw new IllegalArgumentException("Unknown search strategy: " + searchStrategy);
 		}
@@ -277,7 +274,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 																Class<O> targetTypeClass, final QName targetTypeQName,
 																ObjectQuery query, boolean searchOnResource, boolean tryAlsoRepository,
 																final ExpressionEvaluationContext params, String contextDescription,
-																OperationResult result)
+																Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 		final List<V> list = new ArrayList<V>();
@@ -302,7 +299,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		};
 		
 		try {
-			objectResolver.searchIterative(targetTypeClass, query, options, handler, result);
+			objectResolver.searchIterative(targetTypeClass, query, options, handler, task, result);
 		} catch (SchemaException e) {
 			throw new SchemaException(e.getMessage()+" in "+contextDescription, e);
 		} catch (CommunicationException | ConfigurationException 
@@ -310,7 +307,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			if (searchOnResource && tryAlsoRepository) {
 				options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 				try {
-					objectResolver.searchIterative(targetTypeClass, query, options, handler, result);
+					objectResolver.searchIterative(targetTypeClass, query, options, handler, task, result);
 				} catch (SchemaException e1) {
 					throw new SchemaException(e1.getMessage()+" in "+contextDescription, e1);
 				} catch (CommunicationException | ConfigurationException
@@ -409,7 +406,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		String expressionDesc = "expression in assignment expression in "+contextDescription;
 		ExpressionFactory expressionFactory = params.getExpressionFactory();
 		Expression<IV,ID> expression = expressionFactory.makeExpression(expressionType, propOutputDefinition, 
-				expressionDesc, result);
+				expressionDesc, task, result);
 		ExpressionEvaluationContext expressionParams = new ExpressionEvaluationContext(null, variables, 
 				expressionDesc, task, result);
 		expressionParams.setExpressionFactory(expressionFactory);

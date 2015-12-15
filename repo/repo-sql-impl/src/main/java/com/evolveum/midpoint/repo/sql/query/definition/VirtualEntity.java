@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 /**
  * @author lazyman
  */
-@Target({ElementType.METHOD})
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface VirtualEntity {
 
@@ -37,5 +37,6 @@ public @interface VirtualEntity {
 
     Class<? extends Serializable> jpaType();
 
-    VirtualQueryParam[] additionalParams() default {};
+    // VirtualQueryParam[] additionalParams() default {};
+    // not supported for now
 }

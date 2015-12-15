@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
 	<parent>
 		<artifactId>repo</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>3.3-SNAPSHOT</version>
+		<version>3.4-SNAPSHOT</version>
 	</parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -35,22 +35,22 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>common</artifactId>
-			<version>3.3-SNAPSHOT</version>
+			<version>3.4-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-api</artifactId>
-			<version>3.3-SNAPSHOT</version>
+			<version>3.4-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>schema</artifactId>
-			<version>3.3-SNAPSHOT</version>
+			<version>3.4-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>util</artifactId>
-			<version>3.3-SNAPSHOT</version>
+			<version>3.4-SNAPSHOT</version>
 		</dependency>
 		<!--  Testing dependecies  -->
 		<dependency>
@@ -61,7 +61,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.tools</groupId>
 			<artifactId>test-ng</artifactId>
-			<version>3.3-SNAPSHOT</version>
+			<version>3.4-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -79,13 +79,6 @@
 			<artifactId>log4j-over-slf4j</artifactId>
 			<scope>test</scope>
 		</dependency>
-		
-<!-- 		<dependency> -->
-<!-- 			<groupId>com.evolveum.midpoint.repo</groupId> -->
-<!-- 			<artifactId>system-init</artifactId> -->
-<!-- 			<version>1.9-SNAPSHOT</version> -->
-<!-- 			<scope>test</scope> -->
-<!-- 		</dependency> -->
 	</dependencies>
 	<profiles>
 		<profile>

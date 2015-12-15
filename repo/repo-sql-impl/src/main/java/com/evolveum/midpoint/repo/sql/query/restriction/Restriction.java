@@ -16,20 +16,25 @@
 
 package com.evolveum.midpoint.repo.sql.query.restriction;
 
+import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.NotNullExpression;
+import org.hibernate.criterion.NullExpression;
+import org.hibernate.criterion.Restrictions;
 
 /**
  * @author lazyman
  */
 public abstract class Restriction<T extends ObjectFilter> {
 
-    private QueryContext context;
-    private Restriction parent;
-    private T filter;
+    protected QueryContext context;
+    protected Restriction parent;
+    protected T filter;
 
     public T getFilter() {
         return filter;
@@ -55,15 +60,37 @@ public abstract class Restriction<T extends ObjectFilter> {
         this.parent = parent;
     }
 
-    // todo parameter can be removed
-    public abstract Criterion interpret(T filter) throws QueryException;
+    public abstract Criterion interpret() throws QueryException;
 
-    //todo remove both params, they are already in restriction
-    // when called this we don't really know if filter class matches T as can be seen in QueryInterpreter
-    // therefore filter should stay here as paramtere probably
-    public abstract boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException;
+    public abstract boolean canHandle(ObjectFilter filter) throws QueryException;
 
     // todo don't know if cloning is necessary... [lazyman]
     // this can be replaced probably by simple java reflection call
-    public abstract Restriction cloneInstance();
+    public abstract Restriction newInstance();
+
+    protected boolean isNegated() {
+        return filter instanceof NotFilter || (parent != null && parent.isNegated());
+    }
+
+    /**
+     * Filter of type NOT(PROPERTY=VALUE) causes problems when there are entities with PROPERTY set to NULL.
+     *
+     * Such a filter has to be treated like
+     *
+     *      NOT (PROPERTY=VALUE & PROPERTY IS NOT NULL)
+     *
+     * TODO implement for restrictions other than PropertyRestriction.
+     */
+    protected Criterion addIsNotNullIfNecessary(Criterion criterion, String propertyPath) {
+        if (criterion instanceof NullExpression || criterion instanceof NotNullExpression) {
+            return criterion;
+        }
+        if (!isNegated()) {
+            return criterion;
+        }
+        Conjunction conjunction = Restrictions.conjunction();
+        conjunction.add(criterion);
+        conjunction.add(Restrictions.isNotNull(propertyPath));
+        return conjunction;
+    }
 }

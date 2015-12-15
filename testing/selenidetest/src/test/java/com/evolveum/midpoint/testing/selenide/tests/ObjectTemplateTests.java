@@ -37,9 +37,9 @@ public class ObjectTemplateTests extends AbstractSelenideTest {
         //check if Full name and Nickname attributes are filled with values
         openUsersEditPage(USER_NAME_VALUE);
         //check if Full Name and Nickname fields were filled in according to user template rules
-        $(By.name("userForm:body:containers:0:container:properties:2:property:values:0:value:valueContainer:input:input"))
+        $(By.name(AbstractSelenideTest.FULL_NAME_FIELD_NAME))
                 .shouldHave(value(USER_GIVEN_NAME_VALUE + " " + USER_FAMILY_NAME_VALUE));
-        $(By.name("userForm:body:containers:0:container:properties:6:property:values:0:value:valueContainer:input:input"))
+        $(By.name(AbstractSelenideTest.NICKNAME_FIELD_NAME))
                 .shouldHave(value("nick_" + USER_GIVEN_NAME_VALUE));
     }
 

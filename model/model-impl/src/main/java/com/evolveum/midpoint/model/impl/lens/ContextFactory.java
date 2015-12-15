@@ -134,6 +134,9 @@ public class ContextFactory {
 			
 			for (ObjectDelta<ShadowType> projectionDelta: projectionDeltas) {
 				LensProjectionContext projectionContext = context.createProjectionContext();
+				if (context.isDoReconciliationForAllProjections()) {
+					projectionContext.setDoReconciliation(true);
+				}
 				projectionContext.setPrimaryDelta(projectionDelta);
 				
 				// We are little bit more liberal regarding projection deltas. 

@@ -394,13 +394,13 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 	}
 
     @Override
-	public List<MappingType> getCredentialsInbound() {
-		return refinedObjectClassDefinition.getCredentialsInbound();
+	public List<MappingType> getPasswordInbound() {
+		return refinedObjectClassDefinition.getPasswordInbound();
 	}
 
     @Override
-	public MappingType getCredentialsOutbound() {
-		return refinedObjectClassDefinition.getCredentialsOutbound();
+	public MappingType getPasswordOutbound() {
+		return refinedObjectClassDefinition.getPasswordOutbound();
 	}
 
     @Override

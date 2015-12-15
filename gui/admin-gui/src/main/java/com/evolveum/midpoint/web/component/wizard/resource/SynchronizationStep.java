@@ -728,14 +728,15 @@ public class SynchronizationStep extends WizardStep {
     private void savePerformed(){
         PrismObject<ResourceType> oldResource;
         PrismObject<ResourceType> newResource = resourceModel.getObject();
-        OperationResult result = new OperationResult(OPERATION_SAVE_SYNC);
+        Task task = getPageBase().createSimpleTask(OPERATION_SAVE_SYNC);
+        OperationResult result = task.getResult();
         ModelService modelService = getPageBase().getModelService();
         ObjectDelta delta;
 
         prepareResourceToSave(newResource.asObjectable());
 
         try{
-            oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), result, getPageBase());
+            oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), getPageBase(), task, result);
             if(oldResource != null){
                 delta = oldResource.diff(newResource);
 

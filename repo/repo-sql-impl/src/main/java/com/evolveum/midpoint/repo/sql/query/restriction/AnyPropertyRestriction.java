@@ -56,8 +56,8 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
     private static final Trace LOGGER = TraceManager.getTrace(AnyPropertyRestriction.class);
 
     @Override
-    public boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException {
-        if (!super.canHandle(filter, context)) {
+    public boolean canHandle(ObjectFilter filter) throws QueryException {
+        if (!super.canHandle(filter)) {
             return false;
         }
 
@@ -112,6 +112,8 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
         Object value = RAnyConverter.getAggregatedRepoObject(testedValue);
         conjunction.add(createCriterion(propertyNamePrefix + RAnyValue.F_VALUE, value, filter));
 
+        // todo what about "not"? but it would not work in this setting anyway (ownerType=A & name=B & value=C)
+        //conjunction.add(Restrictions.isNotNull(propertyNamePrefix + RAnyValue.F_VALUE));
         return conjunction;
     }
 
@@ -130,7 +132,7 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
     }
 
     @Override
-    public AnyPropertyRestriction cloneInstance() {
+    public AnyPropertyRestriction newInstance() {
         return new AnyPropertyRestriction();
     }
 }

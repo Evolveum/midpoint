@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.menu.top.MenuItem;
+import com.evolveum.midpoint.web.component.menu.MainMenuItem;
+import com.evolveum.midpoint.web.component.menu.MenuItem;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,13 +46,13 @@ public class SecurityUtils {
 
     public static MidPointPrincipal getPrincipalUser(Authentication authentication) {
         if (authentication == null) {
-            LOGGER.debug("Authentication not available in security current context holder.");
+            LOGGER.trace("Authentication not available in security context.");
             return null;
         }
 
         Object principal = authentication.getPrincipal();
         if (!(principal instanceof MidPointPrincipal)) {
-            LOGGER.debug("Principal user in security context holder is {} but not type of {}",
+            LOGGER.debug("Principal user in security context is {} but not type of {}",
                     new Object[]{principal, MidPointPrincipal.class.getName()});
             return null;
         }
@@ -59,13 +60,22 @@ public class SecurityUtils {
         return (MidPointPrincipal) principal;
     }
 
+    public static boolean isMenuAuthorized(MainMenuItem item) {
+        Class clazz = item.getPage();
+        return clazz == null || isMenuAuthorizedByPage(clazz);
+    }
+
     public static boolean isMenuAuthorized(MenuItem item) {
         Class clazz = item.getPage();
-        if (clazz == null) {
+        return isMenuAuthorizedByPage(clazz);
+    }
+
+    private static boolean isMenuAuthorizedByPage(Class page) {
+        if (page == null) {
             return false;
         }
 
-        PageDescriptor descriptor = (PageDescriptor) clazz.getAnnotation(PageDescriptor.class);
+        PageDescriptor descriptor = (PageDescriptor) page.getAnnotation(PageDescriptor.class);
         if (descriptor == null ){
             return false;
         }

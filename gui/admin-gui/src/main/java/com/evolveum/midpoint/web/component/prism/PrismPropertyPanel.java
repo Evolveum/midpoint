@@ -62,13 +62,17 @@ public class PrismPropertyPanel extends Panel {
         super(id);
         this.pageBase = pageBase;
 
+        LOGGER.trace("Creating property panel for {}", model.getObject());
+        
         setOutputMarkupId(true);
         add(new VisibleEnableBehaviour() {
 
             @Override
             public boolean isVisible() {
             	ItemWrapper property = model.getObject();
-                return property.isVisible();
+                boolean visible = property.isVisible();
+                LOGGER.trace("isVisible: {}: {}", property, visible);
+                return visible;
             }
 
             @Override

@@ -35,11 +35,6 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -62,7 +57,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.ChangeRecordEntry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -127,7 +122,6 @@ import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
-import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -137,7 +131,6 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
@@ -962,7 +955,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
 
         // check if account was created in LDAP
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(uid);
 
         display("LDAP account", entry);
 
@@ -1107,7 +1100,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
 
         // WHEN
 
-        provisioningService.searchObjectsIterative(ShadowType.class, q, null, handler, result);
+        provisioningService.searchObjectsIterative(ShadowType.class, q, null, handler, null, result);
 
         // THEN
 
@@ -1177,16 +1170,16 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         assertOpenDJAccountJack(uid, "jack");
     }
     
-    private SearchResultEntry assertOpenDJAccountJack(String entryUuid, String uid) throws DirectoryException {
-    	SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
+    private Entry assertOpenDJAccountJack(String entryUuid, String uid) throws DirectoryException {
+    	Entry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
     	return assertOpenDJAccountJack(entry, uid);
     }
     
-    private SearchResultEntry assertOpenDJAccountJack(SearchResultEntry entry, String uid) throws DirectoryException {
+    private Entry assertOpenDJAccountJack(Entry entry, String uid) throws DirectoryException {
     	return assertOpenDJAccountJack(entry, uid, "Jack");
     }
     
-    private SearchResultEntry assertOpenDJAccountJack(SearchResultEntry entry, String uid, String givenName) throws DirectoryException {
+    private Entry assertOpenDJAccountJack(Entry entry, String uid, String givenName) throws DirectoryException {
         display(entry);
         
 	    OpenDJController.assertDn(entry, "uid="+uid+",ou=people,dc=example,dc=com");
@@ -1305,7 +1298,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         String uid = checkRepoShadow(repoShadow);
 
         // Check if LDAP account was updated
-        SearchResultEntry entry = assertOpenDJAccountJack(uid, "jack");
+        Entry entry = assertOpenDJAccountJack(uid, "jack");
         
         String ldapPasswordAfter = OpenDJController.getAttributeValue(entry, "userPassword");
         assertNotNull(ldapPasswordAfter);
@@ -1361,7 +1354,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         String uid = checkRepoShadow(repoShadow);
 
         // Check if LDAP account was updated
-        SearchResultEntry jackLdapEntry = assertOpenDJAccountJack(uid, "jack");
+        Entry jackLdapEntry = assertOpenDJAccountJack(uid, "jack");
         OpenDJController.assertAttribute(jackLdapEntry, "roomNumber", expectedVal);
     }
 
@@ -1408,7 +1401,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         String uid = checkRepoShadow(repoShadow);
 
         // Check if LDAP account was updated
-        SearchResultEntry jackLdapEntry = assertOpenDJAccountJack(uid, "jack");
+        Entry jackLdapEntry = assertOpenDJAccountJack(uid, "jack");
         OpenDJController.assertAttribute(jackLdapEntry, "roomNumber", "upperdeck");
     }
 
@@ -1424,7 +1417,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         ObjectDeltaType objectChange = unmarshallValueFromFile(
                 REQUEST_USER_MODIFY_ACTIVATION_DISABLE_FILENAME, ObjectDeltaType.class);
 
-        SearchResultEntry entry = openDJController.searchByUid("jack");
+        Entry entry = openDJController.searchByUid("jack");
         assertOpenDJAccountJack(entry, "jack");
 
         String pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
@@ -1611,7 +1604,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
 
         // Check if LDAP account was updated
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(uid);
         assertOpenDJAccountJack(entry, "jack");
 
         // The value of ds-pwp-account-disabled should have been removed
@@ -1748,7 +1741,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         String uid = checkRepoShadow(repoShadow);
 
         // Check if LDAP account was updated
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(uid);
         assertOpenDJAccountJack(entry, "jsparrow", null);
     }
 
@@ -1873,7 +1866,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
 
         // check if account was created in LDAP
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
 
         display("LDAP account", entry);
 
@@ -1972,7 +1965,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
 
         // check if account is still in LDAP
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
 
         display("LDAP account", entry);
 
@@ -2054,7 +2047,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
 
         // check if account is still in LDAP
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
 
         display("LDAP account", entry);
 
@@ -2137,7 +2130,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
 
         // check if LDAP account was modified
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
 
         display("LDAP account", entry);
 
@@ -2267,7 +2260,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
 
         // check if account is still in LDAP
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
 
         display("LDAP account", entry);
 
@@ -2352,7 +2345,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
 
         // check if account is still in LDAP
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
 
         display("LDAP account", entry);
 
@@ -2437,7 +2430,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
 
         // check if account was deleted from LDAP
 
-        SearchResultEntry entry = openDJController.searchByEntryUuid(accountGuybrushOpendjEntryUuuid);
+        Entry entry = openDJController.searchByEntryUuid(accountGuybrushOpendjEntryUuuid);
 
         display("LDAP account", entry);
 
@@ -3103,7 +3096,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
 
         // check if account was created in LDAP
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
 
         display("LDAP account", entry);
 
@@ -3254,7 +3247,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
 
         // check if account was created in LDAP
 
-        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
+        Entry entry = openDJController.searchAndAssertByEntryUuid(accountGuybrushOpendjEntryUuuid);
 
         display("LDAP account", entry);
 

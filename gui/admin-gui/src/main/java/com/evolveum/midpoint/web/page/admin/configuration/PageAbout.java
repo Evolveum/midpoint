@@ -22,6 +22,8 @@ import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -299,9 +301,15 @@ public class PageAbout extends PageAdminConfiguration {
     }
 
     private void testRepositoryCheckOrgClosurePerformed(AjaxRequestTarget target) {
-        Task task = createSimpleTask(OPERATION_TEST_REPOSITORY_CHECK_ORG_CLOSURE);
-
-        OperationResult result = getModelDiagnosticService().repositoryTestOrgClosureConsistency(task, true);
+        OperationResult result = new OperationResult(OPERATION_GET_PROVISIONING_DIAG);
+        try {
+            Task task = createSimpleTask(OPERATION_TEST_REPOSITORY_CHECK_ORG_CLOSURE);
+            getModelDiagnosticService().repositoryTestOrgClosureConsistency(task, true, result);
+        } catch (SchemaException|SecurityViolationException e) {
+            result.recordFatalError(e);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
         showResult(result);
 
         target.add(getFeedbackPanel());

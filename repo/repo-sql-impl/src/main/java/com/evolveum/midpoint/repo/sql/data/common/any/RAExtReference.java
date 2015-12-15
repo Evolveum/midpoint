@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAExtReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
@@ -65,12 +66,14 @@ public class RAExtReference implements RAExtValue {
             @PrimaryKeyJoinColumn(name = "anyContainer_owner_owner_oid", referencedColumnName = "ownerOid"),
             @PrimaryKeyJoinColumn(name = "anyContainer_owner_id", referencedColumnName = "owner_type")
     })
+    @NotQueryable
     public RAssignmentExtension getAnyContainer() {
         return anyContainer;
     }
 
     @Id
     @Column(name = "anyContainer_owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+    @NotQueryable
     public String getOwnerOid() {
         if (ownerOid == null && anyContainer != null) {
             ownerOid = anyContainer.getOwnerOid();
@@ -80,6 +83,7 @@ public class RAExtReference implements RAExtValue {
 
     @Id
     @Column(name = "anyContainer_owner_id")
+    @NotQueryable
     public Integer getOwnerId() {
         if (ownerId == null && anyContainer != null) {
             ownerId = anyContainer.getOwnerId();

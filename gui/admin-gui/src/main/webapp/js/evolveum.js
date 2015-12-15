@@ -31,12 +31,6 @@ $(document).ready(function(){
 	}*/
 });
 
-function isIE9OrNewer() {
-    //todo not working with jquery > 1.9 [lazyman]
-//    return $.browser.msie && $.browser.version >= 9.0;
-    return true;
-}
-
 function isIE() {
     //todo not working with jquery > 1.9 [lazyman]
 //    return $.browser.msie;
@@ -59,12 +53,7 @@ function init() {
 	$(".left-menu .selected-left").append("<img class='leftNavArrow' src='img/leftNavArrow.png' alt='' />");
 	$(".left-menu .selected-left").parent().css("opacity", 1);
 	$(".left-menu .selected-left").parent().css("background", "#333333");
-	
-	if (!isIE9OrNewer()){
-		$(".acc .acc-section").css("height", "1px");
-		$(".acc-content .sortedTable table").css("width", $(".acc-content").width());
-	}
-	
+
 	$(".optionPanel").css("height",$(".optionRightBar").height());
 	$(".optionLeftBar").css("height",$(".optionRightBar").height());
 	

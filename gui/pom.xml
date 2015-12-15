@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
     <parent>
         <artifactId>parent</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.3-SNAPSHOT</version>
+        <version>3.4-SNAPSHOT</version>
         <relativePath>../build-system/pom.xml</relativePath>
     </parent>
     <organization>
@@ -48,11 +48,12 @@
     </scm>
     <modules>
         <module>admin-gui</module>
-        <module>admin-gui-en-US</module>
-	    <module>admin-gui-sk-SK</module>
-		<module>admin-gui-cs-CZ</module>
-        <module>admin-gui-tr-TR</module>
-        <module>admin-gui-es-ES</module>
     </modules>
-
+	<dependencies> 
+    	<dependency> <!-- Not used, but required for surefire plugin not to complain -->
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

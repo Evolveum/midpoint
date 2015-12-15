@@ -57,7 +57,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue,D extends ItemDefini
 		if (returnType == null && isRelative()) {
 			returnType = ScriptExpressionReturnTypeType.SCALAR;
 		}
-		return (List<V>) scriptExpression.evaluate(variables, returnType, useNew, contextDescription, result);
+		return (List<V>) scriptExpression.evaluate(variables, returnType, useNew, contextDescription, task, result);
 	}
 	
 	/* (non-Javadoc)

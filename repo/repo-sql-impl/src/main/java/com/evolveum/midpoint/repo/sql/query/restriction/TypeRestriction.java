@@ -38,7 +38,7 @@ import java.util.Set;
 public class TypeRestriction extends Restriction<TypeFilter> {
 
     @Override
-    public Criterion interpret(TypeFilter filter) throws QueryException {
+    public Criterion interpret() throws QueryException {
         String property = getContext().getAlias(null) + "." + RObject.F_OBJECT_TYPE_CLASS;
 
         Set<RObjectType> values = getValues(filter.getType());
@@ -56,8 +56,7 @@ public class TypeRestriction extends Restriction<TypeFilter> {
 
         QueryContext context = getContext();
         QueryInterpreter interpreter = context.getInterpreter();
-        Restriction restriction = interpreter.findAndCreateRestriction(filter.getFilter(), context, this);
-        Criterion basedOnFilter = restriction.interpret(filter.getFilter());
+        Criterion basedOnFilter = interpreter.interpretFilter(filter.getFilter(), context, this);
 
         return Restrictions.and(basedOnType, basedOnFilter);
     }
@@ -85,7 +84,7 @@ public class TypeRestriction extends Restriction<TypeFilter> {
     }
 
     @Override
-    public boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException {
+    public boolean canHandle(ObjectFilter filter) throws QueryException {
         if (filter instanceof TypeFilter) {
             return true;
         }
@@ -93,7 +92,7 @@ public class TypeRestriction extends Restriction<TypeFilter> {
     }
 
     @Override
-    public Restriction cloneInstance() {
+    public Restriction newInstance() {
         return new TypeRestriction();
     }
 }

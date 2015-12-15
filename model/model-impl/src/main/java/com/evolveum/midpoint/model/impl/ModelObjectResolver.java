@@ -53,6 +53,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 /**
  * @author semancik
@@ -81,7 +83,7 @@ public class ModelObjectResolver implements ObjectResolver {
 	
 	@Override
 	public <O extends ObjectType> O resolve(ObjectReferenceType ref, Class<O> expectedType, Collection<SelectorOptions<GetOperationOptions>> options,
-			String contextDescription, OperationResult result) throws ObjectNotFoundException, SchemaException {
+											String contextDescription, Object task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 				String oid = ref.getOid();
 				Class<?> typeClass = null;
 				QName typeQName = ref.getType();
@@ -92,7 +94,7 @@ public class ModelObjectResolver implements ObjectResolver {
 					expectedType = (Class<O>) typeClass;
 				}
 				try {
-					return getObject(expectedType, oid, options, null, result);
+					return getObject(expectedType, oid, options, (Task) task, result);
 				} catch (SystemException ex) {
 					throw ex;
 				} catch (ObjectNotFoundException ex) {
@@ -211,21 +213,35 @@ public class ModelObjectResolver implements ObjectResolver {
 		return objectType;
 	}
 	
-	public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, OperationResult parentResult) 
+	public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Object task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (ObjectTypes.isClassManagedByProvisioning(type)) {
-			provisioning.searchObjectsIterative(type, query, options, handler, parentResult);
+			provisioning.searchObjectsIterative(type, query, options, handler, (Task) task, parentResult);
 		} else {
-			cacheRepositoryService.searchObjectsIterative(type, query, handler, options, parentResult);
+			cacheRepositoryService.searchObjectsIterative(type, query, handler, options, false, parentResult);		// TODO pull up into resolver interface
 		}
 	}
 	
-	public <O extends ObjectType> Integer countObjects(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public <O extends ObjectType> Integer countObjects(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (ObjectTypes.isClassManagedByProvisioning(type)) {
-			return provisioning.countObjects(type, query, options, parentResult);
+			return provisioning.countObjects(type, query, options, task, parentResult);
 		} else {
 			return cacheRepositoryService.countObjects(type, query, parentResult);
 		}
 	}
+	
+	public PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
+        PrismObject<SystemConfigurationType> config = cacheRepositoryService.getObject(SystemConfigurationType.class,
+                SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
+
+        if (LOGGER.isTraceEnabled()) {
+        	if (config == null) {
+        		LOGGER.warn("No system configuration object");
+        	} else {
+        		LOGGER.trace("System configuration version read from repo: " + config.getVersion());
+        	}
+        }
+        return config;
+    }
 	
 }

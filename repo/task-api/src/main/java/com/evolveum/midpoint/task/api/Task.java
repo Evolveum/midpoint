@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.StatisticsCollector;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -57,7 +58,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author Pavol Mederly
  *
  */
-public interface Task extends DebugDumpable {
+public interface Task extends DebugDumpable, StatisticsCollector {
 
     // =================================================================== Basic information (ID, owner)
 
@@ -554,6 +555,15 @@ public interface Task extends DebugDumpable {
     <T> void setExtensionPropertyValue(QName propertyName, T value) throws SchemaException;
 
     /**
+     * Sets (i.e., replaces) the value of the given property in task extension - without writing to repo.
+     * @param propertyName name of the property
+     * @param value value of the property
+     * @param <T>
+     * @throws SchemaException
+     */
+    <T> void setExtensionPropertyValueTransient(QName propertyName, T value) throws SchemaException;
+
+    /**
      * Sets a reference in the extension - replaces existing value(s), if any, by the one(s) provided.
      * @param reference
      * @throws SchemaException
@@ -732,6 +742,10 @@ public interface Task extends DebugDumpable {
      * "Immediate" version of the above method.
      */
     public void setProgressImmediate(long progress, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
+    void setProgressTransient(long value);
+
+    public OperationStatsType getStoredOperationStats();
 
     /**
      * Returns expected total progress.
@@ -932,4 +946,11 @@ public interface Task extends DebugDumpable {
      * (just a shortcut to analogous call in TaskManager)
      */
     void startLightweightHandler();
+
+
+    void startCollectingOperationStatsFromZero(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics);
+
+    void startCollectingOperationStatsFromStoredValues(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics);
+
+    void storeOperationStats();
 }

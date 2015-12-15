@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.impl.scripting;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
+import com.evolveum.midpoint.model.impl.sync.TaskHandlerUtil;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -71,6 +72,8 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
         }
 
         try {
+            task.startCollectingOperationStatsFromZero(true, false, true);
+            task.setProgress(0);
             ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptProperty.getValue().getValue().getScriptingExpression().getValue(), task, result);
             LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
             LOGGER.debug("Execution result:\n", executionResult.getConsoleOutput());
@@ -80,10 +83,13 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
             result.recordFatalError("Couldn't execute script: " + e.getMessage(), e);
             LoggingUtils.logException(LOGGER, "Couldn't execute script", e);
             runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR);
+        } finally {
+            task.storeOperationStats();
         }
 
         task.getResult().computeStatus();
 		runResult.setOperationResult(task.getResult());
+        runResult.setProgress(task.getProgress());          // incremented directly in actions implementations
 		return runResult;
 	}
 

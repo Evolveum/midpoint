@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,11 +20,11 @@
     <groupId>com.evolveum.midpoint.gui</groupId>
     <artifactId>admin-gui</artifactId>
     <packaging>war</packaging>
-    <version>3.3-SNAPSHOT</version>
+    <version>3.4-SNAPSHOT</version>
     <parent>
         <artifactId>gui</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.3-SNAPSHOT</version>
+        <version>3.4-SNAPSHOT</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -40,6 +40,14 @@
                 <excludes>
                     <exclude>**/org.identityconnectors.common.logging</exclude>
                 </excludes>
+            </resource>
+            <!-- LOCALIZATION -->
+            <resource>
+                <filtering>true</filtering>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>localization/Midpoint*.properties</include>
+                </includes>
             </resource>
             <!--  ICF LOGGING CONFIGURATION -->
             <resource>
@@ -89,6 +97,33 @@
         </testResources>
     </build>
     <dependencies>
+        <!-- webjars -->
+        <dependency>
+            <groupId>org.webjars.bower</groupId>
+            <artifactId>adminlte</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>respond</artifactId>
+            <version>1.4.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>html5shiv</artifactId>
+            <version>3.7.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>font-awesome</artifactId>
+            <version>4.3.0-2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>ionicons</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+
         <!-- WRO4J-->
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>
@@ -168,33 +203,6 @@
             </exclusions>
         </dependency>
 
-        <!-- MIDPOINT LOCALIZATION -->
-        <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>admin-gui-en-US</artifactId>
-            <version>3.3-SNAPSHOT</version>
-        </dependency>
-	    <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>admin-gui-sk-SK</artifactId>
-            <version>3.3-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>admin-gui-tr-TR</artifactId>
-            <version>3.3-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>admin-gui-es-ES</artifactId>
-            <version>3.3-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>admin-gui-cs-CZ</artifactId>
-            <version>3.3-SNAPSHOT</version>
-        </dependency>
-
         <!-- JDBC DRIVERS -->
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -205,7 +213,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-api</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
             <exclusions>
             	<exclusion>
             		<artifactId>jaxb-impl</artifactId>
@@ -220,38 +228,38 @@
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>report-api</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-api</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>certification-api</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-api</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>workflow-api</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>notifications-api</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
         </dependency>
         <!-- MIDPOINT RUNTIME DEPENDENCIES -->
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-sql-impl</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -270,7 +278,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-cache</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
             <scope>runtime</scope>
             <exclusions>
             	<exclusion>
@@ -285,34 +293,30 @@
             		<artifactId>jaxb-core</artifactId>
             		<groupId>com.sun.xml.bind</groupId>
             	</exclusion>
-      <!--      	<exclusion>
-            		<artifactId>javax.servlet</artifactId>
-            		<groupId>org.eclipse.jetty.orbit</groupId>
-            	</exclusion> -->
             </exclusions>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-quartz-impl</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>audit-impl</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-impl</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-impl</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
             <scope>runtime</scope>
             <exclusions>
             	<exclusion>
@@ -324,67 +328,50 @@
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>certification-impl</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>workflow-impl</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>notifications-impl</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>
             <artifactId>provisioning-impl</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>system-init</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
-<!--         <dependency> -->
-<!--             <groupId>com.evolveum.midpoint.model</groupId> -->
-<!--             <artifactId>report-api</artifactId> -->
-<!--             <version>3.2-SNAPSHOT</version> -->
-<!--             <scope>runtime</scope> -->
-<!--         </dependency> -->
 	<dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>report-impl</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
             <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>report-ds-impl</artifactId>
-            <version>3.3-SNAPSHOT</version>
-			<scope>runtime</scope>
-			 <exclusions>
+            <exclusions>
             	<exclusion>
             		<artifactId>jaxb-impl</artifactId>
             		<groupId>com.sun.xml.bind</groupId>
             	</exclusion>
             </exclusions>
-<!-- 			<exclusions> -->
-<!-- 				<exclusion> -->
-<!-- 					<groupId>*</groupId> -->
-<!-- 					<artifactId>*</artifactId> -->
-<!-- 				</exclusion> -->
-<!--     		</exclusions> -->
         </dependency>
+       
 	<dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>common</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
             <exclusions>
 				<exclusion>
 					<groupId>xml-apis</groupId>
@@ -445,8 +432,14 @@
             <artifactId>wicket-datetime</artifactId>
         </dependency>
 
-        <!-- Xtext DSL
         <dependency>
+            <groupId>org.ocpsoft.prettytime</groupId>
+            <artifactId>prettytime</artifactId>
+            <version>4.0.0.Final</version>
+        </dependency>
+
+        <!-- Xtext DSL: IDE schema support (experimental) -->
+<!--        <dependency>
             <groupId>com.evolveum.midpoint.msl</groupId>
             <artifactId>com.evolveum.midpoint.msl</artifactId>
             <version>1.0.0-SNAPSHOT</version>
@@ -488,13 +481,13 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-test-util</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-sql-impl-test</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -511,7 +504,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
@@ -551,30 +544,25 @@
             <artifactId>log4j-over-slf4j</artifactId>
             <scope>runtime</scope>
         </dependency>
-        <dependency>
-            <groupId>com.lowagie</groupId>
-            <artifactId>itext</artifactId>
-            <version>2.1.7</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>bouncycastle</groupId>
-                    <artifactId>bcmail-jdk14</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>bouncycastle</groupId>
-                    <artifactId>bcprov-jdk14</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>bouncycastle</groupId>
-                    <artifactId>bctsp-jdk14</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
         <!-- Jasper reports -->
         <dependency>
-			<groupId>net.sf.jasperreports</groupId>
-			<artifactId>jasperreports</artifactId>
-		</dependency>
+    			<groupId>net.sf.jasperreports</groupId>
+    			<artifactId>jasperreports</artifactId>
+           <exclusions> <!-- we dont want bouncy castle to include into midPoint -->
+                <exclusion>
+                    <groupId>bouncycastle</groupId>
+			               <artifactId>bcmail-jdk14</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>bouncycastle</groupId>
+			              <artifactId>bcprov-jdk14</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>bouncycastle</groupId>
+			              <artifactId>bctsp-jdk14</artifactId>
+                </exclusion>
+            </exclusions>                  
+    		</dependency>
 		<!-- report dependency (needed for microsoft office formats) -->
             <dependency>
 				<groupId>org.apache.poi</groupId>
@@ -596,6 +584,10 @@
             <artifactId>servlet-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>javax.mail-api </artifactId>
+		</dependency>
 		
 		<!-- Uncomment following if you want midpoint to be a part of SSO using CAS server-->
 		<!-- SSO CAS Client dependencies -->
@@ -633,7 +625,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-test</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

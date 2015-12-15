@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,12 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -37,6 +41,8 @@ import org.apache.wicket.model.PropertyModel;
  */
 public class PrismContainerPanel extends Panel {
 
+	private static final Trace LOGGER = TraceManager.getTrace(PrismContainerPanel.class);
+	
     private boolean showHeader;
     private PageBase pageBase;
 
@@ -49,26 +55,33 @@ public class PrismContainerPanel extends Panel {
         this.showHeader = showHeader;
         this.pageBase = pageBase;
 
+        LOGGER.trace("Creating container panel for {}", model.getObject());
+        
         add(new AttributeAppender("class", new Model<>("attributeComponent"), " "));
         add(new VisibleEnableBehaviour() {
 
             @Override
             public boolean isVisible() {
-                ContainerWrapper<? extends PrismContainer> container = model.getObject();
-                PrismContainer prismContainer = container.getItem();
+                ContainerWrapper<? extends PrismContainer> containerWrapper = model.getObject();
+                PrismContainer prismContainer = containerWrapper.getItem();
                 if (prismContainer.getDefinition().isOperational()) {
                     return false;
                 }
+                
+                // HACK HACK HACK
+                if (ShadowType.F_ASSOCIATION.equals(prismContainer.getElementName())) {
+                	return true;
+                }
 
                 boolean isVisible = false;
-                for (ItemWrapper item : container.getItems()) {
-                    if (container.isItemVisible(item)) {
+                for (ItemWrapper item : containerWrapper.getItems()) {
+                    if (containerWrapper.isItemVisible(item)) {
                         isVisible = true;
                         break;
                     }
                 }
 
-                return !container.getItems().isEmpty() && isVisible;
+                return !containerWrapper.getItems().isEmpty() && isVisible;
             }
         });
 

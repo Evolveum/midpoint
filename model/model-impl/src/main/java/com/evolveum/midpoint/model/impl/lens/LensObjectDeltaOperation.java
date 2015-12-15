@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.DeltaConversionOptions;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -66,7 +67,7 @@ public class LensObjectDeltaOperation<T extends ObjectType> extends ObjectDeltaO
 
     public LensObjectDeltaOperationType toLensObjectDeltaOperationType() throws SchemaException {
         LensObjectDeltaOperationType retval = new LensObjectDeltaOperationType();
-        retval.setObjectDeltaOperation(DeltaConvertor.toObjectDeltaOperationType(this));
+        retval.setObjectDeltaOperation(DeltaConvertor.toObjectDeltaOperationType(this, DeltaConversionOptions.createSerializeReferenceNames()));
         retval.setAudited(audited);
         return retval;
     }

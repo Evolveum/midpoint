@@ -1,0 +1,174 @@
+/*
+ * Copyright (c) 2010-2015 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.evolveum.midpoint.web.page.admin.configuration.component;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+
+import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.AppenderConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ProfilingDto;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ProfilingLevel;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+
+/**
+ * 
+ * @author katkav
+ *
+ */
+public class ProfilingConfigPanel extends SimplePanel<ProfilingDto> {
+
+    private static final String DOT_CLASS = LoggingConfigPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_LOGGING_CONFIGURATION = DOT_CLASS + "loadLoggingConfiguration";
+
+    private static final String ID_LOGGERS_TABLE = "loggersTable";
+    private static final String ID_ROOT_LEVEL = "rootLevel";
+    private static final String ID_ROOT_APPENDER = "rootAppender";
+    private static final String ID_TABLE_APPENDERS = "appendersTable";
+    private static final String ID_BUTTON_ADD_CONSOLE_APPENDER = "addConsoleAppender";
+    private static final String ID_BUTTON_ADD_FILE_APPENDER = "addFileAppender";
+    private static final String ID_BUTTON_DELETE_APPENDER = "deleteAppender";
+    private static final String ID_BUTTON_ADD_STANDARD_LOGGER = "addStandardLogger";
+    private static final String ID_DUMP_INTERVAL_TOOLTIP = "dumpIntervalTooltip";
+
+    public ProfilingConfigPanel(String id, IModel<ProfilingDto> model) {
+        super(id, model);
+    }
+
+//    @Override
+//    public IModel<LoggingDto> createModel() {
+//        return new LoadableModel<LoggingDto>(false) {
+//
+//            @Override
+//            protected LoggingDto load() {
+//                return initLoggingModel();
+//            }
+//        };
+//    }
+
+//    private LoggingDto initLoggingModel() {
+//        LoggingDto dto = null;
+//        OperationResult result = new OperationResult(OPERATION_LOAD_LOGGING_CONFIGURATION);
+//        try {
+//            Task task = getPageBase().createSimpleTask(OPERATION_LOAD_LOGGING_CONFIGURATION);
+//
+//            PrismObject<SystemConfigurationType> config = getPageBase().getModelService().getObject(
+//                    SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
+//                    task, result);
+//            SystemConfigurationType systemConfiguration = config.asObjectable();
+//            LoggingConfigurationType logging = systemConfiguration.getLogging();
+//            dto = new LoggingDto(config, logging);
+//
+//            result.recordSuccess();
+//        } catch (Exception ex) {
+//            result.recordFatalError("Couldn't load logging configuration.", ex);
+//        }
+//
+//        if (!result.isSuccess()) {
+//            getPageBase().showResult(result);
+//        }
+//
+//        if (dto == null) {
+//            dto = new LoggingDto();
+//        }
+//
+//        return dto;
+//    }
+
+    @Override
+    protected void initLayout() {
+       initProfiling();
+    }
+
+  
+    private IModel<List<String>> createAppendersListModel() {
+        return new AbstractReadOnlyModel<List<String>>() {
+
+            @Override
+            public List<String> getObject() {
+                List<String> list = new ArrayList<>();
+
+                ProfilingDto dto = getModel().getObject();
+                for (AppenderConfiguration appender : dto.getAppenders()) {
+                    list.add(appender.getName());
+                }
+
+                return list;
+            }
+        };
+    }
+
+
+
+    private void initProfiling(){
+        //Entry-Exit profiling init
+        DropDownChoice<ProfilingLevel> profilingLevel = new DropDownChoice<>("profilingLevel",
+                new PropertyModel<ProfilingLevel>(getModel(), "profilingLevel"),
+                WebMiscUtil.createReadonlyModelFromEnum(ProfilingLevel.class),
+                new EnumChoiceRenderer<ProfilingLevel>(this));
+        profilingLevel.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+        add(profilingLevel);
+
+        DropDownChoice<String> profilingAppender = new DropDownChoice<>("profilingAppender",
+                new PropertyModel<String>(getModel(), "profilingAppender"), createAppendersListModel());
+        profilingAppender.setNullValid(true);
+        profilingAppender.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+        add(profilingAppender);
+
+        //Subsystem and general profiling init
+        CheckBox requestFilter = WebMiscUtil.createAjaxCheckBox("requestFilter", new PropertyModel<Boolean>(getModel(), "requestFilter"));
+        
+        CheckBox performanceStatistics = WebMiscUtil.createAjaxCheckBox("performanceStatistics", new PropertyModel<Boolean>(getModel(), "performanceStatistics"));
+        CheckBox subsystemModel = WebMiscUtil.createAjaxCheckBox("subsystemModel", new PropertyModel<Boolean>(getModel(), "subsystemModel"));
+        CheckBox subsystemRepository = WebMiscUtil.createAjaxCheckBox("subsystemRepository", new PropertyModel<Boolean>(getModel(), "subsystemRepository"));
+        CheckBox subsystemProvisioning = WebMiscUtil.createAjaxCheckBox("subsystemProvisioning", new PropertyModel<Boolean>(getModel(), "subsystemProvisioning"));
+        CheckBox subsystemUcf = WebMiscUtil.createAjaxCheckBox("subsystemUcf", new PropertyModel<Boolean>(getModel(), "subsystemUcf"));
+        CheckBox subsystemResourceObjectChangeListener = WebMiscUtil.createAjaxCheckBox("subsystemResourceObjectChangeListener", new PropertyModel<Boolean>(getModel(), "subsystemResourceObjectChangeListener"));
+        CheckBox subsystemTaskManager = WebMiscUtil.createAjaxCheckBox("subsystemTaskManager", new PropertyModel<Boolean>(getModel(), "subsystemTaskManager"));
+        CheckBox subsystemWorkflow = WebMiscUtil.createAjaxCheckBox("subsystemWorkflow", new PropertyModel<Boolean>(getModel(), "subsystemWorkflow"));
+        add(requestFilter);
+        add(performanceStatistics);
+        add(subsystemModel);
+        add(subsystemRepository);
+        add(subsystemProvisioning);
+        add(subsystemUcf);
+        add(subsystemResourceObjectChangeListener);
+        add(subsystemTaskManager);
+        add(subsystemWorkflow);
+
+        TextField<Integer> dumpInterval = WebMiscUtil.createAjaxTextField("dumpInterval", new PropertyModel<Integer>(getModel(),
+                "dumpInterval"));
+        add(dumpInterval);
+
+        Label dumpIntervalTooltip = new Label(ID_DUMP_INTERVAL_TOOLTIP);
+        dumpIntervalTooltip.add(new InfoTooltipBehavior());
+        add(dumpIntervalTooltip);
+    }
+
+
+  
+}

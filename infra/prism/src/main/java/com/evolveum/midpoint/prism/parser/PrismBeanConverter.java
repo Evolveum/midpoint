@@ -145,7 +145,7 @@ public class PrismBeanConverter {
 
         if (PolyStringType.class.equals(beanClass)) {
             PolyString polyString = unmarshalPolyString(xnode);
-            return (T) polyString;
+            return (T) polyString;			// violates the method interface but ... TODO fix it
         } else if (ProtectedStringType.class.equals(beanClass)) {
             ProtectedStringType protectedType = new ProtectedStringType();
             XNodeProcessorUtil.parseProtectedType(protectedType, xnode, prismContext);
@@ -228,7 +228,13 @@ public class PrismBeanConverter {
 					// Check for "any" method
 					elementMethod = inspector.findAnyMethod(beanClass);
 					if (elementMethod == null) {
-						throw new SchemaException("No field "+propName+" in class "+beanClass+" (and no element method in object factory too)");
+						String m = "No field "+propName+" in class "+beanClass+" (and no element method in object factory too)";
+						if (mode == XNodeProcessorEvaluationMode.COMPAT) {
+							LOGGER.warn("{}", m);
+							continue;
+						} else {
+							throw new SchemaException(m);
+						}
 					}
 					unmarshallToAny(bean, elementMethod, key, xsubnode);
 					continue;
@@ -241,7 +247,13 @@ public class PrismBeanConverter {
 					if (field == null) {
 						elementMethod = inspector.findAnyMethod(beanClass);
 						if (elementMethod == null) {
-							throw new SchemaException("No field "+propName+" in class "+beanClass+" (and no element method in object factory too)");
+							String m = "No field "+propName+" in class "+beanClass+" (and no element method in object factory too)";
+							if (mode == XNodeProcessorEvaluationMode.COMPAT) {
+								LOGGER.warn("{}", m);
+								continue;
+							} else {
+								throw new SchemaException(m);
+							}
 						}
 						unmarshallToAny(bean, elementMethod, key, xsubnode);
 						continue;
@@ -277,7 +289,13 @@ public class PrismBeanConverter {
 				// for a getter that returns a collection (Collection<Whatever>)
 				getter = inspector.findPropertyGetter(beanClass, fieldName);
 				if (getter == null) {
-					throw new SchemaException("Cannot find setter or getter for field "+fieldName+" in "+beanClass);
+					String m = "Cannot find setter or getter for field " + fieldName + " in " + beanClass;
+					if (mode == XNodeProcessorEvaluationMode.COMPAT) {
+						LOGGER.warn("{}", m);
+						continue;
+					} else {
+						throw new SchemaException(m);
+					}
 				}
 				Class<?> getterReturnType = getter.getReturnType();
 				if (!Collection.class.isAssignableFrom(getterReturnType)) {
@@ -897,6 +915,9 @@ public class PrismBeanConverter {
                 }
 
                 for (Object element: col) {
+                	if (element == null){
+                		continue;
+                	}
                     QName fieldTypeName = inspector.findFieldTypeName(field, element.getClass(), namespace);
 					Object elementToMarshall = element;
 					if (element instanceof JAXBElement){

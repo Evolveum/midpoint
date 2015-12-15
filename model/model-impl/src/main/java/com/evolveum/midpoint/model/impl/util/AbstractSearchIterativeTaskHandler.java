@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.model.impl.sync.TaskHandlerUtil;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -69,7 +70,11 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	private String taskOperationPrefix;
 	private boolean logFinishInfo = false;
     private boolean countObjectsOnStart = true;         // todo make configurable per task instance (if necessary)
-	
+    private boolean preserveStatistics = true;
+    private boolean enableIterationStatistics = true;   // beware, this controls whether task stores these statistics; see also recordIterationStatistics in AbstractSearchIterativeResultHandler
+    private boolean enableSynchronizationStatistics = false;
+    private boolean enableActionsExecutedStatistics = false;
+
 	// If you need to store fields specific to task instance or task run the ResultHandler is a good place to do that.
 	
 	// This is not ideal, TODO: refactor
@@ -95,19 +100,65 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		this.taskName = taskName;
 		this.taskOperationPrefix = taskOperationPrefix;
 	}
-	
+
 	public boolean isLogFinishInfo() {
 		return logFinishInfo;
 	}
 
-	public void setLogFinishInfo(boolean logFinishInfo) {
+    public boolean isPreserveStatistics() {
+        return preserveStatistics;
+    }
+
+    public boolean isEnableIterationStatistics() {
+        return enableIterationStatistics;
+    }
+
+    public void setEnableIterationStatistics(boolean enableIterationStatistics) {
+        this.enableIterationStatistics = enableIterationStatistics;
+    }
+
+    public boolean isEnableSynchronizationStatistics() {
+        return enableSynchronizationStatistics;
+    }
+
+    public void setEnableSynchronizationStatistics(boolean enableSynchronizationStatistics) {
+        this.enableSynchronizationStatistics = enableSynchronizationStatistics;
+    }
+
+    public boolean isEnableActionsExecutedStatistics() {
+        return enableActionsExecutedStatistics;
+    }
+
+    public void setEnableActionsExecutedStatistics(boolean enableActionsExecutedStatistics) {
+        this.enableActionsExecutedStatistics = enableActionsExecutedStatistics;
+    }
+
+    public void setPreserveStatistics(boolean preserveStatistics) {
+        this.preserveStatistics = preserveStatistics;
+    }
+
+    public void setLogFinishInfo(boolean logFinishInfo) {
 		this.logFinishInfo = logFinishInfo;
 	}
 
 	@Override
 	public TaskRunResult run(Task coordinatorTask) {
-		LOGGER.trace("{} run starting (coordinator task {})", taskName, coordinatorTask);
-		
+        LOGGER.trace("{} run starting (coordinator task {})", taskName, coordinatorTask);
+        if (isPreserveStatistics()) {
+            coordinatorTask.startCollectingOperationStatsFromStoredValues(isEnableIterationStatistics(), isEnableSynchronizationStatistics(),
+                    isEnableActionsExecutedStatistics());
+        } else {
+            coordinatorTask.startCollectingOperationStatsFromZero(isEnableIterationStatistics(), isEnableSynchronizationStatistics(),
+                    isEnableActionsExecutedStatistics());
+        }
+        try {
+            return runInternal(coordinatorTask);
+        } finally {
+            coordinatorTask.storeOperationStats();
+        }
+    }
+
+    public TaskRunResult runInternal(Task coordinatorTask) {
 		OperationResult opResult = new OperationResult(taskOperationPrefix + ".run");
 		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
 		TaskRunResult runResult = new TaskRunResult();
@@ -118,6 +169,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 			// the error should already be in the runResult
 			return runResult;
 		}
+        // copying relevant configuration items from task to handler
+        resultHandler.setEnableIterationStatistics(isEnableIterationStatistics());
+        resultHandler.setEnableSynchronizationStatistics(isEnableSynchronizationStatistics());
+        resultHandler.setEnableActionsExecutedStatistics(isEnableActionsExecutedStatistics());
 		
 		boolean cont = initializeRun(resultHandler, runResult, coordinatorTask, opResult);
 		if (!cont) {
@@ -158,7 +213,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             Long expectedTotal = null;
             if (countObjectsOnStart) {
                 if (!useRepository) {
-                    Integer expectedTotalInt = modelObjectResolver.countObjects(type, query, queryOptions, opResult);
+                    Integer expectedTotalInt = modelObjectResolver.countObjects(type, query, queryOptions, coordinatorTask, opResult);
                     if (expectedTotalInt != null) {
                         expectedTotal = (long) expectedTotalInt;        // conversion would fail on null
                     }
@@ -181,11 +236,11 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
             resultHandler.createWorkerThreads(coordinatorTask, opResult);
             if (!useRepository) {
-                modelObjectResolver.searchIterative((Class<O>) type, query, queryOptions, resultHandler, opResult);
+                modelObjectResolver.searchIterative((Class<O>) type, query, queryOptions, resultHandler, coordinatorTask, opResult);
             } else {
-                repositoryService.searchObjectsIterative(type, query, (ResultHandler) resultHandler, null, opResult);
+                repositoryService.searchObjectsIterative(type, query, (ResultHandler) resultHandler, null, false, opResult);    // TODO think about this
             }
-            resultHandler.completeProcessing(opResult);
+            resultHandler.completeProcessing(coordinatorTask, opResult);
 
         } catch (ObjectNotFoundException ex) {
             LOGGER.error("{}: Object not found: {}", new Object[]{taskName, ex.getMessage(), ex});

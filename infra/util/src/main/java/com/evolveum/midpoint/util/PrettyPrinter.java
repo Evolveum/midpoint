@@ -40,6 +40,8 @@ import org.w3c.dom.Text;
  */
 public class PrettyPrinter {
 	
+	private static final int BYTE_ARRAY_MAX_LEN = 64;
+
 	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyy-mm-dd hh:mm:ss");
 	
 	private static String defaultNamespacePrefix = null;
@@ -229,11 +231,20 @@ public class PrettyPrinter {
 	public static String prettyPrint(byte[] value) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("byte[");
-		for(int i=0; i<value.length; i++) {
+		int printlen = value.length;
+		if (printlen > BYTE_ARRAY_MAX_LEN) {
+			printlen = BYTE_ARRAY_MAX_LEN;
+		}
+		for(int i=0; i < printlen; i++) {
 			sb.append(Byte.toString(value[i]));
-			if (i<value.length-1) {
+			if (i < printlen) {
 				sb.append(',');
 			}
+		}
+		if (value.length > BYTE_ARRAY_MAX_LEN) {
+			sb.append(",... ");
+			sb.append(value.length);
+			sb.append(" bytes total");
 		}
 		sb.append("]");
 		return sb.toString();

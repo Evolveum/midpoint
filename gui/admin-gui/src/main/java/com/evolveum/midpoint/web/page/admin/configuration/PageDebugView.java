@@ -42,6 +42,7 @@ import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
@@ -107,7 +108,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
             @Override
             public String getObject() {
-                return createStringResource("page.subTitle", model.getObject().getName()).getString();
+                return createStringResource("PageDebugView.subTitle", model.getObject().getName()).getString();
             }
         };
     }
@@ -137,15 +138,20 @@ public class PageDebugView extends PageAdminConfiguration {
             	type = getPrismContext().getSchemaRegistry().determineCompileTimeClass(new QName(SchemaConstantsGenerated.NS_COMMON, objectType.toString()));
             }
 
+            // TODO make this configurable (or at least do not show campaign cases in production)
             if (UserType.class.isAssignableFrom(type)) {
                 options.add(SelectorOptions.create(UserType.F_JPEG_PHOTO,
                         GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
             }
-
-            if(objectType != null && LookupTableType.COMPLEX_TYPE.getLocalPart().equals(objectType.toString())){
+            if (LookupTableType.class.isAssignableFrom(type)) {
                 options.add(SelectorOptions.create(LookupTableType.F_ROW,
                         GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
             }
+            if (AccessCertificationCampaignType.class.isAssignableFrom(type)) {
+                options.add(SelectorOptions.create(AccessCertificationCampaignType.F_CASE,
+                        GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+            }
+
 
             PrismObject<ObjectType> object = getModelService().getObject(type, objectOid.toString(), options, task, result);
 

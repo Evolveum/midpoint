@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -32,7 +31,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
@@ -69,13 +67,12 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
         this.rootOid = rootOid;
     }
 
-    private PageBase getPage() {
-        return (PageBase) component.getPage();
+    private PageBase getPageBase() {
+        return WebMiscUtil.getPageBase(component);
     }
 
     private ModelService getModelService() {
-        PageBase page = (PageBase) component.getPage();
-        return page.getModelService();
+        return getPageBase().getModelService();
     }
 
     @Override
@@ -90,7 +87,7 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
         OperationResult result = new OperationResult(LOAD_ORG_UNITS);
         try {
             Collection<SelectorOptions<GetOperationOptions>> options = WebModelUtils.createOptionsForParentOrgRefs();
-            Task task = getPage().createSimpleTask(LOAD_ORG_UNITS);
+            Task task = getPageBase().createSimpleTask(LOAD_ORG_UNITS);
 
             List<PrismObject<OrgType>> units = getModelService().searchObjects(OrgType.class, query, options,
                     task, result);
@@ -111,7 +108,7 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
         }
 
         if (WebMiscUtil.showResultInPage(result)) {
-            getPage().showResultInSession(result);
+            getPageBase().showResultInSession(result);
             throw new RestartResponseException(PageOrgTree.class);
         }
 
@@ -135,27 +132,30 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
         String identifier = unit.getPropertyRealValue(OrgType.F_IDENTIFIER, String.class);
 
         //todo relation [lazyman]
-        return new OrgTreeDto(parent, unit.getOid(), null, name, description, displayName, identifier);
+        return new OrgTreeDto(parent, unit);
     }
 
     @Override
     public Iterator<? extends OrgTreeDto> getRoots() {
         OperationResult result = null;
         if (root == null) {
-            result = new OperationResult(LOAD_ORG_UNIT);
+        	Task task = getPageBase().createSimpleTask(LOAD_ORG_UNIT);
+            result = task.getResult();
             LOGGER.debug("Getting roots for: " + rootOid.getObject());
 
             PrismObject<OrgType> object = WebModelUtils.loadObject(OrgType.class, rootOid.getObject(),
-                    WebModelUtils.createOptionsForParentOrgRefs(), result, getPage());
+                    WebModelUtils.createOptionsForParentOrgRefs(), getPageBase(), task, result);
             result.computeStatus();
 
             root = createDto(null, object);
-            LOGGER.info("\n{}", result.debugDump());
-            LOGGER.debug("Finished roots loading.");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("\n{}", result.debugDump());
+                LOGGER.debug("Finished roots loading.");
+            }
         }
 
         if (WebMiscUtil.showResultInPage(result)) {
-            getPage().showResultInSession(result);
+            getPageBase().showResultInSession(result);
             throw new RestartResponseException(PageUsers.class);
         }
 

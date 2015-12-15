@@ -31,6 +31,7 @@ import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
+import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.Item;
@@ -103,6 +104,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	private ResourceType resource;
 	private ObjectResolver objectResolver;
 	private MappingFactory mappingFactory;
+	private MappingEvaluator mappingEvaluator;
 	private Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> attributeMappings;
 	private Collection<Mapping<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>> associationMappings;
 	private RefinedObjectClassDefinition refinedObjectClassDefinition;
@@ -188,6 +190,14 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 
 	public void setMappingFactory(MappingFactory mappingFactory) {
 		this.mappingFactory = mappingFactory;
+	}
+
+	public MappingEvaluator getMappingEvaluator() {
+		return mappingEvaluator;
+	}
+
+	public void setMappingEvaluator(MappingEvaluator mappingEvaluator) {
+		this.mappingEvaluator = mappingEvaluator;
 	}
 
 	public PrismObject<SystemConfigurationType> getSystemConfiguration() {
@@ -301,13 +311,13 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		this.assignmentPath = assignmentPath;
 	}
 
-	public ResourceType getResource(OperationResult result) throws ObjectNotFoundException, SchemaException {
+	public ResourceType getResource(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		if (resource == null) {
 			if (constructionType.getResource() != null) {
 				resource = constructionType.getResource();
 			} else if (constructionType.getResourceRef() != null) {
 				try {
-					resource = LensUtil.getResource(lensContext, constructionType.getResourceRef().getOid(), objectResolver, result);
+					resource = LensUtil.getResource(lensContext, constructionType.getResourceRef().getOid(), objectResolver, task, result);
 				} catch (ObjectNotFoundException e) {
 					throw new ObjectNotFoundException("Resource reference seems to be invalid in account construction in " + source + ": "+e.getMessage(), e);
 				} catch (SecurityViolationException|CommunicationException|ConfigurationException e) {
@@ -322,13 +332,13 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	}
 	
 	public void evaluate(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		evaluateKindIntentObjectClass(result);
+		evaluateKindIntentObjectClass(task, result);
 		assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
 		evaluateAttributes(task, result);
 		evaluateAssociations(task, result);
 	}
 	
-	private void evaluateKindIntentObjectClass(OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private void evaluateKindIntentObjectClass(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		String resourceOid = null;
 		if (constructionType.getResourceRef() != null) {
 			resourceOid = constructionType.getResourceRef().getOid();
@@ -336,7 +346,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		if (constructionType.getResource() != null) {
 			resourceOid = constructionType.getResource().getOid();
 		}
-		ResourceType resource = getResource(result);
+		ResourceType resource = getResource(task, result);
 		if (!resource.getOid().equals(resourceOid)) {
 			throw new IllegalStateException("The specified resource and the resource in construction does not match");
 		}
@@ -355,7 +365,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		
 		if (refinedObjectClassDefinition == null) {
 			if (constructionType.getIntent() != null) {
-				throw new SchemaException("No "+kind+" type '"+constructionType.getIntent()+"' found in "+getResource(result)+" as specified in construction in "+source);
+				throw new SchemaException("No "+kind+" type '"+constructionType.getIntent()+"' found in "+getResource(task, result)+" as specified in construction in "+source);
 			} else {
 				throw new SchemaException("No default "+kind+" type found in " + resource + " as specified in construction in "+source);
 			}
@@ -365,7 +375,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		for (QName auxiliaryObjectClassName: constructionType.getAuxiliaryObjectClass()) {
 			RefinedObjectClassDefinition auxOcDef = refinedSchema.getRefinedDefinition(auxiliaryObjectClassName);
 			if (auxOcDef == null) {
-				throw new SchemaException("No auxiliary object class "+auxiliaryObjectClassName+" found in "+getResource(result)+" as specified in construction in "+source);
+				throw new SchemaException("No auxiliary object class "+auxiliaryObjectClassName+" found in "+getResource(task, result)+" as specified in construction in "+source);
 			}
 			auxiliaryObjectClassDefinitions.add(auxOcDef);
 		}
@@ -410,7 +420,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		}
 		ResourceAttributeDefinition<T> outputDefinition = findAttributeDefinition(attrName);
 		if (outputDefinition == null) {
-			throw new SchemaException("Attribute "+attrName+" not found in schema for account type "+getIntent()+", "+ObjectTypeUtil.toShortString(getResource(result))+" as definied in "+ObjectTypeUtil.toShortString(source), attrName);
+			throw new SchemaException("Attribute "+attrName+" not found in schema for account type "+getIntent()+", "+ObjectTypeUtil.toShortString(getResource(task, result))+" as definied in "+ObjectTypeUtil.toShortString(source), attrName);
 		}
 		Mapping<PrismPropertyValue<T>,ResourceAttributeDefinition<T>> mapping = mappingFactory.createMapping(outboundMappingType,
 				"for attribute " + PrettyPrinter.prettyPrint(attrName)  + " in "+source);
@@ -537,7 +547,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 			mapping.setConditionMaskNew(false);
 		}
 
-		LensUtil.evaluateMapping(mapping, lensContext, task, result);
+		mappingEvaluator.evaluateMapping(mapping, lensContext, task, result);
 
 		return mapping;
 	}
@@ -639,7 +649,6 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		} else if (auxiliaryObjectClassDefinitions.isEmpty()) {
 			sb.append(" (empty)");
 		} else {
-			sb.append("\n");
 			for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
 				sb.append("\n");
 				DebugUtil.indentDebugDump(sb, indent+2);

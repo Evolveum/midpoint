@@ -118,6 +118,11 @@ public class PageOrgTree extends PageAdminUsers {
 
         SessionStorage storage = getSessionStorage();
         int selectedTab = storage.getUsers().getSelectedTabId() == -1 ? 0 : storage.getUsers().getSelectedTabId();
+        List<ITab> tabsList = tabModel.getObject();
+        if (tabsList == null || (selectedTab > tabsList.size() - 1)){
+            storage.getUsers().setSelectedTabId(0);
+            selectedTab = 0;
+        }
         TabbedPanel tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<>(selectedTab));
         tabbedPanel.setOutputMarkupId(true);
         add(tabbedPanel);

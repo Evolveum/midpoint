@@ -20,71 +20,18 @@
 <wicket:extend>
     <div wicket:id="confirmDeletePopup" />
 
-    <div class="clearfix" wicket:id="search"/>
-
-    <form wicket:id="mainForm" class="clearfix form-horizontal">
+    <form wicket:id="mainForm" class="form-inline">
         <div wicket:id="table"/>
-
-        <div class="form-group" wicket:id="executeOptions"/>
     </form>
 
-    <!-- Modal -->
-    <wicket:remove>
-        <!-- todo remove -->
-    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="myModalLabel">Table columns</h4>
-                </div>
-                <div class="modal-body">
-                    <p>Please use drag & drop to reorder table columns.</p>
-                    <table class="table table-striped table-condensed">
-                        <thead>
-                        <tr>
-                            <th style="width:30px;"></th>
-                            <th>Column name</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr>
-                            <td><input type="checkbox"></td>
-                            <td>Name</td>
-                        </tr>
-                        <tr>
-                            <td><input type="checkbox"></td>
-                            <td>Full name</td>
-                        </tr>
-                        <tr>
-                            <td><input type="checkbox"></td>
-                            <td>Given name</td>
-                        </tr>
-                        <tr>
-                            <td><input type="checkbox"></td>
-                            <td>Family name</td>
-                        </tr>
-                        <tr>
-                            <td><input type="checkbox"></td>
-                            <td>Additional name</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Save changes</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script>
-        $(function() {
-            $('#myModal').modal();
-        });
-    </script>
-    </wicket:remove>
+    <wicket:fragment wicket:id="tableHeader">
+        <div class="pull-left" wicket:id="executeOptions"/>
+
+        <form class="form-inline pull-right search-form" wicket:id="searchForm">
+            <select multiple="multiple" class="multiselect" wicket:id="searchType"/>
+            <div wicket:id="search"/>
+        </form>
+    </wicket:fragment>
 </wicket:extend>
 </body>
 </html>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,175 +16,337 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
-import com.evolveum.midpoint.common.SystemConfigurationHolder;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
-import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
+
+import org.apache.commons.lang.StringUtils;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
  * @author lazyman
  */
 public class SystemConfigurationDto implements Serializable {
 
-    public static final String F_AEP_LEVEL = "aepLevel";
-    public static final String F_AUDIT_CLEANUP = "auditCleanupValue";
-    public static final String F_TASK_CLEANUP = "taskCleanupValue";
-    public static final String F_PASSWORD_POLICY = "passPolicyDto";
-    public static final String F_OBJECT_TEMPLATE = "objectTemplateDto";
-    public static final String F_OBJECT_POLICY_LIST = "objectPolicyList";
-    public static final String F_NOTIFICATION_CONFIGURATION = "notificationConfig";
-    public static final String F_ENABLE_EXPERIMENTAL_CODE = "enableExperimentalCode";
+	public static final String F_AEP_LEVEL = "aepLevel";
+	public static final String F_AUDIT_CLEANUP = "auditCleanupValue";
+	public static final String F_TASK_CLEANUP = "taskCleanupValue";
+	public static final String F_PASSWORD_POLICY = "passPolicyDto";
+	public static final String F_SECURITY_POLICY = "securityPolicyDto";
+	public static final String F_OBJECT_TEMPLATE = "objectTemplateDto";
+	public static final String F_OBJECT_POLICY_LIST = "objectPolicyList";
+	public static final String F_NOTIFICATION_CONFIGURATION = "notificationConfig";
+	public static final String F_ENABLE_EXPERIMENTAL_CODE = "enableExperimentalCode";
+	public static final String F_USER_DASHBOARD_LINK = "userDashboardLink";
 
-    private AEPlevel aepLevel;
+	private AEPlevel aepLevel;
 
-    private String auditCleanupValue;
-    private String taskCleanupValue;
+	private String auditCleanupValue;
+	private String taskCleanupValue;
 
-    private Boolean enableExperimentalCode;
+	private Boolean enableExperimentalCode;
 
-    private ObjectViewDto<ValuePolicyType> passPolicyDto;
-    private ObjectViewDto<ObjectTemplateType> objectTemplateDto;
-    private List<ObjectPolicyConfigurationTypeDto> objectPolicyList;
-    private NotificationConfigurationDto notificationConfig;
+	private ObjectViewDto<ValuePolicyType> passPolicyDto;
+	private ObjectViewDto<SecurityPolicyType> securityPolicyDto;
+	private List<ObjectPolicyConfigurationTypeDto> objectPolicyList;
+	private NotificationConfigurationDto notificationConfig;
+	private List<RichHyperlinkType> userDashboardLink;
 
-    public SystemConfigurationDto(){
-        this(null);
-    }
+	private LoggingDto loggingConfig;
+	private ProfilingDto profilingDto;
 
-    public SystemConfigurationDto(PrismObject<SystemConfigurationType> config) {
-        init(config.asObjectable());
-    }
+	private SystemConfigurationType oldObject;
 
-    private void init(SystemConfigurationType config){
-        if(config == null){
-            return;
-        }
+	private List<AppenderConfiguration> appenders = new ArrayList<>();
 
-        if(config.getGlobalAccountSynchronizationSettings() != null){
-            AssignmentPolicyEnforcementType globalAEP = config.getGlobalAccountSynchronizationSettings().getAssignmentPolicyEnforcement();
-            aepLevel = AEPlevel.fromAEPLevelType(globalAEP);
-        }
+	public SystemConfigurationDto() {
+		this(null);
+	}
 
-        CleanupPolicyType auditCleanup = config.getCleanupPolicy().getAuditRecords();
-        CleanupPolicyType taskCleanup = config.getCleanupPolicy().getClosedTasks();
+	public SystemConfigurationDto(PrismObject<SystemConfigurationType> config) {
+		oldObject = config.clone().asObjectable();
+		init(config.asObjectable());
+	}
 
-        auditCleanupValue = auditCleanup.getMaxAge().toString();
-        taskCleanupValue = taskCleanup.getMaxAge().toString();
+	private void init(SystemConfigurationType config) {
+		if (config == null) {
+			return;
+		}
 
-        passPolicyDto = loadPasswordPolicy(config);
-        objectTemplateDto = loadObjectTemplate(config);
+		if (config.getGlobalAccountSynchronizationSettings() != null) {
+			AssignmentPolicyEnforcementType globalAEP = config.getGlobalAccountSynchronizationSettings()
+					.getAssignmentPolicyEnforcement();
+			aepLevel = AEPlevel.fromAEPLevelType(globalAEP);
+		}
 
-        objectPolicyList = new ArrayList<>();
-        List<ObjectPolicyConfigurationType> objectPolicies = config.getDefaultObjectPolicyConfiguration();
-        if(objectPolicies != null && !objectPolicies.isEmpty()){
-            for(ObjectPolicyConfigurationType policy: objectPolicies){
-                objectPolicyList.add(new ObjectPolicyConfigurationTypeDto(policy));
-            }
-        } else {
-            objectPolicyList.add(new ObjectPolicyConfigurationTypeDto());
-        }
+		CleanupPolicyType auditCleanup = config.getCleanupPolicy().getAuditRecords();
+		CleanupPolicyType taskCleanup = config.getCleanupPolicy().getClosedTasks();
 
-        if(config.getNotificationConfiguration() != null){
-            notificationConfig = new NotificationConfigurationDto(config.getNotificationConfiguration());
-        } else {
-            notificationConfig = new NotificationConfigurationDto();
-        }
+		auditCleanupValue = auditCleanup.getMaxAge().toString();
+		taskCleanupValue = taskCleanup.getMaxAge().toString();
 
-        enableExperimentalCode = SystemConfigurationTypeUtil.isExperimentalCodeEnabled(config);
-    }
+		passPolicyDto = loadPasswordPolicy(config);
+		securityPolicyDto = loadSecurityPolicy(config);
 
-    private ObjectViewDto<ValuePolicyType> loadPasswordPolicy(SystemConfigurationType config){
-        ValuePolicyType passPolicy = config.getGlobalPasswordPolicy();
-        
-        if(passPolicy != null){
-            passPolicyDto = new ObjectViewDto<>(passPolicy.getOid(), passPolicy.getName().getOrig());
-        }else {
-            passPolicyDto = new ObjectViewDto<>();
-        }
+		objectPolicyList = new ArrayList<>();
+		List<ObjectPolicyConfigurationType> objectPolicies = config.getDefaultObjectPolicyConfiguration();
+		if (objectPolicies != null && !objectPolicies.isEmpty()) {
+			for (ObjectPolicyConfigurationType policy : objectPolicies) {
+				objectPolicyList.add(new ObjectPolicyConfigurationTypeDto(policy));
+			}
+		} else {
+			objectPolicyList.add(new ObjectPolicyConfigurationTypeDto());
+		}
 
-        passPolicyDto.setType(ValuePolicyType.class);
-        return passPolicyDto;
-    }
+		// NOTIFICATIONS
+		if (config.getNotificationConfiguration() != null) {
+			notificationConfig = new NotificationConfigurationDto(config.getNotificationConfiguration());
+		} else {
+			notificationConfig = new NotificationConfigurationDto();
+		}
 
-    private ObjectViewDto<ObjectTemplateType> loadObjectTemplate(SystemConfigurationType config){
-        ObjectTemplateType objectTemplate = config.getDefaultUserTemplate();
+		// LOGGING
+		LoggingConfigurationType logging = config.getLogging();
 
-        if(objectTemplate != null){
-            objectTemplateDto = new ObjectViewDto<>(objectTemplate.getOid(), objectTemplate.getName().getOrig());
-        }else {
-            objectTemplateDto = new ObjectViewDto<>();
-        }
+		if (logging != null) {
+			for (AppenderConfigurationType appender : logging.getAppender()) {
+				if (appender instanceof FileAppenderConfigurationType) {
+					appenders.add(new FileAppenderConfig((FileAppenderConfigurationType) appender));
+				} else {
+					appenders.add(new AppenderConfiguration(appender));
+				}
+			}
+			Collections.sort(appenders);
+			loggingConfig = new LoggingDto(config.getLogging());
+		} else {
+			loggingConfig = new LoggingDto();
+		}
+		loggingConfig.setAppenders(appenders);
 
-        objectTemplateDto.setType(ObjectTemplateType.class);
-        return objectTemplateDto;
-    }
+		// PROFILING
+		if (config.getProfilingConfiguration() != null) {
+			List<ClassLoggerConfigurationType> classLoggerConfig = config.getLogging() != null
+					? config.getLogging().getClassLogger() : null;
+			profilingDto = new ProfilingDto(config.getProfilingConfiguration(), classLoggerConfig);
+		} else {
+			profilingDto = new ProfilingDto();
+		}
+		profilingDto.setAppenders(appenders);
 
-    public String getAuditCleanupValue() {
-        return auditCleanupValue;
-    }
+		enableExperimentalCode = SystemConfigurationTypeUtil.isExperimentalCodeEnabled(config);
 
-    public void setAuditCleanupValue(String auditCleanupValue) {
-        this.auditCleanupValue = auditCleanupValue;
-    }
+		userDashboardLink = loadUserDashboardLink(config);
+	}
 
-    public String getTaskCleanupValue() {
-        return taskCleanupValue;
-    }
+	public SystemConfigurationType getOldObject() {
+		return oldObject;
+	}
 
-    public void setTaskCleanupValue(String taskCleanupValue) {
-        this.taskCleanupValue = taskCleanupValue;
-    }
+	public SystemConfigurationType getNewObject() throws DatatypeConfigurationException {
+		SystemConfigurationType newObject = oldObject.clone();
+		if (StringUtils.isNotBlank(getPassPolicyDto().getOid())) {
+			ObjectReferenceType globalPassPolicyRef = ObjectTypeUtil
+					.createObjectRef(getPassPolicyDto().getOid(), ObjectTypes.PASSWORD_POLICY);
+			newObject.setGlobalPasswordPolicyRef(globalPassPolicyRef);
+		} else {
+			newObject.setGlobalPasswordPolicyRef(null);
+		}
 
-    public AEPlevel getAepLevel() {
-        return aepLevel;
-    }
+		if (StringUtils.isNotBlank(getSecurityPolicyDto().getOid())) {
+			ObjectReferenceType globalSecurityPolicyRef = ObjectTypeUtil.createObjectRef(
+					getSecurityPolicyDto().getOid(),
+					WebMiscUtil.createPolyFromOrigString(getSecurityPolicyDto().getName()),
+					ObjectTypes.SECURITY_POLICY);
+			newObject.setGlobalSecurityPolicyRef(globalSecurityPolicyRef);
+		} else {
+			newObject.setGlobalSecurityPolicyRef(null);
+		}
 
-    public void setAepLevel(AEPlevel aepLevel) {
-        this.aepLevel = aepLevel;
-    }
+		AssignmentPolicyEnforcementType globalAEP = AEPlevel.toAEPValueType(getAepLevel());
+		if (globalAEP != null) {
+			ProjectionPolicyType projectionPolicy = new ProjectionPolicyType();
+			projectionPolicy.setAssignmentPolicyEnforcement(globalAEP);
+			newObject.setGlobalAccountSynchronizationSettings(projectionPolicy);
+		}
+		Duration auditCleanupDuration = DatatypeFactory.newInstance().newDuration(getAuditCleanupValue());
+		Duration cleanupTaskDuration = DatatypeFactory.newInstance().newDuration(getTaskCleanupValue());
+		CleanupPolicyType auditCleanup = new CleanupPolicyType();
+		CleanupPolicyType taskCleanup = new CleanupPolicyType();
+		auditCleanup.setMaxAge(auditCleanupDuration);
+		taskCleanup.setMaxAge(cleanupTaskDuration);
+		CleanupPoliciesType cleanupPolicies = new CleanupPoliciesType();
+		cleanupPolicies.setAuditRecords(auditCleanup);
+		cleanupPolicies.setClosedTasks(taskCleanup);
 
-    public ObjectViewDto<ValuePolicyType> getPassPolicyDto() {
-        return passPolicyDto;
-    }
+		newObject.setCleanupPolicy(cleanupPolicies);
+		SystemConfigurationTypeUtil.setEnableExperimentalCode(newObject, getEnableExperimentalCode());
 
-    public void setPassPolicyDto(ObjectViewDto<ValuePolicyType> passPolicyDto) {
-        this.passPolicyDto = passPolicyDto;
-    }
+		newObject.setLogging(loggingConfig.getNewObject());
 
-    public ObjectViewDto<ObjectTemplateType> getObjectTemplateDto() {
-        return objectTemplateDto;
-    }
+		newObject.setNotificationConfiguration(notificationConfig.getNewObject(newObject));
 
-    public void setObjectTemplateDto(ObjectViewDto<ObjectTemplateType> objectTemplateDto) {
-        this.objectTemplateDto = objectTemplateDto;
-    }
+		newObject.setProfilingConfiguration(profilingDto.getNewObejct());
+		ClassLoggerConfigurationType profilingClassLogger = profilingDto.getProfilingClassLogerConfig();
+		if (newObject.getLogging() != null) {
+			newObject.getLogging().getClassLogger().add(profilingClassLogger);
+		} else {
+			LoggingConfigurationType profLogging = new LoggingConfigurationType();
+			profLogging.getClassLogger().add(profilingClassLogger);
+			newObject.setLogging(profLogging);
+		}
 
-    public NotificationConfigurationDto getNotificationConfig() {
-        return notificationConfig;
-    }
+		return newObject;
+	}
 
-    public void setNotificationConfig(NotificationConfigurationDto notificationConfig) {
-        this.notificationConfig = notificationConfig;
-    }
+	public static List<RichHyperlinkType> loadUserDashboardLink(SystemConfigurationType config) {
+		List<RichHyperlinkType> links = new ArrayList<>();
+		if (config == null || config.getInternals() == null
+				|| config.getInternals().isEnableExperimentalCode() == null) {
+			return links;
+		}
+		if (config.getAdminGuiConfiguration() != null) {
+			links.addAll(config.getAdminGuiConfiguration().getUserDashboardLink());
+		}
+		return links;
+	}
 
-    public List<ObjectPolicyConfigurationTypeDto> getObjectPolicyList() {
-        return objectPolicyList;
-    }
+	private ObjectViewDto<ValuePolicyType> loadPasswordPolicy(SystemConfigurationType config) {
+		ValuePolicyType passPolicy = config.getGlobalPasswordPolicy();
 
-    public void setObjectPolicyList(List<ObjectPolicyConfigurationTypeDto> objectPolicyList) {
-        this.objectPolicyList = objectPolicyList;
-    }
+		if (passPolicy != null) {
+			passPolicyDto = new ObjectViewDto<>(passPolicy.getOid(), passPolicy.getName().getOrig());
+		} else {
+			passPolicyDto = new ObjectViewDto<>();
+		}
 
-    public Boolean getEnableExperimentalCode() {
-        return enableExperimentalCode;
-    }
+		passPolicyDto.setType(ValuePolicyType.class);
+		return passPolicyDto;
+	}
 
-    public void setEnableExperimentalCode(Boolean enableExperimentalCode) {
-        this.enableExperimentalCode = enableExperimentalCode;
-    }
+	private ObjectViewDto<SecurityPolicyType> loadSecurityPolicy(SystemConfigurationType config) {
+		ObjectReferenceType securityPolicy = config.getGlobalSecurityPolicyRef();
+
+		if (securityPolicy != null) {
+			securityPolicyDto = new ObjectViewDto<SecurityPolicyType>(securityPolicy.getOid(),
+					WebMiscUtil.getName(securityPolicy));
+		} else {
+			securityPolicyDto = new ObjectViewDto<SecurityPolicyType>();
+		}
+
+		securityPolicyDto.setType(SecurityPolicyType.class);
+		return securityPolicyDto;
+	}
+
+	public String getAuditCleanupValue() {
+		return auditCleanupValue;
+	}
+
+	public void setAuditCleanupValue(String auditCleanupValue) {
+		this.auditCleanupValue = auditCleanupValue;
+	}
+
+	public String getTaskCleanupValue() {
+		return taskCleanupValue;
+	}
+
+	public void setTaskCleanupValue(String taskCleanupValue) {
+		this.taskCleanupValue = taskCleanupValue;
+	}
+
+	public AEPlevel getAepLevel() {
+		return aepLevel;
+	}
+
+	public void setAepLevel(AEPlevel aepLevel) {
+		this.aepLevel = aepLevel;
+	}
+
+	public ObjectViewDto<ValuePolicyType> getPassPolicyDto() {
+		return passPolicyDto;
+	}
+
+	public void setPassPolicyDto(ObjectViewDto<ValuePolicyType> passPolicyDto) {
+		this.passPolicyDto = passPolicyDto;
+	}
+
+	public ObjectViewDto<SecurityPolicyType> getSecurityPolicyDto() {
+		return securityPolicyDto;
+	}
+
+	public void setSecurityPolicyDto(ObjectViewDto<SecurityPolicyType> securityPolicyDto) {
+		this.securityPolicyDto = securityPolicyDto;
+	}
+
+	public NotificationConfigurationDto getNotificationConfig() {
+		return notificationConfig;
+	}
+
+	public void setNotificationConfig(NotificationConfigurationDto notificationConfig) {
+		this.notificationConfig = notificationConfig;
+	}
+
+	public LoggingDto getLoggingConfig() {
+		return loggingConfig;
+	}
+
+	public void setLoggingConfig(LoggingDto loggingConfig) {
+		this.loggingConfig = loggingConfig;
+	}
+
+	public ProfilingDto getProfilingDto() {
+		return profilingDto;
+	}
+
+	public void setProfilingDto(ProfilingDto profilingDto) {
+		this.profilingDto = profilingDto;
+	}
+
+	public List<ObjectPolicyConfigurationTypeDto> getObjectPolicyList() {
+		return objectPolicyList;
+	}
+
+	public void setObjectPolicyList(List<ObjectPolicyConfigurationTypeDto> objectPolicyList) {
+		this.objectPolicyList = objectPolicyList;
+	}
+
+	public Boolean getEnableExperimentalCode() {
+		return enableExperimentalCode;
+	}
+
+	public void setEnableExperimentalCode(Boolean enableExperimentalCode) {
+		this.enableExperimentalCode = enableExperimentalCode;
+	}
+
+	public List<RichHyperlinkType> getUserDashboardLink() {
+		return userDashboardLink;
+	}
+
+	public void setUserDashboardLink(List<RichHyperlinkType> userDashboardLink) {
+		this.userDashboardLink = userDashboardLink;
+	}
 }

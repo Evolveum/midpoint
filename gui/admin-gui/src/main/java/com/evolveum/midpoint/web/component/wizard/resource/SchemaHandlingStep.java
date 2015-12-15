@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -727,14 +728,15 @@ public class SchemaHandlingStep extends WizardStep {
     private void savePerformed(){
         PrismObject<ResourceType> oldResource;
         PrismObject<ResourceType> newResource = resourceModel.getObject();
-        OperationResult result = new OperationResult(OPERATION_SAVE_SCHEMA_HANDLING);
+        Task task = getPageBase().createSimpleTask(OPERATION_SAVE_SCHEMA_HANDLING);
+        OperationResult result = task.getResult();
         ModelService modelService = getPageBase().getModelService();
         ObjectDelta delta;
 
         removeEmptyContainers(newResource);
 
         try{
-            oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), result, getPageBase());
+            oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), getPageBase(), task, result);
             if(oldResource != null){
                 delta = oldResource.diff(newResource);
 
@@ -959,7 +961,7 @@ public class SchemaHandlingStep extends WizardStep {
             existence.getInbound().addAll(newInbounds);
 
             List<MappingType> outbounds = existence.getOutbound();
-            List<MappingType> newOutbounds = existence.getOutbound();
+            List<MappingType> newOutbounds = new ArrayList<>();
 
             for(MappingType outbound: outbounds){
                 if(!WizardUtil.isEmptyMapping(outbound)){

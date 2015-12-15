@@ -441,12 +441,26 @@ public class PrismAsserts {
 		return delta;
 	}
 	
+	public static <T> void assertOrigin(ObjectDelta<?> objectDelta, final OriginType... expectedOriginTypes) {
+		assertOrigin(objectDelta, null, expectedOriginTypes);
+	}
+	
 	public static <T> void assertOrigin(Visitable visitableItem, final OriginType... expectedOriginTypes) {
 		assertOrigin(visitableItem, null, expectedOriginTypes);
 	}
 	
-	public static <T> void assertOrigin(final Visitable visitableItem, final Objectable expectedOriginObject, final OriginType... expectedOriginTypes) {
-		Visitor visitor = new Visitor() {
+	public static void assertOrigin(ObjectDelta<?> objectDelta, final Objectable expectedOriginObject, final OriginType... expectedOriginTypes) {
+		Visitor visitor = createOriginVisitor(objectDelta, expectedOriginObject, expectedOriginTypes);
+		objectDelta.accept(visitor, false);
+	}
+	
+	public static <T> void assertOrigin(Visitable visitableItem, final Objectable expectedOriginObject, final OriginType... expectedOriginTypes) {
+		Visitor visitor = createOriginVisitor(visitableItem, expectedOriginObject, expectedOriginTypes);
+		visitableItem.accept(visitor);
+	}
+	
+	private static <T> Visitor createOriginVisitor(final Visitable visitableItem, final Objectable expectedOriginObject, final OriginType... expectedOriginTypes) {
+		return new Visitor() {
 			@Override
 			public void visit(Visitable visitable) {
 				if (visitable instanceof PrismValue) {
@@ -461,7 +475,6 @@ public class PrismAsserts {
 				}
 			}
 		};
-		visitableItem.accept(visitor);
 	}
 	
 	public static void asserHasDelta(String message, Collection<? extends ObjectDelta<? extends Objectable>> deltas, ChangeType expectedChangeType, Class<?> expectedClass) {
@@ -671,9 +684,7 @@ public class PrismAsserts {
 		if (delta.isEmpty()) {
 			suffix += ": Empty delta. The difference is most likely in meta-data";
 		}
-		LOGGER.error("ASSERT: {}: {} and {} not equals, delta:\n{}", new Object[]{
-				message, expected, actual, delta.debugDump()
-		});
+		LOGGER.error("ASSERT: {}: {} and {} not equals, delta:\n{}", message, expected, actual, delta.debugDump());
 		assert false: message + ": " + suffix;
 	}
 	
@@ -719,7 +730,10 @@ public class PrismAsserts {
 	
 	public static <T> void assertValues(String message, Collection<PrismPropertyValue<T>> actualPValues, T... expectedValues) {
 		assertNotNull("Null set in " + message, actualPValues);
-		assertEquals("Wrong number of values in " + message, expectedValues.length, actualPValues.size());
+		if (expectedValues.length != actualPValues.size()) {
+			fail("Wrong number of values in " + message+ "; expected "+expectedValues.length+" (real values) "
+					+PrettyPrinter.prettyPrint(expectedValues)+"; has "+actualPValues.size()+" (pvalues) "+actualPValues);
+		}
 		for (PrismPropertyValue<?> actualPValue: actualPValues) {
 			boolean found = false;
 			for (T value: expectedValues) {
@@ -999,4 +1013,14 @@ public class PrismAsserts {
         }
     }
 
+	public static void assertRefEquivalent(String message, PrismReferenceValue expected, PrismReferenceValue actual) {
+		if (expected == null && actual == null) {
+			return;
+		}
+		if (expected == null || actual == null) {
+			fail(message + ": expected=" + expected + ", actual=" + actual);
+		}
+		assertEquals(message+": wrong target oid", expected.getOid(), actual.getOid());
+		assertEquals(message+": wrong target type", expected.getTargetType(), actual.getTargetType());
+	}
 }

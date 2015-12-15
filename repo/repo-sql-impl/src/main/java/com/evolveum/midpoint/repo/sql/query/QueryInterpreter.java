@@ -17,10 +17,12 @@
 package com.evolveum.midpoint.repo.sql.query;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.sql.ObjectPagingAfterOid;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.query.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query.definition.EntityDefinition;
@@ -46,6 +48,7 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.ProjectionList;
 import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -133,8 +136,19 @@ public class QueryInterpreter {
             criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
         }
 
+        if (query != null && query.getPaging() instanceof ObjectPagingAfterOid) {
+            ObjectPagingAfterOid paging = (ObjectPagingAfterOid) query.getPaging();
+            if (paging.getOidGreaterThan() != null) {
+                criteria = criteria.add(Restrictions.gt("oid", paging.getOidGreaterThan()));
+            }
+        }
+
         if (!countingObjects && query != null && query.getPaging() != null) {
-            criteria = updatePagingAndSorting(criteria, type, query.getPaging());
+            if (query.getPaging() instanceof ObjectPagingAfterOid) {
+                criteria = updatePagingAndSortingByOid(criteria, query);                // very special case - ascending ordering by OID (nothing more)
+            } else {
+                criteria = updatePagingAndSorting(criteria, type, query.getPaging());
+            }
         }
 
         if (!countingObjects) {
@@ -160,8 +174,7 @@ public class QueryInterpreter {
         try {
             QueryContext context = new QueryContext(this, type, query, prismContext, session);
 
-            Restriction restriction = findAndCreateRestriction(filter, context, null);
-            Criterion criterion = restriction.interpret(filter);
+            Criterion criterion = interpretFilter(filter, context, null);
 
             Criteria criteria = context.getCriteria(null);
             criteria.add(criterion);
@@ -175,6 +188,12 @@ public class QueryInterpreter {
         }
     }
 
+    public Criterion interpretFilter(ObjectFilter filter, QueryContext context, Restriction parent) throws QueryException {
+        Restriction restriction = findAndCreateRestriction(filter, context, parent);
+        Criterion criterion = restriction.interpret();
+        return criterion;
+    }
+
     public <T extends ObjectType> Criteria updatePagingAndSorting(Criteria query, Class<T> type, ObjectPaging paging) {
         if (paging == null) {
             return query;
@@ -186,14 +205,12 @@ public class QueryInterpreter {
             query = query.setMaxResults(paging.getMaxSize());
         }
 
-        if (paging.getDirection() == null && paging.getOrderBy() == null) {
+        if (paging.getDirection() == null && (paging.getOrderBy() == null || paging.getOrderBy().isEmpty())) {
             return query;
         }
 
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-        // PropertyPath path = new
-        // XPathHolder(paging.getOrderBy()).toPropertyPath();
-        if (paging.getOrderBy() == null) {
+        if (paging.getOrderBy() == null || paging.getOrderBy().isEmpty() || paging.getOrderBy().size() > 1 || !(paging.getOrderBy().first() instanceof NameItemPathSegment)) {
             LOGGER.warn("Ordering by property path with size not equal 1 is not supported '" + paging.getOrderBy()
                     + "'.");
             return query;
@@ -228,6 +245,18 @@ public class QueryInterpreter {
         return query;
     }
 
+    protected Criteria updatePagingAndSortingByOid(Criteria criteria, ObjectQuery query) {
+        ObjectPagingAfterOid paging = (ObjectPagingAfterOid) query.getPaging();
+        if (paging.getOrderBy() != null || paging.getDirection() != null || paging.getOffset() != null) {
+            throw new IllegalArgumentException("orderBy, direction nor offset is allowed on ObjectPagingAfterOid");
+        }
+        criteria = criteria.addOrder(Order.asc("oid"));
+        if (paging.getMaxSize() != null) {
+            criteria = criteria.setMaxResults(paging.getMaxSize());
+        }
+        return criteria;
+    }
+
     public <T extends Object> Matcher<T> findMatcher(T value) {
         return findMatcher(value != null ? (Class<T>) value.getClass() : null);
     }
@@ -246,14 +275,13 @@ public class QueryInterpreter {
                                                                          Restriction parent) throws QueryException {
 
         for (Restriction restriction : AVAILABLE_RESTRICTIONS) {
-            Restriction<T> res = restriction.cloneInstance();
+            Restriction<T> res = restriction.newInstance();
             res.setContext(context);
-            res.setParent(parent);
-            res.setFilter(filter);
-
-            if (!res.canHandle(filter, context)) {
+            if (!res.canHandle(filter)) {
                 continue;
             }
+            res.setParent(parent);
+            res.setFilter(filter);
 
             return res;
         }

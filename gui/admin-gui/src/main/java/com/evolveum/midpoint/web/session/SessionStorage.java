@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.session;
 
+import org.apache.wicket.Page;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -32,6 +33,8 @@ public class SessionStorage implements Serializable {
      * place to store "previous page" for back button
      */
     private Class<? extends WebPage> previousPage;
+    
+    private Page previousPageInstance;
     /**
      * place to store "previous page" parameters for back button
      */
@@ -47,6 +50,8 @@ public class SessionStorage implements Serializable {
     private static final String KEY_REPORTS = "reports";
     private static final String KEY_RESOURCES = "resources";
     private static final String KEY_ROLES = "roles";
+    private static final String KEY_ROLE_MEMBERS = "roleMembers";
+    
     private static final String KEY_TASKS = "tasks";
 
     /**
@@ -61,6 +66,14 @@ public class SessionStorage implements Serializable {
     public void setPreviousPage(Class<? extends WebPage> previousPage) {
         this.previousPage = previousPage;
     }
+    
+    public void setPreviousPageInstance(Page previousPage) {
+        this.previousPageInstance = previousPage;
+    }
+    
+    public Page getPreviousPageInstance() {
+		return previousPageInstance;
+	}
 
     public PageParameters getPreviousPageParams() {
         return previousPageParams;
@@ -96,6 +109,13 @@ public class SessionStorage implements Serializable {
             pageStorageMap.put(KEY_ROLES, new RolesStorage());
         }
         return (RolesStorage)pageStorageMap.get(KEY_ROLES);
+    }
+    
+    public RoleMembersStorage getRoleMembers() {
+    	if (pageStorageMap.get(KEY_ROLE_MEMBERS) == null) {
+            pageStorageMap.put(KEY_ROLE_MEMBERS, new RoleMembersStorage());
+        }
+        return (RoleMembersStorage)pageStorageMap.get(KEY_ROLE_MEMBERS);
     }
 
     public TasksStorage getTasks() {

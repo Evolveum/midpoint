@@ -128,7 +128,6 @@ cn: idm
 sn: IDM Administrator
 description: Special LDAP acccount used by the IDM
   to access the LDAP data.
-ou: Administrators
 userPassword: secret
 
 dn: ou=Services,dc=example,dc=com

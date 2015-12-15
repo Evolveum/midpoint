@@ -1,58 +1,35 @@
+/*
+ * Copyright (c) 2010-2015 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.component.org;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
-import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.prism.query.SubstringFilter;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.BasicSearchPanel;
-import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.users.component.OrgTreeProvider;
-import com.evolveum.midpoint.web.page.admin.users.component.SelectableFolderContent;
-import com.evolveum.midpoint.web.page.admin.users.component.TreeTablePanel;
-import com.evolveum.midpoint.web.page.admin.users.dto.OrgDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import org.apache.commons.lang.StringUtils;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.tree.ISortableTreeProvider;
-import org.apache.wicket.extensions.markup.html.repeater.tree.ITreeProvider;
 import org.apache.wicket.extensions.markup.html.repeater.tree.TableTree;
 import org.apache.wicket.extensions.markup.html.repeater.tree.table.TreeColumn;
 import org.apache.wicket.extensions.markup.html.repeater.tree.theme.WindowsTheme;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -62,55 +39,58 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.BasicSearchPanel;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.users.component.AbstractTreeTablePanel;
+import com.evolveum.midpoint.web.page.admin.users.component.OrgTreeProvider;
+import com.evolveum.midpoint.web.page.admin.users.component.SelectableFolderContent;
+import com.evolveum.midpoint.web.page.admin.users.component.TreeTablePanel;
+import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
-public class OrgTreeTablePanel extends SimplePanel{
+/**
+ * Used in assignment dialog when "assign org" is chosen.
+ * 
+ * Mostly copy&paste from TreeTablePanel. But we do not mind now. It will be
+ * reworked anyway.
+ * 
+ * @author katkav
+ */
+public class OrgTreeTablePanel extends AbstractTreeTablePanel{
 	
     private static final Trace LOGGER = TraceManager.getTrace(TreeTablePanel.class);
 
-    private static final int CONFIRM_DELETE = 0;
-    private static final int CONFIRM_DELETE_ROOT = 1;
-
-    private static final String DOT_CLASS = TreeTablePanel.class.getName() + ".";
-    private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
-    private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
-    private static final String OPERATION_MOVE_OBJECTS = DOT_CLASS + "moveObjects";
-    private static final String OPERATION_MOVE_OBJECT = DOT_CLASS + "moveObject";
-    private static final String OPERATION_UPDATE_OBJECTS = DOT_CLASS + "updateObjects";
-    private static final String OPERATION_UPDATE_OBJECT = DOT_CLASS + "updateObject";
-    private static final String OPERATION_RECOMPUTE = DOT_CLASS + "recompute";
-
-    private static final String ID_TREE = "tree";
-    private static final String ID_TREE_CONTAINER = "treeContainer";
-    private static final String ID_CONTAINER_CHILD_ORGS = "childOrgContainer";
-    private static final String ID_CONTAINER_MANAGER = "managerContainer";
-    private static final String ID_CONTAINER_MEMBER = "memberContainer";
-    private static final String ID_CHILD_TABLE = "childUnitTable";
-    private static final String ID_MANAGER_TABLE = "managerTable";
-    private static final String ID_MEMBER_TABLE = "memberTable";
-    private static final String ID_FORM = "form";
-    private static final String ID_CONFIRM_DELETE_POPUP = "confirmDeletePopup";
-    private static final String ID_MOVE_POPUP = "movePopup";
-    private static final String ID_ADD_DELETE_POPUP = "addDeletePopup";
-    private static final String ID_TREE_MENU = "treeMenu";
-    private static final String ID_TREE_HEADER = "treeHeader";
-    private static final String ID_SEARCH_FORM = "searchForm";
-    private static final String ID_BASIC_SEARCH = "basicSearch";
-
-    private IModel<OrgTreeDto> selected = new LoadableModel<OrgTreeDto>() {
-
-        @Override
-        protected OrgTreeDto load() {
-            return getRootFromProvider();
-        }
-    };
-
     public OrgTreeTablePanel(String id, IModel<String> rootOid) {
         super(id, rootOid);
+        
+        selected = new LoadableModel<OrgTreeDto>() {
+            @Override
+            protected OrgTreeDto load() {
+                return getRootFromProvider();
+            }
+        };
     }
 
     @Override
@@ -181,7 +161,7 @@ public class OrgTreeTablePanel extends SimplePanel{
         initSearch();
     }
 
-    protected CharSequence computeTreeHeight(){
+    protected CharSequence computeTreeHeight() {
         return "updateHeight('" + getMarkupId()
                 + "', ['#" + OrgTreeTablePanel.this.get(ID_FORM).getMarkupId() + "'], ['#"
                 + OrgTreeTablePanel.this.get(ID_TREE_HEADER).getMarkupId() + "'])";
@@ -233,29 +213,6 @@ public class OrgTreeTablePanel extends SimplePanel{
         childOrgUnitContainer.add(childTable);
     }
 
-    /**
-     * TODO - test search
-     * */
-    private void initSearch() {
-        Form form = new Form(ID_SEARCH_FORM);
-        form.setOutputMarkupId(true);
-        add(form);
-
-        BasicSearchPanel basicSearch = new BasicSearchPanel(ID_BASIC_SEARCH, new Model()) {
-
-            @Override
-            protected void clearSearchPerformed(AjaxRequestTarget target) {
-                clearTableSearchPerformed(target);
-            }
-
-            @Override
-            protected void searchPerformed(AjaxRequestTarget target) {
-                tableSearchPerformed(target);
-            }
-        };
-        form.add(basicSearch);
-    }
-
     private List<InlineMenuItem> createTreeMenu() {
         List<InlineMenuItem> items = new ArrayList<>();
 
@@ -280,15 +237,6 @@ public class OrgTreeTablePanel extends SimplePanel{
         items.add(new InlineMenuItem());
         
         return items;
-    }
-
-   
-    private OrgTreeDto getRootFromProvider() {
-        TableTree<OrgTreeDto, String> tree = getTree();
-        ITreeProvider<OrgTreeDto> provider = tree.getProvider();
-        Iterator<? extends OrgTreeDto> iterator = provider.getRoots();
-
-        return iterator.hasNext() ? iterator.next() : null;
     }
 
     private List<IColumn<OrgTableDto, String>> createChildTableColumns() {
@@ -337,45 +285,7 @@ public class OrgTreeTablePanel extends SimplePanel{
 
         return objects;
     }
-
-       private PrismReferenceValue createPrismRefValue(OrgDto dto) {
-        PrismReferenceValue value = new PrismReferenceValue();
-        value.setOid(dto.getOid());
-        value.setRelation(dto.getRelation());
-        value.setTargetType(ObjectTypes.getObjectType(dto.getType()).getTypeQName());
-        return value;
-    }
-
    
-    private void refreshTabbedPanel(AjaxRequestTarget target) {
-        PageBase page = getPageBase();
-
-        TabbedPanel tabbedPanel = findParent(TabbedPanel.class);
-        IModel<List<ITab>> tabs = tabbedPanel.getTabs();
-
-        if (tabs instanceof LoadableModel) {
-            ((LoadableModel) tabs).reset();
-        }
-
-        tabbedPanel.setSelectedTab(0);
-
-        target.add(tabbedPanel);
-        target.add(page.getFeedbackPanel());
-    }
-
-    private TableTree<OrgTreeDto, String> getTree() {
-        return (TableTree<OrgTreeDto, String>) get(createComponentPath(ID_TREE_CONTAINER, ID_TREE));
-    }
-
-    private WebMarkupContainer getOrgChildContainer() {
-        return (WebMarkupContainer) get(createComponentPath(ID_FORM, ID_CONTAINER_CHILD_ORGS));
-    }
-
-  
-    private TablePanel getOrgChildTable() {
-        return (TablePanel) get(createComponentPath(ID_FORM, ID_CONTAINER_CHILD_ORGS, ID_CHILD_TABLE));
-    }
-
     private void selectTreeItemPerformed(AjaxRequestTarget target) {
         BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
         basicSearch.getModel().setObject(null);
@@ -383,57 +293,15 @@ public class OrgTreeTablePanel extends SimplePanel{
         TablePanel orgTable = getOrgChildTable();
         orgTable.setCurrentPage(null);
 
-        target.add(getOrgChildContainer());
-        target.add(get(ID_SEARCH_FORM));
-    }
-
-    private ObjectQuery createOrgChildQuery() {
-        OrgTreeDto dto = selected.getObject();
-        String oid = (String) (dto != null ? dto.getOid() : getModel().getObject());
-
-        OrgFilter org = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
-
-        BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
-        String object = basicSearch.getModelObject();
-
-        if (StringUtils.isEmpty(object)) {
-            return ObjectQuery.createObjectQuery(org);
+        WebMarkupContainer orgChildContainer = getOrgChildContainer();
+        if (target != null) {
+            if (orgChildContainer != null) {
+                target.add(orgChildContainer);
+            }
+            target.add(get(ID_SEARCH_FORM));
         }
-
-        PageBase page = getPageBase();
-        PrismContext context = page.getPrismContext();
-
-        PolyStringNormalizer normalizer = context.getDefaultPolyStringNormalizer();
-        String normalizedString = normalizer.normalize(object);
-        if (StringUtils.isEmpty(normalizedString)) {
-            return ObjectQuery.createObjectQuery(org);
-        }
-
-        SubstringFilter substring =  SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class, context,
-                PolyStringNormMatchingRule.NAME, normalizedString);
-
-        AndFilter and = AndFilter.createAnd(org, substring);
-
-        return ObjectQuery.createObjectQuery(and);
     }
-
-   
-    private void collapseAllPerformed(AjaxRequestTarget target) {
-        TableTree<OrgTreeDto, String> tree = getTree();
-        TreeStateModel model = (TreeStateModel) tree.getDefaultModel();
-        model.collapseAll();
-
-        target.add(tree);
-    }
-
-    private void expandAllPerformed(AjaxRequestTarget target) {
-        TableTree<OrgTreeDto, String> tree = getTree();
-        TreeStateModel model = (TreeStateModel) tree.getDefaultModel();
-        model.expandAll();
-
-        target.add(tree);
-    }
-
+  
    
     private void updateActivationPerformed(AjaxRequestTarget target, boolean enable) {
         List<OrgTableDto> objects = getSelectedOrgs(target);
@@ -462,25 +330,30 @@ public class OrgTreeTablePanel extends SimplePanel{
         refreshTable(target);
     }
 
-    private void refreshTable(AjaxRequestTarget target) {
+    @Override
+    protected void refreshTable(AjaxRequestTarget target) {
         ObjectDataProvider orgProvider = (ObjectDataProvider) getOrgChildTable().getDataTable().getDataProvider();
         orgProvider.clearCache();
 
         target.add(getOrgChildContainer());
     }
 
+    private void collapseAllPerformed(AjaxRequestTarget target) {
+        TableTree<OrgTreeDto, String> tree = getTree();
+        TreeStateModel model = (TreeStateModel) tree.getDefaultModel();
+        model.collapseAll();
+
+        target.add(tree);
+    }
+
+    private void expandAllPerformed(AjaxRequestTarget target) {
+        TableTree<OrgTreeDto, String> tree = getTree();
+        TreeStateModel model = (TreeStateModel) tree.getDefaultModel();
+        model.expandAll();
+
+        target.add(tree);
+    }
     
-    private void clearTableSearchPerformed(AjaxRequestTarget target) {
-        BasicSearchPanel basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
-        basicSearch.getModel().setObject(null);
-
-        refreshTable(target);
-    }
-
-    private void tableSearchPerformed(AjaxRequestTarget target) {
-        refreshTable(target);
-    }
-
     private static class TreeStateModel extends AbstractReadOnlyModel<Set<OrgTreeDto>> {
 
         private TreeStateSet<OrgTreeDto> set = new TreeStateSet<>();

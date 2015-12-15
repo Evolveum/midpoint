@@ -31,7 +31,7 @@
         <xsd:documentation>
             Basic Prism types.
             
-            Version: 3.3-SNAPSHOT
+            Version: 3.3
             Recommended namespace prefix: t
         </xsd:documentation>
     </xsd:annotation>
@@ -544,11 +544,20 @@
         		</xsd:annotation>
         	</xsd:element>
         	<xsd:element name="oid" type="xsd:string">
-        	<xsd:annotation>
+        		<xsd:annotation>
         			<xsd:documentation>
         				OID of object to modify or delete.
         				
         				Valid only if the changeType is "modify" or "delete".
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="targetName" type="xsd:string" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Optional property to store current name of the changed object.
+        				This value is supposed to be used only for presenation and diagnostic
+        				purposes. It must NOT be used for any business logic.
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>

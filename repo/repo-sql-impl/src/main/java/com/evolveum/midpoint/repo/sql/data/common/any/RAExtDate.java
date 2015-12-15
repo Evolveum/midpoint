@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.repo.sql.data.common.id.RAExtDateId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -63,12 +64,14 @@ public class RAExtDate implements RAExtValue {
             @PrimaryKeyJoinColumn(name = "anyContainer_owner_owner_oid", referencedColumnName = "ownerOid"),
             @PrimaryKeyJoinColumn(name = "anyContainer_owner_id", referencedColumnName = "owner_type")
     })
+    @NotQueryable
     public RAssignmentExtension getAnyContainer() {
         return anyContainer;
     }
 
     @Id
     @Column(name = "anyContainer_owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+    @NotQueryable
     public String getOwnerOid() {
         if (ownerOid == null && anyContainer != null) {
             ownerOid = anyContainer.getOwnerOid();
@@ -78,6 +81,7 @@ public class RAExtDate implements RAExtValue {
 
     @Id
     @Column(name = "anyContainer_owner_id")
+    @NotQueryable
     public Integer getOwnerId() {
         if (ownerId == null && anyContainer != null) {
             ownerId = anyContainer.getOwnerId();

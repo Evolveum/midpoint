@@ -50,6 +50,7 @@ public interface ObjectResolver {
 	 * 
 	 * @param ref object reference to resolve
 	 * @param contextDescription short description of the context of resolution, e.g. "executing expression FOO". Used in error messages.
+	 * @param task
 	 * @return resolved object
 	 * @throws ObjectNotFoundException
 	 *             requested object does not exist
@@ -57,12 +58,14 @@ public interface ObjectResolver {
 	 *             error dealing with storage schema
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
+	 *
+	 * TODO resolve module dependencies to allow task to be of type Task
 	 */
-	<T extends ObjectType> T resolve(ObjectReferenceType ref, Class<T> expectedType, Collection<SelectorOptions<GetOperationOptions>> options, 
-			String contextDescription, OperationResult result) 
+	<T extends ObjectType> T resolve(ObjectReferenceType ref, Class<T> expectedType, Collection<SelectorOptions<GetOperationOptions>> options,
+									 String contextDescription, Object task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException;
 	
-	<O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, OperationResult parentResult) 
+	<O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Object task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 	
 }

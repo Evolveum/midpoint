@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -32,11 +34,15 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -57,8 +63,8 @@ public class WebModelUtils {
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
 
-    public static String resolveReferenceName(ObjectReferenceType ref, OperationResult result, PageBase page) {
-        PrismObject<ObjectType> object = resolveReference(ref, result, page);
+    public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, Task task, OperationResult result) {
+        PrismObject<ObjectType> object = resolveReference(ref, page, task, result);
         if (object == null) {
             return ref.getOid();
         } else {
@@ -66,7 +72,7 @@ public class WebModelUtils {
         }
     }
 
-    public static <T extends ObjectType> PrismObject<T> resolveReference(ObjectReferenceType reference, OperationResult result, PageBase page) {
+    public static <T extends ObjectType> PrismObject<T> resolveReference(ObjectReferenceType reference, PageBase page, Task task, OperationResult result) {
         if (reference == null) {
             return null;
         }
@@ -83,24 +89,17 @@ public class WebModelUtils {
             LOGGER.error("No definition for {} was found", reference.getType());
             return null;
         }
-        return loadObject(definition.getCompileTimeClass(), reference.getOid(), result, page);
-    }
-
-    public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid, OperationResult result,
-                                                                   PageBase page) {
-        return loadObject(type, oid, null, result, page);
+        return loadObject(definition.getCompileTimeClass(), reference.getOid(), page, task, result);
     }
 
     public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
-                                                                   Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                   OperationResult result, PageBase page) {
-
-        return loadObject(type, oid, options, result, page, null);
+                                                                   PageBase page, Task task, OperationResult result) {
+        return loadObject(type, oid, null, page, task, result);
     }
 
-    private static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
+    public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
                                                                     Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                    OperationResult result, PageBase page, PrismObject<UserType> principal) {
+                                                                    PageBase page, Task task, OperationResult result) {
         LOGGER.debug("Loading {} with oid {}, options {}", new Object[]{type.getSimpleName(), oid, options});
 
         OperationResult subResult;
@@ -122,8 +121,14 @@ public class WebModelUtils {
         		}
         	}
 //        	.createResolveNames();
-            Task task = page.createSimpleTask(subResult.getOperation(), principal);
             object = page.getModelService().getObject(type, oid, options, task, subResult);
+        } catch (AuthorizationException e) {
+        	// Not authorized to access the object. This is probably caused by a reference that
+        	// point to an object that the current user cannot read. This is no big deal.
+        	// Just do not display that object.
+        	subResult.recordHandledError(e);
+        	LOGGER.debug("User {} is not authorized to read {} {}", task.getOwner().getName(), type.getSimpleName(), oid);
+        	return null;
         } catch (Exception ex) {
             subResult.recordFatalError("WebModelUtils.couldntLoadObject", ex);
             LoggingUtils.logException(LOGGER, "Couldn't load object", ex);
@@ -139,6 +144,7 @@ public class WebModelUtils {
 
         return object;
     }
+
 
     public static <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
                                                                             OperationResult result, PageBase page) {
@@ -280,6 +286,15 @@ public class WebModelUtils {
         ObjectDelta objectDelta = ObjectDelta.createModificationReplaceProperty(type, oid, path, context, status);
 
         return objectDelta;
+    }
+    
+    public static String getLoggedInUserOid() {
+    	MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        Validate.notNull(principal, "No principal");
+        if (principal.getOid() == null) {
+        	throw new IllegalArgumentException("No OID in principal: "+principal);
+        }
+        return principal.getOid();
     }
 
 }

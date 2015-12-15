@@ -19,6 +19,7 @@ package com.evolveum.midpoint.provisioning.consistency.impl;
 import java.util.Collection;
 
 import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -52,28 +53,41 @@ public class ConfigurationExceptionHandler extends ErrorHandler {
 	public <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate,
 			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException {
-		
-		ObjectDelta delta = null;
-		switch(op){
-		case ADD :
-			delta = ObjectDelta.createAddDelta(shadow.asPrismObject());
-			break;
-		case DELETE:
-			delta = ObjectDelta.createDeleteDelta(shadow.getClass(), shadow.getOid(), prismContext);
-			break;
-		case MODIFY:
-			Collection<? extends ItemDelta> modifications = null;
-			if (shadow.getObjectChange() != null) {
-				ObjectDeltaType deltaType = shadow.getObjectChange();
 
-				modifications = DeltaConvertor.toModifications(deltaType.getItemDelta(), shadow
-						.asPrismObject().getDefinition());
-			}
-			delta = ObjectDelta.createModifyDelta(shadow.getOid(), modifications, shadow.getClass(), prismContext);
-			break;
-		}
-		
-		if (op != FailedOperation.GET){
+        ObjectDelta delta = null;
+		switch (op) {
+            case ADD:
+                delta = ObjectDelta.createAddDelta(shadow.asPrismObject());
+                break;
+            case DELETE:
+                delta = ObjectDelta.createDeleteDelta(shadow.getClass(), shadow.getOid(), prismContext);
+                break;
+            case MODIFY:
+                Collection<? extends ItemDelta> modifications = null;
+                if (shadow.getObjectChange() != null) {
+                    ObjectDeltaType deltaType = shadow.getObjectChange();
+
+                    modifications = DeltaConvertor.toModifications(deltaType.getItemDelta(), shadow
+                            .asPrismObject().getDefinition());
+                }
+                delta = ObjectDelta.createModifyDelta(shadow.getOid(), modifications, shadow.getClass(), prismContext);
+                break;
+            case GET:
+                OperationResult operationResult = parentResult.createSubresult("Compensation for configuration problem. Operation: " + op.name());
+                operationResult.addParam("shadow", shadow);
+                operationResult.addParam("currentOperation", op);
+                operationResult.addParam("exception", ex.getMessage());
+                for (OperationResult subRes : parentResult.getSubresults()) {
+                    subRes.muteError();
+                }
+                operationResult.recordPartialError("Could not get " + ObjectTypeUtil.toShortString(shadow) + " from the resource "
+                        + ObjectTypeUtil.toShortString(shadow.getResource())
+                        + ", because of configuration error. Returning shadow from the repository");
+                shadow.setFetchResult(operationResult.createOperationResultType());
+                return shadow;
+        }
+
+        if (op != FailedOperation.GET){
 //		Task task = taskManager.createTaskInstance();
 		ResourceOperationDescription operationDescription = createOperationDescription(shadow, ex, shadow.getResource(),
 				delta, task, parentResult);

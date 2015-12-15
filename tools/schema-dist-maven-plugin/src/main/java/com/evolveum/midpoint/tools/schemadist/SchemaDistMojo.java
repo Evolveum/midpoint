@@ -33,6 +33,7 @@ import java.util.List;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
@@ -90,6 +91,11 @@ public class SchemaDistMojo extends AbstractMojo {
      * @parameter
      */
     private List<ArtifactItem> artifactItems;
+    
+    /**
+	 * @parameter default-value="true" required=true
+	 */
+    private boolean translateSchemaLocation;
 
     /**
      * @parameter default-value="src/main/schemadoc/resources"
@@ -207,32 +213,35 @@ public class SchemaDistMojo extends AbstractMojo {
         	initializeOutDir(workDir);
         	artifactItem.setWorkDir(workDir);
         	unpack(artifactItem, workDir);
-        	String catalogPath = artifactItem.getCatalog();
-        	File catalogFile = new File(workDir, catalogPath);
-        	if (!catalogFile.exists()) {
-        		throw new MojoExecutionException("No catalog file "+catalogPath+" in artifact "+artifact);
+        	
+        	if (translateSchemaLocation) {
+	        	String catalogPath = artifactItem.getCatalog();
+	        	File catalogFile = new File(workDir, catalogPath);
+	        	if (!catalogFile.exists()) {
+	        		throw new MojoExecutionException("No catalog file "+catalogPath+" in artifact "+artifact);
+	        	}
+	        	Catalog catalog = new Catalog(catalogManager);
+	        	catalog.setupReaders();
+	        	try {
+	                // UGLY HACK. On Windows, file names like d:\abc\def\catalog.xml eventually get treated very strangely
+	                // (resulting in names like "file:<current-working-dir>d:\abc\def\catalog.xml" that are obviously wrong)
+	                // Prefixing such names with "file:/" helps.
+	                String prefix;
+	                if (catalogFile.isAbsolute() && !catalogFile.getPath().startsWith("/")) {
+	                    prefix = "/";
+	                } else {
+	                    prefix = "";
+	                }
+					String fileName = "file:" + prefix + catalogFile.getPath();
+	                getLog().debug("Calling parseCatalog with: " + fileName);
+	                catalog.parseCatalog(fileName);
+				} catch (MalformedURLException e) {
+					throw new MojoExecutionException("Error parsing catalog file "+catalogPath+" in artifact "+artifact, e);
+				} catch (IOException e) {
+					throw new MojoExecutionException("Error parsing catalog file "+catalogPath+" in artifact "+artifact, e);
+				}
+	        	artifactItem.setResolveCatalog(catalog);
         	}
-        	Catalog catalog = new Catalog(catalogManager);
-        	catalog.setupReaders();
-        	try {
-                // UGLY HACK. On Windows, file names like d:\abc\def\catalog.xml eventually get treated very strangely
-                // (resulting in names like "file:<current-working-dir>d:\abc\def\catalog.xml" that are obviously wrong)
-                // Prefixing such names with "file:/" helps.
-                String prefix;
-                if (catalogFile.isAbsolute() && !catalogFile.getPath().startsWith("/")) {
-                    prefix = "/";
-                } else {
-                    prefix = "";
-                }
-				String fileName = "file:" + prefix + catalogFile.getPath();
-                getLog().debug("Calling parseCatalog with: " + fileName);
-                catalog.parseCatalog(fileName);
-			} catch (MalformedURLException e) {
-				throw new MojoExecutionException("Error parsing catalog file "+catalogPath+" in artifact "+artifact, e);
-			} catch (IOException e) {
-				throw new MojoExecutionException("Error parsing catalog file "+catalogPath+" in artifact "+artifact, e);
-			}
-        	artifactItem.setResolveCatalog(catalog);
         }
 
         for (ArtifactItem artifactItem: artifactItems) {
@@ -294,7 +303,9 @@ public class SchemaDistMojo extends AbstractMojo {
 	private void processXsd(Path filePath, File workDir, File outDir) throws MojoExecutionException, MojoFailureException {
 		Document dom = DOMUtil.parseFile(filePath.toFile());
 		Element rootElement = DOMUtil.getFirstChildElement(dom);
-		processXsdElement(rootElement, filePath, workDir, outDir);
+		if (translateSchemaLocation) {
+			processXsdElement(rootElement, filePath, workDir, outDir);
+		}
 		serializeXml(dom, filePath, workDir, outDir);
 	}
 	
@@ -326,23 +337,26 @@ public class SchemaDistMojo extends AbstractMojo {
 
 	private void processWsdl(Path filePath, File workDir, File outDir) throws MojoExecutionException, MojoFailureException {
 		Document dom = DOMUtil.parseFile(filePath.toFile());
-		Element rootElement = DOMUtil.getFirstChildElement(dom);
-		List<Element> importElements = DOMUtil.getChildElements(rootElement, DOMUtil.WSDL_IMPORT_ELEMENT);
-		for(Element importElement: importElements) {
-			String namespace = DOMUtil.getAttribute(importElement, DOMUtil.WSDL_ATTR_NAMESPACE);
-			String schemaLocation;
-			try {
-				schemaLocation = resolveSchemaLocation(namespace, filePath, workDir);
-			} catch (IOException e) {
-				throw new MojoExecutionException("Error resolving namespace "+namespace+" in file "+filePath+": "+ e.getMessage(), e);
-			}
-			importElement.setAttribute(DOMUtil.WSDL_ATTR_SCHEMA_LOCATION.getLocalPart(),
-					schemaLocation);
-		}
 		
-		List<Element> typesElements = DOMUtil.getChildElements(rootElement, DOMUtil.WSDL_TYPES_ELEMENT);
-		for(Element typesElement: typesElements) {
-			processXsdElement(DOMUtil.getFirstChildElement(typesElement),filePath,workDir,outDir);
+		if (translateSchemaLocation) {
+			Element rootElement = DOMUtil.getFirstChildElement(dom);
+			List<Element> importElements = DOMUtil.getChildElements(rootElement, DOMUtil.WSDL_IMPORT_ELEMENT);
+			for(Element importElement: importElements) {
+				String namespace = DOMUtil.getAttribute(importElement, DOMUtil.WSDL_ATTR_NAMESPACE);
+				String schemaLocation;
+				try {
+					schemaLocation = resolveSchemaLocation(namespace, filePath, workDir);
+				} catch (IOException e) {
+					throw new MojoExecutionException("Error resolving namespace "+namespace+" in file "+filePath+": "+ e.getMessage(), e);
+				}
+				importElement.setAttribute(DOMUtil.WSDL_ATTR_SCHEMA_LOCATION.getLocalPart(),
+						schemaLocation);
+			}
+			
+			List<Element> typesElements = DOMUtil.getChildElements(rootElement, DOMUtil.WSDL_TYPES_ELEMENT);
+			for(Element typesElement: typesElements) {
+				processXsdElement(DOMUtil.getFirstChildElement(typesElement),filePath,workDir,outDir);
+			}
 		}
 		
 		serializeXml(dom, filePath, workDir, outDir);
@@ -397,39 +411,41 @@ public class SchemaDistMojo extends AbstractMojo {
     		throw new MojoExecutionException("No file for artifact "+artifact);
     	}
     	if (file.isDirectory()) {
-            // usual case is a future jar packaging, but there are special cases: classifier and other packaging
-            throw new MojoExecutionException( "Artifact has not been packaged yet. When used on reactor artifact, "
-                + "unpack should be executed after packaging: see MDEP-98." );
+    		try {
+				FileUtils.copyDirectory(file, destDir);
+			} catch (IOException e) {
+				throw new MojoExecutionException("Error copying directory "+file+" to "+destDir+": "+e.getMessage(), e);
+			}
+        } else {
+	    	try {
+	            UnArchiver unArchiver = archiverManager.getUnArchiver( artifact.getType() );
+	            unArchiver.setSourceFile(file);
+	            unArchiver.setDestDirectory(destDir);
+	
+	            if (StringUtils.isNotEmpty(excludes) || StringUtils.isNotEmpty(includes)) {
+	                // Create the selectors that will filter
+	                // based on include/exclude parameters
+	                // MDEP-47
+	                IncludeExcludeFileSelector[] selectors =
+	                    new IncludeExcludeFileSelector[]{ new IncludeExcludeFileSelector() };
+	
+	                if ( StringUtils.isNotEmpty( excludes ) ) {
+	                    selectors[0].setExcludes( excludes.split( "," ) );
+	                }
+	
+	                if ( StringUtils.isNotEmpty( includes ) ) {
+	                    selectors[0].setIncludes( includes.split( "," ) );
+	                }
+	
+	                unArchiver.setFileSelectors( selectors );
+	            }
+	
+	            unArchiver.extract();
+	    	} catch (ArchiverException | NoSuchArchiverException e) {
+	            throw new MojoExecutionException(
+	                    "Error unpacking file: " + file + " to: " + destDir + "\r\n" + e.toString(), e );
+			}
         }
-    	
-    	try {
-            UnArchiver unArchiver = archiverManager.getUnArchiver( artifact.getType() );
-            unArchiver.setSourceFile(file);
-            unArchiver.setDestDirectory(destDir);
-
-            if (StringUtils.isNotEmpty(excludes) || StringUtils.isNotEmpty(includes)) {
-                // Create the selectors that will filter
-                // based on include/exclude parameters
-                // MDEP-47
-                IncludeExcludeFileSelector[] selectors =
-                    new IncludeExcludeFileSelector[]{ new IncludeExcludeFileSelector() };
-
-                if ( StringUtils.isNotEmpty( excludes ) ) {
-                    selectors[0].setExcludes( excludes.split( "," ) );
-                }
-
-                if ( StringUtils.isNotEmpty( includes ) ) {
-                    selectors[0].setIncludes( includes.split( "," ) );
-                }
-
-                unArchiver.setFileSelectors( selectors );
-            }
-
-            unArchiver.extract();
-    	} catch (ArchiverException | NoSuchArchiverException e) {
-            throw new MojoExecutionException(
-                    "Error unpacking file: " + file + " to: " + destDir + "\r\n" + e.toString(), e );
-		}
     }
 
     private void handleFailure(Exception e) throws MojoFailureException {

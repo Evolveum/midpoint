@@ -86,7 +86,8 @@ public class PageTaskAdd extends PageAdminTasks {
 
     private static final long serialVersionUID = 2317887071933841581L;
 
-    private static final String ID_DRY_RUN = "dryRun";
+    private static final String ID_DRY_RUN = "dryRun";    
+    private static final String ID_FOCUS_TYPE = "focusType";
     private static final String ID_KIND = "kind";
     private static final String ID_INTENT = "intent";
     private static final String ID_OBJECT_CLASS = "objectClass";
@@ -174,13 +175,15 @@ public class PageTaskAdd extends PageAdminTasks {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE);
+            	Task task = createSimpleTask(OPERATION_LOAD_RESOURCE);
+                OperationResult result = task.getResult();
                 List<QName> objectClassList = new ArrayList<>();
 
                 TaskAddResourcesDto resourcesDto = model.getObject().getResource();
 
                 if(resourcesDto != null){
-                    PrismObject<ResourceType> resource = WebModelUtils.loadObject(ResourceType.class, resourcesDto.getOid(), result, PageTaskAdd.this);
+                    PrismObject<ResourceType> resource = WebModelUtils.loadObject(ResourceType.class, 
+                    		resourcesDto.getOid(), PageTaskAdd.this, task, result);
 
                     try {
                         ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, getPrismContext());
@@ -204,6 +207,41 @@ public class PageTaskAdd extends PageAdminTasks {
         resource.setOutputMarkupId(true);
         mainForm.add(resource);
 
+        final DropDownChoice focusType = new DropDownChoice<>(ID_FOCUS_TYPE,
+                new PropertyModel<QName>(model, TaskAddDto.F_FOCUS_TYPE),
+                new AbstractReadOnlyModel<List<QName>>() {
+
+                    @Override
+                    public List<QName> getObject() {
+                        return createFocusTypeList();
+                    }
+                }, new IChoiceRenderer<QName>() {
+
+            @Override
+            public Object getDisplayValue(QName object) {
+            	if (FocusType.COMPLEX_TYPE.equals(object)){
+            		return "All (including role,orgs,users)";
+            	}
+                return object.getLocalPart();
+            }
+
+            @Override
+            public String getIdValue(QName object, int index) {
+                return Integer.toString(index);
+            }
+        });
+        focusType.setOutputMarkupId(true);
+        focusType.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isEnabled() {
+                TaskAddDto dto = model.getObject();
+                return TaskCategory.RECOMPUTATION.equals(dto.getCategory());
+            }
+        });
+        mainForm.add(focusType);
+
+        
         final DropDownChoice kind = new DropDownChoice<>(ID_KIND,
                 new PropertyModel<ShadowKindType>(model, TaskAddDto.F_KIND),
                 new AbstractReadOnlyModel<List<ShadowKindType>>() {
@@ -303,6 +341,7 @@ public class PageTaskAdd extends PageAdminTasks {
                 target.add(intent);
                 target.add(kind);
                 target.add(objectClass);
+                target.add(focusType);
             }
         });
         type.setRequired(true);
@@ -507,6 +546,7 @@ public class PageTaskAdd extends PageAdminTasks {
                 target.add(getFeedbackPanel());
             }
         };
+        mainForm.setDefaultButton(saveButton);
         mainForm.add(saveButton);
 
         AjaxButton backButton = new AjaxButton(ID_BUTTON_BACK,
@@ -550,6 +590,17 @@ public class PageTaskAdd extends PageAdminTasks {
         kindList.add(ShadowKindType.GENERIC);
 
         return kindList;
+    }
+    
+    private List<QName> createFocusTypeList(){
+        List<QName> focusTypeList = new ArrayList<>();
+
+        focusTypeList.add(UserType.COMPLEX_TYPE);
+        focusTypeList.add(RoleType.COMPLEX_TYPE);
+        focusTypeList.add(OrgType.COMPLEX_TYPE);
+        focusTypeList.add(FocusType.COMPLEX_TYPE);
+
+        return focusTypeList;
     }
 
     private List<TaskAddResourcesDto> createResourceList() {
@@ -676,6 +727,16 @@ public class PageTaskAdd extends PageAdminTasks {
             dryRun.setRealValue(true);
         }
 
+        if (dto.getFocusType() != null){
+
+        	PrismObject<TaskType> prismTask = task.asPrismObject();
+        	
+        	ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
+			PrismProperty focusType = prismTask.findOrCreateProperty(path);
+			focusType.setRealValue(dto.getFocusType());
+            
+		}
+        
         if(dto.getKind() != null){
             PrismObject<TaskType> prismTask = task.asPrismObject();
             ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND);

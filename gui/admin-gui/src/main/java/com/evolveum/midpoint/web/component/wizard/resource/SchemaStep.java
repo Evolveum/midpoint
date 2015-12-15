@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,11 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
@@ -33,8 +35,8 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -56,6 +58,7 @@ public class SchemaStep extends WizardStep {
 
     private static final String ID_TAB_PANEL = "tabPanel";
     private static final String ID_RELOAD = "reload";
+    private static final String ID_ACE_EDITOR = "aceEditor";
     private IModel<PrismObject<ResourceType>> model;
 
     public SchemaStep(IModel<PrismObject<ResourceType>> model, PageBase pageBase) {
@@ -140,10 +143,11 @@ public class SchemaStep extends WizardStep {
 
         PrismObject<ResourceType> resource = model.getObject();
         resource.asObjectable().setSchema(new XmlSchemaType());
-        OperationResult result = new OperationResult(OPERATION_RELOAD_RESOURCE_SCHEMA);
+        Task task = getPageBase().createSimpleTask(OPERATION_RELOAD_RESOURCE_SCHEMA);
+        OperationResult result = task.getResult();
 
         try {
-            resource = WebModelUtils.loadObject(ResourceType.class, resource.getOid(), result, getPageBase());
+            resource = WebModelUtils.loadObject(ResourceType.class, resource.getOid(), getPageBase(), task, result);
             getPageBase().getPrismContext().adopt(resource);
 
             model.getObject().asObjectable().setSchema(resource.asObjectable().getSchema());
@@ -170,7 +174,13 @@ public class SchemaStep extends WizardStep {
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new XmlEditorPanel(panelId, createXmlEditorModel());
+                XmlEditorPanel xmlEditorPanel = new XmlEditorPanel(panelId, createXmlEditorModel());
+                // quick fix: now changes from XmlEditorPanel are not saved anyhow
+                //(e.g. by clicking Finish button in wizard). For now,
+                //panel is made disabled for editing
+                AceEditor aceEditor = (AceEditor) xmlEditorPanel.get(ID_ACE_EDITOR);
+                aceEditor.setReadonly(true);
+                return xmlEditorPanel;
             }
         };
     }

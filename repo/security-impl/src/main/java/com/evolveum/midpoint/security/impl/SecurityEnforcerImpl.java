@@ -127,8 +127,13 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	public MidPointPrincipal getPrincipal() throws SecurityViolationException {
 		return SecurityUtil.getPrincipal();
 	}
-
+	
     @Override
+	public boolean isAuthenticated() {
+		return SecurityUtil.isAuthenticated();
+	}
+
+	@Override
     public void setupPreAuthenticatedSecurityContext(Authentication authentication) {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         securityContext.setAuthentication(authentication);
@@ -552,19 +557,21 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			FilterInvocation filterInvocation = (FilterInvocation)object;
 			// TODO
 		} else {
-			throw new IllegalArgumentException("Unknown type of secure object "+object.getClass());
+			SecurityUtil.logSecurityDeny(object, ": Unknown type of secure object");
+			throw new IllegalArgumentException("Unknown type of secure object");
 		}
 		
 		Object principalObject = authentication.getPrincipal();
 		if (!(principalObject instanceof MidPointPrincipal)) {
 			if (authentication.getPrincipal() instanceof String && "anonymousUser".equals(principalObject)){
+				SecurityUtil.logSecurityDeny(object, ": Not logged in");
 				throw new InsufficientAuthenticationException("Not logged in.");
 			}
 			throw new IllegalArgumentException("Expected that spring security principal will be of type "+
 					MidPointPrincipal.class.getName()+" but it was "+principalObject.getClass());
 		}
 
-		Collection<String> configActions = getActions(configAttributes);
+		Collection<String> configActions = SecurityUtil.getActions(configAttributes);
 		
 		for(String configAction: configActions) {
 			boolean isAuthorized;
@@ -578,15 +585,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}
 		}
 		
-		throw new AccessDeniedException("Access denied, insufficient authorization (required actions "+configActions+")");
-	}
-	
-	private Collection<String> getActions(Collection<ConfigAttribute> configAttributes) {
-		Collection<String> actions = new ArrayList<String>(configAttributes.size());
-		for (ConfigAttribute attr: configAttributes) {
-			actions.add(attr.getAttribute());
-		}
-		return actions;
+		SecurityUtil.logSecurityDeny(object, ": Not authorized", null, configActions);
+		
+		// Sparse exception method by purpose. We do not want to expose details to attacker.
+		// Better message is logged.
+		throw new AccessDeniedException("Not authorized");
 	}
 
 	@Override

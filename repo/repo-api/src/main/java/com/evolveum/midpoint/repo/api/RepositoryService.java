@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -137,6 +138,7 @@ public interface RepositoryService {
     @Deprecated
     String RELEASE_TASK = CLASS_NAME_WITH_DOT + "releaseTask";
     String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
+	String SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + "searchContainers";
     String LIST_RESOURCE_OBJECT_SHADOWS = CLASS_NAME_WITH_DOT + "listResourceObjectShadows";
     String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
     String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
@@ -144,6 +146,9 @@ public interface RepositoryService {
     String SEARCH_OBJECTS_ITERATIVE = CLASS_NAME_WITH_DOT + "searchObjectsIterative";
     String CLEANUP_TASKS = CLASS_NAME_WITH_DOT + "cleanupTasks";
     String SEARCH_SHADOW_OWNER = CLASS_NAME_WITH_DOT + "searchShadowOwner";
+	String ADVANCE_SEQUENCE = CLASS_NAME_WITH_DOT + "advanceSequence";
+	String RETURN_UNUSED_VALUES_TO_SEQUENCE = CLASS_NAME_WITH_DOT + "returnUnusedValuesToSequence";
+	String EXECUTE_ARBITRARY_QUERY = CLASS_NAME_WITH_DOT + "executeArbitraryQuery";
 
 	/**
 	 * Returns object for provided OID.
@@ -163,9 +168,14 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 */
-	<T extends ObjectType> PrismObject<T> getObject(Class<T> type,String oid, Collection<SelectorOptions<GetOperationOptions>> options,
+	<T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
 			OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
+
+//	<T extends ObjectType> PrismObject<T> getContainerValue(Class<T> type, String oid, long id,
+//															Collection<SelectorOptions<GetOperationOptions>> options,
+//															OperationResult parentResult)
+//			throws ObjectNotFoundException, SchemaException;
 
 	/**
 	 * Returns object version for provided OID.
@@ -267,6 +277,22 @@ public interface RepositoryService {
 			throws SchemaException;
 
 	/**
+	 * Search for "sub-object" structures, i.e. containers.
+	 * Currently, only one type of search is available: certification case search.
+	 *
+	 * @param type
+	 * @param query
+	 * @param options
+	 * @param parentResult
+	 * @param <T>
+	 * @return
+	 * @throws SchemaException
+	 */
+	<T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query,
+																   Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+			throws SchemaException;
+
+	/**
 	 * <p>Search for objects in the repository in an iterative fashion.</p>
 	 * <p>Searches through all object types. Calls a specified handler for each object found.
 	 * If no search criteria specified, list of all objects of specified type is returned.</p>
@@ -286,6 +312,9 @@ public interface RepositoryService {
 	 *            search query
 	 * @param handler
 	 *            result handler
+	 * @param strictlySequential
+	 * 			  takes care not to skip any object nor to process objects more than once;
+	 * 			  currently requires paging NOT to be used - uses its own paging
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @return all objects of specified type that match search criteria (subject
@@ -298,7 +327,8 @@ public interface RepositoryService {
 	 */
 
 	<T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
-			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, boolean strictlySequential,
+			OperationResult parentResult)
 			throws SchemaException;
 
 	/**
@@ -428,6 +458,12 @@ public interface RepositoryService {
 	 * which may be less efficient that following a direct association. Hence it
 	 * is called "search" to indicate that there may be non-negligible overhead.
 	 * </p>
+	 * <p>
+	 * This method should not die even if the specified shadow does not exist.
+	 * Even if the shadow is gone, it still may be used in some linkRefs. This
+	 * method should be able to find objects with such linkeRefs otherwise we
+	 * will not be able to do proper cleanup.
+	 * </p>
 	 *
 	 * @param shadowOid
 	 *            OID of shadow
@@ -435,13 +471,10 @@ public interface RepositoryService {
 	 *            parentResult parent OperationResult (in/out)
 	 * @return Object representing owner of specified account (subclass of FocusType)
 	 *
-	 * @throws ObjectNotFoundException
-	 *             specified shadow does not exist
 	 * @throws IllegalArgumentException
 	 *             wrong OID format
 	 */
-	<F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
-			throws ObjectNotFoundException;
+	<F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult);
 
 	/**
 	 * <p>Search for resource object shadows of a specified type that belong to the
@@ -474,6 +507,31 @@ public interface RepositoryService {
 	<T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException;
+	
+	/**
+	 * 
+	 * This operation is guaranteed to be atomic. If two threads or even two nodes request a value from
+	 * the same sequence at the same time then different values will be returned.
+	 * 
+	 * @param oid sequence OID
+	 * @param parentResult
+	 * @return next unallocated counter value
+	 * @throws ObjectNotFoundException the sequence does not exist
+	 * @throws SchemaException the sequence cannot produce a value (e.g. maximum counter reached)
+	 */
+	long advanceSequence(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+	
+	/**
+	 * 
+	 * The sequence may ignore the values, e.g. if value re-use is disabled or when the list of
+	 * unused values is full. In such a case the values will be ignored silently and no error is indicated.
+	 * 
+	 * @param oid
+	 * @param unusedValues
+	 * @param parentResult
+	 * @throws ObjectNotFoundException
+	 */
+	void returnUnusedValuesToSequence(String oid, Collection<Long> unusedValues, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 	
     /**
 	 * Provide repository run-time configuration and diagnostic information.
@@ -509,4 +567,15 @@ public interface RepositoryService {
      * TODO this method is SQL service specific; it should be generalized/fixed somehow.
      */
     void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult testResult);
+
+	/**
+	 * A bit of hack - execute arbitrary query, e.g. hibernate query in case of SQL repository.
+	 * Use with all the care!
+	 *
+	 * @param query
+	 * @param result
+	 * @return
+	 */
+	String executeArbitraryQuery(String query, OperationResult result);
+
 }

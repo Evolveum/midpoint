@@ -30,11 +30,13 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -42,6 +44,12 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.EnvironmentalPerformanceInformation;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
+import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
+import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformation;
+import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
+import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightTaskHandler;
 import com.evolveum.midpoint.task.api.Task;
@@ -62,11 +70,17 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
@@ -86,6 +100,7 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -114,6 +129,11 @@ public class TaskQuartzImpl implements Task {
     private PrismObject<TaskType> taskPrism;
 
     private PrismObject<UserType> requestee;                                  // temporary information
+
+	private EnvironmentalPerformanceInformation environmentalPerformanceInformation = new EnvironmentalPerformanceInformation();
+	private SynchronizationInformation synchronizationInformation;				// has to be explicitly enabled
+	private IterativeTaskInformation iterativeTaskInformation;					// has to be explicitly enabled
+	private ActionsExecutedInformation actionsExecutedInformation;			// has to be explicitly enabled
 
 	/**
 	 * Lightweight asynchronous subtasks.
@@ -166,6 +186,12 @@ public class TaskQuartzImpl implements Task {
 	private volatile boolean lightweightHandlerExecuting;
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
+	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
+
+	private TaskQuartzImpl(TaskManagerQuartzImpl taskManager) {
+		this.taskManager = taskManager;
+		this.canRun = true;
+	}
 
 	//region Constructors
     /**
@@ -175,11 +201,10 @@ public class TaskQuartzImpl implements Task {
      * @param operationName if null, default op. name will be used
 	 */	
 	TaskQuartzImpl(TaskManagerQuartzImpl taskManager, LightweightIdentifier taskIdentifier, String operationName) {
-		this.taskManager = taskManager;
+		this(taskManager);
 		this.repositoryService = null;
 		this.taskPrism = createPrism();
-		this.canRun = true;
-		
+
 		setTaskIdentifier(taskIdentifier.toString());
 		setExecutionStatusTransient(TaskExecutionStatus.RUNNABLE);
 		setRecurrenceStatusTransient(TaskRecurrence.SINGLE);
@@ -196,10 +221,9 @@ public class TaskQuartzImpl implements Task {
      * @param operationName if null, default op. name will be used
      */
 	TaskQuartzImpl(TaskManagerQuartzImpl taskManager, PrismObject<TaskType> taskPrism, RepositoryService repositoryService, String operationName) {
-		this.taskManager = taskManager;
+		this(taskManager);
 		this.repositoryService = repositoryService;
 		this.taskPrism = taskPrism;
-		canRun = true;
         createOrUpdateTaskResult(operationName);
 
         setDefaults();
@@ -389,6 +413,7 @@ public class TaskQuartzImpl implements Task {
         }
 	}
 
+	@Override
 	public void setProgressTransient(long value) {
 		try {
 			taskPrism.setPropertyRealValue(TaskType.F_PROGRESS, value);
@@ -400,11 +425,35 @@ public class TaskQuartzImpl implements Task {
 	
 	private PropertyDelta<?> setProgressAndPrepareDelta(long value) {
 		setProgressTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDelta(
+		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_PROGRESS, value) : null;
 	}
 
-    @Override
+	@Override
+	public OperationStatsType getStoredOperationStats() {
+		return taskPrism.asObjectable().getOperationStats();
+	}
+
+	public void setOperationStatsTransient(OperationStatsType value) {
+		try {
+			taskPrism.setPropertyRealValue(TaskType.F_OPERATION_STATS, value);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
+	}
+
+	public void setOperationStats(OperationStatsType value) {
+		processModificationBatched(setOperationStatsAndPrepareDelta(value));
+	}
+
+	private PropertyDelta<?> setOperationStatsAndPrepareDelta(OperationStatsType value) {
+		setOperationStatsTransient(value);
+		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+				taskManager.getTaskObjectDefinition(), TaskType.F_OPERATION_STATS, value) : null;
+	}
+
+	@Override
     public Long getExpectedTotal() {
         Long value = taskPrism.getPropertyRealValue(TaskType.F_EXPECTED_TOTAL, Long.class);
         return value != null ? value : 0;
@@ -436,7 +485,7 @@ public class TaskQuartzImpl implements Task {
 
     private PropertyDelta<?> setExpectedTotalAndPrepareDelta(Long value) {
         setExpectedTotalTransient(value);
-        return isPersistent() ? PropertyDelta.createReplaceDelta(
+        return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
                 taskManager.getTaskObjectDefinition(), TaskType.F_EXPECTED_TOTAL, value) : null;
     }
 
@@ -608,7 +657,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setOtherHandlersUriStackAndPrepareDelta(UriStack value) {
 		setOtherHandlersUriStackTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDelta(
+		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
 					taskManager.getTaskObjectDefinition(), TaskType.F_OTHER_HANDLERS_URI_STACK, value) : null;
 	}
 	
@@ -972,7 +1021,7 @@ public class TaskQuartzImpl implements Task {
 
     private PropertyDelta<?> setExecutionStatusAndPrepareDelta(TaskExecutionStatus value) {
 		setExecutionStatusTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDelta(
+		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
 					taskManager.getTaskObjectDefinition(), TaskType.F_EXECUTION_STATUS, value.toTaskType()) : null;
 	}
 
@@ -1040,7 +1089,7 @@ public class TaskQuartzImpl implements Task {
 
     private PropertyDelta<?> setWaitingReasonAndPrepareDelta(TaskWaitingReason value) {
         setWaitingReasonTransient(value);
-        return isPersistent() ? PropertyDelta.createReplaceDelta(
+        return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
                 taskManager.getTaskObjectDefinition(), TaskType.F_WAITING_REASON, value.toTaskType()) : null;
     }
 
@@ -1101,7 +1150,7 @@ public class TaskQuartzImpl implements Task {
 	
 	private PropertyDelta<?> setRecurrenceStatusAndPrepareDelta(TaskRecurrence value) {
 		setRecurrenceStatusTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDelta(
+		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
 					taskManager.getTaskObjectDefinition(), TaskType.F_RECURRENCE, value.toTaskType()) : null;
 	}
 
@@ -1267,7 +1316,7 @@ public class TaskQuartzImpl implements Task {
 	
 	private PropertyDelta<?> setBindingAndPrepareDelta(TaskBinding value) {
 		setBindingTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDelta(
+		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
 					taskManager.getTaskObjectDefinition(), TaskType.F_BINDING, value.toTaskType()) : null;
 	}
 	
@@ -1341,7 +1390,7 @@ public class TaskQuartzImpl implements Task {
 
     private PropertyDelta<?> setChannelAndPrepareDelta(String value) {
         setChannelTransient(value);
-        return isPersistent() ? PropertyDelta.createReplaceDelta(
+        return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
                 taskManager.getTaskObjectDefinition(), TaskType.F_CHANNEL, value) : null;
     }
 
@@ -1521,7 +1570,7 @@ public class TaskQuartzImpl implements Task {
 	
 	private PropertyDelta<?> setNameAndPrepareDelta(PolyStringType value) {
 		setNameTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDelta(
+		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
 					taskManager.getTaskObjectDefinition(), TaskType.F_NAME, value.toPolyString()) : null;
 	}
 
@@ -1555,7 +1604,7 @@ public class TaskQuartzImpl implements Task {
 
     private PropertyDelta<?> setDescriptionAndPrepareDelta(String value) {
         setDescriptionTransient(value);
-        return isPersistent() ? PropertyDelta.createReplaceDelta(
+        return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
                 taskManager.getTaskObjectDefinition(), TaskType.F_DESCRIPTION, value) : null;
     }
 
@@ -1597,7 +1646,7 @@ public class TaskQuartzImpl implements Task {
 
     private PropertyDelta<?> setParentAndPrepareDelta(String value) {
         setParentTransient(value);
-        return isPersistent() ? PropertyDelta.createReplaceDelta(
+        return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
                 taskManager.getTaskObjectDefinition(), TaskType.F_PARENT, value) : null;
     }
 
@@ -1736,9 +1785,29 @@ public class TaskQuartzImpl implements Task {
         }
 
         ArrayList<PrismPropertyValue<T>> values = new ArrayList(1);
-        values.add(new PrismPropertyValue<T>(value));
+		if (value != null) {
+			values.add(new PrismPropertyValue<T>(value));
+		}
         processModificationBatched(setExtensionPropertyAndPrepareDelta(propertyName, propertyDef, values));
     }
+
+	@Override
+	public <T> void setExtensionPropertyValueTransient(QName propertyName, T value) throws SchemaException {
+		PrismPropertyDefinition propertyDef = getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(propertyName);
+		if (propertyDef == null) {
+			throw new SchemaException("Unknown property " + propertyName);
+		}
+		ArrayList<PrismPropertyValue<T>> values = new ArrayList(1);
+		if (value != null) {
+			values.add(new PrismPropertyValue<T>(value));
+		}
+		ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, propertyName), propertyDef, getPrismContext());
+		delta.setValuesToReplace(values);
+
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>(1);
+		modifications.add(delta);
+		PropertyDelta.applyTo(modifications, taskPrism);
+	}
 
     // use this method to avoid cloning the value
     @Override
@@ -1957,13 +2026,8 @@ public class TaskQuartzImpl implements Task {
 
     private PropertyDelta<?> setNodeAndPrepareDelta(String value) {
         setNodeTransient(value);
-        if (value != null) {
-	        return isPersistent() ? PropertyDelta.createReplaceDelta(
-	                taskManager.getTaskObjectDefinition(), TaskType.F_NODE, value) : null;
-        } else {
-        	return isPersistent() ? PropertyDelta.createReplaceDelta(
-	                taskManager.getTaskObjectDefinition(), TaskType.F_NODE) : null;
-        }
+		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+				taskManager.getTaskObjectDefinition(), TaskType.F_NODE, value) : null;
     }
 
 
@@ -2146,7 +2210,7 @@ public class TaskQuartzImpl implements Task {
 
     private PropertyDelta<?> setCategoryAndPrepareDelta(String value) {
         setCategoryTransient(value);
-        return isPersistent() ? PropertyDelta.createReplaceDelta(
+        return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
                 taskManager.getTaskObjectDefinition(), TaskType.F_CATEGORY, value) : null;
     }
 
@@ -2519,5 +2583,289 @@ public class TaskQuartzImpl implements Task {
 
 	public boolean isLightweightHandlerExecuting() {
 		return lightweightHandlerExecuting;
+	}
+
+	// Operational data
+
+	private EnvironmentalPerformanceInformation getEnvironmentalPerformanceInformation() {
+		return environmentalPerformanceInformation;
+	}
+
+	private SynchronizationInformation getSynchronizationInformation() {
+		return synchronizationInformation;
+	}
+
+	private IterativeTaskInformation getIterativeTaskInformation() {
+		return iterativeTaskInformation;
+	}
+
+	public ActionsExecutedInformation getActionsExecutedInformation() {
+		return actionsExecutedInformation;
+	}
+
+	@Override
+	public OperationStatsType getAggregatedLiveOperationStats() {
+		EnvironmentalPerformanceInformationType env = getAggregateEnvironmentalPerformanceInformation();
+		IterativeTaskInformationType itit = getAggregateIterativeTaskInformation();
+		SynchronizationInformationType sit = getAggregateSynchronizationInformation();
+		ActionsExecutedInformationType aeit = getAggregateActionsExecutedInformation();
+		if (env == null && itit == null && sit == null && aeit == null) {
+			return null;
+		}
+		OperationStatsType rv = new OperationStatsType();
+		rv.setEnvironmentalPerformanceInformation(env);
+		rv.setIterativeTaskInformation(itit);
+		rv.setSynchronizationInformation(sit);
+		rv.setActionsExecutedInformation(aeit);
+		rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+		return rv;
+	}
+
+	private EnvironmentalPerformanceInformationType getAggregateEnvironmentalPerformanceInformation() {
+		if (environmentalPerformanceInformation == null) {
+			return null;
+		}
+		EnvironmentalPerformanceInformationType rv = new EnvironmentalPerformanceInformationType();
+		EnvironmentalPerformanceInformation.addTo(rv, environmentalPerformanceInformation.getAggregatedValue());
+		for (Task subtask : getLightweightAsynchronousSubtasks()) {
+			EnvironmentalPerformanceInformation info = ((TaskQuartzImpl) subtask).getEnvironmentalPerformanceInformation();
+			if (info != null) {
+				EnvironmentalPerformanceInformation.addTo(rv, info.getAggregatedValue());
+			}
+		}
+		return rv;
+	}
+
+	private IterativeTaskInformationType getAggregateIterativeTaskInformation() {
+		if (iterativeTaskInformation == null) {
+			return null;
+		}
+		IterativeTaskInformationType rv = new IterativeTaskInformationType();
+		IterativeTaskInformation.addTo(rv, iterativeTaskInformation.getAggregatedValue(), false);
+		for (Task subtask : getLightweightAsynchronousSubtasks()) {
+			IterativeTaskInformation info = ((TaskQuartzImpl) subtask).getIterativeTaskInformation();
+			if (info != null) {
+				IterativeTaskInformation.addTo(rv, info.getAggregatedValue(), false);
+			}
+		}
+		return rv;
+	}
+
+	private SynchronizationInformationType getAggregateSynchronizationInformation() {
+		if (synchronizationInformation == null) {
+			return null;
+		}
+		SynchronizationInformationType rv = new SynchronizationInformationType();
+		SynchronizationInformation.addTo(rv, synchronizationInformation.getAggregatedValue());
+		for (Task subtask : getLightweightAsynchronousSubtasks()) {
+			SynchronizationInformation info = ((TaskQuartzImpl) subtask).getSynchronizationInformation();
+			if (info != null) {
+				SynchronizationInformation.addTo(rv, info.getAggregatedValue());
+			}
+		}
+		return rv;
+	}
+
+	private ActionsExecutedInformationType getAggregateActionsExecutedInformation() {
+		if (actionsExecutedInformation == null) {
+			return null;
+		}
+		ActionsExecutedInformationType rv = new ActionsExecutedInformationType();
+		ActionsExecutedInformation.addTo(rv, actionsExecutedInformation.getAggregatedValue());
+		for (Task subtask : getLightweightAsynchronousSubtasks()) {
+			ActionsExecutedInformation info = ((TaskQuartzImpl) subtask).getActionsExecutedInformation();
+			if (info != null) {
+				ActionsExecutedInformation.addTo(rv, info.getAggregatedValue());
+			}
+		}
+		return rv;
+	}
+
+	@Override
+	public void recordState(String message) {
+		if (LOGGER.isDebugEnabled()) {		// TODO consider this
+			LOGGER.debug("{}", message);
+		}
+		if (PERFORMANCE_ADVISOR.isDebugEnabled()) {
+			PERFORMANCE_ADVISOR.debug("{}", message);
+		}
+		environmentalPerformanceInformation.recordState(message);
+	}
+
+	@Override
+	public void recordProvisioningOperation(String resourceOid, String resourceName, QName objectClassName, ProvisioningOperation operation, boolean success, int count, long duration) {
+		environmentalPerformanceInformation.recordProvisioningOperation(resourceOid, resourceName, objectClassName, operation, success, count, duration);
+	}
+
+	@Override
+	public void recordNotificationOperation(String transportName, boolean success, long duration) {
+		environmentalPerformanceInformation.recordNotificationOperation(transportName, success, duration);
+	}
+
+	@Override
+	public void recordMappingOperation(String objectOid, String objectName, String mappingName, long duration) {
+		environmentalPerformanceInformation.recordMappingOperation(objectOid, objectName, mappingName, duration);
+	}
+
+	@Override
+	public synchronized void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception, SynchronizationInformation.Record increment) {
+		if (synchronizationInformation != null) {
+			synchronizationInformation.recordSynchronizationOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception, increment);
+		}
+	}
+
+	@Override
+	public synchronized void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
+		if (synchronizationInformation != null) {
+			synchronizationInformation.recordSynchronizationOperationStart(objectName, objectDisplayName, objectType, objectOid);
+		}
+	}
+
+	@Override
+	public synchronized void recordIterativeOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception) {
+		if (iterativeTaskInformation != null) {
+			iterativeTaskInformation.recordOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception);
+		}
+	}
+
+	@Override
+	public void recordIterativeOperationEnd(ShadowType shadow, long started, Throwable exception) {
+		recordIterativeOperationEnd(PolyString.getOrig(shadow.getName()), StatisticsUtil.getDisplayName(shadow),
+				ShadowType.COMPLEX_TYPE, shadow.getOid(), started, exception);
+	}
+
+	@Override
+	public void recordIterativeOperationStart(ShadowType shadow) {
+		recordIterativeOperationStart(PolyString.getOrig(shadow.getName()), StatisticsUtil.getDisplayName(shadow),
+				ShadowType.COMPLEX_TYPE, shadow.getOid());
+	}
+
+	@Override
+	public synchronized void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
+		if (iterativeTaskInformation != null) {
+			iterativeTaskInformation.recordOperationStart(objectName, objectDisplayName, objectType, objectOid);
+		}
+	}
+
+	@Override
+	public void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid, ChangeType changeType, String channel, Throwable exception) {
+		if (actionsExecutedInformation != null) {
+			actionsExecutedInformation.recordObjectActionExecuted(objectName, objectDisplayName, objectType, objectOid, changeType, channel, exception);
+		}
+	}
+
+	@Override
+	public void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, Throwable exception) {
+		recordObjectActionExecuted(object, null, null, changeType, getChannel(), exception);
+	}
+
+	@Override
+	public <T extends ObjectType> void recordObjectActionExecuted(PrismObject<T> object, Class<T> objectTypeClass, String defaultOid, ChangeType changeType, String channel, Throwable exception) {
+		if (actionsExecutedInformation != null) {
+			String name, displayName, oid;
+			PrismObjectDefinition definition;
+			Class<T> clazz;
+			if (object != null) {
+				name = PolyString.getOrig(object.getName());
+				displayName = StatisticsUtil.getDisplayName(object);
+				definition = object.getDefinition();
+				clazz = object.getCompileTimeClass();
+				oid = object.getOid();
+				if (oid == null) {		// in case of ADD operation
+					oid = defaultOid;
+				}
+			} else {
+				name = null;
+				displayName = null;
+				definition = null;
+				clazz = objectTypeClass;
+				oid = defaultOid;
+			}
+			if (definition == null && clazz != null) {
+				definition = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
+			}
+			QName typeQName;
+			if (definition != null) {
+				typeQName = definition.getTypeName();
+			} else {
+				typeQName = ObjectType.COMPLEX_TYPE;
+			}
+			actionsExecutedInformation.recordObjectActionExecuted(name, displayName, typeQName, oid, changeType, channel, exception);
+		}
+	}
+
+	@Override
+	public void markObjectActionExecutedBoundary() {
+		if (actionsExecutedInformation != null) {
+			actionsExecutedInformation.markObjectActionExecutedBoundary();
+		}
+	}
+
+	@Override
+	public void resetEnvironmentalPerformanceInformation(EnvironmentalPerformanceInformationType value) {
+		environmentalPerformanceInformation = new EnvironmentalPerformanceInformation(value);
+	}
+
+	@Override
+	public void resetSynchronizationInformation(SynchronizationInformationType value) {
+		synchronizationInformation = new SynchronizationInformation(value);
+	}
+
+	@Override
+	public void resetIterativeTaskInformation(IterativeTaskInformationType value) {
+		iterativeTaskInformation = new IterativeTaskInformation(value);
+	}
+
+	@Override
+	public void resetActionsExecutedInformation(ActionsExecutedInformationType value) {
+		actionsExecutedInformation = new ActionsExecutedInformation(value);
+	}
+
+	@Override
+	public void startCollectingOperationStatsFromZero(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics) {
+		resetEnvironmentalPerformanceInformation(null);
+		if (enableIterationStatistics) {
+			resetIterativeTaskInformation(null);
+		}
+		if (enableSynchronizationStatistics) {
+			resetSynchronizationInformation(null);
+		}
+		if (enableActionsExecutedStatistics) {
+			resetActionsExecutedInformation(null);
+		}
+	}
+
+	@Override
+	public void startCollectingOperationStatsFromStoredValues(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics) {
+		OperationStatsType stored = getStoredOperationStats();
+		if (stored == null) {
+			stored = new OperationStatsType();
+		}
+		resetEnvironmentalPerformanceInformation(stored.getEnvironmentalPerformanceInformation());
+		if (enableIterationStatistics) {
+			resetIterativeTaskInformation(stored.getIterativeTaskInformation());
+		} else {
+			iterativeTaskInformation = null;
+		}
+		if (enableSynchronizationStatistics) {
+			resetSynchronizationInformation(stored.getSynchronizationInformation());
+		} else {
+			synchronizationInformation = null;
+		}
+		if (enableActionsExecutedStatistics) {
+			resetActionsExecutedInformation(stored.getActionsExecutedInformation());
+		} else {
+			actionsExecutedInformation = null;
+		}
+	}
+
+	@Override
+	public void storeOperationStats() {
+		try {
+			setOperationStats(getAggregatedLiveOperationStats());
+			savePendingModifications(new OperationResult(DOT_INTERFACE + ".storeOperationStats"));    // TODO fixme
+		} catch (SchemaException|ObjectNotFoundException |ObjectAlreadyExistsException |RuntimeException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't store statistical information into task {}", e, this);
+		}
 	}
 }

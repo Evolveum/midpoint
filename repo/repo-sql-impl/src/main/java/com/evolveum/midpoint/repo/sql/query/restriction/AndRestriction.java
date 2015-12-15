@@ -30,8 +30,8 @@ import org.hibernate.criterion.Restrictions;
 public class AndRestriction extends NaryLogicalRestriction<AndFilter> {
 
     @Override
-    public boolean canHandle(ObjectFilter filter, QueryContext context) {
-        if (!super.canHandle(filter, context)) {
+    public boolean canHandle(ObjectFilter filter) {
+        if (!super.canHandle(filter)) {
             return false;
         }
 
@@ -39,7 +39,7 @@ public class AndRestriction extends NaryLogicalRestriction<AndFilter> {
     }
 
     @Override
-    public Criterion interpret(AndFilter filter) throws QueryException {
+    public Criterion interpret() throws QueryException {
         validateFilter(filter);
         Conjunction conjunction = Restrictions.conjunction();
         updateJunction(filter.getConditions(), conjunction);
@@ -48,7 +48,7 @@ public class AndRestriction extends NaryLogicalRestriction<AndFilter> {
     }
 
     @Override
-    public AndRestriction cloneInstance() {
+    public AndRestriction newInstance() {
         return new AndRestriction();
     }
 }

@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,7 +34,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -119,7 +119,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			if (shadow.getFailedOperationType() == null) {
 //				ResourceType resource = shadow.getResource();
 				if (shadow.getName() == null) {
-					shadow.setName(new PolyStringType(ProvisioningUtil.determineShadowName(shadow.asPrismObject())));
+					shadow.setName(new PolyStringType(ShadowUtil.determineShadowName(shadow.asPrismObject())));
 				}
 				if (shadow.getResourceRef() == null || shadow.getResourceRef().getOid() == null){
 					if (resource != null){
@@ -133,6 +133,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				shadow.setAttemptNumber(getAttemptNumber(shadow));
 				shadow.setFailedOperationType(FailedOperationTypeType.ADD);
 				ConstraintsChecker.onShadowAddOperation(shadow);
+				// Unlike addObject calls during normal provisioning, here we preserve all activation information, including e.g. administrativeStatus.
+				// It is needed for shadow creation during error recovery.
 				String oid = cacheRepositoryService.addObject(shadow.asPrismObject(), null, operationResult);
 				shadow.setOid(oid);
 			

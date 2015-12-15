@@ -105,16 +105,6 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         //}
         this.prismContext = prismContext;
     }
-
-    private PrismContainerValue(C containerable) {
-		super();
-		this.containerable = containerable;
-	}
-
-    public PrismContainerValue(C containerable, PrismContext prismContext) {
-        this(containerable);
-        this.prismContext = prismContext;
-    }
     
     private PrismContainerValue(OriginType type, Objectable source, PrismContainerable container, Long id, QName concreteType) {
 		super(type, source, container);
@@ -511,6 +501,10 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     	}
     	return false;
     }
+
+    public boolean contains(QName itemName) {
+        return findItem(itemName) != null;
+    }
     
     @Override
     public Object find(ItemPath path) {
@@ -873,7 +867,15 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		removeItem(itemPath, PrismContainer.class);
 	}
 
-	// Expects that "self" path is NOT present in propPath
+    public void removeReference(QName name) {
+        removeReference(new ItemPath(name));
+    }
+
+    public void removeReference(ItemPath path) {
+        removeItem(path, PrismReference.class);
+    }
+
+    // Expects that "self" path is NOT present in propPath
 	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> void removeItem(ItemPath propPath, Class<I> itemType) {
 		if (items == null){
     		return;

@@ -120,7 +120,7 @@ public class FocusProcessor {
 	private transient RepositoryService cacheRepositoryService;
 	
 	@Autowired(required = true)
-    private MappingEvaluationHelper mappingHelper;
+    private MappingEvaluator mappingHelper;
 
 	<O extends ObjectType, F extends FocusType> void processFocus(LensContext<O> context, String activityDescription, 
 			XMLGregorianCalendar now, Task task, OperationResult result) throws ObjectNotFoundException,
@@ -224,6 +224,7 @@ public class FocusProcessor {
 		        
 		        assignmentProcessor.processAssignmentsProjections(context, now, task, result);
 		        assignmentProcessor.processOrgAssignments(context, result);
+		        assignmentProcessor.processMembershipRef(context, result);
 		        context.recompute();
 		        
 		        assignmentProcessor.checkForAssignmentConflicts(context, result);
@@ -474,8 +475,8 @@ public class FocusProcessor {
 			recordValidityDelta(focusContext, validityStatusNew, now);
 		}
 		
-		ActivationStatusType effectiveStatusNew = activationComputer.getEffectiveStatus(activationNew, validityStatusNew, ActivationStatusType.DISABLED);
-		ActivationStatusType effectiveStatusCurrent = activationComputer.getEffectiveStatus(activationCurrent, validityStatusCurrent, ActivationStatusType.DISABLED);
+		ActivationStatusType effectiveStatusNew = activationComputer.getEffectiveStatus(activationNew, validityStatusNew, ActivationStatusType.ENABLED);
+		ActivationStatusType effectiveStatusCurrent = activationComputer.getEffectiveStatus(activationCurrent, validityStatusCurrent, ActivationStatusType.ENABLED);
 		
 		if (effectiveStatusCurrent == effectiveStatusNew) {
 			// No change, (almost) no work

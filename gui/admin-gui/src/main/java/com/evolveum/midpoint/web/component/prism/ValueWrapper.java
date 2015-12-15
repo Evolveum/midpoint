@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,11 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang.Validate;
@@ -34,7 +38,9 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class ValueWrapper<T> implements Serializable {
+public class ValueWrapper<T> implements Serializable, DebugDumpable {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(ValueWrapper.class);
 
     private ItemWrapper item;
     private PrismValue value;
@@ -140,6 +146,10 @@ public class ValueWrapper<T> implements Serializable {
     public boolean isReadonly() {
         return item.isReadonly();
     }
+    
+    public boolean isEmpty() {
+    	return value.isEmpty();
+    }
 
     @Override
     public String toString() {
@@ -153,4 +163,22 @@ public class ValueWrapper<T> implements Serializable {
 
         return builder.toString();
     }
+
+    @Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("ValueWrapper:\n");
+		DebugUtil.debugDumpWithLabel(sb, "status", status == null?null:status.toString(), indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "value", value, indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "oldValue", oldValue, indent+1);
+		return sb.toString();
+	}
 }

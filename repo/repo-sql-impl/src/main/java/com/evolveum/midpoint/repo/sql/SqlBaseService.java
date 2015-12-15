@@ -75,7 +75,7 @@ public class SqlBaseService {
         return repositoryFactory.getPerformanceMonitor();
     }
 
-    protected LocalSessionFactoryBean getSessionFactoryBean() {
+    public LocalSessionFactoryBean getSessionFactoryBean() {
         return sessionFactoryBean;
     }
 
@@ -202,7 +202,7 @@ public class SqlBaseService {
                 || sqlException.getErrorCode() == 3960;         // Snapshot isolation transaction aborted due to update conflict.
     }
 
-    protected SQLException findSqlException(Throwable ex) {
+    public SQLException findSqlException(Throwable ex) {
         while (ex != null) {
             if (ex instanceof SQLException) {
                 return (SQLException) ex;
@@ -222,11 +222,11 @@ public class SqlBaseService {
         return false;
     }
 
-    protected Session beginTransaction() {
+    public Session beginTransaction() {
         return beginTransaction(false);
     }
 
-    protected Session beginTransaction(boolean readOnly) {
+    public Session beginTransaction(boolean readOnly) {
         Session session = getSessionFactory().openSession();
         session.beginTransaction();
 
@@ -256,16 +256,16 @@ public class SqlBaseService {
         return session;
     }
 
-    protected void rollbackTransaction(Session session) {
+    public void rollbackTransaction(Session session) {
         rollbackTransaction(session, null, null, false);
     }
 
-    protected void rollbackTransaction(Session session, Exception ex, OperationResult result, boolean fatal) {
+    public void rollbackTransaction(Session session, Exception ex, OperationResult result, boolean fatal) {
         String message = ex != null ? ex.getMessage() : "null";
         rollbackTransaction(session, ex, message, result, fatal);
     }
 
-    protected void rollbackTransaction(Session session, Exception ex, String message, OperationResult result,
+    public void rollbackTransaction(Session session, Exception ex, String message, OperationResult result,
                                        boolean fatal) {
         if (StringUtils.isEmpty(message) && ex != null) {
             message = ex.getMessage();
@@ -283,7 +283,7 @@ public class SqlBaseService {
         session.getTransaction().rollback();
     }
 
-    protected void cleanupSessionAndResult(Session session, OperationResult result) {
+    public void cleanupSessionAndResult(Session session, OperationResult result) {
         if (session != null && session.isOpen()) {
             session.close();
         }
@@ -293,7 +293,7 @@ public class SqlBaseService {
         }
     }
 
-    protected void handleGeneralException(Exception ex, Session session, OperationResult result) {
+    public void handleGeneralException(Exception ex, Session session, OperationResult result) {
         if (ex instanceof RuntimeException) {
             handleGeneralRuntimeException((RuntimeException) ex, session, result);
         } else {
@@ -301,7 +301,7 @@ public class SqlBaseService {
         }
     }
 
-    protected void handleGeneralRuntimeException(RuntimeException ex, Session session, OperationResult result) {
+    public void handleGeneralRuntimeException(RuntimeException ex, Session session, OperationResult result) {
         LOGGER.debug("General runtime exception occurred.", ex);
 
         if (isExceptionRelatedToSerialization(ex)) {
@@ -319,7 +319,7 @@ public class SqlBaseService {
         }
     }
 
-    protected void handleGeneralCheckedException(Exception ex, Session session, OperationResult result) {
+    public void handleGeneralCheckedException(Exception ex, Session session, OperationResult result) {
         LOGGER.error("General checked exception occurred.", ex);
 
         boolean fatal = !isExceptionRelatedToSerialization(ex);

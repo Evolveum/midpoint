@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.api;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -27,14 +28,14 @@ import com.evolveum.midpoint.util.DisplayableValue;
  */
 public class RoleSelectionSpecification {
 	
-	private List<DisplayableValue<String>> roleTypes = null;
+	private List<? extends DisplayableValue<String>> roleTypes = null;
 	private ObjectFilter filter = null;
 
 	/**
 	 * Returns null if there is no information about role types that can or cannot be assigned.
      * Returns empty list list if the user is not authorized to assign anything.
 	 */
-	public List<DisplayableValue<String>> getRoleTypes() {
+	public List<? extends DisplayableValue<String>> getRoleTypes() {
 		return roleTypes;
 	}
 
@@ -46,7 +47,14 @@ public class RoleSelectionSpecification {
 		if (roleTypes == null) {
 			roleTypes = new ArrayList<DisplayableValue<String>>();
 		}
-		roleTypes.add(roleType);
+		((Collection)roleTypes).add(roleType);
+	}
+	
+	public void addRoleTypes(Collection<? extends DisplayableValue<String>> roleTypes) {
+		if (this.roleTypes == null) {
+			this.roleTypes = new ArrayList<DisplayableValue<String>>();
+		}
+		this.roleTypes.addAll((Collection)roleTypes);
 	}
 	
 	/**

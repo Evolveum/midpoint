@@ -92,6 +92,6 @@ public abstract class AccessCertificationEvent extends BaseEvent {
         if (campaign.getState() != IN_REVIEW_STAGE && campaign.getState() != REVIEW_STAGE_DONE) {
             return null;
         }
-        return CertCampaignTypeUtil.findStageDefinition(campaign, campaign.getCurrentStageNumber());
+        return CertCampaignTypeUtil.findStageDefinition(campaign, campaign.getStageNumber());
     }
 }

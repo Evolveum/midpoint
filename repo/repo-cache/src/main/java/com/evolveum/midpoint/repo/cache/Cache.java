@@ -101,7 +101,7 @@ public class Cache extends AbstractCache {
         try {
             return new QueryKey(type, query, prismContext);
         } catch (Exception e) {     // TODO THIS IS REALLY UGLY HACK - query converter / prism serializer refuse to serialize some queries - should be fixed RSN!
-            LoggingUtils.logException(LOGGER, "Couldn't create query key. Although this particular exception is harmless, please fix prism implementation!", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create query key. Although this particular exception is harmless, please fix prism implementation!", e);
             return null;            // we "treat" it so that we simply pretend the entry is not in the cache and/or refuse to enter it into the cache
         }
     }

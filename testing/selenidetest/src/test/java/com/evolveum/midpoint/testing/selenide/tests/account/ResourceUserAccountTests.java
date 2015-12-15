@@ -13,9 +13,11 @@ import org.testng.annotations.Test;
 import java.util.HashMap;
 
 import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Selectors.byAttribute;
 import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.close;
+import static com.codeborne.selenide.Selenide.switchTo;
 
 @Component
 public class ResourceUserAccountTests extends AbstractSelenideTest {
@@ -43,14 +45,15 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
 
         //import resource xml file
         importObjectFromFile(OPENDJ_RESOURCE_PATH);
+
         //open Resources -> List Resources
-        $(By.xpath("/html/body/div[3]/div/div[2]/ul[1]/li[4]/a")).shouldHave(text("Resources")).click();
-        $(By.linkText("List resources")).click();
+        if (!$(By.partialLinkText("List resources")).isDisplayed())
+            $(By.partialLinkText("Resources")).shouldBe(visible).click(); // clicked in previous test
+        $(By.partialLinkText("List resources")).click();
 
         //search for resource in resources list
         searchForElement(OPENDJ_RESOURCE_NAME);
-        $(By.xpath("/html/body/div[4]/div/form[2]/div[2]/table/tbody/tr/td[2]/div/a/span"))
-                .shouldBe(visible);
+        $(By.partialLinkText(OPENDJ_RESOURCE_NAME)).shouldBe(visible);
     }
 
     /**
@@ -60,24 +63,23 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
     @Test(priority = 1, dependsOnMethods = {"test001importResourceTest"})
     public void test002checkResourceConnectionTest(){
         //open Resources -> List Resources
-        $(By.xpath("/html/body/div[3]/div/div[2]/ul[1]/li[4]/a")).shouldHave(text("Resources")).click();
-        $(By.linkText("List resources")).click();
+//        $(By.partialLinkText("Resources")).shouldBe(visible).click(); // clicked in previous test
+        $(By.partialLinkText("List resources")).click();
 
         //search for resource in resources list
-        searchForElement(ResourceUserAccountTests.OPENDJ_RESOURCE_NAME);
-        $(By.xpath("/html/body/div[4]/div/form[2]/div[2]/table/tbody/tr/td[2]/div/a/span")).click();
+        searchForElement(OPENDJ_RESOURCE_NAME);
         //click on resource link
-        $(By.linkText(ResourceUserAccountTests.OPENDJ_RESOURCE_NAME)).click();
+        $(By.partialLinkText(OPENDJ_RESOURCE_NAME)).click();
 
         //click Test connection button
-        $(By.xpath("/html/body/div[4]/div/form/div[4]/a[1]")).should(appear).click();
+        $(By.linkText("Test connection")).click();
 
         //check if all statuses are succeeded
-        $(By.xpath("/html/body/div[4]/div/form/div[2]/div[2]/div/table/tbody/tr[1]/td[2]/i")).shouldHave(hasAttribute("title", "Success"));
-        $(By.xpath("/html/body/div[4]/div/form/div[2]/div[2]/div/table/tbody/tr[2]/td[2]/i")).shouldHave(hasAttribute("title", "Success"));
-        $(By.xpath("/html/body/div[4]/div/form/div[2]/div[2]/div/table/tbody/tr[3]/td[2]/i")).shouldHave(hasAttribute("title", "Success"));
-        $(By.xpath("/html/body/div[4]/div/form/div[2]/div[2]/div/table/tbody/tr[4]/td[2]/i")).shouldHave(hasAttribute("title", "Success"));
-        $(By.xpath("/html/body/div[4]/div/form/div[2]/div[2]/div/table/tbody/tr[5]/td[2]/i")).shouldHave(hasAttribute("title", "Success"));
+        $(By.xpath("/html/body/div/div/section[2]/form/div[2]/div[2]/div/div[2]/table/tbody/tr[1]/td[2]/i")).shouldHave(hasAttribute("title", "Success"));
+        $(By.xpath("/html/body/div/div/section[2]/form/div[2]/div[2]/div/div[2]/table/tbody/tr[2]/td[2]/i")).shouldHave(hasAttribute("title", "Success"));
+        $(By.xpath("/html/body/div/div/section[2]/form/div[2]/div[2]/div/div[2]/table/tbody/tr[3]/td[2]/i")).shouldHave(hasAttribute("title", "Success"));
+        $(By.xpath("/html/body/div/div/section[2]/form/div[2]/div[2]/div/div[2]/table/tbody/tr[4]/td[2]/i")).shouldHave(hasAttribute("title", "Success"));
+        $(By.xpath("/html/body/div/div/section[2]/form/div[2]/div[2]/div/div[2]/table/tbody/tr[5]/td[2]/i")).shouldHave(hasAttribute("title", "Success"));
 
     }
 
@@ -87,42 +89,56 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
      */
     @Test (priority = 2, dependsOnMethods = {"test001importResourceTest"})
     public void test003createAccountTest() {
+        close();
+        login();
         //create user with filled user name only
         createUser(USER_NAME, new HashMap<String, String>());
 
         //open user's Edit page
         openUsersEditPage(USER_NAME);
 
-        //click on the menu icon in the Accounts section
-        $(By.xpath("/html/body/div[4]/div/form/div[3]/div[2]/div[1]/div/div[2]/ul/li/a")).shouldBe(visible).click();
-        //click on the Add account menu item
-        $(By.linkText("Add account")).shouldBe(visible).click();
+        //click on the menu icon in the Projection section
+        $(By.xpath("/html/body/div[1]/div/section[2]/form/div[4]/div/div/div[7]/div[2]/div[1]/div/div[2]/ul/li/a"))
+                .shouldBe(visible).click();
+        //click on the Add projection menu item
+        $(By.linkText("Add projection")).shouldBe(visible).click();
 
+        //switch to the opened modal window
+        switchToInnerFrame();
         //search for resource in resources list in the opened Select resource(s) window
-        searchForElement(OPENDJ_RESOURCE_NAME);
-        $(By.xpath("/html/body/div[6]/form/div/div[2]/div/div/div/div[2]/div/div/div/div/div/div[2]/div/table/tbody/tr/td[2]/div"))
-                .shouldHave(text(OPENDJ_RESOURCE_NAME));
+        $(byText(OPENDJ_RESOURCE_NAME)).shouldBe(visible).parent().parent().findElementByTagName("input").click();
+//        searchForElement(OPENDJ_RESOURCE_NAME);
+//        //check if Localhost OpenDJ resource was found
+//        $(byText(OPENDJ_RESOURCE_NAME)).shouldBe(visible);
+//
+//        //select check box in the first row for "Localhost OpenDJ (no extension schema)" resource
+//        $(byAttribute("about", "resourcePopupTable")).find(By.tagName("tbody")).find(By.tagName("input"))
+//                .shouldBe(visible).click();
+//
+//        $(byAttribute("about", "resourcePopupTable")).find(By.tagName("tbody")).find(By.tagName("input"))
+//                .shouldBe(selected);
 
-        //select check box in the first row for "Localhost OpenDJ (no extension schema)" resource
-        $(By.name("resourcePopup:content:table:table:body:rows:4:cells:1:cell:check")).shouldBe(visible).click();
         //click Add resource(s) button
         $(By.linkText("Add resource(s)")).shouldBe(enabled).click();
 
+        //switch to main window
+        switchTo().defaultContent();
+
         //Fill in account fields: Common name, Surname, first and second password fields
-        $(By.name("accounts:accountList:0:account:body:containers:0:container:properties:3:property:values:0:value:valueContainer:input:input"))
+        $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:0:container:properties:3:property:values:0:value:valueContainer:input:input"))
                 .shouldBe(visible).setValue(ACCOUNT_COMMON_NAME_VALUE);
-        $(By.name("accounts:accountList:0:account:body:containers:0:container:properties:42:property:values:0:value:valueContainer:input:input"))
+        $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:0:container:properties:42:property:values:0:value:valueContainer:input:input"))
                 .shouldBe(visible).setValue(ACCOUNT_SURNAME_VALUE);
-        $(By.name("accounts:accountList:0:account:body:containers:5:container:properties:0:property:values:0:value:valueContainer:input:password2"))
+        $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:5:container:properties:0:property:values:0:value:valueContainer:input:inputContainer:password1"))
                 .shouldBe(visible).setValue(ACCOUNT_PASSWORD_VALUE);
-        $(By.name("accounts:accountList:0:account:body:containers:5:container:properties:0:property:values:0:value:valueContainer:input:password1"))
+        $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:5:container:properties:0:property:values:0:value:valueContainer:input:inputContainer:password2"))
                 .shouldBe(visible).setValue(ACCOUNT_PASSWORD_VALUE);
 
         //click Save button
-        $(By.xpath("/html/body/div[4]/div/form/div[6]/a[2]")).shouldHave(text("Save")).click();
+        $(By.linkText("Save")).shouldBe(visible).click();
 
         //check if Success message appears after user saving
-        $(By.xpath("/html/body/div[4]/div/div[2]/div[1]/ul/li/div/div[1]/div[1]/span")).shouldHave(text("Success"));
+        $(byText("Success")).shouldBe(visible);
 
         //search for user in users list
         searchForElement(USER_NAME);
@@ -146,34 +162,34 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
         $(By.linkText(OPENDJ_RESOURCE_NAME)).shouldBe(visible).click();
 
         //update Common Name field
-        $(By.name("accounts:accountList:0:account:body:containers:0:container:properties:3:property:values:0:value:valueContainer:input:input"))
+        $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:0:container:properties:3:property:values:0:value:valueContainer:input:input"))
                 .shouldBe(visible).setValue(ACCOUNT_COMMON_NAME_VALUE + UPDATED_VALUE);
 
         //update Surname field
-        $(By.name("accounts:accountList:0:account:body:containers:0:container:properties:42:property:values:0:value:valueContainer:input:input"))
+        $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:0:container:properties:42:property:values:0:value:valueContainer:input:input"))
                 .shouldBe(visible).setValue(ACCOUNT_SURNAME_VALUE + UPDATED_VALUE);
 
         //click Save button
-        $(By.xpath("/html/body/div[4]/div/form/div[6]/a[2]")).shouldHave(text("Save")).click();
+        $(By.linkText("Save")).shouldBe(visible).click();
 
         //check if Success message appears after user saving
-        $(By.xpath("/html/body/div[4]/div/div[2]/div[1]/ul/li/div/div[1]/div[1]/span")).shouldHave(text("Success"));
+        $(byText("Success")).shouldBe(visible);
 
         //search for user in users list
         searchForElement(USER_NAME);
 
         //check if users attributes were updated
-        $(By.xpath("/html/body/div[4]/div/form/div[2]/table/tbody/tr/td[5]/div")).shouldHave(text(ACCOUNT_SURNAME_VALUE + UPDATED_VALUE));
-        $(By.xpath("/html/body/div[4]/div/form/div[2]/table/tbody/tr/td[6]/div")).shouldHave(text(ACCOUNT_COMMON_NAME_VALUE + UPDATED_VALUE));
+        $(By.xpath("/html/body/div[1]/div/section[2]/form/div[2]/div/div[2]/table/tbody/tr/td[5]/div")).shouldHave(text(ACCOUNT_SURNAME_VALUE + UPDATED_VALUE));
+        $(By.xpath("/html/body/div[1]/div/section[2]/form/div[2]/div/div[2]/table/tbody/tr/td[6]/div")).shouldHave(text(ACCOUNT_COMMON_NAME_VALUE + UPDATED_VALUE));
 
         //open user's Edit page
         $(By.linkText(USER_NAME)).shouldBe(visible).click();
         //click on the account link to expand its fields
         $(By.linkText(OPENDJ_RESOURCE_NAME)).shouldBe(visible).click();
         //check if account's attributes were updated
-        $(By.name("accounts:accountList:0:account:body:containers:0:container:properties:3:property:values:0:value:valueContainer:input:input"))
+        $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:0:container:properties:3:property:values:0:value:valueContainer:input:input"))
                 .shouldHave(value(ACCOUNT_COMMON_NAME_VALUE + UPDATED_VALUE));
-        $(By.name("accounts:accountList:0:account:body:containers:0:container:properties:42:property:values:0:value:valueContainer:input:input"))
+        $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:0:container:properties:42:property:values:0:value:valueContainer:input:input"))
                 .shouldHave(value(ACCOUNT_SURNAME_VALUE + UPDATED_VALUE));
     }
 

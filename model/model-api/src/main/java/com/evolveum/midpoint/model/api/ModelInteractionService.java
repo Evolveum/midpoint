@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * A service provided by the IDM Model that allows to improve the (user) interaction with the model.
@@ -60,6 +62,7 @@ public interface ModelInteractionService {
 	static final String GET_EDIT_OBJECT_DEFINITION = CLASS_NAME_WITH_DOT + "getEditObjectDefinition";
 	static final String GET_ASSIGNABLE_ROLE_SPECIFICATION = CLASS_NAME_WITH_DOT + "getAssignableRoleSpecification";
 	static final String GET_CREDENTIALS_POLICY = CLASS_NAME_WITH_DOT + "getCredentialsPolicy";
+	static final String CHECK_PASSWORD = CLASS_NAME_WITH_DOT + "checkPassword";
 	
 	/**
 	 * Computes the most likely changes triggered by the provided delta. The delta may be any change of any object, e.g.
@@ -136,10 +139,33 @@ public interface ModelInteractionService {
      * security questions, etc).
      * 
      * @param user user for who the policy should apply
-     * @param parentResult
-     * @return applicable credentials policy or null
+     * @param task
+     *@param parentResult  @return applicable credentials policy or null
      * @throws ObjectNotFoundException No system configuration or other major system inconsistency
      * @throws SchemaException Wrong schema or content of security policy
      */
-    CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    
+    /**
+     * Returns currently applicable admin GUI configuration. The implementation will do all steps necessary to construct
+     * applicable configuration, e.g. reading from system configuration, merging with user preferences, etc.
+     * Note: This operation bypasses the authorizations. It will always return the value regardless whether
+     * the current user is authorized to read the underlying objects or not. However, it will always return only
+     * values applicable for current user, therefore the authorization might be considered to be implicit in this case.
+     */
+    AdminGuiConfigurationType getAdminGuiConfiguration(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    
+    /**
+     * Checks if the supplied password matches with current user password. This method is NOT subject to any
+     * password expiration policies, it does not update failed login counters, it does not change any data or meta-data.
+     * This method is NOT SUPPOSED to be used to validate password on login. This method is supposed to check 
+     * old password when the password is changed by the user. We assume that the user already passed normal
+     * system authentication.
+     * 
+     * Note: no authorizations are checked in the implementation. It is assumed that authorizations will be
+     * enforced at the page level.
+     *  
+     * @return true if the password matches, false otherwise
+     */
+    boolean checkPassword(String userOid, ProtectedStringType password, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 }

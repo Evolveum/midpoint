@@ -16,16 +16,21 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -37,20 +42,22 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author lazyman
  */
-public class PropertyWrapper implements ItemWrapper, Serializable {
+public class PropertyWrapper<I extends Item> implements ItemWrapper, Serializable, DebugDumpable {
 
     private ContainerWrapper container;
-    private PrismProperty property;
+    private I property;
     private ValueStatus status;
     private List<ValueWrapper> values;
     private String displayName;
     private boolean readonly;
-    private PrismPropertyDefinition itemDefinition;
+    private ItemDefinition itemDefinition;
 
-    public PropertyWrapper(ContainerWrapper container, PrismProperty property, boolean readonly, ValueStatus status) {
+    public PropertyWrapper(ContainerWrapper container, I property, boolean readonly, ValueStatus status) {
         Validate.notNull(property, "Property must not be null.");
         Validate.notNull(status, "Property status must not be null.");
 
@@ -66,6 +73,8 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
                 && PasswordType.F_VALUE.equals(property.getElementName())) {
             displayName = "prismPropertyPanel.name.credentials.password";
         }
+        
+        values = createValues();
     }
 
     public void revive(PrismContext prismContext) throws SchemaException {
@@ -78,10 +87,10 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
     }
 
     @Override
-    public PrismPropertyDefinition getItemDefinition() {
-    	PrismPropertyDefinition propDef = null;
+    public ItemDefinition getItemDefinition() {
+    	ItemDefinition propDef = null;
     	if (container.getItemDefinition() != null){
-    		propDef = container.getItemDefinition().findPropertyDefinition(property.getDefinition().getName());
+    		propDef = container.getItemDefinition().findItemDefinition(property.getDefinition().getName());
     	}
     	if (propDef == null) {
     		propDef = property.getDefinition();
@@ -110,8 +119,13 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         }
         return ContainerWrapper.getDisplayNameFromItem(property);
     }
-
+    
     @Override
+	public QName getName() {
+		return getItem().getElementName();
+	}
+
+	@Override
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
@@ -120,53 +134,55 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         return status;
     }
 
+    public void setStatus(ValueStatus status) {
+        this.status = status;
+    }
+
     public List<ValueWrapper> getValues() {
-        if (values == null) {
-            values = createValues();
-        }
         return values;
     }
 
     @Override
-    public PrismProperty getItem() {
+    public I getItem() {
         return property;
+    }
+    
+    public ItemDefinition getDefinition() {
+    	return property.getDefinition();
     }
 
     private List<ValueWrapper> createValues() {
         List<ValueWrapper> values = new ArrayList<ValueWrapper>();
 
-        for (PrismPropertyValue prismValue : (List<PrismPropertyValue>) property.getValues()) {
+        for (PrismValue prismValue : (List<PrismValue>) property.getValues()) {
             values.add(new ValueWrapper(this, prismValue, ValueStatus.NOT_CHANGED));
         }
 
         int minOccurs = property.getDefinition().getMinOccurs();
         while (values.size() < minOccurs) {
-            values.add(createValue());
+            values.add(createAddedValue());
         }
 
         if (values.isEmpty()) {
-            values.add(createValue());
+            values.add(createAddedValue());
         }
 
         return values;
     }
 
     public void addValue(){
-        getValues().add(createValue());
+        getValues().add(createAddedValue());
     }
 
-    public ValueWrapper createValue() {
-        PrismPropertyDefinition definition = property.getDefinition();
+    public ValueWrapper createAddedValue() {
+        ItemDefinition definition = property.getDefinition();
 
         ValueWrapper wrapper;
-        if (ProtectedStringType.COMPLEX_TYPE.equals(definition.getTypeName())) {
-            wrapper = new ValueWrapper(this, new PrismPropertyValue(new ProtectedStringType()),
-                    new PrismPropertyValue(new ProtectedStringType()), ValueStatus.ADDED);
-        } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(definition.getTypeName())) {
+        if (SchemaConstants.T_POLY_STRING_TYPE.equals(definition.getTypeName())) {
             wrapper = new ValueWrapper(this, new PrismPropertyValue(new PolyString("")),
                     new PrismPropertyValue(new PolyString("")), ValueStatus.ADDED);
         } else if (isUser() && isThisPropertyActivationEnabled()) {
-            wrapper = new ValueWrapper(this, new PrismPropertyValue(ActivationStatusType.ENABLED),
+            wrapper = new ValueWrapper(this, new PrismPropertyValue(null),
                     new PrismPropertyValue(null), ValueStatus.ADDED);
         } else {
             wrapper = new ValueWrapper(this, new PrismPropertyValue(null), ValueStatus.ADDED);
@@ -218,15 +234,14 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
+        builder.append("PropertyWrapper(");
         builder.append(getDisplayName());
-        builder.append(", ");
+        builder.append(" (");
         builder.append(status);
-        builder.append("\n");
-        for (ValueWrapper wrapper : getValues()) {
-            builder.append("\t");
-            builder.append(wrapper.toString());
-            builder.append("\n");
-        }
+        builder.append(") ");
+        builder.append(getValues() == null ? null :  getValues().size());
+		builder.append(" values)");
+        builder.append(")");
         return builder.toString();
     }
 
@@ -238,5 +253,41 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
     public void setReadonly(boolean readonly) {
         this.readonly = readonly;
     }
+    
+    @Override
+	public boolean isEmpty() {
+		return getItem().isEmpty();
+	}
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append(getDebugName());
+		sb.append(": ").append(PrettyPrinter.prettyPrint(getName())).append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "displayName", displayName, indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "status", status == null?null:status.toString(), indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "readonly", readonly, indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "itemDefinition", itemDefinition == null?null:itemDefinition.toString(), indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "property", property == null?null:property.toString(), indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpLabel(sb, "values", indent+1);
+		sb.append("\n");
+		DebugUtil.debugDump(sb, values, indent+2, false);
+		return sb.toString();
+	}
+
+	protected String getDebugName() {
+		return "PropertyWrapper";
+	}
 
 }

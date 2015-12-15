@@ -16,8 +16,13 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
+import com.evolveum.midpoint.prism.path.ParentPathSegment;
+import com.evolveum.midpoint.prism.path.ReferencePathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
@@ -163,14 +168,14 @@ public class ComplexTypeDefinition extends Definition {
 
 	public PrismPropertyDefinition createPropertyDefinition(String localName, QName typeName) {
 		QName name = new QName(getSchemaNamespace(),localName);
-		return createPropertyDefinifion(name,typeName);
+		return createPropertyDefinifion(name, typeName);
 	}
 
 	
 	public PrismPropertyDefinition createPropertyDefinifion(String localName, String localTypeName) {
 		QName name = new QName(getSchemaNamespace(),localName);
 		QName typeName = new QName(getSchemaNamespace(),localTypeName);
-		return createPropertyDefinifion(name,typeName);
+		return createPropertyDefinifion(name, typeName);
 	}
 	
 	/**
@@ -222,21 +227,37 @@ public class ComplexTypeDefinition extends Definition {
 	}
 
 	public <ID extends ItemDefinition> ID findItemDefinition(ItemPath path, Class<ID> clazz) {
-    	while (!path.isEmpty() && !(path.first() instanceof NameItemPathSegment)) {
-    		path = path.rest();
-    	}
-        if (path.isEmpty()) {
-            throw new IllegalArgumentException("Cannot resolve empty path on complex type definition "+this);
-        }
-        QName firstName = ((NameItemPathSegment)path.first()).getName();
-        for (ItemDefinition def : getDefinitions()) {
-            if (firstName.equals(def.getName())) {
-                return (ID) def.findItemDefinition(path.rest(), clazz);
+		for (;;) {
+			if (path.isEmpty()) {
+				throw new IllegalArgumentException("Cannot resolve empty path on complex type definition "+this);
+			}
+			ItemPathSegment first = path.first();
+			if (first instanceof NameItemPathSegment) {
+				QName firstName = ((NameItemPathSegment)first).getName();
+				return findNamedItemDefinition(firstName, path.rest(), clazz);
+			} else if (first instanceof IdItemPathSegment) {
+				path = path.rest();
+			} else if (first instanceof ParentPathSegment) {
+				ComplexTypeDefinition parent = getSchemaRegistry().determineParentDefinition(this, path.rest());
+				return parent.findItemDefinition(path.rest(), clazz);
+			} else if (first instanceof ObjectReferencePathSegment) {
+				throw new IllegalStateException("Couldn't use '@' path segment in this context. CTD=" + getTypeName() + ", path=" + path);
+			} else {
+				throw new IllegalStateException("Unexpected path segment: " + first + " in " + path);
+			}
+		}
+    }
+
+	// path starts with NamedItemPathSegment
+	private <ID extends ItemDefinition> ID findNamedItemDefinition(QName firstName, ItemPath rest, Class<ID> clazz) {
+		for (ItemDefinition def : getDefinitions()) {
+            if (firstName != null && firstName.equals(def.getName())) {
+                return (ID) def.findItemDefinition(rest, clazz);
             }
         }
-        return null;
-    }
-	
+		return null;
+	}
+
 	private <T extends ItemDefinition> boolean isItemValid(ItemDefinition def, QName name, Class<T> clazz, boolean caseInsensitive) {
 		if (def == null) {
     		return false;

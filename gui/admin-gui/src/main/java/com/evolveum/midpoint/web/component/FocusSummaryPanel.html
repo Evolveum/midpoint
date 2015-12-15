@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2010-2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <div wicket:id="summaryBox" class="info-box">
+    		<!-- take care that there are no whitespaces inside the following div -->
+            <div wicket:id="summaryIconBox" class="info-box-icon"><span class="user-thumbnail-helper"/><span wicket:id="summaryIcon"/><img wicket:id="summaryPhoto" class="user-thumbnail"/></div>
+            <div class="info-box-content">
+            	<span class="summary-content-box">
+	            	<span class="summary-text-box">
+		            	<span class="info-box-number">
+		            		<span class="summary-panel-display-name" wicket:id="summaryDisplayName"/> <span class="summary-panel-identifier">(<span wicket:id="summaryIdentifier"/>)</span>
+		            	</span>
+		            	<span wicket:id="summaryTitle" class="summary-panel-title">
+		            	</span>
+		            	<span wicket:id="summaryOrganization" class="summary-panel-organization">
+		            	</span>
+	            	</span>
+		            <span class="summary-tag-box">
+		            	<span wicket:id="summaryTagActivation"/>
+		            	<wicket:child />
+		            </span>
+	            </span>
+            </div>
+        </div>
+</wicket:panel>

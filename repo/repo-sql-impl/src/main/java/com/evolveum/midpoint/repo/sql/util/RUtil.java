@@ -32,6 +32,7 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
 import com.evolveum.midpoint.repo.sql.data.common.container.RExclusion;
 import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedNamedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
@@ -223,6 +224,16 @@ public final class RUtil {
         }
         REmbeddedReference ref = new REmbeddedReference();
         REmbeddedReference.copyFromJAXB(jaxb, ref, prismContext);
+
+        return ref;
+    }
+
+    public static REmbeddedNamedReference jaxbRefToEmbeddedNamedRepoRef(ObjectReferenceType jaxb, PrismContext prismContext) {
+        if (jaxb == null) {
+            return null;
+        }
+        REmbeddedNamedReference ref = new REmbeddedNamedReference();
+        REmbeddedNamedReference.copyFromJAXB(jaxb, ref, prismContext);
 
         return ref;
     }

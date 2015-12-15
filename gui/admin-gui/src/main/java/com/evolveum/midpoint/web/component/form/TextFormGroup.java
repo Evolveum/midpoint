@@ -26,6 +26,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -64,7 +65,13 @@ public class TextFormGroup extends SimplePanel<String> {
         labelContainer.add(l);
 
         Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
-        tooltipLabel.add(new AttributeAppender("data-original-title", getString(tooltipKey)));
+        tooltipLabel.add(new AttributeAppender("data-original-title", new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return getString(tooltipKey);
+            }
+        }));
         tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
         tooltipLabel.add(new VisibleEnableBehaviour(){
 

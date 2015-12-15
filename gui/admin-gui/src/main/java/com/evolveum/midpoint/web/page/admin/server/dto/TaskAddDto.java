@@ -33,6 +33,7 @@ import javax.xml.namespace.QName;
 public class TaskAddDto implements Serializable {
 
     public static final String F_DRY_RUN = "dryRun";
+    public static final String F_FOCUS_TYPE = "focusType";
     public static final String F_KIND = "kind";
     public static final String F_INTENT = "intent";
     public static final String F_OBJECT_CLASS = "objectClass";
@@ -70,6 +71,7 @@ public class TaskAddDto implements Serializable {
 	private MisfireActionType misfireAction = MisfireActionType.EXECUTE_IMMEDIATELY;
 
     private boolean dryRun;
+    private QName focusType;
     private ShadowKindType kind;
     private String intent;
     private String objectClass;
@@ -186,6 +188,14 @@ public class TaskAddDto implements Serializable {
     public void setDryRun(boolean dryRun) {
         this.dryRun = dryRun;
     }
+    
+    public QName getFocusType() {
+		return focusType;
+	}
+    
+    public void setFocusType(QName focusType) {
+		this.focusType = focusType;
+	}
 
     public ShadowKindType getKind() {
         return kind;
@@ -246,6 +256,7 @@ public class TaskAddDto implements Serializable {
             return false;
         if (notStartBefore != null ? !notStartBefore.equals(that.notStartBefore) : that.notStartBefore != null)
             return false;
+        if (focusType != null ? !focusType.equals(that.focusType) : that.focusType != null) return false;
         if (objectClass != null ? !objectClass.equals(that.objectClass) : that.objectClass != null) return false;
         if (objectClassList != null ? !objectClassList.equals(that.objectClassList) : that.objectClassList != null)
             return false;
@@ -273,6 +284,7 @@ public class TaskAddDto implements Serializable {
         result = 31 * result + (dryRun ? 1 : 0);
         result = 31 * result + (kind != null ? kind.hashCode() : 0);
         result = 31 * result + (intent != null ? intent.hashCode() : 0);
+        result = 31 * result + (focusType != null ? focusType.hashCode() : 0);
         result = 31 * result + (objectClass != null ? objectClass.hashCode() : 0);
         result = 31 * result + (objectClassList != null ? objectClassList.hashCode() : 0);
         return result;

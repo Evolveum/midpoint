@@ -108,6 +108,18 @@
 				</outbound>
 				<inbound>
 					<strength>weak</strength>
+					<expression>
+						<script>
+							<allowEmptyValues>true</allowEmptyValues>
+							<code>
+								if (input?.contains('#')) {
+                            		return null
+                        		} else {
+                            		return input
+                        		}
+							</code>
+						</script>
+					</expression>
 					<target>
 						<path>$user/fullName</path>
 					</target>
@@ -131,6 +143,7 @@
 				<inbound>
 					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
 					<expression>
+						<allowEmptyValues>false</allowEmptyValues>
 						<script>
 							<code>'Came from ' + input</code>
 						</script>
@@ -146,6 +159,7 @@
 				<inbound>
 					<expression>
 						<script>
+							<allowEmptyValues>false</allowEmptyValues>
 							<code>'The crew of ' + input</code>
 						</script>
 					</expression>
@@ -370,6 +384,25 @@
 						</path>
 					</source>
 				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:ship</ref>
+				<displayName>Ship</displayName>
+				<inbound>
+					<expression>
+						<script>
+							<code>'The crew of Titanicum ' + input + 'icum'</code>
+						</script>
+					</expression>
+					<target>
+						<path>organizationalUnit</path>
+					</target>
+					<condition>
+						<script>
+							<code>input != null</code>
+						</script>
+					</condition>
+				</inbound>
 			</attribute>
             
             <association>

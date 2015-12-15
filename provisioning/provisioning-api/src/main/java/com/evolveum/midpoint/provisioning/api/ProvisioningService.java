@@ -211,13 +211,13 @@ public interface ProvisioningService {
 	 * Should fail if object type is wrong. Should fail if unknown property is
 	 * specified in the query.
 	 * 
-	 * @param query
-	 *            search query
 	 * @param paging
 	 *            paging specification to limit operation result (optional)
-	 * @param parentResult
-	 *            parent OperationResult (in/out)
-	 * @return all objects of specified type that match search criteria (subject
+	 * @param query
+	 *            search query
+	 * @param task
+	 *@param parentResult
+	 *            parent OperationResult (in/out)  @return all objects of specified type that match search criteria (subject
 	 *         to paging)
 	 * 
 	 * @throws IllegalArgumentException
@@ -230,15 +230,15 @@ public interface ProvisioningService {
 	 * @throws SecurityViolationException 
 	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
-	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
 			SecurityViolationException;
 
 	/**
 	 * Options: if noFetch or raw, we count only shadows from the repository.
 	 */
-	public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
+	public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException;
 	
 	/**
@@ -254,10 +254,10 @@ public interface ProvisioningService {
 	 *            search query
 	 * @param handler
 	 *            result handler
-	 * @param parentResult
+	 * @param task
+	 *@param parentResult
 	 *            parent OperationResult (in/out)
-	 * 
-	 * @throws IllegalArgumentException
+	 *  @throws IllegalArgumentException
 	 *             wrong object type
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
@@ -268,8 +268,8 @@ public interface ProvisioningService {
 	 * @throws SecurityViolationException 
 	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
-	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,  Collection<SelectorOptions<GetOperationOptions>> options,
-			final ResultHandler<T> handler, final OperationResult parentResult)
+	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+																			  final ResultHandler<T> handler, Task task, final OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	/**
@@ -418,15 +418,15 @@ public interface ProvisioningService {
 	 * @param resourceOid OID of the resource to fetch objects from
 	 * @param objectClass Object class of the objects to fetch
 	 * @param paging paging specification to limit operation result (optional)
-	 * @param parentResult
-	 *            parent OperationResult (in/out)
-	 * @return resource objects in a form of "detached shadows"
+	 * @param task
+	 *@param parentResult
+	 *            parent OperationResult (in/out)  @return resource objects in a form of "detached shadows"
 	 * @throws ObjectNotFoundException specified resource object does not exist
 	 * @throws SchemaException error handling resource schema
 	 * @throws CommunicationException error communicating with the resource
 	 */
 	public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging,
-			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
+																	   Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 	
 	
 	public <T extends ShadowType> void finishOperation(PrismObject<T> object, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
@@ -484,7 +484,7 @@ public interface ProvisioningService {
 											   String shadowOid,
 											   ResourceShadowDiscriminator resourceShadowDiscriminator,
 											   ConstraintViolationConfirmer constraintViolationConfirmer,
-											   OperationResult parentResult) throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+											   Task task, OperationResult parentResult) throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
 
 	void enterConstraintsCheckerCache();
 

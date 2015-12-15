@@ -19,7 +19,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.util.BasePanel;
+import com.evolveum.midpoint.web.component.util.BaseDeprecatedPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class ResourceListPanel extends BasePanel {
+public class ResourceListPanel extends BaseDeprecatedPanel {
 
     public ResourceListPanel(String id) {
         super(id, null);

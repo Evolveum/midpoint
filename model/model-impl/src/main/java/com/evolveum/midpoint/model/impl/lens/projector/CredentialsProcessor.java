@@ -93,6 +93,9 @@ public class CredentialsProcessor {
     private MappingFactory mappingFactory;
     
     @Autowired(required = true)
+    private MappingEvaluator mappingEvaluator;
+    
+    @Autowired(required = true)
     private PasswordPolicyProcessor passwordPolicyProcessor;
 
     public <F extends ObjectType> void processFocusCredentials(LensContext<F> context, 
@@ -111,7 +114,7 @@ public class CredentialsProcessor {
         
         processFocusCredentialsCommon(context, new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD), now, task, result);
         
-        passwordPolicyProcessor.processPasswordPolicy(focusContext, context, result);
+        passwordPolicyProcessor.processPasswordPolicy(focusContext, context, task, result);
     }
     
     public <F extends ObjectType> void processProjectionCredentials(LensContext<F> context, LensProjectionContext projectionContext, 
@@ -122,7 +125,7 @@ public class CredentialsProcessor {
     		processProjectionPassword((LensContext<? extends FocusType>)context, projectionContext, now, task, result);
     	}
     	
-    	passwordPolicyProcessor.processPasswordPolicy(projectionContext, context, result);
+    	passwordPolicyProcessor.processPasswordPolicy(projectionContext, context, task, result);
     }
     
     private <F extends FocusType> void processProjectionPassword(LensContext<F> context,
@@ -173,7 +176,7 @@ public class CredentialsProcessor {
           return;
         }
         
-        MappingType outboundMappingType = refinedAccountDef.getCredentialsOutbound();
+        MappingType outboundMappingType = refinedAccountDef.getPasswordOutbound();
         
         if (outboundMappingType == null) {
             LOGGER.trace("No outbound definition in password definition in credentials in account type {}, skipping credentials processing", rat);
@@ -223,7 +226,7 @@ public class CredentialsProcessor {
 		};
 		passwordMapping.setStringPolicyResolver(stringPolicyResolver);
 		
-		LensUtil.evaluateMapping(passwordMapping, context, task, result);
+		mappingEvaluator.evaluateMapping(passwordMapping, context, task, result);
         
         PrismProperty<ProtectedStringType> accountPasswordNew = (PrismProperty) passwordMapping.getOutput();
         if (accountPasswordNew == null || accountPasswordNew.isEmpty()) {

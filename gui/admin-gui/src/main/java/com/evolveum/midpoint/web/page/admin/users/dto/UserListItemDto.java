@@ -29,98 +29,131 @@ import java.util.List;
  */
 public class UserListItemDto extends Selectable implements InlineMenuable {
 
-    public static final String F_ICON = "icon";
-    public static final String F_NAME = "name";
-    public static final String F_GIVEN_NAME = "givenName";
-    public static final String F_FAMILY_NAME = "familyName";
-    public static final String F_FULL_NAME = "fullName";
-    public static final String F_ACCOUNT_COUNT = "accountCount";
-    public static final String F_EMAIL = "email";
+	public static final String F_ICON = "icon";
+	public static final String F_NAME = "name";
+	public static final String F_GIVEN_NAME = "givenName";
+	public static final String F_FAMILY_NAME = "familyName";
+	public static final String F_FULL_NAME = "fullName";
+	public static final String F_ACCOUNT_COUNT = "accountCount";
+	public static final String F_EMAIL = "email";
+	public static final String F_TENANT = "tenant";
+	public static final String F_PROJECT = "project";
 
-    private String oid;
-    private String name;
-    private String givenName;
-    private String familyName;
-    private String fullName;
-    private String email;
-    private int accountCount;
-    private String icon;
-    private String iconTitle;
-    private PrismContainer credentials;
-    private List<InlineMenuItem> menuItems;
+	private String oid;
+	private String name;
+	private String givenName;
+	private String familyName;
+	private String fullName;
+	private String email;
+	private String tenant;
+	private String project;
+	private int accountCount;
+	private String icon;
+	private String iconTitle;
+	private PrismContainer credentials;
+	private List<InlineMenuItem> menuItems;
 
-    public UserListItemDto(String oid, String name, String givenName,
-                           String familyName, String fullName, String email) {
-        this.oid = oid;
-        this.familyName = familyName;
-        this.fullName = fullName;
-        this.givenName = givenName;
-        this.name = name;
-        this.email = email;
-    }
+	public UserListItemDto(String oid, String name, String givenName, String familyName, String fullName,
+			String email) {
+		this.oid = oid;
+		this.familyName = familyName;
+		this.fullName = fullName;
+		this.givenName = givenName;
+		this.name = name;
+		this.email = email;
+	}
 
-    public String getFamilyName() {
-        return familyName;
-    }
+	public UserListItemDto(String oid, String name, String givenName, String familyName, String fullName,
+			String email, String tenant, String project) {
+		this.oid = oid;
+		this.familyName = familyName;
+		this.fullName = fullName;
+		this.givenName = givenName;
+		this.name = name;
+		this.email = email;
+		this.tenant = tenant;
+		this.project = project;
+	}
 
-    public String getFullName() {
-        return fullName;
-    }
+	public String getTenant() {
+		return tenant;
+	}
+	
+	public void setTenant(String tenant) {
+		this.tenant = tenant;
+	}
+	
+	public String getProject() {
+		return project;
+	}
+	
+	public void setProject(String project) {
+		this.project = project;
+	}
 
-    public String getGivenName() {
-        return givenName;
-    }
+	public String getFamilyName() {
+		return familyName;
+	}
 
-    public String getIcon() {
-        return icon;
-    }
+	public String getFullName() {
+		return fullName;
+	}
 
-    public void setIcon(String icon) {
-        this.icon = icon;
-    }
+	public String getGivenName() {
+		return givenName;
+	}
 
-    public String getIconTitle() {
-        return iconTitle;
-    }
+	public String getIcon() {
+		return icon;
+	}
 
-    public void setIconTitle(String iconTitle) {
-        this.iconTitle = iconTitle;
-    }
+	public void setIcon(String icon) {
+		this.icon = icon;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getIconTitle() {
+		return iconTitle;
+	}
 
-    public String getOid() {
-        return oid;
-    }
+	public void setIconTitle(String iconTitle) {
+		this.iconTitle = iconTitle;
+	}
 
-    public String getEmail() {
-        return email;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public int getAccountCount() {
-        return accountCount;
-    }
+	public String getOid() {
+		return oid;
+	}
 
-    public void setAccountCount(int accountCount) {
-        this.accountCount = accountCount;
-    }
+	public String getEmail() {
+		return email;
+	}
 
-    public PrismContainer getCredentials() {
-        return credentials;
-    }
+	public int getAccountCount() {
+		return accountCount;
+	}
 
-    public void setCredentials(PrismContainer credentials) {
-        this.credentials = credentials;
-    }
+	public void setAccountCount(int accountCount) {
+		this.accountCount = accountCount;
+	}
 
-    @Override
-    public List<InlineMenuItem> getMenuItems() {
-        if (menuItems == null) {
-            menuItems = new ArrayList<InlineMenuItem>();
-        }
+	public PrismContainer getCredentials() {
+		return credentials;
+	}
 
-        return menuItems;
-    }
+	public void setCredentials(PrismContainer credentials) {
+		this.credentials = credentials;
+	}
+	
+	
+	@Override
+	public List<InlineMenuItem> getMenuItems() {
+		if (menuItems == null) {
+			menuItems = new ArrayList<InlineMenuItem>();
+		}
+
+		return menuItems;
+	}
 }

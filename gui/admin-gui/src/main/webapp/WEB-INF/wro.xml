@@ -22,7 +22,6 @@
         <css>/less/evolveum-obsolete.less</css>
         <css>/less/global.less</css>
         <css>/WEB-INF/classes/com/evolveum/midpoint/web/component/assignment/AssignmentHeaderPanel.less</css>
-        <css>/WEB-INF/classes/com/evolveum/midpoint/web/page/admin/home/PageMyPasswords.less</css>
     </group>
 
     <group name="bootstrap">
@@ -51,5 +50,10 @@
         <js>/js/midpoint/ace-editor.js</js>
         <js>/js/midpoint/dropdown-multiple.js</js>
         <js>/js/midpoint/midpoint.js</js>
+    </group>
+
+    <group name="midpoint-theme">
+        <css>/less/midpoint-theme.less</css>
+        <js>/js/midpoint-theme.js</js>
     </group>
 </groups>

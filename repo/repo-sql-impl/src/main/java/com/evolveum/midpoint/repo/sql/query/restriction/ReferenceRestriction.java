@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
@@ -33,6 +34,9 @@ import com.evolveum.midpoint.repo.sql.query.definition.PropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.ReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.StringUtils;
@@ -50,7 +54,7 @@ import java.util.List;
 public class ReferenceRestriction extends ItemRestriction<RefFilter> {
 
     @Override
-    public boolean canHandle(ObjectFilter filter, QueryContext context) {
+    public boolean canHandle(ObjectFilter filter) {
         if (filter instanceof RefFilter) {
             return true;
         }
@@ -63,15 +67,12 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
 
         // let's check the value (null is not supported yet)
         List<? extends PrismValue> values = filter.getValues();
-        if (values.size() > 1) {
+        if (values != null && values.size() > 1) {
             throw new QueryException("Ref filter '" + filter + "' contain more than one reference value (which is not supported for now).");
         }
         PrismReferenceValue refValue = null;
         if (values != null && !values.isEmpty()) {
             refValue = (PrismReferenceValue) values.get(0);
-        }
-        if (refValue == null) {
-            throw new QueryException("Ref filter '" + filter + "' doesn't contain reference value.");
         }
 
         QueryContext context = getContext();
@@ -86,7 +87,14 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
         // ugly hacking, todo refactor!
         StringBuilder sb = new StringBuilder();
         if (def instanceof ReferenceDefinition) {
-            String alias = context.getAlias(filter.getParentPath());
+            ItemPath parentPath = filter.getParentPath();
+            // hack: construction/resourceRef->resourceRef
+            if (QNameUtil.match(ConstructionType.F_RESOURCE_REF, filter.getElementName()) &&
+                    parentPath != null && parentPath.last() instanceof NameItemPathSegment &&
+                    QNameUtil.match(AssignmentType.F_CONSTRUCTION, ((NameItemPathSegment) parentPath.last()).getName())) {
+                parentPath = parentPath.allExceptLast();
+            }
+            String alias = context.getAlias(parentPath);
             if (StringUtils.isNotEmpty(alias)) {
                 sb.append(alias);
                 sb.append('.');
@@ -105,30 +113,41 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
         }
         String prefix = sb.toString();
 
+        String refValueOid = null;
+        QName refValueRelation = null;
+        QName refValueTargetType = null;
+        if (refValue != null) {
+        	refValueOid = refValue.getOid();
+        	refValueRelation = refValue.getRelation();
+        	refValueTargetType = refValue.getTargetType();
+        }
         Conjunction conjunction = Restrictions.conjunction();
-        conjunction.add(handleEqOrNull(prefix + ObjectReference.F_TARGET_OID, refValue.getOid()));
+        conjunction.add(handleEqOrNull(prefix + ObjectReference.F_TARGET_OID, refValueOid));
 
-        QName relation = refValue.getRelation();
-        if (relation == null) {
-        	// Return only references without relation
-        	conjunction.add(Restrictions.eq(prefix + ObjectReference.F_RELATION, RUtil.QNAME_DELIMITER));
-        } else if (relation.equals(PrismConstants.Q_ANY)) {
-        	// Return all relations => no restriction
-        } else {
-        	// return references with specific relation
-            conjunction.add(handleEqOrNull(prefix + ObjectReference.F_RELATION, RUtil.qnameToString(relation)));
+        if (refValueOid != null) {
+	        if (refValueRelation == null) {
+	        	// Return only references without relation
+	        	conjunction.add(Restrictions.eq(prefix + ObjectReference.F_RELATION, RUtil.QNAME_DELIMITER));
+	        } else if (refValueRelation.equals(PrismConstants.Q_ANY)) {
+	        	// Return all relations => no restriction
+	        } else {
+	        	// return references with specific relation
+	            conjunction.add(handleEqOrNull(prefix + ObjectReference.F_RELATION, RUtil.qnameToString(refValueRelation)));
+	        }
+	
+	        if (refValueTargetType != null) {
+	            conjunction.add(handleEqOrNull(prefix + ObjectReference.F_TYPE,
+	                    ClassMapper.getHQLTypeForQName(refValueTargetType)));
+	        }
         }
 
-        if (refValue.getTargetType() != null) {
-            conjunction.add(handleEqOrNull(prefix + ObjectReference.F_TYPE,
-                    ClassMapper.getHQLTypeForQName(refValue.getTargetType())));
-        }
+        // TODO what about isNotNull if necessary ?
 
         return conjunction;
     }
 
     @Override
-    public ReferenceRestriction cloneInstance() {
+    public ReferenceRestriction newInstance() {
         return new ReferenceRestriction();
     }
 

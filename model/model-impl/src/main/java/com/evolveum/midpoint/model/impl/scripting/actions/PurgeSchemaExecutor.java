@@ -58,14 +58,22 @@ public class PurgeSchemaExecutor extends BaseActionExecutor {
         for (Item item : input.getData()) {
             if (item instanceof PrismObject  && ((PrismObject) item).asObjectable() instanceof ResourceType) {
                 PrismObject<ResourceType> resourceTypePrismObject = (PrismObject) item;
+                ResourceType resourceType = resourceTypePrismObject.asObjectable();
+                long started = operationsHelper.recordStart(context, resourceType);
                 ObjectDelta delta = createDelta(resourceTypePrismObject.asObjectable());
-                if (delta != null) {
-                    operationsHelper.applyDelta(delta, ModelExecuteOptions.createRaw(), context, result);
-                    context.println("Purged schema information from " + item);
-                    output.addItem(operationsHelper.getObject(ResourceType.class, resourceTypePrismObject.getOid(), true, context, result));
-                } else {
-                    context.println("There's no schema information to be purged in " + item);
-                    output.addItem(resourceTypePrismObject);
+                try {
+                    if (delta != null) {
+                        operationsHelper.applyDelta(delta, ModelExecuteOptions.createRaw(), context, result);
+                        context.println("Purged schema information from " + item);
+                        output.addItem(operationsHelper.getObject(ResourceType.class, resourceTypePrismObject.getOid(), true, context, result));
+                    } else {
+                        context.println("There's no schema information to be purged in " + item);
+                        output.addItem(resourceTypePrismObject);
+                    }
+                    operationsHelper.recordEnd(context, resourceType, started, null);
+                } catch (Throwable ex) {
+                    operationsHelper.recordEnd(context, resourceType, started, ex);
+                    throw ex;
                 }
             } else {
                 throw new ScriptExecutionException("Couldn't purge resource schema, because input is not a PrismObject<ResourceType>: " + item.toString());

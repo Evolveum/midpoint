@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -439,6 +439,12 @@ public class AESProtector extends BaseProtector {
 		}
 		String aClear = decryptString(a);
 		String bClear = decryptString(b);
+		if (aClear == null && bClear == null) {
+			return true;
+		}
+		if (aClear == null || bClear == null) {
+			return false;
+		}
 		return aClear.equals(bClear);
 	}
     	

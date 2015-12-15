@@ -80,28 +80,29 @@ public class PageAccount extends PageAdminResources {
 
     private static final String ID_PROTECTED_MESSAGE = "protectedMessage";
 
-    private IModel<ObjectWrapper> accountModel;
+    private IModel<ObjectWrapper<ShadowType>> accountModel;
 
     public PageAccount() {
-        accountModel = new LoadableModel<ObjectWrapper>(false) {
+        accountModel = new LoadableModel<ObjectWrapper<ShadowType>>(false) {
 
             @Override
-            protected ObjectWrapper load() {
+            protected ObjectWrapper<ShadowType> load() {
                 return loadAccount();
             }
         };
         initLayout();
     }
 
-    private ObjectWrapper loadAccount() {
-        OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNT);
+    private ObjectWrapper<ShadowType> loadAccount() {
+    	Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
+        OperationResult result = task.getResult();
 
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
                 ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
         StringValue oid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
         PrismObject<ShadowType> account = WebModelUtils.loadObject(ShadowType.class, oid.toString(), options,
-                result, PageAccount.this);
+                PageAccount.this, task, result);
 
         if (account == null) {
             getSession().error(getString("pageAccount.message.cantEditAccount"));
@@ -132,11 +133,11 @@ public class PageAccount extends PageAdminResources {
         });
         mainForm.add(protectedMessage);
 
-        PrismObjectPanel userForm = new PrismObjectPanel("account", accountModel, new PackageResourceReference(
+        PrismObjectPanel<ShadowType> userForm = new PrismObjectPanel<ShadowType>("account", accountModel, new PackageResourceReference(
                 ImgResources.class, ImgResources.HDD_PRISM), mainForm, this) {
 
             @Override
-            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
+            protected IModel<String> createDescription(IModel<ObjectWrapper<ShadowType>> model) {
                 return createStringResource("pageAccount.description");
             }
         };
@@ -189,7 +190,7 @@ public class PageAccount extends PageAdminResources {
                 ResourceType resource = account.asObjectable().getResource();
                 String name = WebMiscUtil.getName(resource);
 
-                return new StringResourceModel("page.subTitle", PageAccount.this, null, null, name).getString();
+                return new StringResourceModel("PageAccount.subTitle", PageAccount.this, null, null, name).getString();
             }
         };
     }

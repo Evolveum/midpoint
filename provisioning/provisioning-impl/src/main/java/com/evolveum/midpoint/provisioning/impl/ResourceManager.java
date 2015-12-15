@@ -35,7 +35,6 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -65,6 +64,8 @@ import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
@@ -84,7 +85,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
@@ -93,12 +93,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaGenerationConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 
@@ -119,7 +117,7 @@ public class ResourceManager {
 	
 	private static final String OPERATION_COMPLETE_RESOURCE = ResourceManager.class.getName() + ".completeResource";
 	
-	public PrismObject<ResourceType> getResource(PrismObject<ResourceType> repositoryObject, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException{
+	public PrismObject<ResourceType> getResource(PrismObject<ResourceType> repositoryObject, GetOperationOptions options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException{
 		InternalMonitor.getResourceCacheStats().recordRequest();
 		
 		PrismObject<ResourceType> cachedResource = resourceCache.get(repositoryObject);
@@ -131,10 +129,10 @@ public class ResourceManager {
 		LOGGER.debug("Storing fetched resource {}, version {} to cache (previously cached version {})",
 				new Object[]{ repositoryObject.getOid(), repositoryObject.getVersion(), resourceCache.getVersion(repositoryObject.getOid())});
 		
-		return putToCache(repositoryObject, parentResult);
+		return loadAndCacheResource(repositoryObject, options, parentResult);
 	}
 	
-	public PrismObject<ResourceType> getResource(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException{
+	public PrismObject<ResourceType> getResource(String oid, GetOperationOptions options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException{
 		InternalMonitor.getResourceCacheStats().recordRequest();
 		
 		String version = repositoryService.getVersion(ResourceType.class, oid, parentResult);
@@ -154,13 +152,19 @@ public class ResourceManager {
 		
 		PrismObject<ResourceType> repositoryObject = repositoryService.getObject(ResourceType.class, oid, null, parentResult);
 		
-		return putToCache(repositoryObject, parentResult);
+		return loadAndCacheResource(repositoryObject, options, parentResult);
 	}
 
 	
-	private PrismObject<ResourceType> putToCache(PrismObject<ResourceType> repositoryObject, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+	private PrismObject<ResourceType> loadAndCacheResource(PrismObject<ResourceType> repositoryObject, 
+			GetOperationOptions options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		
-		PrismObject<ResourceType> completedResource = completeResource(repositoryObject, null, false, parentResult);
+		PrismObject<ResourceType> completedResource = completeResource(repositoryObject, null, false, options, parentResult);
+		
+		if (!isComplete(completedResource)) {
+			// No not cache non-complete resources (e.g. those retrieved with noFetch)
+			return completedResource; 
+		}
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Putting resource in cache:\n{}", completedResource.debugDump());
@@ -219,7 +223,7 @@ public class ResourceManager {
 	 * @throws ConfigurationException
 	 */
 	private PrismObject<ResourceType> completeResource(PrismObject<ResourceType> repoResource, ResourceSchema resourceSchema,
-			boolean fetchedSchema, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+			boolean fetchedSchema, GetOperationOptions options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
 			CommunicationException, ConfigurationException {
 
 		// do not add as a subresult..it will be added later, if the completing
@@ -256,6 +260,12 @@ public class ResourceManager {
 			
 		} else {
 			// The resource is NOT complete. Try to fetch schema and capabilities
+			
+			if (GetOperationOptions.isNoFetch(options)) {
+				// We need to fetch schema, but the noFetch option is specified. Therefore return whatever we have.
+				result.recordSuccessIfUnknown();
+				return repoResource;
+			}
 		
 			ConnectorInstance connector = null;
 			try {
@@ -665,7 +675,7 @@ public class ResourceManager {
 		// generate the resource schema - until we have full schema caching
 		// capability.
 		try {
-			resource = completeResource(resource, schema, true, schemaResult);
+			resource = completeResource(resource, schema, true, null, schemaResult);
 		} catch (ObjectNotFoundException e) {
 			schemaResult.recordFatalError(
 					"Object not found (unexpected error, probably a bug): " + e.getMessage(), e);
@@ -774,41 +784,6 @@ public class ResourceManager {
 		}
 	}
 
-	public ResourceSchema getResourceSchema(ResourceType resource, OperationResult parentResult) throws SchemaException, CommunicationException,
-			ConfigurationException {
-
-		ResourceSchema schema = null;
-		try {
-
-			if (!isComplete(resource.asPrismObject())) {
-				// Make sure that the schema is retrieved from the resource
-				// this will also retrieve the schema from cache and/or parse it if
-				// needed
-				resource = completeResource(resource.asPrismObject(), null, false, parentResult).asObjectable();
-			}
-			schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-
-		} catch (SchemaException e) {
-			parentResult.recordFatalError("Unable to parse resource schema: " + e.getMessage(), e);
-			throw new SchemaException("Unable to parse resource schema: " + e.getMessage(), e);
-		} catch (ObjectNotFoundException e) {
-			// this really should not happen
-			parentResult.recordFatalError("Unexpected ObjectNotFoundException: " + e.getMessage(), e);
-			throw new SystemException("Unexpected ObjectNotFoundException: " + e.getMessage(), e);
-		} catch (ConfigurationException e) {
-			parentResult.recordFatalError("Unable to parse resource schema: " + e.getMessage(), e);
-			throw new ConfigurationException("Unable to parse resource schema: " + e.getMessage(), e);
-		}
-		
-		if (schema == null) {
-			return null;
-		}
-
-		checkSchema(schema);
-
-		return schema;
-	}
-
 	private void checkSchema(PrismSchema schema) throws SchemaException {
 		// This is resource schema, it should contain only
 		// ResourceObjectDefintions
@@ -838,7 +813,7 @@ public class ResourceManager {
 		return connectorTypeManager.getConfiguredConnectorInstance(resource, forceFresh, parentResult);
 	}
 
-	public void applyDefinition(ObjectDelta<ResourceType> delta, ResourceType resourceWhenNoOid, OperationResult objectResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+	public void applyDefinition(ObjectDelta<ResourceType> delta, ResourceType resourceWhenNoOid, GetOperationOptions options, OperationResult objectResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		
 		if (delta.isAdd()) {
 			PrismObject<ResourceType> resource = delta.getObjectToAdd();
@@ -863,7 +838,7 @@ public class ResourceManager {
             Validate.notNull(resourceWhenNoOid, "Resource oid not specified in the object delta, and resource is not specified as well. Could not apply definition.");
             resource = resourceWhenNoOid.asPrismObject();
         } else {
-		    resource = getResource(resourceOid, objectResult);
+		    resource = getResource(resourceOid, options, objectResult);
         }
 
         ResourceType resourceType = resource.asObjectable();
@@ -983,11 +958,12 @@ public class ResourceManager {
 	}
 
 	public Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		PrismObject<ResourceType> resource = getResource(resourceOid, result);
+		PrismObject<ResourceType> resource = getResource(resourceOid, null, result);
 		ConnectorInstance connectorInstance = connectorTypeManager.getConfiguredConnectorInstance(resource, false, result);
 		ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(script, "script on "+resource, prismContext);
 		try {
-			return connectorInstance.executeScript(scriptOperation, result);
+			StateReporter reporter = new StateReporter(resourceOid, task);
+			return connectorInstance.executeScript(scriptOperation, reporter, result);
 		} catch (GenericFrameworkException e) {
 			// Not expected. Transform to system exception
 			result.recordFatalError("Generic provisioning framework error", e);

@@ -36,8 +36,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
-import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
@@ -51,16 +52,20 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListItemDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListItemDtoProvider;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
@@ -77,7 +82,7 @@ import java.util.List;
 /**
  * @author mederly
  */
-@PageDescriptor(url = "/admin/certificationCampaigns", encoder = OnePageParameterEncoder.class, action = { @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL, label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL, description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION) })
+@PageDescriptor(url = "/admin/certification/campaigns", encoder = OnePageParameterEncoder.class, action = { @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL, label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL, description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION) })
 public class PageCertCampaigns extends PageAdminCertification {
 
 	private static final Trace LOGGER = TraceManager
@@ -180,10 +185,10 @@ public class PageCertCampaigns extends PageAdminCertification {
 				if (definitionOid == null) {
 					return null;
 				}
+				Task task = createSimpleTask("dummy");
 				PrismObject<AccessCertificationDefinitionType> definitionPrismObject = WebModelUtils
 						.loadObject(AccessCertificationDefinitionType.class,
-								definitionOid, new OperationResult("dummy"),
-								PageCertCampaigns.this);
+								definitionOid, PageCertCampaigns.this, task, task.getResult());
 				if (definitionPrismObject == null) {
 					return null;
 				}
@@ -257,10 +262,13 @@ public class PageCertCampaigns extends PageAdminCertification {
 		});
 
 		CertCampaignListItemDtoProvider provider = createProvider();
-		TablePanel<CertCampaignListItemDto> table = new TablePanel<>(
-				ID_CAMPAIGNS_TABLE, provider, initColumns());
+		int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_CAMPAIGNS_PANEL);
+		BoxedTablePanel<CertCampaignListItemDto> table = new BoxedTablePanel<>(
+				ID_CAMPAIGNS_TABLE, provider, initColumns(),
+				UserProfileStorage.TableId.PAGE_CERT_CAMPAIGNS_PANEL, itemsPerPage);
 		table.setShowPaging(true);
 		table.setOutputMarkupId(true);
+		table.setItemsPerPage(itemsPerPage);
 		mainForm.add(table);
 	}
 
@@ -345,8 +353,8 @@ public class PageCertCampaigns extends PageAdminCertification {
 		};
 	}
 
-	private TablePanel getTable() {
-		return (TablePanel) get(createComponentPath(ID_MAIN_FORM,
+	private Table getTable() {
+		return (Table) get(createComponentPath(ID_MAIN_FORM,
 				ID_CAMPAIGNS_TABLE));
 	}
 
@@ -535,8 +543,8 @@ public class PageCertCampaigns extends PageAdminCertification {
 						}));
 	}
 
-	private TablePanel getCampaignsTable() {
-		return (TablePanel) get(createComponentPath(ID_MAIN_FORM,
+	private Table getCampaignsTable() {
+		return (Table) get(createComponentPath(ID_MAIN_FORM,
 				ID_CAMPAIGNS_TABLE));
 	}
 
@@ -620,7 +628,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 	}
 
 	protected String determineAction(AccessCertificationCampaignType campaign) {
-		int currentStage = campaign.getCurrentStageNumber();
+		int currentStage = campaign.getStageNumber();
 		int numOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
 		AccessCertificationCampaignStateType state = campaign.getState();
 		String button;
@@ -657,7 +665,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 			result.computeStatusIfUnknown();
 		}
 		showResult(result);
-		target.add(getCampaignsTable());
+		target.add((Component) getCampaignsTable());
 		target.add(getFeedbackPanel());
 	}
 
@@ -667,7 +675,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 		CertificationManager cm = getCertificationManager();
 		try {
 			Task task = createSimpleTask(OPERATION_OPEN_NEXT_STAGE);
-			int currentStage = campaign.getCurrentStageNumber();
+			int currentStage = campaign.getStageNumber();
 			cm.openNextStage(campaign.getOid(), currentStage + 1, task, result);
 		} catch (Exception ex) {
 			result.recordFatalError(ex);
@@ -675,7 +683,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 			result.computeStatusIfUnknown();
 		}
 		showResult(result);
-		target.add(getCampaignsTable());
+		target.add((Component) getCampaignsTable());
 		target.add(getFeedbackPanel());
 	}
 
@@ -695,7 +703,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 		}
 
 		showResult(result);
-		target.add(getCampaignsTable());
+		target.add((Component) getCampaignsTable());
 		target.add(getFeedbackPanel());
 	}
 	
@@ -707,7 +715,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 		try {
 			CertificationManager cm = getCertificationManager();
 			Task task = createSimpleTask(OPERATION_CLOSE_STAGE);
-			cm.closeCurrentStage(campaign.getOid(), campaign.getCurrentStageNumber(), task, result);
+			cm.closeCurrentStage(campaign.getOid(), campaign.getStageNumber(), task, result);
 		}catch (Exception ex) {
 			result.recordFatalError(ex);
 		} finally {
@@ -715,7 +723,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 		}
 
 		showResult(result);
-		target.add(getCampaignsTable());
+		target.add((Component) getCampaignsTable());
 		target.add(getFeedbackPanel());
 	}
 
@@ -757,13 +765,13 @@ public class PageCertCampaigns extends PageAdminCertification {
 					"The campaign(s) have been successfully deleted.");
 		}
 
-		TablePanel campaignsTable = getCampaignsTable();
+		Table campaignsTable = getCampaignsTable();
 		ObjectDataProvider provider = (ObjectDataProvider) campaignsTable
 				.getDataTable().getDataProvider();
 		provider.clearCache();
 
 		showResult(result);
-		target.add(getFeedbackPanel(), campaignsTable);
+		target.add(getFeedbackPanel(), (Component) campaignsTable);
 	}
 
 	private void actOnCampaignsPerformed(AjaxRequestTarget target,
@@ -813,7 +821,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 		}
 
 		showResult(result);
-		target.add(getFeedbackPanel(), getCampaignsTable());
+		target.add(getFeedbackPanel(), (Component) getCampaignsTable());
 	}
 	// endregion
 

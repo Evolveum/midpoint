@@ -63,9 +63,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.Validate;
@@ -78,8 +78,6 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -956,7 +954,35 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         if (SelectorOptions.hasToLoadPath(TaskType.F_SUBTASK, options)) {
             fillInSubtasks(task, clusterStatusInformation, options, result);
         }
+        fillOperationExecutionState(task);
         return task.getTaskPrismObject();
+    }
+
+    private void fillOperationExecutionState(Task task0) throws SchemaException {
+        TaskQuartzImpl task = (TaskQuartzImpl) task0;
+
+        if (task.getTaskIdentifier() == null) {
+            return;     // shouldn't really occur
+        }
+
+        Task taskInMemory = getLocallyRunningTaskByIdentifier(task.getTaskIdentifier());
+        if (taskInMemory == null) {
+            return;
+        }
+
+        OperationStatsType operationStats = taskInMemory.getAggregatedLiveOperationStats();
+        if (operationStats != null) {
+            operationStats.setLiveInformation(true);
+        }
+        task.setOperationStatsTransient(operationStats);
+        task.setProgressTransient(taskInMemory.getProgress());
+
+        OperationResult result = taskInMemory.getResult();
+        if (result != null) {
+            task.setResultTransient(taskInMemory.getResult().clone());
+        } else {
+            task.setResultTransient(null);
+        }
     }
 
     private void fillInSubtasks(Task task, ClusterStatusInformation clusterStatusInformation, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
@@ -1401,6 +1427,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Override
     public Set<Task> getLocallyRunningTasks(OperationResult parentResult) throws TaskManagerException {
         return executionManager.getLocallyRunningTasks(parentResult);
+    }
+
+    @Override
+    public Task getLocallyRunningTaskByIdentifier(String lightweightIdentifier) {
+        synchronized (locallyRunningTaskInstancesMap) {
+            return locallyRunningTaskInstancesMap.get(lightweightIdentifier);
+        }
     }
 
     @Override

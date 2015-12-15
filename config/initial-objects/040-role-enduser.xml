@@ -19,8 +19,7 @@
     <name>End user</name>
     <description>Role authorizing end users to log in, change their passwords and review assigned accounts.</description>
     <authorization>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#dashboard</action>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myPasswords</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</action>
     </authorization>
     <authorization>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
@@ -38,19 +37,42 @@
         </object>
     </authorization>
     <authorization>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-        <item>credentials</item>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
+    	<phase>request</phase>
+    	<object>
+    		<special>self</special>
+    	</object>
+    	<item>credentials</item>
     </authorization>
     <authorization>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-        <object>
-            <type>ShadowType</type>
-            <owner>
-                <special>self</special>
-            </owner>
-        </object>
-        
-        <item>credentials</item>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
+    	<phase>request</phase>
+    	<object>
+    		<type>ShadowType</type>
+    		<owner>
+    			<special>self</special>
+    		</owner>
+    	</object>
+    	<item>credentials</item>
+    </authorization>
+    <authorization>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<phase>execution</phase>
+    	<object>
+    		<special>self</special>
+    	</object>
+    	<item>credentials</item>
+    </authorization>
+    <authorization>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<phase>execution</phase>
+    	<object>
+    		<type>ShadowType</type>
+    		<owner>
+    			<special>self</special>
+    		</owner>
+    	</object>
+    	<item>credentials</item>
     </authorization>
     <authorization>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>

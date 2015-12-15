@@ -1,0 +1,108 @@
+/*
+ * Copyright (c) 2010-2015 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.evolveum.midpoint.web.component.menu;
+
+import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.security.SecurityUtils;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+
+import java.util.List;
+
+/**
+ * @author Viliam Repan (lazyman)
+ */
+public class SideBarMenuPanel extends SimplePanel<List<SideBarMenuItem>> {
+
+    private static final String ID_MENU_ITEMS = "menuItems";
+    private static final String ID_NAME = "name";
+    private static final String ID_ITEMS = "items";
+    private static final String ID_ITEM = "item";
+
+    public SideBarMenuPanel(String id, IModel<List<SideBarMenuItem>> model) {
+        super(id, model);
+    }
+
+    @Override
+    protected void initLayout() {
+        ListView<SideBarMenuItem> menuItems = new ListView<SideBarMenuItem>(ID_MENU_ITEMS, getModel()) {
+
+            @Override
+            protected void populateItem(final ListItem<SideBarMenuItem> item) {
+                Label name = new Label(ID_NAME, item.getModelObject().getName());
+                item.add(name);
+
+                ListView<MainMenuItem> items = new ListView<MainMenuItem>(ID_ITEMS,
+                        new PropertyModel<List<MainMenuItem>>(item.getModel(), SideBarMenuItem.F_ITEMS)) {
+
+                    @Override
+                    protected void populateItem(final ListItem<MainMenuItem> listItem) {
+                        MainMenuPanel item = new MainMenuPanel(ID_ITEM, listItem.getModel());
+                        listItem.add(item);
+
+                        listItem.add(new VisibleEnableBehaviour() {
+
+                            @Override
+                            public boolean isVisible() {
+                                MainMenuItem mmi = listItem.getModelObject();
+                                if (!SecurityUtils.isMenuAuthorized(mmi)) {
+                                    return false;
+                                }
+
+                                if (mmi.getItems().isEmpty()) {
+                                    return true;
+                                }
+
+                                for (MenuItem i : mmi.getItems()) {
+                                    if (SecurityUtils.isMenuAuthorized(i)) {
+                                        return true;
+                                    }
+                                }
+                                return false;
+                            }
+                        });
+                    }
+                };
+                item.add(items);
+
+                item.add(new VisibleEnableBehaviour() {
+
+                    @Override
+                    public boolean isVisible() {
+                        SideBarMenuItem mainMenu = item.getModelObject();
+
+                        for (MainMenuItem i : mainMenu.getItems()) {
+                            boolean visible = true;
+                            if (i.getVisibleEnable() != null) {
+                                visible = i.getVisibleEnable().isVisible();
+                            }
+
+                            if (visible && SecurityUtils.isMenuAuthorized(i)) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                });
+            }
+        };
+        add(menuItems);
+    }
+}

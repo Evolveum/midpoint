@@ -100,12 +100,14 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_UI_RESOURCES_QNAME = new QName(NS_AUTHORIZATION_UI, "resources");
 	public static final String AUTZ_UI_RESOURCES_URL = NS_AUTHORIZATION_UI + "#resources";
 
+	// Resource XML editor
 	public static final QName AUTZ_UI_RESOURCE_QNAME = new QName(NS_AUTHORIZATION_UI, "resource");
 	public static final String AUTZ_UI_RESOURCE_URL = NS_AUTHORIZATION_UI + "#resource";
 	
 	public static final QName AUTZ_UI_RESOURCE_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "resourceDetails");
 	public static final String AUTZ_UI_RESOURCE_DETAILS_URL = NS_AUTHORIZATION_UI + "#resourceDetails";
 	
+	// Also applies to resource wizard
 	public static final QName AUTZ_UI_RESOURCE_EDIT_QNAME = new QName(NS_AUTHORIZATION_UI, "resourceEdit");
 	public static final String AUTZ_UI_RESOURCE_EDIT_URL = NS_AUTHORIZATION_UI + "#resourceEdit";
 	
@@ -250,7 +252,22 @@ public class AuthorizationConstants {
 	
 	public static final QName AUTZ_UI_CONTACTS_QNAME = new QName(NS_AUTHORIZATION_UI, "contacts");
 	public static final String AUTZ_UI_CONTACTS_URL = NS_AUTHORIZATION_UI + "#contacts";
-	
+
+	//self
+	public static final QName AUTZ_UI_SELF_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "selfAll");
+	public static final String AUTZ_UI_SELF_ALL_URL = NS_AUTHORIZATION_UI + "#selfAll";
+
+	public static final QName AUTZ_UI_SELF_ASSIGNMENTS_QNAME = new QName(NS_AUTHORIZATION_UI, "selfAssignments");
+	public static final String AUTZ_UI_SELF_ASSIGNMENTS_URL = NS_AUTHORIZATION_UI + "#selfAssignments";
+
+	public static final QName AUTZ_UI_SELF_CREDENTIALS_QNAME = new QName(NS_AUTHORIZATION_UI, "selfCredentials");
+	public static final String AUTZ_UI_SELF_CREDENTIALS_URL = NS_AUTHORIZATION_UI + "#selfCredentials";
+
+	public static final QName AUTZ_UI_SELF_PROFILE_QNAME = new QName(NS_AUTHORIZATION_UI, "selfProfile");
+	public static final String AUTZ_UI_SELF_PROFILE_URL = NS_AUTHORIZATION_UI + "#selfProfile";
+
+	public static final QName AUTZ_UI_SELF_DASHBOARD_QNAME = new QName(NS_AUTHORIZATION_UI, "selfDashboard");
+	public static final String AUTZ_UI_SELF_DASHBOARD_URL = NS_AUTHORIZATION_UI + "#selfDashboard";
 	
 	//permitAll  - it means, no authorization is required, everyone can access these resources, this is user for about system and about midpoint pages..
 	public static final QName AUTZ_UI_PERMIT_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "permitAll");

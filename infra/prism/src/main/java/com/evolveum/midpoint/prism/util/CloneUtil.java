@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.SerializationUtils;
@@ -37,6 +38,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.springframework.util.ClassUtils;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 /**
@@ -98,6 +100,15 @@ public class CloneUtil {
 		if (orig instanceof Definition) {
 			return (T) ((Definition)orig).clone();
 		}
+		/*
+		 * In some environments we cannot clone XMLGregorianCalendar because of this:
+		 * Error when cloning class org.apache.xerces.jaxp.datatype.XMLGregorianCalendarImpl, will try serialization instead.
+         * java.lang.IllegalAccessException: Class com.evolveum.midpoint.prism.util.CloneUtil can not access a member of
+         * class org.apache.xerces.jaxp.datatype.XMLGregorianCalendarImpl with modifiers "public"
+		 */
+		if (orig instanceof XMLGregorianCalendar) {
+			return (T) XmlTypeConverter.createXMLGregorianCalendar((XMLGregorianCalendar) orig);
+		}
 		if (orig instanceof Cloneable) {
 			T clone = javaLangClone(orig);
 			if (clone != null) {
@@ -117,6 +128,14 @@ public class CloneUtil {
 	public static <T> Collection<T> cloneCollectionMembers(Collection<T> collection) {
 		List<T> clonedCollection = new ArrayList<>(collection.size());
 		for (T element : collection) {
+			clonedCollection.add(clone(element));
+		}
+		return clonedCollection;
+	}
+
+	public static <T> List<T> cloneListMembers(List<T> list) {
+		List<T> clonedCollection = new ArrayList<>(list.size());
+		for (T element : list) {
 			clonedCollection.add(clone(element));
 		}
 		return clonedCollection;

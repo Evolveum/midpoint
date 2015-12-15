@@ -72,10 +72,10 @@ public class TypeFilter extends ObjectFilter {
 		if (type == null) {
 			throw new IllegalArgumentException("Null type in "+this);
 		}
-		if (filter == null) {
-			throw new IllegalArgumentException("Null subfilter in "+this);
+		// null subfilter is legal. It means "ALL".
+		if (filter != null) {
+			filter.checkConsistence();
 		}
-		filter.checkConsistence();
 	}
 
     @Override
@@ -123,5 +123,13 @@ public class TypeFilter extends ObjectFilter {
 		sb.append(filter);
 		sb.append(")");
 		return sb.toString();
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+        super.accept(visitor);
+        if (filter != null) {
+            visitor.visit(filter);
+        }
     }
 }

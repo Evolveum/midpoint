@@ -30,7 +30,9 @@ public class PasswordAccountDto extends Selectable implements Comparable<Passwor
     private String oid;
     private String displayName;
     private String resourceName;
+    private String cssClass = "";
     private boolean enabled;
+    private boolean passwordOutbound;
     /**
      * true if this DTO represents default midpoint account;
      */
@@ -66,6 +68,22 @@ public class PasswordAccountDto extends Selectable implements Comparable<Passwor
 
     public boolean isMidpoint() {
         return midpoint;
+    }
+
+    public boolean isPasswordOutbound() {
+        return passwordOutbound;
+    }
+
+    public void setPasswordOutbound(boolean passwordOutbound) {
+        this.passwordOutbound = passwordOutbound;
+    }
+
+    public String getCssClass() {
+        return cssClass;
+    }
+
+    public void setCssClass(String cssClass) {
+        this.cssClass = cssClass;
     }
 
     @Override

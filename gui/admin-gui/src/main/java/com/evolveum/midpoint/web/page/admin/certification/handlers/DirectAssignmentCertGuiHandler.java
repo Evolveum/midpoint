@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseOrDecisionDto;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
@@ -29,10 +30,12 @@ import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationAssignmentCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -87,12 +90,13 @@ public class DirectAssignmentCertGuiHandler implements CertGuiHandler {
         if (_case.getTargetRef().getRelation() != null) {
             infoList.add(page.createStringResource("PageCert.message.textRelation", _case.getTargetRef().getRelation().getLocalPart()).getString());
         }
+        Task task = page.createSimpleTask("dummy");
         if (assignment.getOrgRef()  != null) {
-            String orgName = WebModelUtils.resolveReferenceName(assignment.getOrgRef(), new OperationResult("dummy"), page);
+            String orgName = WebModelUtils.resolveReferenceName(assignment.getOrgRef(), page, task, task.getResult());
             infoList.add(page.createStringResource("PageCert.message.textOrg", orgName).getString());
         }
         if (assignment.getTenantRef() != null) {
-            String tenantName = WebModelUtils.resolveReferenceName(assignment.getTenantRef(), new OperationResult("dummy"), page);
+            String tenantName = WebModelUtils.resolveReferenceName(assignment.getTenantRef(), page, task, task.getResult());
             infoList.add(page.createStringResource("PageCert.message.textTenant", tenantName).getString());
         }
 

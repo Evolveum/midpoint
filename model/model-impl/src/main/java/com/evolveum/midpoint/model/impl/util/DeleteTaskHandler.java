@@ -24,14 +24,18 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.model.impl.sync.TaskHandlerUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
@@ -76,8 +80,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @Component
 public class DeleteTaskHandler implements TaskHandler {
 	
-	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/delete/handler-3";
-	
+	public static final String HANDLER_URI = ModelPublicConstants.DELETE_TASK_HANDLER_URI;
+
+	public static final long PROGRESS_UPDATE_INTERVAL = 3000L;
+
 	@Autowired(required=true)
 	protected TaskManager taskManager;
 	
@@ -96,7 +102,12 @@ public class DeleteTaskHandler implements TaskHandler {
 	
 	@Override
 	public TaskRunResult run(Task task) {
-		return runInternal(task);
+		try {
+			task.startCollectingOperationStatsFromZero(true, false, true);
+			return runInternal(task);
+		} finally {
+			updateState(task);
+		}
 	}
 	
 	public <O extends ObjectType> TaskRunResult runInternal(Task task) {
@@ -125,9 +136,11 @@ public class DeleteTaskHandler implements TaskHandler {
         }
         
         Class<O> objectType;
+		QName objectTypeName;
         PrismProperty<QName> objectTypePrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
         if (objectTypePrismProperty != null && objectTypePrismProperty.getRealValue() != null) {
-        	objectType = (Class<O>) ObjectTypes.getObjectTypeFromTypeQName(objectTypePrismProperty.getRealValue()).getClassDefinition();
+			objectTypeName = objectTypePrismProperty.getRealValue();
+        	objectType = (Class<O>) ObjectTypes.getObjectTypeFromTypeQName(objectTypeName).getClassDefinition();
         } else {
         	LOGGER.error("No object type parameter in {}", task);
             opResult.recordFatalError("No object type parameter in " + task);
@@ -198,6 +211,8 @@ public class DeleteTaskHandler implements TaskHandler {
                 throw new IllegalStateException("Unexpected ObjectAlreadyExistsException when updating task progress/expectedTotal", e);
             }
 
+			long progressLastUpdated = 0;
+
             SearchResultList<PrismObject<O>> objects;
             while (true) {
             	
@@ -216,14 +231,34 @@ public class DeleteTaskHandler implements TaskHandler {
 	            		skipped++;
 	            		continue;
 	            	}
-	            	
+
 	            	ObjectDelta<?> delta = ObjectDelta.createDeleteDelta(objectType, object.getOid(), prismContext);
-					modelService.executeChanges(MiscSchemaUtil.createCollection(delta), execOptions, task, opResult);
+
+					String objectName = PolyString.getOrig(object.getName());
+					String objectDisplayName = StatisticsUtil.getDisplayName(object);
+					String objectOid = object.getOid();
+
+					task.recordIterativeOperationStart(objectName, objectDisplayName, objectTypeName, objectOid);
+					long objectDeletionStarted = System.currentTimeMillis();
+					try {
+						modelService.executeChanges(MiscSchemaUtil.createCollection(delta), execOptions, task, opResult);
+						task.recordIterativeOperationEnd(objectName, objectDisplayName, objectTypeName, objectOid, objectDeletionStarted, null);
+					} catch (Throwable t) {
+						task.recordIterativeOperationEnd(objectName, objectDisplayName, objectTypeName, objectOid, objectDeletionStarted, t);
+						throw t;		// TODO we don't want to continue processing if an error occurs?
+					}
+
 					progress++;
+					task.setProgressTransient(progress);
+
+					if (System.currentTimeMillis() - progressLastUpdated > PROGRESS_UPDATE_INTERVAL) {
+						task.setProgress(progress);
+						updateState(task);
+						progressLastUpdated = System.currentTimeMillis();
+					}
 	            }
-	            
-	            opResult.summarize();
-	            task.setProgress(progress);
+
+				opResult.summarize();
 	            if (LOGGER.isTraceEnabled()) {
 	            	LOGGER.trace("Search returned {} objects, {} skipped, progress: {}, result:\n{}", 
 		            		new Object[]{objects.size(), skipped, progress, opResult.debugDump()});
@@ -292,6 +327,11 @@ public class DeleteTaskHandler implements TaskHandler {
 	@Override
 	public List<String> getCategoryNames() {
 		return null;
+	}
+
+	private void updateState(Task task) {
+		task.storeOperationStats();
+		// includes savePendingModifications - this is necessary for the progress to be immediately available in GUI
 	}
 	
 }

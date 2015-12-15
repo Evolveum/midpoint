@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.audit.api;
 
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
-import com.itextpdf.text.pdf.PdfStructTreeController.returnType;
 
 /**
  * @author semancik

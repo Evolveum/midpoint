@@ -15,15 +15,16 @@
  */
 package com.evolveum.midpoint.model.impl.util;
 
+import com.evolveum.midpoint.model.impl.sync.TaskHandlerUtil;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.task.api.LightweightTaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -64,6 +65,10 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	private boolean stopOnError;
 	private boolean logObjectProgress;
 	private boolean logErrors = true;
+	private boolean recordIterationStatistics = true;				// whether we want to do these ourselves or we let someone else do that for us
+	private boolean enableIterationStatistics = true;				// whether we want to collect these statistics at all
+	private boolean enableSynchronizationStatistics = false;		// whether we want to collect sync statistics
+	private boolean enableActionsExecutedStatistics = false;		// whether we want to collect repo objects statistics
 	private BlockingQueue<ProcessingRequest> requestQueue;
 	private AtomicBoolean stopRequestedByAnyWorker = new AtomicBoolean(false);
 	private final long startTime;
@@ -125,9 +130,41 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		this.logObjectProgress = logObjectProgress;
 	}
 
+	public boolean isRecordIterationStatistics() {
+		return recordIterationStatistics;
+	}
+
+	public void setRecordIterationStatistics(boolean recordIterationStatistics) {
+		this.recordIterationStatistics = recordIterationStatistics;
+	}
+
+	public boolean isEnableIterationStatistics() {
+		return enableIterationStatistics;
+	}
+
+	public void setEnableIterationStatistics(boolean enableIterationStatistics) {
+		this.enableIterationStatistics = enableIterationStatistics;
+	}
+
+	public boolean isEnableSynchronizationStatistics() {
+		return enableSynchronizationStatistics;
+	}
+
+	public void setEnableSynchronizationStatistics(boolean enableSynchronizationStatistics) {
+		this.enableSynchronizationStatistics = enableSynchronizationStatistics;
+	}
+
+	public boolean isEnableActionsExecutedStatistics() {
+		return enableActionsExecutedStatistics;
+	}
+
+	public void setEnableActionsExecutedStatistics(boolean enableActionsExecutedStatistics) {
+		this.enableActionsExecutedStatistics = enableActionsExecutedStatistics;
+	}
+
 	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.schema.ResultHandler#handle(com.evolveum.midpoint.prism.PrismObject, com.evolveum.midpoint.schema.result.OperationResult)
-	 */
+                 * @see com.evolveum.midpoint.schema.ResultHandler#handle(com.evolveum.midpoint.prism.PrismObject, com.evolveum.midpoint.schema.result.OperationResult)
+                 */
 	@Override
 	public boolean handle(PrismObject<O> object, OperationResult parentResult) {
 		if (object.getOid() == null) {
@@ -216,7 +253,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		}
 	}
 
-	public void completeProcessing(OperationResult result) {
+	public void completeProcessing(Task task, OperationResult result) {
 		signalAllItemsSubmitted();
 		waitForCompletion(result);      		// in order to provide correct statistics results, we have to wait until all child tasks finish
 		updateOperationResult(result);
@@ -255,6 +292,9 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 		PrismObject<O> object = request.object;
 
+		String objectName = PolyString.getOrig(object.getName());
+		String objectDisplayName = getDisplayName(object);
+
 		OperationResult result = parentResult.createSubresult(taskOperationPrefix + ".handle");
 		result.addParam("object", object);
 
@@ -271,6 +311,11 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 						getProcessShortNameCapitalized(), object, getContextDesc()});
 			}
 
+			if (isRecordIterationStatistics()) {
+				workerTask.recordIterativeOperationStart(objectName, objectDisplayName,
+						null /* TODO */, object.getOid());
+			}
+
 			// The meat
 			cont = handleObject(object, workerTask, result);
 
@@ -281,14 +326,28 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 			if (result.isError()) {
 				// Alternative way how to indicate an error.
+				if (isRecordIterationStatistics()) {
+					workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
+							null /* TODO */, object.getOid(), startTime, getException(result));
+				}
 				cont = processError(object, null, result);
-			} else if (result.isSuccess()) {
-				// FIXME: hack. Hardcoded ugly summarization of successes. something like
-				// AbstractSummarizingResultHandler [lazyman]
-				result.getSubresults().clear();
+			} else {
+				if (isRecordIterationStatistics()) {
+					workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
+							null /* TODO */, object.getOid(), startTime, null);
+				}
+				if (result.isSuccess()) {
+					// FIXME: hack. Hardcoded ugly summarization of successes. something like
+					// AbstractSummarizingResultHandler [lazyman]
+					result.getSubresults().clear();
+				}
 			}
 
 		} catch (CommonException|RuntimeException e) {
+			if (isRecordIterationStatistics()) {
+				workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
+						null /* TODO */, object.getOid(), startTime, e);
+			}
 			cont = processError(object, e, result);
 		} finally {
 			RepositoryCache.exit();
@@ -303,11 +362,15 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			// or parentResult as obtained in handle(..) method in single-thread scenario
 			parentResult.summarize();
 
-			if (shouldReportProgress()) {
-				try {
-					coordinatorTask.setProgressImmediate(progress, result);              // this is necessary for the progress to be immediately available in GUI
-				} catch (ObjectNotFoundException | SchemaException | RuntimeException e) {
-					LoggingUtils.logException(LOGGER, "Couldn't record progress for task {}", e, coordinatorTask);
+			synchronized (coordinatorTask) {
+				coordinatorTask.setProgress(progress);
+				if (requestQueue != null) {
+					workerTask.setProgress(workerTask.getProgress()+1);
+				}
+				// todo report current op result?
+				if (shouldReportProgress()) {
+					coordinatorTask.storeOperationStats();
+					// includes savePendingModifications - this is necessary for the progress to be immediately available in GUI
 				}
 			}
 
@@ -329,6 +392,20 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 		if (!cont) {
 			stopRequestedByAnyWorker.set(true);
+		}
+	}
+
+	// may be overriden
+	protected String getDisplayName(PrismObject<O> object) {
+		return StatisticsUtil.getDisplayName(object);
+	}
+
+	// TODO implement better
+	protected Throwable getException(OperationResult result) {
+		if (result.getCause() != null) {
+			return result.getCause();
+		} else {
+			return new SystemException(result.getMessage());
 		}
 	}
 
@@ -424,6 +501,15 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			workerSpecificResults.add(workerSpecificResult);
 
 			Task subtask = coordinatorTask.createSubtask(new WorkerHandler(workerSpecificResult));
+			if (isEnableIterationStatistics()) {
+				subtask.resetIterativeTaskInformation(null);
+			}
+			if (isEnableSynchronizationStatistics()) {
+				subtask.resetSynchronizationInformation(null);
+			}
+			if (isEnableActionsExecutedStatistics()) {
+				subtask.resetActionsExecutedInformation(null);
+			}
 			subtask.setCategory(coordinatorTask.getCategory());
 			subtask.setResult(new OperationResult(taskOperationPrefix + ".executeWorker", OperationResultStatus.IN_PROGRESS, null));
 			subtask.setName("Worker thread " + (i+1) + " of " + threadsCount);

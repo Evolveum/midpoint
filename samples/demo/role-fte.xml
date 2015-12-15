@@ -40,7 +40,7 @@
 	<description>LDAP resource with implied group membership</description>
     	<construction>
     		<!-- The c: prefix in type must be there due to a JAXB bug -->
-    		<resourceRef oid="12c78a70-76b7-11e2-9cb3-001e8c717e5b" type="c:ResourceType"/>
+    		<resourceRef oid="ebd0bf7b-7e80-4175-ba5e-4fd5de2ecd62" type="c:ResourceType"/>
 <!--
 		<attribute>
                     <ref>ri:ldapGroups</ref>

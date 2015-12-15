@@ -57,12 +57,12 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_abstract_role")
 @org.hibernate.annotations.Table(appliesTo = "m_abstract_role",
-        indexes = {@Index(name = "iRequestable", columnNames = "requestable")})
+        indexes = {@Index(name = "iRequestable", columnNames = "requestable")})             // TODO correct index name
 public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T> {
 
     private Set<RExclusion> exclusion;
     private Boolean requestable;
-    private Set<RObjectReference> approverRef;
+    private Set<RObjectReference<RFocus>> approverRef;
     private String approvalProcess;
 
     public Boolean getRequestable() {
@@ -93,14 +93,14 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RObjectReference> getApproverRef() {
+    public Set<RObjectReference<RFocus>> getApproverRef() {
         if (approverRef == null) {
             approverRef = new HashSet<>();
         }
         return approverRef;
     }
 
-    public void setApproverRef(Set<RObjectReference> approverRef) {
+    public void setApproverRef(Set<RObjectReference<RFocus>> approverRef) {
         this.approverRef = approverRef;
     }
 

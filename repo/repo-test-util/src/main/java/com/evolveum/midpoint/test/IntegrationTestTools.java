@@ -401,7 +401,7 @@ public class IntegrationTestTools {
 		display(response);
 	}
 
-	public static void display(SearchResultEntry response) {
+	public static void display(Entry response) {
 		System.out.println(response == null ? "null" : response.toLDIFString());
 		LOGGER.debug(response == null ? "null" : response.toLDIFString());
 	}
@@ -439,9 +439,13 @@ public class IntegrationTestTools {
 
 	public static void display(String title, Entry entry) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		System.out.println(entry.toLDIFString());
+		String ldif = null;
+		if (entry != null) {
+			ldif = entry.toLDIFString();
+		}
+		System.out.println(ldif);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title  + "\n" 
-				+ entry.toLDIFString());
+				+ ldif);
 	}
 
 	public static void display(String message, PrismContainer<?> propertyContainer) {
@@ -922,5 +926,14 @@ public class IntegrationTestTools {
 				AssertJUnit.fail("Unexpected association for entitlement "+entitlementOid+" in "+shadow);
 			}
 		}
+	}
+
+	public static void assertNoSchema(ResourceType resourceType) {
+		assertNoSchema("Found schema in resource "+resourceType+" while not expecting it", resourceType);
+	}
+	
+	public static void assertNoSchema(String message, ResourceType resourceType) {
+		Element resourceXsdSchema = ResourceTypeUtil.getResourceXsdSchema(resourceType);
+		AssertJUnit.assertNull(message, resourceXsdSchema);
 	}
 }

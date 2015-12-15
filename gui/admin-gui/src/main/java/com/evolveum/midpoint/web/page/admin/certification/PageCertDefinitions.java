@@ -26,8 +26,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
-import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
@@ -36,11 +37,13 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -59,7 +62,7 @@ import java.util.List;
  * @author lazyman
  * @author mederly
  */
-@PageDescriptor(url = "/admin/certificationDefinitions", action = {
+@PageDescriptor(url = "/admin/certification/definitions", action = {
         @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
                 label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
                 description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION)
@@ -102,17 +105,6 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 
     //region Layout
 
-    @Override
-    protected IModel<String> createPageSubTitleModel(){
-        return new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject() {
-                return createStringResource("page.subTitle").getString();
-            }
-        };
-    }
-
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
@@ -128,14 +120,17 @@ public class PageCertDefinitions extends PageAdminWorkItems {
                 deleteDefinitionPerformed(target, singleDelete);
             }
         });
-        TablePanel table = new TablePanel<>(ID_DEFINITIONS_TABLE, provider, initColumns());
+        int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_DEFINITIONS_PANEL);
+        BoxedTablePanel table = new BoxedTablePanel<>(ID_DEFINITIONS_TABLE, provider, initColumns(),
+                UserProfileStorage.TableId.PAGE_CERT_DEFINITIONS_PANEL, itemsPerPage);
         table.setShowPaging(false);
         table.setOutputMarkupId(true);
+        table.setItemsPerPage(itemsPerPage);
         mainForm.add(table);
     }
     
-    private TablePanel getTable() {
-        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_DEFINITIONS_TABLE));
+    private Table getTable() {
+        return (Table) get(createComponentPath(ID_MAIN_FORM, ID_DEFINITIONS_TABLE));
     }
 
     private IModel<String> createDeleteConfirmString() {
@@ -214,8 +209,8 @@ public class PageCertDefinitions extends PageAdminWorkItems {
         return columns;
     }
 
-    private TablePanel getDefinitionsTable(){
-        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_DEFINITIONS_TABLE));
+    private Table getDefinitionsTable(){
+        return (Table) get(createComponentPath(ID_MAIN_FORM, ID_DEFINITIONS_TABLE));
     }
     //endregion Layout
 
@@ -232,7 +227,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
         OperationResult result = new OperationResult(OPERATION_CREATE_CAMPAIGN);
         try {
             Task task = createSimpleTask(OPERATION_CREATE_CAMPAIGN);
-            getCertificationManager().createCampaign(definition, null, task, result);
+            getCertificationManager().createCampaign(definition.getOid(), null, task, result);
         } catch (Exception ex) {
             result.recordFatalError(ex);
         } finally {
@@ -268,12 +263,12 @@ public class PageCertDefinitions extends PageAdminWorkItems {
             result.recordStatus(OperationResultStatus.SUCCESS, "The definition has been successfully deleted.");
         }
 
-        TablePanel table = getDefinitionsTable();
+        Table table = getDefinitionsTable();
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataTable().getDataProvider();
         provider.clearCache();
 
         showResult(result);
-        target.add(getFeedbackPanel(), table);
+        target.add(getFeedbackPanel(), (Component) table);
     }
 
     private void editAsXmlPerformed(AccessCertificationDefinitionType definition){

@@ -59,6 +59,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "AssignmentType", propOrder = {
     "description",
+    "note",
     "accountConstruction"
 })
 public class AssignmentType
@@ -67,11 +68,13 @@ public class AssignmentType
 
 	// This is NOT GENERATED. It is supplied here manually for the testing.
 	public final static QName F_DESCRIPTION = new QName(ObjectType.NS_FOO, "description");
+    public final static QName F_NOTE = new QName(ObjectType.NS_FOO, "note");
 	public final static QName F_ACCOUNT_CONSTRUCTION = new QName(ObjectType.NS_FOO, "accountConstruction");
 	public final static QName F_ACTIVATION = new QName(ObjectType.NS_FOO, "activation");
 	
 	private final static long serialVersionUID = 201202081233L;
     protected String description;
+    protected String note;
     protected AccountConstructionType accountConstruction;
     @XmlAttribute(name = "id")
     protected String id;
@@ -98,6 +101,14 @@ public class AssignmentType
      */
     public void setDescription(String value) {
         this.description = value;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 
     /**

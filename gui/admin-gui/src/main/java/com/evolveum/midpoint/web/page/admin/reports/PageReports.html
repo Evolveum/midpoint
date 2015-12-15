@@ -21,9 +21,12 @@
 
 	<div wicket:id="runReportPopup" />
 
-    <div class="clearfix">
-        <form wicket:id="searchForm" class="form-inline pull-right search-form">
+    <form wicket:id="mainForm" class="form-inline">
+        <div wicket:id="reportsTable"/>
+    </form>
 
+    <wicket:fragment wicket:id="tableHeader">
+        <form class="form-inline pull-right search-form" wicket:id="searchForm">
             <div class="checkbox">
                 <label>
                     <input type="checkbox" wicket:id="subReportCheckbox"/>
@@ -31,13 +34,9 @@
                 </label>
             </div>
 
-            <div wicket:id="basicSearch" />
+            <div wicket:id="basicSearch"/>
         </form>
-    </div>
-
-	<form wicket:id="mainForm" class="clearfix form-horizontal">
-        <div wicket:id="reportsTable"/>
-    </form>
+    </wicket:fragment>
 
 </wicket:extend>
 </body>

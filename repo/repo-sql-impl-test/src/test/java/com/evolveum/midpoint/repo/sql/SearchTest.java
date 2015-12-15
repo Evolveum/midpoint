@@ -18,20 +18,31 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -83,11 +94,11 @@ public class SearchTest extends BaseSQLRepoTest {
             }
         };
 
-        EqualFilter filter = EqualFilter.createEqual(UserType.F_NAME, UserType.class, prismContext, 
-        		PolyStringStrictMatchingRule.NAME, new PolyString("asdf", "asdf"));
+        EqualFilter filter = EqualFilter.createEqual(UserType.F_NAME, UserType.class, prismContext,
+                PolyStringStrictMatchingRule.NAME, new PolyString("asdf", "asdf"));
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
-        repositoryService.searchObjectsIterative(UserType.class, query, handler, null, result);
+        repositoryService.searchObjectsIterative(UserType.class, query, handler, null, false, result);
         result.recomputeStatus();
 
         AssertJUnit.assertTrue(result.isSuccess());
@@ -108,7 +119,7 @@ public class SearchTest extends BaseSQLRepoTest {
             }
         };
 
-        repositoryService.searchObjectsIterative(UserType.class, null, handler, null, result);
+        repositoryService.searchObjectsIterative(UserType.class, null, handler, null, false, result);
         result.recomputeStatus();
 
         AssertJUnit.assertTrue(result.isSuccess());
@@ -148,7 +159,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
         ObjectQuery query = new ObjectQuery();
         query.setPaging(ObjectPaging.createPaging(offset, size, ObjectType.F_NAME, OrderDirection.ASCENDING));
-        repositoryService.searchObjectsIterative(UserType.class, query, handler, null, result);
+        repositoryService.searchObjectsIterative(UserType.class, query, handler, null, false, result);
         result.recomputeStatus();
 
         config.setIterativeSearchByPagingBatchSize(oldbatch);
@@ -182,5 +193,186 @@ public class SearchTest extends BaseSQLRepoTest {
         AssertJUnit.assertTrue(result.isSuccess());
         AssertJUnit.assertEquals("Found user (shouldn't) because case insensitive search was used", 0, users.size());
     }
+
+    @Test
+    public void roleMembershipSearchTest() throws Exception {
+        PrismReferenceValue r456 = new PrismReferenceValue("r456", RoleType.COMPLEX_TYPE);
+        RefFilter filter = RefFilter.createReferenceEqual(new ItemPath(UserType.F_ROLE_MEMBERSHIP_REF), UserType.class, prismContext, r456);
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+        AssertJUnit.assertEquals("Should find one user", 1, users.size());
+        AssertJUnit.assertEquals("Wrong user name", "atestuserX00003", users.get(0).getName().getOrig());
+
+        PrismReferenceValue r123 = new PrismReferenceValue("r123", RoleType.COMPLEX_TYPE);
+        filter = RefFilter.createReferenceEqual(new ItemPath(UserType.F_ROLE_MEMBERSHIP_REF), UserType.class, prismContext, r123);
+        query = ObjectQuery.createObjectQuery(filter);
+
+        users = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+        AssertJUnit.assertEquals("Should find two users", 2, users.size());
+    }
+
+    @Test
+    public void assignmentOrgRefSearchTest() throws Exception {
+        PrismReferenceValue o123456 = new PrismReferenceValue("o123456", OrgType.COMPLEX_TYPE);
+        RefFilter filter = RefFilter.createReferenceEqual(new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ORG_REF), UserType.class, prismContext, o123456);
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+        AssertJUnit.assertEquals("Should find one user", 1, users.size());
+        AssertJUnit.assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
+
+        PrismReferenceValue o999 = new PrismReferenceValue("o999", RoleType.COMPLEX_TYPE);
+        filter = RefFilter.createReferenceEqual(new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ORG_REF), UserType.class, prismContext, o999);
+        query = ObjectQuery.createObjectQuery(filter);
+
+        users = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+        AssertJUnit.assertEquals("Should find zero users", 0, users.size());
+    }
+
+    @Test
+    public void assignmentResourceRefSearchTest() throws Exception {
+        PrismReferenceValue resourceRef = new PrismReferenceValue("10000000-0000-0000-0000-000000000004", ResourceType.COMPLEX_TYPE);
+        RefFilter filter = RefFilter.createReferenceEqual(new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), UserType.class, prismContext, resourceRef);
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+        AssertJUnit.assertEquals("Should find one role", 1, roles.size());
+        AssertJUnit.assertEquals("Wrong role name", "Judge", roles.get(0).getName().getOrig());
+
+        PrismReferenceValue resourceRef2 = new PrismReferenceValue("FFFFFFFF-0000-0000-0000-000000000004", ResourceType.COMPLEX_TYPE);
+        filter = RefFilter.createReferenceEqual(new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), UserType.class, prismContext, resourceRef2);
+        query = ObjectQuery.createObjectQuery(filter);
+
+        roles = repositoryService.searchObjects(RoleType.class, query, null, result);
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+        AssertJUnit.assertEquals("Should find zero roles", 0, roles.size());
+    }
+  @Test
+    public void roleAssignmentSearchTest() throws Exception {
+        PrismReferenceValue r456 = new PrismReferenceValue("r123", RoleType.COMPLEX_TYPE);
+        RefFilter rFilter = RefFilter.createReferenceEqual(new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class, prismContext, r456);
+        
+
+        ObjectQuery query = ObjectQuery.createObjectQuery(rFilter);
+
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+        AssertJUnit.assertEquals("Should find one user", 1, users.size());
+        AssertJUnit.assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
+
+    }
+    
+    @Test
+    public void orgAssignmentSearchTest() throws Exception {
+         
+        PrismReferenceValue org = new PrismReferenceValue("00000000-8888-6666-0000-100000000085", OrgType.COMPLEX_TYPE);
+        RefFilter oFilter = RefFilter.createReferenceEqual(new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class, prismContext, org);
+        ObjectQuery query = ObjectQuery.createObjectQuery(oFilter);
+
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+        AssertJUnit.assertEquals("Should find one user", 1, users.size());
+        AssertJUnit.assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
+
+    }
+    
+    @Test(enabled = false)
+    public void roleAndOrgAssignmentSearchTest() throws Exception {
+        PrismReferenceValue r456 = new PrismReferenceValue("r123", RoleType.COMPLEX_TYPE);
+        RefFilter rFilter = RefFilter.createReferenceEqual(new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class, prismContext, r456);
+        
+        PrismReferenceValue org = new PrismReferenceValue("00000000-8888-6666-0000-100000000085", OrgType.COMPLEX_TYPE);
+        RefFilter oFilter = RefFilter.createReferenceEqual(new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class, prismContext, org);
+        ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(rFilter, oFilter));
+
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+        AssertJUnit.assertEquals("Should find one user", 1, users.size());
+        AssertJUnit.assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
+
+    }
+
+    @Test
+    public void notBusinessRoleTypeSearchTest() throws Exception {
+
+        EqualFilter equalFilter = EqualFilter.createEqual(new ItemPath(RoleType.F_ROLE_TYPE), RoleType.class, prismContext, "business");
+        NotFilter notFilter = NotFilter.createNot(equalFilter);
+        ObjectQuery query = ObjectQuery.createObjectQuery(notFilter);
+
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+        AssertJUnit.assertEquals("Should find one role", 1, roles.size());
+        AssertJUnit.assertEquals("Wrong role name", "Judge", roles.get(0).getName().getOrig());
+
+    }
+
+    @Test
+    public void businessRoleTypeSearchTest() throws Exception {
+
+        EqualFilter equalFilter = EqualFilter.createEqual(new ItemPath(RoleType.F_ROLE_TYPE), RoleType.class, prismContext, "business");
+        ObjectQuery query = ObjectQuery.createObjectQuery(equalFilter);
+
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+        AssertJUnit.assertEquals("Should find one role", 1, roles.size());
+        AssertJUnit.assertEquals("Wrong role name", "Pirate", roles.get(0).getName().getOrig());
+
+    }
+
+    @Test
+    public void emptyRoleTypeSearchTest() throws Exception {
+
+        EqualFilter equalFilter = EqualFilter.createEqual(new ItemPath(RoleType.F_ROLE_TYPE), RoleType.class, prismContext, null);
+        ObjectQuery query = ObjectQuery.createObjectQuery(equalFilter);
+
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+        AssertJUnit.assertEquals("Should find one role", 1, roles.size());
+        AssertJUnit.assertEquals("Wrong role name", "Judge", roles.get(0).getName().getOrig());
+    }
+
+    @Test
+    public void nonEmptyRoleTypeSearchTest() throws Exception {
+
+        EqualFilter equalFilter = EqualFilter.createEqual(new ItemPath(RoleType.F_ROLE_TYPE), RoleType.class, prismContext, null);
+        NotFilter notFilter = NotFilter.createNot(equalFilter);
+        ObjectQuery query = ObjectQuery.createObjectQuery(notFilter);
+
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+        AssertJUnit.assertEquals("Should find one role", 1, roles.size());
+        AssertJUnit.assertEquals("Wrong role name", "Pirate", roles.get(0).getName().getOrig());
+
+    }
+
 
 }

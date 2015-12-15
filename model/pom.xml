@@ -23,7 +23,7 @@
 	<parent>
 		<artifactId>parent</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>3.3-SNAPSHOT</version>
+		<version>3.4-SNAPSHOT</version>
 		<relativePath>../build-system/pom.xml</relativePath>
 	</parent>
 	<organization>
@@ -59,8 +59,14 @@
         <module>notifications-impl</module>
         <module>report-api</module>
         <module>report-impl</module>
-        <module>report-ds-impl</module>
         <module>certification-api</module>
         <module>certification-impl</module>
     </modules>
+    <dependencies> 
+    	<dependency> <!-- Not used, but required for surefire plugin not to complain -->
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

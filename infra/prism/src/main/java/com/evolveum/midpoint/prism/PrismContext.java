@@ -592,18 +592,23 @@ public class PrismContext {
 
     public String serializeAnyData(Object object, String language) throws SchemaException {
         Parser parser = getParserNotNull(language);
-        RootXNode xnode = xnodeProcessor.serializeAnyData(object);
+        RootXNode xnode = xnodeProcessor.serializeAnyData(object, null);
         return parser.serializeToString(xnode);
     }
 
     public String serializeAnyData(Object object, QName defaultRootElementName, String language) throws SchemaException {
         Parser parser = getParserNotNull(language);
-        RootXNode xnode = xnodeProcessor.serializeAnyData(object, defaultRootElementName);
+        RootXNode xnode = xnodeProcessor.serializeAnyData(object, defaultRootElementName, null);
         return parser.serializeToString(xnode);
     }
 
     public Element serializeAnyDataToElement(Object object, QName defaultRootElementName) throws SchemaException {
-        RootXNode xnode = xnodeProcessor.serializeAnyData(object, defaultRootElementName);
+        RootXNode xnode = xnodeProcessor.serializeAnyData(object, defaultRootElementName, null);
+        return parserDom.serializeXRootToElement(xnode);
+    }
+    
+    public Element serializeAnyDataToElement(Object object, QName defaultRootElementName, SerializationContext ctx) throws SchemaException {
+        RootXNode xnode = xnodeProcessor.serializeAnyData(object, defaultRootElementName, ctx);
         return parserDom.serializeXRootToElement(xnode);
     }
 

@@ -21,13 +21,15 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RObjectReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 import javax.persistence.*;
 
@@ -40,7 +42,7 @@ import javax.persistence.*;
 @Table(name = "m_reference", indexes = {
         @javax.persistence.Index(name = "iReferenceTargetOid", columnList = "targetOid")
 })
-public class RObjectReference implements ObjectReference {
+public class RObjectReference<T extends RObject> implements ObjectReference {
 
     public static final String REFERENCE_TYPE = "reference_type";
 
@@ -51,10 +53,13 @@ public class RObjectReference implements ObjectReference {
     //owner
     private RObject owner;
     private String ownerOid;
+
     //other primary key fields
     private String targetOid;
     private String relation;
     private RObjectType type;
+
+    private T target;
 
     public RObjectReference() {
     }
@@ -62,17 +67,29 @@ public class RObjectReference implements ObjectReference {
     @ForeignKey(name = "fk_reference_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
+    @NotQueryable
     public RObject getOwner() {
         return owner;
     }
 
     @Id
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+    @NotQueryable
     public String getOwnerOid() {
         if (ownerOid == null && owner != null) {
             ownerOid = owner.getOid();
         }
         return ownerOid;
+    }
+
+    //@MapsId("target")
+    @ForeignKey(name="none")
+    @ManyToOne(fetch = FetchType.LAZY, optional = true, targetEntity = RObject.class)
+    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true)
+    @NotFound(action = NotFoundAction.IGNORE)
+    @NotQueryable
+    public T getTarget() {
+        return target;
     }
 
     @Id
@@ -122,6 +139,10 @@ public class RObjectReference implements ObjectReference {
 
     public void setRelation(String relation) {
         this.relation = relation;
+    }
+
+    public void setTarget(T target) {     // shouldn't be called
+        this.target = target;
     }
 
     public void setTargetOid(String targetOid) {

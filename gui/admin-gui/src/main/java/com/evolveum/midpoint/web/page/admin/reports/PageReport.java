@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.message.OpResult;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.JasperReportConfigurationPanel;
@@ -116,8 +117,10 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
     private ReportDto loadReport() {
         StringValue reportOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
 
-        OperationResult result = new OperationResult(OPERATION_LOAD_REPORT);
-        PrismObject<ReportType> prismReport = WebModelUtils.loadObject(ReportType.class, reportOid.toString(), result, this);
+        Task task = createSimpleTask(OPERATION_LOAD_REPORT);
+        OperationResult result = task.getResult();
+        PrismObject<ReportType> prismReport = WebModelUtils.loadObject(ReportType.class, reportOid.toString(), 
+        		this, task, result);
         
         if (prismReport == null) {
             LOGGER.error("Couldn't load report.");
@@ -213,17 +216,24 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
                 OperationResult result = new OperationResult(OPERATION_VALIDATE_REPORT);
                 Holder<PrismObject<ReportType>> reportHolder = new Holder<>(null);
 
+                OpResult opResult = null;
                 try {
                     validateObject(value, reportHolder, true, result);
 
                     if(!result.isAcceptable()){
                         result.recordFatalError("Could not validate object", result.getCause());
-                        validatable.error(new RawValidationError(new OpResult(result)));
+                        opResult = OpResult.getOpResult((PageBase)getPage(),result);
+                        validatable.error(new RawValidationError(opResult));
                     }
                 } catch (Exception e){
                     LOGGER.error("Validation problem occured." + e.getMessage());
                     result.recordFatalError("Could not validate object.", e);
-                    validatable.error(new RawValidationError(new OpResult(result)));
+                    try {
+                        opResult = OpResult.getOpResult((PageBase) getPage(), result);
+                        validatable.error(new RawValidationError(opResult));
+                    } catch (Exception ex){
+                        error(ex);
+                    }
                 }
             }
         };
@@ -299,9 +309,9 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
     }
 
     protected void onSavePerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_SAVE_REPORT);
+    	Task task = createSimpleTask(OPERATION_SAVE_REPORT);
+        OperationResult result = task.getResult();
         try {
-            Task task = createSimpleTask(OPERATION_SAVE_REPORT);
 
             //TODO TODO TODO
             PrismObject<ReportType> newReport = model.getObject().getObject();
@@ -312,15 +322,15 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
 				delta.setPrismContext(getPrismContext());
 			} else {
 				PrismObject<ReportType> oldReport = WebModelUtils.loadObject(ReportType.class,
-						newReport.getOid(), result, this);
+						newReport.getOid(), this, task, result);
 
 				if (oldReport != null) {
 					delta = oldReport.diff(newReport);
 				}
 			}
 			if (delta != null) {
-				getModelService()
-						.executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+                            getPrismContext().adopt(delta);
+                            getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
 			}
         } catch (Exception e) {
             result.recordFatalError("Couldn't save report.", e);

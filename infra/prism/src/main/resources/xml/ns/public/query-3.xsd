@@ -32,7 +32,7 @@
         <xsd:documentation>
             TODO
             
-            Version: 3.3-SNAPSHOT
+            Version: 3.3
             Recommended namespace prefix: q
         </xsd:documentation>
     </xsd:annotation>
@@ -223,7 +223,7 @@
                 <xsd:sequence>
                     <xsd:element ref="tns:path" minOccurs="0" maxOccurs="1"/>
                     <xsd:choice>
-                        <xsd:element ref="tns:value"/>
+                        <xsd:element ref="tns:value" minOccurs="0"/>
                         <xsd:any namespace="##other" processContents="strict">
                         	<xsd:annotation>
                         		<xsd:documentation>

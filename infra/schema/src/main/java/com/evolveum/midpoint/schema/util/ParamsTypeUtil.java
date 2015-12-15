@@ -14,6 +14,8 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.SerializationContext;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -63,7 +65,8 @@ public class ParamsTypeUtil {
 		if (XmlTypeConverter.canConvert(entry.getValue().getClass())){
 			return createEntryElement(entry.getKey(), entry.getValue());
 		} else {
-			XNode xnode = prismContext.getXnodeProcessor().serializeAnyData(entry.getValue(), SchemaConstants.C_PARAM_VALUE);
+			SerializationContext ctx = new SerializationContext(SerializationOptions.createSerializeReferenceNames());
+			XNode xnode = prismContext.getXnodeProcessor().serializeAnyData(entry.getValue(), SchemaConstants.C_PARAM_VALUE, ctx);
 			return createEntryElement(entry.getKey(), new RawType(xnode, prismContext));
 		}
 //		result.setEntryValue(new JAXBElement(SchemaConstants.C_PARAM_VALUE, entry.getValue().getClass(),

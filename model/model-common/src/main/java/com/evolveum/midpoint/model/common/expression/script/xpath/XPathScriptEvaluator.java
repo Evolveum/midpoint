@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.common.expression.script.xpath;
 
 import com.evolveum.midpoint.model.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -32,6 +31,7 @@ import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -43,7 +43,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionRetu
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.xml.namespace.QName;
@@ -52,7 +51,6 @@ import javax.xml.xpath.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Radovan Semancik
@@ -71,9 +69,9 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
 
     @Override
 	public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluatorType expressionType,
-			ExpressionVariables variables, ItemDefinition outputDefinition, ScriptExpressionReturnTypeType suggestedReturnType, 
-			ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
-			String contextDescription, OperationResult result) throws ExpressionEvaluationException,
+                                                      ExpressionVariables variables, ItemDefinition outputDefinition, ScriptExpressionReturnTypeType suggestedReturnType,
+                                                      ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
+                                                      String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException {
 
     	String codeString = expressionType.getCode();

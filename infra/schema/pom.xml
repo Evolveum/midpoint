@@ -24,7 +24,7 @@
     <parent>
         <artifactId>infra</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.3-SNAPSHOT</version>
+        <version>3.4-SNAPSHOT</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -35,7 +35,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
         </dependency>
         <!-- <dependency>
             <groupId>commons-beanutils</groupId>
@@ -124,7 +124,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>3.3-SNAPSHOT</version>
+            <version>3.4-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -158,14 +158,14 @@
                        </plugins>
                    </configuration>
                </plugin>  -->
-            <plugin>
-                <!-- Used to pull XSD files from the JAR -->
+            <!-- <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.10</version>
                 <executions>
                     <execution>
                         <id>unpack-prism-schema-files</id>
-                        <phase>initialize</phase>
+                        <phase>compile</phase>
                         <goals>
                             <goal>unpack</goal>
                         </goals>
@@ -174,10 +174,38 @@
                                 <artifactItem>
                                     <groupId>com.evolveum.midpoint.infra</groupId>
                                     <artifactId>prism</artifactId>
-                                    <version>3.3-SNAPSHOT</version>
+                                    <version>3.4-SNAPSHOT</version>
                                     <type>jar</type>
                                 </artifactItem>
                             </artifactItems>
+                            <includes>**/*.xsd,**/*.dtd,**/*.wsdl</includes>
+                            <outputDirectory>${project.basedir}/target/additional-schemas/prism</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin> -->
+            <plugin>
+                <!-- Used to pull XSD files from the JAR -->
+                <groupId>com.evolveum.midpoint.tools</groupId>
+                <artifactId>schema-dist-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <executions>
+                    <execution>
+                        <id>schemadist-prism</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>schemadist</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.evolveum.midpoint.infra</groupId>
+                                    <artifactId>prism</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>jar</type>
+                                </artifactItem>
+                            </artifactItems>
+                            <translateSchemaLocation>false</translateSchemaLocation>
                             <includes>**/*.xsd,**/*.dtd,**/*.wsdl</includes>
                             <outputDirectory>${project.basedir}/target/additional-schemas/prism</outputDirectory>
                         </configuration>
@@ -417,7 +445,7 @@
                     <dependency>
                         <groupId>com.evolveum.midpoint.tools</groupId>
                         <artifactId>xjc-plugin</artifactId>
-                        <version>3.3-SNAPSHOT</version>
+                        <version>3.4-SNAPSHOT</version>
                     </dependency>
                 </dependencies>
             </plugin>
@@ -453,7 +481,7 @@
                <plugin>
 		<groupId>com.evolveum.midpoint.infra</groupId>
                 <artifactId>prism-maven-plugin</artifactId>
-                <version>3.3-SNAPSHOT</version>
+                <version>3.4-SNAPSHOT</version>
                 <configuration>
                     <schemaFiles>
                         <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>

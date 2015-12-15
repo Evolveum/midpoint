@@ -40,12 +40,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelService;
+import com.evolveum.prism.xml.ns._public.query_3.ObjectFactory;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
+import com.evolveum.prism.xml.ns._public.query_3.PropertyComplexValueFilterClauseType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -63,7 +66,9 @@ import org.xml.sax.SAXException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.dom.DOMResult;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Holder;
 import java.io.BufferedReader;
@@ -206,7 +211,7 @@ public class Main {
 		SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 		
 		modelPort.getObject(ModelClientUtil.getTypeQName(SystemConfigurationType.class), SystemObjectsType.SYSTEM_CONFIGURATION.value(), options,
-				objectHolder, resultHolder);
+                objectHolder, resultHolder);
 		
 		return (SystemConfigurationType) objectHolder.value;
 	}
@@ -484,21 +489,54 @@ public class Main {
         }
     }
 
+    private static QueryType createUserQuery1(String username) throws JAXBException, SAXException, IOException {
+        // WARNING: in a real case make sure that the username is properly escaped before putting it in XML
+        SearchFilterType filter = ModelClientUtil.parseSearchFilterType(
+                "<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-3' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
+                        "<path>c:name</path>" +
+                        "<value>" + username + "</value>" +
+                        "</equal>"
+        );
+        QueryType query = new QueryType();
+        query.setFilter(filter);
+        return query;
+    }
+
+    private static QueryType createUserQuery2(String username) throws JAXBException {
+        QueryType query = new QueryType();
+
+        SearchFilterType filter = new SearchFilterType();
+
+        PropertyComplexValueFilterClauseType fc = new PropertyComplexValueFilterClauseType();
+        ItemPathType path = new ItemPathType();
+        path.setValue("declare namespace c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\"; c:name");
+        fc.setPath(path);
+        fc.setValue(username);
+
+        ObjectFactory factory = new ObjectFactory();
+        JAXBElement<PropertyComplexValueFilterClauseType> equal = factory.createEqual(fc);
+
+        JAXBContext jaxbContext = JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_3:" +
+                "com.evolveum.midpoint.xml.ns._public.common.common_3:" +
+                "com.evolveum.prism.xml.ns._public.annotation_3:" +
+                "com.evolveum.prism.xml.ns._public.query_3:" +
+                "com.evolveum.prism.xml.ns._public.types_3:");
+        Marshaller marshaller = jaxbContext.createMarshaller();
+        DOMResult result = new DOMResult();
+        marshaller.marshal(equal, result);
+        filter.setFilterClause(((Document) result.getNode()).getDocumentElement());
+
+        query.setFilter(filter);
+        return query;
+    }
+
 	private static UserType searchUserByName(ModelPortType modelPort, String username) throws SAXException, IOException, FaultMessage, JAXBException {
-		// WARNING: in a real case make sure that the username is properly escaped before putting it in XML
-		SearchFilterType filter = ModelClientUtil.parseSearchFilterType(
-				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-3' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
-				  "<path>c:name</path>" +
-				  "<value>" + username + "</value>" +
-				"</equal>"
-		);
-		QueryType query = new QueryType();
-		query.setFilter(filter);
+
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 		Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 		
-		modelPort.searchObjects(ModelClientUtil.getTypeQName(UserType.class), query, options, objectListHolder, resultHolder);
+		modelPort.searchObjects(ModelClientUtil.getTypeQName(UserType.class), createUserQuery1(username), options, objectListHolder, resultHolder);
 		
 		ObjectListType objectList = objectListHolder.value;
 		List<ObjectType> objects = objectList.getObject();

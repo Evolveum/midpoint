@@ -31,5 +31,23 @@
     	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#design</action>
     </authorization>
     <requestable>true</requestable>
+    <adminGuiConfiguration>
+    	<additionalMenuLink>
+    		<targetUrl>http://example.com/englib</targetUrl>
+    		<label>Engineering library</label>
+    	</additionalMenuLink>
+    	<userDashboardLink>
+    		<targetUrl>http://example.com/engloop</targetUrl>
+    		<label>Engineering loophole</label>
+    	</userDashboardLink>
+    	<objectForms>
+    		<objectForm>
+    			<type>UserType</type>
+    			<formSpecification>
+    				<panelClass>com.example.form.FooPanel</panelClass>
+    			</formSpecification>
+    		</objectForm>
+    	</objectForms>
+    </adminGuiConfiguration>
     <roleType>job</roleType>
 </role>

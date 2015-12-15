@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,20 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Revivable;
+import com.evolveum.midpoint.util.DebugDumpable;
 
 /**
  * @author lazyman
  */
-public interface ItemWrapper extends Revivable {
+public interface ItemWrapper extends Revivable, DebugDumpable {
 
+	QName getName();
+	
     String getDisplayName();
 
     void setDisplayName(String name);
@@ -36,7 +41,9 @@ public interface ItemWrapper extends Revivable {
     ItemDefinition getItemDefinition();
     
     boolean isReadonly();
-    
+
+	boolean isEmpty();
+
     boolean hasChanged();
     
     public List<ValueWrapper> getValues();
@@ -46,4 +53,5 @@ public interface ItemWrapper extends Revivable {
     ContainerWrapper getContainer();
     
     public void addValue();
+
 }

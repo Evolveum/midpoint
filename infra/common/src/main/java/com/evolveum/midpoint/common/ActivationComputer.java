@@ -112,8 +112,8 @@ public class ActivationComputer {
 		TimeIntervalStatusType validityStatus = getValidityStatus(activationType);
 		if (effectiveStatus == null) {
 			if (validityStatus == null) {
-				// No administrative status, no validity. Defaults to disabled.
-				effectiveStatus = ActivationStatusType.DISABLED;
+				// No administrative status, no validity. Defaults to enabled.
+				effectiveStatus = ActivationStatusType.ENABLED;
 			} else {
 				switch (validityStatus) {
 					case AFTER:
@@ -132,7 +132,7 @@ public class ActivationComputer {
 
 	public boolean isActive(ActivationType activationType) {
 		if (activationType == null) {
-			return false;
+			return true;
 		}
 		ActivationStatusType effectiveStatus = activationType.getEffectiveStatus();
 		if (effectiveStatus == null) {

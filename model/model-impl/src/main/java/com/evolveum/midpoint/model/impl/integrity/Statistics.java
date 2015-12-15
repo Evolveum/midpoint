@@ -45,6 +45,7 @@ public class Statistics {
     public static final String MULTIPLE_OWNERS = "Multiple owners";
     public static final String LINKED_WITH_NO_OWNER = "Linked shadow with no owner";
     public static final String NOT_LINKED_WITH_OWNER = "Not linked shadow with an owner";
+    public static final String EXTRA_ACTIVATION_DATA = "Extra activation data present";
 
     private int resources;
     private int shadows;
@@ -65,12 +66,13 @@ public class Statistics {
             MULTIPLE_OWNERS,
             LINKED_WITH_NO_OWNER,
             NOT_LINKED_WITH_OWNER,
+            EXTRA_ACTIVATION_DATA,
             OTHER_FAILURE,
             CANNOT_APPLY_FIX
     };
 
     private List<String> fixable = Arrays.asList(NON_NORMALIZED_IDENTIFIER_VALUE,
-            NO_INTENT_SPECIFIED);
+            NO_INTENT_SPECIFIED, EXTRA_ACTIVATION_DATA);
 
     // problem code -> number of occurrences [0] and number of shadows [1]
     Map<String,Counts> problemCount = new HashMap<>();

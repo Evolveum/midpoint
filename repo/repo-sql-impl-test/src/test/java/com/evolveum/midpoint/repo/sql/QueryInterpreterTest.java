@@ -109,6 +109,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
 
         try {
+            /*
+             *  ### user: Equal (organization, "asdf", PolyStringNorm)
+             *  ==> from RUser u left join u.organization o where o.norm = 'asdf'
+             */
             ObjectFilter filter = EqualFilter.createEqual(UserType.F_ORGANIZATION, UserType.class, prismContext,
                     PolyStringNormMatchingRule.NAME, new PolyString("asdf", "asdf"));
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
@@ -117,7 +121,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             ProjectionList projections = Projections.projectionList();
             addFullObjectProjectionList("u", projections, false);
             main.setProjection(projections);
-
 
             Criteria o = main.createCriteria("organization", "o", JoinType.LEFT_OUTER_JOIN);
 
@@ -137,6 +140,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void queryOrganizationOrig() throws Exception {
         Session session = open();
         try {
+            /*
+             *  ### user: Equal (organization, "asdf", PolyStringOrig)
+             *  ==> from RUser u left join u.organization o where o.orig = 'asdf'
+             */
             ObjectFilter filter = EqualFilter.createEqual(UserType.F_ORGANIZATION, UserType.class, prismContext,
                     PolyStringOrigMatchingRule.NAME, new PolyString("asdf", "asdf"));
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
@@ -164,6 +171,11 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void queryOrganizationStrict() throws Exception {
         Session session = open();
         try {
+            /*
+             *  ### user: Equal (organization, "asdf")
+             *  ==> from RUser u left join u.organization o where o.orig = 'asdf' and o.norm = 'asdf'
+             */
+
             ObjectFilter filter = EqualFilter.createEqual(UserType.F_ORGANIZATION, UserType.class, prismContext,
                     null, new PolyString("asdf", "asdf"));
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
@@ -194,6 +206,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
 
         try {
+            /*
+             *  ### task: Equal (dependent, "123456")
+             *  ==> from RTask t left join t.dependent d where d = '123456'      (why "d.elements" ????)
+             */
             Criteria main = session.createCriteria(RTask.class, "t");
             Criteria d = main.createCriteria("dependent", "d", JoinType.LEFT_OUTER_JOIN);
             d.add(Restrictions.eq("d.elements", "123456"));
@@ -234,6 +250,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void queryEnum() throws Exception {
         Session session = open();
         try {
+            /*
+             *  ### task: Equal (executionStatus, WAITING)
+             *  ==> from RTask t where t.executionStatus = com.evolveum.midpoint.repo.sql.data.common.enums.RTaskExecutionStatus.WAITING
+             */
             Criteria main = session.createCriteria(RTask.class, "t");
             main.add(Restrictions.eq("executionStatus", RTaskExecutionStatus.WAITING));
             ProjectionList projections = Projections.projectionList();
@@ -258,6 +278,11 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void queryEnabled() throws Exception {
         Session session = open();
         try {
+            /*
+             *  ### task: Equal (activation/administrativeStatus, ENABLED)
+             *  ==> from RUser u where u.activation.administrativeStatus = com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus.ENABLED
+             */
+
             Criteria main = session.createCriteria(RUser.class, "u");
             main.add(Restrictions.eq("activation.administrativeStatus", RActivationStatus.ENABLED));
             ProjectionList projections = Projections.projectionList();
@@ -279,6 +304,15 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void queryGenericLong() throws Exception {
         Session session = open();
         try {
+            /*
+             *  ### generic: And (Equal (name, "generic object", PolyStringNorm),
+             *                    Equal (c:extension/p:intType, 123))
+             *  ==> from RGenericObject g left join g.longs l where
+             *         g.name.norm = 'generic object' and
+             *         l.ownerType = com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType.EXTENSION and
+             *         l.name = 'http://example.com/p#intType' and
+             *         l.value = 123
+             */
             Criteria main = session.createCriteria(RGenericObject.class, "g");
 
             Criteria stringExt = main.createCriteria("longs", "l", JoinType.LEFT_OUTER_JOIN);
@@ -314,6 +348,22 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void queryOrComposite() throws Exception {
         Session session = open();
         try {
+            /*
+             * ### shadow:
+             *      Or (
+             *        Equal (intent, "some account type"),
+             *        Equal (attributes/f:foo, "foo value"),
+             *        Equal (extension/p:stringType, "uid=test,dc=example,dc=com"),
+             *        Ref (resourceRef, d0db5be9-cb93-401f-b6c1-86ffffe4cd5e))
+             *
+             * ==> from RShadow r left join r.strings s1 where
+             *       r.intent = 'some account type' or
+             *         (s1.ownerType = RObjectExtensionType.ATTRIBUTES and s1.name = 'http://midpoint.evolveum.com/blabla#foo' and s1.value = 'foo value') or
+             *         (s1.ownerType = RObjectExtensionType.EXTENSION and s1.name = 'http://example.com/p#stringType' and s1.value = 'uid=test,dc=example,dc=com') or
+             *         (r.resourceRef.targetOid = 'd0db5be9-cb93-401f-b6c1-86ffffe4cd5e' and r.resourceRef.relation = '#' and r.resourceRef.type = '...#ResourceType')
+             *
+             *   [If we used AND instead of OR, this SHOULD BE left join r.strings s1, left join r.strings s2]
+             */
             Criteria main = session.createCriteria(RShadow.class, "r");
             ProjectionList projections = Projections.projectionList();
             addFullObjectProjectionList("r", projections, false);
@@ -362,6 +412,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
 
         try {
+            /*
+             * ### object: Equal (name, "cpt. Jack Sparrow")
+             *             Order by name, ASC
+             *
+             * ==> from RObject o where name.orig = 'cpt. Jack Sparrow' and name.norm = 'cpt jack sparrow'
+             *        order by name.orig asc
+             */
             Criteria main = session.createCriteria(RObject.class, "o");
             main.add(Restrictions.and(
                     Restrictions.eq("name.orig", "cpt. Jack Sparrow"),
@@ -523,6 +580,12 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void queryUserAccountRef() throws Exception {
         Session session = open();
         try {
+            /*
+             * ### user: Ref (linkRef, 123)
+             *
+             * ==> select from RUser u left join u.linkRef l where
+             *        l.targetOid = '123' and l.relation = '#'
+             */
             Criteria main = session.createCriteria(RUser.class, "u");
             ProjectionList projections = Projections.projectionList();
             addFullObjectProjectionList("u", projections, false);
@@ -550,6 +613,15 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void queryUserAssignmentTargetRef() throws Exception {
         Session session = open();
         try {
+            /*
+             * ### user: Ref (assignment/targetRef, '123', RoleType)
+             *
+             * ==> select from RUser u left join u.assignments a where
+             *        a.assignmentOwner = RAssignmentOwner.FOCUS and
+             *        a.targetRef.targetOid = '123' and
+             *        a.targetRef.relation = '#' and
+             *        a.targetRef.type = RObjectType.ROLE
+             */
             Criteria main = session.createCriteria(RUser.class, "u");
             ProjectionList projections = Projections.projectionList();
             addFullObjectProjectionList("u", projections, false);
@@ -653,6 +725,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void queryInducementActivationAdministrativeStatus() throws Exception {
         Session session = open();
         try {
+            /*
+             * ### role: Equal (inducement/activation/administrativeStatus, ENABLED)
+             *
+             * ==> select from RRole r left join r.assignments a where
+             *          a.assignmentOwner = RAssignmentOwner.ABSTRACT_ROLE and                  <--- this differentiates inducements from assignments
+             *          a.activation.administrativeStatus = RActivationStatus.ENABLED
+             */
             Criteria main = session.createCriteria(RRole.class, "r");
             Criteria a = main.createCriteria("assignments", "a", JoinType.LEFT_OUTER_JOIN);
             a.add(Restrictions.and(
@@ -686,6 +765,18 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void queryInducementAndAssignmentActivationAdministrativeStatus() throws Exception {
         Session session = open();
         try {
+            /*
+             * ### Role: Or (Equal (assignment/activation/administrativeStatus, RActivationStatus.ENABLED),
+             *               Equal (inducement/activation/administrativeStatus, RActivationStatus.ENABLED))
+             *
+             * ==> select r from RRole r left join r.assignments a where
+             *            (a.assignmentOwner = com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner.FOCUS and
+             *             a.activation.administrativeStatus = com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus.ENABLED) or
+             *            (a.assignmentOwner = com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner.ABSTRACT_ROLE and
+             *             a.activation.administrativeStatus = com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus.ENABLED)
+             *
+             *  (may return duplicate results)
+             */
             Criteria main = session.createCriteria(RRole.class, "r");
             Criteria a = main.createCriteria("assignments", "a", JoinType.LEFT_OUTER_JOIN);
             ProjectionList projections = Projections.projectionList();
@@ -735,6 +826,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         Session session = open();
         try {
+            /*
+             * ### user: And (Equal (activation/administrativeStatus, RActivationStatus.ENABLED),
+             *                Equal (activation/validFrom, '...'))
+             *
+             * ==> select u from RUser u where u.activation.administrativeStatus = RActivationStatus.ENABLED and
+             *                                 u.activation.validFrom = ...
+             */
             Criteria main = session.createCriteria(RUser.class, "u");
             ProjectionList projections = Projections.projectionList();
             addFullObjectProjectionList("u", projections, false);
@@ -1267,7 +1365,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             substring = SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class,
                     prismContext, PolyStringOrigMatchingRule.NAME, "a");
             count = repositoryService.countObjects(ObjectType.class, ObjectQuery.createObjectQuery(substring), result);
-            AssertJUnit.assertEquals(17, count);
+            AssertJUnit.assertEquals(18, count);
         } finally {
             close(session);
         }

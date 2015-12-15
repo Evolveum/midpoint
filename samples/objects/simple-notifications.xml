@@ -15,7 +15,8 @@
   ~ limitations under the License.
   -->
 
-<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+					 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
 
     <name>dummy</name>
 
@@ -23,25 +24,36 @@
              before logging and cleanup policy items -->
 
     <notificationConfiguration>
-		<handler>
-        <simpleResourceObjectNotifier>
-            <recipientExpression>
-                <value>somebody@acme.org</value>
-            </recipientExpression>
-            <transport>mail</transport>
-        </simpleResourceObjectNotifier>
-	</handler>
-	
-	<handler>
-        <simpleUserNotifier>
-            <recipientExpression>
-                <value>somebody@acme.org</value>
-            </recipientExpression>
-            <transport>mail</transport>
-        </simpleUserNotifier>
-	</handler>
+        <handler>
+            <simpleResourceObjectNotifier>
+                <recipientExpression>
+                    <value>somebody@acme.org</value>
+                </recipientExpression>
+                <transport>mail</transport>
+            </simpleResourceObjectNotifier>
+        </handler>
+
+        <handler>
+            <simpleUserNotifier>
+                <recipientExpression>
+                    <value>somebody@acme.org</value>
+                </recipientExpression>
+                <transport>mail</transport>
+            </simpleUserNotifier>
+        </handler>
         <mail>
+            <server>
+                <host>smtp.gmail.com</host>
+                <port>587</port>
+                <username>..........</username>
+                <password>
+					<t:clearValue>.........</t:clearValue>
+				</password>
+                <transportSecurity>starttlsEnabled</transportSecurity>
+            </server>
+            <!-- or:
             <redirectToFile>c:\midpoint\mail-notifications.log</redirectToFile>
+            -->
         </mail>
     </notificationConfiguration>
 

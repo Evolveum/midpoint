@@ -45,7 +45,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
 /** 
  * @author Radovan Semancik
@@ -95,7 +94,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 			ProvisioningTestUtil.assertConnectorSchemaSanity(conn, prismContext);
 		}
 		
-		assertEquals("Unexpected number of connectors found", 5, connectors.size());
+		assertEquals("Unexpected number of connectors found", 6, connectors.size());
 	}
 		
 	@Test
@@ -104,7 +103,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ ".listConnectorsTest");
 		
-		List<PrismObject<ConnectorType>> connectors = provisioningService.searchObjects(ConnectorType.class, null, null, result);
+		List<PrismObject<ConnectorType>> connectors = provisioningService.searchObjects(ConnectorType.class, null, null, null, result);
 		assertNotNull(connectors);
 		
 		for (PrismObject<ConnectorType> connector : connectors){
@@ -115,7 +114,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 			System.out.println("-----\n");
 		}
 		
-		assertEquals("Unexpected number of connectors found", 5, connectors.size());
+		assertEquals("Unexpected number of connectors found", 6, connectors.size());
 	}
 	
 	@Test
