@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConversionOptions;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.wf.impl.processes.common.StringHolder;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ChangesRequestedType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionChangeRequested;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -43,6 +45,7 @@ import org.apache.commons.lang.Validate;
 
 import javax.xml.bind.JAXBException;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author mederly
@@ -137,15 +140,16 @@ public class PcpChildJobCreationInstruction extends JobCreationInstruction {
         if (changesRequested.getFocusChange() != null) {
             rv.setFocusPrimaryDelta(DeltaConvertor.toObjectDeltaType(changesRequested.getFocusChange()));
         }
-        for (Object o : changesRequested.getProjectionChangeMapEntries()) {
-            Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry =
-                    (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>) o;
-
+        Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> entries =
+                (Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>>) changesRequested.getProjectionChangeMapEntries();
+        for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry : entries) {
+            ProjectionChangeRequested projChange = new ProjectionChangeRequested();
+            projChange.setResourceShadowDiscriminator(entry.getKey().toResourceShadowDiscriminatorType());
+            projChange.setPrimaryDelta(DeltaConvertor.toObjectDeltaType(entry.getValue()));
+            rv.getProjectionPrimaryDelta().add(projChange);
         }
-        ObjectDeltaType objectDeltaType = toObjectDeltaType(delta, options);
-        SerializationOptions serializationOptions = new SerializationOptions();
-        serializationOptions.setSerializeReferenceNames(DeltaConversionOptions.isSerializeReferenceNames(options));
-        return delta.getPrismContext().serializeAtomicValue(objectDeltaType, SchemaConstants.T_OBJECT_DELTA, PrismContext.LANG_XML, serializationOptions);
+        return getChangeProcessor().getPrismContext().serializeAtomicValue(
+                rv, SchemaConstantsGenerated.C_C, PrismContext.LANG_XML, serializationOptions);
     }
 
     @Override

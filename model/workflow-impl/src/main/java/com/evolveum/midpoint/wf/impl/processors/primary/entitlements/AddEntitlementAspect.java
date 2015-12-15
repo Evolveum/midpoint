@@ -27,7 +27,9 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -49,6 +51,7 @@ import com.evolveum.midpoint.wf.impl.processors.primary.assignments.AssignmentHe
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AssignmentCreationApprovalFormType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AssociationCreationApprovalFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -223,7 +226,8 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
 
     private List<PcpChildJobCreationInstruction>
     prepareJobCreateInstructions(ModelContext<?> modelContext, Task taskFromModel,
-                                 OperationResult result, List<ApprovalRequest<AssociationAdditionType>> approvalRequestList) throws SchemaException, ObjectNotFoundException {
+                                 OperationResult result, List<ApprovalRequest<AssociationAdditionType>> approvalRequestList)
+            throws SchemaException, ObjectNotFoundException {
 
         List<PcpChildJobCreationInstruction> instructions = new ArrayList<>();
         String assigneeName = MiscDataUtil.getFocusObjectName(modelContext);
@@ -235,8 +239,8 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
             assert approvalRequest.getPrismContext() != null;
 
             LOGGER.trace("Approval request = {}", approvalRequest);
-            AssociationAdditionType AssociationAdditionType = approvalRequest.getItemToApprove();
-            ShadowAssociationType association = AssociationAdditionType.getAssociation();
+            AssociationAdditionType associationAddition = approvalRequest.getItemToApprove();
+            ShadowAssociationType association = associationAddition.getAssociation();
             ShadowType target = getAssociationApprovalTarget(association, result);
             Validate.notNull(target, "No target in association to be approved");
 
@@ -250,7 +254,7 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
             instruction.prepareCommonAttributes(this, modelContext, assigneeOid, requester);
 
             // prepare and set the delta that has to be approved
-            ChangesRequested changesRequested = entitlementAdditionToDelta(modelContext, AssociationAdditionType, assigneeOid);
+            ChangesRequested changesRequested = entitlementAdditionToDelta(modelContext, associationAddition, assigneeOid);
             instruction.setChangesRequestedProcessAndTaskVariables(changesRequested);
 
             // set the names of midPoint task and activiti process instance
@@ -271,17 +275,18 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
     }
 
     // creates an ChangesRequested that will be executed after successful approval of the given assignment
-    private ChangesRequested entitlementAdditionToDelta(ModelContext<?> modelContext, AssociationAdditionType eat, String objectOid) {
-        PrismObject<FocusType> focus = (PrismObject<FocusType>) modelContext.getFocusContext().getObjectNew();
-        PrismContainerDefinition<AssignmentType> prismContainerDefinition = focus.getDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);
+    private ChangesRequested entitlementAdditionToDelta(ModelContext<?> modelContext, AssociationAdditionType addition, String objectOid)
+            throws SchemaException {
+        ChangesRequested changes = new ChangesRequested();
+        ResourceShadowDiscriminator shadowDiscriminator =
+                ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(addition.getResourceShadowDiscriminator());
+        String projectionOid = modelContext.findProjectionContext(shadowDiscriminator).getOid();
+        ObjectDelta<ShadowType> objectDelta = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_ASSOCIATION).add(addition.getAssociation())
+                .asObjectDelta(projectionOid);
 
-        ItemDelta<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> addRoleDelta = new ContainerDelta<>(new ItemPath(), FocusType.F_ASSIGNMENT, prismContainerDefinition, prismContext);
-        PrismContainerValue<AssignmentType> assignmentValue = assignmentType.asPrismContainerValue().clone();
-        addRoleDelta.addValueToAdd(assignmentValue);
-
-        Class focusClass = primaryChangeAspectHelper.getFocusClass(modelContext);
-        String focusOid = objectOid != null ? objectOid : PrimaryChangeProcessor.UNKNOWN_OID;
-        return ObjectDelta.createModifyDelta(focusOid, addRoleDelta, focusClass, ((LensContext) modelContext).getPrismContext());
+        changes.addProjectionChange(shadowDiscriminator, objectDelta);
+        return changes;
     }
 
     //endregion
@@ -300,44 +305,24 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
         request.setPrismContext(prismContext);
         Validate.notNull(request, "Approval request is not present among process variables");
 
-        AssignmentType assignment = (AssignmentType) request.getItemToApprove();
-        Validate.notNull(assignment, "Approval request does not contain as assignment");
+        AssociationAdditionType aat = (AssociationAdditionType) request.getItemToApprove();
+        Validate.notNull(aat, "Approval request does not contain the association addition information");
 
-        T target = getAssociationApprovalTarget(assignment, result);     // may throw an (unchecked) exception
+        ShadowType target = getAssociationApprovalTarget(aat.getAssociation(), result);     // may throw an (unchecked) exception
 
-        PrismObjectDefinition<AssignmentCreationApprovalFormType> formDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(AssignmentCreationApprovalFormType.COMPLEX_TYPE);
-        PrismObject<AssignmentCreationApprovalFormType> formPrism = formDefinition.instantiate();
-        AssignmentCreationApprovalFormType form = formPrism.asObjectable();
+        PrismObjectDefinition<AssociationCreationApprovalFormType> formDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(AssociationCreationApprovalFormType.COMPLEX_TYPE);
+        PrismObject<AssociationCreationApprovalFormType> formPrism = formDefinition.instantiate();
+        AssociationCreationApprovalFormType form = formPrism.asObjectable();
 
         String focusName = (String) variables.get(AddRoleVariableNames.FOCUS_NAME);
-        form.setFocusName(focusName);                                   // TODO disginguish somehow between users/roles/orgs
-        form.setAssignedObjectName(getTargetDisplayName(target));
-        form.setRequesterComment(assignment.getDescription());
-        form.setTimeInterval(formatTimeIntervalBrief(assignment));
+        form.setFocusName(focusName);                                   // TODO distinguish somehow between users/roles/orgs
+        form.setAssociatedObjectName(getTargetDisplayName(target));
+        form.setRequesterComment(null);                                 // TODO
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Resulting prism object instance = {}", formPrism.debugDump());
         }
         return formPrism;
-    }
-
-    public static String formatTimeIntervalBrief(AssignmentType assignment) {
-        StringBuilder sb = new StringBuilder();
-        if (assignment != null && assignment.getActivation() != null &&
-                (assignment.getActivation().getValidFrom() != null || assignment.getActivation().getValidTo() != null)) {
-            if (assignment.getActivation().getValidFrom() != null && assignment.getActivation().getValidTo() != null) {
-                sb.append(formatTime(assignment.getActivation().getValidFrom()));
-                sb.append("-");
-                sb.append(formatTime(assignment.getActivation().getValidTo()));
-            } else if (assignment.getActivation().getValidFrom() != null) {
-                sb.append("from ");
-                sb.append(formatTime(assignment.getActivation().getValidFrom()));
-            } else {
-                sb.append("to ");
-                sb.append(formatTime(assignment.getActivation().getValidTo()));
-            }
-        }
-        return sb.toString();
     }
 
     private static String formatTime(XMLGregorianCalendar time) {
@@ -347,21 +332,11 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
 
     @Override
     public PrismObject<? extends ObjectType> prepareRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
-
-        ApprovalRequest<AssignmentType> approvalRequest = (ApprovalRequest<AssignmentType>) variables.get(ProcessVariableNames.APPROVAL_REQUEST);
-        approvalRequest.setPrismContext(prismContext);
-        if (approvalRequest == null) {
-            throw new IllegalStateException("No approval request in activiti task " + task);
-        }
-        T target = getAssociationApprovalTarget(approvalRequest.getItemToApprove(), result);
-        return target != null ? target.asPrismObject() : null;
+        return null;
     }
     //endregion
 
     //region ------------------------------------------------------------ Things to override in concrete aspect classes
-
-
-
 
     protected boolean isAssociationRelevant(ShadowAssociationType association) {
         return true;
@@ -388,7 +363,7 @@ public abstract class AddEntitlementAspect extends BasePrimaryChangeAspect {
     }
 
     // creates name to be displayed in the question form (may be overriden by child objects)
-    protected String getTargetDisplayName(T target) {
+    protected String getTargetDisplayName(ShadowType target) {
         if (target.getName() != null) {
             return target.getName().getOrig();
         } else {

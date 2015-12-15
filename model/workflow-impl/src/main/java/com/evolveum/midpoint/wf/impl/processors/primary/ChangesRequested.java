@@ -66,7 +66,7 @@ public class ChangesRequested<F extends FocusType> {
         return changesRequested;
     }
 
-    private void addProjectionChange(ResourceShadowDiscriminator resourceShadowDiscriminator, ObjectDelta<ShadowType> primaryDelta) {
+    public void addProjectionChange(ResourceShadowDiscriminator resourceShadowDiscriminator, ObjectDelta<ShadowType> primaryDelta) {
         if (projectionChangeMap.containsKey(resourceShadowDiscriminator)) {
             throw new IllegalStateException("Duplicate contexts for " + resourceShadowDiscriminator);
         }

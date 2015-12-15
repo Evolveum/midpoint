@@ -11418,6 +11418,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="associationAddition" type="tns:AssociationAdditionType"/>
 
     <xsd:complexType name="ChangesRequestedType">
         <xsd:annotation>
@@ -11445,6 +11446,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="changesRequested" type="tns:ChangesRequestedType"/>
 
     <xsd:complexType name="ProjectionChangeRequested">
         <xsd:annotation>

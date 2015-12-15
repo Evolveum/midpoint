@@ -19,9 +19,11 @@ package com.evolveum.midpoint.wf.impl.processors.primary;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -66,7 +68,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -110,6 +111,9 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     @Autowired
     private ProcessInterfaceFinder processInterfaceFinder;
+
+    @Autowired
+    private MiscDataUtil miscDataUtil;
 
     public static final String UNKNOWN_OID = "?";
 
@@ -329,14 +333,12 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
     public LensContext contextCopyWithNoDelta(ModelContext context) {
-        ObjectDelta<? extends ObjectType> changeAsPrototype = context.getFocusContext().getPrimaryDelta();
         LensContext contextCopy = ((LensContext) context).clone();
-        contextCopy.replacePrimaryFocusDelta(
-                ObjectDelta.createEmptyDelta(
-                        changeAsPrototype.getObjectTypeClass(),
-                        changeAsPrototype.getOid() == null ? UNKNOWN_OID : changeAsPrototype.getOid(),
-                        changeAsPrototype.getPrismContext(),
-                        ChangeType.MODIFY));
+        contextCopy.replacePrimaryFocusDelta(null);
+        Collection<LensProjectionContext> projectionContexts = contextCopy.getProjectionContexts();
+        for (ModelProjectionContext projectionContext : projectionContexts) {
+            projectionContext.setPrimaryDelta(null);
+        }
         return contextCopy;
     }
 
@@ -431,7 +433,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemAuditRecord(taskEvent, stage, result);
         ObjectDelta delta;
         try {
-            delta = pcpRepoAccessHelper.getObjectDelta(taskEvent.getVariables(), true);
+            delta = miscDataUtil.getObjectDelta(taskEvent.getVariables(), true);
             if (delta != null) {
                 auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
             }
