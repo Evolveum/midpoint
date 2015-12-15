@@ -153,20 +153,10 @@ public class StageEditorPanel extends SimplePanel<StageDefinitionDto> {
     }
 
     private void initPanelLayout() {
-        WebMarkupContainer headerRow = new WebMarkupContainer(ID_HEADER_ROW);
-//        headerRow.add(AttributeModifier.append("class", createHeaderClassModel(getModel())));
-        headerRow.setOutputMarkupId(true);
-        add(headerRow);
-
-//        AjaxCheckBox selected = new AjaxCheckBox(ID_SELECTED,
-//                new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_SELECTED)) {
-//
-//            @Override
-//            protected void onUpdate(AjaxRequestTarget target) {
-//                //do we want to update something?
-//            }
-//        };
-//        headerRow.add(selected);
+//        WebMarkupContainer headerRow = new WebMarkupContainer(ID_HEADER_ROW);
+////        headerRow.add(AttributeModifier.append("class", createHeaderClassModel(getModel())));
+//        headerRow.setOutputMarkupId(true);
+//        add(headerRow);
 
         AjaxLink name = new AjaxLink(ID_NAME) {
 
@@ -175,26 +165,30 @@ public class StageEditorPanel extends SimplePanel<StageDefinitionDto> {
                 nameClickPerformed(target);
             }
         };
-        headerRow.add(name);
+        Label nameLabel = new Label(ID_NAME_LABEL, getModel().getObject().getName() == null || getModel().getObject().getName().trim().equals("") ?
+                createStringResource("StageEditorPanel.stageDefinitionLabelName").getString() + getModel().getObject().getNumber()
+                : getModel().getObject().getName());
+        name.add(nameLabel);
 
-//        Label nameLabel = new Label(ID_NAME_LABEL, createAssignmentNameLabelModel());
-//        name.add(nameLabel);
+        add(name);
+//        headerRow.add(name);
 
-        WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
-        body.setOutputMarkupId(true);
-        add(body);
 
-        WebMarkupContainer main = new WebMarkupContainer(ID_MAIN);
-        body.add(new VisibleEnableBehaviour() {
+//        WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
+//        body.setOutputMarkupId(true);
+//        add(body);
 
-            @Override
-            public boolean isVisible() {
-                return true;
-//                AssignmentEditorDto editorDto = StageEditorPanel.this.getModel().getObject();
-//                return !editorDto.isMinimized();
-            }
-        });
-        body.add(main);
+//        WebMarkupContainer main = new WebMarkupContainer(ID_MAIN);
+//        body.add(new VisibleEnableBehaviour() {
+//
+//            @Override
+//            public boolean isVisible() {
+//                return true;
+////                AssignmentEditorDto editorDto = StageEditorPanel.this.getModel().getObject();
+////                return !editorDto.isMinimized();
+//            }
+//        });
+//        body.add(main);
 
 //        initBodyLayout(body);
     }
@@ -236,7 +230,13 @@ public class StageEditorPanel extends SimplePanel<StageDefinitionDto> {
         TabbedPanel tabbedPanel = this.findParent(TabbedPanel.class);
         IModel<List<ITab>> tabsModel = tabbedPanel.getTabs();
         List<ITab> tabsList = tabsModel.getObject();
-        tabsList.add(new AbstractTab(createStringResource("PageCertDefinition.xmlDefinition")) {
+        PropertyModel<String> tabNameModel;
+        if (getModel().getObject().getName() == null || getModel().getObject().getName().trim().equals("")){
+            tabNameModel = new PropertyModel<String>(getModel(), StageDefinitionDto.F_NUMBER);
+        } else {
+            tabNameModel = new PropertyModel<String>(getModel(), StageDefinitionDto.F_NAME);
+        }
+        tabsList.add(new AbstractTab(tabNameModel) {
             @Override
             public WebMarkupContainer getPanel(String panelId) {
                 return new StageDefinitionPanel(panelId, getModel());

@@ -141,7 +141,8 @@ public class CertDefinitionDto implements Serializable {
             dto.setDescription(scopeTypeObj.getDescription());
             if (scopeTypeObj instanceof AccessCertificationObjectBasedScopeType) {
                 AccessCertificationObjectBasedScopeType objScopeType = (AccessCertificationObjectBasedScopeType) scopeTypeObj;
-                dto.setObjectType(DefinitionScopeObjectType.valueOf(objScopeType.getObjectType().getLocalPart()));
+                dto.setObjectType(DefinitionScopeObjectType.valueOf(objScopeType.getObjectType() != null ?
+                        objScopeType.getObjectType().getLocalPart() : null));
                 dto.setSearchFilter(objScopeType.getSearchFilter());
                 if (objScopeType instanceof AccessCertificationAssignmentReviewScopeType) {
                     AccessCertificationAssignmentReviewScopeType assignmentScope =
