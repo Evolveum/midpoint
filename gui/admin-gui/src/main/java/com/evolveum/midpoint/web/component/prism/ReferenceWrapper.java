@@ -19,6 +19,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -27,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class ReferenceWrapper implements ItemWrapper, Serializable {
@@ -98,8 +101,13 @@ public class ReferenceWrapper implements ItemWrapper, Serializable {
 	    public void setDisplayName(String displayName) {
 	        this.displayName = displayName;
 	    }
+	    
+	    @Override
+		public QName getName() {
+			return getItem().getElementName();
+		}
 
-	    public ValueStatus getStatus() {
+		public ValueStatus getStatus() {
 	        return status;
 	    }
 
@@ -189,6 +197,11 @@ public class ReferenceWrapper implements ItemWrapper, Serializable {
 	    public void setReadonly(boolean readonly) {
 	        this.readonly = readonly;
 	    }
+	    
+	    @Override
+		public boolean isEmpty() {
+			return getItem().isEmpty();
+		}
 
 	    @Override
 		public String debugDump() {
@@ -199,7 +212,7 @@ public class ReferenceWrapper implements ItemWrapper, Serializable {
 		public String debugDump(int indent) {
 			StringBuilder sb = new StringBuilder();
 			DebugUtil.indentDebugDump(sb, indent);
-			sb.append("ReferenceWrapper(\n");
+			sb.append("ReferenceWrapper: ").append(PrettyPrinter.prettyPrint(getName())).append("\n");
 			DebugUtil.debugDumpWithLabel(sb, "displayName", displayName, indent+1);
 			sb.append("\n");
 			DebugUtil.debugDumpWithLabel(sb, "status", status == null?null:status.toString(), indent+1);
@@ -211,9 +224,6 @@ public class ReferenceWrapper implements ItemWrapper, Serializable {
 			DebugUtil.debugDumpWithLabel(sb, "reference", reference, indent+1);
 			sb.append("\n");
 			DebugUtil.debugDumpWithLabel(sb, "values", values, indent+1);
-			sb.append("\n");
-			DebugUtil.indentDebugDump(sb, indent);
-			sb.append(")");
 			return sb.toString();
 		}
 

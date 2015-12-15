@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,14 @@ public class MidPointProfilingServletFilter implements Filter {
 
         if(LOGGER.isTraceEnabled()){
             long startTime = System.nanoTime();
-            chain.doFilter(request, response);
+
+            try {
+            	chain.doFilter(request, response);
+        	} catch (IOException | ServletException | RuntimeException | Error e) {
+        		LOGGER.error("Encountered exception: {}: {}", e.getClass().getName(), e.getMessage(), e);
+        		throw e;
+        	}
+            	
             long elapsedTime = System.nanoTime() - startTime;
 
             if(request instanceof HttpServletRequest){
@@ -75,8 +82,13 @@ public class MidPointProfilingServletFilter implements Filter {
                 }
             }
         } else {
-            chain.doFilter(request, response);
-        }
+        	try {
+        		chain.doFilter(request, response);
+        	} catch (IOException | ServletException | RuntimeException | Error e) {
+        		LOGGER.error("Encountered exception: {}: {}", e.getClass().getName(), e.getMessage(), e);
+        		throw e;
+        	}
+         }
     }
 
     private void prepareRequestProfilingEvent(ServletRequest request, long elapsed, String uri){

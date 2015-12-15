@@ -27,6 +27,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -49,11 +51,6 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Revivable;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -127,7 +124,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 	private OperationResult result;
 	private boolean protectedAccount;
 
-	private List<PrismProperty> associations;
+	private List<PrismContainerValue<ShadowAssociationType>> associations;
 	private Collection<PrismObject<OrgType>> parentOrgs = new ArrayList<>();
 
 	private OperationResult fetchResult;
@@ -182,11 +179,11 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 		}
 	}
 
-	public List<PrismProperty> getAssociations() {
+	public List<PrismContainerValue<ShadowAssociationType>> getAssociations() {
 		return associations;
 	}
 
-	public void setAssociations(List<PrismProperty> associations) {
+	public void setAssociations(List<PrismContainerValue<ShadowAssociationType>> associations) {
 		this.associations = associations;
 	}
 
@@ -369,13 +366,11 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 				}
 
 				PrismContainer<ShadowAssociationType> associationContainer = object
-						.findContainer(ShadowType.F_ASSOCIATION);
-				if (associationContainer != null) {
-					container = new ContainerWrapper(this, associationContainer, ContainerStatus.MODIFYING,
-							new ItemPath(ShadowType.F_ASSOCIATION), pageBase);
-					addSubresult(container.getResult());
-					containers.add(container);
-				}
+						.findOrCreateContainer(ShadowType.F_ASSOCIATION);
+				container = new ContainerWrapper(this, associationContainer, ContainerStatus.MODIFYING,
+						new ItemPath(ShadowType.F_ASSOCIATION), pageBase);
+				addSubresult(container.getResult());
+				containers.add(container);
 			} else if (ResourceType.class.isAssignableFrom(clazz)) {
 				containers = createResourceContainers(pageBase);
 			} else if (ReportType.class.isAssignableFrom(clazz)) {
@@ -584,65 +579,78 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 		Collections.sort(containers, new PathSizeComparator());
 
 		for (ContainerWrapper containerWrapper : getContainers()) {
-			if (!containerWrapper.hasChanged()) {
-				continue;
-			}
+            //create ContainerDelta for association container
+            //HACK HACK HACK create correct procession for association container data
+            //according to its structure
+            if (containerWrapper.getItemDefinition().getName().equals(ShadowType.F_ASSOCIATION)) {
+                ContainerDelta<ShadowAssociationType> associationDelta = ContainerDelta.createDelta(ShadowType.F_ASSOCIATION, containerWrapper.getItemDefinition());
+                List<AssociationWrapper> associationItemWrappers = (List<AssociationWrapper>) containerWrapper.getItems();
+                for (AssociationWrapper associationItemWrapper : associationItemWrappers) {
+                    List<ValueWrapper> assocValueWrappers = associationItemWrapper.getValues();
+                    for (ValueWrapper assocValueWrapper: assocValueWrappers) {
+                    	PrismContainerValue<ShadowAssociationType> assocValue = (PrismContainerValue<ShadowAssociationType>) assocValueWrapper.getValue();
+                        if (assocValueWrapper.getStatus() == ValueStatus.DELETED) {
+                        	associationDelta.addValueToDelete(assocValue.clone());
+                        } else if (assocValueWrapper.getStatus().equals(ValueStatus.ADDED)){
+                            associationDelta.addValueToAdd(assocValue.clone());
+                        }
+                    }
+                }
+                delta.addModification(associationDelta);
+            } else {
+                if (!containerWrapper.hasChanged()) {
+                    continue;
+                }
 
-			for (ItemWrapper itemWrapper : (List<ItemWrapper>) containerWrapper.getItems()) {
-				if (!itemWrapper.hasChanged()) {
-					continue;
-				}
-				ItemPath path = containerWrapper.getPath() != null ? containerWrapper.getPath()
-						: new ItemPath();
-				if (itemWrapper instanceof PropertyWrapper) {
-					PropertyDelta pDelta = computePropertyDeltas((PropertyWrapper) itemWrapper, path);
-					if (!pDelta.isEmpty()) {
-						delta.addModification(pDelta);
-					}
-				}
+                for (ItemWrapper itemWrapper : (List<ItemWrapper>) containerWrapper.getItems()) {
+                    if (!itemWrapper.hasChanged()) {
+                        continue;
+                    }
+                    ItemPath containerPath = containerWrapper.getPath() != null ? containerWrapper.getPath() : new ItemPath();
+                    if (itemWrapper instanceof PropertyWrapper) {
+                    	ItemDelta pDelta = computePropertyDeltas((PropertyWrapper) itemWrapper, containerPath);
+                        if (!pDelta.isEmpty()) {
+                            delta.addModification(pDelta);
+                        }
+                    }
 
-				if (itemWrapper instanceof ReferenceWrapper) {
-					ReferenceDelta pDelta = computeReferenceDeltas((ReferenceWrapper) itemWrapper, path);
-					if (!pDelta.isEmpty()) {
-						delta.addModification(pDelta);
-					}
-				}
+                    if (itemWrapper instanceof ReferenceWrapper) {
+                        ReferenceDelta pDelta = computeReferenceDeltas((ReferenceWrapper) itemWrapper, containerPath);
+                        if (!pDelta.isEmpty()) {
+                            delta.addModification(pDelta);
+                        }
+                    }
 
-			}
-		}
-
+                }
+            }
+        }
 		// returning container to previous order
 		Collections.sort(containers, new ItemWrapperComparator());
 
+		// Make sure we have all the definitions
+		object.getPrismContext().adopt(delta);
 		return delta;
 	}
 
-	private PropertyDelta computePropertyDeltas(PropertyWrapper propertyWrapper, ItemPath path) {
-		PrismPropertyDefinition propertyDef = propertyWrapper.getItem().getDefinition();
-
-		PropertyDelta pDelta = new PropertyDelta(path, propertyDef.getName(), propertyDef,
-				propertyDef.getPrismContext()); // hoping the
-												// prismContext is there
-
-		addItemDelta(propertyWrapper, pDelta, propertyDef, path);
+	private ItemDelta computePropertyDeltas(PropertyWrapper propertyWrapper, ItemPath containerPath) {
+		ItemDefinition itemDef = propertyWrapper.getItem().getDefinition();
+		ItemDelta pDelta = itemDef.createEmptyDelta(containerPath.subPath(itemDef.getName()));
+		addItemDelta(propertyWrapper, pDelta, itemDef, containerPath);
 		return pDelta;
 
 	}
 
-	private ReferenceDelta computeReferenceDeltas(ReferenceWrapper referenceWrapper, ItemPath path) {
+	private ReferenceDelta computeReferenceDeltas(ReferenceWrapper referenceWrapper, ItemPath containerPath) {
 		PrismReferenceDefinition propertyDef = referenceWrapper.getItem().getDefinition();
-
-		ReferenceDelta pDelta = new ReferenceDelta(path, propertyDef.getName(), propertyDef,
-				propertyDef.getPrismContext()); // hoping the
-												// prismContext is there
-
-		addItemDelta(referenceWrapper, pDelta, propertyDef, path);
+		ReferenceDelta pDelta = new ReferenceDelta(containerPath, propertyDef.getName(), propertyDef,
+				propertyDef.getPrismContext());
+		addItemDelta(referenceWrapper, pDelta, propertyDef, containerPath.subPath(propertyDef.getName()));
 		return pDelta;
 
 	}
 
 	private void addItemDelta(ItemWrapper itemWrapper, ItemDelta pDelta, ItemDefinition propertyDef,
-			ItemPath path) {
+			ItemPath containerPath) {
 		for (ValueWrapper valueWrapper : itemWrapper.getValues()) {
 			valueWrapper.normalize(propertyDef.getPrismContext());
 			ValueStatus valueStatus = valueWrapper.getStatus();
@@ -655,7 +663,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 			// capabilities
 			// todo this is bad hack because now we have not tri-state
 			// checkbox
-			if (SchemaConstants.PATH_ACTIVATION.equivalent(path)) {
+			if (SchemaConstants.PATH_ACTIVATION.equivalent(containerPath)) {
 
 				if (object.asObjectable() instanceof ShadowType
 						&& (((ShadowType) object.asObjectable()).getActivation() == null || ((ShadowType) object
@@ -673,7 +681,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 			switch (valueWrapper.getStatus()) {
 				case ADDED:
 					if (newValCloned != null) {
-						if (SchemaConstants.PATH_PASSWORD.equivalent(path)) {
+						if (SchemaConstants.PATH_PASSWORD.equivalent(containerPath)) {
 							// password change will always look like
 							// add,
 							// therefore we push replace
@@ -870,15 +878,13 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
+		builder.append("ObjectWrapper(");
 		builder.append(ContainerWrapper.getDisplayNameFromItem(object));
-		builder.append(", ");
+		builder.append(" (");
 		builder.append(status);
-		builder.append("\n");
-		for (ContainerWrapper wrapper : getContainers()) {
-			builder.append("\t");
-			builder.append(wrapper.toString());
-			builder.append("\n");
-		}
+		builder.append(") ");
+		builder.append(getContainers() == null ? null :  getContainers().size());
+		builder.append(" containers)");
 		return builder.toString();
 	}
 
