@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import javax.xml.namespace.QName;
@@ -67,7 +69,7 @@ public class CertDefinitionDto implements Serializable {
             throw new SystemException("Couldn't serialize campaign definition to XML", e);
         }
 
-        definitionScopeDto = createDefinitionScopeDto(definition.getScopeDefinition());
+        definitionScopeDto = createDefinitionScopeDto(definition.getScopeDefinition(), page.getPrismContext());
         stageDefinition = new ArrayList<>();
         for (AccessCertificationStageDefinitionType stageDef  : definition.getStageDefinition()){
             stageDefinition.add(createStageDefinitionDto(stageDef));
@@ -114,9 +116,9 @@ public class CertDefinitionDto implements Serializable {
         return definition;
     }
 
-    public AccessCertificationDefinitionType getUpdatedDefinition() {
+    public AccessCertificationDefinitionType getUpdatedDefinition(PrismContext prismContext) {
         updateOwner();
-        updateScopeDefinition();
+        updateScopeDefinition(prismContext);
         updateStageDefinition();
         return definition;
     }
@@ -157,7 +159,7 @@ public class CertDefinitionDto implements Serializable {
         definition.setOwnerRef(ownerRef);
     }
 
-    private DefinitionScopeDto createDefinitionScopeDto(AccessCertificationScopeType scopeTypeObj) {
+    private DefinitionScopeDto createDefinitionScopeDto(AccessCertificationScopeType scopeTypeObj, PrismContext prismContext) {
         DefinitionScopeDto dto = new DefinitionScopeDto();
         if (scopeTypeObj != null) {
             dto.setName(scopeTypeObj.getName());
@@ -167,15 +169,16 @@ public class CertDefinitionDto implements Serializable {
                 if (objScopeType.getObjectType() != null) {
                     dto.setObjectType(DefinitionScopeObjectType.valueOf(objScopeType.getObjectType().getLocalPart()));
                 }
-                dto.setSearchFilter(objScopeType.getSearchFilter());
+                dto.loadSearchFilter(objScopeType.getSearchFilter(), prismContext);
                 if (objScopeType instanceof AccessCertificationAssignmentReviewScopeType) {
                     AccessCertificationAssignmentReviewScopeType assignmentScope =
                             (AccessCertificationAssignmentReviewScopeType) objScopeType;
-                    dto.setIncludeAssignments(Boolean.TRUE.equals(assignmentScope.isIncludeAssignments()));
-                    dto.setIncludeInducements(Boolean.TRUE.equals(assignmentScope.isIncludeInducements()));
-                    dto.setIncludeResources(Boolean.TRUE.equals(assignmentScope.isIncludeResources()));
-                    dto.setIncludeOrgs(Boolean.TRUE.equals(assignmentScope.isIncludeOrgs()));
-                    dto.setEnabledItemsOnly(Boolean.TRUE.equals(assignmentScope.isEnabledItemsOnly()));
+                    dto.setIncludeAssignments(!Boolean.FALSE.equals(assignmentScope.isIncludeAssignments()));
+                    dto.setIncludeInducements(!Boolean.FALSE.equals(assignmentScope.isIncludeInducements()));
+                    dto.setIncludeResources(!Boolean.FALSE.equals(assignmentScope.isIncludeResources()));
+                    dto.setIncludeRoles(!Boolean.FALSE.equals(assignmentScope.isIncludeRoles()));
+                    dto.setIncludeOrgs(!Boolean.FALSE.equals(assignmentScope.isIncludeOrgs()));
+                    dto.setEnabledItemsOnly(!Boolean.FALSE.equals(assignmentScope.isEnabledItemsOnly()));
                 }
             }
         }
@@ -216,14 +219,23 @@ public class CertDefinitionDto implements Serializable {
         return definitionScopeDto;
     }
 
-    public void updateScopeDefinition() {
+    public void updateScopeDefinition(PrismContext prismContext) {
         AccessCertificationAssignmentReviewScopeType scopeTypeObj = null;
         if (definitionScopeDto != null) {
             scopeTypeObj = new AccessCertificationAssignmentReviewScopeType();
             scopeTypeObj.setName(definitionScopeDto.getName());
             scopeTypeObj.setDescription(definitionScopeDto.getDescription());
             scopeTypeObj.setObjectType(definitionScopeDto.getObjectType() != null ? new QName(definitionScopeDto.getObjectType().name()) : null);
-            scopeTypeObj.setSearchFilter(definitionScopeDto.getSearchFilter());
+            SearchFilterType parsedSearchFilter = definitionScopeDto.getParsedSearchFilter(prismContext);
+            if (parsedSearchFilter != null) {
+                // check if everything is OK
+                try {
+                    QueryConvertor.parseFilterPreliminarily(parsedSearchFilter.getFilterClauseXNode(), prismContext);
+                } catch (SchemaException e) {
+                    throw new SystemException("Couldn't parse search filter: " + e.getMessage(), e);
+                }
+            }
+            scopeTypeObj.setSearchFilter(parsedSearchFilter);
             scopeTypeObj.setIncludeAssignments(definitionScopeDto.isIncludeAssignments());
             scopeTypeObj.setIncludeInducements(definitionScopeDto.isIncludeInducements());
             scopeTypeObj.setIncludeResources(definitionScopeDto.isIncludeResources());

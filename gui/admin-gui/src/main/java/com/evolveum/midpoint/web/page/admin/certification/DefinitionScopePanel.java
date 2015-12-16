@@ -21,7 +21,6 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeObjectType;
-import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -87,8 +86,9 @@ public class DefinitionScopePanel extends SimplePanel<DefinitionScopeDto> {
                 });
         add(objectTypeChooser);
 
-//        AceEditorPanel queryPanel = new AceEditorPanel(ID_SEARCH_FILTER, null, new PropertyModel(getModel(), DefinitionScopeDto.F_SEARCH_FILTER));
-//        add(queryPanel);
+        TextArea filterTextArea = new TextArea(ID_SEARCH_FILTER, new PropertyModel<String>(getModel(), DefinitionScopeDto.F_SEARCH_FILTER_TEXT));
+        filterTextArea.setOutputMarkupId(true);
+        add(filterTextArea);
 
         add(new AjaxCheckBox(ID_INCLUDE_ASSIGNMENTS, new PropertyModel<Boolean>(getModel(), DefinitionScopeDto.F_INCLUDE_ASSIGNMENTS)) {
             @Override

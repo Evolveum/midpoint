@@ -309,7 +309,7 @@ public class PageCertDefinition extends PageAdminCertification {
 			AccessCertificationDefinitionType oldObject = dto.getOldDefinition();
 			oldObject.asPrismObject().revive(getPrismContext());
 
-			AccessCertificationDefinitionType newObject = dto.getUpdatedDefinition();
+			AccessCertificationDefinitionType newObject = dto.getUpdatedDefinition(getPrismContext());
 			newObject.asPrismObject().revive(getPrismContext());
 
 			ObjectDelta<AccessCertificationDefinitionType> delta = DiffUtil.diff(oldObject, newObject);
