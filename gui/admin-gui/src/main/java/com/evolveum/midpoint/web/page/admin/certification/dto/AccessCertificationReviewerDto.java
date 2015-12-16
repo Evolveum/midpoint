@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationApprovalStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import java.io.Serializable;
@@ -30,7 +31,7 @@ public class AccessCertificationReviewerDto implements Serializable {
     private ManagerSearchDto useObjectManager;
     private List<ObjectReferenceType> defaultReviewerRef;
     private List<ObjectReferenceType> additionalReviewerRef;
-    private String approvalStrategy;
+    private AccessCertificationApprovalStrategyType approvalStrategy;
     public enum ApprovalStrategy {
         ONE_APPROVAL_APPROVES,
         ONE_DENY_DENIES,
@@ -110,11 +111,11 @@ public class AccessCertificationReviewerDto implements Serializable {
         this.additionalReviewerRef = additionalReviewerRef;
     }
 
-    public String getApprovalStrategy() {
+    public AccessCertificationApprovalStrategyType getApprovalStrategy() {
         return approvalStrategy;
     }
 
-    public void setApprovalStrategy(String approvalStrategy) {
+    public void setApprovalStrategy(AccessCertificationApprovalStrategyType approvalStrategy) {
         this.approvalStrategy = approvalStrategy;
     }
 }

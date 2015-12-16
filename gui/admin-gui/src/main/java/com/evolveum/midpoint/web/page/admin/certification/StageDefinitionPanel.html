@@ -40,7 +40,7 @@
                     <td><wicket:message key="StageDefinitionPanel.stageDuration"/></td>
                     <td>
                         <div class="col-md-6">
-                            <textarea class="form-control input-sm" rows="2" wicket:id="description"/>
+                            <input class="form-control input-sm" rows="2" wicket:id="duration"/>
                         </div>
                     </td>
                 </tr>
@@ -48,7 +48,7 @@
                     <td><wicket:message key="StageDefinitionPanel.notifyBeforeDeadline"/></td>
                     <td>
                         <div class="col-md-6">
-                            <input type="text" class="form-control input-sm" wicket:id="duration"/>
+                            <input type="text" class="form-control input-sm" wicket:id="notifyBeforeDeadline"/>
                         </div>
                     </td>
                 </tr>
@@ -61,7 +61,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="2"><wicket:message key="StageDefinitionPanel.reviewerSpecification"/></td>
+                    <td colspan="2"  style="font-weight:bold"><wicket:message key="StageDefinitionPanel.reviewerSpecification"/></td>
                 </tr>
                 <tr>
                     <td><wicket:message key="StageDefinitionPanel.reviewerName"/></td>
@@ -82,50 +82,47 @@
                 <tr>
                     <td></td>
                     <td>
-                        <label style="margin-right:30px;">
+                        <div style="margin-left:30px;">
                             <input type="checkbox" wicket:id="useTargetOwner">
                             <wicket:message key="StageDefinitionPanel.reviewerUseTargetOwner"/>
-                        </label>
-                        <label style="margin-right:30px;">
+                        </div>
+                        <div style="margin-left:30px;">
                             <input type="checkbox" wicket:id="useTargetApprover">
                             <wicket:message key="StageDefinitionPanel.reviewerUseTargetApprover"/>
-                        </label>
+                        </div>
                     </td>
                     </tr>
                 <tr>
                     <td></td>
                     <td>
-                        <label style="margin-right:30px;">
+                        <div style="margin-left:30px;">
                             <input type="checkbox" wicket:id="useObjectOwner">
                             <wicket:message key="StageDefinitionPanel.reviewerUseObjectOwner"/>
-                        </label>
-                        <label style="margin-right:30px;">
+                        </div>
+                        <div style="margin-left:30px;">
                             <input type="checkbox" wicket:id="useObjectApprover">
                             <wicket:message key="StageDefinitionPanel.reviewerUseObjectApprover"/>
-                        </label>
+                        </div>
                     </td>
                 </tr>
                 <tr>
-                    <td><wicket:message key="StageDefinitionPanel.reviewerUseObjectManager"/></td>
                     <td>
-                        <table>
-                            <tr>
-                                <td><wicket:message key="StageDefinitionPanel.reviewerUseObjectManagerOrgType"/></td>
-                                <td>
-                                    <div class="col-md-6">
-                                        <input type="text" class="form-control input-sm" wicket:id="objectManagerOrgType"/>
-                                    </div>
-                                </td>
-                            </tr>
-                        <tr>
-                                <td><wicket:message key="StageDefinitionPanel.reviewerUseObjectManagerAllowSelf"/></td>
-                                <td>
-                                    <label style="margin-right:30px;">
-                                        <input type="checkbox" wicket:id="useObjectManagerAllowSelf">
-                                    </label>
-                                </td>
-                            </tr>
-                            </table>
+                        <wicket:message key="StageDefinitionPanel.reviewerUseObjectManager"/>
+                    </td>
+                    <td>
+                        <wicket:message key="StageDefinitionPanel.reviewerUseObjectManagerOrgType"/>
+                        <div class="col-md-6">
+                            <input type="text" class="form-control input-sm" wicket:id="objectManagerOrgType"/>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                        <div style="margin-left:30px;">
+                            <input type="checkbox" wicket:id="useObjectManagerAllowSelf">
+                            <wicket:message key="StageDefinitionPanel.reviewerUseObjectManagerAllowSelf"/>
+                        </div>
                     </td>
                 </tr>
                 <!--<tr>-->

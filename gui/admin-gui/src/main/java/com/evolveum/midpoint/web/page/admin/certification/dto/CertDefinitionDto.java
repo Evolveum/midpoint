@@ -205,11 +205,21 @@ public class CertDefinitionDto implements Serializable {
             dto.setUseObjectOwner(Boolean.TRUE.equals(reviewer.isUseObjectOwner()));
             dto.setUseObjectApprover(Boolean.TRUE.equals(reviewer.isUseObjectApprover()));
             dto.setUseObjectManager(createManagerSearchDto(reviewer.getUseObjectManager()));
-            dto.setDefaultReviewerRef(reviewer.getDefaultReviewerRef());
-            dto.setAdditionalReviewerRef(reviewer.getAdditionalReviewerRef());
-            dto.setApprovalStrategy(reviewer.getApprovalStrategy() != null ? reviewer.getApprovalStrategy().name() : null);
+            dto.setDefaultReviewerRef(cloneListObjects(reviewer.getDefaultReviewerRef()));
+            dto.setAdditionalReviewerRef(cloneListObjects(reviewer.getAdditionalReviewerRef()));
+            dto.setApprovalStrategy(reviewer.getApprovalStrategy());
         }
         return dto;
+    }
+
+    private List<ObjectReferenceType> cloneListObjects(List<ObjectReferenceType> listToClone){
+        List<ObjectReferenceType> list = new ArrayList<>();
+        if (listToClone != null){
+            for (ObjectReferenceType objectReferenceType : listToClone){
+                list.add(objectReferenceType.clone());
+            }
+        }
+        return list;
     }
 
     public DefinitionScopeDto getScopeDefinition() {
@@ -272,12 +282,10 @@ public class CertDefinitionDto implements Serializable {
             reviewerObject.setUseObjectApprover(Boolean.TRUE.equals(reviewerDto.isUseObjectApprover()));
             reviewerObject.setUseObjectManager(createManagerSearchType(reviewerDto.getUseObjectManager()));
             reviewerObject.getDefaultReviewerRef().clear();
-            reviewerObject.getDefaultReviewerRef().addAll(reviewerDto.getDefaultReviewerRef());
+            reviewerObject.getDefaultReviewerRef().addAll(cloneListObjects(reviewerDto.getDefaultReviewerRef()));
             reviewerObject.getAdditionalReviewerRef().clear();
-            reviewerObject.getAdditionalReviewerRef().addAll(reviewerDto.getAdditionalReviewerRef());
-            reviewerObject.setApprovalStrategy(reviewerDto.getApprovalStrategy() != null ?
-                    AccessCertificationApprovalStrategyType.valueOf(reviewerDto.getApprovalStrategy())
-                    : null);
+            reviewerObject.getAdditionalReviewerRef().addAll(cloneListObjects(reviewerDto.getAdditionalReviewerRef()));
+            reviewerObject.setApprovalStrategy(reviewerDto.getApprovalStrategy());
         }
         return reviewerObject;
     }
