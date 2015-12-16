@@ -199,6 +199,8 @@ public class CertDefinitionDto implements Serializable {
             dto.setNotifyBeforeDeadline(convertListIntegerToString(stageDefObj.getNotifyBeforeDeadline()));
             dto.setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefObj.isNotifyOnlyWhenNoDecision()));
             dto.setReviewerDto(createAccessCertificationReviewerDto(stageDefObj.getReviewerSpecification()));
+        } else {
+            dto.setReviewerDto(new AccessCertificationReviewerDto());
         }
         return dto;
     }
