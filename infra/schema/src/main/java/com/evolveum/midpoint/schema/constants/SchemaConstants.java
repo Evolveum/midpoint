@@ -248,4 +248,7 @@ public abstract class SchemaConstants {
     public static final QName C_NAME = new QName(SchemaConstants.NS_C, "name");
     
 	public static final QName FAULT_MESSAGE_ELEMENT_NAME = new QName(NS_FAULT, "fault");
+	public static final QName C_MODEL_CONTEXT = new QName(NS_C, "modelContext");
+	public static final QName C_ITEM_TO_APPROVE = new QName(NS_C, "itemToApprove");
+	public static final QName C_SHADOW_DISCRIMINATOR = new QName(NS_C, "shadowDiscriminator");
 }

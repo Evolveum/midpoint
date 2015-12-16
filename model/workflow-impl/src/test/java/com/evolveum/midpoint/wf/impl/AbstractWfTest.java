@@ -155,6 +155,10 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
     public static final String GROUP_TESTERS_FILENAME = AbstractIntegrationTest.COMMON_DIR_PATH + "/group-testers-dummy.xml";
     public static final String GROUP_TESTERS_NAME = "testers";
 
+    public static final String GROUP_GUESTS_OID = "20000000-0000-0000-3333-000000000072";
+    public static final String GROUP_GUESTS_FILENAME = AbstractIntegrationTest.COMMON_DIR_PATH + "/group-guests-dummy.xml";
+    public static final String GROUP_GUESTS_NAME = "guests";
+
     public static final File USER_ELISABETH_FILE = new File(TEST_RESOURCE_DIR, "user-elisabeth.xml");
     public static final String USER_ELISABETH_OID = "c0c010c0-d34d-b33f-f00d-111111112222";
 
@@ -192,8 +196,10 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
         assertEquals("Wrong OID of Role2's approver", R2BOSS_OID, approver.getOid());
 
         importObjectFromFile(GROUP_TESTERS_FILENAME, initResult);
+        importObjectFromFile(GROUP_GUESTS_FILENAME, initResult);
 
         dummyResourceCtl.addGroup(GROUP_TESTERS_NAME);
+        dummyResourceCtl.addGroup(GROUP_GUESTS_NAME);
 	}
 
     protected void checkUserApprovers(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {

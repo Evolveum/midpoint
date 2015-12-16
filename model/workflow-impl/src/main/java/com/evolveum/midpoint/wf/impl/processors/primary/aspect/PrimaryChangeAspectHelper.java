@@ -18,15 +18,27 @@ package com.evolveum.midpoint.wf.impl.processors.primary.aspect;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.model.common.expression.Expression;
+import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -35,16 +47,20 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
+import com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpJob;
+import com.evolveum.midpoint.wf.impl.processors.primary.entitlements.AddAssociationAspect;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.activiti.engine.delegate.DelegateExecution;
 import org.apache.velocity.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -68,6 +84,9 @@ public class PrimaryChangeAspectHelper {
 
     @Autowired
     private PrismContext prismContext;
+
+    @Autowired
+    private ExpressionFactory expressionFactory;
 
     //region ========================================================================== Jobs-related methods
     //endregion
@@ -323,10 +342,65 @@ public class PrimaryChangeAspectHelper {
         return change.getObjectTypeClass();
     }
 
-    //endregion
-
     public boolean hasApproverInformation(PcpAspectConfigurationType config) {
         return config != null && (!config.getApproverRef().isEmpty() || !config.getApproverExpression().isEmpty() || config.getApprovalSchema() != null);
     }
+
+    //endregion
+
+    //region ========================================================================== Expression evaluation
+
+    public boolean evaluateApplicabilityCondition(PcpAspectConfigurationType config, ModelContext modelContext, Serializable itemToApprove,
+                                                  ExpressionVariables additionalVariables, PrimaryChangeAspect aspect, Task task, OperationResult result) {
+
+        if (config == null || config.getApplicabilityCondition() == null) {
+            return true;
+        }
+
+        ExpressionType expressionType = config.getApplicabilityCondition();
+
+        QName resultName = new QName(SchemaConstants.NS_C, "result");
+        PrismPropertyDefinition<Boolean> resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
+
+        ExpressionVariables expressionVariables = new ExpressionVariables();
+        expressionVariables.addVariableDefinition(SchemaConstants.C_MODEL_CONTEXT, modelContext);
+        expressionVariables.addVariableDefinition(SchemaConstants.C_ITEM_TO_APPROVE, itemToApprove);
+        if (additionalVariables != null) {
+            expressionVariables.addVariableDefinitions(additionalVariables);
+        }
+
+        PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple;
+        try {
+            Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression =
+                    expressionFactory.makeExpression(expressionType, resultDef,
+                            "applicability condition expression", task, result);
+            ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables,
+                    "applicability condition expression", task, result);
+
+            ModelExpressionThreadLocalHolder.pushCurrentResult(result);
+            ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+            try {
+                exprResultTriple = expression.evaluate(params);
+            } finally {
+                ModelExpressionThreadLocalHolder.popCurrentResult();
+                ModelExpressionThreadLocalHolder.popCurrentTask();
+            }
+        } catch (SchemaException|ExpressionEvaluationException|ObjectNotFoundException|RuntimeException e) {
+            // TODO report as a specific exception?
+            throw new SystemException("Couldn't evaluate applicability condition in aspect "
+                    + aspect.getClass().getSimpleName() + ": " + e.getMessage(), e);
+        }
+
+        Collection<PrismPropertyValue<Boolean>> exprResult = exprResultTriple.getZeroSet();
+        if (exprResult.size() == 0) {
+            return false;
+        } else if (exprResult.size() > 1) {
+            throw new IllegalStateException("Applicability condition expression should return exactly one boolean value; it returned " + exprResult.size() + " ones");
+        }
+        Boolean boolResult = exprResult.iterator().next().getValue();
+        return boolResult != null ? boolResult : false;
+    }
+
+    //endregion
 
 }

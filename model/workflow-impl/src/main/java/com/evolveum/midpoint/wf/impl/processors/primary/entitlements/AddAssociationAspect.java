@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.impl.processors.primary.entitlements;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -60,16 +62,16 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Aspect for adding entitlements.
+ * Aspect for adding associations.
  *
- * In current version it treats entitlements that are DIRECTLY added, i.e. not as a part of an assignment.
+ * In current version it treats associations that are DIRECTLY added, i.e. not as a part of an assignment.
  *
  * @author mederly
  */
 @Component
-public class AddEntitlementAspect extends BasePrimaryChangeAspect {
+public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AddEntitlementAspect.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AddAssociationAspect.class);
 
     @Autowired
     protected PrismContext prismContext;
@@ -90,7 +92,8 @@ public class AddEntitlementAspect extends BasePrimaryChangeAspect {
         if (!isFocusRelevant(modelContext)) {
             return null;
         }
-        List<ApprovalRequest<AssociationAdditionType>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, objectTreeDeltas, result);
+        List<ApprovalRequest<AssociationAdditionType>> approvalRequestList =
+                getApprovalRequests(modelContext, wfConfigurationType, objectTreeDeltas, taskFromModel, result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return null;
         }
@@ -103,7 +106,7 @@ public class AddEntitlementAspect extends BasePrimaryChangeAspect {
     }
 
     private List<ApprovalRequest<AssociationAdditionType>> getApprovalRequests(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType,
-                                                                             ObjectTreeDeltas changes, OperationResult result) {
+                                                                               ObjectTreeDeltas changes, Task taskFromModel, OperationResult result) {
 
         List<ApprovalRequest<AssociationAdditionType>> requests = new ArrayList<>();
 
@@ -112,10 +115,11 @@ public class AddEntitlementAspect extends BasePrimaryChangeAspect {
         for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry : entries) {
             ObjectDelta<ShadowType> delta = entry.getValue();
             if (delta.isAdd()) {
-                requests.addAll(getApprovalRequestsFromShadowAdd(config, entry.getValue(), entry.getKey(), result));
+                requests.addAll(getApprovalRequestsFromShadowAdd(config, entry.getValue(), entry.getKey(), modelContext, taskFromModel, result));
             } else if (delta.isModify()) {
                 ModelProjectionContext projectionContext = modelContext.findProjectionContext(entry.getKey());
-                requests.addAll(getApprovalRequestsFromShadowModify(config, projectionContext.getObjectOld(), entry.getValue(), entry.getKey(), result));
+                requests.addAll(getApprovalRequestsFromShadowModify(
+                        config, projectionContext.getObjectOld(), entry.getValue(), entry.getKey(), modelContext, taskFromModel, result));
             } else {
                 // no-op
             }
@@ -125,7 +129,7 @@ public class AddEntitlementAspect extends BasePrimaryChangeAspect {
 
     private List<ApprovalRequest<AssociationAdditionType>>
     getApprovalRequestsFromShadowAdd(PcpAspectConfigurationType config, ObjectDelta<ShadowType> change,
-                                     ResourceShadowDiscriminator rsd, OperationResult result) {
+                                     ResourceShadowDiscriminator rsd, ModelContext<?> modelContext, Task taskFromModel, OperationResult result) {
         LOGGER.trace("Relevant associations in shadow add delta:");
 
         List<ApprovalRequest<AssociationAdditionType>> approvalRequestList = new ArrayList<>();
@@ -133,20 +137,27 @@ public class AddEntitlementAspect extends BasePrimaryChangeAspect {
         Iterator<ShadowAssociationType> associationIterator = shadowType.getAssociation().iterator();
         while (associationIterator.hasNext()) {
             ShadowAssociationType a = associationIterator.next();
-            if (isAssociationRelevant(a)) {
-                LOGGER.trace(" - {}", a);
-                ShadowAssociationType aCopy = cloneAndCanonicalizeAssociation(a);
-                approvalRequestList.add(createApprovalRequest(config, aCopy, rsd));
+            AssociationAdditionType itemToApprove = createItemToApprove(a, rsd);
+            if (isAssociationRelevant(config, itemToApprove, rsd, modelContext, taskFromModel, result)) {
+                approvalRequestList.add(createApprovalRequest(config, itemToApprove));
                 associationIterator.remove();
             }
         }
         return approvalRequestList;
     }
 
+    private AssociationAdditionType createItemToApprove(ShadowAssociationType a, ResourceShadowDiscriminator rsd) {
+        ShadowAssociationType aCopy = cloneAndCanonicalizeAssociation(a);
+        AssociationAdditionType aat = new AssociationAdditionType(prismContext);
+        aat.setAssociation(aCopy);
+        aat.setResourceShadowDiscriminator(rsd.toResourceShadowDiscriminatorType());
+        return aat;
+    }
+
     private List<ApprovalRequest<AssociationAdditionType>>
     getApprovalRequestsFromShadowModify(PcpAspectConfigurationType config, PrismObject<ShadowType> shadowOld,
                                         ObjectDelta<ShadowType> change, ResourceShadowDiscriminator rsd,
-                                        OperationResult result) {
+                                        ModelContext<?> modelContext, Task taskFromModel, OperationResult result) {
         LOGGER.trace("Relevant associations in shadow modify delta:");
 
         List<ApprovalRequest<AssociationAdditionType>> approvalRequestList = new ArrayList<>();
@@ -164,7 +175,8 @@ public class AddEntitlementAspect extends BasePrimaryChangeAspect {
                 Iterator<PrismContainerValue<ShadowAssociationType>> valueIterator = delta.getValuesToAdd().iterator();
                 while (valueIterator.hasNext()) {
                     PrismContainerValue<ShadowAssociationType> association = valueIterator.next();
-                    ApprovalRequest<AssociationAdditionType> req = processAssociationToAdd(config, association, rsd, result);
+                    ApprovalRequest<AssociationAdditionType> req =
+                            processAssociationToAdd(config, association, rsd, modelContext, taskFromModel, result);
                     if (req != null) {
                         approvalRequestList.add(req);
                         valueIterator.remove();
@@ -178,7 +190,8 @@ public class AddEntitlementAspect extends BasePrimaryChangeAspect {
                     if (existsEquivalentValue(shadowOld, association)) {
                         continue;
                     }
-                    ApprovalRequest<AssociationAdditionType> req = processAssociationToAdd(config, association, rsd, result);
+                    ApprovalRequest<AssociationAdditionType> req =
+                            processAssociationToAdd(config, association, rsd, modelContext, taskFromModel, result);
                     if (req != null) {
                         approvalRequestList.add(req);
                         valueIterator.remove();
@@ -208,14 +221,14 @@ public class AddEntitlementAspect extends BasePrimaryChangeAspect {
 
     private ApprovalRequest<AssociationAdditionType>
     processAssociationToAdd(PcpAspectConfigurationType config, PrismContainerValue<ShadowAssociationType> associationCval,
-                            ResourceShadowDiscriminator rsd, OperationResult result) {
+                            ResourceShadowDiscriminator rsd, ModelContext<?> modelContext, Task taskFromModel, OperationResult result) {
         ShadowAssociationType association = associationCval.asContainerable();
-        if (isAssociationRelevant(association)) {
-            LOGGER.trace(" - {}", association);
-            ShadowAssociationType aCopy = cloneAndCanonicalizeAssociation(association);
-            return createApprovalRequest(config, aCopy, rsd);
+        AssociationAdditionType itemToApprove = createItemToApprove(association, rsd);
+        if (isAssociationRelevant(config, itemToApprove, rsd, modelContext, taskFromModel, result)) {
+            return createApprovalRequest(config, itemToApprove);
+        } else {
+            return null;
         }
-        return null;
     }
 
     private List<PcpChildJobCreationInstruction>
@@ -248,7 +261,7 @@ public class AddEntitlementAspect extends BasePrimaryChangeAspect {
             instruction.prepareCommonAttributes(this, modelContext, assigneeOid, requester);
 
             // prepare and set the delta that has to be approved
-            ObjectTreeDeltas objectTreeDeltas = entitlementAdditionToDelta(modelContext, associationAddition, assigneeOid);
+            ObjectTreeDeltas objectTreeDeltas = associationAdditionToDelta(modelContext, associationAddition, assigneeOid);
             instruction.setObjectTreeDeltasProcessAndTaskVariables(objectTreeDeltas);
 
             // set the names of midPoint task and activiti process instance
@@ -269,7 +282,7 @@ public class AddEntitlementAspect extends BasePrimaryChangeAspect {
     }
 
     // creates an ObjectTreeDeltas that will be executed after successful approval of the given assignment
-    private ObjectTreeDeltas entitlementAdditionToDelta(ModelContext<?> modelContext, AssociationAdditionType addition, String objectOid)
+    private ObjectTreeDeltas associationAdditionToDelta(ModelContext<?> modelContext, AssociationAdditionType addition, String objectOid)
             throws SchemaException {
         ObjectTreeDeltas changes = new ObjectTreeDeltas(prismContext);
         ResourceShadowDiscriminator shadowDiscriminator =
@@ -329,25 +342,26 @@ public class AddEntitlementAspect extends BasePrimaryChangeAspect {
     }
     //endregion
 
-    //region ------------------------------------------------------------ Things to override in concrete aspect classes
-
-    protected boolean isAssociationRelevant(ShadowAssociationType association) {
-        return true;
-        // TODO implement some expression evaluation
+    protected boolean isAssociationRelevant(PcpAspectConfigurationType config, AssociationAdditionType itemToApprove,
+                                            ResourceShadowDiscriminator rsd, ModelContext<?> modelContext, Task task, OperationResult result) {
+        LOGGER.trace(" - considering: {}", itemToApprove);
+        ExpressionVariables variables = new ExpressionVariables();
+        variables.addVariableDefinition(SchemaConstants.C_ASSOCIATION, itemToApprove.getAssociation());
+        variables.addVariableDefinition(SchemaConstants.C_SHADOW_DISCRIMINATOR, rsd);
+        boolean applicable = primaryChangeAspectHelper.evaluateApplicabilityCondition(
+                config, modelContext, itemToApprove, variables, this, task, result);
+        LOGGER.trace("   - result: applicable = {}", applicable);
+        return applicable;
     }
 
     protected ShadowAssociationType cloneAndCanonicalizeAssociation(ShadowAssociationType a) {
-        return a.clone();       // TODO
+        return a.clone();       // TODO - should we canonicalize?
     }
 
     // creates an approval requests (e.g. by providing approval schema) for a given assignment and a target
     protected ApprovalRequest<AssociationAdditionType>
-    createApprovalRequest(PcpAspectConfigurationType config, ShadowAssociationType association,
-                          ResourceShadowDiscriminator resourceShadowDiscriminator) {
-        AssociationAdditionType aat = new AssociationAdditionType(prismContext);
-        aat.setAssociation(association);
-        aat.setResourceShadowDiscriminator(resourceShadowDiscriminator.toResourceShadowDiscriminatorType());
-        return new ApprovalRequestImpl<>(aat, config, prismContext);
+    createApprovalRequest(PcpAspectConfigurationType config, AssociationAdditionType itemToApprove) {
+        return new ApprovalRequestImpl<>(itemToApprove, config, prismContext);
     }
 
     // retrieves the relevant target for a given assignment - a role, an org, or a resource
@@ -363,5 +377,4 @@ public class AddEntitlementAspect extends BasePrimaryChangeAspect {
             return target.getOid();
         }
     }
-    //endregion
 }
