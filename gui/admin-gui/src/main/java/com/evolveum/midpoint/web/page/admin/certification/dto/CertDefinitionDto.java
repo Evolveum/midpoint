@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -27,14 +28,17 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -49,6 +53,8 @@ public class CertDefinitionDto implements Serializable {
     public static final String F_OWNER = "owner";
     public static final String F_SCOPE_DEFINITION = "scopeDefinition";
     public static final String F_STAGE_DEFINITION = "stageDefinition";
+    public static final String F_LAST_STARTED = "lastStarted";
+    public static final String F_LAST_CLOSED = "lastClosed";
 
     private AccessCertificationDefinitionType oldDefinition;            // to be able to compute the delta when saving
     private AccessCertificationDefinitionType definition;               // definition that is (at least partially) dynamically updated when editing the form
@@ -56,7 +62,6 @@ public class CertDefinitionDto implements Serializable {
     private final List<StageDefinitionDto> stageDefinition;
     private String xml;
     private ObjectViewDto owner;
-    private String scopeSearchFilter;
 
     public CertDefinitionDto(AccessCertificationDefinitionType definition, PageBase page, Task task, OperationResult result) {
         this.oldDefinition = definition.clone();
@@ -342,5 +347,21 @@ public class CertDefinitionDto implements Serializable {
             }
         }
         return list;
+    }
+
+    public String getLastStarted() {
+        return formatDate(definition.getLastCampaignStartedTimestamp());
+    }
+
+    private String formatDate(XMLGregorianCalendar dateGc) {
+        if (dateGc == null) {
+            return "-";
+        } else {
+            return WebMiscUtil.formatDate(XmlTypeConverter.toDate(dateGc));
+        }
+    }
+
+    public String getLastClosed() {
+        return formatDate(definition.getLastCampaignClosedTimestamp());
     }
 }
