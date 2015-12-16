@@ -167,25 +167,25 @@ public class PageCertDefinition extends PageAdminCertification {
 
 		List<ITab> tabs = new ArrayList<>();
 		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.scopeDefinition")) {
-			@Override
-			public WebMarkupContainer getPanel(String panelId) {
-				return new DefinitionScopePanel(panelId, new PropertyModel<DefinitionScopeDto>(definitionModel, CertDefinitionDto.F_SCOPE_DEFINITION));
-			}
-		});
+            @Override
+            public WebMarkupContainer getPanel(String panelId) {
+                return new DefinitionScopePanel(panelId, new PropertyModel<DefinitionScopeDto>(definitionModel, CertDefinitionDto.F_SCOPE_DEFINITION));
+            }
+        });
 		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.stagesDefinition")) {
-			@Override
-			public WebMarkupContainer getPanel(String panelId) {
-				return new DefinitionStagesPanel(panelId, new PropertyModel<List<StageDefinitionDto>>(definitionModel, CertDefinitionDto.F_STAGE_DEFINITION));
-			}
-		});
+            @Override
+            public WebMarkupContainer getPanel(String panelId) {
+                return new DefinitionStagesPanel(panelId, new PropertyModel<List<StageDefinitionDto>>(definitionModel, CertDefinitionDto.F_STAGE_DEFINITION));
+            }
+        });
 
 		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.campaigns")) {
-			@Override
-			public WebMarkupContainer getPanel(String panelId) {
-				// TODO campaigns panel (extract from PageCertCampaigns)
-				return new WebMarkupContainer(panelId);
-			}
-		});
+            @Override
+            public WebMarkupContainer getPanel(String panelId) {
+                // TODO campaigns panel (extract from PageCertCampaigns)
+                return new WebMarkupContainer(panelId);
+            }
+        });
 		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.xmlDefinition")) {
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
@@ -235,7 +235,7 @@ public class PageCertDefinition extends PageAdminCertification {
         });
         mainForm.add(nameField);
 
-            final TextField descriptionField = new TextField(ID_DESCRIPTION, new PropertyModel<>(definitionModel, CertDefinitionDto.F_DESCRIPTION));
+            final TextArea descriptionField = new TextArea(ID_DESCRIPTION, new PropertyModel<>(definitionModel, CertDefinitionDto.F_DESCRIPTION));
         descriptionField.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isEnabled() {
