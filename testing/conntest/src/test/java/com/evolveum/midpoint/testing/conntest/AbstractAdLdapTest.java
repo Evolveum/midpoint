@@ -56,6 +56,7 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -638,7 +639,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
         
         ObjectPaging paging = ObjectPaging.createPaging(1, 2);
-        paging.setOrderBy(getAttributeQName(resource, "cn"));
+        paging.setOrdering(getAttributePath(resource, "cn"), OrderDirection.ASCENDING);
 		query.setPaging(paging);
         
 		SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 2, task, result);

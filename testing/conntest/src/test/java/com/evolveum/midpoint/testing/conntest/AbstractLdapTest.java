@@ -443,6 +443,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
+        display("Searching shadows, options="+options+", query", query);
 		SearchResultMetadata searchResultMetadata = modelService.searchObjectsIterative(ShadowType.class, query, handler, options, task, result);
 		
 		// THEN
