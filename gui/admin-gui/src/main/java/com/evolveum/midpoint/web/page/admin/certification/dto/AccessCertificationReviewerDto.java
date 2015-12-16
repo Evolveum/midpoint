@@ -2,12 +2,13 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Created by Kate on 15.12.2015.
  */
-public class AccessCertificationReviewerDto {
+public class AccessCertificationReviewerDto implements Serializable {
     public static final String F_NAME =  "name";
     public static final String F_DESCRIPTION =  "description";
     public static final String F_USE_TARGET_OWNER =  "useTargetOwner";

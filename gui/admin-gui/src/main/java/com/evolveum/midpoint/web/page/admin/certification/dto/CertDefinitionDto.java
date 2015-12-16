@@ -25,7 +25,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import javax.xml.namespace.QName;
@@ -163,8 +162,8 @@ public class CertDefinitionDto implements Serializable {
             dto.setNumber(stageDefObj.getNumber());
             dto.setName(stageDefObj.getName());
             dto.setDescription(stageDefObj.getDescription());
-            dto.setDurationDays(stageDefObj.getDays());
-            dto.setNotifyBeforeDeadline(stageDefObj.getNotifyBeforeDeadline());
+            dto.setDays(stageDefObj.getDays());
+//            dto.setNotifyBeforeDeadline(stageDefObj.getNotifyBeforeDeadline());
             dto.setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefObj.isNotifyOnlyWhenNoDecision()));
             dto.setReviewerDto(createAccessCertificationReviewerDto(stageDefObj.getReviewerSpecification()));
         }

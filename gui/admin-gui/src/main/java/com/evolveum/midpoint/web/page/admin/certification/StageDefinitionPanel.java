@@ -50,37 +50,37 @@ public class StageDefinitionPanel extends SimplePanel<StageDefinitionDto> {
         TextField durationField = new TextField(ID_DURATION, new PropertyModel<>(getModel(), StageDefinitionDto.F_DAYS));
         add(durationField);
 
-        TextField notifyBeforeDeadlineField = new TextField(ID_NOTIFY_BEFORE_DEADLINE, new IModel<String>() {
-            @Override
-            public String getObject() {
-                List<Integer> list = getModelObject().getNotifyBeforeDeadline();
-                String notifyBeforeDeadlineValue = "";
-                for (Integer listItem : list){
-                    notifyBeforeDeadlineValue += Integer.toString(listItem);
-                    if(list.indexOf(listItem) < list.size() - 1){
-                        notifyBeforeDeadlineValue += ", ";
-                    }
-                }
-                return notifyBeforeDeadlineValue;
-            }
-
-            @Override
-            public void setObject(String object) {
-                List<Integer> list = new ArrayList<>();
-                String[] values = object.split(",");
-                for (String value : values){
-                    if (! value.trim().equals("")){
-                        list.add(Integer.parseInt(value.trim()));
-                    }
-                }
-            }
-
-            @Override
-            public void detach() {
-
-            }
-        });
-        add(notifyBeforeDeadlineField);
+//        TextField notifyBeforeDeadlineField = new TextField(ID_NOTIFY_BEFORE_DEADLINE, new IModel<String>() {
+//            @Override
+//            public String getObject() {
+//                List<Integer> list = getModelObject().getNotifyBeforeDeadline();
+//                String notifyBeforeDeadlineValue = "";
+//                for (Integer listItem : list){
+//                    notifyBeforeDeadlineValue += Integer.toString(listItem);
+//                    if(list.indexOf(listItem) < list.size() - 1){
+//                        notifyBeforeDeadlineValue += ", ";
+//                    }
+//                }
+//                return notifyBeforeDeadlineValue;
+//            }
+//
+//            @Override
+//            public void setObject(String object) {
+//                List<Integer> list = new ArrayList<>();
+//                String[] values = object.split(",");
+//                for (String value : values){
+//                    if (! value.trim().equals("")){
+//                        list.add(Integer.parseInt(value.trim()));
+//                    }
+//                }
+//            }
+//
+//            @Override
+//            public void detach() {
+//
+//            }
+//        });
+//        add(notifyBeforeDeadlineField);
 
     }
 

@@ -166,7 +166,7 @@ public class StageEditorPanel extends SimplePanel<StageDefinitionDto> {
             }
         };
         Label nameLabel = new Label(ID_NAME_LABEL, getModel().getObject().getName() == null || getModel().getObject().getName().trim().equals("") ?
-                createStringResource("StageEditorPanel.stageDefinitionLabelName").getString() + getModel().getObject().getNumber()
+                "Stage definition #" +  getModel().getObject().getNumber()
                 : getModel().getObject().getName());
         name.add(nameLabel);
 

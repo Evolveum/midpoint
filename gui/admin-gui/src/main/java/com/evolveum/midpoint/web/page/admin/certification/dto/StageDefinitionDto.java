@@ -1,14 +1,11 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-
-import javax.xml.namespace.QName;
-import java.util.List;
+import java.io.Serializable;
 
 /**
  * Created by Kate on 15.12.2015.
  */
-public class StageDefinitionDto {
+public class StageDefinitionDto implements Serializable {
     public final static String F_NUMBER = "number";
     public final static String F_NAME = "name";
     public final static String F_DESCRIPTION = "description";
@@ -20,8 +17,8 @@ public class StageDefinitionDto {
     private int number;
     private String name;
     private String description;
-    private int durationDays;
-    private List<Integer> notifyBeforeDeadline;
+    private int days;
+//    private List<Integer> notifyBeforeDeadline;
     private boolean notifyOnlyWhenNoDecision;
     private AccessCertificationReviewerDto reviewerDto;
 
@@ -50,21 +47,21 @@ public class StageDefinitionDto {
         this.description = description;
     }
 
-    public int getDurationDays() {
-        return durationDays;
+    public int getDays() {
+        return days;
     }
 
-    public void setDurationDays(int durationDays) {
-        this.durationDays = durationDays;
+    public void setDays(int days) {
+        this.days = days;
     }
 
-    public List<Integer> getNotifyBeforeDeadline() {
-        return notifyBeforeDeadline;
-    }
-
-    public void setNotifyBeforeDeadline(List<Integer> notifyBeforeDeadline) {
-        this.notifyBeforeDeadline = notifyBeforeDeadline;
-    }
+//    public List<Integer> getNotifyBeforeDeadline() {
+//        return notifyBeforeDeadline;
+//    }
+//
+//    public void setNotifyBeforeDeadline(List<Integer> notifyBeforeDeadline) {
+//        this.notifyBeforeDeadline = notifyBeforeDeadline;
+//    }
 
     public boolean isNotifyOnlyWhenNoDecision() {
         return notifyOnlyWhenNoDecision;
