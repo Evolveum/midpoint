@@ -208,6 +208,10 @@ public class CertDefinitionDto implements Serializable {
             dto.setDefaultReviewerRef(cloneListObjects(reviewer.getDefaultReviewerRef()));
             dto.setAdditionalReviewerRef(cloneListObjects(reviewer.getAdditionalReviewerRef()));
             dto.setApprovalStrategy(reviewer.getApprovalStrategy());
+            dto.setFirstDefaultReviewerRef(loadOwnerReference(reviewer.getDefaultReviewerRef() == null ? null :
+                    (reviewer.getDefaultReviewerRef().size() == 0 ? null : reviewer.getDefaultReviewerRef().get(0))));
+            dto.setFirstAdditionalReviewerRef(loadOwnerReference(reviewer.getAdditionalReviewerRef() == null ? null :
+                    (reviewer.getAdditionalReviewerRef().size() == 0 ? null : reviewer.getAdditionalReviewerRef().get(0))));
         }
         return dto;
     }
@@ -281,8 +285,10 @@ public class CertDefinitionDto implements Serializable {
             reviewerObject.setUseObjectOwner(Boolean.TRUE.equals(reviewerDto.isUseObjectOwner()));
             reviewerObject.setUseObjectApprover(Boolean.TRUE.equals(reviewerDto.isUseObjectApprover()));
             reviewerObject.setUseObjectManager(createManagerSearchType(reviewerDto.getUseObjectManager()));
+            updateDefaultReviewer(reviewerDto);
             reviewerObject.getDefaultReviewerRef().clear();
             reviewerObject.getDefaultReviewerRef().addAll(cloneListObjects(reviewerDto.getDefaultReviewerRef()));
+            updateAdditionalReviewer(reviewerDto);
             reviewerObject.getAdditionalReviewerRef().clear();
             reviewerObject.getAdditionalReviewerRef().addAll(cloneListObjects(reviewerDto.getAdditionalReviewerRef()));
             reviewerObject.setApprovalStrategy(reviewerDto.getApprovalStrategy());
@@ -330,5 +336,49 @@ public class CertDefinitionDto implements Serializable {
             }
         }
         return list;
+    }
+
+    private void updateDefaultReviewer(AccessCertificationReviewerDto reviewerDto){
+        if (reviewerDto.getFirstDefaultReviewerRef() != null) {
+            String oid = reviewerDto.getFirstDefaultReviewerRef().getKnownOid();
+            if (reviewerDto.getDefaultReviewerRef() == null){
+                reviewerDto.setDefaultReviewerRef(new ArrayList<ObjectReferenceType>());
+            }
+            if (oid != null) {
+                if (reviewerDto.getDefaultReviewerRef().size() == 0){
+                    reviewerDto.getDefaultReviewerRef().
+                            add(ObjectTypeUtil.createObjectRef(reviewerDto.getFirstDefaultReviewerRef().getKnownOid(), ObjectTypes.USER));
+                } else {
+                    reviewerDto.getDefaultReviewerRef().
+                            set(0, ObjectTypeUtil.createObjectRef(reviewerDto.getFirstDefaultReviewerRef().getKnownOid(), ObjectTypes.USER));
+                }
+            } else {
+                if (reviewerDto.getDefaultReviewerRef().size() > 0) {
+                    reviewerDto.getDefaultReviewerRef().remove(0);
+                }
+            }
+        }
+    }
+
+    private void updateAdditionalReviewer(AccessCertificationReviewerDto reviewerDto){
+        if (reviewerDto.getFirstAdditionalReviewerRef() != null) {
+            String oid = reviewerDto.getFirstAdditionalReviewerRef().getKnownOid();
+            if (reviewerDto.getAdditionalReviewerRef() == null){
+                reviewerDto.setAdditionalReviewerRef(new ArrayList<ObjectReferenceType>());
+            }
+            if (oid != null) {
+                if (reviewerDto.getAdditionalReviewerRef().size() == 0){
+                    reviewerDto.getAdditionalReviewerRef().
+                            add(ObjectTypeUtil.createObjectRef(reviewerDto.getFirstAdditionalReviewerRef().getKnownOid(), ObjectTypes.USER));
+                } else {
+                    reviewerDto.getAdditionalReviewerRef().
+                            set(0, ObjectTypeUtil.createObjectRef(reviewerDto.getFirstAdditionalReviewerRef().getKnownOid(), ObjectTypes.USER));
+                }
+            } else {
+                if (reviewerDto.getAdditionalReviewerRef().size() > 0) {
+                    reviewerDto.getDefaultReviewerRef().remove(0);
+                }
+            }
+        }
     }
 }

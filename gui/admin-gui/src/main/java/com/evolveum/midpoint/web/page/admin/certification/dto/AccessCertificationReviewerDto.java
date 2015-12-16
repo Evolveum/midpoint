@@ -1,9 +1,13 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationApprovalStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,6 +24,8 @@ public class AccessCertificationReviewerDto implements Serializable {
     public static final String F_REVIEWER_EXPRESSION =  "reviewerExpression";
     public static final String F_DEF_REVIEWER_REF =  "defaultReviewerRef";
     public static final String F_ADDITIONAL_REVIEWER_REF =  "additionalReviewerRef";
+    public static final String F_FIRST_DEF_REVIEWER_REF =  "firstDefaultReviewerRef";
+    public static final String F_FIRST_ADDITIONAL_REVIEWER_REF =  "firstAdditionalReviewerRef";
     public static final String F_APPROVAL_STRATEGY =  "approvalStrategy";
 
     private String name;
@@ -32,6 +38,12 @@ public class AccessCertificationReviewerDto implements Serializable {
     private List<ObjectReferenceType> defaultReviewerRef;
     private List<ObjectReferenceType> additionalReviewerRef;
     private AccessCertificationApprovalStrategyType approvalStrategy;
+    private ObjectViewDto firstDefaultReviewerRef;                    //first default and addition reviewer references are temporary decision
+    private ObjectViewDto firstAdditionalReviewerRef;                 //until multivalue chooser component will be implemented
+                                                                            //for now display just single value for defaultReviewerRef and additionalReviewerRef
+
+
+
     public enum ApprovalStrategy {
         ONE_APPROVAL_APPROVES,
         ONE_DENY_DENIES,
@@ -117,5 +129,21 @@ public class AccessCertificationReviewerDto implements Serializable {
 
     public void setApprovalStrategy(AccessCertificationApprovalStrategyType approvalStrategy) {
         this.approvalStrategy = approvalStrategy;
+    }
+
+    public ObjectViewDto getFirstAdditionalReviewerRef() {
+        return firstAdditionalReviewerRef;
+    }
+
+    public void setFirstAdditionalReviewerRef(ObjectViewDto firstAdditionalReviewerRef) {
+        this.firstAdditionalReviewerRef = firstAdditionalReviewerRef;
+    }
+
+    public ObjectViewDto getFirstDefaultReviewerRef() {
+        return firstDefaultReviewerRef;
+    }
+
+    public void setFirstDefaultReviewerRef(ObjectViewDto firstDefaultReviewerRef) {
+        this.firstDefaultReviewerRef = firstDefaultReviewerRef;
     }
 }

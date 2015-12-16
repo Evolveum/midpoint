@@ -109,42 +109,8 @@ import java.util.List;
  */
 public class StageEditorPanel extends SimplePanel<StageDefinitionDto> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(StageEditorPanel.class);
-
-    private static final String DOT_CLASS = StageEditorPanel.class.getName() + ".";
-
-    private static final String ID_MAIN = "main";
-    private static final String ID_HEADER_ROW = "headerRow";
-    private static final String ID_SELECTED = "selected";
-    private static final String ID_TYPE_IMAGE = "typeImage";
     private static final String ID_NAME_LABEL = "nameLabel";
     private static final String ID_NAME = "name";
-    private static final String ID_ACTIVATION = "activation";
-    private static final String ID_ACTIVATION_BLOCK = "activationBlock";
-    private static final String ID_BODY = "body";
-    private static final String ID_DESCRIPTION = "description";
-    private static final String ID_RELATION_CONTAINER = "relationContainer";
-    private static final String ID_RELATION = "relation";
-    private static final String ID_RELATION_LABEL = "relationLabel";
-    private static final String ID_ADMINISTRATIVE_STATUS = "administrativeStatus";
-    private static final String ID_VALID_FROM = "validFrom";
-    private static final String ID_VALID_TO = "validTo";
-    private static final String ID_SHOW_EMPTY = "showEmpty";
-    private static final String ID_SHOW_EMPTY_LABEL = "showEmptyLabel";
-    private static final String ID_ATTRIBUTES = "attributes";
-    private static final String ID_ATTRIBUTE = "attribute";
-    private static final String ID_AC_ATTRIBUTE = "acAttribute";
-    private static final String ID_TARGET = "target";
-    private static final String ID_TARGET_CONTAINER = "targetContainer";
-    private static final String ID_CONSTRUCTION_CONTAINER = "constructionContainer";
-    private static final String ID_CONTAINER_TENANT_REF = "tenantRefContainer";
-    private static final String ID_TENANT_CHOOSER = "tenantRefChooser";
-    private static final String ID_CONTAINER_ORG_REF = "orgRefContainer";
-    private static final String ID_ORG_CHOOSER = "orgRefChooser";
-    private static final String ID_BUTTON_SHOW_MORE = "errorLink";
-    private static final String ID_ERROR_ICON = "errorIcon";
-
-    private IModel<List<ACAttributeDto>> attributesModel;
 
     public StageEditorPanel(String id, IModel<StageDefinitionDto> model) {
         super(id, model);
@@ -153,11 +119,6 @@ public class StageEditorPanel extends SimplePanel<StageDefinitionDto> {
     }
 
     private void initPanelLayout() {
-//        WebMarkupContainer headerRow = new WebMarkupContainer(ID_HEADER_ROW);
-////        headerRow.add(AttributeModifier.append("class", createHeaderClassModel(getModel())));
-//        headerRow.setOutputMarkupId(true);
-//        add(headerRow);
-
         AjaxLink name = new AjaxLink(ID_NAME) {
 
             @Override
@@ -171,60 +132,7 @@ public class StageEditorPanel extends SimplePanel<StageDefinitionDto> {
         name.add(nameLabel);
 
         add(name);
-//        headerRow.add(name);
-
-
-//        WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
-//        body.setOutputMarkupId(true);
-//        add(body);
-
-//        WebMarkupContainer main = new WebMarkupContainer(ID_MAIN);
-//        body.add(new VisibleEnableBehaviour() {
-//
-//            @Override
-//            public boolean isVisible() {
-//                return true;
-////                AssignmentEditorDto editorDto = StageEditorPanel.this.getModel().getObject();
-////                return !editorDto.isMinimized();
-//            }
-//        });
-//        body.add(main);
-
-//        initBodyLayout(body);
     }
-
-//    private IModel<String> createAssignmentNameLabelModel(){
-//        return new AbstractReadOnlyModel<String>() {
-//
-//            @Override
-//            public String getObject() {
-//                if(getModel() != null && getModel().getObject() != null){
-//                    AssignmentEditorDto dto = getModelObject();
-//
-//                    if(dto.getName() != null){
-//                        return dto.getName();
-//                    }
-//
-//                    if(dto.getAltName() != null){
-//                        return getString("AssignmentEditorPanel.name.focus");
-//                    }
-//                }
-//
-//                return getString("AssignmentEditorPanel.name.noTarget");
-//            }
-//        };
-//    }
-
-    private IModel<String> createHeaderClassModel(final IModel<AssignmentEditorDto> model) {
-        return new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject() {
-                return "name " + Math.random();
-            }
-        };
-    }
-
 
     private void nameClickPerformed(AjaxRequestTarget target) {
         TabbedPanel tabbedPanel = this.findParent(TabbedPanel.class);
