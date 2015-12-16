@@ -404,7 +404,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 	 */
 	@Test
     public void test182Search50AccountsOffset20SortUid() throws Exception {
-		final String TEST_NAME = "test182Seac50AccountsOffset20SortUid";
+		final String TEST_NAME = "test182Search50AccountsOffset20SortUid";
         TestUtil.displayTestTile(this, TEST_NAME);
         
         // GIVEN
