@@ -68,6 +68,7 @@ import org.apache.wicket.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.authroles.authorization.strategies.role.Roles;
+import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -77,6 +78,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 
@@ -854,8 +856,20 @@ public final class WebMiscUtil {
         String path = object.getPageRelativePath();
         T retval = (T) containingPage.get(path);
         if (retval == null) {
-            throw new IllegalStateException("There is no component like " + object + " (path '" + path + "') on " + containingPage);
+            return object;
+//            throw new IllegalStateException("There is no component like " + object + " (path '" + path + "') on " + containingPage);
         }
         return retval;
+    }
+    
+    public static String debugHandler(IRequestHandler handler) {
+    	if (handler == null) {
+    		return null;
+    	}
+    	if (handler instanceof RenderPageRequestHandler) {
+    		return "RenderPageRequestHandler("+((RenderPageRequestHandler)handler).getPageClass().getName()+")";
+    	} else {
+    		return handler.toString();
+    	}
     }
 }

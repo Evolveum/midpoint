@@ -75,6 +75,14 @@ public class ObjectViewDto<T extends ObjectType> implements Serializable {
         return oid;
     }
 
+    public String getKnownOid() {
+        if (BAD_OID.equals(oid)) {
+            return null;
+        } else {
+            return oid;
+        }
+    }
+
     public void setOid(String oid){
         this.oid = oid;
     }

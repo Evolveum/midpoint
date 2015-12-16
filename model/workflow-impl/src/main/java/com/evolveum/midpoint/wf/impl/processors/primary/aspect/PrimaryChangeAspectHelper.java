@@ -23,6 +23,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -33,19 +35,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
+import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpJob;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericPcpAspectConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.velocity.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -55,6 +48,7 @@ import javax.xml.namespace.QName;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -87,12 +81,12 @@ public class PrimaryChangeAspectHelper {
      * DeltaIn contains a delta that has to be approved. Workflow answers simply yes/no.
      * Therefore, we either copy DeltaIn to DeltaOut, or generate an empty list of modifications.
      */
-    public List<ObjectDelta<Objectable>> prepareDeltaOut(ProcessEvent event, PcpJob pcpJob, OperationResult result) throws SchemaException {
-        List<ObjectDelta<Objectable>> deltaIn = pcpJob.retrieveDeltasToProcess();
+    public ObjectTreeDeltas prepareDeltaOut(ProcessEvent event, PcpJob pcpJob, OperationResult result) throws SchemaException {
+        ObjectTreeDeltas deltaIn = pcpJob.retrieveDeltasToProcess();
         if (ApprovalUtils.isApproved(event.getAnswer())) {
-            return new ArrayList<>(deltaIn);
+            return deltaIn;
         } else {
-            return new ArrayList<>();
+            return null;
         }
     }
 
@@ -129,6 +123,26 @@ public class PrimaryChangeAspectHelper {
         }
 
         return requester;
+    }
+
+    public ShadowType resolveTargetUnchecked(ShadowAssociationType association, OperationResult result) throws SchemaException, ObjectNotFoundException {
+
+        if (association == null) {
+            return null;
+        }
+
+        ObjectReferenceType shadowRef = association.getShadowRef();
+        if (shadowRef == null || shadowRef.getOid() == null) {
+            throw new IllegalStateException("None or null-OID shadowRef in " + association);
+        }
+        PrismObject<ShadowType> shadow = shadowRef.asReferenceValue().getObject();
+        if (shadow == null) {
+            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
+                    GetOperationOptions.createNoFetch());
+            shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), options, result);
+            shadowRef.asReferenceValue().setObject(shadow);
+        }
+        return shadow.asObjectable();
     }
 
     public <T extends ObjectType> T resolveTargetRefUnchecked(AssignmentType a, OperationResult result) throws SchemaException, ObjectNotFoundException {

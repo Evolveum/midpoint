@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2010-2015 Evolveum
   ~
@@ -15,29 +14,21 @@
   ~ limitations under the License.
   -->
 
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
-<body>
-<wicket:extend>
-		<div class="error-page">
-			<h2 class="headline text-red" wicket:id="code">500</h2>
-			<div class="error-content">
-				<h3>
-					<i class="fa fa-warning text-red"></i>
-					<span wicket:id="label">Unexpected error</span>
-				</h3>
 
-				<p>
-					<wicket:message key="PageError.message" />
-				</p>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div wicket:id="objectSelectionPopup" />
 
-				<p wicket:id="message" />
-
-				<div class="main-button-bar">
-					<a class="btn btn-primary" wicket:id="back" />
-				</div>
-
-			</div>
-		</div>
-</wicket:extend>
-</body>
+     <div wicket:id="textWrapper">
+       <div class="input-group input-group-sm">
+           <input type="text" class="form-control input-sm" wicket:id="text" />
+           <span class="input-group-btn">
+               <button wicket:id="edit" class="btn btn-primary" type="button">
+                   <wicket:message key="PageBase.button.edit" />
+               </button>
+           </span>
+           <span class="text-danger" wicket:id="feedback" />
+       </div>
+   </div> 
+</wicket:panel>
 </html>

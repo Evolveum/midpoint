@@ -135,6 +135,9 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 
 	@Override
 	public ItemPath getPath() {
+		if (getParentPath() == null) {
+			throw new IllegalStateException("No parent path in "+this);
+		}
 		return getParentPath().subPath(elementName);
 	}
 

@@ -337,4 +337,45 @@
     </xsd:complexType>
     <xsd:element name="addObjectApprovalFormType" type="tns:AddObjectApprovalFormType" substitutionGroup="c:object"/>
 
+    <xsd:complexType name="AssociationCreationApprovalFormType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:QuestionFormType">
+                <xsd:sequence>
+                    <xsd:element name="focusName" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Owner (focus) name</a:displayName>
+                                <a:displayOrder>100</a:displayOrder>
+                                <a:access>read</a:access>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="associatedObjectName" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Entitlement to be added</a:displayName>      <!-- TODO name -->
+                                <a:displayOrder>110</a:displayOrder>
+                                <a:access>read</a:access>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="comment" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Your comment</a:displayName>
+                                <a:displayOrder>140</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="associationCreationApprovalFormType" type="tns:AssociationCreationApprovalFormType" substitutionGroup="c:object"/>
+
 </xsd:schema>

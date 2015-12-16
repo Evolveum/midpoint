@@ -22,6 +22,8 @@ import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -57,6 +59,7 @@ import org.apache.wicket.model.StringResourceModel;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -137,6 +140,10 @@ public class ObjectSelectionPanel extends Panel {
             container.setOutputMarkupPlaceholderTag(true);
             return container;
         }
+
+        public Collection<SelectorOptions<GetOperationOptions>> getDataProviderOptions(){
+            return null;
+        }
     }
 
     public ObjectSelectionPanel(String id, Class<? extends ObjectType> type, ModalWindow modalWindow, Context context) {
@@ -195,6 +202,7 @@ public class ObjectSelectionPanel extends Panel {
         List<IColumn<SelectableBean<ObjectType>, String>> columns = initColumns();
         ObjectDataProvider provider = new ObjectDataProvider(pageBase, this.objectType);
         provider.setQuery(context.getDataProviderQuery());
+        provider.setOptions(context.getDataProviderOptions());
         TablePanel table = new TablePanel<>(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
         addOrReplace(table);

@@ -18,11 +18,14 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -39,7 +42,6 @@ public class CertDefinitionDto implements Serializable {
 
     public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
-    public static final String F_OWNER_NAME = "ownerName";
     public static final String F_NUMBER_OF_STAGES = "numberOfStages";
     public static final String F_XML = "xml";
     public static final String F_OWNER = "owner";
@@ -50,15 +52,14 @@ public class CertDefinitionDto implements Serializable {
     private AccessCertificationDefinitionType definition;               // definition that is (at least partially) dynamically updated when editing the form
     private final DefinitionScopeDto definitionScopeDto;
     private final List<StageDefinitionDto> stageDefinition;
-    private String ownerName;
     private String xml;
-    private PrismReferenceValue owner;
+    private ObjectViewDto owner;
     private String scopeSearchFilter;
 
     public CertDefinitionDto(AccessCertificationDefinitionType definition, PageBase page, Task task, OperationResult result) {
         this.oldDefinition = definition.clone();
         this.definition = definition;
-        ownerName = CertCampaignDto.resolveOwnerName(definition.getOwnerRef(), page, task, result);
+        owner = loadOwnerReference(definition.getOwnerRef());
 
         try {
             xml = page.getPrismContext().serializeObjectToString(definition.asPrismObject(), PrismContext.LANG_XML);
@@ -73,8 +74,24 @@ public class CertDefinitionDto implements Serializable {
         }
     }
 
-    public String getOwnerName() {
-        return ownerName;
+    private ObjectViewDto loadOwnerReference(ObjectReferenceType ref) {
+        ObjectViewDto dto;
+
+        if (ref != null) {
+            if (ref.getTargetName() != null) {
+                dto = new ObjectViewDto(ref.getOid(), WebMiscUtil.getOrigStringFromPoly(ref.getTargetName()));
+                dto.setType(UserType.class);
+                return dto;
+            } else {
+                dto = new ObjectViewDto(ObjectViewDto.BAD_OID);
+                dto.setType(UserType.class);
+                return dto;
+            }
+        } else {
+            dto = new ObjectViewDto();
+            dto.setType(UserType.class);
+            return dto;
+        }
     }
 
     public String getXml() {
@@ -98,8 +115,18 @@ public class CertDefinitionDto implements Serializable {
     }
 
     public AccessCertificationDefinitionType getUpdatedDefinition() {
+        updateOwner();
         updateScopeDefinition();
         return definition;
+    }
+
+    private void updateOwner() {
+        String oid = owner.getKnownOid();
+        if (oid != null) {
+            definition.setOwnerRef(ObjectTypeUtil.createObjectRef(owner.getKnownOid(), ObjectTypes.USER));
+        } else {
+            definition.setOwnerRef(null);
+        }
     }
 
     public AccessCertificationDefinitionType getOldDefinition() {
@@ -108,10 +135,6 @@ public class CertDefinitionDto implements Serializable {
 
     public void setDefinition(AccessCertificationDefinitionType definition) {
         this.definition = definition;
-    }
-
-    public void setOwnerName(String ownerName) {
-//        definition.setOwnerRef();
     }
 
     public void setName(String name){
@@ -123,8 +146,8 @@ public class CertDefinitionDto implements Serializable {
         definition.setDescription(description);
     }
 
-    public PrismReferenceValue getOwner() {
-        return definition.getOwnerRef() != null ? definition.getOwnerRef().asReferenceValue() : null;
+    public ObjectViewDto getOwner() {
+        return owner;
     }
 
     public void setOwner(PrismReferenceValue owner) {
@@ -140,8 +163,9 @@ public class CertDefinitionDto implements Serializable {
             dto.setDescription(scopeTypeObj.getDescription());
             if (scopeTypeObj instanceof AccessCertificationObjectBasedScopeType) {
                 AccessCertificationObjectBasedScopeType objScopeType = (AccessCertificationObjectBasedScopeType) scopeTypeObj;
-                dto.setObjectType(DefinitionScopeObjectType.valueOf(objScopeType.getObjectType() != null ?
-                        objScopeType.getObjectType().getLocalPart() : null));
+                if (objScopeType.getObjectType() != null) {
+                    dto.setObjectType(DefinitionScopeObjectType.valueOf(objScopeType.getObjectType().getLocalPart()));
+                }
                 dto.setSearchFilter(objScopeType.getSearchFilter());
                 if (objScopeType instanceof AccessCertificationAssignmentReviewScopeType) {
                     AccessCertificationAssignmentReviewScopeType assignmentScope =

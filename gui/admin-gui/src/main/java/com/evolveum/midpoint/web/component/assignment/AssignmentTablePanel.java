@@ -451,7 +451,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<List
 			}
 
 			AssignmentType assignment = new AssignmentType();
-			PrismContainerValue value = assDto.getNewValue();
+			PrismContainerValue value = assDto.getNewValue(getPageBase().getPrismContext());
 			assignment.setupContainerValue(value);
 			value.applyDefinition(assignmentDef, false);
 			objectAssignments.add(assignment.clone());
@@ -476,7 +476,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<List
 
 		List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
 		for (AssignmentEditorDto assDto : assignments) {
-			PrismContainerValue newValue = assDto.getNewValue();
+			PrismContainerValue newValue = assDto.getNewValue(getPageBase().getPrismContext());
 			switch (assDto.getStatus()) {
 				case ADD:
 					newValue.applyDefinition(def, false);
@@ -488,7 +488,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<List
 					assDelta.addValueToDelete(oldValue.clone());
 					break;
 				case MODIFY:
-					if (!assDto.isModified()) {
+					if (!assDto.isModified(getPageBase().getPrismContext())) {
 						LOGGER.trace("Assignment '{}' not modified.", new Object[] { assDto.getName() });
 						continue;
 					}

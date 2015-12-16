@@ -119,7 +119,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	protected static final String ACCOUNT_HBARBOSSA_DUMMY_FILENAME = COMMON_DIR_PATH + "/account-hbarbossa-dummy.xml";
 	protected static final String ACCOUNT_HBARBOSSA_DUMMY_OID = "c0c010c0-d34d-b33f-f00d-222211111112";
 	protected static final String ACCOUNT_HBARBOSSA_DUMMY_USERNAME = "hbarbossa";
-	
+
 	public static final File ACCOUNT_SHADOW_JACK_DUMMY_FILE = new File(COMMON_DIR, "account-shadow-jack-dummy.xml");
 	public static final String ACCOUNT_JACK_DUMMY_USERNAME = "jack";
 	

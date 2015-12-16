@@ -48,11 +48,27 @@
             <xsd:documentation>
                 Contains deltaIn(i), i.e. delta(s) that has to be approved.
                 Valid for PrimaryChangeProcessor only.
+
+                DEPRECATED. Replaced by deltasToProcess.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:indexed>false</a:indexed>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>-1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="deltasToProcess" type="c:ObjectTreeDeltasType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains deltaIn(i), i.e. delta(s) that has to be approved.
+                Valid for PrimaryChangeProcessor only.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:indexed>false</a:indexed>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -65,11 +81,30 @@
                 or null/empty delta (if rejected).
 
                 Valid for PrimaryChangeProcessor only.
+
+                DEPRECATED. Replaced by resultingDeltas.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:indexed>false</a:indexed>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>-1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="resultingDeltas" type="c:ObjectTreeDeltasType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains deltaOut(i), i.e. delta(s) that are the result of the approval process. The most
+                common situation is that deltaOut(i) = either deltaIn(i) (if approved),
+                or null/empty delta (if rejected).
+
+                Valid for PrimaryChangeProcessor only.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:indexed>false</a:indexed>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
