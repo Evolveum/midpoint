@@ -236,6 +236,19 @@ public class CertDefinitionDto implements Serializable {
         return list;
     }
 
+    private List<ObjectReferenceType> cloneListObjectsForSave(List<ObjectReferenceType> listToClone){
+        if (listToClone != null){
+            if (listToClone.size() > 0) {
+                List<ObjectReferenceType> list = new ArrayList<>();
+                for (ObjectReferenceType objectReferenceType : listToClone) {
+                    list.add(objectReferenceType.clone());
+                }
+                return list;
+            }
+        }
+        return new ArrayList<ObjectReferenceType>();
+    }
+
     public DefinitionScopeDto getScopeDefinition() {
         return definitionScopeDto;
     }
@@ -306,10 +319,10 @@ public class CertDefinitionDto implements Serializable {
             reviewerObject.setUseObjectManager(createManagerSearchType(reviewerDto.getUseObjectManager()));
             updateDefaultReviewer(reviewerDto);
             reviewerObject.getDefaultReviewerRef().clear();
-            reviewerObject.getDefaultReviewerRef().addAll(cloneListObjects(reviewerDto.getDefaultReviewerRef()));
+            reviewerObject.getDefaultReviewerRef().addAll(cloneListObjectsForSave(reviewerDto.getDefaultReviewerRef()));
             updateAdditionalReviewer(reviewerDto);
             reviewerObject.getAdditionalReviewerRef().clear();
-            reviewerObject.getAdditionalReviewerRef().addAll(cloneListObjects(reviewerDto.getAdditionalReviewerRef()));
+            reviewerObject.getAdditionalReviewerRef().addAll(cloneListObjectsForSave(reviewerDto.getAdditionalReviewerRef()));
             reviewerObject.setApprovalStrategy(reviewerDto.getApprovalStrategy());
         }
         return reviewerObject;
