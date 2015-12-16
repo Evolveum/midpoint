@@ -776,6 +776,20 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 		Collections.sort(containers, new PathSizeComparator());
 
 		for (ContainerWrapper containerWrapper : getContainers()) {
+			
+			if (containerWrapper.getItemDefinition().getName().equals(ShadowType.F_ASSOCIATION)) {
+				PrismContainer associationContainer = object.findOrCreateContainer(ShadowType.F_ASSOCIATION);
+                List<AssociationWrapper> associationItemWrappers = (List<AssociationWrapper>) containerWrapper.getItems();
+                for (AssociationWrapper associationItemWrapper : associationItemWrappers) {
+                    List<ValueWrapper> assocValueWrappers = associationItemWrapper.getValues();
+                    for (ValueWrapper assocValueWrapper: assocValueWrappers) {
+                    	PrismContainerValue<ShadowAssociationType> assocValue = (PrismContainerValue<ShadowAssociationType>) assocValueWrapper.getValue();
+                    	associationContainer.add(assocValue.clone());
+                    }
+                }
+                continue;
+			}
+			
 			if (!containerWrapper.hasChanged()) {
 				continue;
 			}
