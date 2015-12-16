@@ -11280,7 +11280,7 @@
                     <xsd:element name="modifyUserAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="addResourceAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="modifyResourceAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="addEntitlementAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="addAssociationAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="otherAspect" type="tns:GenericPcpAspectConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
@@ -11358,8 +11358,25 @@
             <xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Condition specifying when the assignment is automatically approved (e.g. "user is
+                        Condition specifying when the item is automatically approved (e.g. "user is
                         from Board of Directors"). This is an expression that should yield a boolean value.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="applicabilityCondition" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Condition specifying if the workflow should be started in the first place.
+                        This is an expression that should yield a boolean value. It gets 'itemToApprove' parameter
+                        that contains item to be approved - it is aspect-specific: might be e.g. an assignment,
+                        an association + resource shadow discriminator, etc.
+
+                        The difference between applicabilityCondition and automaticallyApproved is that if the
+                        former yields false, workflow is not even started. If it yields true, workflow is started,
+                        and then 'automaticallyApproved' is evaluated. If it yields false, manaual approval is
+                        required. If true, item is automatically approved.
+
+                        CURRENTLY IMPLEMENTED ONLY IN AddAssociationAspect.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

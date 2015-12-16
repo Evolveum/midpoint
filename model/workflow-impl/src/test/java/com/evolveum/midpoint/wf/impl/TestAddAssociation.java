@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.wf.impl;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelState;
+import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -53,13 +55,14 @@ import static org.testng.AssertJUnit.assertTrue;
  */
 @ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestAddEntitlement extends AbstractWfTest {
+public class TestAddAssociation extends AbstractWfTest {
 
-    protected static final Trace LOGGER = TraceManager.getTrace(TestAddEntitlement.class);
+    protected static final Trace LOGGER = TraceManager.getTrace(TestAddAssociation.class);
 
     private static final File REQ_SHADOW_MODIFY_ADD_ENTITLEMENT_TESTERS = new File(TEST_RESOURCE_DIR, "shadow-modify-add-entitlement-testers.xml");
+    private static final File REQ_SHADOW_MODIFY_ADD_ENTITLEMENT_GUESTS = new File(TEST_RESOURCE_DIR, "shadow-modify-add-entitlement-guests.xml");
 
-    public TestAddEntitlement() throws JAXBException {
+    public TestAddAssociation() throws JAXBException {
 		super();
 	}
 
@@ -159,10 +162,25 @@ public class TestAddEntitlement extends AbstractWfTest {
     public void test020AddElisabethToTestersRejected() throws Exception {
         TestUtil.displayTestTile(this, "test020AddElisabethToTestersRejected");
         executeTest("test020AddElisabethToTestersRejected", USER_ELISABETH_OID, new TestDetails() {
-            @Override int subtaskCount() { return 1; }
-            @Override boolean immediate() { return false; }
-            @Override boolean checkObjectOnSubtasks() { return true; }
-            @Override boolean removeAssignmentsBeforeTest() { return false; }
+            @Override
+            int subtaskCount() {
+                return 1;
+            }
+
+            @Override
+            boolean immediate() {
+                return false;
+            }
+
+            @Override
+            boolean checkObjectOnSubtasks() {
+                return true;
+            }
+
+            @Override
+            boolean removeAssignmentsBeforeTest() {
+                return false;
+            }
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
@@ -212,6 +230,48 @@ public class TestAddEntitlement extends AbstractWfTest {
             }
         });
     }
+
+    /**
+     * Add entitlement for 'guests' to user jack - should be created without starting wf process
+     */
+    @Test
+    public void test100AddJackToGuests() throws Exception {
+        final String TEST_NAME = "test100AddJackToGuests";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task modelTask = taskManager.createTaskInstance(TEST_NAME);
+        OperationResult result = new OperationResult(TEST_NAME);
+        modelTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
+
+        LensContext<UserType> context = createUserAccountContext();
+        fillContextWithUser(context, USER_JACK_OID, result);
+
+        UserType jack = context.getFocusContext().getObjectCurrent().asObjectable();
+        AssertJUnit.assertEquals("Jack has wrong number of accounts", 1, jack.getLinkRef().size());
+        jackAccountShadowOid = jack.getLinkRef().get(0).getOid();
+
+        ShadowType accountBefore = getObject(ShadowType.class, jackAccountShadowOid).asObjectable();
+        assertEquals("Wrong # of jack's account associations", 1, accountBefore.getAssociation().size());
+        assertHasAssociation(accountBefore, new QName("group"), GROUP_TESTERS_OID);
+
+        LensProjectionContext accountContext = fillContextWithAccount(context, jackAccountShadowOid, result);
+
+        ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(REQ_SHADOW_MODIFY_ADD_ENTITLEMENT_GUESTS, ObjectModificationType.COMPLEX_TYPE);
+        ObjectDelta shadowDelta = DeltaConvertor.createObjectDelta(modElement, ShadowType.class, prismContext);
+        shadowDelta.setOid(jackAccountShadowOid);
+        accountContext.setPrimaryDelta(shadowDelta);
+
+        HookOperationMode mode = clockwork.run(context, modelTask, result);
+
+        assertEquals("Unexpected state of the context - workflow was started even if it should not", ModelState.FINAL, context.getState());
+        assertEquals("Wrong mode after clockwork.run in " + context.getState(), HookOperationMode.FOREGROUND, mode);
+
+        ShadowType accountAfter = getObject(ShadowType.class, jackAccountShadowOid).asObjectable();
+        assertEquals("Wrong # of jack's account associations", 2, accountAfter.getAssociation().size());
+        assertHasAssociation(accountAfter, new QName("group"), GROUP_TESTERS_OID);
+        assertHasAssociation(accountAfter, new QName("group"), GROUP_GUESTS_OID);
+    }
+
 
     public void assertHasAssociation(ShadowType shadow, QName associationName, String entitlementOid) {
         for (ShadowAssociationType association : shadow.getAssociation()) {

@@ -70,9 +70,30 @@
             <addAbstractRoleAspect>
                 <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
             </addAbstractRoleAspect>
-            <addEntitlementAspect>
+            <addAssociationAspect>
                 <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
-            </addEntitlementAspect>
+                <applicabilityCondition>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                            import com.evolveum.midpoint.schema.*
+
+                            log.info('@@@ applicability condition evaluated for:', itemToApprove)
+                            log.info('@@@ itemToApprove = {}', itemToApprove)
+                            log.info('@@@ association = {}', association)
+                            log.info('@@@ shadowDiscriminator = {}', shadowDiscriminator)
+                            log.info('@@@ modelContext = {}', modelContext)
+
+                            noFetch = SelectorOptions.createCollection(GetOperationOptions.createNoFetch())
+                            shadow = midpoint.getObject(ShadowType.class, association.shadowRef.oid)
+                            shadowName = basic.stringify(shadow.name)
+                            log.info('@@@ associated object name = {}', shadowName)
+
+                            return !shadowName.contains("guests")
+                        </code>
+                    </script>
+                </applicabilityCondition>
+            </addAssociationAspect>
             <otherAspect>
                 <name>changePasswordAspect</name>
             </otherAspect>
