@@ -27,7 +27,7 @@ public class AccessCertificationReviewerDto implements Serializable {
     private boolean useTargetApprover;
     private boolean useObjectOwner;
     private boolean useObjectApprover;
-    private boolean useObjectManager;
+    private ManagerSearchDto useObjectManager;
     private List<ObjectReferenceType> defaultReviewerRef;
     private List<ObjectReferenceType> additionalReviewerRef;
     private String approvalStrategy;
@@ -86,11 +86,11 @@ public class AccessCertificationReviewerDto implements Serializable {
         this.useObjectApprover = useObjectApprover;
     }
 
-    public boolean isUseObjectManager() {
+    public ManagerSearchDto getUseObjectManager() {
         return useObjectManager;
     }
 
-    public void setUseObjectManager(boolean useObjectManager) {
+    public void setUseObjectManager(ManagerSearchDto useObjectManager) {
         this.useObjectManager = useObjectManager;
     }
 

@@ -117,6 +117,7 @@ public class CertDefinitionDto implements Serializable {
     public AccessCertificationDefinitionType getUpdatedDefinition() {
         updateOwner();
         updateScopeDefinition();
+        updateStageDefinition();
         return definition;
     }
 
@@ -187,7 +188,7 @@ public class CertDefinitionDto implements Serializable {
             dto.setName(stageDefObj.getName());
             dto.setDescription(stageDefObj.getDescription());
             dto.setDays(stageDefObj.getDays());
-//            dto.setNotifyBeforeDeadline(stageDefObj.getNotifyBeforeDeadline());
+            dto.setNotifyBeforeDeadline(convertListIntegerToString(stageDefObj.getNotifyBeforeDeadline()));
             dto.setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefObj.isNotifyOnlyWhenNoDecision()));
             dto.setReviewerDto(createAccessCertificationReviewerDto(stageDefObj.getReviewerSpecification()));
         }
@@ -203,10 +204,10 @@ public class CertDefinitionDto implements Serializable {
             dto.setUseTargetApprover(Boolean.TRUE.equals(reviewer.isUseTargetApprover()));
             dto.setUseObjectOwner(Boolean.TRUE.equals(reviewer.isUseObjectOwner()));
             dto.setUseObjectApprover(Boolean.TRUE.equals(reviewer.isUseObjectApprover()));
-//            dto.setUseObjectManager(reviewer.getUseObjectManager());
+            dto.setUseObjectManager(createManagerSearchDto(reviewer.getUseObjectManager()));
             dto.setDefaultReviewerRef(reviewer.getDefaultReviewerRef());
             dto.setAdditionalReviewerRef(reviewer.getAdditionalReviewerRef());
-            dto.setApprovalStrategy(reviewer.getApprovalStrategy() != null ? reviewer.getApprovalStrategy().value() : null);
+            dto.setApprovalStrategy(reviewer.getApprovalStrategy() != null ? reviewer.getApprovalStrategy().name() : null);
         }
         return dto;
     }
@@ -234,4 +235,92 @@ public class CertDefinitionDto implements Serializable {
         definition.setScopeDefinition(scopeTypeObj);
     }
 
+    public void updateStageDefinition() {
+        List<AccessCertificationStageDefinitionType> stageDefinitionTypeList = new ArrayList<>();
+        if (stageDefinition != null && stageDefinition.size() > 0) {
+            for (StageDefinitionDto stageDefinitionDto : stageDefinition){
+                stageDefinitionTypeList.add(createStageDefinitionType(stageDefinitionDto));
+            }
+        }
+        definition.getStageDefinition().clear();
+        definition.getStageDefinition().addAll(stageDefinitionTypeList);
+    }
+
+    private AccessCertificationStageDefinitionType createStageDefinitionType(StageDefinitionDto stageDefDto) {
+        AccessCertificationStageDefinitionType stageDefType = new AccessCertificationStageDefinitionType();
+        if (stageDefDto != null) {
+            stageDefType.setNumber(stageDefDto.getNumber());
+            stageDefType.setName(stageDefDto.getName());
+            stageDefType.setDescription(stageDefDto.getDescription());
+            stageDefType.setDays(stageDefDto.getDays());
+            stageDefType.getNotifyBeforeDeadline().clear();
+            stageDefType.getNotifyBeforeDeadline().addAll(convertStringToListInteger(stageDefDto.getNotifyBeforeDeadline()));
+            stageDefType.setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefDto.isNotifyOnlyWhenNoDecision()));
+            stageDefType.setReviewerSpecification(createAccessCertificationReviewerType(stageDefDto.getReviewerDto()));
+        }
+        return stageDefType;
+    }
+
+    private AccessCertificationReviewerSpecificationType createAccessCertificationReviewerType(AccessCertificationReviewerDto reviewerDto) {
+        AccessCertificationReviewerSpecificationType reviewerObject = new AccessCertificationReviewerSpecificationType();
+        if (reviewerDto != null) {
+            reviewerObject.setName(reviewerDto.getName());
+            reviewerObject.setDescription(reviewerDto.getDescription());
+            reviewerObject.setUseTargetOwner(Boolean.TRUE.equals(reviewerDto.isUseTargetOwner()));
+            reviewerObject.setUseTargetApprover(Boolean.TRUE.equals(reviewerDto.isUseTargetApprover()));
+            reviewerObject.setUseObjectOwner(Boolean.TRUE.equals(reviewerDto.isUseObjectOwner()));
+            reviewerObject.setUseObjectApprover(Boolean.TRUE.equals(reviewerDto.isUseObjectApprover()));
+            reviewerObject.setUseObjectManager(createManagerSearchType(reviewerDto.getUseObjectManager()));
+            reviewerObject.getDefaultReviewerRef().clear();
+            reviewerObject.getDefaultReviewerRef().addAll(reviewerDto.getDefaultReviewerRef());
+            reviewerObject.getAdditionalReviewerRef().clear();
+            reviewerObject.getAdditionalReviewerRef().addAll(reviewerDto.getAdditionalReviewerRef());
+            reviewerObject.setApprovalStrategy(reviewerDto.getApprovalStrategy() != null ?
+                    AccessCertificationApprovalStrategyType.valueOf(reviewerDto.getApprovalStrategy())
+                    : null);
+        }
+        return reviewerObject;
+    }
+
+    private ManagerSearchType createManagerSearchType(ManagerSearchDto managerSearchDto){
+        ManagerSearchType managerSearchType = new ManagerSearchType();
+        if (managerSearchDto != null){
+            managerSearchType.setOrgType(managerSearchDto.getOrgType());
+            managerSearchType.setAllowSelf(managerSearchDto.isAllowSelf());
+        }
+        return  managerSearchType;
+    }
+
+    private ManagerSearchDto createManagerSearchDto(ManagerSearchType managerSearchType){
+        ManagerSearchDto managerSearchDto = new ManagerSearchDto();
+        if (managerSearchType != null){
+            managerSearchDto.setOrgType(managerSearchType.getOrgType());
+            managerSearchDto.setAllowSelf(managerSearchType.isAllowSelf());
+        }
+        return managerSearchDto;
+    }
+
+    private String convertListIntegerToString(List<Integer> list){
+        String result = "";
+        for (Integer listItem : list){
+            result += Integer.toString(listItem);
+            if(list.indexOf(listItem) < list.size() - 1){
+                result += ", ";
+            }
+        }
+        return result;
+    }
+
+    private List<Integer> convertStringToListInteger(String object){
+        List<Integer> list = new ArrayList<>();
+        if (object != null) {
+            String[] values = object.split(",");
+            for (String value : values) {
+                if (!value.trim().equals("")) {
+                    list.add(Integer.parseInt(value.trim()));
+                }
+            }
+        }
+        return list;
+    }
 }

@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Created by Kate on 15.12.2015.
@@ -13,12 +14,13 @@ public class StageDefinitionDto implements Serializable {
     public final static String F_NOTIFY_BEFORE_DEADLINE = "notifyBeforeDeadline";
     public final static String F_NOTIFY_ONLY_WHEN_NO_DECISION = "notifyOnlyWhenNoDecision";
     public final static String F_REVIEWER_SPECIFICATION = "reviewerSpecification";
+    public final static String F_REVIEWER_DTO = "reviewerDto";
 
     private int number;
     private String name;
     private String description;
     private int days;
-//    private List<Integer> notifyBeforeDeadline;
+    private String notifyBeforeDeadline;
     private boolean notifyOnlyWhenNoDecision;
     private AccessCertificationReviewerDto reviewerDto;
 
@@ -55,13 +57,13 @@ public class StageDefinitionDto implements Serializable {
         this.days = days;
     }
 
-//    public List<Integer> getNotifyBeforeDeadline() {
-//        return notifyBeforeDeadline;
-//    }
-//
-//    public void setNotifyBeforeDeadline(List<Integer> notifyBeforeDeadline) {
-//        this.notifyBeforeDeadline = notifyBeforeDeadline;
-//    }
+    public String getNotifyBeforeDeadline() {
+        return notifyBeforeDeadline;
+    }
+
+    public void setNotifyBeforeDeadline(String notifyBeforeDeadline) {
+        this.notifyBeforeDeadline = notifyBeforeDeadline;
+    }
 
     public boolean isNotifyOnlyWhenNoDecision() {
         return notifyOnlyWhenNoDecision;
