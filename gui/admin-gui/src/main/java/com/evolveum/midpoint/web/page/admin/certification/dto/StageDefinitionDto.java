@@ -24,7 +24,6 @@ public class StageDefinitionDto implements Serializable {
     private boolean notifyOnlyWhenNoDecision;
     private AccessCertificationReviewerDto reviewerDto;
 
-
     public int getNumber() {
         return number;
     }

@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -26,13 +28,17 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -47,6 +53,8 @@ public class CertDefinitionDto implements Serializable {
     public static final String F_OWNER = "owner";
     public static final String F_SCOPE_DEFINITION = "scopeDefinition";
     public static final String F_STAGE_DEFINITION = "stageDefinition";
+    public static final String F_LAST_STARTED = "lastStarted";
+    public static final String F_LAST_CLOSED = "lastClosed";
 
     private AccessCertificationDefinitionType oldDefinition;            // to be able to compute the delta when saving
     private AccessCertificationDefinitionType definition;               // definition that is (at least partially) dynamically updated when editing the form
@@ -54,7 +62,6 @@ public class CertDefinitionDto implements Serializable {
     private final List<StageDefinitionDto> stageDefinition;
     private String xml;
     private ObjectViewDto owner;
-    private String scopeSearchFilter;
 
     public CertDefinitionDto(AccessCertificationDefinitionType definition, PageBase page, Task task, OperationResult result) {
         this.oldDefinition = definition.clone();
@@ -67,7 +74,7 @@ public class CertDefinitionDto implements Serializable {
             throw new SystemException("Couldn't serialize campaign definition to XML", e);
         }
 
-        definitionScopeDto = createDefinitionScopeDto(definition.getScopeDefinition());
+        definitionScopeDto = createDefinitionScopeDto(definition.getScopeDefinition(), page.getPrismContext());
         stageDefinition = new ArrayList<>();
         for (AccessCertificationStageDefinitionType stageDef  : definition.getStageDefinition()){
             stageDefinition.add(createStageDefinitionDto(stageDef));
@@ -114,9 +121,9 @@ public class CertDefinitionDto implements Serializable {
         return definition;
     }
 
-    public AccessCertificationDefinitionType getUpdatedDefinition() {
+    public AccessCertificationDefinitionType getUpdatedDefinition(PrismContext prismContext) {
         updateOwner();
-        updateScopeDefinition();
+        updateScopeDefinition(prismContext);
         updateStageDefinition();
         return definition;
     }
@@ -157,7 +164,7 @@ public class CertDefinitionDto implements Serializable {
         definition.setOwnerRef(ownerRef);
     }
 
-    private DefinitionScopeDto createDefinitionScopeDto(AccessCertificationScopeType scopeTypeObj) {
+    private DefinitionScopeDto createDefinitionScopeDto(AccessCertificationScopeType scopeTypeObj, PrismContext prismContext) {
         DefinitionScopeDto dto = new DefinitionScopeDto();
         if (scopeTypeObj != null) {
             dto.setName(scopeTypeObj.getName());
@@ -167,15 +174,16 @@ public class CertDefinitionDto implements Serializable {
                 if (objScopeType.getObjectType() != null) {
                     dto.setObjectType(DefinitionScopeObjectType.valueOf(objScopeType.getObjectType().getLocalPart()));
                 }
-                dto.setSearchFilter(objScopeType.getSearchFilter());
+                dto.loadSearchFilter(objScopeType.getSearchFilter(), prismContext);
                 if (objScopeType instanceof AccessCertificationAssignmentReviewScopeType) {
                     AccessCertificationAssignmentReviewScopeType assignmentScope =
                             (AccessCertificationAssignmentReviewScopeType) objScopeType;
-                    dto.setIncludeAssignments(Boolean.TRUE.equals(assignmentScope.isIncludeAssignments()));
-                    dto.setIncludeInducements(Boolean.TRUE.equals(assignmentScope.isIncludeInducements()));
-                    dto.setIncludeResources(Boolean.TRUE.equals(assignmentScope.isIncludeResources()));
-                    dto.setIncludeOrgs(Boolean.TRUE.equals(assignmentScope.isIncludeOrgs()));
-                    dto.setEnabledItemsOnly(Boolean.TRUE.equals(assignmentScope.isEnabledItemsOnly()));
+                    dto.setIncludeAssignments(!Boolean.FALSE.equals(assignmentScope.isIncludeAssignments()));
+                    dto.setIncludeInducements(!Boolean.FALSE.equals(assignmentScope.isIncludeInducements()));
+                    dto.setIncludeResources(!Boolean.FALSE.equals(assignmentScope.isIncludeResources()));
+                    dto.setIncludeRoles(!Boolean.FALSE.equals(assignmentScope.isIncludeRoles()));
+                    dto.setIncludeOrgs(!Boolean.FALSE.equals(assignmentScope.isIncludeOrgs()));
+                    dto.setEnabledItemsOnly(!Boolean.FALSE.equals(assignmentScope.isEnabledItemsOnly()));
                 }
             }
         }
@@ -191,6 +199,8 @@ public class CertDefinitionDto implements Serializable {
             dto.setNotifyBeforeDeadline(convertListIntegerToString(stageDefObj.getNotifyBeforeDeadline()));
             dto.setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefObj.isNotifyOnlyWhenNoDecision()));
             dto.setReviewerDto(createAccessCertificationReviewerDto(stageDefObj.getReviewerSpecification()));
+        } else {
+            dto.setReviewerDto(new AccessCertificationReviewerDto());
         }
         return dto;
     }
@@ -230,14 +240,23 @@ public class CertDefinitionDto implements Serializable {
         return definitionScopeDto;
     }
 
-    public void updateScopeDefinition() {
+    public void updateScopeDefinition(PrismContext prismContext) {
         AccessCertificationAssignmentReviewScopeType scopeTypeObj = null;
         if (definitionScopeDto != null) {
             scopeTypeObj = new AccessCertificationAssignmentReviewScopeType();
             scopeTypeObj.setName(definitionScopeDto.getName());
             scopeTypeObj.setDescription(definitionScopeDto.getDescription());
             scopeTypeObj.setObjectType(definitionScopeDto.getObjectType() != null ? new QName(definitionScopeDto.getObjectType().name()) : null);
-            scopeTypeObj.setSearchFilter(definitionScopeDto.getSearchFilter());
+            SearchFilterType parsedSearchFilter = definitionScopeDto.getParsedSearchFilter(prismContext);
+            if (parsedSearchFilter != null) {
+                // check if everything is OK
+                try {
+                    QueryConvertor.parseFilterPreliminarily(parsedSearchFilter.getFilterClauseXNode(), prismContext);
+                } catch (SchemaException e) {
+                    throw new SystemException("Couldn't parse search filter: " + e.getMessage(), e);
+                }
+            }
+            scopeTypeObj.setSearchFilter(parsedSearchFilter);
             scopeTypeObj.setIncludeAssignments(definitionScopeDto.isIncludeAssignments());
             scopeTypeObj.setIncludeInducements(definitionScopeDto.isIncludeInducements());
             scopeTypeObj.setIncludeResources(definitionScopeDto.isIncludeResources());
@@ -380,5 +399,21 @@ public class CertDefinitionDto implements Serializable {
                 }
             }
         }
+    }
+
+    public String getLastStarted() {
+        return formatDate(definition.getLastCampaignStartedTimestamp());
+    }
+
+    private String formatDate(XMLGregorianCalendar dateGc) {
+        if (dateGc == null) {
+            return "-";
+        } else {
+            return WebMiscUtil.formatDate(XmlTypeConverter.toDate(dateGc));
+        }
+    }
+
+    public String getLastClosed() {
+        return formatDate(definition.getLastCampaignClosedTimestamp());
     }
 }

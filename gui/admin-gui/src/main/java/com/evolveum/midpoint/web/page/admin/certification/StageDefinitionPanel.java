@@ -5,16 +5,21 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.certification.dto.*;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationApprovalStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.namespace.QName;
@@ -125,23 +130,39 @@ public class StageDefinitionPanel extends SimplePanel<StageDefinitionDto> {
         additionalOwnerRefChooser.setOutputMarkupId(true);
         add(additionalOwnerRefChooser);
 
-        DropDownChoicePanel approvalStrategy = new DropDownChoicePanel(ID_APPROVAL_STRATEGY,
-                new PropertyModel(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_APPROVAL_STRATEGY),
-                WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationApprovalStrategyType.class),
-                new IChoiceRenderer<AccessCertificationApprovalStrategyType>() {
+//        DropDownChoicePanel approvalStrategy = new DropDownChoicePanel(ID_APPROVAL_STRATEGY,
+//                new PropertyModel(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_APPROVAL_STRATEGY),
+//                WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationApprovalStrategyType.class),
+//                new IChoiceRenderer<AccessCertificationApprovalStrategyType>() {
+//
+//                    @Override
+//                    public Object getDisplayValue(AccessCertificationApprovalStrategyType item) {
+//                        return item.name();
+//                    }
+//
+//                    @Override
+//                    public String getIdValue(AccessCertificationApprovalStrategyType item, int index) {
+//                        return Integer.toString(index);
+//                    }
+//                });
+//        add(approvalStrategy);
 
-                    @Override
-                    public Object getDisplayValue(AccessCertificationApprovalStrategyType item) {
-                        return item.name();
-                    }
+        DropDownChoice approvalStrategy1 = new DropDownChoice<>(ID_APPROVAL_STRATEGY, new Model<AccessCertificationApprovalStrategyType>() {
 
-                    @Override
-                    public String getIdValue(AccessCertificationApprovalStrategyType item, int index) {
-                        return Integer.toString(index);
-                    }
-                });
-        add(approvalStrategy);
+            @Override
+            public AccessCertificationApprovalStrategyType getObject() {
+                return getModelObject().getReviewerDto().getApprovalStrategy();
+            }
+
+            @Override
+            public void setObject(AccessCertificationApprovalStrategyType object) {
+                getModelObject().getReviewerDto().setApprovalStrategy(object);
+            }
+        }, WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationApprovalStrategyType.class),
+                new EnumChoiceRenderer<AccessCertificationApprovalStrategyType>(this));
+        add(approvalStrategy1);
     }
+
 
     private WebMarkupContainer createReviewerRefChooser(String id, String expression) {
         ChooseTypePanel panel = new ChooseTypePanel(id,

@@ -179,13 +179,13 @@ public class PageCertDefinition extends PageAdminCertification {
             }
         });
 
-		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.campaigns")) {
-            @Override
-            public WebMarkupContainer getPanel(String panelId) {
-                // TODO campaigns panel (extract from PageCertCampaigns)
-                return new WebMarkupContainer(panelId);
-            }
-        });
+//		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.campaigns")) {
+//            @Override
+//            public WebMarkupContainer getPanel(String panelId) {
+//                // TODO campaigns panel (extract from PageCertCampaigns)
+//                return new WebMarkupContainer(panelId);
+//            }
+//        });
 		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.xmlDefinition")) {
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
@@ -235,7 +235,7 @@ public class PageCertDefinition extends PageAdminCertification {
         });
         mainForm.add(nameField);
 
-            final TextArea descriptionField = new TextArea(ID_DESCRIPTION, new PropertyModel<>(definitionModel, CertDefinitionDto.F_DESCRIPTION));
+		final TextArea descriptionField = new TextArea(ID_DESCRIPTION, new PropertyModel<>(definitionModel, CertDefinitionDto.F_DESCRIPTION));
         descriptionField.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isEnabled() {
@@ -249,10 +249,10 @@ public class PageCertDefinition extends PageAdminCertification {
         mainForm.add(ownerRefChooser);
 
         mainForm.add(new Label(ID_NUMBER_OF_STAGES, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
-        mainForm.add(new Label(ID_REVIEW_STAGE_CAMPAIGNS, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
-        mainForm.add(new Label(ID_CAMPAIGNS_TOTAL, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
-        mainForm.add(new Label(ID_LAST_STARTED, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
-        mainForm.add(new Label(ID_LAST_CLOSED, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
+//        mainForm.add(new Label(ID_REVIEW_STAGE_CAMPAIGNS, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
+//        mainForm.add(new Label(ID_CAMPAIGNS_TOTAL, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
+        mainForm.add(new Label(ID_LAST_STARTED, new PropertyModel<>(definitionModel, CertDefinitionDto.F_LAST_STARTED)));
+        mainForm.add(new Label(ID_LAST_CLOSED, new PropertyModel<>(definitionModel, CertDefinitionDto.F_LAST_CLOSED)));
 	}
 
 	private WebMarkupContainer createOwnerRefChooser(String id) {
@@ -309,7 +309,7 @@ public class PageCertDefinition extends PageAdminCertification {
 			AccessCertificationDefinitionType oldObject = dto.getOldDefinition();
 			oldObject.asPrismObject().revive(getPrismContext());
 
-			AccessCertificationDefinitionType newObject = dto.getUpdatedDefinition();
+			AccessCertificationDefinitionType newObject = dto.getUpdatedDefinition(getPrismContext());
 			newObject.asPrismObject().revive(getPrismContext());
 
 			ObjectDelta<AccessCertificationDefinitionType> delta = DiffUtil.diff(oldObject, newObject);
