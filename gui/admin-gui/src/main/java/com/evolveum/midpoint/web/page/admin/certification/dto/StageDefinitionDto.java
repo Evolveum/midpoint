@@ -19,7 +19,7 @@ public class StageDefinitionDto implements Serializable {
     private int number;
     private String name;
     private String description;
-    private int days;
+    private Integer days;
     private String notifyBeforeDeadline;
     private boolean notifyOnlyWhenNoDecision;
     private AccessCertificationReviewerDto reviewerDto;
@@ -48,11 +48,11 @@ public class StageDefinitionDto implements Serializable {
         this.description = description;
     }
 
-    public int getDays() {
+    public Integer getDays() {
         return days;
     }
 
-    public void setDays(int days) {
+    public void setDays(Integer days) {
         this.days = days;
     }
 

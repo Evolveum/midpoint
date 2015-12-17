@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -75,6 +76,8 @@ public class PageCertDefinition extends PageAdminCertification {
 
 	private static final String DOT_CLASS = PageCertDefinition.class.getName() + ".";
 
+	private static final String OPERATION_LOAD_DEFINITION = DOT_CLASS + "loadDefinition";
+
 	private static final String ID_MAIN_FORM = "mainForm";
 
 	private static final String ID_NAME = "name";
@@ -115,25 +118,30 @@ public class PageCertDefinition extends PageAdminCertification {
 		definitionModel = new LoadableModel<CertDefinitionDto>(false) {
 			@Override
 			protected CertDefinitionDto load() {
-				return loadDefinition();
+				String definitionOid = getDefinitionOid();
+				if (definitionOid != null) {
+					return loadDefinition(definitionOid);
+				} else {
+					return createDefinition();
+				}
 			}
 		};
 	}
 
-	private CertDefinitionDto loadDefinition() {
-		Task task = createSimpleTask("dummy");
+	private CertDefinitionDto loadDefinition(String definitionOid) {
+		Task task = createSimpleTask(OPERATION_LOAD_DEFINITION);
 		OperationResult result = task.getResult();
 		AccessCertificationDefinitionType definition = null;
 		CertDefinitionDto definitionDto = null;
 		try {
 			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
 			PrismObject<AccessCertificationDefinitionType> definitionObject =
-					WebModelUtils.loadObject(AccessCertificationDefinitionType.class, getDefinitionOid(), options, 
+					WebModelUtils.loadObject(AccessCertificationDefinitionType.class, definitionOid, options,
 							PageCertDefinition.this, task, result);
 			if (definitionObject != null) {
 				definition = definitionObject.asObjectable();
 			}
-			definitionDto = new CertDefinitionDto(definition, this, task, result);
+			definitionDto = new CertDefinitionDto(definition, this);
 			result.recordSuccessIfUnknown();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get definition", ex);
@@ -144,6 +152,17 @@ public class PageCertDefinition extends PageAdminCertification {
 		if (!WebMiscUtil.isSuccessOrHandledError(result)) {
 			showResult(result);
 		}
+		return definitionDto;
+	}
+
+	private CertDefinitionDto createDefinition() {
+		AccessCertificationDefinitionType definition = getPrismContext().createObjectable(AccessCertificationDefinitionType.class);
+		AccessCertificationStageDefinitionType stage = new AccessCertificationStageDefinitionType(getPrismContext());
+		stage.setName("First stage");
+		stage.setNumber(1);
+		stage.setReviewerSpecification(new AccessCertificationReviewerSpecificationType(getPrismContext()));
+		definition.getStageDefinition().add(stage);
+		CertDefinitionDto definitionDto = new CertDefinitionDto(definition, PageCertDefinition.this);
 		return definitionDto;
 	}
 
@@ -297,11 +316,11 @@ public class PageCertDefinition extends PageAdminCertification {
 	//region Actions
 	public void savePerformed(AjaxRequestTarget target) {
 		CertDefinitionDto dto = definitionModel.getObject();
-		if (StringUtils.isEmpty(dto.getXml())) {
-			error(getString("CertDefinitionPage.message.cantSaveEmpty"));
-			target.add(getFeedbackPanel());
-			return;
-		}
+//		if (StringUtils.isEmpty(dto.getXml())) {
+//			error(getString("CertDefinitionPage.message.cantSaveEmpty"));
+//			target.add(getFeedbackPanel());
+//			return;
+//		}
 
 		Task task = createSimpleTask(OPERATION_SAVE_DEFINITION);
 		OperationResult result = task.getResult();
@@ -312,11 +331,16 @@ public class PageCertDefinition extends PageAdminCertification {
 			AccessCertificationDefinitionType newObject = dto.getUpdatedDefinition(getPrismContext());
 			newObject.asPrismObject().revive(getPrismContext());
 
-			ObjectDelta<AccessCertificationDefinitionType> delta = DiffUtil.diff(oldObject, newObject);
-			delta.normalize();
+			ObjectDelta<AccessCertificationDefinitionType> delta;
+			if (oldObject.getOid() != null) {
+				delta = DiffUtil.diff(oldObject, newObject);
+			} else {
+				delta = ObjectDelta.createAddDelta(newObject.asPrismObject());
+			}
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Access definition delta:\n{}", delta.debugDump());
 			}
+			delta.normalize();
 			if (delta != null && !delta.isEmpty()) {
 				getPrismContext().adopt(delta);
 				ModelExecuteOptions options = new ModelExecuteOptions();

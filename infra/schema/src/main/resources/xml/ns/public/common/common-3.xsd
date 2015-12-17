@@ -12355,7 +12355,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="days" type="xsd:int" minOccurs="1">
+            <xsd:element name="days" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         How many days should the stage last?
