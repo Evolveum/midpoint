@@ -144,6 +144,16 @@ public class StageEditorPanel extends SimplePanel<StageDefinitionDto> {
         } else {
             tabNameModel = new PropertyModel<String>(getModel(), StageDefinitionDto.F_NAME);
         }
+
+        for (ITab tab : tabsList){
+            if (tab.getTitle().getObject().equals(tabNameModel.getObject())){
+                int i = tabsList.indexOf(tab);
+                tabbedPanel.setSelectedTab(i);
+                target.add(tabbedPanel);
+                return;
+            }
+        }
+
         tabsList.add(new AbstractTab(tabNameModel) {
             @Override
             public WebMarkupContainer getPanel(String panelId) {
