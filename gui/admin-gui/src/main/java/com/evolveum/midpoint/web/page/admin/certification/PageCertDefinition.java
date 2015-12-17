@@ -162,7 +162,7 @@ public class PageCertDefinition extends PageAdminCertification {
 		AccessCertificationDefinitionType definition = getPrismContext().createObjectable(AccessCertificationDefinitionType.class);
 		definition.setHandlerUri(AccessCertificationApiConstants.DIRECT_ASSIGNMENT_HANDLER_URI);
 		AccessCertificationStageDefinitionType stage = new AccessCertificationStageDefinitionType(getPrismContext());
-		stage.setName("First stage");
+		stage.setName("Stage 1");
 		stage.setNumber(1);
 		stage.setReviewerSpecification(new AccessCertificationReviewerSpecificationType(getPrismContext()));
 		definition.getStageDefinition().add(stage);
