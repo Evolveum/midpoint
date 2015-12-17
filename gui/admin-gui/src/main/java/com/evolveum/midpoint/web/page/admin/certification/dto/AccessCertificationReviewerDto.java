@@ -43,14 +43,6 @@ public class AccessCertificationReviewerDto implements Serializable {
                                                                             //for now display just single value for defaultReviewerRef and additionalReviewerRef
 
 
-
-    public enum ApprovalStrategy {
-        ONE_APPROVAL_APPROVES,
-        ONE_DENY_DENIES,
-        APPROVED_IF_NOT_DENIED,
-        ALL_MUST_APPROVE
-    }
-
     public String getName() {
         return name;
     }
