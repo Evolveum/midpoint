@@ -51,6 +51,7 @@ public class CertDefinitionDto implements Serializable {
     public static final String F_NUMBER_OF_STAGES = "numberOfStages";
     public static final String F_XML = "xml";
     public static final String F_OWNER = "owner";
+    public static final String F_REMEDIATION_STYLE = "remediationStyle";
     public static final String F_SCOPE_DEFINITION = "scopeDefinition";
     public static final String F_STAGE_DEFINITION = "stageDefinition";
     public static final String F_LAST_STARTED = "lastStarted";
@@ -60,6 +61,7 @@ public class CertDefinitionDto implements Serializable {
     private AccessCertificationDefinitionType definition;               // definition that is (at least partially) dynamically updated when editing the form
     private final DefinitionScopeDto definitionScopeDto;
     private final List<StageDefinitionDto> stageDefinition;
+    private AccessCertificationRemediationStyleType remediationStyle;
     private String xml;
     private ObjectViewDto owner;
 
@@ -78,6 +80,11 @@ public class CertDefinitionDto implements Serializable {
         stageDefinition = new ArrayList<>();
         for (AccessCertificationStageDefinitionType stageDef  : definition.getStageDefinition()){
             stageDefinition.add(createStageDefinitionDto(stageDef));
+        }
+        if (definition.getRemediationDefinition() != null) {
+            remediationStyle = definition.getRemediationDefinition().getStyle();
+        } else {
+            remediationStyle = AccessCertificationRemediationStyleType.AUTOMATED;           // TODO consider the default...
         }
     }
 
@@ -125,6 +132,13 @@ public class CertDefinitionDto implements Serializable {
         updateOwner();
         updateScopeDefinition(prismContext);
         updateStageDefinition();
+        if (remediationStyle != null) {
+            AccessCertificationRemediationDefinitionType remDef = new AccessCertificationRemediationDefinitionType(prismContext);
+            remDef.setStyle(remediationStyle);
+            definition.setRemediationDefinition(remDef);
+        } else {
+            definition.setRemediationDefinition(null);
+        }
         return definition;
     }
 
@@ -164,8 +178,25 @@ public class CertDefinitionDto implements Serializable {
         definition.setOwnerRef(ownerRef);
     }
 
+    public AccessCertificationRemediationStyleType getRemediationStyle() {
+        return remediationStyle;
+    }
+
+    public void setRemediationStyle(AccessCertificationRemediationStyleType remediationStyle) {
+        this.remediationStyle = remediationStyle;
+    }
+
     private DefinitionScopeDto createDefinitionScopeDto(AccessCertificationScopeType scopeTypeObj, PrismContext prismContext) {
         DefinitionScopeDto dto = new DefinitionScopeDto();
+
+        // default values, optionally overriden below
+        dto.setIncludeAssignments(true);
+        dto.setIncludeInducements(true);
+        dto.setIncludeResources(true);
+        dto.setIncludeRoles(true);
+        dto.setIncludeOrgs(true);
+        dto.setEnabledItemsOnly(true);
+
         if (scopeTypeObj != null) {
             dto.setName(scopeTypeObj.getName());
             dto.setDescription(scopeTypeObj.getDescription());
@@ -189,6 +220,7 @@ public class CertDefinitionDto implements Serializable {
         }
         return dto;
     }
+
     private StageDefinitionDto createStageDefinitionDto(AccessCertificationStageDefinitionType stageDefObj) {
         StageDefinitionDto dto = new StageDefinitionDto();
         if (stageDefObj != null) {

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
+import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -157,6 +158,7 @@ public class PageCertDefinition extends PageAdminCertification {
 
 	private CertDefinitionDto createDefinition() {
 		AccessCertificationDefinitionType definition = getPrismContext().createObjectable(AccessCertificationDefinitionType.class);
+		definition.setHandlerUri(AccessCertificationApiConstants.DIRECT_ASSIGNMENT_HANDLER_URI);
 		AccessCertificationStageDefinitionType stage = new AccessCertificationStageDefinitionType(getPrismContext());
 		stage.setName("First stage");
 		stage.setNumber(1);
