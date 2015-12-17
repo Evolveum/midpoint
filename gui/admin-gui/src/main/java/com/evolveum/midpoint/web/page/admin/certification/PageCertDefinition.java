@@ -276,16 +276,16 @@ public class PageCertDefinition extends PageAdminCertification {
 
             @Override
             public AccessCertificationRemediationStyleType getObject() {
-                return definitionModel.getObject().get;
+                return definitionModel.getObject().getRemediationStyle();
             }
 
             @Override
             public void setObject(AccessCertificationRemediationStyleType object) {
-                getModelObject().getReviewerDto().setApprovalStrategy(object);
+                definitionModel.getObject().setRemediationStyle(object);
             }
         }, WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationRemediationStyleType.class),
                 new EnumChoiceRenderer<AccessCertificationRemediationStyleType>(this));
-        add(remediation);
+        mainForm.add(remediation);
 
 
 //        mainForm.add(new Label(ID_REVIEW_STAGE_CAMPAIGNS, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
