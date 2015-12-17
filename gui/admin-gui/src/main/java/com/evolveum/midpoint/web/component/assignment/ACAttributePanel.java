@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.web.component.util.BasePanel;
+import com.evolveum.midpoint.web.component.util.BaseDeprecatedPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class ACAttributePanel extends BasePanel<ACAttributeDto> {
+public class ACAttributePanel extends BaseDeprecatedPanel<ACAttributeDto> {
 
     private static final String ID_ATTRIBUTE_LABEL = "attributeLabel";
     private static final String ID_VALUES = "values";

@@ -16,18 +16,21 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -39,20 +42,22 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author lazyman
  */
-public class PropertyWrapper implements ItemWrapper, Serializable, DebugDumpable {
+public class PropertyWrapper<I extends Item> implements ItemWrapper, Serializable, DebugDumpable {
 
     private ContainerWrapper container;
-    private PrismProperty property;
+    private I property;
     private ValueStatus status;
     private List<ValueWrapper> values;
     private String displayName;
     private boolean readonly;
-    private PrismPropertyDefinition itemDefinition;
+    private ItemDefinition itemDefinition;
 
-    public PropertyWrapper(ContainerWrapper container, PrismProperty property, boolean readonly, ValueStatus status) {
+    public PropertyWrapper(ContainerWrapper container, I property, boolean readonly, ValueStatus status) {
         Validate.notNull(property, "Property must not be null.");
         Validate.notNull(status, "Property status must not be null.");
 
@@ -82,10 +87,10 @@ public class PropertyWrapper implements ItemWrapper, Serializable, DebugDumpable
     }
 
     @Override
-    public PrismPropertyDefinition getItemDefinition() {
-    	PrismPropertyDefinition propDef = null;
+    public ItemDefinition getItemDefinition() {
+    	ItemDefinition propDef = null;
     	if (container.getItemDefinition() != null){
-    		propDef = container.getItemDefinition().findPropertyDefinition(property.getDefinition().getName());
+    		propDef = container.getItemDefinition().findItemDefinition(property.getDefinition().getName());
     	}
     	if (propDef == null) {
     		propDef = property.getDefinition();
@@ -114,8 +119,13 @@ public class PropertyWrapper implements ItemWrapper, Serializable, DebugDumpable
         }
         return ContainerWrapper.getDisplayNameFromItem(property);
     }
-
+    
     @Override
+	public QName getName() {
+		return getItem().getElementName();
+	}
+
+	@Override
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
@@ -124,19 +134,27 @@ public class PropertyWrapper implements ItemWrapper, Serializable, DebugDumpable
         return status;
     }
 
+    public void setStatus(ValueStatus status) {
+        this.status = status;
+    }
+
     public List<ValueWrapper> getValues() {
         return values;
     }
 
     @Override
-    public PrismProperty getItem() {
+    public I getItem() {
         return property;
+    }
+    
+    public ItemDefinition getDefinition() {
+    	return property.getDefinition();
     }
 
     private List<ValueWrapper> createValues() {
         List<ValueWrapper> values = new ArrayList<ValueWrapper>();
 
-        for (PrismPropertyValue prismValue : (List<PrismPropertyValue>) property.getValues()) {
+        for (PrismValue prismValue : (List<PrismValue>) property.getValues()) {
             values.add(new ValueWrapper(this, prismValue, ValueStatus.NOT_CHANGED));
         }
 
@@ -157,7 +175,7 @@ public class PropertyWrapper implements ItemWrapper, Serializable, DebugDumpable
     }
 
     public ValueWrapper createAddedValue() {
-        PrismPropertyDefinition definition = property.getDefinition();
+        ItemDefinition definition = property.getDefinition();
 
         ValueWrapper wrapper;
         if (SchemaConstants.T_POLY_STRING_TYPE.equals(definition.getTypeName())) {
@@ -218,14 +236,12 @@ public class PropertyWrapper implements ItemWrapper, Serializable, DebugDumpable
         StringBuilder builder = new StringBuilder();
         builder.append("PropertyWrapper(");
         builder.append(getDisplayName());
-        builder.append(", ");
+        builder.append(" (");
         builder.append(status);
-        builder.append(",values=[");
-        for (ValueWrapper wrapper : getValues()) {
-            builder.append(wrapper.toString());
-            builder.append(",");
-        }
-        builder.append("])");
+        builder.append(") ");
+        builder.append(getValues() == null ? null :  getValues().size());
+		builder.append(" values)");
+        builder.append(")");
         return builder.toString();
     }
 
@@ -237,6 +253,11 @@ public class PropertyWrapper implements ItemWrapper, Serializable, DebugDumpable
     public void setReadonly(boolean readonly) {
         this.readonly = readonly;
     }
+    
+    @Override
+	public boolean isEmpty() {
+		return getItem().isEmpty();
+	}
 
 	@Override
 	public String debugDump() {
@@ -247,7 +268,8 @@ public class PropertyWrapper implements ItemWrapper, Serializable, DebugDumpable
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("PropertyWrapper(\n");
+		sb.append(getDebugName());
+		sb.append(": ").append(PrettyPrinter.prettyPrint(getName())).append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "displayName", displayName, indent+1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "status", status == null?null:status.toString(), indent+1);
@@ -258,11 +280,14 @@ public class PropertyWrapper implements ItemWrapper, Serializable, DebugDumpable
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "property", property == null?null:property.toString(), indent+1);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "values", values, indent+1);
+		DebugUtil.debugDumpLabel(sb, "values", indent+1);
 		sb.append("\n");
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append(")");
+		DebugUtil.debugDump(sb, values, indent+2, false);
 		return sb.toString();
+	}
+
+	protected String getDebugName() {
+		return "PropertyWrapper";
 	}
 
 }
