@@ -24,25 +24,25 @@ package com.evolveum.midpoint.repo.sql.data.common.other;
  */
 public enum RReferenceOwner {
 
-    OBJECT_PARENT_ORG,
+    OBJECT_PARENT_ORG,          // 0
 
-    USER_ACCOUNT,
+    USER_ACCOUNT,               // 1
 
-    RESOURCE_BUSINESS_CONFIGURATON_APPROVER,
+    RESOURCE_BUSINESS_CONFIGURATON_APPROVER,    // 2
 
-    ROLE_APPROVER,
+    ROLE_APPROVER,              // 3
 
     /**
      * @deprecated
      */
     @Deprecated
-    SYSTEM_CONFIGURATION_ORG_ROOT,
+    SYSTEM_CONFIGURATION_ORG_ROOT,  // 4
 
-    CREATE_APPROVER,
+    CREATE_APPROVER,            // 5
 
-    MODIFY_APPROVER,
+    MODIFY_APPROVER,            // 6
 
-    INCLUDE,
+    INCLUDE,                    // 7
 
-    ROLE_MEMBER;
+    ROLE_MEMBER;                // 8
 }

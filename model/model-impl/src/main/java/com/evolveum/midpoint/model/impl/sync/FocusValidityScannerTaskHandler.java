@@ -15,13 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
-import javax.annotation.PostConstruct;
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
@@ -31,31 +24,31 @@ import com.evolveum.midpoint.model.impl.util.AbstractScannerResultHandler;
 import com.evolveum.midpoint.model.impl.util.AbstractScannerTaskHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.GreaterFilter;
-import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_FROM;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_TO;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ACTIVATION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ASSIGNMENT;
 
 /**
  * 
@@ -106,43 +99,29 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		XMLGregorianCalendar lastScanTimestamp = handler.getLastScanTimestamp();
 		XMLGregorianCalendar thisScanTimestamp = handler.getThisScanTimestamp();
 		if (lastScanTimestamp == null) {
-			filter = OrFilter.createOr(
-						LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
-								thisScanTimestamp, true),
-						LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
-								thisScanTimestamp, true),
-						LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
-								focusObjectDef, thisScanTimestamp, true),
-						LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
-								focusObjectDef, thisScanTimestamp, true)
-				);
+			filter = QueryBuilder.queryFor(FocusType.class, prismContext)
+					.item(F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
+					.or().item(F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp)
+					.or().exists(F_ASSIGNMENT)
+						.block()
+							.item(AssignmentType.F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
+							.or().item(AssignmentType.F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp)
+						.endBlock()
+					.buildFilter();
 		} else {
-			filter = OrFilter.createOr(
-						AndFilter.createAnd(
-							GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
-									lastScanTimestamp, false),
-							LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
-									thisScanTimestamp, true)
-						),
-						AndFilter.createAnd(
-							GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
-									lastScanTimestamp, false),
-							LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
-									thisScanTimestamp, true)
-						),
-						AndFilter.createAnd(
-								GreaterFilter.createGreater(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
-										focusObjectDef, lastScanTimestamp, false),
-								LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
-										focusObjectDef, thisScanTimestamp, true)
-							),
-						AndFilter.createAnd(
-								GreaterFilter.createGreater(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
-										focusObjectDef, lastScanTimestamp, false),
-								LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
-										focusObjectDef, thisScanTimestamp, true)
-							)
-			);			
+			filter = QueryBuilder.queryFor(FocusType.class, prismContext)
+					.item(F_ACTIVATION, F_VALID_FROM).gt(lastScanTimestamp)
+						.and().item(F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
+					.or().item(F_ACTIVATION, F_VALID_TO).gt(lastScanTimestamp)
+						.and().item(F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp)
+					.or().exists(F_ASSIGNMENT)
+						.block()
+							.item(AssignmentType.F_ACTIVATION, F_VALID_FROM).gt(lastScanTimestamp)
+								.and().item(AssignmentType.F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
+							.or().item(AssignmentType.F_ACTIVATION, F_VALID_TO).gt(lastScanTimestamp)
+								.and().item(AssignmentType.F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp)
+						.endBlock()
+					.buildFilter();
 		}
 		
 		query.setFilter(filter);

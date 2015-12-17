@@ -6,6 +6,7 @@ import com.evolveum.midpoint.repo.sql.data.common.any.RAExtValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
 import com.evolveum.midpoint.repo.sql.data.common.any.ROExtValue;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
+import com.evolveum.midpoint.repo.sql.data.common.container.RContainerReference;
 import org.hibernate.EmptyInterceptor;
 
 /**
@@ -23,7 +24,7 @@ public class EntityStateInterceptor extends EmptyInterceptor {
             RObjectReference ref = (RObjectReference) entity;
             return isTransient(ref.getOwner());
         } else if (entity instanceof RAssignmentReference) {
-            RAssignmentReference ref = (RAssignmentReference) entity;
+            RContainerReference ref = (RContainerReference) entity;
             return isTransient(ref.getOwner());
         } else if (entity instanceof RAssignmentExtension) {
             RAssignmentExtension ext = (RAssignmentExtension) entity;

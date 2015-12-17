@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.data.common.id.ROrgClosureId;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -33,6 +34,7 @@ import java.io.Serializable;
 @org.hibernate.annotations.Table(appliesTo = "m_org_closure",
         indexes = {@Index(name = "iDescendant", columnNames = {"descendant_oid"}),
                    @Index(name = "iDescendantAncestor", columnNames = {"descendant_oid", "ancestor_oid"})})
+@NotQueryable
 public class ROrgClosure implements Serializable {
 
     private RObject ancestor;
@@ -66,6 +68,7 @@ public class ROrgClosure implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumns({@JoinColumn(name = "ancestor_oid", referencedColumnName = "oid")})
     @ForeignKey(name = "fk_ancestor")
+    @NotQueryable
     public RObject getAncestor() {
         return ancestor;
     }
@@ -73,6 +76,7 @@ public class ROrgClosure implements Serializable {
     @Id
     @Index(name = "iAncestor")
     @Column(name = "ancestor_oid", length = RUtil.COLUMN_LENGTH_OID, insertable = false, updatable = false)
+    @NotQueryable
     public String getAncestorOid() {
         if (ancestorOid == null && ancestor.getOid() != null) {
             ancestorOid = ancestor.getOid();
@@ -88,6 +92,7 @@ public class ROrgClosure implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumns({@JoinColumn(name = "descendant_oid", referencedColumnName = "oid")})
     @ForeignKey(name = "fk_descendant")
+    @NotQueryable
     public RObject getDescendant() {
         return descendant;
     }
@@ -95,6 +100,7 @@ public class ROrgClosure implements Serializable {
     @Id
     @Index(name = "iDescendant")
     @Column(name = "descendant_oid", length = RUtil.COLUMN_LENGTH_OID, insertable = false, updatable = false)
+    @NotQueryable
     public String getDescendantOid() {
         if (descendantOid == null && descendant.getOid() != null) {
             descendantOid = descendant.getOid();

@@ -70,14 +70,14 @@ public interface CertificationManager {
      *
      * The campaign will NOT be started upon creation. It should be started explicitly by calling openNextStage method.
      *
-     * @param certificationDefinition Certification definition for this campaign.
+     * @param definitionOid OID of certification definition for this campaign.
      * @param campaign Specific values for this campaign (optional).
      *                It must not be persistent, i.e. its OID must not be set.
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      * @return Object for the created campaign. It will be stored in the repository as well.
      */
-    AccessCertificationCampaignType createCampaign(AccessCertificationDefinitionType certificationDefinition, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult)
+    AccessCertificationCampaignType createCampaign(String definitionOid, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
     /**
@@ -87,8 +87,7 @@ public interface CertificationManager {
      * depending on the certification definition (scope and handler). In all stages, reviewers will be assigned
      * to cases, based again on the definition (reviewer specification in stage definition and handler).
      *
-     * @param campaign Certification campaign. If its definition reference is already resolved, it will be used.
-     *                 Otherwise, the implementation will resolve the definition by itself.
+     * @param campaignOid Certification campaign OID.
      * @param stageNumber Stage that has to be open. This has to be the stage after the current one (or the first one).
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
@@ -102,8 +101,7 @@ public interface CertificationManager {
      * depending on the certification definition (scope and handler). In all stages, reviewers will be assigned
      * to cases, based again on the definition (reviewer specification in stage definition and handler).
      *
-     * @param campaign Certification campaign. If its definition reference is already resolved, it will be used.
-     *                 Otherwise, the implementation will resolve the definition by itself.
+     * @param campaignOid Certification campaign OID.
      * @param stageNumber Stage that has to be closed. This has to be the current stage.
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
@@ -114,7 +112,7 @@ public interface CertificationManager {
      * Starts the remediation phase for the campaign.
      * The campaign has to be in the last stage and that stage has to be already closed.
      *
-     * @param campaign
+     * @param campaignOid
      * @param task
      * @param result
      */
@@ -123,7 +121,7 @@ public interface CertificationManager {
     /**
      * Closes a campaign.
      *
-     * @param campaign
+     * @param campaignOid
      * @param task
      * @param result
      */
@@ -139,8 +137,9 @@ public interface CertificationManager {
      * Paging instruction can be used to sort and page search results. Sorting can be based on
      *  - name of object, by setting paging.orderBy = objectRef
      *  - name of target, by setting paging.orderBy = targetRef
-     * Note that in order to use names as a sorting criteria, it is necessary to include RESOLVE_NAMES option in the operation call.
-     * Paging is specified by offset (counting from 0) and maxSize. Paging cooke is ignored.
+     *  - name of tenant, by setting paging.orderBy = tenantRef
+     *  - name of org referenced, by setting paging.orderBy = orgRef
+     * Paging is specified by offset (counting from 0) and maxSize. Paging cookie is ignored.
      *
      * NOTE THAT THE SORTING INTERFACE WILL PROBABLY BE CHANGED IN NEAR FUTURE.
      *
@@ -164,7 +163,7 @@ public interface CertificationManager {
      * Query argument for cases is the same as in the searchCases call.
      * Contrary to searchCases, this method allows to collect cases for more than one campaign
      * (e.g. to present a reviewer all of his/her cases).
-     * So, instead of campaignOid there is a campaignQuery allowing to select one, more, and even all campaigns.
+     * So, instead of campaignOid it will be (when implemented) possible to specify conditions for the campaign in the caseQuery.
      *
      * Contrary to all the other methods, cases returned from this method have campaignRef set - both reference and the campaign object itself.
      * (THIS MAY CHANGE IN THE FUTURE.)
@@ -173,21 +172,21 @@ public interface CertificationManager {
      *  - name of object, by setting paging.orderBy = objectRef
      *  - name of target, by setting paging.orderBy = targetRef
      *  - name of campaign, by setting paging.orderBy = campaignRef
+     *  - name of tenant, by setting paging.orderBy = tenantRef
+     *  - name of org referenced, by setting paging.orderBy = orgRef
      *  - deadline or reviewRequestedTimestamp, by setting paging.orderBy = reviewDeadline/reviewRequestedTimestamp
-     *
-     * @param campaignQuery Specification of campaigns to query.
-     * @param caseQuery Specification of the cases to retrieve.
+     * @param caseQuery Specification of the cases to retrieve. (In future it may contain restrictions on owning campaign(s).)
      * @param reviewerOid OID of the reviewer whose decisions we want to retrieve.
      * @param notDecidedOnly If true, only response==(NO_DECISION or null) should be returned.
-     *                       It is currently not possible to formulate this using Query API
-     *                       (we don't know the ID of the decision element to refer to).
+     *                       Although it can be formulated in Query API terms, this would refer to implementation details - so
+     *                       the cleaner way is keep this knowledge inside certification module only.
      * @param options Options to use (currently supported is RESOLVE_NAMES).
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      * @return A list of relevant certification cases.
+     *
      */
-
-    List<AccessCertificationCaseType> searchDecisions(ObjectQuery campaignQuery, ObjectQuery caseQuery,
+    List<AccessCertificationCaseType> searchDecisions(ObjectQuery caseQuery,
                                                       String reviewerOid, boolean notDecidedOnly,
                                                       Collection<SelectorOptions<GetOperationOptions>> options,
                                                       Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException;

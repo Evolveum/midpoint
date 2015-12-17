@@ -55,7 +55,7 @@ public class RResource extends RObject<ResourceType> {
     //resource business configuration, embedded component can't be used, because then it couldn't use
     //non embedded approverRef relationship
     private RResourceAdministrativeState administrativeState;
-    private Set<RObjectReference> approverRef;
+    private Set<RObjectReference<RFocus>> approverRef;
     //end of resource business configuration
 
     @Enumerated(EnumType.ORDINAL)
@@ -68,9 +68,9 @@ public class RResource extends RObject<ResourceType> {
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RObjectReference> getApproverRef() {
+    public Set<RObjectReference<RFocus>> getApproverRef() {
         if (approverRef == null) {
-            approverRef = new HashSet<RObjectReference>();
+            approverRef = new HashSet<>();
         }
         return approverRef;
     }
@@ -94,7 +94,7 @@ public class RResource extends RObject<ResourceType> {
         this.administrativeState = administrativeState;
     }
 
-    public void setApproverRef(Set<RObjectReference> approverRef) {
+    public void setApproverRef(Set<RObjectReference<RFocus>> approverRef) {
         this.approverRef = approverRef;
     }
 

@@ -48,6 +48,7 @@ public interface ModelDiagnosticService {
 	String CLASS_NAME_WITH_DOT = ModelDiagnosticService.class.getName() + ".";
 	String REPOSITORY_SELF_TEST = CLASS_NAME_WITH_DOT + "repositorySelfTest";
     String REPOSITORY_TEST_ORG_CLOSURE_CONSISTENCY = CLASS_NAME_WITH_DOT + "repositoryTestOrgClosureConsistency";
+	String REPOSITORY_EXECUTE_QUERY = CLASS_NAME_WITH_DOT + "repositoryExecuteQuery";
 	String PROVISIONING_SELF_TEST = CLASS_NAME_WITH_DOT + "provisioningSelfTest";
 	
 	/**
@@ -76,7 +77,7 @@ public interface ModelDiagnosticService {
      *
      * TODO this method is SQL service specific; it should be generalized/fixed somehow.
      */
-    public OperationResult repositoryTestOrgClosureConsistency(Task task, boolean repairIfNecessary);
+    public void repositoryTestOrgClosureConsistency(Task task, boolean repairIfNecessary, OperationResult result) throws SchemaException, SecurityViolationException;
 
     /**
 	 * Runs a short, non-destructive internal provisioning test. It tests provisioning framework and
@@ -89,4 +90,10 @@ public interface ModelDiagnosticService {
      */
     public ProvisioningDiag getProvisioningDiag(Task task, OperationResult parentResult);
 
+	/**
+	 * Execute arbitrary implementation-specific query. In current implementation this means hibernate query.
+	 *
+	 * EXPERIMENTAL.
+	 */
+	public String executeRepositoryQuery(String query, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException;
 }

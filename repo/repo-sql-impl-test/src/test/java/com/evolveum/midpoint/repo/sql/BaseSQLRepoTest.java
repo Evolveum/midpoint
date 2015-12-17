@@ -40,6 +40,7 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.hibernate.Criteria;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.dialect.H2Dialect;
@@ -194,6 +195,10 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
         }
 
         return HibernateToSqlTranslator.toSql(factory, ((RQueryImpl) rQuery).getQuery().getQueryString());
+    }
+
+    protected String hqlToSql(String hql) {
+        return HibernateToSqlTranslator.toSql(factory, hql);
     }
 
     protected <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file) throws

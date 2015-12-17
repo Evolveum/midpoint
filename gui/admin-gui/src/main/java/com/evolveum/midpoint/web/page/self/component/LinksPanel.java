@@ -71,11 +71,13 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
             int currentColumn = 0;
             RepeatingView columnView = null;
             WebMarkupContainer row = null;
+            boolean isRowAdded = false;
             for (int i = 0; i < linksListSize; i++) {
                 final RichHyperlinkType link = linksList.get(i);
                 if (WebMiscUtil.isAuthorized(link.getAuthorization())) {
                     if (currentColumn == 0) {
                         row = new WebMarkupContainer(rowView.newChildId());
+                        isRowAdded = false;
                         columnView = new RepeatingView(ID_LINKS_COLUMN);
                     }
                     WebMarkupContainer column = new WebMarkupContainer(columnView.newChildId());
@@ -132,16 +134,21 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
 
                     column.add(linkItem);
                     columnView.add(column);
-                    if (currentColumn == 1 || (i == (linksListSize - 1))) {
+                    if (currentColumn == 1 || (linksList.indexOf(link) == linksListSize - 1)) {
                         row.add(columnView);
                         rowView.add(row);
                         currentColumn = 0;
+                        isRowAdded = true;
                     } else {
                         currentColumn++;
                     }
                 } else {
                 	LOGGER.trace("Link {} not authorized, skipping", link);
                 }
+            }
+            if (row != null && columnView != null && !isRowAdded){
+                row.add(columnView);
+                rowView.add(row);
             }
         }
         add(rowView);

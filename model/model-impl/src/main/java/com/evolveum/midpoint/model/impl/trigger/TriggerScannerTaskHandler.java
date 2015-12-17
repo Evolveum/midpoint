@@ -15,52 +15,41 @@
  */
 package com.evolveum.midpoint.model.impl.trigger;
 
-import java.util.Collection;
-import java.util.List;
-
-import javax.annotation.PostConstruct;
-import javax.xml.datatype.DatatypeConstants;
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.impl.util.AbstractScannerResultHandler;
 import com.evolveum.midpoint.model.impl.util.AbstractScannerTaskHandler;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.GreaterFilter;
 import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Collection;
+import java.util.List;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_TRIGGER;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
 
 /**
  * 
@@ -101,17 +90,19 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		ObjectQuery query = new ObjectQuery();
 		ObjectFilter filter;
 		PrismObjectDefinition<UserType> focusObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-		PrismContainerDefinition<TriggerType> triggerContainerDef = focusObjectDef.findContainerDefinition(ObjectType.F_TRIGGER);
+		PrismContainerDefinition<TriggerType> triggerContainerDef = focusObjectDef.findContainerDefinition(F_TRIGGER);
 		
 		if (handler.getLastScanTimestamp() == null) {
-			filter = LessFilter.createLess(new ItemPath(ObjectType.F_TRIGGER, TriggerType.F_TIMESTAMP), focusObjectDef, 
+			filter = LessFilter.createLess(new ItemPath(F_TRIGGER, F_TIMESTAMP), focusObjectDef,
 								handler.getThisScanTimestamp(), true);
 		} else {
-			filter = AndFilter.createAnd(
-							GreaterFilter.createGreater(new ItemPath(ObjectType.F_TRIGGER, TriggerType.F_TIMESTAMP), focusObjectDef, 
-									handler.getLastScanTimestamp(), false),
-							LessFilter.createLess(new ItemPath(ObjectType.F_TRIGGER, TriggerType.F_TIMESTAMP), focusObjectDef, 
-									handler.getThisScanTimestamp(), true));
+			filter = QueryBuilder.queryFor(ObjectType.class, prismContext)
+					.exists(F_TRIGGER)
+						.block()
+							.item(F_TIMESTAMP).gt(handler.getLastScanTimestamp())
+							.and().item(F_TIMESTAMP).le(handler.getThisScanTimestamp())
+						.endBlock()
+					.buildFilter();
 		}
 		
 		query.setFilter(filter);
@@ -137,7 +128,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	private void fireTriggers(AbstractScannerResultHandler<ObjectType> handler, PrismObject<ObjectType> object, Task task, OperationResult result) throws SchemaException, 
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
-		PrismContainer<TriggerType> triggerContainer = object.findContainer(ObjectType.F_TRIGGER);
+		PrismContainer<TriggerType> triggerContainer = object.findContainer(F_TRIGGER);
 		if (triggerContainer == null) {
 			LOGGER.warn("Strange thing, attempt to fire triggers on {}, but it does not have trigger container", object);
 		} else {
@@ -202,7 +193,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 
 	private void removeTrigger(PrismObject<ObjectType> object, PrismContainerValue<TriggerType> triggerCVal, Task task) {
 		PrismContainerDefinition<TriggerType> triggerContainerDef = triggerCVal.getParent().getDefinition();
-		ContainerDelta<TriggerType> triggerDelta = (ContainerDelta<TriggerType>) triggerContainerDef.createEmptyDelta(new ItemPath(ObjectType.F_TRIGGER));
+		ContainerDelta<TriggerType> triggerDelta = (ContainerDelta<TriggerType>) triggerContainerDef.createEmptyDelta(new ItemPath(F_TRIGGER));
 		triggerDelta.addValuesToDelete(triggerCVal.clone());
 		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(triggerDelta);
 		// This is detached result. It will not take part of the task result. We do not really care.

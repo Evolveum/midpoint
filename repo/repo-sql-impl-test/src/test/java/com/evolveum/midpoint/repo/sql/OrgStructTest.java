@@ -603,8 +603,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         ObjectQuery query = new ObjectQuery();
         PrismReferenceValue baseOrgRef = new PrismReferenceValue(ORG_F001_OID);
         ObjectFilter filter = OrgFilter.createOrg(baseOrgRef, OrgFilter.Scope.ONE_LEVEL);
-        ObjectPaging paging = ObjectPaging.createEmptyPaging();
-        paging.setOrderBy(ObjectType.F_NAME);
+        ObjectPaging paging = ObjectPaging.createPaging(null, null, ObjectType.F_NAME, null);
         query.setFilter(filter);
         query.setPaging(paging);
 

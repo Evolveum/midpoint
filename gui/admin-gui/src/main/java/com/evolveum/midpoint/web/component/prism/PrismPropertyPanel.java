@@ -62,6 +62,8 @@ public class PrismPropertyPanel extends Panel {
         super(id);
         this.pageBase = pageBase;
 
+        LOGGER.trace("Creating property panel for {}", model.getObject());
+        
         setOutputMarkupId(true);
         add(new VisibleEnableBehaviour() {
 

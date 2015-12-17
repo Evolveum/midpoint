@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.data.common.id.RFocusPhotoId;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 
@@ -41,12 +42,14 @@ public class RFocusPhoto implements Serializable {
     @ForeignKey(name = "fk_focus_photo")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
+    @NotQueryable
     public RFocus getOwner() {
         return owner;
     }
 
     @Id
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+    @NotQueryable
     public String getOwnerOid() {
         if (ownerOid == null && owner != null) {
             ownerOid = owner.getOid();

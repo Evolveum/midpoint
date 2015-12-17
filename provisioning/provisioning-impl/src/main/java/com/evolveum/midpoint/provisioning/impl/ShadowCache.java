@@ -782,11 +782,10 @@ public abstract class ShadowCache {
         }
 
         ObjectQuery attributeQuery = null;
-        List<ObjectFilter> attributeFilter = new ArrayList<ObjectFilter>();
 
-        if (filter instanceof AndFilter){
+        if (filter instanceof AndFilter) {
             List<? extends ObjectFilter> conditions = ((AndFilter) filter).getConditions();
-            attributeFilter = createAttributeQueryInternal(conditions);
+			List<ObjectFilter> attributeFilter = createAttributeQueryInternal(conditions);
             if (attributeFilter.size() > 1){
                 attributeQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(attributeFilter));
             } else if (attributeFilter.size() < 1){
@@ -838,7 +837,7 @@ public abstract class ShadowCache {
 					} else if (f instanceof AndFilter){
 						attributeFilter.add(AndFilter.createAnd(subFilters));
 					} else {
-						throw new IllegalArgumentException("Could not translate query filter. Unknow type: " + f);
+						throw new IllegalArgumentException("Could not translate query filter. Unknown type: " + f);
 					}
 	            } else if (subFilters.size() < 1){
 	                continue;
@@ -1292,15 +1291,17 @@ public abstract class ShadowCache {
 	private void deleteShadowFromRepo(Change change, OperationResult parentResult) throws ObjectNotFoundException {
 		if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE
 				&& change.getOldShadow() != null) {
-			LOGGER.debug("Deleting detected shadow object form repository.");
+			LOGGER.trace("Deleting detected shadow object form repository.");
 			try {
 				repositoryService.deleteObject(ShadowType.class, change.getOldShadow().getOid(),
 						parentResult);
+				LOGGER.debug("Shadow object successfully deleted form repository.");
 			} catch (ObjectNotFoundException ex) {
-				parentResult.recordFatalError("Can't find object " + change.getOldShadow() + " in repository.");
-				throw new ObjectNotFoundException("Can't find object " + change.getOldShadow() + " in repository.");
+				// What we want to delete is already deleted. Not a big problem.
+				LOGGER.debug("Shadow object {} already deleted from repository ({})", change.getOldShadow(), ex);
+				parentResult.recordHandledError("Shadow object "+change.getOldShadow()+" already deleted from repository", ex);
 			}
-			LOGGER.debug("Shadow object deleted successfully form repository.");
+			
 		}
 	}
 

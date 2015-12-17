@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -61,6 +63,8 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
 
     private static final String STRIPED_CLASS = "striped";
     private static final String ID_HEADER = "header";
+    
+    private static final Trace LOGGER = TraceManager.getTrace(PrismObjectPanel.class);
 
     private boolean showHeader = true;
     private PageBase pageBase;
@@ -69,6 +73,8 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
         super(id);
         setOutputMarkupId(true);
 
+        LOGGER.trace("Creating object panel for {}", model.getObject());
+        
         this.pageBase = pageBase;
         initLayout(model, image, form);
     }
@@ -150,7 +156,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
         if (enabledProperty == null || enabledProperty.getValues().isEmpty()) {
             return false;
         }
-        ValueWrapper value = enabledProperty.getValues().get(0);
+        ValueWrapper value = (ValueWrapper) enabledProperty.getValues().get(0);
         if (value.getValue() == null) {
             return false;
         }

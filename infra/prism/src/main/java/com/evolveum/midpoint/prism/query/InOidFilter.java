@@ -20,16 +20,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
-import javax.xml.namespace.QName;
-
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -37,8 +31,10 @@ public class InOidFilter extends ObjectFilter {
 
 	private Collection<String> oids;
 	private ExpressionWrapper expression;
+	private boolean considerOwner;				// temporary hack (checks owner OID)
 	
-	InOidFilter(Collection<String> oids) {
+	InOidFilter(boolean considerOwner, Collection<String> oids) {
+		this.considerOwner = considerOwner;
 		this.oids = oids;
 	}
 	
@@ -47,13 +43,21 @@ public class InOidFilter extends ObjectFilter {
 	}
 	
 	public static InOidFilter createInOid(Collection<String> oids){
-		return new InOidFilter(oids);
+		return new InOidFilter(false, oids);
 	}
 	
 	public static InOidFilter createInOid(String... oids){
-		return new InOidFilter(Arrays.asList(oids));
+		return new InOidFilter(false, Arrays.asList(oids));
 	}
-	
+
+	public static InOidFilter createOwnerHasOidIn(Collection<String> oids){
+		return new InOidFilter(true, oids);
+	}
+
+	public static InOidFilter createOwnerHasOidIn(String... oids){
+		return new InOidFilter(true, Arrays.asList(oids));
+	}
+
 	public static InOidFilter createInOid(ExpressionWrapper expression){
 		return new InOidFilter(expression);
 	}
@@ -65,7 +69,11 @@ public class InOidFilter extends ObjectFilter {
 	public void setOids(Collection<String> oids) {
 		this.oids = oids;
 	}
-	
+
+	public boolean isConsiderOwner() {
+		return considerOwner;
+	}
+
 	public ExpressionWrapper getExpression() {
 		return expression;
 	}
@@ -73,8 +81,6 @@ public class InOidFilter extends ObjectFilter {
 	public void setExpression(ExpressionWrapper expression) {
 		this.expression = expression;
 	}
-	
-	
 	
 	@Override
 	public void checkConsistence() {
@@ -97,21 +103,20 @@ public class InOidFilter extends ObjectFilter {
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("IN OID: ");
-		
-			
-		sb.append("\n");
-		DebugUtil.indentDebugDump(sb, indent+1);
+		if (considerOwner) {
+			sb.append("(for owner)");
+		}
 		sb.append("VALUE:");
 		if (getOids() != null) {
 			sb.append("\n");
 			for (String oid : getOids()) {
+				DebugUtil.indentDebugDump(sb, indent+1);
 				sb.append(oid);
 				sb.append("\n");
 			}
 		} else {
-			sb.append(" null");
+			sb.append(" null\n");
 		}
-		
 		
 		return sb.toString();
 		
@@ -139,7 +144,7 @@ public class InOidFilter extends ObjectFilter {
 
 	@Override
 	public InOidFilter clone() {
-		InOidFilter inOid = new InOidFilter(getOids());
+		InOidFilter inOid = new InOidFilter(considerOwner, getOids());
 		inOid.setExpression(getExpression());
 		return inOid;
 	}

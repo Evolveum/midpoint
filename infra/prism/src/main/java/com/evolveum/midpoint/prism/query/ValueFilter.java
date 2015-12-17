@@ -118,34 +118,6 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 		return matching;
 
 	}
-	
-	static ItemDefinition findItemDefinition(ItemPath itemPath, PrismContainerDefinition<? extends Containerable> containerDef) {
-		ItemDefinition itemDef = containerDef.findItemDefinition(itemPath);
-		if (itemDef == null) {
-			throw new IllegalStateException("No definition for item " + itemPath + " in container definition "
-					+ containerDef);
-		}
-
-		return itemDef;
-	}
-
-	static ItemDefinition findItemDefinition(ItemPath parentPath, ComplexTypeDefinition complexTypeDefinition) {
-		ItemDefinition itemDef = complexTypeDefinition.findItemDefinition(parentPath);
-		if (itemDef == null) {
-			throw new IllegalStateException("No definition for item " + parentPath + " in complex type definition "
-					+ complexTypeDefinition);
-		}
-		return itemDef;
-	}
-
-	static ItemDefinition findItemDefinition(ItemPath parentPath, Class type, PrismContext prismContext) {
-		ComplexTypeDefinition complexTypeDefinition = prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(type);
-		if (complexTypeDefinition == null) {
-			// TODO SchemaException instead?
-			throw new IllegalStateException("Definition of complex type " + type + " couldn't be not found");
-		}
-		return findItemDefinition(parentPath, complexTypeDefinition);
-	}
 
 	protected void cloneValues(ValueFilter clone) {
 		super.cloneValues(clone);

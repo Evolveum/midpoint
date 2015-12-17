@@ -82,6 +82,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 
 	protected ItemDelta(ItemPath parentPath, QName elementName, D itemDefinition, PrismContext prismContext) {
         //checkPrismContext(prismContext, itemDefinition);
+		ItemPath.checkNoReferences(parentPath);
         this.prismContext = prismContext;
 		this.elementName = elementName;
 		this.parentPath = parentPath;
@@ -90,6 +91,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 
 	protected ItemDelta(ItemPath path, D itemDefinition, PrismContext prismContext) {
         //checkPrismContext(prismContext, itemDefinition);
+		ItemPath.checkNoReferences(path);
         this.prismContext = prismContext;
 
 		if (path == null) {
@@ -133,6 +135,9 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 
 	@Override
 	public ItemPath getPath() {
+		if (getParentPath() == null) {
+			throw new IllegalStateException("No parent path in "+this);
+		}
 		return getParentPath().subPath(elementName);
 	}
 
@@ -1082,6 +1087,15 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		for (ItemDelta delta : deltas) {
 			delta.applyToMatchingPath(propertyContainer);
 		}
+	}
+
+	public void applyTo(PrismContainerValue containerValue) throws SchemaException {
+		ItemPath deltaPath = getPath();
+		if (ItemPath.isNullOrEmpty(deltaPath)) {
+			throw new IllegalArgumentException("Cannot apply empty-path delta " + this + " directly to a PrismContainerValue " + containerValue);
+		}
+		Item subItem = containerValue.findOrCreateItem(deltaPath, getItemClass(), getDefinition());
+		applyToMatchingPath(subItem);
 	}
 	
 	public void applyTo(Item item) throws SchemaException {

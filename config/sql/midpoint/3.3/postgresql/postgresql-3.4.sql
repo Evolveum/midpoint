@@ -1,245 +1,265 @@
-# use for db create
-# CREATE DATABASE <database name>
-#   CHARACTER SET utf8
-#   DEFAULT CHARACTER SET utf8
-#   COLLATE utf8_bin
-#   DEFAULT COLLATE utf8_bin
-# ;
-
-# replace "ENGINE=InnoDB" with "DEFAULT CHARACTER SET utf8 COLLATE utf8_bin ENGINE=InnoDB"
-# replace "DATETIME" with "DATETIME(6)"
-
-# remove iAncestor and iDescendant index, they are the same as FK for that fields
-
 CREATE TABLE m_abstract_role (
   approvalProcess VARCHAR(255),
-  requestable     BIT,
+  requestable     BOOLEAN,
   oid             VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_acc_cert_campaign (
-    definitionRef_relation VARCHAR(157),
-    definitionRef_targetOid VARCHAR(36),
-    definitionRef_type INTEGER,
-    name_norm VARCHAR(255),
-    name_orig VARCHAR(255),
-    oid VARCHAR(36) NOT NULL,
-    PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE=InnoDB;
+  definitionRef_relation  VARCHAR(157),
+  definitionRef_targetOid VARCHAR(36),
+  definitionRef_type      INT4,
+  endTimestamp            TIMESTAMP,
+  handlerUri              VARCHAR(255),
+  name_norm               VARCHAR(255),
+  name_orig               VARCHAR(255),
+  ownerRef_relation       VARCHAR(157),
+  ownerRef_targetOid      VARCHAR(36),
+  ownerRef_type           INT4,
+  stageNumber             INT4,
+  startTimestamp          TIMESTAMP,
+  state                   INT4,
+  oid                     VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
+);
+
+CREATE TABLE m_acc_cert_case (
+  id                       INT4        NOT NULL,
+  owner_oid                VARCHAR(36) NOT NULL,
+  administrativeStatus     INT4,
+  archiveTimestamp         TIMESTAMP,
+  disableReason            VARCHAR(255),
+  disableTimestamp         TIMESTAMP,
+  effectiveStatus          INT4,
+  enableTimestamp          TIMESTAMP,
+  validFrom                TIMESTAMP,
+  validTo                  TIMESTAMP,
+  validityChangeTimestamp  TIMESTAMP,
+  validityStatus           INT4,
+  currentResponse          INT4,
+  currentStageNumber       INT4,
+  fullObject               BYTEA,
+  objectRef_relation       VARCHAR(157),
+  objectRef_targetOid      VARCHAR(36),
+  objectRef_type           INT4,
+  orgRef_relation          VARCHAR(157),
+  orgRef_targetOid         VARCHAR(36),
+  orgRef_type              INT4,
+  remediedTimestamp        TIMESTAMP,
+  reviewDeadline           TIMESTAMP,
+  reviewRequestedTimestamp TIMESTAMP,
+  targetRef_relation       VARCHAR(157),
+  targetRef_targetOid      VARCHAR(36),
+  targetRef_type           INT4,
+  tenantRef_relation       VARCHAR(157),
+  tenantRef_targetOid      VARCHAR(36),
+  tenantRef_type           INT4,
+  PRIMARY KEY (id, owner_oid)
+);
+
+CREATE TABLE m_acc_cert_case_reference (
+  owner_id        INT4         NOT NULL,
+  owner_owner_oid VARCHAR(36)  NOT NULL,
+  reference_type  INT4         NOT NULL,
+  relation        VARCHAR(157) NOT NULL,
+  targetOid       VARCHAR(36)  NOT NULL,
+  containerType   INT4,
+  PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
+);
+
+CREATE TABLE m_acc_cert_decision (
+  id                    INT4        NOT NULL,
+  owner_id              INT4        NOT NULL,
+  owner_owner_oid       VARCHAR(36) NOT NULL,
+  reviewerComment       VARCHAR(255),
+  response              INT4,
+  reviewerRef_relation  VARCHAR(157),
+  reviewerRef_targetOid VARCHAR(36),
+  reviewerRef_type      INT4,
+  stageNumber           INT4        NOT NULL,
+  timestamp             TIMESTAMP,
+  PRIMARY KEY (id, owner_id, owner_owner_oid)
+);
 
 CREATE TABLE m_acc_cert_definition (
-    name_norm VARCHAR(255),
-    name_orig VARCHAR(255),
-    oid VARCHAR(36) NOT NULL,
-    PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE=InnoDB;
+  handlerUri                   VARCHAR(255),
+  lastCampaignClosedTimestamp  TIMESTAMP,
+  lastCampaignStartedTimestamp TIMESTAMP,
+  name_norm                    VARCHAR(255),
+  name_orig                    VARCHAR(255),
+  ownerRef_relation            VARCHAR(157),
+  ownerRef_targetOid           VARCHAR(36),
+  ownerRef_type                INT4,
+  oid                          VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
+);
 
 CREATE TABLE m_assignment (
-  id                      INTEGER     NOT NULL,
+  id                      INT4        NOT NULL,
   owner_oid               VARCHAR(36) NOT NULL,
-  administrativeStatus    INTEGER,
-  archiveTimestamp        DATETIME(6),
+  administrativeStatus    INT4,
+  archiveTimestamp        TIMESTAMP,
   disableReason           VARCHAR(255),
-  disableTimestamp        DATETIME(6),
-  effectiveStatus         INTEGER,
-  enableTimestamp         DATETIME(6),
-  validFrom               DATETIME(6),
-  validTo                 DATETIME(6),
-  validityChangeTimestamp DATETIME(6),
-  validityStatus          INTEGER,
-  assignmentOwner         INTEGER,
+  disableTimestamp        TIMESTAMP,
+  effectiveStatus         INT4,
+  enableTimestamp         TIMESTAMP,
+  validFrom               TIMESTAMP,
+  validTo                 TIMESTAMP,
+  validityChangeTimestamp TIMESTAMP,
+  validityStatus          INT4,
+  assignmentOwner         INT4,
   createChannel           VARCHAR(255),
-  createTimestamp         DATETIME(6),
+  createTimestamp         TIMESTAMP,
   creatorRef_relation     VARCHAR(157),
   creatorRef_targetOid    VARCHAR(36),
-  creatorRef_type         INTEGER,
+  creatorRef_type         INT4,
   modifierRef_relation    VARCHAR(157),
   modifierRef_targetOid   VARCHAR(36),
-  modifierRef_type        INTEGER,
+  modifierRef_type        INT4,
   modifyChannel           VARCHAR(255),
-  modifyTimestamp         DATETIME(6),
-  orderValue              INTEGER,
+  modifyTimestamp         TIMESTAMP,
+  orderValue              INT4,
   orgRef_relation         VARCHAR(157),
   orgRef_targetOid        VARCHAR(36),
-  orgRef_type             INTEGER,
+  orgRef_type             INT4,
   resourceRef_relation    VARCHAR(157),
   resourceRef_targetOid   VARCHAR(36),
-  resourceRef_type        INTEGER,
+  resourceRef_type        INT4,
   targetRef_relation      VARCHAR(157),
   targetRef_targetOid     VARCHAR(36),
-  targetRef_type          INTEGER,
+  targetRef_type          INT4,
   tenantRef_relation      VARCHAR(157),
   tenantRef_targetOid     VARCHAR(36),
-  tenantRef_type          INTEGER,
-  extId                   INTEGER,
+  tenantRef_type          INT4,
+  extId                   INT4,
   extOid                  VARCHAR(36),
   PRIMARY KEY (id, owner_oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_assignment_ext_boolean (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        INTEGER      NOT NULL,
+  anyContainer_owner_id        INT4         NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
-  booleanValue                 BIT          NOT NULL,
-  extensionType                INTEGER,
-  dynamicDef                   BIT,
+  booleanValue                 BOOLEAN      NOT NULL,
+  extensionType                INT4,
+  dynamicDef                   BOOLEAN,
   eType                        VARCHAR(157),
-  valueType                    INTEGER,
+  valueType                    INT4,
   PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, booleanValue)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_assignment_ext_date (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        INTEGER      NOT NULL,
+  anyContainer_owner_id        INT4         NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
-  dateValue                    DATETIME(6)     NOT NULL,
-  extensionType                INTEGER,
-  dynamicDef                   BIT,
+  dateValue                    TIMESTAMP    NOT NULL,
+  extensionType                INT4,
+  dynamicDef                   BOOLEAN,
   eType                        VARCHAR(157),
-  valueType                    INTEGER,
+  valueType                    INT4,
   PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, dateValue)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_assignment_ext_long (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        INTEGER      NOT NULL,
+  anyContainer_owner_id        INT4         NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
-  longValue                    BIGINT       NOT NULL,
-  extensionType                INTEGER,
-  dynamicDef                   BIT,
+  longValue                    INT8         NOT NULL,
+  extensionType                INT4,
+  dynamicDef                   BOOLEAN,
   eType                        VARCHAR(157),
-  valueType                    INTEGER,
+  valueType                    INT4,
   PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, longValue)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_assignment_ext_poly (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        INTEGER      NOT NULL,
+  anyContainer_owner_id        INT4         NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   orig                         VARCHAR(255) NOT NULL,
-  extensionType                INTEGER,
-  dynamicDef                   BIT,
+  extensionType                INT4,
+  dynamicDef                   BOOLEAN,
   norm                         VARCHAR(255),
   eType                        VARCHAR(157),
-  valueType                    INTEGER,
+  valueType                    INT4,
   PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, orig)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_assignment_ext_reference (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        INTEGER      NOT NULL,
+  anyContainer_owner_id        INT4         NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   targetoid                    VARCHAR(36)  NOT NULL,
-  extensionType                INTEGER,
-  dynamicDef                   BIT,
+  extensionType                INT4,
+  dynamicDef                   BOOLEAN,
   relation                     VARCHAR(157),
-  targetType                   INTEGER,
+  targetType                   INT4,
   eType                        VARCHAR(157),
-  valueType                    INTEGER,
+  valueType                    INT4,
   PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, targetoid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_assignment_ext_string (
   eName                        VARCHAR(157) NOT NULL,
-  anyContainer_owner_id        INTEGER      NOT NULL,
+  anyContainer_owner_id        INT4         NOT NULL,
   anyContainer_owner_owner_oid VARCHAR(36)  NOT NULL,
   stringValue                  VARCHAR(255) NOT NULL,
-  extensionType                INTEGER,
-  dynamicDef                   BIT,
+  extensionType                INT4,
+  dynamicDef                   BOOLEAN,
   eType                        VARCHAR(157),
-  valueType                    INTEGER,
+  valueType                    INT4,
   PRIMARY KEY (eName, anyContainer_owner_id, anyContainer_owner_owner_oid, stringValue)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_assignment_extension (
-  owner_id        INTEGER     NOT NULL,
+  owner_id        INT4        NOT NULL,
   owner_owner_oid VARCHAR(36) NOT NULL,
-  booleansCount   SMALLINT,
-  datesCount      SMALLINT,
-  longsCount      SMALLINT,
-  polysCount      SMALLINT,
-  referencesCount SMALLINT,
-  stringsCount    SMALLINT,
+  booleansCount   INT2,
+  datesCount      INT2,
+  longsCount      INT2,
+  polysCount      INT2,
+  referencesCount INT2,
+  stringsCount    INT2,
   PRIMARY KEY (owner_id, owner_owner_oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_assignment_reference (
-  owner_id        INTEGER      NOT NULL,
+  owner_id        INT4         NOT NULL,
   owner_owner_oid VARCHAR(36)  NOT NULL,
-  reference_type  INTEGER      NOT NULL,
+  reference_type  INT4         NOT NULL,
   relation        VARCHAR(157) NOT NULL,
   targetOid       VARCHAR(36)  NOT NULL,
-  containerType   INTEGER,
+  containerType   INT4,
   PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_audit_delta (
-  checksum   VARCHAR(32) NOT NULL,
-  record_id  BIGINT      NOT NULL,
-  delta      LONGTEXT,
-  deltaOid   VARCHAR(36),
-  deltaType  INTEGER,
-  fullResult LONGTEXT,
+  checksum          VARCHAR(32) NOT NULL,
+  record_id         INT8        NOT NULL,
+  delta             TEXT,
+  deltaOid          VARCHAR(36),
+  deltaType         INT4,
+  fullResult        TEXT,
   objectName_norm   VARCHAR(255),
   objectName_orig   VARCHAR(255),
   resourceName_norm VARCHAR(255),
   resourceName_orig VARCHAR(255),
   resourceOid       VARCHAR(36),
-  status     INTEGER,
+  status            INT4,
   PRIMARY KEY (checksum, record_id)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_audit_event (
-  id                BIGINT NOT NULL,
+  id                INT8 NOT NULL,
   channel           VARCHAR(255),
   eventIdentifier   VARCHAR(255),
-  eventStage        INTEGER,
-  eventType         INTEGER,
+  eventStage        INT4,
+  eventType         INT4,
   hostIdentifier    VARCHAR(255),
   initiatorName     VARCHAR(255),
   initiatorOid      VARCHAR(36),
   message           VARCHAR(1024),
-  outcome           INTEGER,
+  outcome           INT4,
   parameter         VARCHAR(255),
   result            VARCHAR(255),
   sessionIdentifier VARCHAR(255),
@@ -247,21 +267,18 @@ CREATE TABLE m_audit_event (
   targetOid         VARCHAR(36),
   targetOwnerName   VARCHAR(255),
   targetOwnerOid    VARCHAR(36),
-  targetType        INTEGER,
+  targetType        INT4,
   taskIdentifier    VARCHAR(255),
   taskOID           VARCHAR(255),
-  timestampValue    DATETIME(6),
+  timestampValue    TIMESTAMP,
   PRIMARY KEY (id)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_connector (
   connectorBundle            VARCHAR(255),
   connectorHostRef_relation  VARCHAR(157),
   connectorHostRef_targetOid VARCHAR(36),
-  connectorHostRef_type      INTEGER,
+  connectorHostRef_type      INT4,
   connectorType              VARCHAR(255),
   connectorVersion           VARCHAR(255),
   framework                  VARCHAR(255),
@@ -269,10 +286,7 @@ CREATE TABLE m_connector (
   name_orig                  VARCHAR(255),
   oid                        VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_connector_host (
   hostname  VARCHAR(255),
@@ -281,59 +295,44 @@ CREATE TABLE m_connector_host (
   port      VARCHAR(255),
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_connector_target_system (
   connector_oid    VARCHAR(36) NOT NULL,
   targetSystemType VARCHAR(255)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_exclusion (
-  id                  INTEGER     NOT NULL,
+  id                  INT4        NOT NULL,
   owner_oid           VARCHAR(36) NOT NULL,
-  policy              INTEGER,
+  policy              INT4,
   targetRef_relation  VARCHAR(157),
   targetRef_targetOid VARCHAR(36),
-  targetRef_type      INTEGER,
+  targetRef_type      INT4,
   PRIMARY KEY (id, owner_oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_focus (
-  administrativeStatus    INTEGER,
-  archiveTimestamp        DATETIME(6),
+  administrativeStatus    INT4,
+  archiveTimestamp        TIMESTAMP,
   disableReason           VARCHAR(255),
-  disableTimestamp        DATETIME(6),
-  effectiveStatus         INTEGER,
-  enableTimestamp         DATETIME(6),
-  validFrom               DATETIME(6),
-  validTo                 DATETIME(6),
-  validityChangeTimestamp DATETIME(6),
-  validityStatus          INTEGER,
-  hasPhoto                BIT DEFAULT FALSE NOT NULL,
+  disableTimestamp        TIMESTAMP,
+  effectiveStatus         INT4,
+  enableTimestamp         TIMESTAMP,
+  validFrom               TIMESTAMP,
+  validTo                 TIMESTAMP,
+  validityChangeTimestamp TIMESTAMP,
+  validityStatus          INT4,
+  hasPhoto                BOOLEAN DEFAULT FALSE NOT NULL,
   oid                     VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_focus_photo (
   owner_oid VARCHAR(36) NOT NULL,
-  photo     LONGBLOB,
+  photo     BYTEA,
   PRIMARY KEY (owner_oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_generic_object (
   name_norm  VARCHAR(255),
@@ -341,34 +340,25 @@ CREATE TABLE m_generic_object (
   objectType VARCHAR(255),
   oid        VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_lookup_table (
   name_norm VARCHAR(255),
   name_orig VARCHAR(255),
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_lookup_table_row (
-  id                  INTEGER     NOT NULL,
+  id                  INT4        NOT NULL,
   owner_oid           VARCHAR(36) NOT NULL,
   row_key             VARCHAR(255),
   label_norm          VARCHAR(255),
   label_orig          VARCHAR(255),
-  lastChangeTimestamp DATETIME(6),
+  lastChangeTimestamp TIMESTAMP,
   row_value           VARCHAR(255),
   PRIMARY KEY (id, owner_oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_node (
   name_norm      VARCHAR(255),
@@ -376,230 +366,182 @@ CREATE TABLE m_node (
   nodeIdentifier VARCHAR(255),
   oid            VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_object (
   oid                   VARCHAR(36) NOT NULL,
-  booleansCount         SMALLINT,
+  booleansCount         INT2,
   createChannel         VARCHAR(255),
-  createTimestamp       DATETIME(6),
+  createTimestamp       TIMESTAMP,
   creatorRef_relation   VARCHAR(157),
   creatorRef_targetOid  VARCHAR(36),
-  creatorRef_type       INTEGER,
-  datesCount            SMALLINT,
-  fullObject            LONGBLOB,
-  longsCount            SMALLINT,
+  creatorRef_type       INT4,
+  datesCount            INT2,
+  fullObject            BYTEA,
+  longsCount            INT2,
   modifierRef_relation  VARCHAR(157),
   modifierRef_targetOid VARCHAR(36),
-  modifierRef_type      INTEGER,
+  modifierRef_type      INT4,
   modifyChannel         VARCHAR(255),
-  modifyTimestamp       DATETIME(6),
+  modifyTimestamp       TIMESTAMP,
   name_norm             VARCHAR(255),
   name_orig             VARCHAR(255),
-  objectTypeClass       INTEGER,
-  polysCount            SMALLINT,
-  referencesCount       SMALLINT,
-  stringsCount          SMALLINT,
+  objectTypeClass       INT4,
+  polysCount            INT2,
+  referencesCount       INT2,
+  stringsCount          INT2,
   tenantRef_relation    VARCHAR(157),
   tenantRef_targetOid   VARCHAR(36),
-  tenantRef_type        INTEGER,
-  version               INTEGER     NOT NULL,
+  tenantRef_type        INT4,
+  version               INT4        NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_object_ext_boolean (
   eName        VARCHAR(157) NOT NULL,
   owner_oid    VARCHAR(36)  NOT NULL,
-  ownerType    INTEGER      NOT NULL,
-  booleanValue BIT          NOT NULL,
-  dynamicDef   BIT,
+  ownerType    INT4         NOT NULL,
+  booleanValue BOOLEAN      NOT NULL,
+  dynamicDef   BOOLEAN,
   eType        VARCHAR(157),
-  valueType    INTEGER,
+  valueType    INT4,
   PRIMARY KEY (eName, owner_oid, ownerType, booleanValue)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_object_ext_date (
   eName      VARCHAR(157) NOT NULL,
   owner_oid  VARCHAR(36)  NOT NULL,
-  ownerType  INTEGER      NOT NULL,
-  dateValue  DATETIME(6)     NOT NULL,
-  dynamicDef BIT,
+  ownerType  INT4         NOT NULL,
+  dateValue  TIMESTAMP    NOT NULL,
+  dynamicDef BOOLEAN,
   eType      VARCHAR(157),
-  valueType  INTEGER,
+  valueType  INT4,
   PRIMARY KEY (eName, owner_oid, ownerType, dateValue)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_object_ext_long (
   eName      VARCHAR(157) NOT NULL,
   owner_oid  VARCHAR(36)  NOT NULL,
-  ownerType  INTEGER      NOT NULL,
-  longValue  BIGINT       NOT NULL,
-  dynamicDef BIT,
+  ownerType  INT4         NOT NULL,
+  longValue  INT8         NOT NULL,
+  dynamicDef BOOLEAN,
   eType      VARCHAR(157),
-  valueType  INTEGER,
+  valueType  INT4,
   PRIMARY KEY (eName, owner_oid, ownerType, longValue)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_object_ext_poly (
   eName      VARCHAR(157) NOT NULL,
   owner_oid  VARCHAR(36)  NOT NULL,
-  ownerType  INTEGER      NOT NULL,
+  ownerType  INT4         NOT NULL,
   orig       VARCHAR(255) NOT NULL,
-  dynamicDef BIT,
+  dynamicDef BOOLEAN,
   norm       VARCHAR(255),
   eType      VARCHAR(157),
-  valueType  INTEGER,
+  valueType  INT4,
   PRIMARY KEY (eName, owner_oid, ownerType, orig)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_object_ext_reference (
   eName      VARCHAR(157) NOT NULL,
   owner_oid  VARCHAR(36)  NOT NULL,
-  ownerType  INTEGER      NOT NULL,
+  ownerType  INT4         NOT NULL,
   targetoid  VARCHAR(36)  NOT NULL,
-  dynamicDef BIT,
+  dynamicDef BOOLEAN,
   relation   VARCHAR(157),
-  targetType INTEGER,
+  targetType INT4,
   eType      VARCHAR(157),
-  valueType  INTEGER,
+  valueType  INT4,
   PRIMARY KEY (eName, owner_oid, ownerType, targetoid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_object_ext_string (
   eName       VARCHAR(157) NOT NULL,
   owner_oid   VARCHAR(36)  NOT NULL,
-  ownerType   INTEGER      NOT NULL,
+  ownerType   INT4         NOT NULL,
   stringValue VARCHAR(255) NOT NULL,
-  dynamicDef  BIT,
+  dynamicDef  BOOLEAN,
   eType       VARCHAR(157),
-  valueType   INTEGER,
+  valueType   INT4,
   PRIMARY KEY (eName, owner_oid, ownerType, stringValue)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_object_template (
   name_norm VARCHAR(255),
   name_orig VARCHAR(255),
-  type      INTEGER,
+  type      INT4,
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_org (
   costCenter       VARCHAR(255),
   displayName_norm VARCHAR(255),
   displayName_orig VARCHAR(255),
-  displayOrder     INTEGER,
+  displayOrder     INT4,
   identifier       VARCHAR(255),
   locality_norm    VARCHAR(255),
   locality_orig    VARCHAR(255),
   name_norm        VARCHAR(255),
   name_orig        VARCHAR(255),
-  tenant           BIT,
+  tenant           BOOLEAN,
   oid              VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_org_closure (
   ancestor_oid   VARCHAR(36) NOT NULL,
   descendant_oid VARCHAR(36) NOT NULL,
-  val            INTEGER,
+  val            INT4,
   PRIMARY KEY (ancestor_oid, descendant_oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_org_org_type (
   org_oid VARCHAR(36) NOT NULL,
   orgType VARCHAR(255)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_reference (
   owner_oid      VARCHAR(36)  NOT NULL,
-  reference_type INTEGER      NOT NULL,
+  reference_type INT4         NOT NULL,
   relation       VARCHAR(157) NOT NULL,
   targetOid      VARCHAR(36)  NOT NULL,
-  containerType  INTEGER,
+  containerType  INT4,
   PRIMARY KEY (owner_oid, reference_type, relation, targetOid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_report (
-  export              INTEGER,
+  export              INT4,
   name_norm           VARCHAR(255),
   name_orig           VARCHAR(255),
-  orientation         INTEGER,
-  parent              BIT,
-  useHibernateSession BIT,
+  orientation         INT4,
+  parent              BOOLEAN,
+  useHibernateSession BOOLEAN,
   oid                 VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_report_output (
   name_norm           VARCHAR(255),
   name_orig           VARCHAR(255),
   reportRef_relation  VARCHAR(157),
   reportRef_targetOid VARCHAR(36),
-  reportRef_type      INTEGER,
+  reportRef_type      INT4,
   oid                 VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_resource (
-  administrativeState        INTEGER,
+  administrativeState        INT4,
   connectorRef_relation      VARCHAR(157),
   connectorRef_targetOid     VARCHAR(36),
-  connectorRef_type          INTEGER,
+  connectorRef_type          INT4,
   name_norm                  VARCHAR(255),
   name_orig                  VARCHAR(255),
-  o16_lastAvailabilityStatus INTEGER,
+  o16_lastAvailabilityStatus INT4,
   oid                        VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_role (
   name_norm VARCHAR(255),
@@ -607,114 +549,90 @@ CREATE TABLE m_role (
   roleType  VARCHAR(255),
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_security_policy (
   name_norm VARCHAR(255),
   name_orig VARCHAR(255),
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_sequence (
   name_norm VARCHAR(255),
   name_orig VARCHAR(255),
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_shadow (
-  attemptNumber                INTEGER,
-  dead                         BIT,
-  exist                        BIT,
-  failedOperationType          INTEGER,
-  fullSynchronizationTimestamp DATETIME(6),
+  attemptNumber                INT4,
+  dead                         BOOLEAN,
+  exist                        BOOLEAN,
+  failedOperationType          INT4,
+  fullSynchronizationTimestamp TIMESTAMP,
   intent                       VARCHAR(255),
-  kind                         INTEGER,
+  kind                         INT4,
   name_norm                    VARCHAR(255),
   name_orig                    VARCHAR(255),
   objectClass                  VARCHAR(157),
   resourceRef_relation         VARCHAR(157),
   resourceRef_targetOid        VARCHAR(36),
-  resourceRef_type             INTEGER,
-  status                       INTEGER,
-  synchronizationSituation     INTEGER,
-  synchronizationTimestamp     DATETIME(6),
+  resourceRef_type             INT4,
+  status                       INT4,
+  synchronizationSituation     INT4,
+  synchronizationTimestamp     TIMESTAMP,
   oid                          VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_system_configuration (
   name_norm VARCHAR(255),
   name_orig VARCHAR(255),
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_task (
-  binding                INTEGER,
+  binding                INT4,
   canRunOnNode           VARCHAR(255),
   category               VARCHAR(255),
-  completionTimestamp    DATETIME(6),
-  executionStatus        INTEGER,
+  completionTimestamp    TIMESTAMP,
+  executionStatus        INT4,
   handlerUri             VARCHAR(255),
-  lastRunFinishTimestamp DATETIME(6),
-  lastRunStartTimestamp  DATETIME(6),
+  lastRunFinishTimestamp TIMESTAMP,
+  lastRunStartTimestamp  TIMESTAMP,
   name_norm              VARCHAR(255),
   name_orig              VARCHAR(255),
   node                   VARCHAR(255),
   objectRef_relation     VARCHAR(157),
   objectRef_targetOid    VARCHAR(36),
-  objectRef_type         INTEGER,
+  objectRef_type         INT4,
   ownerRef_relation      VARCHAR(157),
   ownerRef_targetOid     VARCHAR(36),
-  ownerRef_type          INTEGER,
+  ownerRef_type          INT4,
   parent                 VARCHAR(255),
-  recurrence             INTEGER,
-  status                 INTEGER,
+  recurrence             INT4,
+  status                 INT4,
   taskIdentifier         VARCHAR(255),
-  threadStopAction       INTEGER,
-  waitingReason          INTEGER,
+  threadStopAction       INT4,
+  waitingReason          INT4,
   oid                    VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_task_dependent (
   task_oid  VARCHAR(36) NOT NULL,
   dependent VARCHAR(255)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_trigger (
-  id             INTEGER     NOT NULL,
+  id             INT4        NOT NULL,
   owner_oid      VARCHAR(36) NOT NULL,
   handlerUri     VARCHAR(255),
-  timestampValue DATETIME(6),
+  timestampValue TIMESTAMP,
   PRIMARY KEY (id, owner_oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_user (
   additionalName_norm  VARCHAR(255),
@@ -740,58 +658,56 @@ CREATE TABLE m_user (
   nickName_norm        VARCHAR(255),
   nickName_orig        VARCHAR(255),
   preferredLanguage    VARCHAR(255),
-  status               INTEGER,
+  status               INT4,
   telephoneNumber      VARCHAR(255),
   timezone             VARCHAR(255),
   title_norm           VARCHAR(255),
   title_orig           VARCHAR(255),
   oid                  VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_user_employee_type (
   user_oid     VARCHAR(36) NOT NULL,
   employeeType VARCHAR(255)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_user_organization (
   user_oid VARCHAR(36) NOT NULL,
   norm     VARCHAR(255),
   orig     VARCHAR(255)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_user_organizational_unit (
   user_oid VARCHAR(36) NOT NULL,
   norm     VARCHAR(255),
   orig     VARCHAR(255)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE TABLE m_value_policy (
   name_norm VARCHAR(255),
   name_orig VARCHAR(255),
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
+);
 
 CREATE INDEX iRequestable ON m_abstract_role (requestable);
 
 ALTER TABLE m_acc_cert_campaign
     ADD CONSTRAINT uc_acc_cert_campaign_name  UNIQUE (name_norm);
+
+CREATE INDEX iCaseObjectRefTargetOid ON m_acc_cert_case (objectRef_targetOid);
+
+CREATE INDEX iCaseTargetRefTargetOid ON m_acc_cert_case (targetRef_targetOid);
+
+CREATE INDEX iCaseTenantRefTargetOid ON m_acc_cert_case (tenantRef_targetOid);
+
+CREATE INDEX iCaseOrgRefTargetOid ON m_acc_cert_case (orgRef_targetOid);
+
+CREATE INDEX iCaseReferenceTargetOid ON m_acc_cert_case_reference (targetOid);
+
+ALTER TABLE m_acc_cert_decision
+ADD CONSTRAINT uc_case_stage_reviewer UNIQUE (owner_owner_oid, owner_id, stageNumber, reviewerRef_targetOid);
 
 ALTER TABLE m_acc_cert_definition
     ADD CONSTRAINT uc_acc_cert_definition_name  UNIQUE (name_norm);
@@ -883,11 +799,9 @@ ADD CONSTRAINT uc_org_name UNIQUE (name_norm);
 
 CREATE INDEX iDisplayOrder ON m_org (displayOrder);
 
--- Not needed [FK already creates this index]
--- CREATE INDEX iAncestor ON m_org_closure (ancestor_oid);
+CREATE INDEX iAncestor ON m_org_closure (ancestor_oid);
 
---  Not needed [FK already creates this index]
--- CREATE INDEX iDescendant ON m_org_closure (descendant_oid);
+CREATE INDEX iDescendant ON m_org_closure (descendant_oid);
 
 CREATE INDEX iDescendantAncestor ON m_org_closure (descendant_oid, ancestor_oid);
 
@@ -940,255 +854,266 @@ ADD CONSTRAINT uc_value_policy_name UNIQUE (name_norm);
 ALTER TABLE m_abstract_role
 ADD CONSTRAINT fk_abstract_role
 FOREIGN KEY (oid)
-REFERENCES m_focus (oid);
+REFERENCES m_focus;
 
 ALTER TABLE m_acc_cert_campaign
     ADD CONSTRAINT fk_acc_cert_campaign
     FOREIGN KEY (oid)
-    REFERENCES m_object (oid);
+    REFERENCES m_object;
+
+ALTER TABLE m_acc_cert_case
+ADD CONSTRAINT fk_acc_cert_case_owner
+FOREIGN KEY (owner_oid)
+REFERENCES m_object;
+
+ALTER TABLE m_acc_cert_case_reference
+ADD CONSTRAINT fk_acc_cert_case_ref_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_acc_cert_case;
+
+ALTER TABLE m_acc_cert_decision
+ADD CONSTRAINT fk_acc_cert_decision_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_acc_cert_case;
 
 ALTER TABLE m_acc_cert_definition
     ADD CONSTRAINT fk_acc_cert_definition
     FOREIGN KEY (oid)
-    REFERENCES m_object (oid);
+    REFERENCES m_object;
 
 ALTER TABLE m_assignment
 ADD CONSTRAINT fk_assignment_owner
 FOREIGN KEY (owner_oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_assignment_ext_boolean
 ADD CONSTRAINT fk_assignment_ext_boolean
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
-REFERENCES m_assignment_extension (owner_id, owner_owner_oid);
+REFERENCES m_assignment_extension;
 
 ALTER TABLE m_assignment_ext_date
 ADD CONSTRAINT fk_assignment_ext_date
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
-REFERENCES m_assignment_extension (owner_id, owner_owner_oid);
+REFERENCES m_assignment_extension;
 
 ALTER TABLE m_assignment_ext_long
 ADD CONSTRAINT fk_assignment_ext_long
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
-REFERENCES m_assignment_extension (owner_id, owner_owner_oid);
+REFERENCES m_assignment_extension;
 
 ALTER TABLE m_assignment_ext_poly
 ADD CONSTRAINT fk_assignment_ext_poly
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
-REFERENCES m_assignment_extension (owner_id, owner_owner_oid);
+REFERENCES m_assignment_extension;
 
 ALTER TABLE m_assignment_ext_reference
 ADD CONSTRAINT fk_assignment_ext_reference
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
-REFERENCES m_assignment_extension (owner_id, owner_owner_oid);
+REFERENCES m_assignment_extension;
 
 ALTER TABLE m_assignment_ext_string
 ADD CONSTRAINT fk_assignment_ext_string
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
-REFERENCES m_assignment_extension (owner_id, owner_owner_oid);
+REFERENCES m_assignment_extension;
 
 ALTER TABLE m_assignment_reference
 ADD CONSTRAINT fk_assignment_reference
 FOREIGN KEY (owner_id, owner_owner_oid)
-REFERENCES m_assignment (id, owner_oid);
+REFERENCES m_assignment;
 
 ALTER TABLE m_audit_delta
 ADD CONSTRAINT fk_audit_delta
 FOREIGN KEY (record_id)
-REFERENCES m_audit_event (id);
+REFERENCES m_audit_event;
 
 ALTER TABLE m_connector
 ADD CONSTRAINT fk_connector
 FOREIGN KEY (oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_connector_host
 ADD CONSTRAINT fk_connector_host
 FOREIGN KEY (oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_connector_target_system
 ADD CONSTRAINT fk_connector_target_system
 FOREIGN KEY (connector_oid)
-REFERENCES m_connector (oid);
+REFERENCES m_connector;
 
 ALTER TABLE m_exclusion
 ADD CONSTRAINT fk_exclusion_owner
 FOREIGN KEY (owner_oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_focus
 ADD CONSTRAINT fk_focus
 FOREIGN KEY (oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_focus_photo
 ADD CONSTRAINT fk_focus_photo
 FOREIGN KEY (owner_oid)
-REFERENCES m_focus (oid);
+REFERENCES m_focus;
 
 ALTER TABLE m_generic_object
 ADD CONSTRAINT fk_generic_object
 FOREIGN KEY (oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_lookup_table
 ADD CONSTRAINT fk_lookup_table
 FOREIGN KEY (oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_lookup_table_row
 ADD CONSTRAINT fk_lookup_table_owner
 FOREIGN KEY (owner_oid)
-REFERENCES m_lookup_table (oid);
+REFERENCES m_lookup_table;
 
 ALTER TABLE m_node
 ADD CONSTRAINT fk_node
 FOREIGN KEY (oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_object_ext_boolean
 ADD CONSTRAINT fk_object_ext_boolean
 FOREIGN KEY (owner_oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_object_ext_date
 ADD CONSTRAINT fk_object_ext_date
 FOREIGN KEY (owner_oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_object_ext_long
 ADD CONSTRAINT fk_object_ext_long
 FOREIGN KEY (owner_oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_object_ext_poly
 ADD CONSTRAINT fk_object_ext_poly
 FOREIGN KEY (owner_oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_object_ext_reference
 ADD CONSTRAINT fk_object_ext_reference
 FOREIGN KEY (owner_oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_object_ext_string
 ADD CONSTRAINT fk_object_ext_string
 FOREIGN KEY (owner_oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_object_template
 ADD CONSTRAINT fk_object_template
 FOREIGN KEY (oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_org
 ADD CONSTRAINT fk_org
 FOREIGN KEY (oid)
-REFERENCES m_abstract_role (oid);
+REFERENCES m_abstract_role;
 
 ALTER TABLE m_org_closure
 ADD CONSTRAINT fk_ancestor
 FOREIGN KEY (ancestor_oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_org_closure
 ADD CONSTRAINT fk_descendant
 FOREIGN KEY (descendant_oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_org_org_type
 ADD CONSTRAINT fk_org_org_type
 FOREIGN KEY (org_oid)
-REFERENCES m_org (oid);
+REFERENCES m_org;
 
 ALTER TABLE m_reference
 ADD CONSTRAINT fk_reference_owner
 FOREIGN KEY (owner_oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_report
 ADD CONSTRAINT fk_report
 FOREIGN KEY (oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_report_output
 ADD CONSTRAINT fk_report_output
 FOREIGN KEY (oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_resource
 ADD CONSTRAINT fk_resource
 FOREIGN KEY (oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_role
 ADD CONSTRAINT fk_role
 FOREIGN KEY (oid)
-REFERENCES m_abstract_role (oid);
+REFERENCES m_abstract_role;
 
 ALTER TABLE m_security_policy
 ADD CONSTRAINT fk_security_policy
 FOREIGN KEY (oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_sequence
 ADD CONSTRAINT fk_sequence
 FOREIGN KEY (oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_shadow
 ADD CONSTRAINT fk_shadow
 FOREIGN KEY (oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_system_configuration
 ADD CONSTRAINT fk_system_configuration
 FOREIGN KEY (oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_task
 ADD CONSTRAINT fk_task
 FOREIGN KEY (oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_task_dependent
 ADD CONSTRAINT fk_task_dependent
 FOREIGN KEY (task_oid)
-REFERENCES m_task (oid);
+REFERENCES m_task;
 
 ALTER TABLE m_trigger
 ADD CONSTRAINT fk_trigger_owner
 FOREIGN KEY (owner_oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
 ALTER TABLE m_user
 ADD CONSTRAINT fk_user
 FOREIGN KEY (oid)
-REFERENCES m_focus (oid);
+REFERENCES m_focus;
 
 ALTER TABLE m_user_employee_type
 ADD CONSTRAINT fk_user_employee_type
 FOREIGN KEY (user_oid)
-REFERENCES m_user (oid);
+REFERENCES m_user;
 
 ALTER TABLE m_user_organization
 ADD CONSTRAINT fk_user_organization
 FOREIGN KEY (user_oid)
-REFERENCES m_user (oid);
+REFERENCES m_user;
 
 ALTER TABLE m_user_organizational_unit
 ADD CONSTRAINT fk_user_org_unit
 FOREIGN KEY (user_oid)
-REFERENCES m_user (oid);
+REFERENCES m_user;
 
 ALTER TABLE m_value_policy
 ADD CONSTRAINT fk_value_policy
 FOREIGN KEY (oid)
-REFERENCES m_object (oid);
+REFERENCES m_object;
 
-CREATE TABLE hibernate_sequence (
-  next_val BIGINT
-);
-
-INSERT INTO hibernate_sequence VALUES (1);
+CREATE SEQUENCE hibernate_sequence START 1 INCREMENT 1;

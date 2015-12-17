@@ -175,7 +175,8 @@ public class ObjectQueryUtil {
 		filter.accept(visitor);
 		return hasAllDefinitions.booleanValue();
 	}
-	
+
+	// TODO what about OidIn here?
 	public static void assertPropertyOnly(ObjectFilter filter, final String message) {
 		Visitor visitor = new Visitor() {
 			@Override

@@ -386,6 +386,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			return;
 		}
 		ItemPath path = selector.getPath();
+		ItemPath.checkNoReferences(path);
 		resolve(object, path, option, task, result);
 	}
 		

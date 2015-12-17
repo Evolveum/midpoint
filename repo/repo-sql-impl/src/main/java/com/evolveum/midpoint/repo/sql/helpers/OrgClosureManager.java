@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.repo.sql;
+package com.evolveum.midpoint.repo.sql.helpers;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -45,7 +47,11 @@ import org.hibernate.jdbc.Work;
 import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 import org.hibernate.type.IntegerType;
 import org.hibernate.type.StringType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -71,20 +77,19 @@ import java.util.*;
  * @author lazyman
  * @author mederly
  */
+@Component
+@DependsOn("repositoryService")
 public class OrgClosureManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(OrgClosureManager.class);
+
+    @Autowired
+    private SqlRepositoryServiceImpl sqlRepositoryService;
 
     private static boolean DUMP_TABLES = false;
     private static final boolean COUNT_CLOSURE_RECORDS = false;
     static final String CLOSURE_TABLE_NAME = "m_org_closure";
     public static final String TEMP_DELTA_TABLE_NAME_FOR_ORACLE = "m_org_closure_temp_delta";
-
-    private SqlRepositoryConfiguration repoConfiguration;
-
-    public OrgClosureManager(SqlRepositoryConfiguration repoConfiguration) {
-        this.repoConfiguration = repoConfiguration;
-    }
 
     // only for single-thread performance testing
     long lastOperationDuration;
@@ -214,19 +219,22 @@ public class OrgClosureManager {
         }
     }
 
-    public void initialize(SqlRepositoryServiceImpl service) {
+    @PostConstruct
+    public void initialize() {
         OperationResult result = new OperationResult(OrgClosureManager.class.getName() + ".initialize");
         if (!isEnabled()) {
             return;
         }
 
+        SqlRepositoryConfiguration repoConfiguration = sqlRepositoryService.getConfiguration();
+
         if (isOracle()) {
-            initializeOracleTemporaryTable(service);
+            initializeOracleTemporaryTable(sqlRepositoryService);
         }
 
-        if (autoUpdateClosureTableStructure(service)) {
+        if (autoUpdateClosureTableStructure(sqlRepositoryService)) {
             // need to rebuild the content of the closure table after re-creating it anew
-            checkAndOrRebuild(service, false, true, repoConfiguration.isStopOnOrgClosureStartupFailure(), true, result);
+            checkAndOrRebuild(sqlRepositoryService, false, true, repoConfiguration.isStopOnOrgClosureStartupFailure(), true, result);
         } else {
             boolean check, rebuild;
             switch (repoConfiguration.getOrgClosureStartupAction()) {
@@ -247,7 +255,7 @@ public class OrgClosureManager {
                 default:
                     throw new IllegalArgumentException("Invalid value: " + repoConfiguration.getOrgClosureStartupAction());
             }
-            checkAndOrRebuild(service, check, rebuild, repoConfiguration.isStopOnOrgClosureStartupFailure(), true, result);
+            checkAndOrRebuild(sqlRepositoryService, check, rebuild, repoConfiguration.isStopOnOrgClosureStartupFailure(), true, result);
         }
     }
 
@@ -261,7 +269,7 @@ public class OrgClosureManager {
     // returns true if the table was re-created
     private boolean autoUpdateClosureTableStructure(SqlRepositoryServiceImpl service) {
 
-        if (repoConfiguration.isSkipOrgClosureStructureCheck()) {
+        if (sqlRepositoryService.getConfiguration().isSkipOrgClosureStructureCheck()) {
             LOGGER.debug("Skipping org closure structure check.");
             return false;
         }
@@ -339,7 +347,7 @@ public class OrgClosureManager {
     }
 
     public boolean isEnabled() {
-        return !repoConfiguration.isIgnoreOrgClosure();
+        return !sqlRepositoryService.getConfiguration().isIgnoreOrgClosure();
     }
 
     /**
@@ -1307,23 +1315,23 @@ public class OrgClosureManager {
     }
 
     private boolean isMySQL() {
-        return repoConfiguration.isUsingMySQL();
+        return sqlRepositoryService.getConfiguration().isUsingMySQL();
     }
 
     private boolean isOracle() {
-        return repoConfiguration.isUsingOracle();
+        return sqlRepositoryService.getConfiguration().isUsingOracle();
     }
 
     private boolean isSQLServer() {
-        return repoConfiguration.isUsingSQLServer();
+        return sqlRepositoryService.getConfiguration().isUsingSQLServer();
     }
 
     private boolean isH2() {
-        return repoConfiguration.isUsingH2();
+        return sqlRepositoryService.getConfiguration().isUsingH2();
     }
 
     private boolean isPostgreSQL() {
-        return repoConfiguration.isUsingPostgreSQL();
+        return sqlRepositoryService.getConfiguration().isUsingPostgreSQL();
     }
 
     //endregion

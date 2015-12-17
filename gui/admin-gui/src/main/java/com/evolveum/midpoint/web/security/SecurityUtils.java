@@ -47,7 +47,7 @@ public class SecurityUtils {
 
     public static MidPointPrincipal getPrincipalUser(Authentication authentication) {
         if (authentication == null) {
-            LOGGER.debug("Authentication not available in security current context holder.");
+            LOGGER.trace("Authentication not available in security context.");
             return null;
         }
 

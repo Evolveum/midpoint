@@ -34,6 +34,7 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Set;
 
 /**
@@ -159,7 +160,13 @@ public class ClassDefinitionParser {
         if (object instanceof Method) {
             Method method = (Method) object;
             ParameterizedType type = (ParameterizedType) method.getGenericReturnType();
-            Class clazz = (Class) type.getActualTypeArguments()[0];
+            Type type1 = type.getActualTypeArguments()[0];
+            Class clazz;
+            if (type1 instanceof Class) {
+                clazz = ((Class) type1);
+            } else {
+                clazz = (Class) ((ParameterizedType) type1).getRawType();
+            }
 
             QName realJaxbName = getJaxbName(method);
             Class jaxbType = getJaxbType(clazz);

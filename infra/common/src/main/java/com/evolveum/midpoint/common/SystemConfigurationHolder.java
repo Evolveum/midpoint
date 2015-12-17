@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
@@ -39,5 +40,13 @@ public class SystemConfigurationHolder {
 
     public static boolean isExperimentalCodeEnabled() {
         return SystemConfigurationTypeUtil.isExperimentalCodeEnabled(currentConfiguration);
+    }
+
+    public static AccessCertificationConfigurationType getCertificationConfiguration() {
+        if (currentConfiguration != null) {
+            return currentConfiguration.getAccessCertification();
+        } else {
+            return null;
+        }
     }
 }

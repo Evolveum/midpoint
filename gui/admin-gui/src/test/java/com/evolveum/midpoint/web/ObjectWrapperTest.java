@@ -54,7 +54,7 @@ public class ObjectWrapperTest extends BaseGuiTest {
         }
 
         PropertyWrapper propertyWrapper = (PropertyWrapper) containerWrapper.findPropertyWrapper(UserType.F_HONORIFIC_SUFFIX);
-        ValueWrapper valueWrapper = propertyWrapper.getValues().get(0);
+        ValueWrapper valueWrapper = (ValueWrapper) propertyWrapper.getValues().get(0);
         PolyString value = (PolyString) ((PrismPropertyValue) valueWrapper.getValue()).getValue();
 
         Field orig = PolyString.class.getDeclaredField("orig");

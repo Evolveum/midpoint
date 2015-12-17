@@ -21,6 +21,9 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.ProvisioningDiag;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -30,7 +33,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -85,6 +87,9 @@ public class ModelDiagController implements ModelDiagnosticService {
 	
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
+
+	@Autowired
+	private SecurityEnforcer securityEnforcer;
 	
 	private RandomString randomString;
 
@@ -116,14 +121,35 @@ public class ModelDiagController implements ModelDiagnosticService {
 	}
 
     @Override
-    public OperationResult repositoryTestOrgClosureConsistency(Task task, boolean repairIfNecessary) {
-        OperationResult testResult = new OperationResult(REPOSITORY_TEST_ORG_CLOSURE_CONSISTENCY);
-        repositoryService.testOrgClosureConsistency(repairIfNecessary, testResult);
-        testResult.computeStatus();
-        return testResult;
+    public void repositoryTestOrgClosureConsistency(Task task, boolean repairIfNecessary, OperationResult parentResult) throws SchemaException, SecurityViolationException {
+		OperationResult result = parentResult.createSubresult(REPOSITORY_TEST_ORG_CLOSURE_CONSISTENCY);
+		try {
+			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);    // only admin can do this
+			repositoryService.testOrgClosureConsistency(repairIfNecessary, result);
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
     }
 
-    @Override
+	@Override
+	public String executeRepositoryQuery(String query, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException {
+		OperationResult result = parentResult.createSubresult(REPOSITORY_EXECUTE_QUERY);
+		try {
+			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);	// only admin can do this
+			String answer = repositoryService.executeArbitraryQuery(query, result);
+			return answer;
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
+	}
+
+	@Override
 	public OperationResult provisioningSelfTest(Task task) {
 		OperationResult testResult = new OperationResult(PROVISIONING_SELF_TEST);
 		// Give provisioning chance to run its own self-test

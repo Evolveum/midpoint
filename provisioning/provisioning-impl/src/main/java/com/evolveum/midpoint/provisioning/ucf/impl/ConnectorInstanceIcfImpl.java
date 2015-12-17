@@ -31,6 +31,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.provisioning.impl.StateReporter;
@@ -2262,20 +2264,21 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
             if (paging.getMaxSize() != null) {
                 optionsBuilder.setPageSize(paging.getMaxSize());
             }
-            QName orderBy;
+            QName orderByAttributeName;
             boolean isAscending;
-            if (paging.getOrderBy() != null) {
-                orderBy = paging.getOrderBy();
-                if (SchemaConstants.C_NAME.equals(orderBy)) {
-                    orderBy = SchemaConstants.ICFS_NAME;
+			ItemPath orderByPath = paging.getOrderBy();
+            if (orderByPath != null && !orderByPath.isEmpty()) {
+            	orderByAttributeName = ShadowUtil.getAttributeName(orderByPath, "OrderBy path");
+                if (SchemaConstants.C_NAME.equals(orderByAttributeName)) {
+                	orderByAttributeName = SchemaConstants.ICFS_NAME;
                 }
                 isAscending = paging.getDirection() != OrderDirection.DESCENDING;
             } else {
-                orderBy = pagedSearchCapabilityType.getDefaultSortField();
+            	orderByAttributeName = pagedSearchCapabilityType.getDefaultSortField();
                 isAscending = pagedSearchCapabilityType.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
             }
-            if (orderBy != null) {
-                String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(orderBy, objectClassDefinition);
+            if (orderByAttributeName != null) {
+                String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(orderByAttributeName, objectClassDefinition);
                 optionsBuilder.setSortKeys(new SortKey(orderByIcfName, isAscending));
             }
         }

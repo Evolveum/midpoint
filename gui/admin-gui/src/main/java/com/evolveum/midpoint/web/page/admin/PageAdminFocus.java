@@ -106,6 +106,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjectDetails<F>
+
 		implements ProgressReportingAwarePage {
 
 	public static final String AUTH_USERS_ALL = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL;
@@ -295,9 +296,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 					PrismContainer<ShadowAssociationType> associationContainer = projection
 							.findContainer(ShadowType.F_ASSOCIATION);
 					if (associationContainer != null && associationContainer.getValues() != null) {
-						List<PrismProperty> associations = new ArrayList<>(
+						List<PrismContainerValue<ShadowAssociationType>> associations = new ArrayList<>(
 								associationContainer.getValues().size());
-						for (PrismContainerValue associationVal : associationContainer.getValues()) {
+						for (PrismContainerValue<ShadowAssociationType> associationVal : associationContainer.getValues()) {
 							ShadowAssociationType associationType = (ShadowAssociationType) associationVal
 									.asContainerable();
 							ObjectReferenceType shadowRef = associationType.getShadowRef();
@@ -305,12 +306,11 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 							// associations we can safely eliminate fetching
 							// from resource, because we need only the name
 							if (shadowRef != null) {
-								PrismObject<ShadowType> association = getModelService()
-										.getObject(ShadowType.class, shadowRef.getOid(),
-												SelectorOptions.createCollection(
-														GetOperationOptions.createNoFetch()),
-												task, subResult);
-								associations.add(association.findProperty(ShadowType.F_NAME));
+								PrismObject<ShadowType> associationTargetShadow = getModelService().getObject(ShadowType.class, 
+										shadowRef.getOid(), SelectorOptions.createCollection(GetOperationOptions.createNoFetch()),
+										task, subResult);
+								shadowRef.asReferenceValue().setObject(associationTargetShadow);
+								associations.add(associationVal);
 							}
 						}
 						wrapper.setAssociations(associations);
@@ -642,15 +642,16 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		List<FocusProjectionDto> accounts = getFocusShadows();
 		OperationResult subResult = null;
 		for (FocusProjectionDto account : accounts) {
-			if (!account.isLoadedOK())
+			if (!account.isLoadedOK()) {
 				continue;
+			}
 
 			try {
 				ObjectWrapper accountWrapper = account.getObject();
 				ObjectDelta delta = accountWrapper.getObjectDelta();
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Account delta computed from form:\n{}",
-							new Object[] { delta.debugDump(3) });
+					LOGGER.trace("Account delta computed from {} as:\n{}",
+							new Object[] { accountWrapper, delta.debugDump(3) });
 				}
 
 				if (!UserDtoStatus.MODIFY.equals(account.getStatus())) {
@@ -713,6 +714,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		for (FocusProjectionDto accDto : accounts) {
 			if (accDto.isLoadedOK()) {
 				ObjectWrapper accountWrapper = accDto.getObject();
+				accountWrapper.revive(getPrismContext());
 				ObjectDelta delta = accountWrapper.getObjectDelta();
 				PrismReferenceValue refValue = new PrismReferenceValue(null, OriginType.USER_ACTION, null);
 
@@ -756,6 +758,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		for (FocusProjectionDto orgDto : orgs) {
 			if (orgDto.isLoadedOK()) {
 				ObjectWrapper orgWrapper = orgDto.getObject();
+				orgWrapper.revive(getPrismContext());
 				ObjectDelta delta = orgWrapper.getObjectDelta();
 				PrismReferenceValue refValue = new PrismReferenceValue(null, OriginType.USER_ACTION, null);
 
@@ -1106,7 +1109,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				warn(getString("pageAdminFocus.message.noEnabledPropertyFound", wrapper.getDisplayName()));
 				continue;
 			}
-			ValueWrapper value = enabledProperty.getValues().get(0);
+			ValueWrapper value = (ValueWrapper) enabledProperty.getValues().get(0);
 			ActivationStatusType status = enabled ? ActivationStatusType.ENABLED
 					: ActivationStatusType.DISABLED;
 			((PrismPropertyValue) value.getValue()).setValue(status);

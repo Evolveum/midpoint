@@ -45,13 +45,13 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
 
     private RPolyString name;
     private RObjectTemplateType type;
-    private Set<RObjectReference> includeRef;
+    private Set<RObjectReference<RObjectTemplate>> includeRef;
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 7")
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RObjectReference> getIncludeRef() {
+    public Set<RObjectReference<RObjectTemplate>> getIncludeRef() {
         if (includeRef == null) {
             includeRef = new HashSet<>();
         }
@@ -72,7 +72,7 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
         return name;
     }
 
-    public void setIncludeRef(Set<RObjectReference> includeRef) {
+    public void setIncludeRef(Set<RObjectReference<RObjectTemplate>> includeRef) {
         this.includeRef = includeRef;
     }
 

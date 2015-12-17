@@ -52,17 +52,20 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListItemDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListItemDtoProvider;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
@@ -259,10 +262,13 @@ public class PageCertCampaigns extends PageAdminCertification {
 		});
 
 		CertCampaignListItemDtoProvider provider = createProvider();
+		int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_CAMPAIGNS_PANEL);
 		BoxedTablePanel<CertCampaignListItemDto> table = new BoxedTablePanel<>(
-				ID_CAMPAIGNS_TABLE, provider, initColumns());
+				ID_CAMPAIGNS_TABLE, provider, initColumns(),
+				UserProfileStorage.TableId.PAGE_CERT_CAMPAIGNS_PANEL, itemsPerPage);
 		table.setShowPaging(true);
 		table.setOutputMarkupId(true);
+		table.setItemsPerPage(itemsPerPage);
 		mainForm.add(table);
 	}
 
@@ -622,7 +628,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 	}
 
 	protected String determineAction(AccessCertificationCampaignType campaign) {
-		int currentStage = campaign.getCurrentStageNumber();
+		int currentStage = campaign.getStageNumber();
 		int numOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
 		AccessCertificationCampaignStateType state = campaign.getState();
 		String button;
@@ -669,7 +675,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 		CertificationManager cm = getCertificationManager();
 		try {
 			Task task = createSimpleTask(OPERATION_OPEN_NEXT_STAGE);
-			int currentStage = campaign.getCurrentStageNumber();
+			int currentStage = campaign.getStageNumber();
 			cm.openNextStage(campaign.getOid(), currentStage + 1, task, result);
 		} catch (Exception ex) {
 			result.recordFatalError(ex);
@@ -709,7 +715,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 		try {
 			CertificationManager cm = getCertificationManager();
 			Task task = createSimpleTask(OPERATION_CLOSE_STAGE);
-			cm.closeCurrentStage(campaign.getOid(), campaign.getCurrentStageNumber(), task, result);
+			cm.closeCurrentStage(campaign.getOid(), campaign.getStageNumber(), task, result);
 		}catch (Exception ex) {
 			result.recordFatalError(ex);
 		} finally {
