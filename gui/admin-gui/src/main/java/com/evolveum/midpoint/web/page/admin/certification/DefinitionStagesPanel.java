@@ -19,8 +19,13 @@ package com.evolveum.midpoint.web.page.admin.certification;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.certification.dto.AccessCertificationReviewerDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyConfigurationTypeDto;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -44,7 +49,7 @@ public class DefinitionStagesPanel extends SimplePanel<List<StageDefinitionDto>>
 
     private static final String ID_STAGE_LIST = "stageList";
     private static final String ID_STAGE_EDITOR = "stageEditor";
-    private static final String ID_STAGE_DEFINITION_LINK = "stageDefinitionLink";
+    private static final String ID_ADD_NEW_STAGE = "addNewStage";
     private static final String ID_STAGE_NAME_LABEL = "stageNameLabel";
 
     public DefinitionStagesPanel(String id, IModel<List<StageDefinitionDto>> model) {
@@ -53,37 +58,6 @@ public class DefinitionStagesPanel extends SimplePanel<List<StageDefinitionDto>>
 
     @Override
     protected void initLayout() {
-//        RepeatingView rowView = new RepeatingView(ID_STAGE_LIST);
-//        if (getModel() != null && getModel().getObject() != null) {
-//            final List<StageDefinitionDto> stagesList = getModel().getObject();
-//            for (final StageDefinitionDto stageDefinitionDto : stagesList) {
-//                WebMarkupContainer row = new WebMarkupContainer(rowView.newChildId());
-//                AjaxLink stageDefinitionLink = new AjaxLink(ID_STAGE_DEFINITION_LINK) {
-//                    @Override
-//                    public void onClick(AjaxRequestTarget target) {
-//                        TabbedPanel tabbedPanel = this.findParent(TabbedPanel.class);
-//                        IModel<List<ITab>> tabsModel = tabbedPanel.getTabs();
-//                        List<ITab> tabsList = tabsModel.getObject();
-//                        tabsList.add(new AbstractTab(createStringResource("PageCertDefinition.xmlDefinition")) {
-//                            @Override
-//                            public WebMarkupContainer getPanel(String panelId) {
-//                                return new StageDefinitionPanel(panelId, getStageDefinitionModel(stageDefinitionDto, stagesList.indexOf(stageDefinitionDto)));
-//                            }
-//                        });
-//                        tabbedPanel.setSelectedTab(tabsList.size() - 1);
-//                        target.add(tabbedPanel);
-//                    }
-//                };
-//                Label stageNameLabel = new Label(ID_STAGE_NAME_LABEL, stageDefinitionDto.getName());
-//                stageNameLabel.setOutputMarkupId(true);
-//                stageDefinitionLink.add(stageNameLabel);
-//
-//                row.add(stageDefinitionLink);
-//                rowView.add(row);
-//            }
-//        }
-//        add(rowView);
-
         AbstractReadOnlyModel<List> stageListModel = new AbstractReadOnlyModel<List>() {
             @Override
             public List getObject() {
@@ -94,32 +68,45 @@ public class DefinitionStagesPanel extends SimplePanel<List<StageDefinitionDto>>
 
 			@Override
 			protected void populateItem(ListItem item) {
-                // TODO work with model
 				StageEditorPanel editor = new StageEditorPanel(ID_STAGE_EDITOR, item.getModel());
 				item.add(editor);
 			}
 		};
 		list.setOutputMarkupId(true);
 		add(list);
-    }
 
-    private IModel<StageDefinitionDto> getStageDefinitionModel(final StageDefinitionDto stageDefinitionDto, final int index){
-        return new IModel<StageDefinitionDto>() {
-            @Override
-            public StageDefinitionDto getObject() {
-                return stageDefinitionDto;
-            }
+        AjaxLink addNewStage = new AjaxLink(ID_ADD_NEW_STAGE) {
 
             @Override
-            public void setObject(StageDefinitionDto object) {
-                List<StageDefinitionDto> stagesList = DefinitionStagesPanel.this.getModel().getObject();
-                StageDefinitionDto stageDto = stagesList.get(index);
-                stageDto = object;
-            }
-
-            @Override
-            public void detach() {
+            public void onClick(AjaxRequestTarget target) {
+                addPerformed(target);
             }
         };
+        add(addNewStage);
+        setOutputMarkupId(true);
     }
+
+    private void addPerformed(AjaxRequestTarget target){
+        List<StageDefinitionDto> list = getModelObject();
+        list.add(createNewStageDefinitionDto());
+
+        target.add(this);
+    }
+    private StageDefinitionDto createNewStageDefinitionDto(){
+        StageDefinitionDto dto = new StageDefinitionDto();
+        //set stage number
+        dto.setNumber(getModel().getObject().size() + 1);
+        //create reviewers objects
+        AccessCertificationReviewerDto reviewerDto = new AccessCertificationReviewerDto();
+        ObjectViewDto defaultReviewer = new ObjectViewDto();
+        defaultReviewer.setType(UserType.class);
+        ObjectViewDto additionalReviewer = new ObjectViewDto();
+        additionalReviewer.setType(UserType.class);
+        reviewerDto.setFirstDefaultReviewerRef(defaultReviewer);
+        reviewerDto.setFirstAdditionalReviewerRef(additionalReviewer);
+
+        dto.setReviewerDto(reviewerDto);
+        return dto;
+    }
+
 }

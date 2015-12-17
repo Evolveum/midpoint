@@ -151,7 +151,7 @@ public class StageDefinitionPanel extends SimplePanel<StageDefinitionDto> {
 
             @Override
             public AccessCertificationApprovalStrategyType getObject() {
-                return getModelObject().getReviewerDto().getApprovalStrategy();
+                return getModelObject().getReviewerDto() == null ? null : getModelObject().getReviewerDto().getApprovalStrategy();
             }
 
             @Override
