@@ -53,7 +53,7 @@ public class DefinitionStagesPanel extends SimplePanel<List<StageDefinitionDto>>
     private static final String ID_STAGE_LIST = "stageList";
     private static final String ID_STAGE_EDITOR = "stageEditor";
     private static final String ID_ADD_NEW_STAGE = "addNewStage";
-    private static final String ID_STAGE_NAME_LABEL = "stageNameLabel";
+    private static final String DEFAULT_STAGE_NAME= "Stage ";
 
     public DefinitionStagesPanel(String id, IModel<List<StageDefinitionDto>> model) {
         super(id, model);
@@ -106,6 +106,7 @@ public class DefinitionStagesPanel extends SimplePanel<List<StageDefinitionDto>>
         StageDefinitionDto dto = new StageDefinitionDto();
         //set stage number
         dto.setNumber(getModel().getObject().size() + 1);
+        dto.setName(DEFAULT_STAGE_NAME + (getModel().getObject().size() + 1));
         //create reviewers objects
         AccessCertificationReviewerDto reviewerDto = new AccessCertificationReviewerDto();
         ObjectViewDto defaultReviewer = new ObjectViewDto();
