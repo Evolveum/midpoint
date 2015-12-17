@@ -324,7 +324,13 @@ public class PageCertDefinition extends PageAdminCertification {
 //			return;
 //		}
 
-		Task task = createSimpleTask(OPERATION_SAVE_DEFINITION);
+        if (StringUtils.isEmpty(dto.getName())) {
+            error(getString("CertDefinitionPage.message.cantSaveEmptyName"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        Task task = createSimpleTask(OPERATION_SAVE_DEFINITION);
 		OperationResult result = task.getResult();
 		try {
 			AccessCertificationDefinitionType oldObject = dto.getOldDefinition();

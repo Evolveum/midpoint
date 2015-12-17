@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.web.component.AceEditor;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -38,6 +40,7 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.ResourceModel;
 
 import java.util.List;
 
@@ -75,14 +78,21 @@ public class DefinitionStagesPanel extends SimplePanel<List<StageDefinitionDto>>
 		list.setOutputMarkupId(true);
 		add(list);
 
-        AjaxLink addNewStage = new AjaxLink(ID_ADD_NEW_STAGE) {
-
+        AjaxButton button = new AjaxButton(ID_ADD_NEW_STAGE, createStringResource("StageDefinitionPanel.addNewStageButton")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addPerformed(target);
             }
         };
-        add(addNewStage);
+
+//        AjaxLink addNewStage = new AjaxLink(ID_ADD_NEW_STAGE) {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                addPerformed(target);
+//            }
+//        };
+        add(button);
         setOutputMarkupId(true);
     }
 
