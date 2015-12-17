@@ -16,6 +16,9 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -25,6 +28,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -353,6 +357,30 @@ public class ShadowUtil {
 		return attribute.getRealValues(type);
 	}
 
+	public static QName getAttributeName(ItemPath attributePath, String message) throws SchemaException {
+		if (attributePath == null || attributePath.isEmpty()) {
+			return null;
+		}
+		ItemPathSegment firstPathSegment = attributePath.first();
+    	if (!(firstPathSegment instanceof NameItemPathSegment)) {
+    		throw new SchemaException(message + ": first path segment is not a name segment");
+    	}
+    	if (!QNameUtil.match(ShadowType.F_ATTRIBUTES, ((NameItemPathSegment) firstPathSegment).getName())) {
+    		throw new SchemaException(message + ": first path segment is not "+ShadowType.F_ATTRIBUTES);
+    	}
+    	if (attributePath.size() < 1) {
+    		throw new SchemaException(message + ": path too short ("+attributePath.size()+" segments)");
+    	}
+    	if (attributePath.size() > 2) {
+    		throw new SchemaException(message + ": path too long ("+attributePath.size()+" segments)");
+    	}
+    	ItemPathSegment secondPathSegment = attributePath.getSegments().get(1);
+    	if (!(secondPathSegment instanceof NameItemPathSegment)) {
+    		throw new SchemaException(message + ": second path segment is not a name segment");
+    	}
+    	return ((NameItemPathSegment) secondPathSegment).getName();
+	}
+	
 	public static void checkConsistence(PrismObject<? extends ShadowType> shadow, String desc) {
 		PrismReference resourceRef = shadow.findReference(ShadowType.F_RESOURCE_REF);
     	if (resourceRef == null) {

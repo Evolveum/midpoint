@@ -1165,15 +1165,16 @@ public abstract class PageAdminFocus<T extends FocusType> extends PageAdmin
 		List<FocusProjectionDto> accounts = getFocusShadows();
 		OperationResult subResult = null;
 		for (FocusProjectionDto account : accounts) {
-			if (!account.isLoadedOK())
+			if (!account.isLoadedOK()) {
 				continue;
+			}
 
 			try {
 				ObjectWrapper accountWrapper = account.getObject();
 				ObjectDelta delta = accountWrapper.getObjectDelta();
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Account delta computed from form:\n{}",
-							new Object[] { delta.debugDump(3) });
+					LOGGER.trace("Account delta computed from {} as:\n{}",
+							new Object[] { accountWrapper, delta.debugDump(3) });
 				}
 
 				if (!UserDtoStatus.MODIFY.equals(account.getStatus())) {
