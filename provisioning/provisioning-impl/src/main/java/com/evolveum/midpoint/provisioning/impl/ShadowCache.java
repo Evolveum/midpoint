@@ -1291,15 +1291,17 @@ public abstract class ShadowCache {
 	private void deleteShadowFromRepo(Change change, OperationResult parentResult) throws ObjectNotFoundException {
 		if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE
 				&& change.getOldShadow() != null) {
-			LOGGER.debug("Deleting detected shadow object form repository.");
+			LOGGER.trace("Deleting detected shadow object form repository.");
 			try {
 				repositoryService.deleteObject(ShadowType.class, change.getOldShadow().getOid(),
 						parentResult);
+				LOGGER.debug("Shadow object successfully deleted form repository.");
 			} catch (ObjectNotFoundException ex) {
-				parentResult.recordFatalError("Can't find object " + change.getOldShadow() + " in repository.");
-				throw new ObjectNotFoundException("Can't find object " + change.getOldShadow() + " in repository.");
+				// What we want to delete is already deleted. Not a big problem.
+				LOGGER.debug("Shadow object {} already deleted from repository ({})", change.getOldShadow(), ex);
+				parentResult.recordHandledError("Shadow object "+change.getOldShadow()+" already deleted from repository", ex);
 			}
-			LOGGER.debug("Shadow object deleted successfully form repository.");
+			
 		}
 	}
 

@@ -22,33 +22,35 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -63,6 +65,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
@@ -82,7 +85,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 	private static final String CREATE_PROPERTIES = DOT_CLASS + "createProperties";
 
 	private String displayName;
-	private ObjectWrapper<? extends ObjectType> object;
+	private ObjectWrapper<? extends ObjectType> objectWrapper;
 	private T container;
 	private ContainerStatus status;
 
@@ -96,23 +99,35 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 	private OperationResult result;
 
 	private PrismContainerDefinition containerDefinition;
-
-	public ContainerWrapper(ObjectWrapper object, T container, ContainerStatus status, ItemPath path,
+	
+	public ContainerWrapper(ObjectWrapper objectWrapper, T container, ContainerStatus status, ItemPath path,
 			PageBase pageBase) {
-		Validate.notNull(container, "Prism object must not be null.");
+		this(objectWrapper, container, status, path, true, pageBase);
+	}
+
+	private ContainerWrapper(ObjectWrapper objectWrapper, T container, ContainerStatus status, ItemPath path,
+			boolean createProperties, PageBase pageBase) {
+		Validate.notNull(container, "container must not be null.");
 		Validate.notNull(status, "Container status must not be null.");
 		Validate.notNull(pageBase, "pageBase must not be null.");
 
-		this.object = object;
+		this.objectWrapper = objectWrapper;
 		this.container = container;
 		this.status = status;
 		this.path = path;
 		main = path == null;
-		readonly = object.isReadonly(); // [pm] this is quite questionable
-		showInheritedObjectAttributes = object.isShowInheritedObjectAttributes();
+		readonly = objectWrapper.isReadonly(); // [pm] this is quite questionable
+		showInheritedObjectAttributes = objectWrapper.isShowInheritedObjectAttributes();
 		// have to be after setting "main" property
 		containerDefinition = getItemDefinition();
-		properties = createProperties(pageBase);
+		if (createProperties) {
+			// HACK HACK HACK, the container wrapper should not parse itself. This code should not be here.
+			// Constructor should NOT parse the object
+			// the createProperties parameter is here to avoid looping when parsing associations
+			properties = createProperties(pageBase);
+		} else {
+			properties = new ArrayList<>();
+		}
 	}
 
 	public void revive(PrismContext prismContext) throws SchemaException {
@@ -132,9 +147,9 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 	@Override
 	public PrismContainerDefinition getItemDefinition() {
 		if (main) {
-			return object.getDefinition();
+			return objectWrapper.getDefinition();
 		} else {
-			return object.getDefinition().findContainerDefinition(path);
+			return objectWrapper.getDefinition().findContainerDefinition(path);
 		}
 	}
 
@@ -147,7 +162,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 	}
 
 	ObjectWrapper getObject() {
-		return object;
+		return objectWrapper;
 	}
 
 	ContainerStatus getStatus() {
@@ -189,7 +204,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
 			if (ShadowType.F_ATTRIBUTES.equals(name)) {
 				try {
-					definition = object.getRefinedAttributeDefinition();
+					definition = objectWrapper.getRefinedAttributeDefinition();
 
 					if (definition == null) {
 						PrismReference resourceRef = parent.findReference(ShadowType.F_RESOURCE_REF);
@@ -197,7 +212,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
 						definition = pageBase
 								.getModelInteractionService()
-								.getEditObjectClassDefinition((PrismObject<ShadowType>) object.getObject(), resource,
+								.getEditObjectClassDefinition((PrismObject<ShadowType>) objectWrapper.getObject(), resource,
 										AuthorizationPhaseType.REQUEST)
 								.toResourceAttributeContainerDefinition();
 
@@ -275,13 +290,64 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 			}
 
 		} else if (isShadowAssociation()) {
-			if (object.getAssociations() != null) {
-				for (PrismProperty property : object.getAssociations()) {
-					// TODO: fix this -> for now, read only is supported..
-					PropertyWrapper propertyWrapper = new PropertyWrapper(this, property, true,
-							ValueStatus.NOT_CHANGED);
-					properties.add(propertyWrapper);
+			PrismContext prismContext = objectWrapper.getObject().getPrismContext();
+			Map<QName,PrismContainer<ShadowAssociationType>> assocMap = new HashMap<>();
+			if (objectWrapper.getAssociations() != null) {
+				for (PrismContainerValue<ShadowAssociationType> cval : objectWrapper.getAssociations()) {
+					ShadowAssociationType associationType = cval.asContainerable();
+					QName assocName = associationType.getName();
+					PrismContainer<ShadowAssociationType> fractionalContainer = assocMap.get(assocName);
+					if (fractionalContainer == null) {
+						fractionalContainer = new PrismContainer<>(ShadowType.F_ASSOCIATION, ShadowAssociationType.class, cval.getPrismContext());
+						fractionalContainer.setDefinition(cval.getParent().getDefinition());
+						// HACK: set the name of the association as the element name so wrapper.getName() will return correct data.
+						fractionalContainer.setElementName(assocName);
+						assocMap.put(assocName, fractionalContainer);
+					}
+					try {
+						fractionalContainer.add(cval.clone());
+					} catch (SchemaException e) {
+						// Should not happen
+						throw new SystemException("Unexpected error: "+e.getMessage(),e);
+					}
 				}
+			}
+				
+			PrismReference resourceRef = parent.findReference(ShadowType.F_RESOURCE_REF);
+			PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
+			
+			// HACK. The revive should not be here. Revive is no good. The next use of the resource will
+            // cause parsing of resource schema. We need some centralized place to maintain live cached copies
+            // of resources.
+            try {
+				resource.revive(prismContext);
+			} catch (SchemaException e) {
+				throw new SystemException(e.getMessage(), e);
+			}
+            RefinedResourceSchema refinedSchema;
+            CompositeRefinedObjectClassDefinition rOcDef;
+            try {
+				refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+				rOcDef = refinedSchema.determineCompositeObjectClassDefinition(parent);
+			} catch (SchemaException e) {
+				throw new SystemException(e.getMessage(),e);
+			}
+            // Make sure even empty associations have their wrappers so they can be displayed and edited
+            for (RefinedAssociationDefinition assocDef: rOcDef.getAssociations()) {
+            	QName name = assocDef.getName();
+            	if (!assocMap.containsKey(name)) {
+            		PrismContainer<ShadowAssociationType> fractionalContainer = new PrismContainer<>(ShadowType.F_ASSOCIATION, ShadowAssociationType.class, prismContext);
+					fractionalContainer.setDefinition(getItemDefinition());
+					// HACK: set the name of the association as the element name so wrapper.getName() will return correct data.
+					fractionalContainer.setElementName(name);
+					assocMap.put(name, fractionalContainer);
+            	}
+            }
+			
+			for (Entry<QName,PrismContainer<ShadowAssociationType>> assocEntry: assocMap.entrySet()) {
+				// HACK HACK HACK, the container wrapper should not parse itself. This code should not be here.
+				AssociationWrapper assocWrapper = new AssociationWrapper(this, assocEntry.getValue(), this.isReadonly(), ValueStatus.NOT_CHANGED);
+				properties.add(assocWrapper);
 			}
 
 		} else { // if not an assignment
@@ -320,7 +386,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 						// decision is based on parent object status, not this
 						// container's one (because container can be added also
 						// to an existing object)
-						if (object.getStatus() == ContainerStatus.MODIFYING) {
+						if (objectWrapper.getStatus() == ContainerStatus.MODIFYING) {
 
 							propertyIsReadOnly = !def.canModify();
 						} else {
@@ -345,7 +411,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 						// decision is based on parent object status, not this
 						// container's one (because container can be added also
 						// to an existing object)
-						if (object.getStatus() == ContainerStatus.MODIFYING) {
+						if (objectWrapper.getStatus() == ContainerStatus.MODIFYING) {
 
 							propertyIsReadOnly = !def.canModify();
 						} else {
@@ -496,7 +562,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
 		// we decide not according to status of this container, but according to
 		// the status of the whole object
-		if (object.getStatus() == ContainerStatus.ADDING) {
+		if (objectWrapper.getStatus() == ContainerStatus.ADDING) {
 			return def.canAdd();
 		}
 
@@ -513,16 +579,21 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 	}
 
 	private boolean showEmpty(ItemWrapper item) {
-		ObjectWrapper object = getObject();
-			List<ValueWrapper> values = item.getValues();
-			boolean isEmpty = values.isEmpty();
-			if (values.size() == 1) {
-				ValueWrapper value = values.get(0);
+		ObjectWrapper objectWrapper = getObject();
+			List<ValueWrapper> valueWrappers = item.getValues();
+			boolean isEmpty;
+			if (valueWrappers == null) {
+				isEmpty = true;
+			} else {
+				isEmpty = valueWrappers.isEmpty();
+			}
+			if (!isEmpty && valueWrappers.size() == 1) {
+				ValueWrapper value = valueWrappers.get(0);
 				if (ValueStatus.ADDED.equals(value.getStatus())) {
 					isEmpty = true;
 				}
 			}
-			return object.isShowEmpty() || !isEmpty;
+			return objectWrapper.isShowEmpty() || !isEmpty;
 	}
 
 	@Override
@@ -536,6 +607,11 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 	@Override
 	public void setDisplayName(String name) {
 		this.displayName = name;
+	}
+
+	@Override
+	public QName getName() {
+		return getItem().getElementName();
 	}
 
 	public boolean isMain() {
@@ -575,15 +651,13 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
+		builder.append("ContainerWrapper(");
 		builder.append(getDisplayNameFromItem(container));
-		builder.append(", ");
+		builder.append(" (");
 		builder.append(status);
-		builder.append("\n");
-		for (ItemWrapper wrapper : getItems()) {
-			builder.append("\t");
-			builder.append(wrapper.toString());
-			builder.append("\n");
-		}
+		builder.append(") ");
+		builder.append(getItems() == null ? null :  getItems().size());
+		builder.append(" items)");
 		return builder.toString();
 	}
 
@@ -647,6 +721,11 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 		// TODO Auto-generated method stub
 		return false;
 	}
+	
+	@Override
+	public boolean isEmpty() {
+		return getItem().isEmpty();
+	}
 
 	@Override
 	public ContainerWrapper getContainer() {
@@ -654,11 +733,15 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 		return null;
 	}
 
-	@Override
-	public void addValue() {
-		// TODO Auto-generated method stub
+    //TODO add new PrismContainerValue to association container
+    public void addValue() {
+        getItems().add(createItem());
+    }
 
-	}
+    public ItemWrapper createItem() {
+        ValueWrapper wrapper = new ValueWrapper(this, new PrismPropertyValue(null), ValueStatus.ADDED);
+        return wrapper.getItem();
+    }
 
 	@Override
 	public String debugDump() {
@@ -669,7 +752,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("ContainerWrapper(\n");
+		sb.append("ContainerWrapper: ").append(PrettyPrinter.prettyPrint(getName())).append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "displayName", displayName, indent+1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "status", status == null?null:status.toString(), indent+1);
@@ -686,12 +769,11 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "container", container==null?null:container.toString(), indent+1);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "properties", properties, indent+1);
+		DebugUtil.debugDumpLabel(sb, "properties", indent+1);
+		sb.append("\n");
+		DebugUtil.debugDump(sb, properties, indent+2, false);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "result", result, indent+1);
-		sb.append("\n");
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append(")");
 		return sb.toString();
 	}
 }

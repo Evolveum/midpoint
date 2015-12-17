@@ -105,16 +105,6 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         //}
         this.prismContext = prismContext;
     }
-
-    private PrismContainerValue(C containerable) {
-		super();
-		this.containerable = containerable;
-	}
-
-    public PrismContainerValue(C containerable, PrismContext prismContext) {
-        this(containerable);
-        this.prismContext = prismContext;
-    }
     
     private PrismContainerValue(OriginType type, Objectable source, PrismContainerable container, Long id, QName concreteType) {
 		super(type, source, container);

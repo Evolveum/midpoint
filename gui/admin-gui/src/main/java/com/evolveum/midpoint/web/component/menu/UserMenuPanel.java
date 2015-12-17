@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.BasePageAwarePanel;
 import com.evolveum.midpoint.web.component.util.BaseSimplePanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -103,7 +105,7 @@ public class UserMenuPanel extends BaseSimplePanel {
 
                 @Override
                 protected PasswordQuestionsDto load() {
-                    return loadModel();
+                    return loadModel(null);
                 }
             };
             isPasswordModelLoaded = true;
@@ -122,7 +124,7 @@ public class UserMenuPanel extends BaseSimplePanel {
     @Override
     protected void initLayout() {
         if (userModel != null && userModel.getObject() == null){
-            loadModel();
+            loadModel(null);
         }
         WebMarkupContainer iconBox = new WebMarkupContainer(ID_ICON_BOX);
         add(iconBox);
@@ -142,7 +144,7 @@ public class UserMenuPanel extends BaseSimplePanel {
             @Override
             public boolean isVisible(){
                 if (userModel != null && userModel.getObject() == null){
-                    loadModel();
+                    loadModel(null);
                 }
                 return jpegPhoto != null;
             }
@@ -154,7 +156,7 @@ public class UserMenuPanel extends BaseSimplePanel {
             @Override
             public boolean isVisible(){
                 if (userModel != null && userModel.getObject() == null){
-                    loadModel();
+                    loadModel(null);
                 }
                 return jpegPhoto == null;
 
@@ -191,7 +193,7 @@ public class UserMenuPanel extends BaseSimplePanel {
             @Override
             public boolean isVisible(){
                 if (userModel != null && userModel.getObject() == null){
-                    loadModel();
+                    loadModel(null);
                 }
                 return jpegPhoto != null;
             }
@@ -203,7 +205,7 @@ public class UserMenuPanel extends BaseSimplePanel {
             @Override
             public boolean isVisible(){
                 if (userModel != null && userModel.getObject() == null){
-                    loadModel();
+                    loadModel(null);
                 }
                 return jpegPhoto == null;
             }
@@ -237,10 +239,6 @@ public class UserMenuPanel extends BaseSimplePanel {
         };
         add(editPasswordQ);
 
-        if (!isUserModelLoaded) {
-            loadModel();
-
-        }
         if (!isPasswordModelLoaded ){
             passwordQuestionsDtoIModel = new LoadableModel<PasswordQuestionsDto>(false) {
 
@@ -248,7 +246,7 @@ public class UserMenuPanel extends BaseSimplePanel {
 
                 @Override
                 protected PasswordQuestionsDto load() {
-                    return loadModel();
+                    return loadModel(null);
                 }
             };
             isPasswordModelLoaded = true;
@@ -287,21 +285,30 @@ public class UserMenuPanel extends BaseSimplePanel {
         return principal.toString();
     }
 
-    private PasswordQuestionsDto loadModel() {
+    private PasswordQuestionsDto loadModel(PageBase parentPage) {
         LOGGER.trace("Loading user for Security Question Page.");
 
         PasswordQuestionsDto dto =new PasswordQuestionsDto();
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
-        try{
+        
+        if (parentPage == null) {
+        	parentPage = ((PageBase)getPage());
+        }
+        
+        try {
 
-
-            String userOid = SecurityUtils.getPrincipalUser().getOid();
-            Task task = ((PageBase)getPage()).createSimpleTask(OPERATION_LOAD_USER);
+        	MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        	if (principal == null) {
+        		result.recordNotApplicableIfUnknown();
+        		return null;
+        	}
+            String userOid = principal.getOid();
+            Task task = parentPage.createSimpleTask(OPERATION_LOAD_USER);
             OperationResult subResult = result.createSubresult(OPERATION_LOAD_USER);
 
             Collection options = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
                     GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
-            PrismObject<UserType> user = ((PageBase)getPage()).getModelService().getObject(UserType.class, userOid, options, task, subResult);
+            PrismObject<UserType> user = parentPage.getModelService().getObject(UserType.class, userOid, options, task, subResult);
             userModel.setObject(user);
             jpegPhoto = user == null ? null :
                     (user.asObjectable() == null ? null : user.asObjectable().getJpegPhoto());

@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,23 +14,21 @@
   ~ limitations under the License.
   -->
 
-<!DOCTYPE html>
+
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <wicket:enclosure child="menuItem">
-    <ul class="nav nav-pills cog pull-right">
-        <li class="dropdown">
-            <a class="dropdown-toggle" data-toggle="dropdown" about="dropdownMenu" style="border-top: 2px; !important">
-                <i class="fa fa-cog"></i>
-                <b class="caret"></b>
-            </a>
-            <ul class="dropdown-menu pull-right" role="menu">
-                <li wicket:id="menuItem">
-                    <div wicket:id="menuItemBody"/>
-                </li>
-            </ul>
-        </li>
-    </ul>
-    </wicket:enclosure>
+    <div wicket:id="objectSelectionPopup" />
+
+     <div wicket:id="textWrapper">
+       <div class="input-group input-group-sm">
+           <input type="text" class="form-control input-sm" wicket:id="text" />
+           <span class="input-group-btn">
+               <button wicket:id="edit" class="btn btn-primary" type="button">
+                   <wicket:message key="PageBase.button.edit" />
+               </button>
+           </span>
+           <span class="text-danger" wicket:id="feedback" />
+       </div>
+   </div> 
 </wicket:panel>
 </html>
