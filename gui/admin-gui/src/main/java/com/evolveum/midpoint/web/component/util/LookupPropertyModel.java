@@ -60,9 +60,11 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
                 return null;
             }
 
-            for(LookupTableRowType row: lookupTable.getRow()){
-                if(key.equals(row.getKey())){
-                    return (T)WebMiscUtil.getOrigStringFromPoly(row.getLabel());
+            if (lookupTable != null) {
+                for (LookupTableRowType row : lookupTable.getRow()) {
+                    if (key.equals(row.getKey())) {
+                        return (T) WebMiscUtil.getOrigStringFromPoly(row.getLabel());
+                    }
                 }
             }
             return (T)key;
