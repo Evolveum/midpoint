@@ -319,7 +319,11 @@ public class IcfConvertor {
 			connIdAttributeValues.add(UcfUtil.convertValueToIcf(pval, protector, mpAttribute.getElementName()));
 		}
 
-		return AttributeBuilder.build(connIdAttrName, connIdAttributeValues);
+		try {
+			return AttributeBuilder.build(connIdAttrName, connIdAttributeValues);
+		} catch (IllegalArgumentException e) {
+			throw new SchemaException(e.getMessage(), e);
+		}
 	}
 	
 	private <T> T getSingleValue(Attribute icfAttr, Class<T> type) throws SchemaException {
