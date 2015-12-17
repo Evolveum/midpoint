@@ -54,6 +54,7 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -92,6 +93,7 @@ public class PageCertDefinition extends PageAdminCertification {
 //	private static final String ID_OWNER_VALUE_CONTAINER = "ownerValueContainer";
 //	private static final String ID_OWNER_INPUT = "ownerInput";
 	private static final String ID_OWNER_REF_CHOOSER = "ownerRefChooser";
+	private static final String ID_REMEDIATION = "remediation";
 
 	private static final String ID_BACK_BUTTON = "backButton";
 	private static final String ID_SAVE_BUTTON = "saveButton";
@@ -214,7 +216,6 @@ public class PageCertDefinition extends PageAdminCertification {
 			}
 		});
 
-		// copied from somewhere ... don't understand it yet ;)
 		TabbedPanel tabPanel = new TabbedPanel(ID_TAB_PANEL, tabs) {
 			@Override
 			protected WebMarkupContainer newLink(String linkId, final int index) {
@@ -270,6 +271,23 @@ public class PageCertDefinition extends PageAdminCertification {
         mainForm.add(ownerRefChooser);
 
         mainForm.add(new Label(ID_NUMBER_OF_STAGES, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
+
+        DropDownChoice remediation = new DropDownChoice<>(ID_REMEDIATION, new Model<AccessCertificationRemediationStyleType>() {
+
+            @Override
+            public AccessCertificationRemediationStyleType getObject() {
+                return definitionModel.getObject().getRemediationStyle();
+            }
+
+            @Override
+            public void setObject(AccessCertificationRemediationStyleType object) {
+                definitionModel.getObject().setRemediationStyle(object);
+            }
+        }, WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationRemediationStyleType.class),
+                new EnumChoiceRenderer<AccessCertificationRemediationStyleType>(this));
+        mainForm.add(remediation);
+
+
 //        mainForm.add(new Label(ID_REVIEW_STAGE_CAMPAIGNS, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
 //        mainForm.add(new Label(ID_CAMPAIGNS_TOTAL, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
         mainForm.add(new Label(ID_LAST_STARTED, new PropertyModel<>(definitionModel, CertDefinitionDto.F_LAST_STARTED)));
