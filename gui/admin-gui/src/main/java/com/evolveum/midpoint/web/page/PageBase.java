@@ -469,7 +469,7 @@ public abstract class PageBase extends PageTemplate {
         submenu.add(menu);
         createFocusPageViewMenu(submenu, "PageAdmin.menu.top.certification.viewDefinition", PageCertDefinition.class);
         menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.newDefinition"),
-                PageImportObject.class);
+                PageCertDefinition.class);
         submenu.add(menu);
         menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.campaigns"),
                 PageCertCampaigns.class);

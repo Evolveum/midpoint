@@ -63,7 +63,7 @@ public class CertDefinitionDto implements Serializable {
     private String xml;
     private ObjectViewDto owner;
 
-    public CertDefinitionDto(AccessCertificationDefinitionType definition, PageBase page, Task task, OperationResult result) {
+    public CertDefinitionDto(AccessCertificationDefinitionType definition, PageBase page) {
         this.oldDefinition = definition.clone();
         this.definition = definition;
         owner = loadOwnerReference(definition.getOwnerRef());
