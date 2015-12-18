@@ -541,6 +541,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	
 	private Collection<RoleSelectionSpecEntry> createSingleDisplayableValueCollection(
 			RoleSelectionSpecEntry dval) {
+		if (dval == null) {
+			return null;
+		}
 		Collection<RoleSelectionSpecEntry> col = new ArrayList<>(1);
 		col.add(dval);
 		return col;
