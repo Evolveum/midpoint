@@ -115,9 +115,7 @@ public class PageUsers extends PageAdminUsers {
     private static final String ID_TABLE = "table";
     private static final String ID_SEARCH = "search";
     private static final String ID_SEARCH_FORM = "searchForm";
-    private static final String ID_BASIC_SEARCH = "basicSearch";
     private static final String ID_TABLE_HEADER = "tableHeader";
-    private static final String ID_SEARCH_TYPE = "searchType";
 
     private UserListItemDto singleDelete;
     private LoadableModel<Search> searchModel;

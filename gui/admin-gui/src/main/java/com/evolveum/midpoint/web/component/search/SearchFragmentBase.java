@@ -8,6 +8,7 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -48,7 +49,11 @@ abstract class SearchFragmentBase<T extends Serializable> extends Fragment {
 
     protected void addPerformed(AjaxRequestTarget target) {
         SearchItemPanel panel = findParent(SearchItemPanel.class);
-        panel.getPopoverModel().getObject().getValues().add(new SearchValue());
+
+        SearchItemPopoverDto dto = panel.getPopoverModel().getObject();
+        List<DisplayableValue> values = dto.getValues();
+        values.add(new SearchValue());
+
         panel.updatePopupBody(target);
     }
 
@@ -56,7 +61,14 @@ abstract class SearchFragmentBase<T extends Serializable> extends Fragment {
         SearchItemPanel panel = findParent(SearchItemPanel.class);
         T val = data.getObject();
 
-        panel.getPopoverModel().getObject().getValues().remove(val);
+        SearchItemPopoverDto dto = panel.getPopoverModel().getObject();
+        List<DisplayableValue> values = dto.getValues();
+
+        values.remove(val);
+
+        if (values.isEmpty()) {
+            values.add(new SearchValue());
+        }
 
         panel.updatePopupBody(target);
     }
