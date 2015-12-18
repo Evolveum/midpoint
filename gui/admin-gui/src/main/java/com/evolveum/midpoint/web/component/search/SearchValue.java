@@ -82,6 +82,11 @@ public class SearchValue<T extends Serializable> implements DisplayableValue<T>,
 
     }
 
+    public void clear() {
+        value = null;
+        label = null;
+    }
+
     @Override
     public int hashCode() {
         return Arrays.hashCode(new Object[]{value, label});

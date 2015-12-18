@@ -10,6 +10,7 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 import java.io.Serializable;
@@ -162,13 +163,34 @@ public class Search implements Serializable {
             DisplayableValue displayableValue = (DisplayableValue) searchValue.getValue();
             Object value = displayableValue.getValue();
             return EqualFilter.createEqual(path, propDef, value);
+        } else if (DOMUtil.XSD_INT.equals(propDef.getTypeName())
+                || DOMUtil.XSD_INTEGER.equals(propDef.getTypeName())
+                || DOMUtil.XSD_LONG.equals(propDef.getTypeName())
+                || DOMUtil.XSD_SHORT.equals(propDef.getTypeName())) {
+
+            String text = (String) searchValue.getValue();
+            if (!StringUtils.isNumeric(text) && (searchValue instanceof SearchValue)) {
+                ((SearchValue) searchValue).clear();
+                return null;
+            }
+            Object value = Long.parseLong((String) searchValue.getValue());
+            return EqualFilter.createEqual(path, propDef, value);
+        } else if (DOMUtil.XSD_STRING.equals(propDef.getTypeName())) {
+            //we're looking for string value, therefore substring filter should be used
+            String text = (String) searchValue.getValue();
+            PolyStringNormalizer normalizer = ctx.getDefaultPolyStringNormalizer();
+            String value = normalizer.normalize(text);
+            return SubstringFilter.createSubstring(path, propDef, PolyStringNormMatchingRule.NAME, value);
         }
 
-        //we're looking for string value, therefore substring filter should be used
-        String text = (String) searchValue.getValue();
-        PolyStringNormalizer normalizer = ctx.getDefaultPolyStringNormalizer();
-        String value = normalizer.normalize(text);
-        return SubstringFilter.createSubstring(path, propDef, PolyStringNormMatchingRule.NAME, value);
+        //we don't know how to create filter from search item, should not happen, ha ha ha :)
+        //at least we try to cleanup field
+
+        if (searchValue instanceof SearchValue) {
+            ((SearchValue) searchValue).clear();
+        }
+
+        return null;
     }
 
     @Override
