@@ -51,7 +51,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = RAuditEventRecord.TABLE_NAME, indexes = {
-        @Index(name = "iTimestampValue", columnList = RAuditEventRecord.COLUMN_TIMESTAMP)})
+        @Index(name = "iTimestampValue", columnList = RAuditEventRecord.COLUMN_TIMESTAMP)})       // TODO correct index name
 public class RAuditEventRecord implements Serializable {
 
     public static final String TABLE_NAME = "m_audit_event";

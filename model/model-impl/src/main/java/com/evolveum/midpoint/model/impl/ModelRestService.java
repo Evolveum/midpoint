@@ -176,9 +176,16 @@ public class ModelRestService {
 		try {
 			oid = model.addObject(object, modelExecuteOptions, task, parentResult);
 			LOGGER.info("returned oid :  {}", oid );
-			
-			URI resourceURI = uriInfo.getAbsolutePathBuilder().path(oid).build(oid);
-			ResponseBuilder builder = clazz.isAssignableFrom(TaskType.class) ? Response.accepted().location(resourceURI) : Response.created(resourceURI);
+
+			ResponseBuilder builder;
+
+			if (oid != null) {
+				URI resourceURI = uriInfo.getAbsolutePathBuilder().path(oid).build(oid);
+				builder = clazz.isAssignableFrom(TaskType.class) ? Response.accepted().location(resourceURI) : Response.created(resourceURI);
+			} else {
+				// OID might be null e.g. if the object creation is a subject of workflow approval
+				builder = Response.accepted();			// TODO is this ok ?
+			}
 			
 			response = builder.build();
 		} catch (ObjectAlreadyExistsException e) {

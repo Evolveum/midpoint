@@ -117,6 +117,9 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
         assignmentCase.setAssignment(assignment.clone());
         assignmentCase.setIsInducement(isInducement);
         assignmentCase.setObjectRef(ObjectTypeUtil.createObjectRef(object));
+        assignmentCase.setTenantRef(assignment.getTenantRef());
+        assignmentCase.setOrgRef(assignment.getOrgRef());
+        assignmentCase.setActivation(assignment.getActivation());
         boolean valid;
         if (assignment.getTargetRef() != null) {
             assignmentCase.setTargetRef(assignment.getTargetRef());

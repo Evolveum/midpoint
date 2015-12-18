@@ -66,6 +66,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -593,11 +594,22 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	@Override
 	public AdminGuiConfigurationType getAdminGuiConfiguration(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		PrismObject<SystemConfigurationType> systemConfiguration = objectResolver.getSystemConfiguration(parentResult);
-		if (systemConfiguration == null) {
-			return null;
+		MidPointPrincipal principal = null;
+		try {
+			principal = securityEnforcer.getPrincipal();
+		} catch (SecurityViolationException e) {
+			LOGGER.warn("Security violation while getting principlal to get GUI config: {}", e.getMessage(), e);
 		}
-		return systemConfiguration.asObjectable().getAdminGuiConfiguration();
+		
+		if (principal == null) {
+			PrismObject<SystemConfigurationType> systemConfiguration = objectResolver.getSystemConfiguration(parentResult);
+			if (systemConfiguration == null) {
+				return null;
+			}
+			return systemConfiguration.asObjectable().getAdminGuiConfiguration();
+		} else {
+			return principal.getAdminGuiConfiguration();
+		}
 	}
 
 	@Override

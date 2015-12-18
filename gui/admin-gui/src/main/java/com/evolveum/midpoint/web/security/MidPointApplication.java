@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.web.util.Utf8BundleStringResourceLoader;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.Page;
@@ -56,12 +57,15 @@ import org.apache.wicket.markup.head.PriorityFirstComparator;
 import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.IRequestHandler;
+import org.apache.wicket.request.Url;
+import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.cycle.AbstractRequestCycleListener;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
 import org.apache.wicket.settings.IApplicationSettings;
+import org.apache.wicket.settings.IRequestLoggerSettings;
 import org.apache.wicket.settings.IResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.apache.wicket.util.lang.Bytes;
@@ -100,6 +104,9 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     private static final String PROP_DEFAULT = ".default";
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointApplication.class);
+
+	private static final String REQUEST_LOGGER_NAME = "com.evolveum.midpoint.request.web";
+    private static final Trace REQUEST_LOGGER = TraceManager.getTrace(REQUEST_LOGGER_NAME);
 
     static {
         List<LocaleDescriptor> locales = new ArrayList<>();
@@ -212,6 +219,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         getComponentInstantiationListeners().add(new SpringComponentInjector(this));
 
         IResourceSettings resourceSettings = getResourceSettings();
+        resourceSettings.setParentFolderPlaceholder("$-$");
         resourceSettings.setHeaderItemComparator(new PriorityFirstComparator(true));
         SecurePackageResourceGuard guard = (SecurePackageResourceGuard) resourceSettings.getPackageResourceGuard();
         guard.addPattern("+*.woff2");
@@ -247,10 +255,110 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
             @Override
             public IRequestHandler onException(RequestCycle cycle, Exception ex) {
+            	if (REQUEST_LOGGER.isTraceEnabled()) {
+					REQUEST_LOGGER.trace("REQUEST CYCLE: Exception: {}, handler {}", ex,
+						WebMiscUtil.debugHandler(cycle.getActiveRequestHandler()), ex);
+				}
                 LoggingUtils.logUnexpectedException(LOGGER, "Error occurred during page rendering", ex);
                 return new RenderPageRequestHandler(new PageProvider(new PageError(ex)));
             }
+
+			@Override
+			public void onRequestHandlerScheduled(RequestCycle cycle, IRequestHandler handler) {
+				if (handler instanceof RenderPageRequestHandler) {
+					Class<? extends IRequestablePage> pageClass = ((RenderPageRequestHandler)handler).getPageClass();
+					if (REQUEST_LOGGER.isTraceEnabled()) {
+						REQUEST_LOGGER.trace("REQUEST CYCLE: Scheduled redirect to page {}", pageClass);
+					}
+					if (PageError.class.isAssignableFrom(pageClass)) {
+						REQUEST_LOGGER.info("REQUEST CYCLE: Scheduled redirect to error page {}", pageClass);
+					}
+				} else {
+					if (REQUEST_LOGGER.isTraceEnabled()) {
+						REQUEST_LOGGER.trace("REQUEST CYCLE: Scheduled request handler {}", 
+							WebMiscUtil.debugHandler(handler));
+					}
+				}
+				super.onRequestHandlerScheduled(cycle, handler);
+			}
+			
+			@Override
+			public void onRequestHandlerResolved(RequestCycle cycle, IRequestHandler handler)
+			{
+				if (REQUEST_LOGGER.isTraceEnabled()) {
+					REQUEST_LOGGER.trace("REQUEST CYCLE: Resolved request handler {}", 
+						WebMiscUtil.debugHandler(handler));
+				}
+			}
+            
+			@Override
+			public void onBeginRequest(RequestCycle cycle)
+			{
+				if (REQUEST_LOGGER.isTraceEnabled()) {
+					REQUEST_LOGGER.trace("REQUEST CYCLE: Begin request: '{}', handler {}", cycle.getRequest().getOriginalUrl(),
+						WebMiscUtil.debugHandler(cycle.getActiveRequestHandler()));
+				}
+				super.onBeginRequest(cycle);
+			}
+			
+			@Override
+			public void onEndRequest(RequestCycle cycle)
+			{
+				if (REQUEST_LOGGER.isTraceEnabled()) {
+					REQUEST_LOGGER.trace("REQUEST CYCLE: End request: '{}', next handler: {}", cycle.getRequest().getOriginalUrl(),
+							WebMiscUtil.debugHandler(cycle.getRequestHandlerScheduledAfterCurrent()));
+				}
+				super.onBeginRequest(cycle);
+			}
+			
+			@Override
+			public void onDetach(RequestCycle cycle)
+			{
+				if (REQUEST_LOGGER.isTraceEnabled()) {
+					REQUEST_LOGGER.trace("REQUEST CYCLE: Detach, request: '{}', next handler: {}", cycle.getRequest().getOriginalUrl(),
+							WebMiscUtil.debugHandler(cycle.getRequestHandlerScheduledAfterCurrent()));
+					
+				}
+				super.onBeginRequest(cycle);
+			}
+			
+			@Override
+			public void onExceptionRequestHandlerResolved(RequestCycle cycle, IRequestHandler handler,
+				Exception exception)
+			{
+				if (REQUEST_LOGGER.isTraceEnabled()) {
+					REQUEST_LOGGER.trace("REQUEST CYCLE: Exception - Resolved request handler {}", 
+						WebMiscUtil.debugHandler(handler), exception);
+				}
+			}
+
+			@Override
+			public void onRequestHandlerExecuted(RequestCycle cycle, IRequestHandler handler)
+			{
+				if (REQUEST_LOGGER.isTraceEnabled()) {
+					REQUEST_LOGGER.trace("REQUEST CYCLE: Request handler executed {}", 
+						WebMiscUtil.debugHandler(handler));
+				}
+			}
+
+			@Override
+			public void onUrlMapped(RequestCycle cycle, IRequestHandler handler, Url url)
+			{
+				if (REQUEST_LOGGER.isTraceEnabled()) {
+					REQUEST_LOGGER.trace("REQUEST CYCLE: Url '{}' mapped, handler {}", url, 
+						WebMiscUtil.debugHandler(handler));
+				}
+			}
+            
         });
+        
+        if (REQUEST_LOGGER.isDebugEnabled()) {
+	        IRequestLoggerSettings requestLoggerSettings = getRequestLoggerSettings();
+	        requestLoggerSettings.setRequestLoggerEnabled(true);
+	        if (REQUEST_LOGGER.isTraceEnabled()) {
+	        	requestLoggerSettings.setRecordSessionSize(true);
+	        }
+        }
 
         //descriptor loader, used for customization
         new DescriptorLoader().loadData(this);

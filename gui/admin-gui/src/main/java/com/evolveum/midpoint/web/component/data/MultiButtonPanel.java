@@ -55,6 +55,10 @@ public class MultiButtonPanel<T> extends SimplePanel<T> {
                 public boolean isEnabled(){
                     return MultiButtonPanel.this.isButtonEnabled(finalId, MultiButtonPanel.this.getModel());
                 }
+                @Override
+                public boolean isVisible(){
+                    return MultiButtonPanel.this.isButtonVisible(finalId, MultiButtonPanel.this.getModel());
+                }
             };
             button.add(new AttributeAppender("class", getButtonCssClass(finalId)));
             buttons.add(button);
@@ -69,6 +73,11 @@ public class MultiButtonPanel<T> extends SimplePanel<T> {
     public boolean isButtonEnabled(int id, IModel<T> model) {
         return true;
     }
+
+    public boolean isButtonVisible(int id, IModel<T> model) {
+        return true;
+    }
+
 
     private String getButtonCssClass(int id) {
         StringBuilder sb = new StringBuilder();

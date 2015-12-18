@@ -60,6 +60,11 @@ public class MultiButtonColumn<T extends Serializable> extends AbstractColumn<T,
             }
 
             @Override
+            public boolean isButtonVisible(int id, IModel<T> model) {
+                return MultiButtonColumn.this.isButtonVisible(id, model);
+            }
+
+            @Override
             public String getButtonSizeCssClass(int id) {
                 return MultiButtonColumn.this.getButtonSizeCssClass(id);
             }
@@ -80,6 +85,10 @@ public class MultiButtonColumn<T extends Serializable> extends AbstractColumn<T,
     }
 
     public boolean isButtonEnabled(int id, IModel<T> model) {
+        return true;
+    }
+
+    public boolean isButtonVisible(int id, IModel<T> model) {
         return true;
     }
 

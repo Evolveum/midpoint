@@ -76,7 +76,7 @@ object.
 				<icfcldap:port>1389</icfcldap:port>
 				<icfcldap:host>localhost</icfcldap:host>
 				<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
-				<icfcldap:bindDn>cn=idm,ou=Administrators,dc=example,dc=com</icfcldap:bindDn>
+				<icfcldap:bindDn>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:bindDn>
 				<icfcldap:bindPassword>
 	                    <t:clearValue>secret</t:clearValue>
 	            </icfcldap:bindPassword>
@@ -114,7 +114,17 @@ object.
 				<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
 			</icfc:resultsHandlerConfiguration>
 		</connectorConfiguration>
-       
+
+		<schema>
+			<!-- workaround to MID-2723 -->
+			<generationConstraints>
+				<generateObjectClass>ri:inetOrgPerson</generateObjectClass>
+				<generateObjectClass>ri:groupOfUniqueNames</generateObjectClass>
+				<generateObjectClass>ri:groupOfNames</generateObjectClass>
+				<generateObjectClass>ri:organizationalUnit</generateObjectClass>
+			</generationConstraints>
+		</schema>
+
         <!-- Resource Schema Handling definition.
              This part defines how the schema defined above will be used by
              midPoint. It defines expressions and limitations for individual
@@ -133,7 +143,7 @@ object.
 			<default>true</default>
 			<objectClass>ri:inetOrgPerson</objectClass>
 			<attribute>
-				<ref>icfs:name</ref>
+				<ref>ri:dn</ref>
 				<displayName>Distinguished Name</displayName>
 				<limitations>
 					<minOccurs>0</minOccurs>
@@ -159,7 +169,7 @@ object.
 				</outbound>
 			</attribute>
 			<attribute>
-				<ref>icfs:uid</ref>
+				<ref>ri:entryUUID</ref>
 				<displayName>Entry UUID</displayName>
 				<limitations>
 					<access>
@@ -305,11 +315,17 @@ object.
 			<iteration>
 				<maxIterations>5</maxIterations>
 			</iteration>
-			
+
 			<protected>
-                <icfs:name>cn=idm,ou=Administrators,dc=example,dc=com</icfs:name>
-            </protected>
-			
+				<filter>
+					<q:equal>
+						<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
+						<q:path>attributes/ri:dn</q:path>
+						<q:value>uid=idm,ou=Administrators,dc=example,dc=com</q:value>
+					</q:equal>
+				</filter>
+			</protected>
+
 			<activation>
                 <administrativeStatus>
                     <outbound/>

@@ -25,10 +25,17 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.parser.DomParser;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 
+import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import org.apache.commons.lang.StringUtils;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
@@ -406,5 +413,120 @@ public class TestQueryConvertor {
 		assertEquals(new Integer(0), paging.getOffset());
 		assertEquals(new Integer(10), paging.getMaxSize());
 
+	}
+
+	@Test
+	public void test100OrgFilterRoot() throws Exception {
+		displayTestTitle("test100OrgFilterRoot");
+
+		ObjectQuery query = QueryBuilder.queryFor(OrgType.class, getPrismContext()).isRoot().build();
+		String expected = "<q:org> <q:isRoot>true</q:isRoot> </q:org>";
+
+		checkQuery(query, expected);
+	}
+
+	protected void checkQuery(ObjectQuery query, String expected) throws Exception {
+		displayQuery(query);
+
+		QueryType queryType = toQueryType(query);
+		displayQueryType(queryType);
+
+		assertXml(queryType, expected);
+
+		ObjectQuery query2 = toObjectQuery(OrgType.class, queryType);
+		displayQuery(query2);
+
+		// primitive way of comparing queries
+		assertEquals("Reparsed query is not as original one", query.toString(), query2.toString());
+
+		QueryType queryType2 = toQueryType(query2);
+		displayQueryType(queryType2);
+
+		assertEquals("Reserialized query type is not as original one", queryType, queryType2);
+	}
+
+	@Test
+	public void test110OrgFilterSubtree() throws Exception {
+		displayTestTitle("test110OrgFilterSubtree");
+
+		ObjectQuery query = QueryBuilder.queryFor(OrgType.class, getPrismContext()).isChildOf("111").build();
+		displayQuery(query);
+
+		String expected = "<q:org>\n" +
+				"        <q:orgRef>\n" +
+				"            <q:oid>111</q:oid>\n" +
+				"        </q:orgRef>\n" +
+				"        <q:scope>SUBTREE</q:scope>\n" +
+				"    </q:org>";
+
+		checkQuery(query, expected);
+	}
+
+	@Test
+	public void test120OrgFilterDirect() throws Exception {
+		displayTestTitle("test120OrgFilterDirect");
+
+		ObjectQuery query = QueryBuilder.queryFor(OrgType.class, getPrismContext()).isDirectChildOf("222").build();
+		displayQuery(query);
+
+		String expected = "<q:org>\n" +
+				"        <q:orgRef>\n" +
+				"            <q:oid>222</q:oid>\n" +
+				"        </q:orgRef>\n" +
+				"        <q:scope>ONE_LEVEL</q:scope>\n" +
+				"    </q:org>";
+
+		checkQuery(query, expected);
+	}
+
+	@Test
+	public void test130OrgFilterDefaultScope() throws Exception {
+		displayTestTitle("test130OrgFilterDefaultScope");
+
+		String filterText = "<?xml version='1.0'?><filter><org>\n" +
+				"        <orgRef>\n" +
+				"            <oid>333</oid>\n" +
+				"        </orgRef>\n" +
+				"    </org></filter>";
+
+		SearchFilterType filterType = getPrismContext().parseAtomicValue(filterText, SearchFilterType.COMPLEX_TYPE, PrismContext.LANG_XML);
+		displaySearchFilterType(filterType);
+
+		ObjectFilter filter = QueryConvertor.parseFilter(filterType, OrgType.class, getPrismContext());
+		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+
+		ObjectQuery expectedQuery = QueryBuilder.queryFor(OrgType.class, getPrismContext()).isChildOf("333").build();
+		// primitive way of comparing queries
+		assertEquals("Parsed query is wrong", expectedQuery.toString(), query.toString());
+
+		// now reserialize the parsed query and compare with XML
+		String expected = "<q:org>\n" +
+				"        <q:orgRef>\n" +
+				"            <q:oid>333</q:oid>\n" +
+				"        </q:orgRef>\n" +
+				"        <q:scope>SUBTREE</q:scope>\n" +
+				"    </q:org>";
+
+		checkQuery(query, expected);
+	}
+
+
+	private void assertXml(QueryType queryType, String expected) throws SchemaException {
+		MapXNode mapXNode = queryType.getFilter().getFilterClauseXNode();
+		String realWrapped = getPrismContext().serializeXNodeToString(new RootXNode(new QName("query"), mapXNode), PrismContext.LANG_XML);
+
+		// primitive but effective method
+		int start = realWrapped.indexOf('>')+1;
+		int end = realWrapped.lastIndexOf('<');
+		String real = realWrapped.substring(start, end);
+
+		String expNorm = StringUtils.normalizeSpace(expected);
+		String realNorm = StringUtils.normalizeSpace(real);
+		if (!expNorm.equals(realNorm)) {
+			String m = "Serialized query is not correct. Expected:\n" + expected + "\nActual:\n" + real + "\n\nNormalized versions:\n\n" +
+					"Expected: " + expNorm + "\nActual:   " + realNorm + "\n";
+			LOGGER.error("{}", m);
+			throw new AssertionError(m);
+		}
 	}
 }

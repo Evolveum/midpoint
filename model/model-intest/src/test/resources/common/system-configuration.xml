@@ -147,5 +147,13 @@
 	    	<targetUrl>/foo</targetUrl>
 	    	<label>Foo</label>
 	    </userDashboardLink>
+	    <objectForms>
+    		<objectForm>
+    			<type>RoleType</type>
+    			<formSpecification>
+    				<panelClass>com.piracy.form.PirateRolePanel</panelClass>
+    			</formSpecification>
+    		</objectForm>
+    	</objectForms>
     </adminGuiConfiguration>
 </systemConfiguration>

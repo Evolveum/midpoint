@@ -19,7 +19,15 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.data.common.any.*;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAnyConverter;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtBoolean;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtDate;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtLong;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtReference;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtString;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtValue;
 import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -27,21 +35,47 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
-import com.evolveum.midpoint.repo.sql.util.*;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
+import com.evolveum.midpoint.repo.sql.query.definition.VirtualEntity;
+import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
+import com.evolveum.midpoint.repo.sql.query.definition.VirtualAny;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.EntityState;
+import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.NamedQueries;
 import org.hibernate.annotations.NamedQuery;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+import org.hibernate.annotations.Where;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import javax.persistence.Index;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.Lob;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;
 import java.util.Collection;
@@ -74,8 +108,31 @@ import java.util.Set;
         @NamedQuery(name = "get.lookupTableLastId", query = "select max(r.id) from RLookupTableRow r where r.ownerOid = :oid"),
         @NamedQuery(name = "delete.lookupTableData", query = "delete RLookupTableRow r where r.ownerOid = :oid"),
         @NamedQuery(name = "delete.lookupTableDataRow", query = "delete RLookupTableRow r where r.ownerOid = :oid and r.id = :id"),
+        @NamedQuery(name = "get.campaignCaseLastId", query = "select max(c.id) from RAccessCertificationCase c where c.ownerOid = :oid"),
+        @NamedQuery(name = "delete.campaignCases", query = "delete RAccessCertificationCase c where c.ownerOid = :oid"),
+        @NamedQuery(name = "delete.campaignCasesDecisions", query = "delete RAccessCertificationDecision d where d.ownerOwnerOid = :oid"),
+        @NamedQuery(name = "delete.campaignCasesReferences", query = "delete RCertCaseReference r where r.ownerOid = :oid"),
+        @NamedQuery(name = "delete.campaignCase", query = "delete RAccessCertificationCase c where c.ownerOid = :oid and c.id = :id"),
+        @NamedQuery(name = "delete.campaignCaseDecisions", query = "delete RAccessCertificationDecision d where d.ownerOwnerOid = :oid and d.ownerId = :id"),
+        // doesn't work; generates SQL of "delete from m_acc_cert_case_reference where owner_owner_oid=? and owner_id=? and owner_owner_oid=? and reference_type=? and relation=? and targetOid=?"
+        //@NamedQuery(name = "delete.campaignCaseReferences", query = "delete RCertCaseReference r where r.ownerOid = :oid and r.id = :id"),
         @NamedQuery(name = "resolveReferences", query = "select o.oid, o.name from RObject as o where o.oid in (:oid)"),
+        @NamedQuery(name = "get.campaignCase", query = "select c.fullObject from RAccessCertificationCase c where c.ownerOid=:ownerOid and c.id=:id")
 })
+@QueryEntity(
+        anyElements = {
+                @VirtualAny(jaxbNameLocalPart = "extension", ownerType = RObjectExtensionType.EXTENSION)
+        }
+//        ,
+//        entities = {
+//                @VirtualEntity(
+//                        jaxbName = @JaxbName(localPart = "metadata"),
+//                        jaxbType = MetadataType.class,
+//                        jpaName = "",
+//                        jpaType = Serializable.class            // dummy value (ignored)
+//                )
+//        }
+    )
 @Entity
 @Table(name = "m_object", indexes = {
         @Index(name = "iObjectNameOrig", columnList = "name_orig"),
@@ -83,7 +140,7 @@ import java.util.Set;
         @Index(name = "iObjectTypeClass", columnList = "objectTypeClass"),
         @Index(name = "iObjectCreateTimestamp", columnList = "createTimestamp")})
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class RObject<T extends ObjectType> implements Metadata<RObjectReference>, EntityState, Serializable {
+public abstract class RObject<T extends ObjectType> implements Metadata<RObjectReference<RFocus>>, EntityState, Serializable {
 
     public static final String F_OBJECT_TYPE_CLASS = "objectTypeClass";
 
@@ -100,17 +157,17 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     private RObjectType objectTypeClass;
     //ObjectType searchable fields
     private RPolyString name;
-    private Set<RObjectReference> parentOrgRef;
+    private Set<RObjectReference<ROrg>> parentOrgRef;
     private Set<RTrigger> trigger;
     private REmbeddedReference tenantRef;
     //Metadata
     private XMLGregorianCalendar createTimestamp;
     private REmbeddedReference creatorRef;
-    private Set<RObjectReference> createApproverRef;
+    private Set<RObjectReference<RFocus>> createApproverRef;
     private String createChannel;
     private XMLGregorianCalendar modifyTimestamp;
     private REmbeddedReference modifierRef;
-    private Set<RObjectReference> modifyApproverRef;
+    private Set<RObjectReference<RFocus>> modifyApproverRef;
     private String modifyChannel;
     //extension, and other "any" like shadow/attributes
     private Short booleansCount;
@@ -130,6 +187,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     @GeneratedValue(generator = "ObjectOidGenerator")
     @GenericGenerator(name = "ObjectOidGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ObjectOidGenerator")
     @Column(name = "oid", nullable = false, updatable = false, length = RUtil.COLUMN_LENGTH_OID)
+    @IdQueryProperty
     public String getOid() {
         return oid;
     }
@@ -152,25 +210,28 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 0")
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RObjectReference> getParentOrgRef() {
+    public Set<RObjectReference<ROrg>> getParentOrgRef() {
         if (parentOrgRef == null) {
             parentOrgRef = new HashSet<>();
         }
         return parentOrgRef;
     }
 
+    @NotQueryable
     @OneToMany(fetch = FetchType.LAZY, targetEntity = ROrgClosure.class, mappedBy = "descendant")
     @Cascade({org.hibernate.annotations.CascadeType.DELETE})
     public Set<ROrgClosure> getDescendants() {
         return descendants;
     }
 
+    @NotQueryable
     @OneToMany(fetch = FetchType.LAZY, targetEntity = ROrgClosure.class, mappedBy = "ancestor")//, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.DELETE})
     public Set<ROrgClosure> getAncestors() {
         return ancestors;
     }
 
+    @NotQueryable
     public int getVersion() {
         return version;
     }
@@ -181,6 +242,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     }
 
     @Lob
+    @NotQueryable
     public byte[] getFullObject() {
         return fullObject;
     }
@@ -189,27 +251,32 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
 //    @JoinTable(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RObjectReference> getCreateApproverRef() {
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createApproverRef") })
+    public Set<RObjectReference<RFocus>> getCreateApproverRef() {
         if (createApproverRef == null) {
             createApproverRef = new HashSet<>();
         }
         return createApproverRef;
     }
 
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createChannel") })
     public String getCreateChannel() {
         return createChannel;
     }
 
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createTimestamp") })
     public XMLGregorianCalendar getCreateTimestamp() {
         return createTimestamp;
     }
 
     @Embedded
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "creatorRef") })
     public REmbeddedReference getCreatorRef() {
         return creatorRef;
     }
 
     @Embedded
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifierRef") })
     public REmbeddedReference getModifierRef() {
         return modifierRef;
     }
@@ -218,21 +285,25 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
 //    @JoinTable(foreignKey = @ForeignKey(name = "none"))
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RObjectReference> getModifyApproverRef() {
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyApproverRef") })
+    public Set<RObjectReference<RFocus>> getModifyApproverRef() {
         if (modifyApproverRef == null) {
             modifyApproverRef = new HashSet<>();
         }
         return modifyApproverRef;
     }
 
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyChannel") })
     public String getModifyChannel() {
         return modifyChannel;
     }
 
+    @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyTimestamp") })
     public XMLGregorianCalendar getModifyTimestamp() {
         return modifyTimestamp;
     }
 
+    @NotQueryable
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<ROExtLong> getLongs() {
@@ -242,6 +313,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return longs;
     }
 
+    @NotQueryable
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<ROExtBoolean> getBooleans() {
@@ -251,6 +323,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return booleans;
     }
 
+    @NotQueryable
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<ROExtString> getStrings() {
@@ -260,6 +333,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return strings;
     }
 
+    @NotQueryable
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<ROExtDate> getDates() {
@@ -269,6 +343,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return dates;
     }
 
+    @NotQueryable
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<ROExtReference> getReferences() {
@@ -278,6 +353,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return references;
     }
 
+    @NotQueryable
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<ROExtPolyString> getPolys() {
@@ -287,6 +363,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return polys;
     }
 
+    @NotQueryable
     public Short getStringsCount() {
         if (stringsCount == null) {
             stringsCount = 0;
@@ -294,6 +371,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return stringsCount;
     }
 
+    @NotQueryable
     public Short getBooleansCount() {
         if (booleansCount == null) {
             booleansCount = 0;
@@ -301,6 +379,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return booleansCount;
     }
 
+    @NotQueryable
     public Short getLongsCount() {
         if (longsCount == null) {
             longsCount = 0;
@@ -308,6 +387,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return longsCount;
     }
 
+    @NotQueryable
     public Short getDatesCount() {
         if (datesCount == null) {
             datesCount = 0;
@@ -315,6 +395,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return datesCount;
     }
 
+    @NotQueryable
     public Short getReferencesCount() {
         if (referencesCount == null) {
             referencesCount = 0;
@@ -322,6 +403,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return referencesCount;
     }
 
+    @NotQueryable
     public Short getPolysCount() {
         if (polysCount == null) {
             polysCount = 0;
@@ -330,6 +412,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     }
 
     @Enumerated
+    @NotQueryable
     public RObjectType getObjectTypeClass() {
         return objectTypeClass;
     }
@@ -348,7 +431,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         this.objectTypeClass = objectTypeClass;
     }
 
-    public void setCreateApproverRef(Set<RObjectReference> createApproverRef) {
+    public void setCreateApproverRef(Set<RObjectReference<RFocus>> createApproverRef) {
         this.createApproverRef = createApproverRef;
     }
 
@@ -368,7 +451,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         this.modifierRef = modifierRef;
     }
 
-    public void setModifyApproverRef(Set<RObjectReference> modifyApproverRef) {
+    public void setModifyApproverRef(Set<RObjectReference<RFocus>> modifyApproverRef) {
         this.modifyApproverRef = modifyApproverRef;
     }
 
@@ -412,7 +495,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         this.ancestors = ancestors;
     }
 
-    public void setParentOrgRef(Set<RObjectReference> parentOrgRef) {
+    public void setParentOrgRef(Set<RObjectReference<ROrg>> parentOrgRef) {
         this.parentOrgRef = parentOrgRef;
     }
 

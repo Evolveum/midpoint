@@ -106,13 +106,17 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
         //switch to the opened modal window
         switchToInnerFrame();
         //search for resource in resources list in the opened Select resource(s) window
-        searchForElement(OPENDJ_RESOURCE_NAME);
-        //check if Localhost OpenDJ resource was found
-        $(byText(OPENDJ_RESOURCE_NAME)).shouldBe(visible);
-
-        //select check box in the first row for "Localhost OpenDJ (no extension schema)" resource
-        $(byAttribute("about", "resourcePopupTable")).find(By.tagName("tbody")).find(By.tagName("input"))
-                .shouldBe(visible).click();
+        $(byText(OPENDJ_RESOURCE_NAME)).shouldBe(visible).parent().parent().findElementByTagName("input").click();
+//        searchForElement(OPENDJ_RESOURCE_NAME);
+//        //check if Localhost OpenDJ resource was found
+//        $(byText(OPENDJ_RESOURCE_NAME)).shouldBe(visible);
+//
+//        //select check box in the first row for "Localhost OpenDJ (no extension schema)" resource
+//        $(byAttribute("about", "resourcePopupTable")).find(By.tagName("tbody")).find(By.tagName("input"))
+//                .shouldBe(visible).click();
+//
+//        $(byAttribute("about", "resourcePopupTable")).find(By.tagName("tbody")).find(By.tagName("input"))
+//                .shouldBe(selected);
 
         //click Add resource(s) button
         $(By.linkText("Add resource(s)")).shouldBe(enabled).click();

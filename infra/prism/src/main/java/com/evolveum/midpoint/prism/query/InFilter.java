@@ -53,7 +53,7 @@ public class InFilter<T> extends PropertyValueFilter<PrismPropertyValue> {
 	
 	public static <V> InFilter createIn(ItemPath path, Class type, PrismContext prismContext, QName matchingRule, V values) {
 
-		PrismPropertyDefinition definition = (PrismPropertyDefinition) findItemDefinition(path, type, prismContext);
+		PrismPropertyDefinition definition = (PrismPropertyDefinition) FilterUtils.findItemDefinition(path, type, prismContext);
 		return createIn(path, definition, null, values);
 	}
 	

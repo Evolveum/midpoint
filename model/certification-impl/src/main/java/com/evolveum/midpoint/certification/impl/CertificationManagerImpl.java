@@ -136,17 +136,21 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public AccessCertificationCampaignType createCampaign(AccessCertificationDefinitionType certDefinition, AccessCertificationCampaignType campaign,
+    public AccessCertificationCampaignType createCampaign(String definitionOid, AccessCertificationCampaignType campaign,
                                                           Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
         Validate.notNull(task, "task");
         Validate.notNull(parentResult, "parentResult");
-        if (certDefinition == null && campaign == null) {
-            throw new IllegalArgumentException("Both certDefinition and campaign are null");
+        if (definitionOid == null && campaign == null) {
+            throw new IllegalArgumentException("Both definitionOid and campaign are null");
         }
 
         OperationResult result = parentResult.createSubresult(OPERATION_CREATE_CAMPAIGN);
         try {
-            AccessCertificationCampaignType newCampaign = helper.createCampaignObject(certDefinition, campaign, task, result);
+            AccessCertificationDefinitionType definition = null;
+            if (definitionOid != null) {
+                definition = modelService.getObject(AccessCertificationDefinitionType.class, definitionOid, null, task, result).asObjectable();
+            }
+            AccessCertificationCampaignType newCampaign = helper.createCampaignObject(definition, campaign, task, result);
             updateHelper.addObject(newCampaign, task, result);
             return newCampaign;
         } catch (RuntimeException e) {
@@ -175,7 +179,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 LOGGER.debug("openNextStage starting for {}", ObjectTypeUtil.toShortString(campaign));
             }
 
-            final int currentStageNumber = campaign.getCurrentStageNumber();
+            final int currentStageNumber = campaign.getStageNumber();
             final int stages = CertCampaignTypeUtil.getNumberOfStages(campaign);
             final AccessCertificationCampaignStateType state = campaign.getState();
             LOGGER.trace("openNextStage: currentStageNumber={}, stages={}, requestedStageNumber={}, state={}", currentStageNumber, stages, requestedStageNumber, state);
@@ -225,7 +229,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 LOGGER.debug("closeCurrentStage starting for {}", ObjectTypeUtil.toShortString(campaign));
             }
 
-            final int currentStageNumber = campaign.getCurrentStageNumber();
+            final int currentStageNumber = campaign.getStageNumber();
             final int stages = CertCampaignTypeUtil.getNumberOfStages(campaign);
             final AccessCertificationCampaignStateType state = campaign.getState();
             LOGGER.trace("closeCurrentStage: currentStageNumber={}, stages={}, stageNumberToClose={}, state={}", currentStageNumber, stages, stageNumberToClose, state);
@@ -262,7 +266,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 LOGGER.debug("startRemediation starting for {}", ObjectTypeUtil.toShortString(campaign));
             }
 
-            final int currentStageNumber = campaign.getCurrentStageNumber();
+            final int currentStageNumber = campaign.getStageNumber();
             final int lastStageNumber = CertCampaignTypeUtil.getNumberOfStages(campaign);
             final AccessCertificationCampaignStateType state = campaign.getState();
             LOGGER.trace("startRemediation: currentStageNumber={}, stages={}, state={}", currentStageNumber, lastStageNumber, state);
@@ -279,7 +283,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 }
                 updateHelper.setStageNumberAndState(campaign, lastStageNumber + 1, IN_REMEDIATION, task, result);
 
-                campaign = updateHelper.updateCampaign(campaign, task, result);
+                campaign = updateHelper.refreshCampaign(campaign, task, result);
                 eventHelper.onCampaignStageStart(campaign, task, result);
             }
         } catch (RuntimeException e) {
@@ -313,7 +317,7 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public List<AccessCertificationCaseType> searchDecisions(ObjectQuery campaignQuery, ObjectQuery caseQuery,
+    public List<AccessCertificationCaseType> searchDecisions(ObjectQuery caseQuery,
                                                              String reviewerOid, boolean notDecidedOnly,
                                                              Collection<SelectorOptions<GetOperationOptions>> options,
                                                              Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
@@ -325,7 +329,7 @@ public class CertificationManagerImpl implements CertificationManager {
         OperationResult result = parentResult.createSubresult(OPERATION_SEARCH_DECISIONS);
 
         try {
-            return queryHelper.searchDecisions(campaignQuery, caseQuery, reviewerOid, notDecidedOnly, options, task, result);
+            return queryHelper.searchDecisions(caseQuery, reviewerOid, notDecidedOnly, options, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't search for certification decisions: unexpected exception: " + e.getMessage(), e);
             throw e;
@@ -383,12 +387,14 @@ public class CertificationManagerImpl implements CertificationManager {
             AccessCertificationCasesStatisticsType stat = new AccessCertificationCasesStatisticsType(prismContext);
 
             AccessCertificationCampaignType campaign = helper.getCampaign(campaignOid, null, task, result);
-            int currentStageNumber = campaign.getCurrentStageNumber();
+            int currentStageNumber = campaign.getStageNumber();
             AccessCertificationCampaignStateType state = campaign.getState();
 
+            List<AccessCertificationCaseType> campaignCases = queryHelper.searchCases(campaign.getOid(), null, null, task, result);
+
             int accept=0, revoke=0, revokeRemedied=0, reduce=0, reduceRemedied=0, delegate=0, noDecision=0, noResponse=0;
-            for (AccessCertificationCaseType _case : campaign.getCase()) {
-                if (currentStageOnly && !_case.isEnabled()) {
+            for (AccessCertificationCaseType _case : campaignCases) {
+                if (currentStageOnly && _case.getCurrentStageNumber() != campaign.getStageNumber()) {
                     continue;
                 }
                 AccessCertificationResponseType response = _case.getCurrentResponse();

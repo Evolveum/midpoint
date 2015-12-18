@@ -17,10 +17,12 @@
 package com.evolveum.midpoint.repo.sql.query;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.sql.ObjectPagingAfterOid;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.query.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query.definition.EntityDefinition;
@@ -50,8 +52,6 @@ import org.hibernate.criterion.Restrictions;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
-
-import static com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl.*;
 
 /**
  * @author lazyman
@@ -205,12 +205,12 @@ public class QueryInterpreter {
             query = query.setMaxResults(paging.getMaxSize());
         }
 
-        if (paging.getDirection() == null && paging.getOrderBy() == null) {
+        if (paging.getDirection() == null && (paging.getOrderBy() == null || paging.getOrderBy().isEmpty())) {
             return query;
         }
 
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-        if (paging.getOrderBy() == null) {
+        if (paging.getOrderBy() == null || paging.getOrderBy().isEmpty() || paging.getOrderBy().size() > 1 || !(paging.getOrderBy().first() instanceof NameItemPathSegment)) {
             LOGGER.warn("Ordering by property path with size not equal 1 is not supported '" + paging.getOrderBy()
                     + "'.");
             return query;

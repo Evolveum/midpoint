@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.util.QNameUtil;
 
 
@@ -103,8 +104,19 @@ public class PrismReferenceDefinition extends ItemDefinition<PrismReference> {
         }
         return false;
 	}
-	
-    @Override
+
+	@Override
+	<T extends ItemDefinition> T findItemDefinition(ItemPath path, Class<T> clazz) {
+		if (path.isEmpty() || !(path.first() instanceof ObjectReferencePathSegment)) {
+			return super.findItemDefinition(path, clazz);
+		} else {
+			ItemPath rest = path.rest();
+			PrismObjectDefinition referencedObjectDefinition = getSchemaRegistry().determineReferencedObjectDefinition(targetTypeName, rest);
+			return (T) referencedObjectDefinition.findItemDefinition(rest, clazz);
+		}
+	}
+
+	@Override
     public PrismReference instantiate() {
         return instantiate(getName());
     }

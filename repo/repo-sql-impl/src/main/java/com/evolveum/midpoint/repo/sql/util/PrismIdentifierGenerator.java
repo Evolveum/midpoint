@@ -1,9 +1,12 @@
 package com.evolveum.midpoint.repo.sql.util;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -48,14 +51,16 @@ public class PrismIdentifierGenerator {
         if (object == null) {
             return;
         }
-
         List<PrismContainer> containers = getChildrenContainers(object);
+        generateIdsForContainers(containers, result, operation);
+    }
+
+    private void generateIdsForContainers(List<PrismContainer> containers, IdGeneratorResult result, Operation operation) {
         Set<Long> usedIds = new HashSet<>();
         for (PrismContainer c : containers) {
             if (c == null || c.getValues() == null) {
                 continue;
             }
-
             for (PrismContainerValue val : (List<PrismContainerValue>) c.getValues()) {
                 if (val.getId() != null) {
                     usedIds.add(val.getId());
@@ -102,6 +107,18 @@ public class PrismIdentifierGenerator {
             containers.add(parent.findContainer(LookupTableType.F_ROW));
         }
 
+        if (AccessCertificationCampaignType.class.isAssignableFrom(parent.getCompileTimeClass())) {
+            PrismContainer caseContainer = parent.findContainer(AccessCertificationCampaignType.F_CASE);
+            containers.add(caseContainer);
+            if (caseContainer != null) {
+                List<PrismContainerValue> casePcvList = caseContainer.getValues();
+                for (PrismContainerValue casePcv : casePcvList) {
+                    PrismContainer decisionContainer = casePcv.findContainer(AccessCertificationCaseType.F_DECISION);
+                    containers.add(decisionContainer);
+                }
+            }
+        }
+
         if (FocusType.class.isAssignableFrom(parent.getCompileTimeClass())) {
             containers.add(parent.findContainer(FocusType.F_ASSIGNMENT));
         }
@@ -115,10 +132,21 @@ public class PrismIdentifierGenerator {
             	containers.add(policyConstraints.findContainer(PolicyConstraintsType.F_MAX_ASSIGNEES));
             	containers.add(policyConstraints.findContainer(PolicyConstraintsType.F_MIN_ASSIGNEES));
             }
-            
-            
         }
 
         return containers;
+    }
+
+    public IdGeneratorResult generate(Containerable containerable, Operation operation) {
+        IdGeneratorResult result = new IdGeneratorResult();
+        if (!(containerable instanceof AccessCertificationCaseType)) {
+            return result;
+        }
+        AccessCertificationCaseType aCase = (AccessCertificationCaseType) containerable;
+        PrismContainer decisionContainer = aCase.asPrismContainerValue().findContainer(AccessCertificationCaseType.F_DECISION);
+        if (decisionContainer != null) {
+            generateIdsForContainers(Arrays.asList(decisionContainer), result, operation);
+        }
+        return result;
     }
 }

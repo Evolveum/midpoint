@@ -1345,4 +1345,228 @@
             <value>3 value</value>
         </row>
     </lookupTable>
+
+    <accessCertificationCampaign xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                                 xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                                 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                                 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                                 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                                 xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+        <name>All user assignments 1</name>
+        <description>Certifies all users' assignments. Everything is certified by the administrator.</description>
+        <trigger id="677504621">
+            <timestamp>2015-12-18T23:59:59.999+01:00</timestamp>
+            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage/handler-3</handlerUri>
+        </trigger>
+        <trigger id="677504622">
+            <timestamp>2015-12-16T23:59:59.999+01:00</timestamp>
+            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage-approaching/handler-3</handlerUri>
+        </trigger>
+        <trigger id="677504623">
+            <timestamp>2015-12-18T11:59:59.999+01:00</timestamp>
+            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage-approaching/handler-3</handlerUri>
+        </trigger>
+        <metadata>
+            <createTimestamp>2015-12-04T00:37:08.885+01:00</createTimestamp>
+            <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></creatorRef>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+        </metadata>
+        <definitionRef oid="068e0a87-b456-47c7-811a-5fd9b6f78099"
+                       type="c:AccessCertificationDefinitionType"><!-- All user assignments --></definitionRef>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></ownerRef>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
+        <remediationDefinition>
+            <style>automated</style>
+        </remediationDefinition>
+        <stageDefinition>
+            <number>1</number>
+            <name>Administrator's review</name>
+            <description>In this stage, the administrator has to review all the assignments of all users.</description>
+            <days>14</days>
+            <notifyBeforeDeadline>48</notifyBeforeDeadline>
+            <notifyBeforeDeadline>12</notifyBeforeDeadline>
+            <notifyOnlyWhenNoDecision>true</notifyOnlyWhenNoDecision>
+            <reviewerSpecification>
+                <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></defaultReviewerRef>
+            </reviewerSpecification>
+        </stageDefinition>
+        <start>2015-12-04T00:38:03.031+01:00</start>
+        <state>inReviewStage</state>
+        <stageNumber>1</stageNumber>
+        <stage>
+            <number>1</number>
+            <name>Administrator's review</name>
+            <description>In this stage, the administrator has to review all the assignments of all users.</description>
+            <start>2015-12-04T00:38:00.708+01:00</start>
+            <end>2015-12-18T23:59:59.999+01:00</end>
+        </stage>
+        <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              id="1"
+              xsi:type="c:AccessCertificationAssignmentCaseType">
+            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+            <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
+            <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
+            <reviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</reviewRequestedTimestamp>
+            <reviewDeadline>2015-12-18T23:59:59.999+01:00</reviewDeadline>
+            <decision id="1">
+                <stageNumber>1</stageNumber>
+                <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+                <response>notDecided</response>
+                <timestamp>2015-12-04T01:10:20.032+01:00</timestamp>
+            </decision>
+            <currentResponse>notDecided</currentResponse>
+            <currentStageNumber>1</currentStageNumber>
+            <assignment id="1">
+                <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
+            </assignment>
+            <isInducement>false</isInducement>
+        </case>
+        <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              id="2"
+              xsi:type="c:AccessCertificationAssignmentCaseType">
+            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+            <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
+            <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
+            <reviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</reviewRequestedTimestamp>
+            <reviewDeadline>2015-12-18T23:59:59.999+01:00</reviewDeadline>
+            <decision id="1">
+                <stageNumber>1</stageNumber>
+                <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+                <response>accept</response>
+                <timestamp>2015-12-04T01:04:06.385+01:00</timestamp>
+            </decision>
+            <currentResponse>accept</currentResponse>
+            <currentStageNumber>1</currentStageNumber>
+            <assignment id="2">
+                <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
+            </assignment>
+            <isInducement>false</isInducement>
+        </case>
+        <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              id="3"
+              xsi:type="c:AccessCertificationAssignmentCaseType">
+            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+            <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
+            <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
+            <reviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</reviewRequestedTimestamp>
+            <reviewDeadline>2015-12-18T23:59:59.999+01:00</reviewDeadline>
+            <decision id="1">
+                <stageNumber>1</stageNumber>
+                <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+                <response>noResponse</response>
+                <timestamp>2015-12-04T01:10:08.670+01:00</timestamp>
+            </decision>
+            <currentResponse>noResponse</currentResponse>
+            <currentStageNumber>1</currentStageNumber>
+            <assignment id="3">
+                <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
+            </assignment>
+            <isInducement>false</isInducement>
+        </case>
+        <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              id="4"
+              xsi:type="c:AccessCertificationAssignmentCaseType">
+            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+            <objectRef oid="ee53eba7-5c16-4c16-ad15-dd6a2360ab1a" type="c:UserType"><!-- u001 --></objectRef>
+            <targetRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"><!-- Localhost OpenDJ (no extension schema) --></targetRef>
+            <reviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</reviewRequestedTimestamp>
+            <reviewDeadline>2015-12-18T23:59:59.999+01:00</reviewDeadline>
+            <decision id="1">
+                <stageNumber>1</stageNumber>
+                <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+                <response>revoke</response>
+                <timestamp>2015-12-04T01:10:13.814+01:00</timestamp>
+            </decision>
+            <currentResponse>revoke</currentResponse>
+            <currentStageNumber>1</currentStageNumber>
+            <assignment id="1">
+                <construction>
+                    <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"><!-- Localhost OpenDJ (no extension schema) --></resourceRef>
+                    <attribute>
+                        <c:ref>ri:cn</c:ref>
+                        <outbound>
+                            <strength>strong</strength>
+                            <expression>
+                                <value>CN</value>
+                            </expression>
+                        </outbound>
+                    </attribute>
+                    <attribute>
+                        <c:ref>ri:sn</c:ref>
+                        <outbound>
+                            <strength>strong</strength>
+                            <expression>
+                                <value>SN</value>
+                            </expression>
+                        </outbound>
+                    </attribute>
+                </construction>
+            </assignment>
+            <isInducement>false</isInducement>
+        </case>
+        <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              id="5"
+              xsi:type="c:AccessCertificationAssignmentCaseType">
+            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+            <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
+            <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
+            <reviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</reviewRequestedTimestamp>
+            <reviewDeadline>2015-12-18T23:59:59.999+01:00</reviewDeadline>
+            <decision id="1">
+                <stageNumber>1</stageNumber>
+                <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+                <response>revoke</response>
+                <timestamp>2015-12-04T01:10:14.614+01:00</timestamp>
+            </decision>
+            <currentResponse>revoke</currentResponse>
+            <currentStageNumber>1</currentStageNumber>
+            <assignment id="1">
+                <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
+            </assignment>
+            <isInducement>false</isInducement>
+        </case>
+        <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              id="6"
+              xsi:type="c:AccessCertificationAssignmentCaseType">
+            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+            <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
+            <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
+            <reviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</reviewRequestedTimestamp>
+            <reviewDeadline>2015-12-18T23:59:59.999+01:00</reviewDeadline>
+            <decision id="1">
+                <stageNumber>1</stageNumber>
+                <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+                <response>reduce</response>
+                <timestamp>2015-12-04T01:10:15.375+01:00</timestamp>
+            </decision>
+            <currentResponse>reduce</currentResponse>
+            <currentStageNumber>1</currentStageNumber>
+            <assignment id="2">
+                <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
+            </assignment>
+            <isInducement>false</isInducement>
+        </case>
+        <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              id="7"
+              xsi:type="c:AccessCertificationAssignmentCaseType">
+            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+            <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
+            <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
+            <reviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</reviewRequestedTimestamp>
+            <reviewDeadline>2015-12-18T23:59:59.999+01:00</reviewDeadline>
+            <decision id="1">
+                <stageNumber>1</stageNumber>
+                <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+                <response>revoke</response>
+                <timestamp>2015-12-04T01:10:16.136+01:00</timestamp>
+            </decision>
+            <currentResponse>revoke</currentResponse>
+            <currentStageNumber>1</currentStageNumber>
+            <assignment id="3">
+                <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
+            </assignment>
+            <isInducement>false</isInducement>
+        </case>
+    </accessCertificationCampaign>
+
 </objects>

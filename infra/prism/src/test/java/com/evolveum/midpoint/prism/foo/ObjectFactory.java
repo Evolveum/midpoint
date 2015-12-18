@@ -49,6 +49,7 @@ public class ObjectFactory {
     private final static QName _DisplayName_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "displayName");
     private final static QName _Account_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "account");
     private final static QName _Description_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "description");
+    private final static QName _Note_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "note");
     private final static QName _StatusFilter_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "statusFilter");
     private final static QName _CategoryFilter_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "categoryFilter");
     private final static QName _OperationFilter_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "operationFilter");

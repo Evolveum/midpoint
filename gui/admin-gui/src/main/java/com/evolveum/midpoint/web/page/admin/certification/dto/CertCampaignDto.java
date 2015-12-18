@@ -102,7 +102,7 @@ public class CertCampaignDto extends Selectable {
     }
 
     private String resolveCurrentStateName(PageBase page) {
-        int stageNumber = campaign.getCurrentStageNumber();
+        int stageNumber = campaign.getStageNumber();
         AccessCertificationCampaignStateType state = campaign.getState();
         switch (state) {
             case CREATED:
@@ -143,7 +143,7 @@ public class CertCampaignDto extends Selectable {
     }
 
     public int getCurrentStageNumber() {
-        return campaign.getCurrentStageNumber();
+        return campaign.getStageNumber();
     }
 
     public String getHandlerUri() {

@@ -71,7 +71,7 @@ public class PagingConvertor {
 		pagingType.setMaxSize(paging.getMaxSize());
 		pagingType.setOffset(paging.getOffset());
 		if (paging.getOrderBy() != null) {
-			pagingType.setOrderBy(new ItemPathType(new ItemPath(paging.getOrderBy())));
+			pagingType.setOrderBy(new ItemPathType(paging.getOrderBy()));
 		}
 		
 		return pagingType;

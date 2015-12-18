@@ -106,7 +106,7 @@ public class ProvisioningContext extends StateReporter {
 			if (resourceOid == null) {
 				throw new SchemaException("Null resource OID "+getDesc());
 			}
-			resource = resourceManager.getResource(resourceOid, parentResult).asObjectable();
+			resource = resourceManager.getResource(resourceOid, null, parentResult).asObjectable();
 			if (resource != null && resource.getName() != null) {
 				super.setResourceName(resource.getName().getOrig());
 			}
