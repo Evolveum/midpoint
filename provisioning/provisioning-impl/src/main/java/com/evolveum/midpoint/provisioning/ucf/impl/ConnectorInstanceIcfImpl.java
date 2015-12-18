@@ -31,6 +31,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -1512,6 +1513,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		
 		Uid uid = getUid(objectClassDef, identifiers);
 		if (uid == null) {
+			result.recordFatalError("No UID in identifiers: " + identifiers);
 			throw new IllegalArgumentException("No UID in identifiers: " + identifiers);
 		}
 		String originalUid = uid.getUidValue();
@@ -1540,140 +1542,145 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 		}
 		
-		Map<QName,ObjectClassComplexTypeDefinition> auxiliaryObjectClassMap = new HashMap<>();
-		if (auxiliaryObjectClassDelta != null) {
-			// Activation change means modification of attributes
-			if (auxiliaryObjectClassDelta.isReplace()) {
-				if (auxiliaryObjectClassDelta.getValuesToReplace() == null || auxiliaryObjectClassDelta.getValuesToReplace().isEmpty()) {
-					attributesToUpdate.add(AttributeBuilder.build(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME));
+		try {
+			Map<QName,ObjectClassComplexTypeDefinition> auxiliaryObjectClassMap = new HashMap<>();
+			if (auxiliaryObjectClassDelta != null) {
+				// Activation change means modification of attributes
+				if (auxiliaryObjectClassDelta.isReplace()) {
+					if (auxiliaryObjectClassDelta.getValuesToReplace() == null || auxiliaryObjectClassDelta.getValuesToReplace().isEmpty()) {
+						attributesToUpdate.add(AttributeBuilder.build(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME));
+					} else {
+						addConvertedValues(auxiliaryObjectClassDelta.getValuesToReplace(), attributesToUpdate, auxiliaryObjectClassMap);
+					}
 				} else {
-					addConvertedValues(auxiliaryObjectClassDelta.getValuesToReplace(), attributesToUpdate, auxiliaryObjectClassMap);
-				}
-			} else {
-				addConvertedValues(auxiliaryObjectClassDelta.getValuesToAdd(), attributesToAdd, auxiliaryObjectClassMap);
-				addConvertedValues(auxiliaryObjectClassDelta.getValuesToDelete(), attributesToRemove, auxiliaryObjectClassMap);
-			}		
-		}
-		
-		for (Operation operation : changes) {
-			if (operation instanceof PropertyModificationOperation) {
-				PropertyModificationOperation change = (PropertyModificationOperation) operation;
-				PropertyDelta<?> delta = change.getPropertyDelta();
-
-				if (delta.getParentPath().equivalent(new ItemPath(ShadowType.F_ATTRIBUTES))) {
-					if (delta.getDefinition() == null || !(delta.getDefinition() instanceof ResourceAttributeDefinition)) {
-						ResourceAttributeDefinition def = objectClassDef
-								.findAttributeDefinition(delta.getElementName());
-						if (def == null) {
-							String message = "No definition for attribute "+delta.getElementName()+" used in modification delta";
-							result.recordFatalError(message);
-							throw new SchemaException(message);
-						}
-						try {
-							delta.applyDefinition(def);
-						} catch (SchemaException e) {
-							result.recordFatalError(e.getMessage(), e);
-							throw e;
-						}
-					}
-					boolean isInRemovedAuxClass = false;
-					if (auxiliaryObjectClassDelta != null && auxiliaryObjectClassDelta.isDelete()) {
-						// We need to change all the deltas of all the attributes that belong
-						// to the removed auxiliary object class from REPLACE to DELETE. The change of
-						// auxiliary object class and the change of the attributes must be done in
-						// one operation. Otherwise we get schema error. And as auxiliary object class
-						// is removed, the attributes must be removed as well.
-						for (PrismPropertyValue<QName> auxPval: auxiliaryObjectClassDelta.getValuesToDelete()) {
-							ObjectClassComplexTypeDefinition auxDef = auxiliaryObjectClassMap.get(auxPval.getValue());
-							ResourceAttributeDefinition<Object> attrDef = auxDef.findAttributeDefinition(delta.getElementName());
-							if (attrDef != null) {
-								isInRemovedAuxClass = true;
-								break;
-							}
-						}
-					}
-					boolean isInAddedAuxClass = false;
-					if (auxiliaryObjectClassDelta != null && auxiliaryObjectClassDelta.isAdd()) {
-						// We need to change all the deltas of all the attributes that belong
-						// to the new auxiliary object class from REPLACE to ADD. The change of
-						// auxiliary object class and the change of the attributes must be done in
-						// one operation. Otherwise we get schema error. And as auxiliary object class
-						// is added, the attributes must be added as well.
-						for (PrismPropertyValue<QName> auxPval: auxiliaryObjectClassDelta.getValuesToAdd()) {
-							ObjectClassComplexTypeDefinition auxDef = auxiliaryObjectClassMap.get(auxPval.getValue());
-							ResourceAttributeDefinition<Object> attrDef = auxDef.findAttributeDefinition(delta.getElementName());
-							if (attrDef != null) {
-								isInAddedAuxClass = true;
-								break;
-							}
-						}
-					}
-					// Change in (ordinary) attributes. Transform to the ConnId attributes.
-					if (delta.isAdd()) {
-						ResourceAttribute<?> mpAttr = (ResourceAttribute<?>) delta.instantiateEmptyProperty();
-						mpAttr.addValues((Collection)PrismValue.cloneCollection(delta.getValuesToAdd()));
-						Attribute connIdAttr = icfConvertor.convertToConnIdAttribute(mpAttr, objectClassDef);
-						if (mpAttr.getDefinition().isMultiValue()) {
-							attributesToAdd.add(connIdAttr);
-						} else {
-							// Force "update" for single-valued attributes instead of "add". This is saving one
-							// read in some cases. It should also make no substantial difference in such case.
-							// But it is working around some connector bugs.
-							attributesToUpdate.add(connIdAttr);
-						}
-					}
-					if (delta.isDelete()) {
-						ResourceAttribute<?> mpAttr = (ResourceAttribute<?>) delta.instantiateEmptyProperty();
-						if (mpAttr.getDefinition().isMultiValue() || isInRemovedAuxClass) {
-							mpAttr.addValues((Collection)PrismValue.cloneCollection(delta.getValuesToDelete()));
-							Attribute connIdAttr = icfConvertor.convertToConnIdAttribute(mpAttr, objectClassDef);
-							attributesToRemove.add(connIdAttr);
-						} else {
-							// Force "update" for single-valued attributes instead of "add". This is saving one
-							// read in some cases. 
-							// Update attribute to no values. This will efficiently clean up the attribute.
-							// It should also make no substantial difference in such case. 
-							// But it is working around some connector bugs.
-							Attribute connIdAttr = icfConvertor.convertToConnIdAttribute(mpAttr, objectClassDef);
-							// update with EMTPY value. The mpAttr.addValues() is NOT in this branch
-							attributesToUpdate.add(connIdAttr);
-						}
-					}
-					if (delta.isReplace()) {
-						ResourceAttribute<?> mpAttr = (ResourceAttribute<?>) delta.instantiateEmptyProperty();
-						mpAttr.addValues((Collection)PrismValue.cloneCollection(delta.getValuesToReplace()));
-						Attribute connIdAttr = icfConvertor.convertToConnIdAttribute(mpAttr, objectClassDef);
-						if (isInAddedAuxClass) {
-							attributesToAdd.add(connIdAttr);
-						} else {
-							attributesToUpdate.add(connIdAttr);
-						}
-					}
-				} else if (delta.getParentPath().equivalent(new ItemPath(ShadowType.F_ACTIVATION))) {
-					activationDeltas.add(delta);
-				} else if (delta.getParentPath().equivalent(
-						new ItemPath(new ItemPath(ShadowType.F_CREDENTIALS),
-								CredentialsType.F_PASSWORD))) {
-					passwordDelta = (PropertyDelta<ProtectedStringType>) delta;
-				} else if (delta.getPath().equivalent(new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS))) {
-					// already processed
-				} else {
-					throw new SchemaException("Change of unknown attribute " + delta.getPath());
-				}
-
-			} else if (operation instanceof PasswordChangeOperation) {
-				passwordChangeOperation = (PasswordChangeOperation) operation;
-				// TODO: check for multiple occurrences and fail
-
-			} else if (operation instanceof ExecuteProvisioningScriptOperation) {
-				ExecuteProvisioningScriptOperation scriptOperation = (ExecuteProvisioningScriptOperation) operation;
-				additionalOperations.add(scriptOperation);
-
-			} else {
-				throw new IllegalArgumentException("Unknown operation type " + operation.getClass().getName()
-						+ ": " + operation);
+					addConvertedValues(auxiliaryObjectClassDelta.getValuesToAdd(), attributesToAdd, auxiliaryObjectClassMap);
+					addConvertedValues(auxiliaryObjectClassDelta.getValuesToDelete(), attributesToRemove, auxiliaryObjectClassMap);
+				}		
 			}
-
+			
+			for (Operation operation : changes) {
+				if (operation instanceof PropertyModificationOperation) {
+					PropertyModificationOperation change = (PropertyModificationOperation) operation;
+					PropertyDelta<?> delta = change.getPropertyDelta();
+	
+					if (delta.getParentPath().equivalent(new ItemPath(ShadowType.F_ATTRIBUTES))) {
+						if (delta.getDefinition() == null || !(delta.getDefinition() instanceof ResourceAttributeDefinition)) {
+							ResourceAttributeDefinition def = objectClassDef
+									.findAttributeDefinition(delta.getElementName());
+							if (def == null) {
+								String message = "No definition for attribute "+delta.getElementName()+" used in modification delta";
+								result.recordFatalError(message);
+								throw new SchemaException(message);
+							}
+							try {
+								delta.applyDefinition(def);
+							} catch (SchemaException e) {
+								result.recordFatalError(e.getMessage(), e);
+								throw e;
+							}
+						}
+						boolean isInRemovedAuxClass = false;
+						if (auxiliaryObjectClassDelta != null && auxiliaryObjectClassDelta.isDelete()) {
+							// We need to change all the deltas of all the attributes that belong
+							// to the removed auxiliary object class from REPLACE to DELETE. The change of
+							// auxiliary object class and the change of the attributes must be done in
+							// one operation. Otherwise we get schema error. And as auxiliary object class
+							// is removed, the attributes must be removed as well.
+							for (PrismPropertyValue<QName> auxPval: auxiliaryObjectClassDelta.getValuesToDelete()) {
+								ObjectClassComplexTypeDefinition auxDef = auxiliaryObjectClassMap.get(auxPval.getValue());
+								ResourceAttributeDefinition<Object> attrDef = auxDef.findAttributeDefinition(delta.getElementName());
+								if (attrDef != null) {
+									isInRemovedAuxClass = true;
+									break;
+								}
+							}
+						}
+						boolean isInAddedAuxClass = false;
+						if (auxiliaryObjectClassDelta != null && auxiliaryObjectClassDelta.isAdd()) {
+							// We need to change all the deltas of all the attributes that belong
+							// to the new auxiliary object class from REPLACE to ADD. The change of
+							// auxiliary object class and the change of the attributes must be done in
+							// one operation. Otherwise we get schema error. And as auxiliary object class
+							// is added, the attributes must be added as well.
+							for (PrismPropertyValue<QName> auxPval: auxiliaryObjectClassDelta.getValuesToAdd()) {
+								ObjectClassComplexTypeDefinition auxDef = auxiliaryObjectClassMap.get(auxPval.getValue());
+								ResourceAttributeDefinition<Object> attrDef = auxDef.findAttributeDefinition(delta.getElementName());
+								if (attrDef != null) {
+									isInAddedAuxClass = true;
+									break;
+								}
+							}
+						}
+						// Change in (ordinary) attributes. Transform to the ConnId attributes.
+						if (delta.isAdd()) {
+							ResourceAttribute<?> mpAttr = (ResourceAttribute<?>) delta.instantiateEmptyProperty();
+							mpAttr.addValues((Collection)PrismValue.cloneCollection(delta.getValuesToAdd()));
+							Attribute connIdAttr = icfConvertor.convertToConnIdAttribute(mpAttr, objectClassDef);
+							if (mpAttr.getDefinition().isMultiValue()) {
+								attributesToAdd.add(connIdAttr);
+							} else {
+								// Force "update" for single-valued attributes instead of "add". This is saving one
+								// read in some cases. It should also make no substantial difference in such case.
+								// But it is working around some connector bugs.
+								attributesToUpdate.add(connIdAttr);
+							}
+						}
+						if (delta.isDelete()) {
+							ResourceAttribute<?> mpAttr = (ResourceAttribute<?>) delta.instantiateEmptyProperty();
+							if (mpAttr.getDefinition().isMultiValue() || isInRemovedAuxClass) {
+								mpAttr.addValues((Collection)PrismValue.cloneCollection(delta.getValuesToDelete()));
+								Attribute connIdAttr = icfConvertor.convertToConnIdAttribute(mpAttr, objectClassDef);
+								attributesToRemove.add(connIdAttr);
+							} else {
+								// Force "update" for single-valued attributes instead of "add". This is saving one
+								// read in some cases. 
+								// Update attribute to no values. This will efficiently clean up the attribute.
+								// It should also make no substantial difference in such case. 
+								// But it is working around some connector bugs.
+								Attribute connIdAttr = icfConvertor.convertToConnIdAttribute(mpAttr, objectClassDef);
+								// update with EMTPY value. The mpAttr.addValues() is NOT in this branch
+								attributesToUpdate.add(connIdAttr);
+							}
+						}
+						if (delta.isReplace()) {
+							ResourceAttribute<?> mpAttr = (ResourceAttribute<?>) delta.instantiateEmptyProperty();
+							mpAttr.addValues((Collection)PrismValue.cloneCollection(delta.getValuesToReplace()));
+							Attribute connIdAttr = icfConvertor.convertToConnIdAttribute(mpAttr, objectClassDef);
+							if (isInAddedAuxClass) {
+								attributesToAdd.add(connIdAttr);
+							} else {
+								attributesToUpdate.add(connIdAttr);
+							}
+						}
+					} else if (delta.getParentPath().equivalent(new ItemPath(ShadowType.F_ACTIVATION))) {
+						activationDeltas.add(delta);
+					} else if (delta.getParentPath().equivalent(
+							new ItemPath(new ItemPath(ShadowType.F_CREDENTIALS),
+									CredentialsType.F_PASSWORD))) {
+						passwordDelta = (PropertyDelta<ProtectedStringType>) delta;
+					} else if (delta.getPath().equivalent(new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS))) {
+						// already processed
+					} else {
+						throw new SchemaException("Change of unknown attribute " + delta.getPath());
+					}
+	
+				} else if (operation instanceof PasswordChangeOperation) {
+					passwordChangeOperation = (PasswordChangeOperation) operation;
+					// TODO: check for multiple occurrences and fail
+	
+				} else if (operation instanceof ExecuteProvisioningScriptOperation) {
+					ExecuteProvisioningScriptOperation scriptOperation = (ExecuteProvisioningScriptOperation) operation;
+					additionalOperations.add(scriptOperation);
+	
+				} else {
+					throw new IllegalArgumentException("Unknown operation type " + operation.getClass().getName()
+							+ ": " + operation);
+				}
+	
+			}
+		} catch (SchemaException | RuntimeException e) {
+			result.recordFatalError(e);
+			throw e;
 		}
 
 		if (LOGGER.isTraceEnabled()) {
@@ -2263,24 +2270,21 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
             if (paging.getMaxSize() != null) {
                 optionsBuilder.setPageSize(paging.getMaxSize());
             }
-            QName orderBy;
+            QName orderByAttributeName;
             boolean isAscending;
 			ItemPath orderByPath = paging.getOrderBy();
             if (orderByPath != null && !orderByPath.isEmpty()) {
-				if (orderByPath.size() > 1 || !(orderByPath.first() instanceof NameItemPathSegment)) {
-					throw new SchemaException("OrderBy has to consist of just one naming segment");
-				}
-				orderBy = ((NameItemPathSegment) (orderByPath.first())).getName();
-                if (SchemaConstants.C_NAME.equals(orderBy)) {
-                    orderBy = SchemaConstants.ICFS_NAME;
+            	orderByAttributeName = ShadowUtil.getAttributeName(orderByPath, "OrderBy path");
+                if (SchemaConstants.C_NAME.equals(orderByAttributeName)) {
+                	orderByAttributeName = SchemaConstants.ICFS_NAME;
                 }
                 isAscending = paging.getDirection() != OrderDirection.DESCENDING;
             } else {
-                orderBy = pagedSearchCapabilityType.getDefaultSortField();
+            	orderByAttributeName = pagedSearchCapabilityType.getDefaultSortField();
                 isAscending = pagedSearchCapabilityType.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
             }
-            if (orderBy != null) {
-                String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(orderBy, objectClassDefinition);
+            if (orderByAttributeName != null) {
+                String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(orderByAttributeName, objectClassDefinition);
                 optionsBuilder.setSortKeys(new SortKey(orderByIcfName, isAscending));
             }
         }
@@ -2846,6 +2850,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		} else if (scriptOperation.isResourceHost()) {
 			icfOpName = "runScriptOnResource";
 		} else {
+			result.recordFatalError("Where to execute the script?");
 			throw new IllegalArgumentException("Where to execute the script?");
 		}
 		

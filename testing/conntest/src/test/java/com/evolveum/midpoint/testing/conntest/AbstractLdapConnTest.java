@@ -81,6 +81,7 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -403,7 +404,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 	 */
 	@Test
     public void test182Search50AccountsOffset20SortUid() throws Exception {
-		final String TEST_NAME = "test182Seac50AccountsOffset20SortUid";
+		final String TEST_NAME = "test182Search50AccountsOffset20SortUid";
         TestUtil.displayTestTile(this, TEST_NAME);
         
         // GIVEN
@@ -413,7 +414,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
         
         ObjectPaging paging = ObjectPaging.createPaging(20, 50);
-        paging.setOrderBy(getAttributeQName(resource, "uid"));
+        paging.setOrdering(getAttributePath(resource, "uid"), OrderDirection.ASCENDING);
 		query.setPaging(paging);
         
 		SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 50, task, result);
@@ -448,7 +449,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
         
         ObjectPaging paging = ObjectPaging.createPaging(20, 222);
-        paging.setOrderBy(getAttributeQName(resource, "uid"));
+        paging.setOrdering(getAttributePath(resource, "uid"), OrderDirection.ASCENDING);
 		query.setPaging(paging);
         
 		SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 222, task, result);
