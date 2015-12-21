@@ -152,6 +152,13 @@
 					<source>
 						<path>$user/fullName</path>
 					</source>
+					<expression>
+						<script>
+							<!-- It is important to have script here, not just asIs.
+							     The script will process the delta differently (ADD/DELETE instead of REPLACE) -->
+							<code>fullName?.toString()</code>
+						</script>
+					</expression>
 				</outbound>
 				<inbound>
 					<strength>weak</strength>
@@ -196,12 +203,22 @@
 			<attribute>
 				<ref>ri:quote</ref>
 				<displayName>Quote</displayName>
-				<tolerant>true</tolerant>
+				<tolerant>false</tolerant>
 				<outbound>
 					<strength>weak</strength>
 					<source>
 						<path>$user/description</path>
 					</source>
+					<source>
+						<path>$user/fullName</path>
+					</source>
+					<expression>
+						<script>
+							<!-- It is important to have script here, not just asIs.
+							     The script will process the delta differently (ADD/DELETE instead of REPLACE) -->
+							<code>description + ' -- ' + fullName</code>
+						</script>
+					</expression>
 				</outbound>
 			</attribute>
 			<attribute>
