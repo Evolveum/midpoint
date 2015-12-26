@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
@@ -49,7 +50,6 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
@@ -311,8 +311,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		ContainerStatus status = isEditingFocus() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
 		ObjectWrapper<O> wrapper = null;
 		try {
-			wrapper = ObjectWrapperUtil.createObjectWrapper("pageAdminFocus.focusDetails", null, object,
-					status, this);
+			ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
+			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, status);
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get user.", ex);
 			LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
