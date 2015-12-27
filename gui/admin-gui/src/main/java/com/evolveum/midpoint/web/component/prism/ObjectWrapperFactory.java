@@ -121,6 +121,7 @@ public class ObjectWrapperFactory {
 
         List<ContainerWrapper> containers = new ArrayList<>();
 
+        ContainerWrapperFactory cwf = new ContainerWrapperFactory(pageBase);
         try {
             Class clazz = object.getCompileTimeClass();
             if (ShadowType.class.isAssignableFrom(clazz)) {
@@ -132,9 +133,9 @@ public class ObjectWrapperFactory {
                     attributes = definition.instantiate();
                 }
 
-                ContainerWrapper container = new ContainerWrapper(oWrapper, attributes, status, new ItemPath(
-                        ShadowType.F_ATTRIBUTES), pageBase);
-                result.addSubresult(container.getResult());
+                ContainerWrapper container = cwf.createContainerWrapper(oWrapper, attributes, status,
+                        new ItemPath(ShadowType.F_ATTRIBUTES));
+                result.addSubresult(cwf.getResult());
 
                 container.setMain(true);
                 containers.add(container);
@@ -152,17 +153,17 @@ public class ObjectWrapperFactory {
 
                 PrismContainer<ShadowAssociationType> associationContainer = object
                         .findOrCreateContainer(ShadowType.F_ASSOCIATION);
-                container = new ContainerWrapper(oWrapper, associationContainer, ContainerStatus.MODIFYING,
-                        new ItemPath(ShadowType.F_ASSOCIATION), pageBase);
-                result.addSubresult(container.getResult());
+                container = cwf.createContainerWrapper(oWrapper, associationContainer, ContainerStatus.MODIFYING,
+                        new ItemPath(ShadowType.F_ASSOCIATION));
+                result.addSubresult(cwf.getResult());
                 containers.add(container);
             } else if (ResourceType.class.isAssignableFrom(clazz)) {
                 containers = createResourceContainers(oWrapper, object, result);
             } else if (ReportType.class.isAssignableFrom(clazz)) {
                 containers = createReportContainers(oWrapper, object, result);
             } else {
-                ContainerWrapper container = new ContainerWrapper(oWrapper, object, cStatus, null, pageBase);
-                result.addSubresult(container.getResult());
+                ContainerWrapper container = cwf.createContainerWrapper(oWrapper, object, cStatus, null);
+                result.addSubresult(cwf.getResult());
                 containers.add(container);
 
                 containers.addAll(createContainerWrapper(oWrapper, object, null, result));
@@ -199,8 +200,9 @@ public class ObjectWrapperFactory {
             container = definition.instantiate();
         }
 
-        ContainerWrapper wrapper = new ContainerWrapper(oWrapper, container, status, new ItemPath(name), pageBase);
-        result.addSubresult(wrapper.getResult());
+        ContainerWrapperFactory cwf = new ContainerWrapperFactory(pageBase);
+        ContainerWrapper wrapper = cwf.createContainerWrapper(oWrapper, container, status, new ItemPath(name));
+        result.addSubresult(cwf.getResult());
         list.add(wrapper);
         // list.addAll(createContainerWrapper(container, null, pageBase));
         if (!ShadowType.F_ASSOCIATION.equals(name)) {
@@ -266,18 +268,18 @@ public class ObjectWrapperFactory {
                 boolean isMultiValued = parent.getDefinition() != null && !parent.getDefinition().isDynamic()
                         && !parent.getDefinition().isSingleValue();
                 if (!isMultiValued) {
+                    ContainerWrapperFactory cwf = new ContainerWrapperFactory(pageBase);
+
                     PrismContainer prismContainer = parent.findContainer(def.getName());
 
                     ContainerWrapper container;
                     if (prismContainer != null) {
-                        container = new ContainerWrapper(oWrapper, prismContainer, ContainerStatus.MODIFYING,
-                                newPath, pageBase);
+                        container = cwf.createContainerWrapper(oWrapper, prismContainer, ContainerStatus.MODIFYING, newPath);
                     } else {
                         prismContainer = containerDef.instantiate();
-                        container = new ContainerWrapper(oWrapper, prismContainer, ContainerStatus.ADDING,
-                                newPath, pageBase);
+                        container = cwf.createContainerWrapper(oWrapper, prismContainer, ContainerStatus.ADDING, newPath);
                     }
-                    result.addSubresult(container.getResult());
+                    result.addSubresult(cwf.getResult());
                     wrappers.add(container);
 
                     if (!AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName())
@@ -353,10 +355,9 @@ public class ObjectWrapperFactory {
             }
             container = definition.instantiate();
         }
-
-        ContainerWrapper wrapper = new ContainerWrapper(oWrapper, container, status, new ItemPath(
-                ReportType.F_CONFIGURATION), pageBase);
-        result.addSubresult(wrapper.getResult());
+        ContainerWrapperFactory cwf = new ContainerWrapperFactory(pageBase);
+        ContainerWrapper wrapper = cwf.createContainerWrapper(oWrapper, container, status, new ItemPath(ReportType.F_CONFIGURATION));
+        result.addSubresult(cwf.getResult());
 
         containers.add(wrapper);
 
