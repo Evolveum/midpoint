@@ -85,8 +85,8 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
     private RefinedObjectClassDefinition objectClassDefinitionForEditing;
 
     public ObjectWrapper(String displayName, String description, PrismObject object,
-                         PrismContainerDefinition objectDefinitionForEditing, ContainerStatus status, PageBase pageBase) {
-        this(displayName, description, object, objectDefinitionForEditing, null, status, false, pageBase);
+                         PrismContainerDefinition objectDefinitionForEditing, ContainerStatus status) {
+        this(displayName, description, object, objectDefinitionForEditing, null, status, false);
     }
 
     // delayContainerCreation is used in cases where caller wants to configure
@@ -94,10 +94,9 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
     public ObjectWrapper(String displayName, String description, PrismObject object,
                          PrismContainerDefinition objectDefinitionForEditing,
                          RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status,
-                         boolean delayContainerCreation, PageBase pageBase) {
+                         boolean delayContainerCreation) {
         Validate.notNull(object, "Object must not be null.");
         Validate.notNull(status, "Container status must not be null.");
-        Validate.notNull(pageBase, "pageBase must not be null.");
 
         this.displayName = displayName;
         this.description = description;
@@ -106,14 +105,10 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         this.status = status;
         this.objectDefinitionForEditing = objectDefinitionForEditing;
         this.objectClassDefinitionForEditing = objectClassDefinitionForEditing;
-
-        if (!delayContainerCreation) {
-            initializeContainers(pageBase);
-        }
     }
 
     public void initializeContainers(PageBase pageBase) {
-//        containers = createContainers(pageBase);
+        //todo remove
     }
 
     public void revive(PrismContext prismContext) throws SchemaException {
@@ -148,6 +143,10 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 
     public void setFetchResult(OperationResult fetchResult) {
         this.fetchResult = fetchResult;
+    }
+
+    void setResult(OperationResult result) {
+        this.result = result;
     }
 
     public OperationResult getResult() {

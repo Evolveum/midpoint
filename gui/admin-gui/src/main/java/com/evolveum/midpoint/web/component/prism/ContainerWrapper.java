@@ -22,7 +22,6 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -51,11 +50,9 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
     private PrismContainerDefinition containerDefinition;
 
-    public ContainerWrapper(ObjectWrapper objectWrapper, T container, ContainerStatus status, ItemPath path,
-                            PageBase pageBase) {
+    public ContainerWrapper(ObjectWrapper objectWrapper, T container, ContainerStatus status, ItemPath path) {
         Validate.notNull(container, "container must not be null.");
         Validate.notNull(status, "Container status must not be null.");
-        Validate.notNull(pageBase, "pageBase must not be null.");
 
         this.objectWrapper = objectWrapper;
         this.container = container;

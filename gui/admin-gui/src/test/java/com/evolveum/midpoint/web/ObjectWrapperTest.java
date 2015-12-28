@@ -43,7 +43,8 @@ public class ObjectWrapperTest extends BaseGuiTest {
     public void testEmptyPolyString() throws Exception {
         PrismObject<UserType> user = prismContext.parseObject(new File("./src/test/resources/wrapper/user.xml"));
 
-        ObjectWrapper<UserType> wrapper = new ObjectWrapper<UserType>(null, null, user, null, ContainerStatus.MODIFYING, null);
+        ObjectWrapperFactory owf = new ObjectWrapperFactory(null);
+        ObjectWrapper<UserType> wrapper = owf.createObjectWrapper(null, null, user, ContainerStatus.MODIFYING);
         //simulate change on honorific prefix
         ContainerWrapper containerWrapper = null;
         for (ContainerWrapper container : wrapper.getContainers()) {

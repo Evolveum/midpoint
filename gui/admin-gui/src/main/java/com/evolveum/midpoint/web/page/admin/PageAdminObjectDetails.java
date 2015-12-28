@@ -309,14 +309,14 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		}
 
 		ContainerStatus status = isEditingFocus() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
-		ObjectWrapper<O> wrapper = null;
+		ObjectWrapper<O> wrapper;
+		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
 		try {
-			ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
 			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, status);
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get user.", ex);
 			LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
-			wrapper = new ObjectWrapper<>("pageAdminFocus.focusDetails", null, object, null, status, this);
+			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, status, false);
 		}
 		// ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails",
 		// null, user, status);

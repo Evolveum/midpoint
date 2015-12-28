@@ -80,7 +80,7 @@ public class ContainerWrapperFactory {
 
         result = new OperationResult(CREATE_PROPERTIES);
 
-        ContainerWrapper cWrapper = new ContainerWrapper(objectWrapper, container, status, path, pageBase);
+        ContainerWrapper cWrapper = new ContainerWrapper(objectWrapper, container, status, path);
 
         List<ItemWrapper> properties = createProperties(cWrapper, result);
         cWrapper.setProperties(properties);
@@ -95,7 +95,7 @@ public class ContainerWrapperFactory {
 
         List<ItemWrapper> properties = new ArrayList<>();
 
-        PrismContainerDefinition definition = null;
+        PrismContainerDefinition definition;
         PrismObject parent = objectWrapper.getObject();
         Class clazz = parent.getCompileTimeClass();
         if (ShadowType.class.isAssignableFrom(clazz)) {
@@ -143,7 +143,7 @@ public class ContainerWrapperFactory {
 
         if (definition == null) {
             LOGGER.error("Couldn't get property list from null definition {}",
-                    new Object[] { container.getElementName() });
+                    new Object[]{container.getElementName()});
             return properties;
         }
 
@@ -190,7 +190,7 @@ public class ContainerWrapperFactory {
 
         } else if (isShadowAssociation(cWrapper)) {
             PrismContext prismContext = objectWrapper.getObject().getPrismContext();
-            Map<QName,PrismContainer<ShadowAssociationType>> assocMap = new HashMap<>();
+            Map<QName, PrismContainer<ShadowAssociationType>> assocMap = new HashMap<>();
             if (objectWrapper.getAssociations() != null) {
                 List<PrismContainerValue<ShadowAssociationType>> associations = objectWrapper.getAssociations();
                 for (PrismContainerValue<ShadowAssociationType> cval : associations) {
@@ -208,7 +208,7 @@ public class ContainerWrapperFactory {
                         fractionalContainer.add(cval.clone());
                     } catch (SchemaException e) {
                         // Should not happen
-                        throw new SystemException("Unexpected error: "+e.getMessage(),e);
+                        throw new SystemException("Unexpected error: " + e.getMessage(), e);
                     }
                 }
             }
@@ -230,10 +230,10 @@ public class ContainerWrapperFactory {
                 refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
                 rOcDef = refinedSchema.determineCompositeObjectClassDefinition(parent);
             } catch (SchemaException e) {
-                throw new SystemException(e.getMessage(),e);
+                throw new SystemException(e.getMessage(), e);
             }
             // Make sure even empty associations have their wrappers so they can be displayed and edited
-            for (RefinedAssociationDefinition assocDef: rOcDef.getAssociations()) {
+            for (RefinedAssociationDefinition assocDef : rOcDef.getAssociations()) {
                 QName name = assocDef.getName();
                 if (!assocMap.containsKey(name)) {
                     PrismContainer<ShadowAssociationType> fractionalContainer = new PrismContainer<>(ShadowType.F_ASSOCIATION, ShadowAssociationType.class, prismContext);
@@ -244,7 +244,7 @@ public class ContainerWrapperFactory {
                 }
             }
 
-            for (Map.Entry<QName,PrismContainer<ShadowAssociationType>> assocEntry: assocMap.entrySet()) {
+            for (Map.Entry<QName, PrismContainer<ShadowAssociationType>> assocEntry : assocMap.entrySet()) {
                 // HACK HACK HACK, the container wrapper should not parse itself. This code should not be here.
                 AssociationWrapper assocWrapper = new AssociationWrapper(cWrapper, assocEntry.getValue(), cWrapper.isReadonly(), ValueStatus.NOT_CHANGED);
                 properties.add(assocWrapper);
@@ -299,10 +299,10 @@ public class ContainerWrapperFactory {
                             properties.add(new PropertyWrapper(cWrapper, property, propertyIsReadOnly,
                                     ValueStatus.NOT_CHANGED));
                         }
-                    } else if (itemDef instanceof PrismReferenceDefinition){
+                    } else if (itemDef instanceof PrismReferenceDefinition) {
                         PrismReferenceDefinition def = (PrismReferenceDefinition) itemDef;
 
-                        if (INHERITED_OBJECT_ATTRIBUTES.contains(def.getName())){
+                        if (INHERITED_OBJECT_ATTRIBUTES.contains(def.getName())) {
                             continue;
                         }
 

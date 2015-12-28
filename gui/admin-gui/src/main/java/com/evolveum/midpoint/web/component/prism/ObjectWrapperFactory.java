@@ -60,10 +60,16 @@ public class ObjectWrapperFactory {
 
     private PageBase pageBase;
 
+    private OperationResult result;
+
     public ObjectWrapperFactory(PageBase pageBase) {
         Validate.notNull("Page parameter must not be null");
 
         this.pageBase = pageBase;
+    }
+
+    public OperationResult getResult() {
+        return result;
     }
 
     public <O extends ObjectType> ObjectWrapper createObjectWrapper(String displayName,
@@ -79,8 +85,8 @@ public class ObjectWrapperFactory {
                                                                     ContainerStatus status,
                                                                     boolean delayContainerCreation) {
         try {
-
             OperationResult result = new OperationResult(CREATE_OBJECT_WRAPPER);
+
             PrismContainerDefinition objectDefinitionForEditing = pageBase.getModelInteractionService()
                     .getEditObjectDefinition(object, AuthorizationPhaseType.REQUEST, result);
             RefinedObjectClassDefinition objectClassDefinitionForEditing = null;
@@ -92,32 +98,54 @@ public class ObjectWrapperFactory {
             }
 
             return createObjectWrapper(displayName, description, object, objectDefinitionForEditing,
-                    objectClassDefinitionForEditing, status, delayContainerCreation);
+                    objectClassDefinitionForEditing, status, delayContainerCreation, result);
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException ex) {
             throw new SystemException(ex);
         }
     }
 
     public <O extends ObjectType> ObjectWrapper createObjectWrapper(String displayName,
+                                                                    String description,
+                                                                    PrismObject<O> object,
+                                                                    PrismContainerDefinition objectDefinitionForEditing,
+                                                                    RefinedObjectClassDefinition objectClassDefinitionForEditing,
+                                                                    ContainerStatus status,
+                                                                    boolean delayContainerCreation) {
+        return createObjectWrapper(displayName, description, object, objectDefinitionForEditing,
+                objectClassDefinitionForEditing, status, delayContainerCreation, null);
+    }
+
+    private <O extends ObjectType> ObjectWrapper createObjectWrapper(String displayName,
                                              String description,
                                              PrismObject<O> object,
                                              PrismContainerDefinition objectDefinitionForEditing,
                                              RefinedObjectClassDefinition objectClassDefinitionForEditing,
                                              ContainerStatus status,
-                                             boolean delayContainerCreation) {
+                                             boolean delayContainerCreation, OperationResult result) {
+
+        if (result == null) {
+            this.result = new OperationResult(CREATE_OBJECT_WRAPPER);
+        } else {
+            this.result = result;
+        }
 
         ObjectWrapper wrapper = new ObjectWrapper(displayName, description, object, objectDefinitionForEditing,
-                objectClassDefinitionForEditing, status, delayContainerCreation, pageBase);
+                objectClassDefinitionForEditing, status, delayContainerCreation);
 
-        List<ContainerWrapper> containers = createContainers(wrapper, object, objectDefinitionForEditing, status);
+        List<ContainerWrapper> containers = createContainers(wrapper, object, objectDefinitionForEditing, status, this.result);
         wrapper.setContainers(containers);
+
+        this.result.computeStatusIfUnknown();
+
+        wrapper.setResult(this.result);
 
         return wrapper;
     }
 
     private List<ContainerWrapper> createContainers(ObjectWrapper oWrapper, PrismObject object,
-                                                    PrismContainerDefinition objectDefinitionForEditing, ContainerStatus cStatus) {
-        OperationResult result = new OperationResult(CREATE_CONTAINERS);
+                                                    PrismContainerDefinition objectDefinitionForEditing,
+                                                    ContainerStatus cStatus, OperationResult pResult) {
+        OperationResult result = pResult.createSubresult(CREATE_CONTAINERS);
 
         List<ContainerWrapper> containers = new ArrayList<>();
 

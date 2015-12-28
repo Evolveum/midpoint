@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.wicket.RestartResponseException;
@@ -482,16 +483,17 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 		}
 
 		ContainerStatus status = ContainerStatus.MODIFYING;
-		ObjectWrapper wrapper = null;
+		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
+		ObjectWrapper wrapper;
 		try{
-			wrapper = ObjectWrapperUtil.createObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, status, this);
+			wrapper = owf.createObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, status);
 		} catch (Exception ex){
 			result.recordFatalError("Couldn't get user.", ex);
 			LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
-			wrapper = new ObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, null, status, this);
+			wrapper = owf.createObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, null, null, status, false);
 		}
 		//        ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails", null, user, status);
-		if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+		if (owf.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
 			showResultInSession(wrapper.getResult());
 		}
 
