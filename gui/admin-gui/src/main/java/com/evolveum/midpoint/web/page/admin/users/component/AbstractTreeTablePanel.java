@@ -158,7 +158,9 @@ public abstract class AbstractTreeTablePanel extends SimplePanel<String> {
             ((LoadableModel) tabs).reset();
         }
 
-        tabbedPanel.setSelectedTab(0);
+        if (tabs.getObject() != null && tabs.getObject().size() > 0) {
+            tabbedPanel.setSelectedTab(0);
+        }
 
         target.add(tabbedPanel);
         target.add(page.getFeedbackPanel());

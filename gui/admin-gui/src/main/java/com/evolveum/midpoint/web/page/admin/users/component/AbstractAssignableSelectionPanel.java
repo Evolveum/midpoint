@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentSearchDto;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.util.BaseDeprecatedPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -45,7 +46,7 @@ import java.util.List;
 
 public abstract class AbstractAssignableSelectionPanel<T extends ObjectType> extends BaseDeprecatedPanel {
 
-    private static final String ID_ADD = "add";
+    protected static final String ID_ADD = "add";
     protected Class<T> type = (Class<T>) RoleType.class;
     protected IModel<AssignmentSearchDto> searchModel;
 
@@ -140,6 +141,22 @@ public abstract class AbstractAssignableSelectionPanel<T extends ObjectType> ext
                 addPerformed(target, getSelectedObjects());
             }
         };
+        addButton.add(new VisibleEnableBehaviour(){
+            @Override
+        public boolean isVisible(){
+                IModel testM = getModel();
+                if (testM != null){};
+                Page page = context.modalWindowPageReference.getPage();
+                if (page != null) {
+                    AssignableOrgSelectionPanel panel = (AssignableOrgSelectionPanel) page.get(AssignableOrgSelectionPage.ID_ASSIGNABLE_ORG_SELECTION_PANEL);
+                    if (panel != null) {
+                        AjaxButton assignRootButton = (AjaxButton)panel.get(AssignableOrgSelectionPanel.ID_ASSIGN_ROOT);
+                        return assignRootButton == null || assignRootButton.isVisible();
+                    }
+                }
+                return true;
+            }
+        });
         add(addButton);
     }
     
