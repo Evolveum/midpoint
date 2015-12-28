@@ -33,6 +33,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -125,6 +127,10 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         assertNotNull("No drink UUID", drinkUuidBlue);
         display("Drink UUID", drinkUuidBlue.toString());
         
+        assertAccountShip(userJack, "Jack Sparrow", null, dummyResourceCtlBlue, task);
+		assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Where's the rum? -- Jack Sparrow");
+        
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -147,10 +153,55 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
 		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
-        		PrismTestUtil.createPolyString("Captain Jack Sparrow"));
+        		PrismTestUtil.createPolyString("Cpt. Jack Sparrow"));
 		
 		// THEN
+        TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Cpt. Jack Sparrow", "Jack", "Sparrow");
+		
+		assertAccountShip(userJack, "Jack Sparrow", null, dummyResourceCtlBlue, task);
+		
+		// 'quote' is non-tolerant attribute. As the source of the mapping is changed, the current
+		// value is no longer legal and the reconciliation has to remove it.
+		assertNoDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME);
+
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionSuccess();
+	}
+	
+	@Test
+    public void test102ModifyUserFullNameRecon() throws Exception {
+		final String TEST_NAME = "test102ModifyUserFullNameRecon";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME, 
+        		PrismTestUtil.createPolyString("Captain Jack Sparrow"));
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+		modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
+		
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
         
@@ -159,20 +210,26 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
 		assertAccountShip(userJack, "Jack Sparrow", null, dummyResourceCtlBlue, task);
+		
+		// The quote attribute was empty before this operation. So the weak mapping kicks in
+		// and sets a new value.
+		assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Where's the rum? -- Captain Jack Sparrow");
+
 
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 
 	@Test
-    public void test102ModifyUserOrganizationalUnit() throws Exception {
-		final String TEST_NAME = "test102ModifyUserOrganizationalUnit";
+    public void test104ModifyUserOrganizationalUnit() throws Exception {
+		final String TEST_NAME = "test104ModifyUserOrganizationalUnit";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -206,8 +263,8 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test103ModifyAccountShip() throws Exception {
-		final String TEST_NAME = "test103ModifyAccountShip";
+    public void test105ModifyAccountShip() throws Exception {
+		final String TEST_NAME = "test105ModifyAccountShip";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -252,8 +309,8 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	 * Therefore try to remove the value. The weak mapping should be applied.
 	 */
 	@Test
-    public void test104ModifyAccountShipReplaceEmpty() throws Exception {
-		final String TEST_NAME = "test104ModifyAccountShipReplaceEmpty";
+    public void test106ModifyAccountShipReplaceEmpty() throws Exception {
+		final String TEST_NAME = "test106ModifyAccountShipReplaceEmpty";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -294,8 +351,8 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test105ModifyAccountShipAgain() throws Exception {
-		final String TEST_NAME = "test105ModifyAccountShipAgain";
+    public void test107ModifyAccountShipAgain() throws Exception {
+		final String TEST_NAME = "test107ModifyAccountShipAgain";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -340,8 +397,8 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	 * Therefore try to remove the value. The weak mapping should be applied.
 	 */
 	@Test
-    public void test106ModifyAccountShipDelete() throws Exception {
-		final String TEST_NAME = "test106ModifyAccountShipDelete";
+    public void test108ModifyAccountShipDelete() throws Exception {
+		final String TEST_NAME = "test108ModifyAccountShipDelete";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
