@@ -60,7 +60,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
     private HeaderStatus headerStatus;
     private String displayName;
     private String description;
-    private List<ContainerWrapper> containers;
+    private List<ContainerWrapper<? extends Containerable>> containers;
 
     private boolean showEmpty;
     private boolean minimalized;
@@ -231,14 +231,14 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         this.selected = selected;
     }
 
-    public List<ContainerWrapper> getContainers() {
+    public List<ContainerWrapper<? extends Containerable>> getContainers() {
         if (containers == null) {
             containers = new ArrayList<>();
         }
         return containers;
     }
 
-    public void setContainers(List<ContainerWrapper> containers) {
+    public void setContainers(List<ContainerWrapper<? extends Containerable>> containers) {
         this.containers = containers;
     }
 
@@ -276,7 +276,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
                 object.getPrismContext());
         delta.setOid(object.getOid());
 
-        List<ContainerWrapper> containers = getContainers();
+        List<ContainerWrapper<? extends Containerable>> containers = getContainers();
         // sort containers by path size
         Collections.sort(containers, new PathSizeComparator());
 
@@ -473,7 +473,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
     private ObjectDelta createAddingObjectDelta() throws SchemaException {
         PrismObject object = this.object.clone();
 
-        List<ContainerWrapper> containers = getContainers();
+        List<ContainerWrapper<? extends Containerable>> containers = getContainers();
         // sort containers by path size
         Collections.sort(containers, new PathSizeComparator());
 

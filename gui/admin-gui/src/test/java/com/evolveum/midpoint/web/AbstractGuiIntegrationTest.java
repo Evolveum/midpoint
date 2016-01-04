@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 package com.evolveum.midpoint.web;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.AfterClass;
@@ -32,9 +34,9 @@ import java.lang.reflect.Method;
 /**
  * @author lazyman
  */
-public class BaseGuiTest extends AbstractTestNGSpringContextTests {
+public abstract class AbstractGuiIntegrationTest extends AbstractIntegrationTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(BaseGuiTest.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractGuiIntegrationTest.class);
 
     public static final File FOLDER_BASIC = new File("./src/test/resources/basic");
 

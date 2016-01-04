@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
+
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+
 import java.util.*;
 
 /**
@@ -72,14 +74,14 @@ public class ObjectWrapperFactory {
         return result;
     }
 
-    public <O extends ObjectType> ObjectWrapper createObjectWrapper(String displayName,
+    public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
                                                                     String description,
                                                                     PrismObject<O> object,
                                                                     ContainerStatus status) {
         return createObjectWrapper(displayName, description, object, status, false);
     }
 
-    public <O extends ObjectType> ObjectWrapper createObjectWrapper(String displayName,
+    public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
                                                                     String description,
                                                                     PrismObject<O> object,
                                                                     ContainerStatus status,
@@ -87,7 +89,7 @@ public class ObjectWrapperFactory {
         try {
             OperationResult result = new OperationResult(CREATE_OBJECT_WRAPPER);
 
-            PrismContainerDefinition objectDefinitionForEditing = pageBase.getModelInteractionService()
+            PrismObjectDefinition<O> objectDefinitionForEditing = pageBase.getModelInteractionService()
                     .getEditObjectDefinition(object, AuthorizationPhaseType.REQUEST, result);
             RefinedObjectClassDefinition objectClassDefinitionForEditing = null;
             if (isShadow(object)) {
@@ -104,10 +106,10 @@ public class ObjectWrapperFactory {
         }
     }
 
-    public <O extends ObjectType> ObjectWrapper createObjectWrapper(String displayName,
+    public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
                                                                     String description,
                                                                     PrismObject<O> object,
-                                                                    PrismContainerDefinition objectDefinitionForEditing,
+                                                                    PrismObjectDefinition<O> objectDefinitionForEditing,
                                                                     RefinedObjectClassDefinition objectClassDefinitionForEditing,
                                                                     ContainerStatus status,
                                                                     boolean delayContainerCreation) {
@@ -115,10 +117,10 @@ public class ObjectWrapperFactory {
                 objectClassDefinitionForEditing, status, delayContainerCreation, null);
     }
 
-    private <O extends ObjectType> ObjectWrapper createObjectWrapper(String displayName,
+    private <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
                                              String description,
                                              PrismObject<O> object,
-                                             PrismContainerDefinition objectDefinitionForEditing,
+                                             PrismObjectDefinition<O> objectDefinitionForEditing,
                                              RefinedObjectClassDefinition objectClassDefinitionForEditing,
                                              ContainerStatus status,
                                              boolean delayContainerCreation, OperationResult result) {
@@ -129,10 +131,10 @@ public class ObjectWrapperFactory {
             this.result = result;
         }
 
-        ObjectWrapper wrapper = new ObjectWrapper(displayName, description, object, objectDefinitionForEditing,
+        ObjectWrapper<O> wrapper = new ObjectWrapper<O>(displayName, description, object, objectDefinitionForEditing,
                 objectClassDefinitionForEditing, status, delayContainerCreation);
 
-        List<ContainerWrapper> containers = createContainers(wrapper, object, objectDefinitionForEditing, status, this.result);
+        List<ContainerWrapper<? extends Containerable>> containers = createContainers(wrapper, object, objectDefinitionForEditing, status, this.result);
         wrapper.setContainers(containers);
 
         this.result.computeStatusIfUnknown();
@@ -142,16 +144,17 @@ public class ObjectWrapperFactory {
         return wrapper;
     }
 
-    private List<ContainerWrapper> createContainers(ObjectWrapper oWrapper, PrismObject object,
-                                                    PrismContainerDefinition objectDefinitionForEditing,
+    private <O extends ObjectType> List<ContainerWrapper<? extends Containerable>> createContainers(ObjectWrapper oWrapper, 
+    												PrismObject<O> object,
+                                                    PrismObjectDefinition<O> objectDefinitionForEditing,
                                                     ContainerStatus cStatus, OperationResult pResult) {
         OperationResult result = pResult.createSubresult(CREATE_CONTAINERS);
 
-        List<ContainerWrapper> containers = new ArrayList<>();
+        List<ContainerWrapper<? extends Containerable>> containers = new ArrayList<>();
 
         ContainerWrapperFactory cwf = new ContainerWrapperFactory(pageBase);
         try {
-            Class clazz = object.getCompileTimeClass();
+            Class<O> clazz = object.getCompileTimeClass();
             if (ShadowType.class.isAssignableFrom(clazz)) {
                 PrismContainer attributes = object.findContainer(ShadowType.F_ATTRIBUTES);
                 ContainerStatus status = attributes != null ? cStatus : ContainerStatus.ADDING;
@@ -175,7 +178,7 @@ public class ObjectWrapperFactory {
                 }
                 if (hasResourceCapability(((ShadowType) object.asObjectable()).getResource(),
                         CredentialsCapabilityType.class)) {
-                    containers
+                	containers
                             .addAll(createCustomContainerWrapper(oWrapper, object, objectDefinitionForEditing, ShadowType.F_CREDENTIALS, result));
                 }
 
@@ -210,19 +213,21 @@ public class ObjectWrapperFactory {
         return containers;
     }
 
-    public PrismContainerDefinition getDefinition(PrismObject object, PrismContainerDefinition objectDefinitionForEditing) {
+    private <O extends ObjectType> PrismObjectDefinition<O> getDefinition(PrismObject<O> object, 
+    		PrismObjectDefinition<O> objectDefinitionForEditing) {
         if (objectDefinitionForEditing != null) {
             return objectDefinitionForEditing;
         }
         return object.getDefinition();
     }
 
-    private List<ContainerWrapper> createCustomContainerWrapper(ObjectWrapper oWrapper, PrismObject object,
-                                                                PrismContainerDefinition objectDefinitionForEditing,
+    private <O extends ObjectType> List<ContainerWrapper<? extends Containerable>> createCustomContainerWrapper(
+    															ObjectWrapper<O> oWrapper, PrismObject<O> object,
+                                                                PrismObjectDefinition<O> objectDefinitionForEditing,
                                                                 QName name, OperationResult result) {
         PrismContainer container = object.findContainer(name);
         ContainerStatus status = container == null ? ContainerStatus.ADDING : ContainerStatus.MODIFYING;
-        List<ContainerWrapper> list = new ArrayList<>();
+        List<ContainerWrapper<? extends Containerable>> list = new ArrayList<>();
         if (container == null) {
             PrismContainerDefinition definition = getDefinition(object, objectDefinitionForEditing).findContainerDefinition(name);
             container = definition.instantiate();
@@ -241,11 +246,12 @@ public class ObjectWrapperFactory {
         return list;
     }
 
-    private List<ContainerWrapper> createContainerWrapper(ObjectWrapper oWrapper, PrismContainer parent, ItemPath path,
-                                                          OperationResult result) {
+    private <O extends ObjectType, C extends Containerable> List<ContainerWrapper<? extends Containerable>> createContainerWrapper(
+    														ObjectWrapper<O> oWrapper, PrismContainer<C> parent, ItemPath path,
+    														OperationResult result) {
 
-        PrismContainerDefinition definition = parent.getDefinition();
-        List<ContainerWrapper> wrappers = new ArrayList<>();
+        PrismContainerDefinition<C> definition = parent.getDefinition();
+        List<ContainerWrapper<? extends Containerable>> wrappers = new ArrayList<>();
 
         List<ItemPathSegment> segments = new ArrayList<>();
         if (path != null) {
@@ -330,16 +336,17 @@ public class ObjectWrapperFactory {
         return ResourceTypeUtil.hasEffectiveCapability(resource, capabilityClass);
     }
 
-    private List<ContainerWrapper> createResourceContainerWrapper(ObjectWrapper oWrapper, PrismObject object,
+    private <O extends ObjectType> List<ContainerWrapper<? extends Containerable>> createResourceContainerWrapper(
+    																ObjectWrapper<O> oWrapper, PrismObject<O> object,
                                                                   PrismObject<ConnectorType> connector,
                                                                   OperationResult result) throws SchemaException {
 
-        PrismContainer container = object.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+        PrismContainer<ConnectorConfigurationType> container = object.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 
         ConnectorType connectorType = connector.asObjectable();
         PrismSchema schema = ConnectorTypeUtil.parseConnectorSchema(connectorType,
                 connector.getPrismContext());
-        PrismContainerDefinition definition = ConnectorTypeUtil.findConfigurationContainerDefintion(
+        PrismContainerDefinition<ConnectorConfigurationType> definition = ConnectorTypeUtil.findConfigurationContainerDefintion(
                 connectorType, schema);
 
         ContainerStatus status = container != null ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
@@ -355,10 +362,11 @@ public class ObjectWrapperFactory {
         return createContainerWrapper(oWrapper, container, new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION), result);
     }
 
-    private List<ContainerWrapper> createResourceContainers(ObjectWrapper oWrapper, PrismObject object,
+    private <O extends ObjectType> List<ContainerWrapper<? extends Containerable>> createResourceContainers(
+    														ObjectWrapper<O> oWrapper, PrismObject<O> object,
                                                             OperationResult result) throws SchemaException {
 
-        List<ContainerWrapper> containers = new ArrayList<>();
+        List<ContainerWrapper<? extends Containerable>> containers = new ArrayList<>();
         PrismObject<ConnectorType> connector = loadConnector(object);
 
         if (connector != null) {
@@ -367,9 +375,10 @@ public class ObjectWrapperFactory {
         return containers;
     }
 
-    private List<ContainerWrapper> createReportContainers(ObjectWrapper oWrapper, PrismObject object,
-                                                          OperationResult result) throws SchemaException {
-        List<ContainerWrapper> containers = new ArrayList<>();
+    private <O extends ObjectType> List<ContainerWrapper<? extends Containerable>> createReportContainers(
+    														ObjectWrapper<O> oWrapper, PrismObject<O> object,
+    														OperationResult result) throws SchemaException {
+        List<ContainerWrapper<? extends Containerable>> containers = new ArrayList<>();
 
         PrismContainer container = object.findContainer(ReportType.F_CONFIGURATION);
         ContainerStatus status = container != null ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;

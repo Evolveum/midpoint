@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,11 +34,11 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, Serializable, DebugDumpable {
+public class ContainerWrapper<C extends Containerable> implements ItemWrapper, Serializable, DebugDumpable {
 
     private String displayName;
     private ObjectWrapper<? extends ObjectType> objectWrapper;
-    private T container;
+    private PrismContainer<C> container;
     private ContainerStatus status;
 
     private boolean main;
@@ -48,9 +48,9 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     private boolean readonly;
     private boolean showInheritedObjectAttributes;
 
-    private PrismContainerDefinition containerDefinition;
+    private PrismContainerDefinition<C> containerDefinition;
 
-    public ContainerWrapper(ObjectWrapper objectWrapper, T container, ContainerStatus status, ItemPath path) {
+    public ContainerWrapper(ObjectWrapper objectWrapper, PrismContainer<C> container, ContainerStatus status, ItemPath path) {
         Validate.notNull(container, "container must not be null.");
         Validate.notNull(status, "Container status must not be null.");
 
@@ -80,7 +80,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     }
 
     @Override
-    public PrismContainerDefinition getItemDefinition() {
+    public PrismContainerDefinition<C> getItemDefinition() {
         if (main) {
             return objectWrapper.getDefinition();
         } else {
@@ -100,7 +100,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         return path;
     }
 
-    public T getItem() {
+    public PrismContainer<C> getItem() {
         return container;
     }
 
@@ -303,7 +303,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     }
 
     @Override
-    public ContainerWrapper getContainer() {
+    public ContainerWrapper<C> getContainer() {
         // TODO Auto-generated method stub
         return null;
     }
