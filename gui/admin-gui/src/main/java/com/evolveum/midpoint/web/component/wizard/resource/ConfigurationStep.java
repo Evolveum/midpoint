@@ -85,7 +85,7 @@ public class ConfigurationStep extends WizardStep {
                 wrapper.setShowEmpty(true);
 
                 if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-                    ((PageBase) getPage()).showResultInSession(wrapper.getResult());
+                    getPageBase().showResultInSession(wrapper.getResult());
                 }
 
                 return wrapper;
