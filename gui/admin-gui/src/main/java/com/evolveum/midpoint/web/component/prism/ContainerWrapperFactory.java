@@ -30,12 +30,15 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.util.ModelServiceLocator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+
 import org.apache.commons.lang.Validate;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
 import java.text.DateFormat;
 import java.util.*;
 
@@ -59,14 +62,14 @@ public class ContainerWrapperFactory {
             FocusType.F_LINK_REF);
 
 
-    private PageBase pageBase;
+    private ModelServiceLocator modelServiceLocator;
 
     private OperationResult result;
 
-    public ContainerWrapperFactory(PageBase pageBase) {
-        Validate.notNull("Page parameter must not be null");
+    public ContainerWrapperFactory(ModelServiceLocator modelServiceLocator) {
+        Validate.notNull(modelServiceLocator, "Service locator must not be null");
 
-        this.pageBase = pageBase;
+        this.modelServiceLocator = modelServiceLocator;
     }
 
     public OperationResult getResult() {
@@ -109,7 +112,7 @@ public class ContainerWrapperFactory {
                         PrismReference resourceRef = parent.findReference(ShadowType.F_RESOURCE_REF);
                         PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
 
-                        definition = pageBase
+                        definition = modelServiceLocator
                                 .getModelInteractionService()
                                 .getEditObjectClassDefinition((PrismObject<ShadowType>) objectWrapper.getObject(), resource,
                                         AuthorizationPhaseType.REQUEST)

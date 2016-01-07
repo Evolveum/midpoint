@@ -16,11 +16,29 @@
 
 package com.evolveum.midpoint.web;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
+import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
+
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.util.ModelServiceLocator;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.apache.wicket.Application;
+import org.apache.wicket.ThreadContext;
+import org.apache.wicket.protocol.http.WebApplication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.AfterClass;
@@ -29,12 +47,23 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
+import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.Set;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.Servlet;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 
 /**
  * @author lazyman
+ * @author semancik
  */
-public abstract class AbstractGuiIntegrationTest extends AbstractIntegrationTest {
+public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegrationTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractGuiIntegrationTest.class);
 
@@ -42,8 +71,13 @@ public abstract class AbstractGuiIntegrationTest extends AbstractIntegrationTest
 
     @Autowired
     protected PrismContext prismContext;
+    
+    @Override
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.initSystem(initTask, initResult);
+	}
 
-    @BeforeClass
+	@BeforeClass
     public void beforeClass() throws Exception {
         System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>> START " + getClass().getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
         LOGGER.info("\n>>>>>>>>>>>>>>>>>>>>>>>> START {} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName()});
@@ -66,4 +100,50 @@ public abstract class AbstractGuiIntegrationTest extends AbstractIntegrationTest
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> END TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
         LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> END {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName(), method.getName()});
     }
+    
+	protected ModelServiceLocator getServiceLocator() {
+		return new ModelServiceLocator() {
+			
+			@Override
+			public ModelService getModelService() {
+				return modelService;
+			}
+			
+			@Override
+			public ModelInteractionService getModelInteractionService() {
+				return modelInteractionService;
+			}
+		};
+	}
+
+    
+    protected void assertUserJack(PrismObject<UserType> user) {
+		assertUserJack(user, USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
+	}
+	
+	protected void assertUserJack(PrismObject<UserType> user, String fullName) {
+		assertUserJack(user, fullName, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
+	}
+	
+	protected void assertUserJack(PrismObject<UserType> user, String fullName, String givenName, String familyName) {
+		assertUserJack(user, fullName, givenName, familyName, "Caribbean");
+	}
+	
+	protected void assertUserJack(PrismObject<UserType> user, String fullName, String givenName, String familyName, String locality) {
+		assertUserJack(user, USER_JACK_USERNAME, fullName, givenName, familyName, locality);
+	}
+	
+	protected void assertUserJack(PrismObject<UserType> user, String name, String fullName, String givenName, String familyName, String locality) {
+		assertUser(user, USER_JACK_OID, name, fullName, givenName, familyName, locality);
+		UserType userType = user.asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong jack honorificPrefix", "Cpt.", userType.getHonorificPrefix());
+		assertEquals("Wrong jack employeeNumber", "001", userType.getEmployeeNumber());
+		assertEquals("Wrong jack employeeType", "CAPTAIN", userType.getEmployeeType().get(0));
+		if (locality == null) {
+			assertNull("Locality sneaked to user jack", userType.getLocality());
+		} else {
+			PrismAsserts.assertEqualsPolyString("Wrong jack locality", locality, userType.getLocality());
+		}
+	}
+	
 }

@@ -199,6 +199,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	protected static final String USER_JACK_USERNAME = "jack";
 	protected static final String USER_JACK_FULL_NAME = "Jack Sparrow";
+	protected static final String USER_JACK_GIVEN_NAME = "Jack";
 	protected static final String USER_JACK_FAMILY_NAME = "Sparrow";
 
 	protected static final File USER_BARBOSSA_FILE = new File(COMMON_DIR, "user-barbossa.xml");
