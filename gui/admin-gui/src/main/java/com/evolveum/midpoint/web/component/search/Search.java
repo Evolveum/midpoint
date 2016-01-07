@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -192,6 +193,9 @@ public class Search implements Serializable {
             Object value = Long.parseLong((String) searchValue.getValue());
             return EqualFilter.createEqual(path, propDef, value);
         } else if (DOMUtil.XSD_STRING.equals(propDef.getTypeName())) {
+            String text = (String) searchValue.getValue();
+            return SubstringFilter.createSubstring(path, propDef, null, text);
+        } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(propDef.getTypeName())) {
             //we're looking for string value, therefore substring filter should be used
             String text = (String) searchValue.getValue();
             PolyStringNormalizer normalizer = ctx.getDefaultPolyStringNormalizer();
