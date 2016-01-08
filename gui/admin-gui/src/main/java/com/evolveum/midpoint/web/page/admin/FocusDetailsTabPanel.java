@@ -93,9 +93,10 @@ public class FocusDetailsTabPanel<F extends FocusType> extends FocusTabPanel {
 
 	public FocusDetailsTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel, PageBase page) {
 		super(id, mainForm, focusModel, page);
+		initLayout();
 	}
 	
-	public void initLayout() {
+	private void initLayout() {
 
 		PrismObjectPanel userForm = new PrismObjectPanel<F>(ID_FOCUS_FORM, getFocusModel(),
 				new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), getMainForm(), getPageBase()) {

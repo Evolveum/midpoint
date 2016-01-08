@@ -30,8 +30,8 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.detailspanel.AbstractObjectDetailsPanel;
-import com.evolveum.midpoint.web.component.detailspanel.FocusDetailsPanel;
+import com.evolveum.midpoint.web.component.mainpanel.AbstractObjectMainPanel;
+import com.evolveum.midpoint.web.component.mainpanel.FocusMainPanel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
@@ -126,8 +126,8 @@ public class PageUser extends PageAdminFocus<UserType> {
 	}
 
 	@Override
-	protected AbstractObjectDetailsPanel<UserType> createMainPanel(String id) {
-		return new FocusDetailsPanel<UserType>(id, getObjectModel(), getProjectionModel(), this);
+	protected AbstractObjectMainPanel<UserType> createMainPanel(String id) {
+		return new FocusMainPanel<UserType>(id, getObjectModel(), getProjectionModel(), this);
 	}
 
 	@Override

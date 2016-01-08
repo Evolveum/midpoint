@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.web.component.detailspanel;
+package com.evolveum.midpoint.web.component.mainpanel;
 
 import java.util.List;
 
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -42,13 +43,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author semancik
  *
  */
-public abstract class AbstractObjectDetailsPanel<O extends ObjectType> extends Panel {
+public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Panel {
 
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_TAB_PANEL = "tabPanel";
 	private static final String ID_EXECUTE_OPTIONS = "executeOptions";
 	
-	private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectDetailsPanel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectMainPanel.class);
 	
 	private Form mainForm;
 	
@@ -60,8 +61,9 @@ public abstract class AbstractObjectDetailsPanel<O extends ObjectType> extends P
 		}
 	};
 
-	public AbstractObjectDetailsPanel(String id, LoadableModel<ObjectWrapper<O>> objectModel, PageAdminObjectDetails<O> parentPage) {
+	public AbstractObjectMainPanel(String id, LoadableModel<ObjectWrapper<O>> objectModel, PageAdminObjectDetails<O> parentPage) {
 		super(id, objectModel);
+		Validate.notNull(objectModel, "Null object model");
 		this.objectModel = objectModel;
 		initLayout(parentPage);
 	}

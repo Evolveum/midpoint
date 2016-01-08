@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.web.component.detailspanel;
+package com.evolveum.midpoint.web.component.mainpanel;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.BaseFocusPanel;
 import com.evolveum.midpoint.web.page.admin.FocusDetailsTabPanel;
+import com.evolveum.midpoint.web.page.admin.FocusProjectionsTabPanel;
 import com.evolveum.midpoint.web.page.admin.FocusTabPanel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
@@ -46,13 +48,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
  * @author semancik
  *
  */
-public class FocusDetailsPanel<F extends FocusType> extends AbstractObjectDetailsPanel<F> {
+public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel<F> {
 
 	private LoadableModel<List<FocusProjectionDto>> projectionModel;
 	
-	public FocusDetailsPanel(String id, LoadableModel<ObjectWrapper<F>> objectModel, LoadableModel<List<FocusProjectionDto>> projectionModel, 
+	public FocusMainPanel(String id, LoadableModel<ObjectWrapper<F>> objectModel, LoadableModel<List<FocusProjectionDto>> projectionModel, 
 			PageAdminFocus<F> parentPage) {
 		super(id, objectModel, parentPage);
+		Validate.notNull(projectionModel, "Null projection model");
 		this.projectionModel = projectionModel;
 	}
 
@@ -126,8 +129,12 @@ public class FocusDetailsPanel<F extends FocusType> extends AbstractObjectDetail
 		}
 	}
 
-	protected WebMarkupContainer createFocusDetailsPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
+	protected WebMarkupContainer createFocusDetailsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
 		return new FocusDetailsTabPanel<F>(panelId, getMainForm(), getObjectModel(), parentPage);
+	}
+	
+	protected WebMarkupContainer createFocusProjectionsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
+		return new FocusProjectionsTabPanel<F>(panelId, getMainForm(), getObjectModel(), projectionModel, parentPage);
 	}
 
 	protected void addDefaultTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
@@ -135,7 +142,14 @@ public class FocusDetailsPanel<F extends FocusType> extends AbstractObjectDetail
 				new AbstractTab(parentPage.createStringResource("pageAdminFocus.basic")){
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
-						return createFocusDetailsPanel(panelId, parentPage); 
+						return createFocusDetailsTabPanel(panelId, parentPage); 
+					}
+				});
+		tabs.add(
+				new AbstractTab(parentPage.createStringResource("pageAdminFocus.projections")){
+					@Override
+					public WebMarkupContainer getPanel(String panelId) {
+						return createFocusProjectionsTabPanel(panelId, parentPage); 
 					}
 				});
 	}

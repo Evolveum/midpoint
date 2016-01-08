@@ -48,10 +48,10 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
-import com.evolveum.midpoint.web.component.detailspanel.AbstractObjectDetailsPanel;
-import com.evolveum.midpoint.web.component.detailspanel.RoleDetailsPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
+import com.evolveum.midpoint.web.component.mainpanel.AbstractObjectMainPanel;
+import com.evolveum.midpoint.web.component.mainpanel.RoleMainPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
@@ -192,8 +192,8 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
     }
 
 	@Override
-	protected AbstractObjectDetailsPanel<RoleType> createMainPanel(String id) {
-		return new RoleDetailsPanel(id, getObjectModel(), getProjectionModel(), getInducementsModel(), this);
+	protected AbstractObjectMainPanel<RoleType> createMainPanel(String id) {
+		return new RoleMainPanel(id, getObjectModel(), getProjectionModel(), getInducementsModel(), this);
 	}
 	
 	@Override

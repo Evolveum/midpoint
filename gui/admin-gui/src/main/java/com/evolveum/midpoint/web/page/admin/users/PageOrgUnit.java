@@ -72,10 +72,10 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTableDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
-import com.evolveum.midpoint.web.component.detailspanel.AbstractObjectDetailsPanel;
-import com.evolveum.midpoint.web.component.detailspanel.AbstractRoleDetailsPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
+import com.evolveum.midpoint.web.component.mainpanel.AbstractObjectMainPanel;
+import com.evolveum.midpoint.web.component.mainpanel.AbstractRoleMainPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.CheckTableHeader;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
@@ -162,8 +162,8 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
     }
 
 	@Override
-	protected AbstractObjectDetailsPanel<OrgType> createMainPanel(String id) {
-		return new AbstractRoleDetailsPanel<>(id, getObjectModel(), getProjectionModel(), getInducementsModel(), this);
+	protected AbstractObjectMainPanel<OrgType> createMainPanel(String id) {
+		return new AbstractRoleMainPanel<>(id, getObjectModel(), getProjectionModel(), getInducementsModel(), this);
 	}
 
 	@Override

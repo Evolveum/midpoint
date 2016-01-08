@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.mainpanel.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 
 import org.apache.commons.lang.StringUtils;
@@ -50,7 +51,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
-import com.evolveum.midpoint.web.component.detailspanel.AbstractObjectDetailsPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -106,7 +106,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	// operation finishing)
 	private ObjectDelta<O> delta;
 	
-	private AbstractObjectDetailsPanel<O> mainPanel;
+	private AbstractObjectMainPanel<O> mainPanel;
 	
 
 	@Override
@@ -156,7 +156,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		return parentOrgModel;
 	}
 
-	protected AbstractObjectDetailsPanel<O> getMainPanel() {
+	protected AbstractObjectMainPanel<O> getMainPanel() {
 		return mainPanel;
 	}
 	
@@ -249,7 +249,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		add(summaryPanel);
 	}
 
-	protected abstract AbstractObjectDetailsPanel<O> createMainPanel(String id);
+	protected abstract AbstractObjectMainPanel<O> createMainPanel(String id);
 
 	protected String getObjectOidParameter() {
 		PageParameters parameters = getPageParameters();

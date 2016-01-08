@@ -54,6 +54,7 @@ import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -74,6 +75,7 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.namespace.QName;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -106,7 +108,6 @@ public abstract class FocusTabPanel<F extends FocusType> extends Panel {
 		this.focusModel = focusModel;
 		this.mainForm = mainForm;
 		this.pageBase = pageBase;
-		initLayout();
 	}
 
 	public LoadableModel<ObjectWrapper<F>> getFocusModel() {
@@ -145,10 +146,6 @@ public abstract class FocusTabPanel<F extends FocusType> extends Panel {
 		return StringUtils.join(components, ":");
 	}
 
-	public abstract void initLayout();
-
-
-
 	protected void showResult(OperationResult result) {
 		pageBase.showResult(result);
 	}
@@ -179,4 +176,9 @@ public abstract class FocusTabPanel<F extends FocusType> extends Panel {
 		return object;
 	}
 
+	protected void showModalWindow(String id, AjaxRequestTarget target) {
+		ModalWindow window = (ModalWindow) get(id);
+		window.show(target);
+		target.add(getFeedbackPanel());
+	}
 }
