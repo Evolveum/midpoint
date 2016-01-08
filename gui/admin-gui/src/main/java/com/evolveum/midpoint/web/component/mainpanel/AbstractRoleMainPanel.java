@@ -39,9 +39,10 @@ public class AbstractRoleMainPanel<R extends AbstractRoleType> extends FocusMain
 	
 	private LoadableModel<List<AssignmentEditorDto>> inducementsModel;
 
-	public AbstractRoleMainPanel(String id, LoadableModel<ObjectWrapper<R>> objectModel, LoadableModel<List<FocusProjectionDto>> projectionModel, 
+	public AbstractRoleMainPanel(String id, LoadableModel<ObjectWrapper<R>> objectModel, 
+			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, LoadableModel<List<FocusProjectionDto>> projectionModel, 
 			LoadableModel<List<AssignmentEditorDto>> inducementsModel, PageAdminFocus<R> parentPage) {
-		super(id, objectModel, projectionModel, parentPage);
+		super(id, objectModel, assignmentsModel, projectionModel, parentPage);
 		this.inducementsModel = inducementsModel;
 	}
 

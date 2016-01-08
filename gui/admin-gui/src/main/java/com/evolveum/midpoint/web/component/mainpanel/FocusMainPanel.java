@@ -29,11 +29,13 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.BaseFocusPanel;
+import com.evolveum.midpoint.web.page.admin.FocusAssignmentsTabPanel;
 import com.evolveum.midpoint.web.page.admin.FocusDetailsTabPanel;
 import com.evolveum.midpoint.web.page.admin.FocusProjectionsTabPanel;
 import com.evolveum.midpoint.web.page.admin.FocusTabPanel;
@@ -51,17 +53,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
 public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel<F> {
 
 	private LoadableModel<List<FocusProjectionDto>> projectionModel;
+	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
 	
-	public FocusMainPanel(String id, LoadableModel<ObjectWrapper<F>> objectModel, LoadableModel<List<FocusProjectionDto>> projectionModel, 
+	public FocusMainPanel(String id, LoadableModel<ObjectWrapper<F>> objectModel, 
+			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, LoadableModel<List<FocusProjectionDto>> projectionModel, 
 			PageAdminFocus<F> parentPage) {
 		super(id, objectModel, parentPage);
 		Validate.notNull(projectionModel, "Null projection model");
+		this.assignmentsModel = assignmentsModel;
 		this.projectionModel = projectionModel;
+		initLayout(parentPage);
 	}
 
-	@Override
-	public void initLayout(final PageAdminObjectDetails<F> parentPage) {
-		super.initLayout(parentPage);
+	private void initLayout(final PageAdminObjectDetails<F> parentPage) {
 		getMainForm().setMultiPart(true);
 	}
 	
@@ -136,6 +140,10 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	protected WebMarkupContainer createFocusProjectionsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
 		return new FocusProjectionsTabPanel<F>(panelId, getMainForm(), getObjectModel(), projectionModel, parentPage);
 	}
+	
+	protected WebMarkupContainer createFocusAssignmentsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
+		return new FocusAssignmentsTabPanel<F>(panelId, getMainForm(), getObjectModel(), assignmentsModel, parentPage);
+	}
 
 	protected void addDefaultTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
 		tabs.add(
@@ -152,6 +160,12 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 						return createFocusProjectionsTabPanel(panelId, parentPage); 
 					}
 				});
+		tabs.add(
+				new AbstractTab(parentPage.createStringResource("pageAdminFocus.assignments")){
+					@Override
+					public WebMarkupContainer getPanel(String panelId) {
+						return createFocusAssignmentsTabPanel(panelId, parentPage); 
+					}
+				});
 	}
-	
 }

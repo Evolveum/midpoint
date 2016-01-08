@@ -84,7 +84,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 		return mainForm;
 	}
 
-	protected void initLayout(PageAdminObjectDetails<O> parentPage) {
+	private void initLayout(PageAdminObjectDetails<O> parentPage) {
 		mainForm = new Form<>(ID_MAIN_FORM, true);
 		add(mainForm);
 		initLayoutTabs(parentPage);

@@ -193,7 +193,7 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
 
 	@Override
 	protected AbstractObjectMainPanel<RoleType> createMainPanel(String id) {
-		return new RoleMainPanel(id, getObjectModel(), getProjectionModel(), getInducementsModel(), this);
+		return new RoleMainPanel(id, getObjectModel(), getAssignmentsModel(), getProjectionModel(), getInducementsModel(), this);
 	}
 	
 	@Override

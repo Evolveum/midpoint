@@ -163,7 +163,7 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 
 	@Override
 	protected AbstractObjectMainPanel<OrgType> createMainPanel(String id) {
-		return new AbstractRoleMainPanel<>(id, getObjectModel(), getProjectionModel(), getInducementsModel(), this);
+		return new AbstractRoleMainPanel<>(id, getObjectModel(), getAssignmentsModel(), getProjectionModel(), getInducementsModel(), this);
 	}
 
 	@Override

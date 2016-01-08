@@ -127,7 +127,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
 	@Override
 	protected AbstractObjectMainPanel<UserType> createMainPanel(String id) {
-		return new FocusMainPanel<UserType>(id, getObjectModel(), getProjectionModel(), this);
+		return new FocusMainPanel<UserType>(id, getObjectModel(), getAssignmentsModel(), getProjectionModel(), this);
 	}
 
 	@Override
