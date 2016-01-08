@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13658,6 +13658,7 @@
        		<xsd:sequence>
        			<xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1"/>
            		<xsd:element name="formSpecification" type="tns:FormSpecificationType" minOccurs="0" maxOccurs="1"/>
+           		<xsd:element name="includeDefaultForms" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
            	</xsd:sequence>	
     </xsd:complexType>
     
@@ -13673,6 +13674,14 @@
             </xsd:appinfo>
         </xsd:annotation>
        		<xsd:sequence>
+	       		<xsd:element name="title" type="xsd:string" minOccurs="0" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						Form title that is shown at an appropriate place, such as browser title, heading,
+       						tab name, etc.
+       					</xsd:documentation>
+       				</xsd:annotation>
+       			</xsd:element>
            		<xsd:element name="formRef" type="tns:ObjectReferenceType"
                                  minOccurs="0" maxOccurs="1">
                     <xsd:annotation>

@@ -19,7 +19,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
@@ -34,10 +37,14 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -60,6 +67,10 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FormSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -77,6 +88,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 	private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
 	private static final String OPERATION_LOAD_PARENT_ORGS = DOT_CLASS + "loadParentOrgs";
+	private static final String OPERATION_LOAD_GUI_CONFIGURATION = DOT_CLASS + "loadGuiConfiguration";
 	protected static final String OPERATION_SAVE = DOT_CLASS + "save";
 	protected static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
 
@@ -660,6 +672,39 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		progressReporter.registerAbortButton(abortButton);
 		mainForm.add(abortButton);
 
+	}
+	
+	public List<ObjectFormType> getObjectFormTypes() {
+		Task task = createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION);
+		OperationResult result = task.getResult();
+		AdminGuiConfigurationType adminGuiConfiguration;
+		try {
+			adminGuiConfiguration = getModelInteractionService().getAdminGuiConfiguration(task, result);
+		} catch (ObjectNotFoundException | SchemaException e) {
+			throw new SystemException("Cannot load GUI configuration: "+e.getMessage(), e);
+		}
+		if (adminGuiConfiguration == null) {
+			return null;
+		}
+		ObjectFormsType objectFormsType = adminGuiConfiguration.getObjectForms();
+		if (objectFormsType == null) {
+			return null;
+		}
+		List<ObjectFormType> objectForms = objectFormsType.getObjectForm();
+		if (objectForms == null || objectForms.isEmpty()) {
+			return objectForms;
+		}
+		List<ObjectFormType> validObjectForms = new ArrayList<>();
+		for (ObjectFormType objectForm: objectForms) {
+			if (isSupportedObjectType(objectForm.getType())) {
+				validObjectForms.add(objectForm);
+			}
+		}
+		return validObjectForms;
+	}
 
+	protected boolean isSupportedObjectType(QName type) {
+		ObjectTypes objectType = ObjectTypes.getObjectType(getCompileTimeClass());
+		return QNameUtil.match(objectType.getTypeQName(),type);
 	}
 }

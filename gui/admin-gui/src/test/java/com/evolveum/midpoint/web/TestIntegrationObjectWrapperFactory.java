@@ -32,25 +32,17 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.ModelServiceLocator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -128,6 +120,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 				true, ContainerStatus.MODIFYING);
 		WrapperTestUtil.assertPropertyWrapper(attributesContainerWrapper, dummyResourceCtl.getAttributeFullnameQName(), USER_JACK_FULL_NAME);
 		WrapperTestUtil.assertPropertyWrapper(attributesContainerWrapper, SchemaConstants.ICFS_NAME, USER_JACK_USERNAME);
+		assertEquals("wrong number of items in "+attributesContainerWrapper, 16, attributesContainerWrapper.getItems().size());
 		
 		ContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(new ItemPath(UserType.F_ACTIVATION));
 		WrapperTestUtil.assertWrapper(activationContainerWrapper, "Activation", UserType.F_ACTIVATION, shadow, ContainerStatus.MODIFYING);
