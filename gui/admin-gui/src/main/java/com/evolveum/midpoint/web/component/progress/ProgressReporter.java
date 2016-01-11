@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ import java.util.Collections;
 
 /**
  * Puts together all objects necessary for managing progress reporting and abort functionality.
- * Provides a facade so that this functionality can be easily used from withing relevant wicket pages
+ * Provides a facade so that this functionality can be easily used from within relevant wicket pages
  * (edit user, org, role, ...).
  *
  * An instance of this class has to be created for each progress reporting case - e.g. at least
@@ -98,7 +98,7 @@ public class ProgressReporter implements Serializable {
      */
     public static ProgressReporter create(String id, ProgressReportingAwarePage parentPage) {
         ProgressReporter reporter = new ProgressReporter();
-        reporter.progressPanel = new ProgressPanel(id, new Model<>(new ProgressDto()));
+        reporter.progressPanel = new ProgressPanel(id, new Model<>(new ProgressDto()), reporter, parentPage);
         reporter.progressPanel.setOutputMarkupId(true);
         reporter.progressPanel.hide();
 
@@ -142,7 +142,8 @@ public class ProgressReporter implements Serializable {
      * @param target AjaxRequestTarget into which any synchronous changes are signalized.
      */
     public void executeChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, final ModelExecuteOptions options, final Task task, final OperationResult result, AjaxRequestTarget target) {
-        ModelService modelService = parentPage.getModelService();
+        parentPage.startProcessing(target, result);
+    	ModelService modelService = parentPage.getModelService();
         if (asynchronousExecution) {
             executeChangesAsync(deltas, options, task, result, target, modelService);
         } else {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -267,12 +267,12 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         }
     }
 
-    public ObjectDelta getObjectDelta() throws SchemaException {
+    public ObjectDelta<O> getObjectDelta() throws SchemaException {
         if (ContainerStatus.ADDING.equals(getStatus())) {
             return createAddingObjectDelta();
         }
 
-        ObjectDelta delta = new ObjectDelta(object.getCompileTimeClass(), ChangeType.MODIFY,
+        ObjectDelta<O> delta = new ObjectDelta<O>(object.getCompileTimeClass(), ChangeType.MODIFY,
                 object.getPrismContext());
         delta.setOid(object.getOid());
 

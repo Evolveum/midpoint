@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,14 @@ package com.evolveum.midpoint.web.component.progress;
 
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -37,7 +41,7 @@ import static com.evolveum.midpoint.web.component.progress.ProgressReportActivit
 /**
  * @author mederly
  */
-public class ProgressPanel extends SimplePanel<ProgressDto> {
+public class ProgressPanel extends BasePanel<ProgressDto> {
 
     private static final String ID_CONTENTS_PANEL = "contents";
     private static final String ID_ACTIVITIES = "progressReportActivities";
@@ -48,7 +52,10 @@ public class ProgressPanel extends SimplePanel<ProgressDto> {
     private static final String ID_LOG_ITEMS = "logItems";
     private static final String ID_LOG_ITEM = "logItem";
     private static final String ID_EXECUTION_TIME = "executionTime";
+    private static final String ID_PROGRESS_FORM = "progressForm";
 
+    private ProgressReporter progressReporter;
+    private Form progressForm;
     private long operationStartTime;            // if 0, operation hasn't start yet
     private long operationDurationTime;         // if >0, operation has finished
 
@@ -59,14 +66,19 @@ public class ProgressPanel extends SimplePanel<ProgressDto> {
         super(id);
     }
 
-    public ProgressPanel(String id, IModel<ProgressDto> model) {
+    public ProgressPanel(String id, IModel<ProgressDto> model, ProgressReporter progressReporter, ProgressReportingAwarePage page) {
         super(id, model);
+        this.progressReporter = progressReporter;
+        initLayout(page);
     }
 
-    protected void initLayout() {
+    private void initLayout(ProgressReportingAwarePage page) {
+    	progressForm = new Form<>(ID_PROGRESS_FORM, true);
+    	add(progressForm);
+    	
         contentsPanel = new WebMarkupContainer(ID_CONTENTS_PANEL);
         contentsPanel.setOutputMarkupId(true);
-        add(contentsPanel);
+        progressForm.add(contentsPanel);
 
         ListView statusItemsListView = new ListView<ProgressReportActivityDto>(ID_ACTIVITIES, new AbstractReadOnlyModel<List<ProgressReportActivityDto>>() {
             @Override
@@ -188,7 +200,31 @@ public class ProgressPanel extends SimplePanel<ProgressDto> {
             }
         });
         contentsPanel.add(executionTime);
+        
+        initButtons(progressForm, page);
     }
+    
+    private void initButtons(final Form progressForm, final ProgressReportingAwarePage page) {
+
+		AjaxSubmitButton abortButton = new AjaxSubmitButton("abort",
+				createStringResource("pageAdminFocus.button.abort")) {
+
+			@Override
+			protected void onSubmit(AjaxRequestTarget target,
+					org.apache.wicket.markup.html.form.Form<?> form) {
+				progressReporter.onAbortSubmit(target);
+			}
+
+			@Override
+			protected void onError(AjaxRequestTarget target,
+					org.apache.wicket.markup.html.form.Form<?> form) {
+				target.add(page.getFeedbackPanel());
+			}
+		};
+		progressReporter.registerAbortButton(abortButton);
+		progressForm.add(abortButton);
+
+	}
 
     // Note: do not setVisible(false) on the progress panel itself - it will disable AJAX refresh functionality attached to it.
     // Use the following two methods instead.

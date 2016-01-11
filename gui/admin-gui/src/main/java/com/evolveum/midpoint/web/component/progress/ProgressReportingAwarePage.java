@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 
 /**
  * A page that supports progress reporting, e.g. page for editing users, orgs, roles.
@@ -36,6 +38,8 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
  */
 public interface ProgressReportingAwarePage {
 
+	void startProcessing(AjaxRequestTarget target, OperationResult result);
+	
     void finishProcessing(AjaxRequestTarget target, OperationResult result);
 
     // things from PageBase (todo factor this out eventually)
@@ -47,4 +51,6 @@ public interface ProgressReportingAwarePage {
     Task createSimpleTask(String name);
 
     WebApplicationConfiguration getWebApplicationConfiguration();
+    
+    public WebMarkupContainer getFeedbackPanel();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.BasePageAwarePanel;
-import com.evolveum.midpoint.web.component.util.BaseSimplePanel;
+import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
@@ -67,7 +67,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class UserMenuPanel extends BaseSimplePanel {
+public class UserMenuPanel extends BasePanel {
 
     private static final Trace LOGGER = TraceManager.getTrace(UserMenuPanel.class);
     private static final String ID_USERNAME_LINK = "usernameLink";
@@ -98,6 +98,7 @@ public class UserMenuPanel extends BaseSimplePanel {
 
     public UserMenuPanel(String id) {
         super(id);
+        initLayout();
         if (!isPasswordModelLoaded) {
             passwordQuestionsDtoIModel = new LoadableModel<PasswordQuestionsDto>(false) {
 
@@ -121,11 +122,7 @@ public class UserMenuPanel extends BaseSimplePanel {
         };
     }
 
-    @Override
-    protected void initLayout() {
-        if (userModel != null && userModel.getObject() == null){
-            loadModel(null);
-        }
+    private void initLayout() {
         WebMarkupContainer iconBox = new WebMarkupContainer(ID_ICON_BOX);
         add(iconBox);
 

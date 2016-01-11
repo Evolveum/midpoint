@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,11 +35,12 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.page.admin.users.component.*;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -52,6 +53,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,7 +62,7 @@ import java.util.List;
 /**
  * @author shood
  */
-public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<List<AssignmentEditorDto>> {
+public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<AssignmentEditorDto>> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentTablePanel.class);
 
@@ -86,7 +88,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<List
 			IModel<List<AssignmentEditorDto>> assignmentModel) {
 		super(id, assignmentModel);
 
-		initPanelLayout(label);
+		initLayout(label);
 	}
 
 	public List<AssignmentType> getAssignmentTypeList() {
@@ -101,7 +103,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<List
 		return getModel();
 	}
 
-	private void initPanelLayout(IModel<String> labelText) {
+	private void initLayout(IModel<String> labelText) {
 		final WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
 		assignments.setOutputMarkupId(true);
 		add(assignments);

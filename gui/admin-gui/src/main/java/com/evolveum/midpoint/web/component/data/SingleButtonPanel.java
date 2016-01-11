@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@ package com.evolveum.midpoint.web.component.data;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.SingleButtonColumn;
+import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
@@ -29,7 +31,7 @@ import org.apache.wicket.model.StringResourceModel;
  *  @author shood
  *  @author mederly
  */
-public class SingleButtonPanel<T> extends SimplePanel<T> {
+public class SingleButtonPanel<T> extends BasePanel<T> {
 
     private static final String ID_BUTTON = "button";
 
@@ -37,10 +39,10 @@ public class SingleButtonPanel<T> extends SimplePanel<T> {
 
     public SingleButtonPanel(String id, IModel<T> model){
         super(id, model);
-        createLayout();
+        initLayout();
     }
 
-    private void createLayout(){
+    private void initLayout(){
         AjaxButton button = new AjaxButton(ID_BUTTON, createButtonStringResource(getCaption())) {
 
             @Override

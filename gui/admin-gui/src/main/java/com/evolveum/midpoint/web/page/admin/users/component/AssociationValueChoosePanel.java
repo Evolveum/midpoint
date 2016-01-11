@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPage;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPanel;
@@ -64,7 +64,7 @@ import java.util.List;
     // (for now ValueChoosePanel works only with PrismReferenceValue);
     //in future some super class is to be created to union the common
     // functionality of these 2 classes
-public class AssociationValueChoosePanel <C extends ObjectType> extends SimplePanel<PrismContainerValue<ShadowAssociationType>> {
+public class AssociationValueChoosePanel <C extends ObjectType> extends BasePanel<PrismContainerValue<ShadowAssociationType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssociationValueChoosePanel.class);
 

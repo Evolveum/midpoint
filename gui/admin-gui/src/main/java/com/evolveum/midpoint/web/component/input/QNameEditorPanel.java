@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package com.evolveum.midpoint.web.component.input;
 
-import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -34,7 +35,7 @@ import java.util.List;
  *
  *  TODO - this component should probably be renamed to ItemPathType editor
  * */
-public class QNameEditorPanel extends SimplePanel<ItemPathType>{
+public class QNameEditorPanel extends BasePanel<ItemPathType>{
 
     private static final String ID_LOCAL_PART = "localPart";
     private static final String ID_NAMESPACE = "namespace";
@@ -69,7 +70,7 @@ public class QNameEditorPanel extends SimplePanel<ItemPathType>{
         return model;
     }
 
-    protected void initLayout(String localPartLabelKey, String localPartTooltipKey,
+    private void initLayout(String localPartLabelKey, String localPartTooltipKey,
                               String namespaceLabelKey, String namespaceTooltipKey){
 
         Label localPartLabel = new Label(ID_LOCAL_PART_LABEL, getString(localPartLabelKey));
