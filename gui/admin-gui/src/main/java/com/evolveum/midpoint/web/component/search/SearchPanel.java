@@ -22,10 +22,11 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.util.BaseSimplePanel;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.model.LoadableModel;
+import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -49,7 +50,7 @@ import java.util.List;
 /**
  * @author Viliam Repan (lazyman)
  */
-public class SearchPanel extends BaseSimplePanel<Search> {
+public class SearchPanel extends BasePanel<Search> {
 
     private static final Trace LOG = TraceManager.getTrace(SearchPanel.class);
 
@@ -71,10 +72,10 @@ public class SearchPanel extends BaseSimplePanel<Search> {
 
     public SearchPanel(String id, IModel<Search> model) {
         super(id, model);
+        initLayout();
     }
 
-    @Override
-    protected void initLayout() {
+    private void initLayout() {
         moreDialogModel = new LoadableModel<MoreDialogDto>(false) {
 
             @Override

@@ -22,9 +22,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.util.BaseSimplePanel;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.BasePanel;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.MarkupContainer;
@@ -56,7 +57,7 @@ import java.util.Locale;
 /**
  * @author Viliam Repan (lazyman)
  */
-public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
+public class SearchItemPanel extends BasePanel<SearchItem> {
 
     private static final Trace LOG = TraceManager.getTrace(SearchItemPanel.class);
 
@@ -82,10 +83,10 @@ public class SearchItemPanel extends BaseSimplePanel<SearchItem> {
 
     public SearchItemPanel(String id, IModel<SearchItem> model) {
         super(id, model);
+        initLayout();
     }
 
-    @Override
-    protected void initLayout() {
+    private void initLayout() {
         popoverModel = new LoadableModel<SearchItemPopoverDto>(false) {
 
             @Override
