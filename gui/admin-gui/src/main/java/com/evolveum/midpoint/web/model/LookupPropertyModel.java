@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.model;
 
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -26,24 +25,33 @@ import org.apache.wicket.core.util.lang.PropertyResolverConverter;
 import org.apache.wicket.model.AbstractPropertyModel;
 
 /**
- *  @author shood
- * */
+ * @author shood
+ *
+ */
 public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
 
     protected final String expression;
-    private LookupTableType lookupTable;
+    private final LookupTableType lookupTable;
+    private boolean isStrict = true; // if true, allow only values found in lookupTable, false - allow also input that is not in the lookupTable
 
-    public LookupPropertyModel(Object modelObject, String expression, LookupTableType lookupTable){
+    public LookupPropertyModel(Object modelObject, String expression, LookupTableType lookupTable) {
         super(modelObject);
         this.expression = expression;
         this.lookupTable = lookupTable;
+    }
+
+    public LookupPropertyModel(Object modelObject, String expression, LookupTableType lookupTable, boolean isStrict) {
+        super(modelObject);
+        this.expression = expression;
+        this.lookupTable = lookupTable;
+        this.isStrict = isStrict;
     }
 
     /**
      * @see org.apache.wicket.model.AbstractPropertyModel#propertyExpression()
      */
     @Override
-    protected String propertyExpression(){
+    protected String propertyExpression() {
         return expression;
     }
 
@@ -53,10 +61,10 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
 
         final Object target = getInnermostModelOrObject();
 
-        if (target != null){
-            String key = (String)PropertyResolver.getValue(expression, target);
+        if (target != null) {
+            String key = (String) PropertyResolver.getValue(expression, target);
 
-            if(key == null){
+            if (key == null) {
                 return null;
             }
 
@@ -67,7 +75,7 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
                     }
                 }
             }
-            return (T)key;
+            return (T) key;
         }
 
         return null;
@@ -81,26 +89,29 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
         prc = new PropertyResolverConverter(Application.get().getConverterLocator(),
                 Session.get().getLocale());
 
-        if(object instanceof String){
+        if (object instanceof String) {
             String label = (String) object;
             String key;
 
-            if (label == null || label.trim().equals("")){
+            if (label == null || label.trim().equals("")) {
                 PropertyResolver.setValue(expression, getInnermostModelOrObject(), null, prc);
             } else {
+                if (!isStrict) { // set default value from input and overwrite later if key is found
+                    PropertyResolver.setValue(expression, getInnermostModelOrObject(), label, prc);
+                }
                 for (LookupTableRowType row : lookupTable.getRow()) {
                     if (label.equals(WebMiscUtil.getOrigStringFromPoly(row.getLabel()))) {
                         key = row.getKey();
-
                         PropertyResolver.setValue(expression, getInnermostModelOrObject(), key, prc);
                     }
                 }
             }
-        } else if (object == null){
-                PropertyResolver.setValue(expression, getInnermostModelOrObject(), object, prc);
+        } else if (object == null) {
+            PropertyResolver.setValue(expression, getInnermostModelOrObject(), object, prc);
         }
     }
 
     @Override
-    public void detach() {}
+    public void detach() {
+    }
 }

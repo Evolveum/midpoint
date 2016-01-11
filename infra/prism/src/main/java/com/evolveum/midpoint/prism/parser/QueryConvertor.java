@@ -110,6 +110,7 @@ public class QueryConvertor {
 	public static final QName KEY_FILTER_ORG_REF = new QName(NS_QUERY, "orgRef");
 	public static final QName KEY_FILTER_ORG_REF_OID = new QName(NS_QUERY, "oid");
     public static final QName KEY_FILTER_ORG_SCOPE = new QName(NS_QUERY, "scope");
+	public static final QName KEY_FILTER_ORG_IS_ROOT = new QName(NS_QUERY, "isRoot");
 	public static final QName KEY_FILTER_ORG_MIN_DEPTH = new QName(NS_QUERY, "minDepth");
 	public static final QName KEY_FILTER_ORG_MAX_DEPTH = new QName(NS_QUERY, "maxDepth");
 	
@@ -543,6 +544,15 @@ public class QueryConvertor {
 
 	private static <C extends Containerable> OrgFilter parseOrgFilter(XNode xnode, PrismContainerDefinition<C> pcd, boolean preliminaryParsingOnly, PrismContext prismContext) throws SchemaException {
 		MapXNode xmap = toMap(xnode);
+
+		if (Boolean.TRUE.equals(xmap.getParsedPrimitiveValue(KEY_FILTER_ORG_IS_ROOT, DOMUtil.XSD_BOOLEAN))) {
+			// TODO check if other content is present
+			if (preliminaryParsingOnly) {
+				return null;
+			} else {
+				return OrgFilter.createRootOrg();
+			}
+		}
 		
 		XNode xorgrefnode = xmap.get(KEY_FILTER_ORG_REF);
 		if (xorgrefnode == null) {
@@ -556,8 +566,11 @@ public class QueryConvertor {
 		
 		XsdTypeMapper.getTypeFromClass(Scope.class);
 		
-		String scopeString = xorgrefmap.getParsedPrimitiveValue(KEY_FILTER_ORG_SCOPE, DOMUtil.XSD_STRING);
-		Scope scope = Scope.valueOf(scopeString);
+		String scopeString = xorgrefmap.getParsedPrimitiveValue(KEY_FILTER_ORG_SCOPE, DOMUtil.XSD_STRING);		// original (in my opinion incorrect) place
+		if (scopeString == null) {
+			scopeString = xmap.getParsedPrimitiveValue(KEY_FILTER_ORG_SCOPE, DOMUtil.XSD_STRING);				// here it is placed by the serializer
+		}
+		Scope scope = scopeString != null ? Scope.valueOf(scopeString) : null;
 		
         if (preliminaryParsingOnly) {
             return null;
@@ -578,6 +591,13 @@ public class QueryConvertor {
 			throw new SchemaException("Cannot parse filter from "+xnode);
 		}
 		return (MapXNode)xnode;
+	}
+
+	private static PrimitiveXNode toPrimitive(XNode xnode, XNode context) throws SchemaException {
+		if (!(xnode instanceof PrimitiveXNode)) {
+			throw new SchemaException("Cannot parse filter from "+context+ ": This should be a primitive: "+xnode);
+		}
+		return (PrimitiveXNode)xnode;
 	}
 	
 	private static ItemPath getPath(MapXNode xmap, PrismContext prismContext) throws SchemaException {
@@ -832,8 +852,18 @@ public class QueryConvertor {
 	
 	private static MapXNode serializeOrgFilter(OrgFilter filter, XNodeSerializer xnodeSerializer) {
 		MapXNode map = new MapXNode();
-		map.put(KEY_FILTER_ORG_REF_OID, createPrimitiveXNode(filter.getOrgRef().getOid(), DOMUtil.XSD_STRING));
-		map.put(KEY_FILTER_ORG_SCOPE, createPrimitiveXNode(filter.getScope().name(), DOMUtil.XSD_STRING));
+
+		if (filter.getOrgRef() != null) {
+			MapXNode orgRefMap = new MapXNode();
+			orgRefMap.put(KEY_FILTER_ORG_REF_OID, createPrimitiveXNode(filter.getOrgRef().getOid(), DOMUtil.XSD_STRING));
+			map.put(KEY_FILTER_ORG_REF, orgRefMap);
+		}
+		if (filter.getScope() != null) {
+			map.put(KEY_FILTER_ORG_SCOPE, createPrimitiveXNode(filter.getScope().name(), DOMUtil.XSD_STRING));
+		}
+		if (filter.isRoot()) {
+			map.put(KEY_FILTER_ORG_IS_ROOT, createPrimitiveXNode(Boolean.TRUE, DOMUtil.XSD_BOOLEAN));
+		}
 		
 		MapXNode xtypeFilter= new MapXNode();
 		xtypeFilter.put(KEY_FILTER_ORG, map);

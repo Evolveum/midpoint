@@ -107,11 +107,6 @@ public class PageOrgTree extends PageAdminUsers {
 
                 LOGGER.debug("Tab count is {}", new Object[]{tabs.size()});
 
-                if (tabs.isEmpty()) {
-                    getSession().warn(getString("PageOrgTree.message.noOrgStructDefined"));
-                    throw new RestartResponseException(PageUsers.class);
-                }
-
                 return tabs;
             }
         };
@@ -125,6 +120,9 @@ public class PageOrgTree extends PageAdminUsers {
         }
         TabbedPanel tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<>(selectedTab));
         tabbedPanel.setOutputMarkupId(true);
+        if (tabsList == null || tabsList.size() == 0){
+            tabbedPanel.setVisible(false);
+        }
         add(tabbedPanel);
     }
 
