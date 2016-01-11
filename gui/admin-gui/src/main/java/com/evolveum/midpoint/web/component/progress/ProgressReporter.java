@@ -201,23 +201,11 @@ public class ProgressReporter implements Serializable {
         if (abortEnabled) {
             showAbortButton(target);
         }
-        hideSaveButton(target);
-        //saveButton.setEnabled(false);         // this doesn't work as expected
 
         result.recordInProgress();              // to disable showing not-final results (why does it work? and why is the result shown otherwise?)
 
         asyncExecutionThread = new Thread(execution);
         asyncExecutionThread.start();
-    }
-
-    public void hideSaveButton(AjaxRequestTarget target) {
-        saveButton.setVisible(false);
-        target.add(saveButton);
-    }
-
-    public void showSaveButton(AjaxRequestTarget target) {
-        saveButton.setVisible(true);
-        target.add(saveButton);
     }
 
     private void startRefreshingProgressPanel(AjaxRequestTarget target) {
