@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.web.component.mainpanel;
+package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -34,11 +34,6 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.BaseFocusPanel;
-import com.evolveum.midpoint.web.page.admin.FocusAssignmentsTabPanel;
-import com.evolveum.midpoint.web.page.admin.FocusDetailsTabPanel;
-import com.evolveum.midpoint.web.page.admin.FocusProjectionsTabPanel;
-import com.evolveum.midpoint.web.page.admin.FocusTabPanel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;

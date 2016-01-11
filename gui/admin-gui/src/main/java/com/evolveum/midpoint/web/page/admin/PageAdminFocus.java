@@ -810,7 +810,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		handleAssignmentDeltas(focusDelta, getFocusAssignments(), def);
 	}
 
-	protected void recomputeAssignmentsPerformed(AssignmentPreviewDialog dialog, AjaxRequestTarget target) {
+	public void recomputeAssignmentsPerformed(AssignmentPreviewDialog dialog, AjaxRequestTarget target) {
 		LOGGER.debug("Recompute user assignments");
 		Task task = createSimpleTask(OPERATION_RECOMPUTE_ASSIGNMENTS);
 		OperationResult result = new OperationResult(OPERATION_RECOMPUTE_ASSIGNMENTS);

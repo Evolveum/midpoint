@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.web.page.admin;
+package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.util.List;
 

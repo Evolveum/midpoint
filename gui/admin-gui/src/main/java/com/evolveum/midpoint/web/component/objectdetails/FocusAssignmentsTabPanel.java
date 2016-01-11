@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.web.page.admin;
+package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -42,6 +42,7 @@ import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
@@ -83,91 +84,43 @@ import java.util.List;
 /**
  * @author semancik
  */
-public class FocusDetailsTabPanel<F extends FocusType> extends FocusTabPanel {
+public class FocusAssignmentsTabPanel<F extends FocusType> extends FocusTabPanel {
 	private static final long serialVersionUID = 1L;
 	
-	protected static final String ID_FOCUS_FORM = "focusDetails";
+	private static final String ID_ASSIGNMENTS = "assignmentsContainer";
+	private static final String ID_ASSIGNMENTS_PANEL = "assignmentsPanel";
 	
-	protected static final String ID_TASK_TABLE = "taskTable";
-	protected static final String ID_TASKS = "tasks";
+	private static final String MODAL_ID_ASSIGNMENTS_PREVIEW = "assignmentsPreviewPopup";
 
-	private static final Trace LOGGER = TraceManager.getTrace(FocusDetailsTabPanel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(FocusAssignmentsTabPanel.class);
+	
+	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
 
-	public FocusDetailsTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel, PageBase page) {
+	public FocusAssignmentsTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel, LoadableModel<List<AssignmentEditorDto>> assignmentsModel, PageBase page) {
 		super(id, mainForm, focusModel, page);
+		this.assignmentsModel = assignmentsModel;
 		initLayout();
 	}
 	
 	private void initLayout() {
 
-		PrismObjectPanel panel = new PrismObjectPanel<F>(ID_FOCUS_FORM, getFocusModel(),
-				new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), getMainForm(), getPageBase()) {
+		WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
+		assignments.setOutputMarkupId(true);
+		add(assignments);
+		
+		AssignmentTablePanel panel = new AssignmentTablePanel(ID_ASSIGNMENTS_PANEL,
+				createStringResource("FocusType.assignment"), assignmentsModel) {
 
 			@Override
-			protected IModel<String> createDescription(IModel<ObjectWrapper<F>> model) {
-				return createStringResource("pageAdminFocus.description");
+			protected void showAllAssignments(AjaxRequestTarget target) {
+				AssignmentPreviewDialog dialog = (AssignmentPreviewDialog) getParent().getParent()
+						.get(createComponentPath(MODAL_ID_ASSIGNMENTS_PREVIEW));
+				((PageAdminFocus) getPageBase()).recomputeAssignmentsPerformed(dialog, target);
 			}
+
 		};
-		add(panel);
-
-		WebMarkupContainer tasks = new WebMarkupContainer(ID_TASKS);
-		tasks.setOutputMarkupId(true);
-		add(tasks);
-		initTasks(tasks);
-
+		assignments.add(panel);
 	}
 
-	private void initTasks(WebMarkupContainer tasks) {
-		List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
-		final TaskDtoProvider taskDtoProvider = new TaskDtoProvider(getPageBase(), TaskDtoProviderOptions.minimalOptions());
-		taskDtoProvider.setQuery(createTaskQuery(null));
-		TablePanel taskTable = new TablePanel<TaskDto>(ID_TASK_TABLE, taskDtoProvider, taskColumns) {
-
-			@Override
-			protected void onInitialize() {
-				super.onInitialize();
-				StringValue oidValue = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-
-				taskDtoProvider.setQuery(createTaskQuery(oidValue != null ? oidValue.toString() : null));
-			}
-		};
-		tasks.add(taskTable);
-
-		tasks.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return taskDtoProvider.size() > 0;
-			}
-		});
-	}
-
-	private ObjectQuery createTaskQuery(String oid) {
-		List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
-
-		if (oid == null) {
-			oid = "non-existent"; // TODO !!!!!!!!!!!!!!!!!!!!
-		}
-		try {
-			filters.add(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class,
-					getPrismContext(), oid));
-			filters.add(NotFilter.createNot(EqualFilter.createEqual(TaskType.F_EXECUTION_STATUS,
-					TaskType.class, getPrismContext(), null, TaskExecutionStatusType.CLOSED)));
-			filters.add(EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null));
-		} catch (SchemaException e) {
-			throw new SystemException("Unexpected SchemaException when creating task filter", e);
-		}
-
-		return new ObjectQuery().createObjectQuery(AndFilter.createAnd(filters));
-	}
-
-	private List<IColumn<TaskDto, String>> initTaskColumns() {
-		List<IColumn<TaskDto, String>> columns = new ArrayList<IColumn<TaskDto, String>>();
-
-		columns.add(PageTasks.createTaskNameColumn(this, "pageAdminFocus.task.name"));
-		columns.add(PageTasks.createTaskCategoryColumn(this, "pageAdminFocus.task.category"));
-		columns.add(PageTasks.createTaskExecutionStatusColumn(this, "pageAdminFocus.task.execution"));
-		columns.add(PageTasks.createTaskResultStatusColumn(this, "pageAdminFocus.task.status"));
-		return columns;
-	}
 
 }
