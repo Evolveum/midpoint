@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,6 +86,8 @@ import java.util.List;
 public class FocusDetailsTabPanel<F extends FocusType> extends FocusTabPanel {
 	private static final long serialVersionUID = 1L;
 	
+	protected static final String ID_FOCUS_FORM = "focusDetails";
+	
 	protected static final String ID_TASK_TABLE = "taskTable";
 	protected static final String ID_TASKS = "tasks";
 
@@ -98,7 +100,7 @@ public class FocusDetailsTabPanel<F extends FocusType> extends FocusTabPanel {
 	
 	private void initLayout() {
 
-		PrismObjectPanel userForm = new PrismObjectPanel<F>(ID_FOCUS_FORM, getFocusModel(),
+		PrismObjectPanel panel = new PrismObjectPanel<F>(ID_FOCUS_FORM, getFocusModel(),
 				new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), getMainForm(), getPageBase()) {
 
 			@Override
@@ -106,7 +108,7 @@ public class FocusDetailsTabPanel<F extends FocusType> extends FocusTabPanel {
 				return createStringResource("pageAdminFocus.description");
 			}
 		};
-		add(userForm);
+		add(panel);
 
 		WebMarkupContainer tasks = new WebMarkupContainer(ID_TASKS);
 		tasks.setOutputMarkupId(true);

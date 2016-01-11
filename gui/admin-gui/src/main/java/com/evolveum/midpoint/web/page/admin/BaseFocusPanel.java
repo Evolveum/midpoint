@@ -80,6 +80,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated
 public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 	private static final long serialVersionUID = 1L;
 

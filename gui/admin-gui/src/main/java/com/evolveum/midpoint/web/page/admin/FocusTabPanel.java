@@ -95,7 +95,6 @@ public abstract class FocusTabPanel<F extends FocusType> extends Panel {
 	public static final String AUTH_ORG_ALL_DESCRIPTION = "PageAdminUsers.auth.orgAll.description";
 	
 	protected static final String ID_MAIN_FORM = "mainForm";
-	protected static final String ID_FOCUS_FORM = "focusForm";
 
 	private static final Trace LOGGER = TraceManager.getTrace(FocusTabPanel.class);
 
