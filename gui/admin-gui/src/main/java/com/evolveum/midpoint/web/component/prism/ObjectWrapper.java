@@ -36,10 +36,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -265,6 +267,22 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         	}
         }
         return null;
+    }
+    
+    public <IW extends ItemWrapper> IW findPropertyWrapper(ItemPath path) {
+    	ContainerWrapper containerWrapper;
+    	ItemPath propertyPath;
+    	if (path.size() == 1) {
+    		containerWrapper = findMainContainerWrapper();
+    		propertyPath = path;
+    	} else {
+    		containerWrapper = findContainerWrapper(path.head());
+    		propertyPath = path.tail();
+    	}
+    	if (containerWrapper == null) {
+    		return null;
+    	}
+    	return (IW) containerWrapper.findPropertyWrapper(ItemPath.getFirstName(propertyPath));
     }
 
     public void normalize() throws SchemaException {

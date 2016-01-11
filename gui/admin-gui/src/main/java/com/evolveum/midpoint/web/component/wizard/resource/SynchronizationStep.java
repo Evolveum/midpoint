@@ -30,7 +30,6 @@ import com.evolveum.midpoint.web.component.form.multivalue.MultiValueAutoComplet
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.input.ThreeStateBooleanPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.component.synchronization.ConditionalSearchFilterEditor;
@@ -38,6 +37,7 @@ import com.evolveum.midpoint.web.component.wizard.resource.component.synchroniza
 import com.evolveum.midpoint.web.component.wizard.resource.component.synchronization.SynchronizationReactionEditor;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectSynchronizationTypeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceSynchronizationDto;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
@@ -63,6 +63,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.validation.IValidator;
 
 import javax.xml.namespace.QName;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

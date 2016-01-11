@@ -21,7 +21,7 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.FocusTabPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;

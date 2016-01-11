@@ -24,8 +24,8 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;

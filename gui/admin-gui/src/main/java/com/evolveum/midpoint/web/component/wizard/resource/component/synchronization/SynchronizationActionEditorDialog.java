@@ -19,11 +19,12 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.synchroniz
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.SynchronizationActionTypeDto;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationActionType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;

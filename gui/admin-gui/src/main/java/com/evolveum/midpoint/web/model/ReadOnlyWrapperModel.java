@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.util;
+package com.evolveum.midpoint.web.model;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -36,7 +36,7 @@ import javax.xml.namespace.QName;
 /**
  * @author semancik
  */
-public abstract class ReadOnlyWrapperModel<O extends ObjectType> extends AbstractWrapperModel<O> {
+public abstract class ReadOnlyWrapperModel<T,O extends ObjectType> extends AbstractWrapperModel<T,O> {
 
     public ReadOnlyWrapperModel(IModel<ObjectWrapper<O>> wrapperModel) {
     	super(wrapperModel);

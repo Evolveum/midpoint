@@ -51,8 +51,8 @@ import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusPanel;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.server.currentState.TaskCurrentStateDtoModel;
@@ -77,6 +77,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -111,6 +112,7 @@ import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.util.time.Duration;
 
 import javax.xml.namespace.QName;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;

@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;

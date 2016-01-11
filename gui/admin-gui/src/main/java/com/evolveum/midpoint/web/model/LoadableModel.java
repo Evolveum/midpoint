@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.util;
+package com.evolveum.midpoint.web.model;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.exception.SchemaException;

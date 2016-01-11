@@ -42,8 +42,8 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
@@ -69,6 +69,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.Strings;
 
 import javax.xml.namespace.QName;
+
 import java.util.*;
 
 /**

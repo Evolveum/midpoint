@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.util;
+package com.evolveum.midpoint.web.model;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -33,22 +33,25 @@ import org.apache.wicket.model.IModel;
 import javax.xml.namespace.QName;
 
 /**
+ * Model that returns property real values. This implementation works on PrismObject models (not wrappers).
+ * 
  * Simple implementation, now it can't handle multivalue properties.
- *
+ * 
  * @author lazyman
+ * @author semancik
  */
-public class PrismPropertyModel<T extends ObjectType> implements IModel {
+public class PrismPropertyRealValueFromPrismObjectModel<T,O extends ObjectType> implements IModel<T> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyModel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyRealValueFromPrismObjectModel.class);
 
-    private IModel<PrismObject<T>> model;
+    private IModel<PrismObject<O>> model;
     private ItemPath path;
 
-    public PrismPropertyModel(IModel<PrismObject<T>> model, QName item) {
+    public PrismPropertyRealValueFromPrismObjectModel(IModel<PrismObject<O>> model, QName item) {
         this(model, new ItemPath(item));
     }
 
-    public PrismPropertyModel(IModel<PrismObject<T>> model, ItemPath path) {
+    public PrismPropertyRealValueFromPrismObjectModel(IModel<PrismObject<O>> model, ItemPath path) {
         Validate.notNull(model, "Prism object model must not be null.");
         Validate.notNull(path, "Item path must not be null.");
 
@@ -57,9 +60,9 @@ public class PrismPropertyModel<T extends ObjectType> implements IModel {
     }
 
     @Override
-    public Object getObject() {
-        PrismObject object = model.getObject();
-        PrismProperty property;
+    public T getObject() {
+        PrismObject<O> object = model.getObject();
+        PrismProperty<T> property;
         try {
             property = object.findOrCreateProperty(path);
         } catch (SchemaException ex) {
@@ -72,18 +75,18 @@ public class PrismPropertyModel<T extends ObjectType> implements IModel {
     }
 
     @Override
-    public void setObject(Object object) {
+    public void setObject(T object) {
         try {
-            PrismObject obj = model.getObject();
-            PrismProperty property = obj.findOrCreateProperty(path);
+            PrismObject<O> obj = model.getObject();
+            PrismProperty<T> property = obj.findOrCreateProperty(path);
 
             if (object != null) {
-                PrismPropertyDefinition def = property.getDefinition();
+                PrismPropertyDefinition<T> def = property.getDefinition();
                 if (PolyString.class.equals(def.getTypeClass())) {
-                    object = new PolyString((String) object);
+                    object = (T) new PolyString((String) object);
                 }
 
-                property.setValue(new PrismPropertyValue(object, OriginType.USER_ACTION, null));
+                property.setValue(new PrismPropertyValue<T>(object, OriginType.USER_ACTION, null));
             } else {
                 PrismContainerValue parent = (PrismContainerValue) property.getParent();
                 parent.remove(property);
@@ -97,9 +100,9 @@ public class PrismPropertyModel<T extends ObjectType> implements IModel {
     public void detach() {
     }
 
-    private Object getRealValue(Object value) {
+    private T getRealValue(T value) {
         if (value instanceof PolyString) {
-            value = ((PolyString) value).getOrig();
+            value = (T) ((PolyString) value).getOrig();
         }
 
         return value;

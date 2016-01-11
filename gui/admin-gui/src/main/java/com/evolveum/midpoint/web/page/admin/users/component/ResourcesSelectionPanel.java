@@ -29,12 +29,13 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentSearchDto;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.util.BaseDeprecatedPanel;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.PageReference;

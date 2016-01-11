@@ -17,7 +17,8 @@
 package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.util.LookupPropertyModel;
+import com.evolveum.midpoint.web.model.LookupPropertyModel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;

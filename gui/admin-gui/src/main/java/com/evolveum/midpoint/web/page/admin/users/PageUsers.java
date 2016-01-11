@@ -44,7 +44,7 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
@@ -59,6 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;

@@ -19,7 +19,7 @@ package com.evolveum.midpoint.web.component.form;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.util.XmlGregorianCalendarModel;
+import com.evolveum.midpoint.web.model.XmlGregorianCalendarModel;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;

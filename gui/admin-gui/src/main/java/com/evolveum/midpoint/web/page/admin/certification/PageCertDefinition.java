@@ -34,7 +34,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -42,6 +42,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;

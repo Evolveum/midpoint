@@ -34,8 +34,8 @@ import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.reports.component.RunReportPopupPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportSearchDto;
@@ -44,6 +44,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;

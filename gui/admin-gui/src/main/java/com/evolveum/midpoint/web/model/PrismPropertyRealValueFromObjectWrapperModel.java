@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.util;
+package com.evolveum.midpoint.web.model;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -34,31 +34,33 @@ import org.apache.wicket.model.IModel;
 import javax.xml.namespace.QName;
 
 /**
+ * Model that returns property real values. This implementation works on ObjectWrapper models (not PrismObject).
+ * 
  * Simple implementation, now it can't handle multivalue properties.
  *
  * @author lazyman
  * @author semancik
  */
-public class PrismPropertyWrapperModel<O extends ObjectType> extends AbstractWrapperModel<O> {
+public class PrismPropertyRealValueFromObjectWrapperModel<T,O extends ObjectType> extends AbstractWrapperModel<T,O> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyWrapperModel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyRealValueFromObjectWrapperModel.class);
 
     private ItemPath path;
-    private Object defaultValue = null;
+    private T defaultValue = null;
 
-    public PrismPropertyWrapperModel(IModel<ObjectWrapper<O>> model, QName item) {
+    public PrismPropertyRealValueFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, QName item) {
         this(model, new ItemPath(item), null);
     }
 
-    public PrismPropertyWrapperModel(IModel<ObjectWrapper<O>> model, QName item, Object defaltValue) {
+    public PrismPropertyRealValueFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, QName item, T defaltValue) {
         this(model, new ItemPath(item), defaltValue);
     }
 
-    public PrismPropertyWrapperModel(IModel<ObjectWrapper<O>> model, ItemPath path) {
+    public PrismPropertyRealValueFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, ItemPath path) {
     	this(model, path, null);
     }
     
-    public PrismPropertyWrapperModel(IModel<ObjectWrapper<O>> model, ItemPath path, Object defaltValue) {
+    public PrismPropertyRealValueFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, ItemPath path, T defaltValue) {
     	super(model);
         Validate.notNull(path, "Item path must not be null.");
         this.path = path;
@@ -66,8 +68,8 @@ public class PrismPropertyWrapperModel<O extends ObjectType> extends AbstractWra
     }
 
     @Override
-    public Object getObject() {
-        PrismProperty property;
+    public T getObject() {
+        PrismProperty<T> property;
         try {
             property = getPrismObject().findOrCreateProperty(path);
         } catch (SchemaException ex) {
@@ -76,7 +78,7 @@ public class PrismPropertyWrapperModel<O extends ObjectType> extends AbstractWra
             throw new RestartResponseException(PageError.class);
         }
 
-        Object val = getRealValue(property != null ? property.getRealValue() : null);
+        T val = getRealValue(property != null ? property.getRealValue() : null);
         if (val == null) {
         	return defaultValue;
         } else {
@@ -109,9 +111,9 @@ public class PrismPropertyWrapperModel<O extends ObjectType> extends AbstractWra
     public void detach() {
     }
 
-    private Object getRealValue(Object value) {
+    private T getRealValue(T value) {
         if (value instanceof PolyString) {
-            value = ((PolyString) value).getOrig();
+            value = (T) ((PolyString) value).getOrig();
         }
 
         return value;

@@ -30,9 +30,9 @@ import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueDropDownPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
@@ -41,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;

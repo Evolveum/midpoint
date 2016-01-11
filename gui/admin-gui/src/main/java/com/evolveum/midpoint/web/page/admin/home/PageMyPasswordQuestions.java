@@ -7,7 +7,9 @@ import java.util.List;
 
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
+
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -37,7 +39,6 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.component.MyPasswordQuestionsPanel;

@@ -21,12 +21,14 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.model.LoadableModel;
+import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.FocusTabPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -55,24 +57,15 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends FocusTabPanel<
 		add(new Label(ID_HEADER, "Object details"));
 		WebMarkupContainer body = new WebMarkupContainer("body");
 		add(body);
+				
+		body.add(new PrismPropertyPanel(ID_PROP_NAME, 
+				new PropertyWrapperFromObjectWrapperModel<PolyString,F>(focusModel, FocusType.F_NAME), 
+				getMainForm(), pageBase));
 		
-		IModel<? extends ItemWrapper> propNameModel = new Model<PropertyWrapper>() {
-			@Override
-			public PropertyWrapper getObject() {
-				return (PropertyWrapper) focusModel.getObject().findMainContainerWrapper().findPropertyWrapper(FocusType.F_NAME);
-			}
-		};
-		PrismPropertyPanel propNamePanel = new PrismPropertyPanel(ID_PROP_NAME, propNameModel, getMainForm(), pageBase);
-		body.add(propNamePanel);
-		
-		IModel<? extends ItemWrapper> propFullNameModel = new Model<PropertyWrapper>() {
-			@Override
-			public PropertyWrapper getObject() {
-				return (PropertyWrapper) focusModel.getObject().findMainContainerWrapper().findPropertyWrapper(UserType.F_FULL_NAME);
-			}
-		};
-		PrismPropertyPanel propFullNamePanel = new PrismPropertyPanel(ID_PROP_FULL_NAME, propFullNameModel, getMainForm(), pageBase);
-		body.add(propFullNamePanel);
+		body.add(new PrismPropertyPanel(ID_PROP_FULL_NAME, 
+				new PropertyWrapperFromObjectWrapperModel<PolyString,F>(focusModel, UserType.F_FULL_NAME), 
+				getMainForm(), pageBase));
+
 		
 	}
 

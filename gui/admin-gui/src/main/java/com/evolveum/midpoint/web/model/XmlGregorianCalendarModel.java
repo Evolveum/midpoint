@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.util;
+package com.evolveum.midpoint.web.model;
 
 import com.evolveum.midpoint.util.MiscUtil;
 import org.apache.commons.lang.time.DateUtils;

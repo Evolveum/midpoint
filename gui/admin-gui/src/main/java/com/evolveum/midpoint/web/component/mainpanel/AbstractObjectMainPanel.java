@@ -33,7 +33,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;

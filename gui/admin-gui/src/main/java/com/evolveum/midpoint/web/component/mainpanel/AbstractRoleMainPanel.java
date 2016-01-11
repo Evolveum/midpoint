@@ -23,7 +23,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.roles.RolePolicyPanel;

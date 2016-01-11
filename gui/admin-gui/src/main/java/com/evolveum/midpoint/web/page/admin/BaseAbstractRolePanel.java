@@ -10,8 +10,8 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.roles.component.MultiplicityPolicyDialog;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;

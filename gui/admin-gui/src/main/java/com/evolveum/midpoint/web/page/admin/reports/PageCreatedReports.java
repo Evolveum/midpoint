@@ -38,8 +38,8 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
@@ -56,6 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;

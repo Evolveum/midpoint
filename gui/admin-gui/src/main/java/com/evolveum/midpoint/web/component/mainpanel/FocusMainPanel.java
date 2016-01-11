@@ -32,7 +32,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.BaseFocusPanel;
 import com.evolveum.midpoint.web.page.admin.FocusAssignmentsTabPanel;

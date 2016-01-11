@@ -45,7 +45,7 @@ import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.dialog.UserBrowserDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;

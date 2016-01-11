@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.util;
+package com.evolveum.midpoint.web.model;
 
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;

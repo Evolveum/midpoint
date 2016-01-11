@@ -56,8 +56,8 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.dialog.DeleteAllDialog;
 import com.evolveum.midpoint.web.component.dialog.DeleteAllDto;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.DebugButtonPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDownloadBehaviour;
@@ -72,6 +72,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -102,6 +103,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import javax.swing.text.html.ListView;
 import javax.xml.namespace.QName;
+
 import java.util.*;
 
 /**

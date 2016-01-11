@@ -40,7 +40,7 @@ import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
@@ -53,6 +53,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.Component;
