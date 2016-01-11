@@ -49,7 +49,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class PrismPropertyPanel extends Panel {
+public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyPanel.class);
     private static final String ID_HAS_PENDING_MODIFICATION = "hasPendingModification";
@@ -58,7 +58,7 @@ public class PrismPropertyPanel extends Panel {
 
     private PageBase pageBase;
 
-    public PrismPropertyPanel(String id, final IModel<ItemWrapper> model, Form form, PageBase pageBase) {
+    public PrismPropertyPanel(String id, final IModel<IW> model, Form form, PageBase pageBase) {
         super(id);
         this.pageBase = pageBase;
 
@@ -84,7 +84,7 @@ public class PrismPropertyPanel extends Panel {
         initLayout(model, form);
     }
 
-    private void initLayout(final IModel<ItemWrapper> model, final Form form) {
+    private void initLayout(final IModel<IW> model, final Form form) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         labelContainer.setOutputMarkupId(true);
         add(labelContainer);
@@ -185,7 +185,7 @@ public class PrismPropertyPanel extends Panel {
         return "row";
     }
 
-    private String loadHelpText(IModel<ItemWrapper> model) {
+    private String loadHelpText(IModel<IW> model) {
         Item property = (Item) model.getObject().getItem();
         ItemDefinition def = property.getDefinition();
         String doc = def.getHelp();
@@ -222,7 +222,7 @@ public class PrismPropertyPanel extends Panel {
         return -1;
     }
 
-    private boolean hasOutbound(IModel<ItemWrapper> model) {
+    private boolean hasOutbound(IModel<IW> model) {
         ItemWrapper wrapper = model.getObject();
         Item property = wrapper.getItem();
         ItemDefinition def = property.getDefinition();
@@ -234,7 +234,7 @@ public class PrismPropertyPanel extends Panel {
         return refinedDef.hasOutboundMapping();
     }
 
-    private boolean hasPendingModification(IModel<ItemWrapper> model) {
+    private boolean hasPendingModification(IModel<IW> model) {
         ItemWrapper propertyWrapper = model.getObject();
         ContainerWrapper containerWrapper = propertyWrapper.getContainer();
         ObjectWrapper objectWrapper = containerWrapper.getObject();
@@ -266,12 +266,12 @@ public class PrismPropertyPanel extends Panel {
         return false;
     }
 
-    private IModel<String> createDisplayName(final IModel<ItemWrapper> model) {
+    private IModel<String> createDisplayName(final IModel<IW> model) {
         return new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
-                ItemWrapper wrapper = model.getObject();
+                IW wrapper = model.getObject();
                 String displayName = wrapper.getDisplayName();
                 return getString(displayName, null, displayName);
             }

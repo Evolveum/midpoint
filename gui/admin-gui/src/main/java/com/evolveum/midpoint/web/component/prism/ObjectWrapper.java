@@ -257,6 +257,15 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 
         return null;
     }
+    
+    public ContainerWrapper findMainContainerWrapper() {
+        for (ContainerWrapper wrapper : getContainers()) {
+        	if (wrapper.isMain()) {
+        		return wrapper;
+        	}
+        }
+        return null;
+    }
 
     public void normalize() throws SchemaException {
         ObjectDelta delta = getObjectDelta();
