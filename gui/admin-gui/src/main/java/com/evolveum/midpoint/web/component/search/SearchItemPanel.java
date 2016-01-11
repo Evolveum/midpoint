@@ -446,6 +446,11 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
         public String getIdValue(DisplayableValue<T> object, int index) {
             return Integer.toString(index);
         }
+        
+        @Override
+        public DisplayableValue<T> getObject(String id, IModel<? extends List<? extends DisplayableValue<T>>> choices) {
+        	return choices.getObject().get(Integer.parseInt(id));
+        }
 
         @Override
         public DisplayableValue<T> convertToObject(String value, Locale locale) throws ConversionException {
