@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.LoadableModel;
+import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
@@ -57,6 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -83,7 +86,7 @@ import java.util.List;
 /**
  * @author semancik
  */
-public abstract class FocusTabPanel<F extends FocusType> extends Panel {
+public abstract class AbstractFocusTabPanel<F extends FocusType> extends Panel {
 	private static final long serialVersionUID = 1L;
 
 	public static final String AUTH_USERS_ALL = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL;
@@ -96,13 +99,13 @@ public abstract class FocusTabPanel<F extends FocusType> extends Panel {
 	
 	protected static final String ID_MAIN_FORM = "mainForm";
 
-	private static final Trace LOGGER = TraceManager.getTrace(FocusTabPanel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(AbstractFocusTabPanel.class);
 
 	private LoadableModel<ObjectWrapper<F>> focusModel;
 	private PageBase pageBase;
 	private Form mainForm;
 
-	public FocusTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel, PageBase pageBase) {
+	public AbstractFocusTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel, PageBase pageBase) {
 		super(id);
 		this.focusModel = focusModel;
 		this.mainForm = mainForm;
@@ -179,5 +182,16 @@ public abstract class FocusTabPanel<F extends FocusType> extends Panel {
 		ModalWindow window = (ModalWindow) get(id);
 		window.show(target);
 		target.add(getFeedbackPanel());
+	}
+	
+	protected void addPrismPropertyPanel(MarkupContainer parentComponent, String id, QName propertyName) {
+		addPrismPropertyPanel(parentComponent, id, new ItemPath(propertyName));
+	}
+	
+	protected void addPrismPropertyPanel(MarkupContainer parentComponent, String id, ItemPath propertyPath) {
+		parentComponent.add(
+				new PrismPropertyPanel(id,
+						new PropertyWrapperFromObjectWrapperModel<PolyString,F>(getFocusModel(), propertyPath),
+						mainForm, pageBase));
 	}
 }

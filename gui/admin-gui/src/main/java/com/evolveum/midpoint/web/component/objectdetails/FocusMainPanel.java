@@ -109,16 +109,16 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		} catch (ClassNotFoundException e) {
 			throw new SystemException("Panel class '"+panelClassName+"' as specified in admin GUI configuration was not found", e);
 		}
-		if (FocusTabPanel.class.isAssignableFrom(panelClass)) {
+		if (AbstractFocusTabPanel.class.isAssignableFrom(panelClass)) {
 			Constructor<?> constructor;
 			try {
 				constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class, PageBase.class);
 			} catch (NoSuchMethodException | SecurityException e) {
 				throw new SystemException("Unable to locate constructor (String,Form,LoadableModel,PageBase) in "+panelClass+": "+e.getMessage(), e);
 			}
-			FocusTabPanel<F> tabPanel;
+			AbstractFocusTabPanel<F> tabPanel;
 			try {
-				tabPanel = (FocusTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel(), parentPage);
+				tabPanel = (AbstractFocusTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel(), parentPage);
 			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				throw new SystemException("Error instantiating "+panelClass+": "+e.getMessage(), e);
 			}

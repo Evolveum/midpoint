@@ -20,7 +20,7 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.objectdetails.FocusTabPanel;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractFocusTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
@@ -33,7 +33,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author Radovan Semancik
  *
  */
-public class HelloFocusTabPanel<F extends FocusType> extends FocusTabPanel<F> {
+public class HelloFocusTabPanel<F extends FocusType> extends AbstractFocusTabPanel<F> {
 	
 	private static final String ID_HELLO_LABEL = "helloLabel";
 

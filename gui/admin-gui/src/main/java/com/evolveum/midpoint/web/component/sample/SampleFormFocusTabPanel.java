@@ -17,23 +17,14 @@ package com.evolveum.midpoint.web.component.sample;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.objectdetails.FocusTabPanel;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractFocusTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Sample showing a custom focus form that displays semi-static form.
@@ -41,7 +32,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author Radovan Semancik
  *
  */
-public class SampleFormFocusTabPanel<F extends FocusType> extends FocusTabPanel<F> {
+public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusTabPanel<F> {
 	
 	private static final String ID_HEADER = "header";
 	private static final String ID_BODY = "body";
@@ -57,15 +48,9 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends FocusTabPanel<
 		add(new Label(ID_HEADER, "Object details"));
 		WebMarkupContainer body = new WebMarkupContainer("body");
 		add(body);
-				
-		body.add(new PrismPropertyPanel(ID_PROP_NAME, 
-				new PropertyWrapperFromObjectWrapperModel<PolyString,F>(focusModel, FocusType.F_NAME), 
-				getMainForm(), pageBase));
 		
-		body.add(new PrismPropertyPanel(ID_PROP_FULL_NAME, 
-				new PropertyWrapperFromObjectWrapperModel<PolyString,F>(focusModel, UserType.F_FULL_NAME), 
-				getMainForm(), pageBase));
-
+		addPrismPropertyPanel(body, ID_PROP_NAME, FocusType.F_NAME);
+		addPrismPropertyPanel(body, ID_PROP_FULL_NAME, UserType.F_FULL_NAME);
 		
 	}
 

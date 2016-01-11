@@ -84,7 +84,7 @@ import java.util.List;
 /**
  * @author semancik
  */
-public class FocusProjectionsTabPanel<F extends FocusType> extends FocusTabPanel {
+public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractFocusTabPanel {
 	private static final long serialVersionUID = 1L;
 	
 	private static final String ID_SHADOW_LIST = "shadowList";

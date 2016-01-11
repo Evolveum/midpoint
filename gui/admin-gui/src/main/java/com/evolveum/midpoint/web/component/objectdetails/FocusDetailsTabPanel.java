@@ -83,7 +83,7 @@ import java.util.List;
 /**
  * @author semancik
  */
-public class FocusDetailsTabPanel<F extends FocusType> extends FocusTabPanel {
+public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabPanel {
 	private static final long serialVersionUID = 1L;
 	
 	protected static final String ID_FOCUS_FORM = "focusDetails";
