@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 
@@ -320,13 +321,11 @@ public class ReconciliationProcessor {
 									"Attempt to set more than one value for single-valued attribute "
 											+ attrName + " in " + projCtx.getResourceShadowDiscriminator());
 						}
-						LOGGER.trace("Reconciliation: REPLACING value {} of the attribute {}" , shouldBeRealValue, attributeDefinition.getName().getLocalPart());
 						recordDelta(valueMatcher, projCtx, attributeDefinition, ModificationType.REPLACE, shouldBeRealValue,
-								shouldBePvwo.getConstruction().getSource());
+								shouldBePvwo.getConstruction().getSource(), "it is given by a mapping");
 					} else {
-						LOGGER.trace("Reconciliation: ADDING value {} of the attribute {}" , shouldBeRealValue, attributeDefinition.getName().getLocalPart());
 						recordDelta(valueMatcher, projCtx, attributeDefinition, ModificationType.ADD, shouldBeRealValue,
-								shouldBePvwo.getConstruction().getSource());
+								shouldBePvwo.getConstruction().getSource(), "it is given by a mapping");
 					}
 					hasValue = true;
 				}
@@ -549,18 +548,16 @@ public class ReconciliationProcessor {
 			}
 		
 			if (matchPattern(attributeDefinition.getIntolerantValuePattern(), isPValue, valueMatcher)){
-				LOGGER.trace("Reconciliation: DELETING value {} of the attribute {}: match with intolerant value pattern." , isPValue, attributeDefinition.getName().getLocalPart());
 				recordDelta(valueMatcher, projCtx, attributeDefinition, ModificationType.DELETE,
-						isPValue.getValue(), null);
+						isPValue.getValue(), null, "it has matched with intolerant pattern");
 				continue;
 			}		
 				
 			
 			if (!attributeDefinition.isTolerant()) {
 				if (!isInPvwoValues(valueMatcher, isPValue.getValue(), shouldBePValues)) {
-						LOGGER.trace("Reconciliation: DELETING value {} of the attribute {}" , isPValue, attributeDefinition.getName().getLocalPart());
 						recordDelta(valueMatcher, projCtx, attributeDefinition, ModificationType.DELETE,
-								isPValue.getValue(), null);
+								isPValue.getValue(), null, "it is not given by any mapping and the attribute is not tolerant");
 				}
 			}
 		}
@@ -584,7 +581,7 @@ public class ReconciliationProcessor {
     }
 
 	private <T> void recordDelta(ValueMatcher valueMatcher, LensProjectionContext accCtx,
-			ResourceAttributeDefinition attrDef, ModificationType changeType, T value, ObjectType originObject)
+			ResourceAttributeDefinition attrDef, ModificationType changeType, T value, ObjectType originObject, String reason)
 			throws SchemaException {
 
 		ItemDelta existingDelta = null;
@@ -592,8 +589,10 @@ public class ReconciliationProcessor {
 			existingDelta = accCtx.getSecondaryDelta().findItemDelta(
 					new ItemPath(SchemaConstants.PATH_ATTRIBUTES, attrDef.getName()));
 		}
-		LOGGER.trace("Reconciliation will {} value of attribute {}: {}", new Object[] { changeType, attrDef,
-				value });
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Reconciliation will {} value of attribute {}: {} because {}", new Object[] { changeType, 
+					PrettyPrinter.prettyPrint(attrDef.getName()), value, reason});
+		}
 
 		PropertyDelta<T> attrDelta = new PropertyDelta<T>(SchemaConstants.PATH_ATTRIBUTES, attrDef.getName(),
 				attrDef, prismContext);

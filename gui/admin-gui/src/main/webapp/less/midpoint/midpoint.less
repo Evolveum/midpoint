@@ -247,6 +247,24 @@ div.tree-table-header {
     font-weight: bold;
 }
 
+div.search-popover {
 
+  & > div.more-input,
+  & > div.buttons {
+    margin: 6px;
+  }
 
+  & > div.properties {
+    padding: 0 5px;
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    height: 150px;
+    max-height: 150px;
+    overflow: auto;
+    vertical-align: top;
 
+    & label {
+      font-weight: normal;
+    }
+  }
+}
