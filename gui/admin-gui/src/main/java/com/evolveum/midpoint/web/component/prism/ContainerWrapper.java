@@ -23,10 +23,12 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -115,11 +117,11 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
         this.properties = properties;
     }
 
-    public ItemWrapper findPropertyWrapper(QName name) {
+    public <IW extends ItemWrapper> IW findPropertyWrapper(QName name) {
         Validate.notNull(name, "QName must not be null.");
         for (ItemWrapper wrapper : getItems()) {
             if (name.equals(wrapper.getItem().getElementName())) {
-                return wrapper;
+                return (IW) wrapper;
             }
         }
         return null;

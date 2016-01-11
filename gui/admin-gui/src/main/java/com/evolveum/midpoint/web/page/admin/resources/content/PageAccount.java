@@ -33,10 +33,13 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import com.evolveum.midpoint.web.page.PageTemplate;
+
+import com.evolveum.midpoint.web.model.LoadableModel;
+
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
@@ -84,25 +87,25 @@ public class PageAccount extends PageAdminResources {
 
     private IModel<ObjectWrapper<ShadowType>> accountModel;
 
-    public PageAccount() {
+    public PageAccount(final PageParameters parameters) {
         accountModel = new LoadableModel<ObjectWrapper<ShadowType>>(false) {
 
             @Override
             protected ObjectWrapper<ShadowType> load() {
-                return loadAccount();
+                return loadAccount(parameters);
             }
         };
         initLayout();
     }
 
-    private ObjectWrapper<ShadowType> loadAccount() {
+    private ObjectWrapper<ShadowType> loadAccount(PageParameters parameters) {
     	Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
         OperationResult result = task.getResult();
 
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
                 ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
-        StringValue oid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+        StringValue oid = parameters != null ? parameters.get(OnePageParameterEncoder.PARAMETER) : null;
         PrismObject<ShadowType> account = WebModelUtils.loadObject(ShadowType.class, oid.toString(), options,
                 PageAccount.this, task, result);
 

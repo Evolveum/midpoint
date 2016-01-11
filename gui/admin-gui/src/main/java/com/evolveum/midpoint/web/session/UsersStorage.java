@@ -17,10 +17,10 @@
 package com.evolveum.midpoint.web.session;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
+import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgUnitSearchDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
-import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
 
 import java.util.Set;
 
@@ -32,7 +32,7 @@ public class UsersStorage extends PageStorage {
     /**
      * DTO used for search in {@link com.evolveum.midpoint.web.page.admin.users.PageUsers}
      */
-    private UsersDto usersSearch;
+    private Search usersSearch;
 
     /**
      * DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.users in OrgUnitBrowser}
@@ -62,11 +62,11 @@ public class UsersStorage extends PageStorage {
         this.usersPaging = usersPaging;
     }
 
-    public UsersDto getUsersSearch() {
+    public Search getUsersSearch() {
         return usersSearch;
     }
 
-    public void setUsersSearch(UsersDto usersSearch) {
+    public void setUsersSearch(Search usersSearch) {
         this.usersSearch = usersSearch;
     }
 

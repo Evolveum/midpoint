@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,8 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
     public AsyncDashboardPanel(String id, IModel<String> title, String icon, IModel<V> callableParameterModel,
                                Duration durationSecs, DashboardColor color) {
         super(id, callableParameterModel, durationSecs);
+        
+        initLayout();
 
         WebMarkupContainer dashboardTitle = (WebMarkupContainer) get(
                 createComponentPath(ID_DASHBOARD_PARENT, ID_DASHBOARD_TITLE));
@@ -77,8 +79,7 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
         dashboardTitle.add(iconI);
     }
 
-    @Override
-    protected void initLayout() {
+    private void initLayout() {
         WebMarkupContainer dashboardParent = new WebMarkupContainer(ID_DASHBOARD_PARENT);
         add(dashboardParent);
 

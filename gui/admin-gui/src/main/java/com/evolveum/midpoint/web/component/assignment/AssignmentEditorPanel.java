@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,9 @@ import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.TwoStateBooleanPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
@@ -79,7 +79,7 @@ import java.util.*;
 /**
  * @author lazyman
  */
-public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
+public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentEditorPanel.class);
 
@@ -131,7 +131,7 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
             }
         };
 
-        initPanelLayout();
+        initLayout();
     }
 
     @Override
@@ -142,7 +142,7 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
                 new PackageResourceReference(AssignmentEditorPanel.class, "AssignmentEditorPanel.css")));
     }
 
-    private void initPanelLayout() {
+    private void initLayout() {
         WebMarkupContainer headerRow = new WebMarkupContainer(ID_HEADER_ROW);
         headerRow.add(AttributeModifier.append("class", createHeaderClassModel(getModel())));
         headerRow.setOutputMarkupId(true);

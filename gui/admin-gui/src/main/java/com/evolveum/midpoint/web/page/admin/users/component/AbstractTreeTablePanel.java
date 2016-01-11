@@ -46,8 +46,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
@@ -158,7 +158,9 @@ public abstract class AbstractTreeTablePanel extends SimplePanel<String> {
             ((LoadableModel) tabs).reset();
         }
 
-        tabbedPanel.setSelectedTab(0);
+        if (tabs.getObject() != null && tabs.getObject().size() > 0) {
+            tabbedPanel.setSelectedTab(0);
+        }
 
         target.add(tabbedPanel);
         target.add(page.getFeedbackPanel());

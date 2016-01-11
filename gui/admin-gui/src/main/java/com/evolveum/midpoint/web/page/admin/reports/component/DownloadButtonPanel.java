@@ -1,23 +1,24 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.util.BaseSimplePanel;
+import com.evolveum.midpoint.web.component.util.BasePanel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 /**
  * @author Viliam Repan (lazyman)
  */
-public class DownloadButtonPanel extends BaseSimplePanel {
+public class DownloadButtonPanel extends BasePanel {
 
     private static final String ID_DOWNLOAD = "download";
     private static final String ID_DELETE = "delete";
 
     public DownloadButtonPanel(String id) {
         super(id);
+        initLayout();
     }
 
-    @Override
-    protected void initLayout() {
+    private void initLayout() {
         AjaxButton download = new AjaxButton(ID_DOWNLOAD) {
 
             @Override

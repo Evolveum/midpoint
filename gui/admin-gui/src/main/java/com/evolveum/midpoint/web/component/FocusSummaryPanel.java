@@ -30,11 +30,12 @@ import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.PrismPropertyWrapperModel;
-import com.evolveum.midpoint.web.component.util.ReadOnlyWrapperModel;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromObjectWrapperModel;
+import com.evolveum.midpoint.web.model.ReadOnlyWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -74,17 +75,17 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends Panel {
 		
 		box.add(new AttributeModifier("class", BOX_CSS_CLASS + " " + getBoxAdditionalCssClass()));
 		
-		box.add(new Label(ID_DISPLAY_NAME, new PrismPropertyWrapperModel<>(model, getDisplayNamePropertyName())));
-		box.add(new Label(ID_IDENTIFIER, new PrismPropertyWrapperModel<>(model, getIdentifierPropertyName())));
+		box.add(new Label(ID_DISPLAY_NAME, new PrismPropertyRealValueFromObjectWrapperModel<>(model, getDisplayNamePropertyName())));
+		box.add(new Label(ID_IDENTIFIER, new PrismPropertyRealValueFromObjectWrapperModel<>(model, getIdentifierPropertyName())));
 		if (getTitlePropertyName() == null) {
 			box.add(new Label(ID_TITLE, " "));
 		} else {
-			box.add(new Label(ID_TITLE, new PrismPropertyWrapperModel<>(model, getTitlePropertyName(), " ")));
+			box.add(new Label(ID_TITLE, new PrismPropertyRealValueFromObjectWrapperModel<>(model, getTitlePropertyName(), " ")));
 		}
 		
-		box.add(new Label(ID_ORGANIZATION, new ReadOnlyWrapperModel<O>(model) {
+		box.add(new Label(ID_ORGANIZATION, new ReadOnlyWrapperModel<String,O>(model) {
 			@Override
-			public Object getObject() {
+			public String getObject() {
 				Collection<PrismObject<OrgType>> parentOrgs = getWrapper().getParentOrgs();
 				if (parentOrgs.isEmpty()) {
 					return "";
@@ -94,11 +95,11 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends Panel {
 				for (PrismObject<OrgType> org: parentOrgs) {
 					OrgType orgType = org.asObjectable();
 					if (orgType.getOrgType().contains("functional")) {
-						return orgType.getDisplayName();
+						return PolyString.getOrig(orgType.getDisplayName());
 					}
 				}
 				// Just use the first one as a fallback
-				return parentOrgs.iterator().next().asObjectable().getDisplayName();
+				return PolyString.getOrig(parentOrgs.iterator().next().asObjectable().getDisplayName());
 			}
 		}));
 		

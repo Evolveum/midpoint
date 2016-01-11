@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.mainpanel.AbstractObjectMainPanel;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 
 import org.apache.commons.lang.StringUtils;
@@ -56,8 +56,8 @@ import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
@@ -222,6 +222,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		initLayoutSummaryPanel();
 		
 		mainPanel = createMainPanel(ID_MAIN_PANEL);
+		mainPanel.setOutputMarkupId(true);
 		add(mainPanel);
 		
 		progressReporter = createProgressReporter("progressPanel");
@@ -405,10 +406,11 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	 * This will be called from the main form when save button is pressed.
 	 */
 	public void savePerformed(AjaxRequestTarget target) {
-		LOGGER.debug("Save object.");
 		progressReporter.onSaveSubmit();
 		OperationResult result = new OperationResult(OPERATION_SAVE);
-		ObjectWrapper userWrapper = getObjectWrapper();
+		ObjectWrapper<O> objectWrapper = getObjectWrapper();
+		LOGGER.debug("Saving object {}", objectWrapper);
+		
 		// todo: improve, delta variable is quickfix for MID-1006
 		// redirecting to user list page everytime user is created in repository
 		// during user add in gui,
@@ -424,9 +426,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		try {
 			reviveModels();
 
-			delta = userWrapper.getObjectDelta();
-			if (userWrapper.getOldDelta() != null) {
-				delta = ObjectDelta.summarize(userWrapper.getOldDelta(), delta);
+			delta = objectWrapper.getObjectDelta();
+			if (objectWrapper.getOldDelta() != null) {
+				delta = ObjectDelta.summarize(objectWrapper.getOldDelta(), delta);
 			}
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("User delta computed from form:\n{}", new Object[] { delta.debugDump(3) });
@@ -438,7 +440,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			return;
 		}
 
-		switch (userWrapper.getStatus()) {
+		switch (objectWrapper.getStatus()) {
 			case ADDING:
 				try {
 					PrismObject<O> objectToAdd = delta.getObjectToAdd();
@@ -504,7 +506,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 					if (delta.isEmpty() && ModelExecuteOptions.isReconcile(options)) {
 						ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(getCompileTimeClass(),
-								userWrapper.getObject().getOid(), getPrismContext());
+								objectWrapper.getObject().getOid(), getPrismContext());
 						deltas.add(emptyDelta);
 
 						Collection<SimpleValidationError> validationErrors = performCustomValidation(null,
@@ -543,7 +545,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 					}
 
 				} catch (Exception ex) {
-					if (!executeForceDelete(userWrapper, task, options, result)) {
+					if (!executeForceDelete(objectWrapper, task, options, result)) {
 						result.recordFatalError(getString("pageUser.message.cantUpdateUser"), ex);
 						LoggingUtils.logException(LOGGER, getString("pageUser.message.cantUpdateUser"), ex);
 					} else {
@@ -553,14 +555,24 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 				break;
 			// support for add/delete containers (e.g. delete credentials)
 			default:
-				error(getString("pageAdminFocus.message.unsupportedState", userWrapper.getStatus()));
+				error(getString("pageAdminFocus.message.unsupportedState", objectWrapper.getStatus()));
 		}
 
 		result.recomputeStatus();
 
 		if (!result.isInProgress()) {
+			LOGGER.trace("Result NOT in progress, calling finishProcessing");
 			finishProcessing(target, result);
 		}
+		
+		LOGGER.trace("returning from savePerformed");
+	}
+
+	@Override
+	public void startProcessing(AjaxRequestTarget target, OperationResult result) {
+		LOGGER.trace("startProcessing called, making main panel invisible");
+		mainPanel.setVisible(false);
+		target.add(mainPanel);
 	}
 
 	protected ModelExecuteOptions getExecuteChangesOptions() {
@@ -649,30 +661,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     }
 	
 	protected abstract PageBase getDefaultBackPage();
-
-	
-	// TODO
-	private void initButtons(final Form mainForm) {
-
-		AjaxSubmitButton abortButton = new AjaxSubmitButton("abort",
-				createStringResource("pageAdminFocus.button.abort")) {
-
-			@Override
-			protected void onSubmit(AjaxRequestTarget target,
-					org.apache.wicket.markup.html.form.Form<?> form) {
-				progressReporter.onAbortSubmit(target);
-			}
-
-			@Override
-			protected void onError(AjaxRequestTarget target,
-					org.apache.wicket.markup.html.form.Form<?> form) {
-				target.add(getFeedbackPanel());
-			}
-		};
-		progressReporter.registerAbortButton(abortButton);
-		mainForm.add(abortButton);
-
-	}
 	
 	public List<ObjectFormType> getObjectFormTypes() {
 		Task task = createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION);

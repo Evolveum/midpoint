@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,10 +36,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -257,6 +259,31 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 
         return null;
     }
+    
+    public ContainerWrapper findMainContainerWrapper() {
+        for (ContainerWrapper wrapper : getContainers()) {
+        	if (wrapper.isMain()) {
+        		return wrapper;
+        	}
+        }
+        return null;
+    }
+    
+    public <IW extends ItemWrapper> IW findPropertyWrapper(ItemPath path) {
+    	ContainerWrapper containerWrapper;
+    	ItemPath propertyPath;
+    	if (path.size() == 1) {
+    		containerWrapper = findMainContainerWrapper();
+    		propertyPath = path;
+    	} else {
+    		containerWrapper = findContainerWrapper(path.head());
+    		propertyPath = path.tail();
+    	}
+    	if (containerWrapper == null) {
+    		return null;
+    	}
+    	return (IW) containerWrapper.findPropertyWrapper(ItemPath.getFirstName(propertyPath));
+    }
 
     public void normalize() throws SchemaException {
         ObjectDelta delta = getObjectDelta();
@@ -267,12 +294,12 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         }
     }
 
-    public ObjectDelta getObjectDelta() throws SchemaException {
+    public ObjectDelta<O> getObjectDelta() throws SchemaException {
         if (ContainerStatus.ADDING.equals(getStatus())) {
             return createAddingObjectDelta();
         }
 
-        ObjectDelta delta = new ObjectDelta(object.getCompileTimeClass(), ChangeType.MODIFY,
+        ObjectDelta<O> delta = new ObjectDelta<O>(object.getCompileTimeClass(), ChangeType.MODIFY,
                 object.getPrismContext());
         delta.setOid(object.getOid());
 

@@ -17,7 +17,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -30,7 +29,6 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -39,19 +37,16 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -69,14 +64,16 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.EditablePropertyColumn;
 import com.evolveum.midpoint.web.component.input.AutoCompleteTextPanel;
 import com.evolveum.midpoint.web.component.input.DatePanel;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.LookupPropertyModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+
 import com.evolveum.midpoint.web.page.PageTemplate;
+
+import com.evolveum.midpoint.web.model.LoadableModel;
+import com.evolveum.midpoint.web.model.LookupPropertyModel;
+
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
@@ -90,8 +87,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import net.sf.jasperreports.engine.JRPropertiesMap;
 
@@ -115,6 +112,7 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
     private static final String ID_INPUT_SIZE = "col-md-8";
 
     private static final String ID_PARAMETERS_TABLE = "paramTable";
+    private static final Integer AUTO_COMPLETE_BOX_SIZE = 10;
 
     private IModel<ReportDto> reportModel;
     private ReportType reportType;
@@ -220,15 +218,14 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
     }
 
     private Component createTypedInputPanel(String componentId, IModel<JasperReportParameterDto> model, String expression) {
-        JasperReportParameterDto param = model.getObject();
+        final JasperReportParameterDto param = model.getObject();
         param.setEditing(true);
 
         IModel label = new PropertyModel<String>(model, "name");
         PropertyModel value = new PropertyModel<String>(model, expression);
         String tooltipKey = model.getObject().getTypeAsString();
         Class type = null;
-
-        final LookupTableType lookup = createLookupTable(param);
+        final LookupTableType lookup;
 
         try {
             type = param.getType();
@@ -242,26 +239,17 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
             panel = WebMiscUtil.createEnumPanel(type, componentId, new PropertyModel(model, expression), this);
         } else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
             panel = new DatePanel(componentId, new PropertyModel<XMLGregorianCalendar>(model, expression));
-//        } else if ("resourceName".equals(param.getName())) { // hardcoded for Reconc report
-//            panel = new DropDownChoicePanel(componentId, new PropertyModel(model, expression),
-//                    createResourceListModel(), new ChoiceRenderer<String>(), false);
-        } else if (lookup != null) {
+        } else if (param.getPropertyTargetType() != null) { // render autocomplete box
+            lookup = new LookupTableType();
             panel = new AutoCompleteTextPanel<String>(componentId, new LookupPropertyModel<String>(model, expression,
-                    lookup), String.class) {
+                    lookup, false), String.class) {
 
                         @Override
                         public Iterator<String> getIterator(String input) {
-                            return prepareAutoCompleteList(input, lookup).iterator();
+                            return prepareAutoCompleteList(input, lookup, param).iterator();
                         }
                     };
-        } /*
-         else if ("stringAttributeName".equals(param.getName())) { // hardcoded for User report
-         panel = new DropDownChoicePanel(componentId, new PropertyModel(model, expression),
-         createUserAttributeListModel(String.class), new ChoiceRenderer<String>(), false);
-         } else if ("polyStringAttributeName".equals(param.getName())) { // hardcoded for User report
-         panel = new DropDownChoicePanel(componentId, new PropertyModel(model, expression),
-         createUserAttributeListModel(PolyString.class), new ChoiceRenderer<String>(), false);
-         } */ else {
+        } else {
             panel = new TextPanel<String>(componentId, new PropertyModel<String>(model, expression));
         }
         List<FormComponent> components = panel.getFormComponents();
@@ -279,9 +267,10 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
 
     }
 
-    private <T extends ObjectType> LookupTableType createLookupTable(JasperReportParameterDto param) {
+    private <T extends ObjectType> List<LookupTableRowType> createLookupTableRows(JasperReportParameterDto param, String input) {
         ItemPath label = null;
         ItemPath key = null;
+        List<LookupTableRowType> rows = new ArrayList();
 
         JRPropertiesMap properties = param.getProperties();
 
@@ -309,15 +298,19 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
             }
         }
 
-        if (label != null && targetType != null) {
+        if (label != null && targetType != null && input != null) {
             OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
             Task task = createSimpleTask(OPERATION_LOAD_RESOURCES);
 
             Collection<PrismObject<T>> objects;
-            try {
-                objects = modelService.searchObjects(targetType, new ObjectQuery(), SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
+            SubstringFilter filter = SubstringFilter.createSubstring(new QName(SchemaConstants.NS_C, pLabel), targetType, getPrismContext(), input);
+            filter.setMatchingRule(new QName(SchemaConstants.NS_MATCHING_RULE, "origIgnoreCase"));
+            filter.setAnchorStart(true); // =startsWith
+            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+            query.setPaging(ObjectPaging.createPaging(0, AUTO_COMPLETE_BOX_SIZE));
 
-                LookupTableType lookup = new LookupTableType();
+            try {
+                objects = modelService.searchObjects(targetType, query, SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
 
                 for (PrismObject<T> o : objects) {
                     Object realKeyValue = null;
@@ -356,17 +349,17 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
 
                     row.setLabel(convertObjectToPolyStringType(realLabelValue));
 
-                    lookup.getRow().add(row);
+                    rows.add(row);
                 }
 
-                return lookup;
+                return rows;
             } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException e) {
                 error("Error while creating lookup table for input parameter: " + param.getName() + ", " + e.getClass().getSimpleName() + " (" + e.getMessage() + ")");
                 //e.printStackTrace();
             }
 
         }
-        return null;
+        return rows;
     }
 
     private PolyStringType convertObjectToPolyStringType(Object o) {
@@ -381,32 +374,27 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
         }
     }
 
-    private List<String> prepareAutoCompleteList(String input, LookupTableType lookupTable) {
+    private List<String> prepareAutoCompleteList(String input, LookupTableType lookupTable, JasperReportParameterDto param) {
         List<String> values = new ArrayList<>();
 
         if (lookupTable == null) {
             return values;
         }
 
-        List<LookupTableRowType> rows = lookupTable.getRow();
+        List<LookupTableRowType> rows = createLookupTableRows(param, input);
 
-        if (input == null || input.isEmpty()) {
-            for (LookupTableRowType row : rows) {
-                values.add(WebMiscUtil.getOrigStringFromPoly(row.getLabel()));
+        if (rows == null) {
+            return values;
+        }
+        if (lookupTable.getRow() != null) {
+            lookupTable.getRow().addAll(rows);
+        }
 
-                if (values.size() > 10) {
-                    return values;
-                }
-            }
-        } else {
-            for (LookupTableRowType row : rows) {
-                if (WebMiscUtil.getOrigStringFromPoly(row.getLabel()).toLowerCase().startsWith(input.toLowerCase() )) {
-                    values.add(WebMiscUtil.getOrigStringFromPoly(row.getLabel()));
-                }
+        for (LookupTableRowType row : rows) {
+            values.add(WebMiscUtil.getOrigStringFromPoly(row.getLabel()));
 
-                if (values.size() > 10) {
-                    return values;
-                }
+            if (values.size() > AUTO_COMPLETE_BOX_SIZE) {
+                break;
             }
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,9 @@
  */
 package com.evolveum.midpoint.web.component.form.multivalue;
 
-import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -37,7 +38,7 @@ import java.util.List;
 /**
  *  @author shood
  * */
-public class MultiValueTextPanel<T extends Serializable> extends SimplePanel<List<T>> {
+public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<T>> {
 
     private static final String ID_PLACEHOLDER_CONTAINER = "placeholderContainer";
     private static final String ID_PLACEHOLDER_ADD = "placeholderAdd";
@@ -53,7 +54,7 @@ public class MultiValueTextPanel<T extends Serializable> extends SimplePanel<Lis
         super(id, value);
         setOutputMarkupId(true);
 
-        initPanelLayout();
+        initLayout();
     }
 
     @Override
@@ -65,7 +66,7 @@ public class MultiValueTextPanel<T extends Serializable> extends SimplePanel<Lis
         return super.getModel();
     }
 
-    protected void initPanelLayout(){
+    private void initLayout(){
         WebMarkupContainer placeholderContainer = new WebMarkupContainer(ID_PLACEHOLDER_CONTAINER);
         placeholderContainer.setOutputMarkupPlaceholderTag(true);
         placeholderContainer.setOutputMarkupPlaceholderTag(true);

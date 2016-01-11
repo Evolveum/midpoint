@@ -34,10 +34,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ConnectorHostTypeComparator;
+import com.evolveum.midpoint.web.model.LoadableModel;
+import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromObjectWrapperModel;
+import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromPrismObjectModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -102,12 +103,13 @@ public class NameStep extends WizardStep {
     }
 
     private void initLayout() {
-        TextFormGroup name = new TextFormGroup(ID_NAME, new PrismPropertyModel(resourceModel, UserType.F_NAME),
+        TextFormGroup name = new TextFormGroup(ID_NAME, 
+        		new PrismPropertyRealValueFromPrismObjectModel<String,ResourceType>(resourceModel, UserType.F_NAME),
                 createStringResource("NameStep.name"), "col-md-3", "col-md-3", true);
         add(name);
 
         TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
-                new PrismPropertyModel(resourceModel, UserType.F_DESCRIPTION),
+                new PrismPropertyRealValueFromPrismObjectModel<String,ResourceType>(resourceModel, UserType.F_DESCRIPTION),
                 createStringResource("NameStep.description"), "col-md-3", "col-md-3");
         description.setRows(3);
         add(description);

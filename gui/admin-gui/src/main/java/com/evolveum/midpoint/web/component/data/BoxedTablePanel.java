@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,15 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+<<<<<<< HEAD
 import java.util.List;
+=======
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.web.component.util.BasePanel;
+import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+>>>>>>> 90ecb7cacae574040d698ee04b30902e86884cef
 
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -42,7 +50,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 /**
  * @author Viliam Repan (lazyman)
  */
-public class BoxedTablePanel<T> extends SimplePanel implements Table {
+public class BoxedTablePanel<T> extends BasePanel implements Table {
 
     private static final String ID_HEADER = "header";
     private static final String ID_FOOTER = "footer";

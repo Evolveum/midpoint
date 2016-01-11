@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,15 @@ package com.evolveum.midpoint.web.component.wf;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItem;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -46,22 +47,22 @@ import java.util.List;
  * @author lazyman
  * @author mederly
  */
-public class WorkItemsPanel extends SimplePanel<List<WorkItemDto>> {
+public class WorkItemsPanel extends BasePanel<List<WorkItemDto>> {
 
     private static final String ID_WORK_ITEMS_TABLE = "workItemsTable";
 
     public WorkItemsPanel(String id, IModel<List<WorkItemDto>> model) {
         super(id, model);
-        initLayoutLocal(true);
+        initLayout(true);
     }
 
     public WorkItemsPanel(String id, IModel<List<WorkItemDto>> model, boolean showAssigned) {
         super(id, model);
-        initLayoutLocal(showAssigned);
+        initLayout(showAssigned);
     }
 
     // this is called locally in order to take showAssigned into account
-    private void initLayoutLocal(boolean showAssigned) {
+    private void initLayout(boolean showAssigned) {
         List<IColumn<WorkItemDto, String>> columns = new ArrayList<IColumn<WorkItemDto, String>>();
         if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL)) {
