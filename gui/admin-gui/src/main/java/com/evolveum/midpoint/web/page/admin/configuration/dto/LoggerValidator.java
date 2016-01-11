@@ -16,29 +16,36 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
-import java.util.Set;
-
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.validation.AbstractFormValidator;
 import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.validator.AbstractValidator;
+import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.ValidationError;
 
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
 
-public class LoggerValidator extends AbstractValidator<LoggingComponentType> {
+public class LoggerValidator<T> implements IValidator<T> {
 
 	@Override
-	protected void onValidate(IValidatable<LoggingComponentType> item) {
-		if(item.getValue() == null){
-			error(item, "logger.emptyLogger");
+	public void validate(IValidatable<T> validatable) {
+		if (validatable.getValue() == null) {
+			ValidationError err = new ValidationError();
+			err.addKey("logger.emptyLogger");
+			validatable.error(err);
+
 		}
 	}
-	
-	@Override
-	public boolean validateOnNullValue() {
-		return true;
-	}
+
+	// extends AbstractValidator<LoggingComponentType> {
+	//
+	// @Override
+	// protected void onValidate(IValidatable<LoggingComponentType> item) {
+	// if(item.getValue() == null){
+	// error(item, "logger.emptyLogger");
+	// }
+	// }
+	//
+	// @Override
+	// public boolean validateOnNullValue() {
+	// return true;
+	// }
 
 }

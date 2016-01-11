@@ -24,6 +24,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -216,7 +217,8 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
             public String getObject() {
                 ObjectWrapper wrapper = model.getObject();
                 String key = wrapper.isShowEmpty() ? "PrismObjectPanel.hideEmpty" : "PrismObjectPanel.showEmpty";
-                return new StringResourceModel(key, PrismObjectPanel.this, null, key).getString();
+                return PageTemplate.createStringResourceStatic(PrismObjectPanel.this, key).getString();
+//                return new StringResourceModel(key, PrismObjectPanel.this, null, key).getString();
             }
         };
     }
@@ -240,7 +242,8 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
             public String getObject() {
                 ObjectWrapper wrapper = model.getObject();
                 String key = wrapper.isMinimalized() ? "PrismObjectPanel.maximize" : "PrismObjectPanel.minimize";
-                return new StringResourceModel(key, PrismObjectPanel.this, null, key).getString();
+                return PageTemplate.createStringResourceStatic(PrismObjectPanel.this, key).getString();
+//                return new StringResourceModel(key, PrismObjectPanel.this, null, key).getString();
             }
         };
     }

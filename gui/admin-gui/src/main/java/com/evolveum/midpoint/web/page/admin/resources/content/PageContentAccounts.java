@@ -46,6 +46,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.dialog.UserBrowserDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
@@ -454,7 +455,8 @@ public class PageContentAccounts extends PageAdminResources {
             @Override
             protected String load() {
                 String name = WebMiscUtil.getName(resourceModel.getObject());
-                return new StringResourceModel("PageContentAccounts.subTitle", PageContentAccounts.this, null, null, name).getString();
+                return PageTemplate.createStringResourceStatic(PageContentAccounts.this, "PageContentAccounts.subTitle", name).getString();
+//                return new StringResourceModel("PageContentAccounts.subTitle", PageContentAccounts.this, null, null, name).getString();
             }
         };
     }

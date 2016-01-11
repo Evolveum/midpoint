@@ -16,6 +16,21 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -27,233 +42,225 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
+import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ExpressionVariableDefinitionTypeDto;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionVariableDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.model.*;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
- *  @author shood
- * */
-public class ExpressionVariableEditorDialog extends ModalWindow{
+ * @author shood
+ */
+public class ExpressionVariableEditorDialog extends ModalWindow {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ExpressionVariableEditorDialog.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ExpressionVariableEditorDialog.class);
 
-    private static final String DOT_CLASS = ExpressionVariableEditorDialog.class.getName() + ".";
-    private static final String OPERATION_LOAD_REPOSITORY_OBJECTS = DOT_CLASS + "loadRepositoryObjects";
+	private static final String DOT_CLASS = ExpressionVariableEditorDialog.class.getName() + ".";
+	private static final String OPERATION_LOAD_REPOSITORY_OBJECTS = DOT_CLASS + "loadRepositoryObjects";
 
-    private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_NAME = "name";
-    private static final String ID_DESCRIPTION = "description";
-    private static final String ID_PATH = "path";
-    private static final String ID_OBJECT_REFERENCE = "objectReference";
-    private static final String ID_VALUE = "value";
-    private static final String ID_BUTTON_SAVE = "saveButton";
-    private static final String ID_BUTTON_CANCEL = "cancelButton";
+	private static final String ID_MAIN_FORM = "mainForm";
+	private static final String ID_NAME = "name";
+	private static final String ID_DESCRIPTION = "description";
+	private static final String ID_PATH = "path";
+	private static final String ID_OBJECT_REFERENCE = "objectReference";
+	private static final String ID_VALUE = "value";
+	private static final String ID_BUTTON_SAVE = "saveButton";
+	private static final String ID_BUTTON_CANCEL = "cancelButton";
 
-    private static final String ID_LABEL_SIZE = "col-md-4";
-    private static final String ID_INPUT_SIZE = "col-md-8";
+	private static final String ID_LABEL_SIZE = "col-md-4";
+	private static final String ID_INPUT_SIZE = "col-md-8";
 
-    private boolean initialized;
-    private IModel<ExpressionVariableDefinitionTypeDto> model;
-    private IModel<ExpressionVariableDefinitionType> inputModel;
-    private Map<String, String> objectMap = new HashMap<>();
+	private boolean initialized;
+	private IModel<ExpressionVariableDefinitionTypeDto> model;
+	private IModel<ExpressionVariableDefinitionType> inputModel;
+	private Map<String, String> objectMap = new HashMap<>();
 
-    public ExpressionVariableEditorDialog(String id, final IModel<ExpressionVariableDefinitionType> variable){
-        super(id);
+	public ExpressionVariableEditorDialog(String id, final IModel<ExpressionVariableDefinitionType> variable) {
+		super(id);
 
-        inputModel = variable;
-        model = new LoadableModel<ExpressionVariableDefinitionTypeDto>(false) {
+		inputModel = variable;
+		model = new LoadableModel<ExpressionVariableDefinitionTypeDto>(false) {
 
-            @Override
-            protected ExpressionVariableDefinitionTypeDto load() {
-                if(variable != null){
-                    return new ExpressionVariableDefinitionTypeDto(variable.getObject());
-                } else {
-                    return new ExpressionVariableDefinitionTypeDto(new ExpressionVariableDefinitionType());
-                }
-            }
-        };
+			@Override
+			protected ExpressionVariableDefinitionTypeDto load() {
+				if (variable != null) {
+					return new ExpressionVariableDefinitionTypeDto(variable.getObject());
+				} else {
+					return new ExpressionVariableDefinitionTypeDto(new ExpressionVariableDefinitionType());
+				}
+			}
+		};
 
-        setOutputMarkupId(true);
-        setTitle(createStringResource("ExpressionVariableEditor.label"));
-        showUnloadConfirmation(false);
-        setCssClassName(ModalWindow.CSS_CLASS_GRAY);
-        setCookieName(MappingEditorDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
-        setInitialWidth(450);
-        setInitialHeight(550);
-        setWidthUnit("px");
+		setOutputMarkupId(true);
+		setTitle(createStringResource("ExpressionVariableEditor.label"));
+		showUnloadConfirmation(false);
+		setCssClassName(ModalWindow.CSS_CLASS_GRAY);
+		setCookieName(MappingEditorDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
+		setInitialWidth(450);
+		setInitialHeight(550);
+		setWidthUnit("px");
 
-        WebMarkupContainer content = new WebMarkupContainer(getContentId());
-        content.setOutputMarkupId(true);
-        setContent(content);
-    }
+		WebMarkupContainer content = new WebMarkupContainer(getContentId());
+		content.setOutputMarkupId(true);
+		setContent(content);
+	}
 
-    public void updateModel(AjaxRequestTarget target, ExpressionVariableDefinitionType variable){
-        model.setObject(new ExpressionVariableDefinitionTypeDto(variable));
+	public void updateModel(AjaxRequestTarget target, ExpressionVariableDefinitionType variable) {
+		model.setObject(new ExpressionVariableDefinitionTypeDto(variable));
 
-        if(inputModel != null){
-            inputModel.setObject(variable);
-        } else {
-            inputModel = new Model<>(variable);
-        }
+		if (inputModel != null) {
+			inputModel.setObject(variable);
+		} else {
+			inputModel = new Model<>(variable);
+		}
 
-        target.add(getContent());
-    }
+		target.add(getContent());
+	}
 
-    public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
-    }
+	public StringResourceModel createStringResource(String resourceKey, Object... objects) {
+		return PageTemplate.createStringResourceStatic(this, resourceKey, objects);
+		// return new StringResourceModel(resourceKey, this, null, resourceKey,
+		// objects);
+	}
 
-    @Override
-    protected void onBeforeRender(){
-        super.onBeforeRender();
+	@Override
+	protected void onBeforeRender() {
+		super.onBeforeRender();
 
-        if(initialized){
-            return;
-        }
+		if (initialized) {
+			return;
+		}
 
-        initLayout((WebMarkupContainer) get(getContentId()));
-        initialized = true;
-    }
+		initLayout((WebMarkupContainer) get(getContentId()));
+		initialized = true;
+	}
 
-    public void initLayout(WebMarkupContainer content){
-        Form form = new Form(ID_MAIN_FORM);
-        form.setOutputMarkupId(true);
-        content.add(form);
+	public void initLayout(WebMarkupContainer content) {
+		Form form = new Form(ID_MAIN_FORM);
+		form.setOutputMarkupId(true);
+		content.add(form);
 
-        //TODO - shouldn't this be some AutoCompleteField? If yer, where do we get value?
-        TextFormGroup name = new TextFormGroup(ID_NAME, new PropertyModel<String>(model, ExpressionVariableDefinitionTypeDto.F_VARIABLE + ".name.localPart"),
-                createStringResource("ExpressionVariableEditor.label.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-        form.add(name);
+		// TODO - shouldn't this be some AutoCompleteField? If yer, where do we
+		// get value?
+		TextFormGroup name = new TextFormGroup(ID_NAME,
+				new PropertyModel<String>(model, ExpressionVariableDefinitionTypeDto.F_VARIABLE + ".name.localPart"),
+				createStringResource("ExpressionVariableEditor.label.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+		form.add(name);
 
-        TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
-                new PropertyModel<String>(model, ExpressionVariableDefinitionTypeDto.F_VARIABLE + ".description"),
-                createStringResource("ExpressionVariableEditor.label.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-        form.add(description);
+		TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
+				new PropertyModel<String>(model, ExpressionVariableDefinitionTypeDto.F_VARIABLE + ".description"),
+				createStringResource("ExpressionVariableEditor.label.description"), ID_LABEL_SIZE, ID_INPUT_SIZE,
+				false);
+		form.add(description);
 
-        TextFormGroup path = new TextFormGroup(ID_PATH, new PropertyModel<String>(model, ExpressionVariableDefinitionTypeDto.F_PATH),
-                createStringResource("ExpressionVariableEditor.label.path"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-        form.add(path);
+		TextFormGroup path = new TextFormGroup(ID_PATH,
+				new PropertyModel<String>(model, ExpressionVariableDefinitionTypeDto.F_PATH),
+				createStringResource("ExpressionVariableEditor.label.path"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+		form.add(path);
 
-        DropDownFormGroup objectReference = new DropDownFormGroup<>(ID_OBJECT_REFERENCE,
-                new PropertyModel<ObjectReferenceType>(model, ExpressionVariableDefinitionTypeDto.F_VARIABLE + ".objectRef"),
-                new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
+		DropDownFormGroup objectReference = new DropDownFormGroup<>(ID_OBJECT_REFERENCE,
+				new PropertyModel<ObjectReferenceType>(model,
+						ExpressionVariableDefinitionTypeDto.F_VARIABLE + ".objectRef"),
+				new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
 
-                    @Override
-                    public List<ObjectReferenceType> getObject() {
-                        return createObjectReferenceList();
-                    }
-                }, new IChoiceRenderer<ObjectReferenceType>() {
+					@Override
+					public List<ObjectReferenceType> getObject() {
+						return WebModelUtils.createObjectReferenceList(ObjectType.class, getPageBase(), objectMap);
+					}
+				}, new ObjectReferenceChoiceRenderer(objectMap),
+				createStringResource("ExpressionVariableEditor.label.objectRef"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+		form.add(objectReference);
 
-            @Override
-            public Object getDisplayValue(ObjectReferenceType object) {
-                return createReferenceDisplayString(object.getOid());
-            }
+		TextAreaFormGroup value = new TextAreaFormGroup(ID_VALUE,
+				new PropertyModel<String>(model, ExpressionVariableDefinitionTypeDto.F_VALUE),
+				createStringResource("ExpressionVariableEditor.label.value"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+		form.add(value);
 
-            @Override
-            public String getIdValue(ObjectReferenceType object, int index) {
-                return Integer.toString(index);
-            }
-        }, createStringResource("ExpressionVariableEditor.label.objectRef"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-        form.add(objectReference);
+		AjaxSubmitButton cancel = new AjaxSubmitButton(ID_BUTTON_CANCEL,
+				createStringResource("ExpressionVariableEditor.button.cancel")) {
 
-        TextAreaFormGroup value = new TextAreaFormGroup(ID_VALUE, new PropertyModel<String>(model, ExpressionVariableDefinitionTypeDto.F_VALUE),
-                createStringResource("ExpressionVariableEditor.label.value"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-        form.add(value);
+			@Override
+			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+				cancelPerformed(target);
+			}
+		};
+		form.add(cancel);
 
-        AjaxSubmitButton cancel = new AjaxSubmitButton(ID_BUTTON_CANCEL,
-                createStringResource("ExpressionVariableEditor.button.cancel")) {
+		AjaxSubmitButton save = new AjaxSubmitButton(ID_BUTTON_SAVE,
+				createStringResource("ExpressionVariableEditor.button.save")) {
 
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                cancelPerformed(target);
-            }
-        };
-        form.add(cancel);
+			@Override
+			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+				savePerformed(target);
+			}
+		};
+		form.add(save);
+	}
 
-        AjaxSubmitButton save = new AjaxSubmitButton(ID_BUTTON_SAVE,
-            createStringResource("ExpressionVariableEditor.button.save")) {
+	private PageBase getPageBase() {
+		return (PageBase) getPage();
+	}
 
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                savePerformed(target);
-            }
-        };
-        form.add(save);
-    }
+	private List<ObjectReferenceType> createObjectReferenceListDeprecated() {
+		objectMap.clear();
+		OperationResult result = new OperationResult(OPERATION_LOAD_REPOSITORY_OBJECTS);
+		Task task = getPageBase().createSimpleTask(OPERATION_LOAD_REPOSITORY_OBJECTS);
+		List<PrismObject<ObjectType>> objects = null;
+		List<ObjectReferenceType> references = new ArrayList<>();
 
-    private PageBase getPageBase(){
-        return (PageBase) getPage();
-    }
+		try {
+			objects = getPageBase().getModelService().searchObjects(ObjectType.class, new ObjectQuery(), null, task,
+					result);
+			result.recomputeStatus();
+		} catch (Exception e) {
+			result.recordFatalError("Couldn't load objects from repository.", e);
+			LoggingUtils.logException(LOGGER, "Couldn't load objects from repository", e);
+		}
 
-    private List<ObjectReferenceType> createObjectReferenceList(){
-        objectMap.clear();
-        OperationResult result = new OperationResult(OPERATION_LOAD_REPOSITORY_OBJECTS);
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_REPOSITORY_OBJECTS);
-        List<PrismObject<ObjectType>> objects = null;
-        List<ObjectReferenceType> references = new ArrayList<>();
+		// TODO - show error somehow
+		// if(!result.isSuccess()){
+		// getPageBase().showResult(result);
+		// }
 
-        try{
-            objects = getPageBase().getModelService().searchObjects(ObjectType.class, new ObjectQuery(), null, task, result);
-            result.recomputeStatus();
-        } catch(Exception e){
-            result.recordFatalError("Couldn't load objects from repository.", e);
-            LoggingUtils.logException(LOGGER, "Couldn't load objects from repository", e);
-        }
+		if (objects != null) {
+			ObjectReferenceType ref;
 
-        // TODO - show error somehow
-        // if(!result.isSuccess()){
-        //    getPageBase().showResult(result);
-        // }
+			for (PrismObject<ObjectType> obj : objects) {
+				objectMap.put(obj.getOid(), WebMiscUtil.getName(obj));
+				ref = new ObjectReferenceType();
+				ref.setOid(obj.getOid());
+				references.add(ref);
+			}
+		}
 
-        if(objects != null){
-            ObjectReferenceType ref;
+		return references;
+	}
 
-            for(PrismObject<ObjectType> obj: objects){
-                objectMap.put(obj.getOid(), WebMiscUtil.getName(obj));
-                ref = new ObjectReferenceType();
-                ref.setOid(obj.getOid());
-                references.add(ref);
-            }
-        }
+	private String createReferenceDisplayString(String oid) {
+		return objectMap.get(oid);
+	}
 
-        return references;
-    }
+	private void cancelPerformed(AjaxRequestTarget target) {
+		close(target);
+	}
 
-    private String createReferenceDisplayString(String oid){
-        return objectMap.get(oid);
-    }
+	private void savePerformed(AjaxRequestTarget target) {
+		if (model != null && model.getObject() != null) {
+			model.getObject().prepareDtoToSave();
+			inputModel.setObject(model.getObject().getVariableObject());
+		}
 
-    private void cancelPerformed(AjaxRequestTarget target){
-        close(target);
-    }
+		updateComponents(target);
+		close(target);
+	}
 
-    private void savePerformed(AjaxRequestTarget target){
-        if(model != null && model.getObject() != null){
-            model.getObject().prepareDtoToSave();
-            inputModel.setObject(model.getObject().getVariableObject());
-        }
-
-        updateComponents(target);
-        close(target);
-    }
-
-    public void updateComponents(AjaxRequestTarget target){
-        //Override this if update of component(s) holding this modal window is needed
-    }
+	public void updateComponents(AjaxRequestTarget target) {
+		// Override this if update of component(s) holding this modal window is
+		// needed
+	}
 }

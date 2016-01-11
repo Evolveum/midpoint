@@ -58,9 +58,9 @@ public class ActionsExecutedInformationPanel extends SimplePanel<ActionsExecuted
     protected void initLayout() {
 
         ListView tableLines = new ListView<ActionsExecutedObjectsTableLineDto>(ID_OBJECT_TABLE_LINES,
-                new AbstractReadOnlyModel<List<? extends ActionsExecutedObjectsTableLineDto>>() {
+                new AbstractReadOnlyModel<List<ActionsExecutedObjectsTableLineDto>>() {
                     @Override
-                    public List<? extends ActionsExecutedObjectsTableLineDto> getObject() {
+                    public List<ActionsExecutedObjectsTableLineDto> getObject() {
                         if (showResultingActionsOnly) {
                             return getModelObject().getUniqueObjectsTableLines();
                         } else {

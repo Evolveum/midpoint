@@ -51,6 +51,7 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.migrate.StringResourceModelMigration;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
@@ -331,7 +332,9 @@ public abstract class PageTemplate extends WebPage {
 
     protected IModel<String> createPageSubTitleModel() {
         String key = getClass().getSimpleName() + ".subTitle";
-        return new StringResourceModel(key, this, new Model<String>(), "");
+        return new StringResourceModel(key, this);
+    			
+//        return StringResourceModelMigration.of(key, this, new Model<String>(), "");
     }
 
     protected IModel<String> createPageTitleModel() {
@@ -344,7 +347,11 @@ public abstract class PageTemplate extends WebPage {
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, this, new Model<String>(), resourceKey, objects);
+    	return new StringResourceModel(resourceKey, this).setModel(new Model<String>())
+    			.setDefaultValue(resourceKey)
+    			.setParameters(objects);
+    	
+//    	return StringResourceModelMigration.of(resourceKey, this, new Model<String>(), resourceKey, objects);
     }
 
     public StringResourceModel createStringResource(Enum e) {
@@ -353,7 +360,10 @@ public abstract class PageTemplate extends WebPage {
     }
 
     public static StringResourceModel createStringResourceStatic(Component component, String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, component, new Model<String>(), resourceKey, objects);
+    	return new StringResourceModel(resourceKey, component).setModel(new Model<String>())
+    			.setDefaultValue(resourceKey)
+    			.setParameters(objects);
+//    	return new StringResourceModel(resourceKey, component, new Model<String>(), resourceKey, objects);
     }
 
     public static StringResourceModel createStringResourceStatic(Component component, Enum e) {

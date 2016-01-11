@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.input.ThreeStateBooleanPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.PropertyLimitationsTypeDto;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
@@ -345,7 +346,8 @@ public class LimitationsEditorDialog extends ModalWindow{
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
+    	return PageTemplate.createStringResourceStatic(this, resourceKey, objects);
+//        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 
     private void addLimitationsPerformed(AjaxRequestTarget target){

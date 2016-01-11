@@ -42,6 +42,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
@@ -135,7 +136,8 @@ public abstract class FocusTabPanel<F extends FocusType> extends Panel {
 	}
 
 	public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-		return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
+		return PageTemplate.createStringResourceStatic(this, resourceKey, objects);
+//		return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
 	}
 
 	public String getString(String resourceKey, Object... objects) {

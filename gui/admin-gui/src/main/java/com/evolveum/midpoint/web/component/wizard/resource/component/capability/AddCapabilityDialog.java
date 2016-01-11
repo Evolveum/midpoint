@@ -24,6 +24,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.wizard.resource.CapabilityStep;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -137,7 +138,8 @@ public class AddCapabilityDialog extends ModalWindow{
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
+    	return PageTemplate.createStringResourceStatic(this, resourceKey, objects);
+//        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 
     private void initLayout(WebMarkupContainer container){

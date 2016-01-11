@@ -19,6 +19,8 @@ package com.evolveum.midpoint.web.component.wizard;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.resource.component.WizardHelpDialog;
+import com.evolveum.midpoint.web.page.PageTemplate;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -126,7 +128,8 @@ public class WizardSteps extends SimplePanel<List<WizardStepDto>> {
 
             @Override
             public String getObject() {
-                return new StringResourceModel(key, getPage(), null, key).getString();
+            	return PageTemplate.createStringResourceStatic(getPage(), key).getString();
+//                return new StringResourceModel(key, getPage(), null, key).getString();
             }
         };
     }

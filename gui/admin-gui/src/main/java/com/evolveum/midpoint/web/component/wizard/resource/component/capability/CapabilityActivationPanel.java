@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.capability
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
+import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
@@ -111,23 +112,7 @@ public class CapabilityActivationPanel extends SimplePanel{
         };
         add(statusDisableList);
 
-        IChoiceRenderer<QName> renderer = new IChoiceRenderer<QName>() {
-
-            @Override
-            public Object getDisplayValue(QName object) {
-                StringBuilder sb = new StringBuilder();
-                String prefix = SchemaConstants.NS_ICF_SCHEMA.equals(object.getNamespaceURI()) ? "icfs" : "ri";
-                sb.append(prefix);
-                sb.append(": ");
-                sb.append(object.getLocalPart());
-                return sb.toString();
-            }
-
-            @Override
-            public String getIdValue(QName object, int index) {
-                return Integer.toString(index);
-            }
-        };
+        IChoiceRenderer<QName> renderer = new QNameChoiceRenderer(true);
 
         DropDownChoice statusChoice = new DropDownChoice<>(ID_SELECT_STATUS,
                 new PropertyModel<QName>(getModel(), "capability.status.attribute"),

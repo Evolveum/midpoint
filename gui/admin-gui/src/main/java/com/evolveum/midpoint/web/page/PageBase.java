@@ -224,9 +224,9 @@ public abstract class PageBase extends PageTemplate implements ModelServiceLocat
         return formValidatorRegistry;
     }
 
-    public static StringResourceModel createStringResourceStatic(Component component, String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, component, new Model<String>(), resourceKey, objects);
-    }
+//    public static StringResourceModel createStringResourceStatic(Component component, String resourceKey, Object... objects) {
+//        return new StringResourceModel(resourceKey, component, new Model<String>(), resourceKey, objects);
+//    }
 
     public static StringResourceModel createStringResourceStatic(Component component, Enum e) {
         String resourceKey = createEnumResourceKey(e);

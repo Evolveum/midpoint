@@ -167,6 +167,11 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 				},
 
 				new IChoiceRenderer<V>() {
+					
+					@Override
+					public V getObject(String id, IModel<? extends List<? extends V>> choices) {
+						return choices.getObject().get(Integer.parseInt(id));
+					}
 
 					@Override
 					public String getDisplayValue(V object) {

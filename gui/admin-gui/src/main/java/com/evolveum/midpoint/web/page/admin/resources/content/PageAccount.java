@@ -36,8 +36,10 @@ import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -190,7 +192,8 @@ public class PageAccount extends PageAdminResources {
                 ResourceType resource = account.asObjectable().getResource();
                 String name = WebMiscUtil.getName(resource);
 
-                return new StringResourceModel("PageAccount.subTitle", PageAccount.this, null, null, name).getString();
+                return PageTemplate.createStringResourceStatic(PageAccount.this, "PageAccount.subTitle", name).getString();
+//                return new StringResourceModel("PageAccount.subTitle", PageAccount.this, null, null, name).getString();
             }
         };
     }

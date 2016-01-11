@@ -342,18 +342,18 @@ public class UserMenuPanel extends BaseSimplePanel {
                 SecurityQuestionAnswerType securityQuestionAnswerType = (SecurityQuestionAnswerType) iterator
                         .next();
                 Protector protector = ((PageBase) getPage()).getPrismContext().getDefaultProtector();
-                String decoded = "";
-                if (securityQuestionAnswerType.getQuestionAnswer().getEncryptedDataType() != null) {
+                if (securityQuestionAnswerType.getQuestionAnswer() != null && securityQuestionAnswerType.getQuestionAnswer().getEncryptedDataType() != null) {
                     try {
-                        decoded = protector.decryptString(securityQuestionAnswerType.getQuestionAnswer());
+                    	String decoded = protector.decryptString(securityQuestionAnswerType.getQuestionAnswer());
+                        secQuestAnswListDTO.add(new SecurityQuestionAnswerDTO(securityQuestionAnswerType
+                                .getQuestionIdentifier(), decoded));
                     } catch (EncryptionException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
+                        // TODO do we need to thrown exception here?
+                    	LOGGER.error("Could not get security questions. Error: "  + e.getMessage(), e);
+                        continue;
                     }
                 }
-
-                secQuestAnswListDTO.add(new SecurityQuestionAnswerDTO(securityQuestionAnswerType
-                        .getQuestionIdentifier(), decoded));
+                
             }
 
             return secQuestAnswListDTO;

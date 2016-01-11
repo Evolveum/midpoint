@@ -26,9 +26,15 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.DistinguishedNameMatchingRule;
+import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
+import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
+import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
+import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -38,6 +44,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -169,6 +177,16 @@ public final class WebMiscUtil {
 
         return (int) l.longValue();
     }
+    
+    public static List<QName> createFocusTypeList(){
+        List<QName> focusTypeList = new ArrayList<>();
+
+        focusTypeList.add(UserType.COMPLEX_TYPE);
+        focusTypeList.add(OrgType.COMPLEX_TYPE);
+        focusTypeList.add(RoleType.COMPLEX_TYPE);
+
+        return focusTypeList;
+    }
 
     public static <T extends Enum> IModel<String> createLocalizedModelForEnum(T value, Component comp) {
         String key = value != null ? value.getClass().getSimpleName() + "." + value.name() : "";
@@ -187,6 +205,36 @@ public final class WebMiscUtil {
             }
         };
     }
+    
+    public static List<String> createTaskCategoryList() {
+        List<String> categories = new ArrayList<>();
+
+        // todo change to something better and add i18n
+//		TaskManager manager = getTaskManager();
+//		List<String> list = manager.getAllTaskCategories();
+//		if (list != null) {
+//			Collections.sort(list);
+//			for (String item : list) {
+//				if (item != TaskCategory.IMPORT_FROM_FILE && item != TaskCategory.WORKFLOW) {
+//					categories.add(item);
+//				}
+//			}
+//		}
+        categories.add(TaskCategory.LIVE_SYNCHRONIZATION);
+        categories.add(TaskCategory.RECONCILIATION);
+        categories.add(TaskCategory.IMPORTING_ACCOUNTS);
+        categories.add(TaskCategory.RECOMPUTATION);
+        categories.add(TaskCategory.DEMO);
+        //TODO: what about other categories?
+//        categories.add(TaskCategory.ACCESS_CERTIFICATION);
+//        categories.add(TaskCategory.BULK_ACTIONS);
+//        categories.add(TaskCategory.CUSTOM);
+//        categories.add(TaskCategory.EXECUTE_CHANGES);
+//        categories.add(TaskCategory.IMPORT_FROM_FILE);
+//        categories.add(TaskCategory.IMPORT_FROM_FILE);
+        return categories;
+    }
+
     
     public static ObjectReferenceType createObjectRef(String oid, String name, QName type){
     	ObjectReferenceType ort = new ObjectReferenceType();
@@ -221,6 +269,14 @@ public final class WebMiscUtil {
         return new DropDownChoicePanel(id, model,
                 WebMiscUtil.createReadonlyModelFromEnum(clazz),
                 new IChoiceRenderer<E>() {
+        	
+        	@Override
+        	public E getObject(String id, IModel<? extends List<? extends E>> choices) {
+        		if (StringUtils.isBlank(id)){
+        			return null;
+        		}
+        		return choices.getObject().get(Integer.parseInt(id));
+        	}
 
                     @Override
                     public Object getDisplayValue(E object) {
@@ -260,7 +316,11 @@ public final class WebMiscUtil {
         return new DropDownChoicePanel(id, model, enumModelValues,
                 new IChoiceRenderer() {
 
-
+        @Override
+        public Object getObject(String id, IModel choices) {
+        	return ((List) choices.getObject()).get(Integer.parseInt(id));
+        }
+        	
                     @Override
                     public Object getDisplayValue(Object object) {
                         if (object instanceof DisplayableValue) {
@@ -288,6 +348,8 @@ public final class WebMiscUtil {
 //						}
 //						return object.getValue().toString();//Integer.toString(index);
                     }
+
+					
 
 
                 }, true);
@@ -784,10 +846,11 @@ public final class WebMiscUtil {
         String NS_MATCHING_RULE = "http://prism.evolveum.com/xml/ns/public/matching-rule-3";
 
         list.add(new QName(NS_MATCHING_RULE, "default", "mr"));
-        list.add(new QName(NS_MATCHING_RULE, "stringIgnoreCase", "mr"));
-        list.add(new QName(NS_MATCHING_RULE, "polyStringStrict", "mr"));
-        list.add(new QName(NS_MATCHING_RULE, "polyStringOrig", "mr"));
-        list.add(new QName(NS_MATCHING_RULE, "polyStringNorm", "mr"));
+        list.add(StringIgnoreCaseMatchingRule.NAME);
+        list.add(PolyStringStrictMatchingRule.NAME);
+        list.add(PolyStringOrigMatchingRule.NAME);
+        list.add(PolyStringNormMatchingRule.NAME);
+        list.add(DistinguishedNameMatchingRule.NAME);
 
         return list;
     }

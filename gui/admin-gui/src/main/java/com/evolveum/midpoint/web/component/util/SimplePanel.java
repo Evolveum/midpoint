@@ -36,6 +36,10 @@ public class SimplePanel<T> extends BaseSimplePanel<T> {
     public PageBase getPageBase() {
         return WebMiscUtil.getPageBase(this);
     }
+    
+    public void setModelObject(T obj){
+    	setDefaultModelObject(obj);
+    }
 
 //    public PrismContext getPrismContext(){
 //    	return getPageBase().getPrismContext();

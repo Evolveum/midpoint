@@ -16,15 +16,11 @@
 
 package com.evolveum.midpoint.web.component.wizard;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -36,9 +32,16 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.Definition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * @author lazyman
@@ -51,7 +54,7 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
     public WizardStep(PageBase pageBase) {
         this.pageBase = pageBase;
         String key = getClass().getSimpleName() + ".title";
-        setTitleModel(new StringResourceModel(key, this, null, key));
+        setTitleModel(PageTemplate.createStringResourceStatic(this, key));
     }
 
     @Override
@@ -74,7 +77,7 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
+    	return PageTemplate.createStringResourceStatic(this, resourceKey, objects);
     }
 
     public StringResourceModel createStringResource(Enum e) {

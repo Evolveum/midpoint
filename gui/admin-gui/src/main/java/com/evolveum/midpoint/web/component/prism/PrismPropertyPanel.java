@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -42,6 +43,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.migrate.StringResourceModelMigration;
 import org.apache.wicket.model.*;
 
 import java.util.List;
@@ -193,7 +195,8 @@ public class PrismPropertyPanel extends Panel {
             return null;
         }
 
-        return new StringResourceModel(doc, null, doc).getString();
+        return PageTemplate.createStringResourceStatic(this, doc).getString();
+//        return StringResourceModelMigration.of(doc, null, doc).getString();
     }
 
     private IModel<String> createStyleClassModel(final IModel<ValueWrapper> value) {

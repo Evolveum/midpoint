@@ -42,6 +42,8 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
+import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -213,22 +215,7 @@ public class PageAccounts extends PageAdminConfiguration {
 
         DropDownChoice<ResourceItemDto> resources = new DropDownChoice<>(
                 ID_RESOURCES, resourceModel, resourcesModel,
-                new IChoiceRenderer<ResourceItemDto>() {
-
-                    @Override
-                    public Object getDisplayValue(ResourceItemDto object) {
-                        if (object == null) {
-                            return "";
-                        }
-
-                        return object.getName();
-                    }
-
-                    @Override
-                    public String getIdValue(ResourceItemDto object, int index) {
-                        return Integer.toString(index);
-                    }
-                });
+                new ChoiceableChoiceRenderer<ResourceItemDto>());
         form.add(resources);
 
         initLinks(form, accForm);
@@ -344,18 +331,7 @@ public class PageAccounts extends PageAdminConfiguration {
 
         DropDownChoice intent = new DropDownChoice<>(ID_SEARCH_INTENT,
                 new PropertyModel<String>(searchModel, AccountDetailsSearchDto.F_INTENT),
-                createIntentChoices(), new IChoiceRenderer<String>() {
-
-            @Override
-            public String getDisplayValue(String object) {
-                return object;
-            }
-
-            @Override
-            public String getIdValue(String object, int index) {
-                return Integer.toString(index);
-            }
-        });
+                createIntentChoices(), new StringChoiceRenderer(null));
         intent.setNullValid(true);
         intent.add(new OnChangeAjaxBehavior() {
 

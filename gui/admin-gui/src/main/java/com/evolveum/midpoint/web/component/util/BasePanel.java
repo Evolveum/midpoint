@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.migrate.StringResourceModelMigration;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -58,7 +59,10 @@ public class BasePanel<T> extends Panel {
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
+    	return new StringResourceModel(resourceKey, this).setModel(null)
+    			.setDefaultValue(resourceKey)
+    			.setParameters(objects);
+//    	return StringResourceModelMigration.of(resourceKey, this, null, resourceKey, objects);
     }
 
     public StringResourceModel createStringResource(Enum e) {

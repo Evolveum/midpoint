@@ -40,6 +40,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.AceEditor;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -106,7 +107,8 @@ public class PageResourceEdit extends PageAdminResources {
                 }
 
                 String name = model.getObject().getName();
-                return new StringResourceModel("page.title.editResource", PageResourceEdit.this, null, null, name).getString();
+                return PageTemplate.createStringResourceStatic(PageResourceEdit.this, "page.title.editResource", name).getString();
+//                return new StringResourceModel("page.title.editResource", PageResourceEdit.this, null, null, name).getString();
             }
         };
     }

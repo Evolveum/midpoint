@@ -59,6 +59,7 @@ public abstract class SchemaConstants {
     public static final String NS_WFCF = "http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-3";
     public static final String NS_WFPIS = "http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-3";
     public static final String NS_FAULT = "http://midpoint.evolveum.com/xml/ns/public/common/fault-3";
+    
 
 	// COMMON NAMESPACE
 	

@@ -18,13 +18,14 @@ package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.web.component.util.Choiceable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
 
 /**
  *  @author shood
  * */
-public class MailServerConfigurationTypeDto implements Serializable {
+public class MailServerConfigurationTypeDto implements Serializable, Choiceable {
 
     public static final String F_HOST = "host";
     public static final String F_PORT = "port";
@@ -59,6 +60,11 @@ public class MailServerConfigurationTypeDto implements Serializable {
         mailTransportSecurityType = config.getTransportSecurity();
     }
 
+    @Override
+    public String getName() {
+    	return host;
+    }
+    
     public String getHost() {
         return host;
     }

@@ -25,10 +25,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueDropDownPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
+import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
+import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.ThreeStateBooleanPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -129,21 +132,8 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
 
             @Override
             protected IChoiceRenderer<String> createRenderer() {
-                return new IChoiceRenderer<String>() {
-
-                    @Override
-                    public Object getDisplayValue(String object) {
-                        String[] fields = object.split("#");
-                        String label = fields[1];
-
-                        return getString("Channel." + label);
-                    }
-
-                    @Override
-                    public String getIdValue(String object, int index) {
-                        return Integer.toString(index);
-                    }
-                };
+            	return new StringChoiceRenderer("Channel.", "#");
+            	
             }
         };
         add(channel);
@@ -160,20 +150,9 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
 
                     @Override
                     public List<ObjectReferenceType> getObject() {
-                        return createObjectTemplateList();
+                        return WebModelUtils.createObjectReferenceList(ObjectTemplateType.class, getPageBase(), objectTemplateMap);
                     }
-                }, new IChoiceRenderer<ObjectReferenceType>() {
-
-            @Override
-            public Object getDisplayValue(ObjectReferenceType object) {
-                return objectTemplateMap.get(object.getOid());
-            }
-
-            @Override
-            public String getIdValue(ObjectReferenceType object, int index) {
-                return Integer.toString(index);
-            }
-        });
+                }, new ObjectReferenceChoiceRenderer(objectTemplateMap));
         objectTemplateRef.setNullValid(true);
         add(objectTemplateRef);
 

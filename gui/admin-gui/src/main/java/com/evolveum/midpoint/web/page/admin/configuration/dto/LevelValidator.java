@@ -17,22 +17,36 @@
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.validator.AbstractValidator;
+import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.ValidationError;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
 
-public class LevelValidator extends AbstractValidator<LoggingLevelType> {
+public class LevelValidator implements IValidator<LoggingLevelType> {
 
 	@Override
-	protected void onValidate(IValidatable<LoggingLevelType> item) {
-		if(item.getValue() == null){
-			error(item, "message.emptyLevel");
+	public void validate(IValidatable<LoggingLevelType> validatable) {
+		if (validatable.getValue() == null) {
+			ValidationError err = new ValidationError();
+			err.addKey("message.emptyLevel");
+			validatable.error(err);
+			
 		}
 	}
 	
-	@Override
-	public boolean validateOnNullValue() {
-		return true;
-	}
+
+//extends AbstractValidator<LoggingLevelType> {
+//
+//	@Override
+//	protected void onValidate(IValidatable<LoggingLevelType> item) {
+//		if(item.getValue() == null){
+//			error(item, "message.emptyLevel");
+//		}
+//	}
+//	
+//	@Override
+//	public boolean validateOnNullValue() {
+//		return true;
+//	}
 
 }

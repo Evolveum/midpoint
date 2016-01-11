@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
+import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameEditorPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -173,6 +174,10 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
                         return loadObjectReferences();
                     }
                 }, new IChoiceRenderer<ItemPathType>() {
+                	@Override
+                			public ItemPathType getObject(String id, IModel<? extends List<? extends ItemPathType>> choices) {
+                		return choices.getObject().get(Integer.parseInt(id));
+                			}
 
             @Override
             public Object getDisplayValue(ItemPathType object) {
@@ -257,18 +262,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
                     public List<QName> getObject() {
                         return WebMiscUtil.getMatchingRuleList();
                     }
-                }, new IChoiceRenderer<QName>() {
-
-            @Override
-            public Object getDisplayValue(QName object) {
-                return object.getLocalPart();
-            }
-
-            @Override
-            public String getIdValue(QName object, int index) {
-                return Integer.toString(index);
-            }
-        });
+                }, new QNameChoiceRenderer());
         matchingRule.setNullValid(true);
         add(matchingRule);
 

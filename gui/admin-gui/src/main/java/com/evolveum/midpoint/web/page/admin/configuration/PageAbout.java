@@ -142,7 +142,7 @@ public class PageAbout extends PageAdminConfiguration {
         addLabel(ID_REPOSITORY_URL, "repositoryUrl");
 
         ListView<LabeledString> additionalDetails = new ListView<LabeledString>(ID_ADDITIONAL_DETAILS,
-                new PropertyModel<List<? extends LabeledString>>(repoDiagModel, "additionalDetails")) {
+                new PropertyModel<List<LabeledString>>(repoDiagModel, "additionalDetails")) {
 
             @Override
             protected void populateItem(ListItem<LabeledString> item) {
@@ -160,7 +160,7 @@ public class PageAbout extends PageAdminConfiguration {
         add(additionalDetails);
 
         ListView<LabeledString> provisioningAdditionalDetails = new ListView<LabeledString>(ID_PROVISIONING_ADDITIONAL_DETAILS,
-                new PropertyModel<List<? extends LabeledString>>(provisioningDiagModel, "additionalDetails")) {
+                new PropertyModel<List<LabeledString>>(provisioningDiagModel, "additionalDetails")) {
 
             @Override
             protected void populateItem(ListItem<LabeledString> item) {

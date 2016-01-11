@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
@@ -93,7 +94,8 @@ public class AssignmentPreviewDialog extends ModalWindow{
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
+    	return PageTemplate.createStringResourceStatic(this, resourceKey, objects);
+//        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 
     private PageBase getPageBase() {

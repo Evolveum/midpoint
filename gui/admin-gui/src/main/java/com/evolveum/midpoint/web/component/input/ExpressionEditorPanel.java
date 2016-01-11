@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
@@ -164,20 +165,10 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
 
                     @Override
                     public List<ObjectReferenceType> getObject() {
-                        return createPasswordPolicyList();
+                        return WebModelUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), policyMap);
                     }
-                }, new IChoiceRenderer<ObjectReferenceType>() {
-
-            @Override
-            public Object getDisplayValue(ObjectReferenceType object) {
-                return policyMap.get(object.getOid());
-            }
-
-            @Override
-            public String getIdValue(ObjectReferenceType object, int index) {
-                return Integer.toString(index);
-            }
-        });
+                }, new ObjectReferenceChoiceRenderer(policyMap));
+        
         policyRef.add(new AjaxFormComponentUpdatingBehavior("onchange") {
 
             @Override
@@ -222,40 +213,40 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
         add(expressionTooltip);
     }
 
-    private List<ObjectReferenceType> createPasswordPolicyList(){
-        policyMap.clear();
-        OperationResult result = new OperationResult(OPERATION_LOAD_PASSWORD_POLICIES);
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_PASSWORD_POLICIES);
-        List<PrismObject<ValuePolicyType>> policies = null;
-        List<ObjectReferenceType> references = new ArrayList<>();
-
-        try{
-            policies = getPageBase().getModelService().searchObjects(ValuePolicyType.class, new ObjectQuery(), null, task, result);
-            result.recomputeStatus();
-        } catch (Exception e){
-            result.recordFatalError("Couldn't load password policies.", e);
-            LoggingUtils.logException(LOGGER, "Couldn't load password policies", e);
-        }
-
-        // TODO - show error somehow
-        // if(!result.isSuccess()){
-        //    getPageBase().showResult(result);
-        // }
-
-        if(policies != null){
-            ObjectReferenceType ref;
-
-            for(PrismObject<ValuePolicyType> policy: policies){
-                policyMap.put(policy.getOid(), WebMiscUtil.getName(policy));
-                ref = new ObjectReferenceType();
-                ref.setType(ValuePolicyType.COMPLEX_TYPE);
-                ref.setOid(policy.getOid());
-                references.add(ref);
-            }
-        }
-
-        return references;
-    }
+//    private List<ObjectReferenceType> createPasswordPolicyList(){
+//        policyMap.clear();
+//        OperationResult result = new OperationResult(OPERATION_LOAD_PASSWORD_POLICIES);
+//        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_PASSWORD_POLICIES);
+//        List<PrismObject<ValuePolicyType>> policies = null;
+//        List<ObjectReferenceType> references = new ArrayList<>();
+//
+//        try{
+//            policies = getPageBase().getModelService().searchObjects(ValuePolicyType.class, new ObjectQuery(), null, task, result);
+//            result.recomputeStatus();
+//        } catch (Exception e){
+//            result.recordFatalError("Couldn't load password policies.", e);
+//            LoggingUtils.logException(LOGGER, "Couldn't load password policies", e);
+//        }
+//
+//        // TODO - show error somehow
+//        // if(!result.isSuccess()){
+//        //    getPageBase().showResult(result);
+//        // }
+//
+//        if(policies != null){
+//            ObjectReferenceType ref;
+//
+//            for(PrismObject<ValuePolicyType> policy: policies){
+//                policyMap.put(policy.getOid(), WebMiscUtil.getName(policy));
+//                ref = new ObjectReferenceType();
+//                ref.setType(ValuePolicyType.COMPLEX_TYPE);
+//                ref.setOid(policy.getOid());
+//                references.add(ref);
+//            }
+//        }
+//
+//        return references;
+//    }
 
     protected void updateExpressionPerformed(AjaxRequestTarget target){
         try {

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -35,37 +36,37 @@ import org.apache.wicket.model.StringResourceModel;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/resources/content/entitlements", encoder = OnePageParameterEncoder.class, action = {
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_NO_ACCESS_URL)})
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_NO_ACCESS_URL) })
 public class PageContentEntitlements extends PageAdminResources {
 
-    private IModel<PrismObject<ResourceType>> resourceModel;
+	private IModel<PrismObject<ResourceType>> resourceModel;
 
-    public PageContentEntitlements() {
-        resourceModel = new LoadableModel<PrismObject<ResourceType>>(false) {
+	public PageContentEntitlements() {
+		resourceModel = new LoadableModel<PrismObject<ResourceType>>(false) {
 
-            @Override
-            protected PrismObject<ResourceType> load() {
-                if (!isResourceOidAvailable()) {
-                    getSession().error(getString("pageContentAccounts.message.resourceOidNotDefined"));
-                    throw new RestartResponseException(PageResources.class);
-                }
-                return loadResource(null);
-            }
-        };
-    }
+			@Override
+			protected PrismObject<ResourceType> load() {
+				if (!isResourceOidAvailable()) {
+					getSession().error(getString("pageContentAccounts.message.resourceOidNotDefined"));
+					throw new RestartResponseException(PageResources.class);
+				}
+				return loadResource(null);
+			}
+		};
+	}
 
-    //todo
+	// todo
 
+	@Override
+	protected IModel<String> createPageTitleModel() {
+		return new LoadableModel<String>(false) {
 
-    @Override
-    protected IModel<String> createPageTitleModel() {
-        return new LoadableModel<String>(false) {
-
-            @Override
-            protected String load() {
-                String name = WebMiscUtil.getName(resourceModel.getObject());
-                return new StringResourceModel("page.title", PageContentEntitlements.this, null, null, name).getString();
-            }
-        };
-    }
+			@Override
+			protected String load() {
+				String name = WebMiscUtil.getName(resourceModel.getObject());
+				return PageTemplate.createStringResourceStatic(PageContentEntitlements.this, "page.title", name)
+						.getString();
+			}
+		};
+	}
 }

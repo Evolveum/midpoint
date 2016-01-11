@@ -16,11 +16,8 @@
 
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
+import java.util.List;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -35,7 +32,12 @@ import org.apache.wicket.markup.repeater.data.DataViewBase;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.StringResourceModel;
 
-import java.util.List;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -221,12 +223,15 @@ public class BoxedTablePanel<T> extends SimplePanel implements Table {
 
             if (count > 0) {
                 if (count == Integer.MAX_VALUE) {
-                    return new StringResourceModel("CountToolbar.label", PagingFooter.this, null,
-                            new Object[]{from, to}).getString();
+                	return PageTemplate.createStringResourceStatic(PagingFooter.this, "CountToolbar.label", new Object[]{from, to}).getString();
+//                    return new StringResourceModel("CountToolbar.label", PagingFooter.this, null,
+//                            new Object[]{from, to}).getString();
                 }
 
-                return new StringResourceModel("CountToolbar.label", PagingFooter.this, null,
-                        new Object[]{from, to, count}).getString();
+                return PageTemplate.createStringResourceStatic(PagingFooter.this, "CountToolbar.label", new Object[]{from, to, count}).getString();
+                		
+//                		new StringResourceModel("CountToolbar.label", PagingFooter.this, null,
+//                        new Object[]{from, to, count}).getString();
             }
 
             return new StringResourceModel("CountToolbar.noFound", PagingFooter.this, null).getString();

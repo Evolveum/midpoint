@@ -24,6 +24,7 @@ import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintEnforcementType;
@@ -101,7 +102,8 @@ public class MultiplicityPolicyDialog extends ModalWindow{
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
+    	return PageTemplate.createStringResourceStatic(this, resourceKey, objects);
+//        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 
     public void updateModel(AjaxRequestTarget target, MultiplicityPolicyConstraintType policy){

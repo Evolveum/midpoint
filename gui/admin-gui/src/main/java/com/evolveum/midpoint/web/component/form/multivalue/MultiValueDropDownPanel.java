@@ -231,6 +231,11 @@ public class MultiValueDropDownPanel<T extends Serializable> extends SimplePanel
      * */
     protected IChoiceRenderer<T> createRenderer(){
         return new IChoiceRenderer<T>() {
+        	
+        	@Override
+        	public T getObject(String id, IModel<? extends List<? extends T>> choices) {
+        		return choices.getObject().get(Integer.parseInt(id));
+        	}
 
             @Override
             public Object getDisplayValue(T object) {

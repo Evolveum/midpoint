@@ -42,6 +42,9 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
+import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
+import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
@@ -148,18 +151,7 @@ public class PageTaskAdd extends PageAdminTasks {
                     public List<TaskAddResourcesDto> getObject() {
                         return createResourceList();
                     }
-                }, new IChoiceRenderer<TaskAddResourcesDto>() {
-
-            @Override
-            public Object getDisplayValue(TaskAddResourcesDto dto) {
-                return dto.getName();
-            }
-
-            @Override
-            public String getIdValue(TaskAddResourcesDto dto, int index) {
-                return Integer.toString(index);
-            }
-        });
+                }, new ChoiceableChoiceRenderer<TaskAddResourcesDto>());
         resource.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -215,21 +207,7 @@ public class PageTaskAdd extends PageAdminTasks {
                     public List<QName> getObject() {
                         return createFocusTypeList();
                     }
-                }, new IChoiceRenderer<QName>() {
-
-            @Override
-            public Object getDisplayValue(QName object) {
-            	if (FocusType.COMPLEX_TYPE.equals(object)){
-            		return "All (including role,orgs,users)";
-            	}
-                return object.getLocalPart();
-            }
-
-            @Override
-            public String getIdValue(QName object, int index) {
-                return Integer.toString(index);
-            }
-        });
+                }, new QNameChoiceRenderer());
         focusType.setOutputMarkupId(true);
         focusType.add(new VisibleEnableBehaviour(){
 
@@ -244,24 +222,7 @@ public class PageTaskAdd extends PageAdminTasks {
         
         final DropDownChoice kind = new DropDownChoice<>(ID_KIND,
                 new PropertyModel<ShadowKindType>(model, TaskAddDto.F_KIND),
-                new AbstractReadOnlyModel<List<ShadowKindType>>() {
-
-                    @Override
-                    public List<ShadowKindType> getObject() {
-                        return createShadowKindTypeList();
-                    }
-                }, new IChoiceRenderer<ShadowKindType>() {
-
-            @Override
-            public Object getDisplayValue(ShadowKindType object) {
-                return object.value();
-            }
-
-            @Override
-            public String getIdValue(ShadowKindType object, int index) {
-                return Integer.toString(index);
-            }
-        });
+                WebMiscUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer<ShadowKindType>());
         kind.setOutputMarkupId(true);
         kind.add(new VisibleEnableBehaviour(){
 
@@ -319,20 +280,9 @@ public class PageTaskAdd extends PageAdminTasks {
 
                     @Override
                     public List<String> getObject() {
-                        return createCategoryList();
+                        return WebMiscUtil.createTaskCategoryList();
                     }
-                }, new IChoiceRenderer<String>() {
-
-            @Override
-            public Object getDisplayValue(String item) {
-                return PageTaskAdd.this.getString("pageTask.category." + item);
-            }
-
-            @Override
-            public String getIdValue(String item, int index) {
-                return Integer.toString(index);
-            }
-        });
+                }, new StringChoiceRenderer("pageTask.category."));
         type.add(new AjaxFormComponentUpdatingBehavior("onChange") {
 
             @Override
@@ -560,28 +510,7 @@ public class PageTaskAdd extends PageAdminTasks {
         mainForm.add(backButton);
     }
 
-    private List<String> createCategoryList() {
-        List<String> categories = new ArrayList<>();
-
-        // todo change to something better and add i18n
-//		TaskManager manager = getTaskManager();
-//		List<String> list = manager.getAllTaskCategories();
-//		if (list != null) {
-//			Collections.sort(list);
-//			for (String item : list) {
-//				if (item != TaskCategory.IMPORT_FROM_FILE && item != TaskCategory.WORKFLOW) {
-//					categories.add(item);
-//				}
-//			}
-//		}
-        categories.add(TaskCategory.LIVE_SYNCHRONIZATION);
-        categories.add(TaskCategory.RECONCILIATION);
-        categories.add(TaskCategory.IMPORTING_ACCOUNTS);
-        categories.add(TaskCategory.RECOMPUTATION);
-        categories.add(TaskCategory.DEMO);
-        return categories;
-    }
-
+   
     private List<ShadowKindType> createShadowKindTypeList(){
         List<ShadowKindType> kindList = new ArrayList<>();
 

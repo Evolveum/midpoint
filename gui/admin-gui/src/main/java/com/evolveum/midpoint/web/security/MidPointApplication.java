@@ -16,6 +16,53 @@
 
 package com.evolveum.midpoint.web.security;
 
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.URI;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.io.IOUtils;
+import org.apache.velocity.runtime.resource.loader.StringResourceLoader;
+import org.apache.wicket.RuntimeConfigurationType;
+import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
+import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
+import org.apache.wicket.core.request.handler.PageProvider;
+import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
+import org.apache.wicket.core.request.mapper.MountedMapper;
+import org.apache.wicket.markup.head.PriorityFirstComparator;
+import org.apache.wicket.markup.html.SecurePackageResourceGuard;
+import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.request.IRequestHandler;
+import org.apache.wicket.request.Url;
+import org.apache.wicket.request.component.IRequestablePage;
+import org.apache.wicket.request.cycle.AbstractRequestCycleListener;
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.request.resource.SharedResourceReference;
+import org.apache.wicket.resource.loader.IStringResourceLoader;
+import org.apache.wicket.settings.ApplicationSettings;
+import org.apache.wicket.settings.RequestLoggerSettings;
+import org.apache.wicket.settings.ResourceSettings;
+import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
+import org.apache.wicket.util.lang.Bytes;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -37,50 +84,11 @@ import com.evolveum.midpoint.web.page.error.PageError401;
 import com.evolveum.midpoint.web.page.error.PageError403;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.page.login.PageLogin;
-import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.web.util.Utf8BundleStringResourceLoader;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.io.IOUtils;
-import org.apache.wicket.Page;
-import org.apache.wicket.RuntimeConfigurationType;
-import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
-import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
-import org.apache.wicket.core.request.handler.PageProvider;
-import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
-import org.apache.wicket.core.request.mapper.MountedMapper;
-import org.apache.wicket.markup.head.PriorityFirstComparator;
-import org.apache.wicket.markup.html.SecurePackageResourceGuard;
-import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.request.IRequestHandler;
-import org.apache.wicket.request.Url;
-import org.apache.wicket.request.component.IRequestablePage;
-import org.apache.wicket.request.cycle.AbstractRequestCycleListener;
-import org.apache.wicket.request.cycle.RequestCycle;
-import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.request.resource.SharedResourceReference;
-import org.apache.wicket.resource.loader.IStringResourceLoader;
-import org.apache.wicket.settings.IApplicationSettings;
-import org.apache.wicket.settings.IRequestLoggerSettings;
-import org.apache.wicket.settings.IResourceSettings;
-import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
-import org.apache.wicket.util.lang.Bytes;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.stereotype.Component;
-
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URI;
-import java.net.URL;
-import java.util.*;
 
 /**
  * @author lazyman
@@ -218,7 +226,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         getComponentInstantiationListeners().add(new SpringComponentInjector(this));
 
-        IResourceSettings resourceSettings = getResourceSettings();
+        ResourceSettings resourceSettings = getResourceSettings();
         resourceSettings.setParentFolderPlaceholder("$-$");
         resourceSettings.setHeaderItemComparator(new PriorityFirstComparator(true));
         SecurePackageResourceGuard guard = (SecurePackageResourceGuard) resourceSettings.getPackageResourceGuard();
@@ -229,8 +237,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         resourceSettings.setThrowExceptionOnMissingResource(false);
         getMarkupSettings().setStripWicketTags(true);
-        getMarkupSettings().setDefaultBeforeDisabledLink("");
-        getMarkupSettings().setDefaultAfterDisabledLink("");
+//        getMarkupSettings().setDefaultBeforeDisabledLink("");
+//        getMarkupSettings().setDefaultAfterDisabledLink("");
 
         if (RuntimeConfigurationType.DEVELOPMENT.equals(getConfigurationType())) {
             getDebugSettings().setAjaxDebugModeEnabled(true);
@@ -241,7 +249,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mountFiles(ImgResources.BASE_PATH, ImgResources.class);
 
         //exception handling an error pages
-        IApplicationSettings appSettings = getApplicationSettings();
+        ApplicationSettings appSettings = getApplicationSettings();
         appSettings.setAccessDeniedPage(PageError401.class);
         appSettings.setInternalErrorPage(PageError.class);
         appSettings.setPageExpiredErrorPage(PageError.class);
@@ -353,7 +361,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         });
         
         if (REQUEST_LOGGER.isDebugEnabled()) {
-	        IRequestLoggerSettings requestLoggerSettings = getRequestLoggerSettings();
+	        RequestLoggerSettings requestLoggerSettings = getRequestLoggerSettings();
 	        requestLoggerSettings.setRequestLoggerEnabled(true);
 	        if (REQUEST_LOGGER.isTraceEnabled()) {
 	        	requestLoggerSettings.setRecordSessionSize(true);
@@ -436,7 +444,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     }
 
     public String getString(String key) {
-        IResourceSettings resourceSettings = getResourceSettings();
+        ResourceSettings resourceSettings = getResourceSettings();
         List<IStringResourceLoader> resourceLoaders = resourceSettings.getStringResourceLoaders();
         IStringResourceLoader loader = resourceLoaders.get(0);
         return loader.loadStringResource((Class) null, key, null, null, null);

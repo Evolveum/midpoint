@@ -17,20 +17,36 @@
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.validator.AbstractValidator;
+import org.apache.wicket.validation.IValidationError;
+import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.ValidationError;
+import org.apache.wicket.validation.validator.StringValidator;
 
-public class InputStringValidator extends AbstractValidator<String> {
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
+
+public class InputStringValidator implements IValidator<String> {
 
 	@Override
-	protected void onValidate(IValidatable<String> item) {
-		if(item.getValue() == null){
-			error(item, "message.emptyString");
+	public void validate(IValidatable<String> validatable) {
+		if (validatable.getValue() == null) {
+			ValidationError err = new ValidationError();
+			err.addKey("message.emptyString");
+			validatable.error(err);
+			
 		}
 	}
 	
-	@Override
-	public boolean validateOnNullValue() {
-		return true;
-	}
+	
+//	@Override
+//	protected void onValidate(IValidatable<String> item) {
+//		if(item.getValue() == null){
+//			error(item, "message.emptyString");
+//		}
+//	}
+//	
+//	@Override
+//	public boolean validateOnNullValue() {
+//		return true;
+//	}
 
 }

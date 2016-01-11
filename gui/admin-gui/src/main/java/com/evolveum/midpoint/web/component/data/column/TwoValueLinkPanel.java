@@ -44,15 +44,15 @@ public class TwoValueLinkPanel<T extends Serializable> extends Panel {
                 TwoValueLinkPanel.this.onClick(target);
             }
 
-            @Override
-            public String getBeforeDisabledLink() {
-                return null;
-            }
-
-            @Override
-            public String getAfterDisabledLink() {
-                return null;
-            }
+//            @Override
+//            public String getBeforeDisabledLink() {
+//                return null;
+//            }
+//
+//            @Override
+//            public String getAfterDisabledLink() {
+//                return null;
+//            }
         };
         link.add(new Label(ID_LABEL, label));
         link.add(new VisibleEnableBehaviour() {

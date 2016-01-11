@@ -235,6 +235,12 @@ public class NameStep extends WizardStep {
         return new DropDownFormGroup<PrismObject<ConnectorType>>(
                 ID_CONNECTOR_TYPE, createReadonlyUsedConnectorModel(), connectorTypes,
                 new IChoiceRenderer<PrismObject<ConnectorType>>() {
+                	
+                	@Override
+                	public PrismObject<ConnectorType> getObject(String id,
+                			IModel<? extends List<? extends PrismObject<ConnectorType>>> choices) {
+                		return choices.getObject().get(Integer.parseInt(id));
+                	}
 
                     @Override
                     public Object getDisplayValue(PrismObject<ConnectorType> object) {
@@ -262,6 +268,12 @@ public class NameStep extends WizardStep {
         return new DropDownFormGroup<PrismObject<ConnectorHostType>>(ID_LOCATION, createConnectorHostModel(),
                         connectorHostsModel, new IChoiceRenderer<PrismObject<ConnectorHostType>>() {
 
+        	@Override
+        	public PrismObject<ConnectorHostType> getObject(String id,
+        			IModel<? extends List<? extends PrismObject<ConnectorHostType>>> choices) {
+        		return choices.getObject().get(Integer.parseInt(id));
+        	}
+        	
             @Override
             public Object getDisplayValue(PrismObject<ConnectorHostType> object) {
                 if (object == null) {

@@ -16,12 +16,8 @@
 
 package com.evolveum.midpoint.web.component.input;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -30,17 +26,20 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.validator.AbstractValidator;
+import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.ValidationError;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author lazyman
@@ -164,7 +163,7 @@ public class PasswordPanel extends InputPanel {
 		return (FormComponent) get(ID_INPUT_CONTAINER + ":" + ID_PASSWORD_ONE);
     }
 
-    private static class PasswordValidator extends AbstractValidator {
+    private static class PasswordValidator implements IValidator<String> {
 
         private PasswordTextField p1;
         private PasswordTextField p2;
@@ -177,7 +176,7 @@ public class PasswordPanel extends InputPanel {
         }
 
         @Override
-        protected void onValidate(IValidatable validatable) {
+        public void validate(IValidatable<String> validatable) {
             String s1 = p1.getValue();
             String s2 = p2.getValue();
 
@@ -187,7 +186,10 @@ public class PasswordPanel extends InputPanel {
             
             boolean equal = s1 != null ? s1.equals(s2) : s2 == null;
             if (!equal) {
-                error(p1.newValidatable(), "passwordPanel.error");
+            	validatable = p1.newValidatable();
+            	ValidationError err = new ValidationError();
+    			err.addKey("passwordPanel.error");
+    			validatable.error(err);
             }
         }
     }
