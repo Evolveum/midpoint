@@ -295,7 +295,7 @@ public class NameStep extends WizardStep {
             protected DropDownChoice createDropDown(String id, IModel<List<PrismObject<ConnectorHostType>>> choices,
                                                     IChoiceRenderer<PrismObject<ConnectorHostType>> renderer, boolean required) {
                 DropDownChoice choice = super.createDropDown(id, choices, renderer, required);
-                choice.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+                choice.add(new AjaxFormComponentUpdatingBehavior("change") {
 
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {

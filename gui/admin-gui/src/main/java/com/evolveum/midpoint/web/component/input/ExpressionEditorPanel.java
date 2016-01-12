@@ -108,7 +108,7 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
                 new PropertyModel<ExpressionUtil.ExpressionEvaluatorType>(model, ExpressionTypeDto.F_TYPE),
                 WebMiscUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
                 new EnumChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType>(this));
-        type.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+        type.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -137,7 +137,7 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
                 new PropertyModel<ExpressionUtil.Language>(model, ExpressionTypeDto.F_LANGUAGE),
                 WebMiscUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
                 new EnumChoiceRenderer<ExpressionUtil.Language>(this));
-        language.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+        language.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -170,7 +170,7 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
                     }
                 }, new ObjectReferenceChoiceRenderer(policyMap));
         
-        policyRef.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+        policyRef.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {

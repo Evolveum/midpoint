@@ -302,7 +302,7 @@ public class MappingEditorDialog extends ModalWindow {
 				return new DropDownChoice<>(id, getModel(), choices, renderer);
 			}
 		};
-		expressionType.getInput().add(new AjaxFormComponentUpdatingBehavior("onchange") {
+		expressionType.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
@@ -331,7 +331,7 @@ public class MappingEditorDialog extends ModalWindow {
 			}
 		});
 		form.add(expressionLanguage);
-		expressionLanguage.getInput().add(new AjaxFormComponentUpdatingBehavior("onchange") {
+		expressionLanguage.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
@@ -369,7 +369,7 @@ public class MappingEditorDialog extends ModalWindow {
 				return ExpressionUtil.ExpressionEvaluatorType.GENERATE.equals(model.getObject().getExpressionType());
 			}
 		});
-		expressionGeneratePolicy.getInput().add(new AjaxFormComponentUpdatingBehavior("onchange") {
+		expressionGeneratePolicy.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
@@ -402,7 +402,7 @@ public class MappingEditorDialog extends ModalWindow {
 				return new DropDownChoice<>(id, getModel(), choices, renderer);
 			}
 		};
-		conditionType.getInput().add(new AjaxFormComponentUpdatingBehavior("onchange") {
+		conditionType.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
@@ -429,7 +429,7 @@ public class MappingEditorDialog extends ModalWindow {
 				return ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(model.getObject().getConditionType());
 			}
 		});
-		conditionLanguage.getInput().add(new AjaxFormComponentUpdatingBehavior("onchange") {
+		conditionLanguage.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
@@ -467,7 +467,7 @@ public class MappingEditorDialog extends ModalWindow {
 				return ExpressionUtil.ExpressionEvaluatorType.GENERATE.equals(model.getObject().getConditionType());
 			}
 		});
-		conditionGeneratePolicy.getInput().add(new AjaxFormComponentUpdatingBehavior("onchange") {
+		conditionGeneratePolicy.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {

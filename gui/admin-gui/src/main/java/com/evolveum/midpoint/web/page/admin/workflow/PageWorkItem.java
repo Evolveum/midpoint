@@ -740,7 +740,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         mainForm.add(cancel);
 
         CheckBox showTechnicalInformationBox = new CheckBox(ID_SHOW_TECHNICAL_INFORMATION, showTechnicalInformationModel);
-        showTechnicalInformationBox.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+        showTechnicalInformationBox.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {

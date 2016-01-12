@@ -146,7 +146,7 @@ public class SearchPanel extends BasePanel<Search> {
             protected void populateItem(final ListItem<Property> item) {
                 CheckBox check = new CheckBox(ID_CHECK,
                         new PropertyModel<Boolean>(item.getModel(), Property.F_SELECTED));
-                check.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+                check.add(new AjaxFormComponentUpdatingBehavior("change") {
 
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {

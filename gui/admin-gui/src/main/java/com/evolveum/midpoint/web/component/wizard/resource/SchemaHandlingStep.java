@@ -349,7 +349,7 @@ public class SchemaHandlingStep extends WizardStep {
                 return getObjectClassChoices(input);
             }
         };
-        editorObjectClass.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+        editorObjectClass.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {}

@@ -111,7 +111,7 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Bas
                     }
                 };
                 autoCompleteEditor.add(createAutoCompleteValidator());
-                autoCompleteEditor.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+                autoCompleteEditor.add(new AjaxFormComponentUpdatingBehavior("change") {
 
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {}

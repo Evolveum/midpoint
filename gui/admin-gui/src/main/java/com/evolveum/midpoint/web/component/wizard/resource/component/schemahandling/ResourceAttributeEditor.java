@@ -209,7 +209,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
         schemaRefPanel.add(refSelect);
 
         CheckBox allowNonSchema = new CheckBox(ID_REFERENCE_ALLOW, new PropertyModel<Boolean>(this, "nonSchemaRefValueAllowed"));
-        allowNonSchema.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+        allowNonSchema.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {

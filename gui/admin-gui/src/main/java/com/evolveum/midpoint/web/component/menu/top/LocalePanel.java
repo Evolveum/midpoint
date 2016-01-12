@@ -52,7 +52,7 @@ public class LocalePanel extends Panel {
 
         final IModel<LocaleDescriptor> model = new Model(getSelectedLocaleDescriptor());
         Select<LocaleDescriptor> select = new Select<>(ID_SELECT, model);
-        select.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+        select.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {

@@ -97,7 +97,7 @@ public class PasswordPanel extends InputPanel {
         password2.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         inputContainer.add(password2);
         
-        password1.add(new AjaxFormComponentUpdatingBehavior("onChange") {
+        password1.add(new AjaxFormComponentUpdatingBehavior("change") {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				boolean required = !StringUtils.isEmpty(password1.getModel().getObject());
