@@ -72,18 +72,7 @@ public class DefinitionScopePanel extends SimplePanel<DefinitionScopeDto> {
         DropDownChoicePanel objectTypeChooser = new DropDownChoicePanel(ID_OBJECT_TYPE_CHOOSER,
                 new PropertyModel(getModel(), DefinitionScopeDto.F_OBJECT_TYPE),
                 WebMiscUtil.createReadonlyModelFromEnum(DefinitionScopeObjectType.class),
-                new IChoiceRenderer<DefinitionScopeObjectType>() {
-
-                    @Override
-                    public Object getDisplayValue(DefinitionScopeObjectType item) {
-                        return item.name();
-                    }
-
-                    @Override
-                    public String getIdValue(DefinitionScopeObjectType item, int index) {
-                        return Integer.toString(index);
-                    }
-                });
+                new EnumChoiceRenderer<DefinitionScopeObjectType>() );
         add(objectTypeChooser);
 
         TextArea filterTextArea = new TextArea(ID_SEARCH_FILTER, new PropertyModel<String>(getModel(), DefinitionScopeDto.F_SEARCH_FILTER_TEXT));
