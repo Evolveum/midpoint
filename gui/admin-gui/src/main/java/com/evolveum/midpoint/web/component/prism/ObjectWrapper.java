@@ -433,7 +433,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 
 	private PrismObject<ConnectorType> loadConnector() {
 		PrismReference connectorRef = object.findReference(ResourceType.F_CONNECTOR_REF);
-		return connectorRef.getValue().getObject();
+		return connectorRef != null ? (connectorRef.getValue() != null ? connectorRef.getValue().getObject() : null) : null;
 		// todo reimplement
 	}
 
@@ -628,7 +628,9 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 		Collections.sort(containers, new ItemWrapperComparator());
 
 		// Make sure we have all the definitions
-		object.getPrismContext().adopt(delta);
+        if (object.getPrismContext() != null) {
+            object.getPrismContext().adopt(delta);
+        }
 		return delta;
 	}
 

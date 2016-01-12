@@ -417,8 +417,12 @@ public class TabbedPanel<T extends ITab> extends Panel {
             if (visibilities.length > 0) {
                 Boolean visible = visibilities[index];
                 if (visible == null) {
-                    visible = tabs.getObject().get(index).isVisible();
-                    visibilities[index] = visible;
+                    List<T> tabsList = tabs.getObject();
+                    T tab = tabsList == null || tabsList.size() == 0 ? null :  tabs.getObject().get(index);
+                    visible = tab != null && tab.isVisible();
+                    if (tab != null) {
+                        visibilities[index] = visible;
+                    }
                 }
                 return visible;
             } else {
