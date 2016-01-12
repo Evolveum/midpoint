@@ -27,8 +27,13 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ExistsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.ObjectPagingAfterOid;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
@@ -51,6 +56,7 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -822,8 +828,40 @@ main:       for (;;) {
 
     private boolean isUseNewQueryInterpreter(ObjectQuery query) {
         //return query == null || query.isUseNewQueryInterpreter();
-        return true;
+        //return true;
+        boolean retval = isUseNewQueryInterpreterInternal(query);
+        LOGGER.debug("isUseNewQueryInterpreter for {} returns {}", query, retval);
+        return retval;
     }
 
+    private boolean isUseNewQueryInterpreterInternal(ObjectQuery query) {
+        if (query == null) {
+            return false;
+        }
+        if (query.getPaging() != null) {
+            if (query.getPaging().getOrderBy() != null &&
+                    query.getPaging().getOrderBy().size() != 1) {
+                return true;
+            }
+        }
+        if (query.getFilter() == null) {
+            return false;
+        }
+        final Holder<Boolean> isNewHolder = new Holder<>(false);
+        query.getFilter().accept(new Visitor() {
+            @Override
+            public void visit(ObjectFilter filter) {
+                if (filter instanceof ExistsFilter) {
+                    isNewHolder.setValue(true);
+                } else if (filter instanceof ValueFilter) {
+                    ItemPath path = ((ValueFilter) filter).getFullPath();
+                    if (ItemPath.containsSpecialSymbols(path)) {
+                        isNewHolder.setValue(true);
+                    }
+                }
+            }
+        });
+        return isNewHolder.getValue();
+    }
 
 }
