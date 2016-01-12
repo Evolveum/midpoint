@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
+import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidationError;
 import org.apache.wicket.validation.IValidator;
@@ -24,7 +25,7 @@ import org.apache.wicket.validation.validator.StringValidator;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
 
-public class InputStringValidator implements IValidator<String> {
+public class InputStringValidator implements IValidator<String>, INullAcceptingValidator<String> {
 
 	@Override
 	public void validate(IValidatable<String> validatable) {

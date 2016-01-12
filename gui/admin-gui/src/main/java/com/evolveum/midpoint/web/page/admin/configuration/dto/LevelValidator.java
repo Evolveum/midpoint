@@ -16,13 +16,14 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
+import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
 
-public class LevelValidator implements IValidator<LoggingLevelType> {
+public class LevelValidator implements IValidator<LoggingLevelType>, INullAcceptingValidator<LoggingLevelType> {
 
 	@Override
 	public void validate(IValidatable<LoggingLevelType> validatable) {
