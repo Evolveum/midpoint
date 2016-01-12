@@ -337,10 +337,7 @@ public final class WebMiscUtil {
 
                     @Override
                     public String getIdValue(Object object, int index) {
-                        if (object instanceof DisplayableValue) {
-                            return ((DisplayableValue) object).getValue().toString();
-                        }
-                        return object.toString();
+                       return String.valueOf(index);
 //						for (DisplayableValue v : enumModelValues.getObject()){
 //							if (object.equals(v.getValue())){
 //								return v.getLabel();
