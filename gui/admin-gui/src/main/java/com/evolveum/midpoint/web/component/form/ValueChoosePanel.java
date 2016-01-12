@@ -258,7 +258,7 @@ public class ValueChoosePanel<T, C extends ObjectType> extends BasePanel<T> {
                 } else if (ort instanceof ObjectViewDto) {
                     return ((ObjectViewDto) ort).getName();
                 }
-                return ort.toString();
+                return ort != null ? ort.toString() : null;
 
             }
         };

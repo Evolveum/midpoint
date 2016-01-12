@@ -270,7 +270,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
             ItemDelta<IV,ID> itemDelta = item.createDelta();
             itemDelta.addValuesToAdd(item.getClonedValues());
             Collection<PartiallyResolvedDelta<IV,ID>> deltas = new ArrayList<>(1);
-            deltas.add(new PartiallyResolvedDelta<IV,ID>(itemDelta, partialValue.getResidualPath()));
+            deltas.add(new PartiallyResolvedDelta<IV, ID>(itemDelta, partialValue.getResidualPath()));
             return deltas;
         } else if (changeType == ChangeType.MODIFY) {
         	Collection<PartiallyResolvedDelta<IV,ID>> deltas = new ArrayList<>();
@@ -1452,4 +1452,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
         return sb.toString();
     }
 
+    public static boolean isNullOrEmpty(ObjectDelta delta) {
+        return delta == null || delta.isEmpty();
+    }
 }

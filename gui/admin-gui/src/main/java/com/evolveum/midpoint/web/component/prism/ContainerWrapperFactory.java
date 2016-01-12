@@ -58,6 +58,7 @@ public class ContainerWrapperFactory {
             ObjectType.F_FETCH_RESULT,
             ObjectType.F_PARENT_ORG,
             ObjectType.F_PARENT_ORG_REF,
+            ObjectType.F_TENANT_REF,
             FocusType.F_LINK,
             FocusType.F_LINK_REF);
 

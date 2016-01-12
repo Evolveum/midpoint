@@ -287,6 +287,9 @@ public class PageCertCampaign extends PageAdminCertification {
 		column = helper.createDetailedInfoColumn(this);
 		columns.add(column);
 
+		column = new PropertyColumn(createStringResource("PageCertCampaign.table.reviewers"), CertCaseDto.F_REVIEWERS);
+		columns.add(column);
+
 		column = new PropertyColumn(createStringResource("PageCertCampaign.table.reviewedAt"), CertCaseDto.F_REVIEWED_AT);
 		columns.add(column);
 

@@ -410,25 +410,30 @@ public class TaskDto extends Selectable {
     }
 
     private List<DeltaDto> retrieveDeltasToProcess(TaskType taskType) throws SchemaException {
+        PrismContext prismContext = taskType.asPrismObject().getPrismContext();
+        PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty = getExtensionProperty(taskType, PcpTaskExtensionItemsNames.WFDELTAS_TO_PROCESS_PROPERTY_NAME);
+        return objectTreeDeltasToDeltaDtoList(deltaTypePrismProperty, prismContext);
+    }
+
+    private List<DeltaDto> objectTreeDeltasToDeltaDtoList(PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty, PrismContext prismContext) throws SchemaException {
         List<DeltaDto> retval = new ArrayList<DeltaDto>();
-        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = getExtensionProperty(taskType, PcpTaskExtensionItemsNames.WFDELTA_TO_PROCESS_PROPERTY_NAME);
         if (deltaTypePrismProperty != null) {
-            for (ObjectDeltaType objectDeltaType : deltaTypePrismProperty.getRealValues()) {
-                retval.add(new DeltaDto(DeltaConvertor.createObjectDelta(objectDeltaType, taskType.asPrismObject().getPrismContext())));
+            ObjectTreeDeltasType deltas = deltaTypePrismProperty.getRealValue();
+            ObjectDeltaType focusDelta = deltas.getFocusPrimaryDelta();
+            if (focusDelta != null) {
+                retval.add(new DeltaDto(DeltaConvertor.createObjectDelta(focusDelta, prismContext)));
+            }
+            for (ProjectionObjectDeltaType projectionObjectDeltaType : deltas.getProjectionPrimaryDelta()) {
+                retval.add(new DeltaDto(DeltaConvertor.createObjectDelta(projectionObjectDeltaType.getPrimaryDelta(), prismContext)));
             }
         }
         return retval;
     }
 
     public List<DeltaDto> retrieveResultingDeltas(TaskType taskType) throws SchemaException {
-        List<DeltaDto> retval = new ArrayList<DeltaDto>();
-        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = getExtensionProperty(taskType, PcpTaskExtensionItemsNames.WFRESULTING_DELTA_PROPERTY_NAME);
-        if (deltaTypePrismProperty != null) {
-            for (ObjectDeltaType objectDeltaType : deltaTypePrismProperty.getRealValues()) {
-                retval.add(new DeltaDto(DeltaConvertor.createObjectDelta(objectDeltaType, taskType.asPrismObject().getPrismContext())));
-            }
-        }
-        return retval;
+        PrismContext prismContext = taskType.asPrismObject().getPrismContext();
+        PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty = getExtensionProperty(taskType, PcpTaskExtensionItemsNames.WFRESULTING_DELTAS_PROPERTY_NAME);
+        return objectTreeDeltasToDeltaDtoList(deltaTypePrismProperty, prismContext);
     }
 
     private List<WfHistoryEventDto> prepareWorkflowHistory(TaskType taskType) {

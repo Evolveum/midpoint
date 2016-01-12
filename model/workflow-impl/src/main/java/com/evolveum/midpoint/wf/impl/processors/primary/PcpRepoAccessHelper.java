@@ -29,7 +29,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.processes.common.StringHolder;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -88,34 +87,13 @@ public class PcpRepoAccessHelper {
         return object;
     }
 
-    public ObjectDelta getObjectDelta(Map<String, Object> variables) throws JAXBException, SchemaException {
-        return getObjectDelta(variables, false);
-    }
-
-    public ObjectDelta getObjectDelta(Map<String, Object> variables, boolean mayBeNull) throws JAXBException, SchemaException {
-        ObjectDeltaType objectDeltaType = getObjectDeltaType(variables, mayBeNull);
-        return objectDeltaType != null ? DeltaConvertor.createObjectDelta(objectDeltaType, prismContext) : null;
-    }
-
-    public ObjectDeltaType getObjectDeltaType(Map<String, Object> variables, boolean mayBeNull) throws JAXBException, SchemaException {
-        StringHolder deltaXml = (StringHolder) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_DELTA);
-        if (deltaXml == null) {
-            if (mayBeNull) {
-                return null;
-            } else {
-                throw new IllegalStateException("There's no delta in process variables");
-            }
-        }
-        return prismContext.parseAtomicValue(deltaXml.getValue(), ObjectDeltaType.COMPLEX_TYPE, PrismContext.LANG_XML);
-    }
-
     public PrismObject<? extends ObjectType> getObjectAfter(Map<String, Object> variables, ObjectDeltaType deltaType, PrismObject<? extends ObjectType> objectBefore, PrismContext prismContext, OperationResult result) throws JAXBException, SchemaException {
 
         ObjectDelta delta;
         if (deltaType != null) {
             delta = DeltaConvertor.createObjectDelta(deltaType, prismContext);
         } else {
-            delta = getObjectDelta(variables, true);
+            delta = miscDataUtil.getFocusPrimaryDelta(variables, true);
         }
 
         if (delta == null) {
