@@ -196,7 +196,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 
 					@Override
 					public String getIdValue(V object, int index) {
-						return getValueForId(object);
+						return String.valueOf(index);
 					};
 				});
 		listSelect.add(new OnChangeAjaxBehavior() {
