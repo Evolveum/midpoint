@@ -42,7 +42,7 @@ public class StringResourceChoiceRenderer implements IChoiceRenderer<String> {
 
 	@Override
 	public String getIdValue(String object, int index) {
-		return object;
+		return String.valueOf(index);
 	}
 	
 	@Override

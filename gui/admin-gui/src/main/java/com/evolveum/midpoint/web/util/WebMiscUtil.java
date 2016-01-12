@@ -318,6 +318,9 @@ public final class WebMiscUtil {
 
         @Override
         public Object getObject(String id, IModel choices) {
+        	if (StringUtils.isBlank(id)){
+    			return null;
+    		}
         	return ((List) choices.getObject()).get(Integer.parseInt(id));
         }
         	
