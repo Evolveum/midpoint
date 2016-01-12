@@ -190,7 +190,7 @@ public class PageTaskAdd extends PageAdminTasks {
                 return sync || recon || importAccounts;
             }
         });
-        resource.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+        resource.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -310,7 +310,7 @@ public class PageTaskAdd extends PageAdminTasks {
                         return WebMiscUtil.createTaskCategoryList();
                     }
                 }, new StringChoiceRenderer("pageTask.category."));
-        type.add(new AjaxFormComponentUpdatingBehavior("onChange") {
+        type.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
