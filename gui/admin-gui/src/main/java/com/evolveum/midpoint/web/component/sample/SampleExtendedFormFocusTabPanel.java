@@ -121,7 +121,11 @@ public class SampleExtendedFormFocusTabPanel<F extends FocusType> extends Abstra
 			// TODO: better errror reporting
 		}
 		
-		add(new SimpleParametricRoleSelector<F,RoleType>(ID_ROLES_DOMAIN, assignmentsModel, availableDomainRoles, new ItemPath(ObjectType.F_EXTENSION, SchemaConstants.SAMPLES_DOMAIN)));
+		SimpleParametricRoleSelector<F,RoleType> domainRoleSelector = new SimpleParametricRoleSelector<F,RoleType>(ID_ROLES_DOMAIN, assignmentsModel, availableDomainRoles, new ItemPath(ObjectType.F_EXTENSION, SchemaConstants.SAMPLES_DOMAIN));
+		domainRoleSelector.setLabelParam("Domain");
+		domainRoleSelector.setLabelRole("Active roles for selected domain");
+		add(domainRoleSelector);
+		
 	}
 
 }

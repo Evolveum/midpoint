@@ -24,6 +24,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -54,11 +55,15 @@ public class SimpleParametricRoleSelector<F extends FocusType, R extends Abstrac
 
 	private static final Trace LOGGER = TraceManager.getTrace(SimpleParametricRoleSelector.class);
 	
+	private static final String ID_LABEL_ROLE = "labelRole";
+	private static final String ID_LABEL_PARAM = "labelParam";
 	private static final String ID_LIST_PARAM = "listParam";
 	private static final String ID_ITEM_PARAM = "itemParam";
 	private static final String ID_BUTTON_ADD = "buttonAdd";
 	private static final String ID_BUTTON_DELETE = "buttonDelete";
 	
+	private String labelParam = null;
+	private String labelRole = null;
 	private ItemPath parameterPath;
 	private LoadableModel<List<String>> paramListModel;
 	private String selectedParam = null;
@@ -68,6 +73,22 @@ public class SimpleParametricRoleSelector<F extends FocusType, R extends Abstrac
 		this.parameterPath = parameterPath;
 		paramListModel = initParamListModel(assignmentModel);
 		initLayout();
+	}
+
+	public String getLabelParam() {
+		return labelParam;
+	}
+
+	public void setLabelParam(String labelParam) {
+		this.labelParam = labelParam;
+	}
+
+	public String getLabelRole() {
+		return labelRole;
+	}
+
+	public void setLabelRole(String labelRole) {
+		this.labelRole = labelRole;
 	}
 
 	private LoadableModel<List<String>> initParamListModel(final IModel<List<AssignmentEditorDto>> assignmentModel) {
@@ -118,6 +139,50 @@ public class SimpleParametricRoleSelector<F extends FocusType, R extends Abstrac
 	}
 	 
 	private void initLayout() {
+		
+		IModel<String> labelParamModel = new IModel<String>() {
+			@Override
+			public void detach() {
+			}
+
+			@Override
+			public String getObject() {
+				return getLabelParam();
+			}
+
+			@Override
+			public void setObject(String object) {
+			}			
+		};
+		add(new Label(ID_LABEL_PARAM, labelParamModel) {
+			@Override
+			protected void onConfigure() {
+				setVisible(getLabelParam() != null);
+				super.onConfigure();
+			}
+		});
+		
+		IModel<String> labelRoleModel = new IModel<String>() {
+			@Override
+			public void detach() {
+			}
+
+			@Override
+			public String getObject() {
+				return getLabelRole();
+			}
+
+			@Override
+			public void setObject(String object) {
+			}			
+		};
+		add(new Label(ID_LABEL_ROLE, labelRoleModel) {
+			@Override
+			protected void onConfigure() {
+				setVisible(getLabelRole() != null);
+				super.onConfigure();
+			}
+		});
 		
 		ListView<String> list = new ListView<String>(ID_LIST_PARAM, paramListModel) {
 			@Override
