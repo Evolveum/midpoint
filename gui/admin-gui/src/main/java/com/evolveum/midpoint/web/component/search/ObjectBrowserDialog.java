@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 
 package com.evolveum.midpoint.web.component.search;
 
-import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.BasePanel;
+
 import org.apache.wicket.model.IModel;
 
 /**
  * @author Viliam Repan (lazyman)
  */
-public class ObjectBrowserDialog extends SimplePanel {
+public class ObjectBrowserDialog extends BasePanel {
 
     public ObjectBrowserDialog(String id, IModel model) {
         super(id, model);

@@ -15,7 +15,10 @@
  */
 package com.evolveum.midpoint.web.util;
 
+import java.util.List;
+
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
 
 /**
@@ -39,7 +42,12 @@ public class StringResourceChoiceRenderer implements IChoiceRenderer<String> {
 
 	@Override
 	public String getIdValue(String object, int index) {
-		return object;
+		return String.valueOf(index);
+	}
+	
+	@Override
+	public String getObject(String id, IModel<? extends List<? extends String>> choices) {
+		return choices.getObject().get(Integer.parseInt(id));
 	}
 
 }

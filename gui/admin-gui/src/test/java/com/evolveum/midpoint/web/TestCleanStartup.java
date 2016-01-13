@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,21 +42,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
  * @author semancik
  *
  */
-@ContextConfiguration(locations = {
-        "classpath:ctx-repo-cache.xml",
-        "classpath*:ctx-repository.xml",
-        "classpath:ctx-task.xml",
-        "classpath:ctx-audit.xml",
-        "classpath:ctx-configuration-test.xml",
-        "classpath:ctx-common.xml",
-        "classpath:ctx-security.xml",
-        "classpath:ctx-provisioning.xml",
-        "classpath:ctx-model.xml",
-        "classpath:ctx-model-test.xml",
-        "classpath*:ctx-workflow.xml",
-        "file:src/main/webapp/WEB-INF/ctx-init.xml",
-        "file:src/main/webapp/WEB-INF/ctx-web-security.xml",
-        "file:src/main/webapp/WEB-INF/ctx-webapp.xml"})
+@ContextConfiguration(locations = {"classpath:ctx-admin-gui-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestCleanStartup extends AbstractModelIntegrationTest {
 	

@@ -276,12 +276,13 @@ public class CertificationManagerImpl implements CertificationManager {
             } else if (!REVIEW_STAGE_DONE.equals(state)) {
                 result.recordFatalError("Couldn't start the remediation as the last stage was not properly closed.");
             } else {
+                updateHelper.setStageNumberAndState(campaign, lastStageNumber + 1, IN_REMEDIATION, task, result);
+
                 if (CertCampaignTypeUtil.isRemediationAutomatic(campaign)) {
                     remediationTaskHandler.launch(campaign, task, result);
                 } else {
                     result.recordWarning("The automated remediation is not configured. The campaign state was set to IN REMEDIATION, but all remediation actions have to be done by hand.");
                 }
-                updateHelper.setStageNumberAndState(campaign, lastStageNumber + 1, IN_REMEDIATION, task, result);
 
                 campaign = updateHelper.refreshCampaign(campaign, task, result);
                 eventHelper.onCampaignStageStart(campaign, task, result);

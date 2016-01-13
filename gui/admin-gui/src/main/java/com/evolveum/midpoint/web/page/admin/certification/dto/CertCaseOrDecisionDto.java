@@ -21,12 +21,14 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.wicket.migrate.StringResourceModelMigration;
 import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -174,11 +176,13 @@ public class CertCaseOrDecisionDto extends Selectable {
 
             //todo i18n
             if (delta > 0) {
-                return new StringResourceModel("PageCert.in", page, null, null,
-                        DurationFormatUtils.formatDurationWords(delta, true, true)).getString();
+            	return PageTemplate.createStringResourceStatic(page, "PageCert.in", DurationFormatUtils.formatDurationWords(delta, true, true)).getString();
+//                return new StringResourceModel("PageCert.in", page, null, null,
+//                        DurationFormatUtils.formatDurationWords(delta, true, true)).getString();
             } else if (delta < 0) {
-                return new StringResourceModel("PageCert.ago", page, null, null,
-                        DurationFormatUtils.formatDurationWords(-delta, true, true)).getString();
+            	return PageTemplate.createStringResourceStatic(page, "PageCert.ago", DurationFormatUtils.formatDurationWords(-delta, true, true)).getString();
+//                return StringResourceModelMigration.of("PageCert.ago", page, null, null,
+//                        DurationFormatUtils.formatDurationWords(-delta, true, true)).getString();
             } else {
                 return page.getString("PageCert.now");
             }

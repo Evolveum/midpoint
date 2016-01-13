@@ -27,6 +27,7 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.hibernate.cfg.PropertyData;
@@ -49,11 +50,14 @@ import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
+import com.evolveum.midpoint.web.component.objectdetails.RoleMainPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.LoadableModel;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
@@ -67,11 +71,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author shood
+ * @author semancik
  */
 @PageDescriptor(url = "/admin/role", encoder = OnePageParameterEncoder.class, action = {
 		@AuthorizationAction(actionUri = PageAdminRoles.AUTH_ROLE_ALL, label = PageAdminRoles.AUTH_ROLE_ALL_LABEL, description = PageAdminRoles.AUTH_ROLE_ALL_DESCRIPTION),
 		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_URL, label = "PageRole.auth.role.label", description = "PageRole.auth.role.description") })
-public class PageRole extends PageAdminAbstractRole<RoleType>implements ProgressReportingAwarePage {
+public class PageRole extends PageAdminAbstractRole<RoleType> implements ProgressReportingAwarePage {
 
 	public static final String AUTH_ROLE_ALL = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL;
 	public static final String AUTH_ROLE_ALL_LABEL = "PageAdminRoles.auth.roleAll.label";
@@ -89,11 +94,6 @@ public class PageRole extends PageAdminAbstractRole<RoleType>implements Progress
 		initialize(null);
 	}
 
-	@Override
-	protected void performCustomInitialization() {
-		super.performCustomInitialization();
-
-	}
 
 	/**
 	 * Removes empty policy constraints from role. It was created when loading
@@ -119,7 +119,7 @@ public class PageRole extends PageAdminAbstractRole<RoleType>implements Progress
 	protected void prepareFocusDeltaForModify(ObjectDelta<RoleType> focusDelta) throws SchemaException {
 		super.prepareFocusDeltaForModify(focusDelta);
 
-		ObjectDelta delta = getFocusWrapper().getObjectOld().diff(getFocusWrapper().getObject());
+		ObjectDelta<RoleType> delta = getObjectWrapper().getObjectOld().diff(getObjectWrapper().getObject());
 
 		ContainerDelta<PolicyConstraintsType> policyConstraintsDelta = delta
 				.findContainerDelta(new ItemPath(RoleType.F_POLICY_CONSTRAINTS));
@@ -143,12 +143,12 @@ public class PageRole extends PageAdminAbstractRole<RoleType>implements Progress
 	}
 
 	@Override
-	protected void prepareFocusForAdd(PrismObject<RoleType> focus) throws SchemaException {
+	protected void prepareObjectForAdd(PrismObject<RoleType> focus) throws SchemaException {
 		// TODO policyConstraints
-		super.prepareFocusForAdd(focus);
+		super.prepareObjectForAdd(focus);
 
-		getFocusWrapper().getObjectOld().findOrCreateContainer(RoleType.F_POLICY_CONSTRAINTS);
-		ObjectDelta delta = getFocusWrapper().getObjectOld().diff(getFocusWrapper().getObject());
+		getObjectWrapper().getObjectOld().findOrCreateContainer(RoleType.F_POLICY_CONSTRAINTS);
+		ObjectDelta<RoleType> delta = getObjectWrapper().getObjectOld().diff(getObjectWrapper().getObject());
 
 		ContainerDelta<PolicyConstraintsType> policyConstraintsDelta = delta
 				.findContainerDelta(new ItemPath(RoleType.F_POLICY_CONSTRAINTS));
@@ -172,22 +172,8 @@ public class PageRole extends PageAdminAbstractRole<RoleType>implements Progress
 	}
 
 	@Override
-	protected void setSpecificResponsePage() {
-		if (getPreviousPage() != null) {
-			goBack(PageDashboard.class); // parameter is not used
-		} else {
-			setResponsePage(new PageRoles(false, ""));
-		}
-	}
-
-	@Override
-	protected RoleType createNewFocus() {
+	protected RoleType createNewObject() {
 		return new RoleType();
-	}
-
-	@Override
-	protected void reviveCustomModels() throws SchemaException {
-		// TODO revivie max min assignments?
 	}
 
 	@Override
@@ -201,35 +187,18 @@ public class PageRole extends PageAdminAbstractRole<RoleType>implements Progress
 	}
 
 	@Override
-	protected void initTabs(List<ITab> tabs) {
-		super.initTabs(tabs);
-
-		tabs.add(new AbstractTab(createStringResource("AbstractRoleType.policyConstraints")) {
-			@Override
-			public WebMarkupContainer getPanel(String panelId) {
-				return new RolePolicyPanel(panelId, getFocusWrapper().getObject());
-			}
-		});
-
-		
-			tabs.add(new AbstractTab(createStringResource("pageRole.members")) {
-				@Override
-				public WebMarkupContainer getPanel(String panelId) {
-					return new RoleMemberPanel<UserType>(panelId, getFocusWrapper().getObject().getOid(),
-							PageRole.this);
-				}
-				
-				@Override
-				public boolean isVisible() {
-					return getFocusWrapper().getStatus() != ContainerStatus.ADDING;
-				}
-			});
-		
-	}
+	protected FocusSummaryPanel<RoleType> createSummaryPanel() {
+    	return new RoleSummaryPanel(ID_SUMMARY_PANEL, getObjectModel());
+    }
 
 	@Override
-	protected FocusSummaryPanel<RoleType> createSummaryPanel() {
-    	return new RoleSummaryPanel(ID_SUMMARY_PANEL, getFocusModel());
-    }
+	protected AbstractObjectMainPanel<RoleType> createMainPanel(String id) {
+		return new RoleMainPanel(id, getObjectModel(), getAssignmentsModel(), getProjectionModel(), getInducementsModel(), this);
+	}
+	
+	@Override
+	protected PageBase getDefaultBackPage() {
+		return new PageRoles(false, "");
+	}
 
 }

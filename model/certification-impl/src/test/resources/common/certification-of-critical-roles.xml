@@ -73,7 +73,7 @@ guybrush->COO               cheese                      elaine
         <number>2</number>
         <days>14</days>
         <reviewerSpecification>
-            <defaultReviewerRef oid="c0c010c0-d34d-b33f-f00d-11111111111e" type="UserType" />   <!-- elaine -->
+            <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />   <!-- elaine -->
         </reviewerSpecification>
     </stageDefinition>
 </accessCertificationDefinition>

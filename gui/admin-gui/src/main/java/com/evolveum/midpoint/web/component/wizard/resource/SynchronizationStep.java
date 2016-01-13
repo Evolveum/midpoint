@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,35 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.DataView;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.validation.IValidator;
+
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -28,9 +57,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueAutoCompleteTextPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
+import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
+import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.ThreeStateBooleanPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.component.synchronization.ConditionalSearchFilterEditor;
@@ -38,11 +68,25 @@ import com.evolveum.midpoint.web.component.wizard.resource.component.synchroniza
 import com.evolveum.midpoint.web.component.wizard.resource.component.synchronization.SynchronizationReactionEditor;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectSynchronizationTypeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceSynchronizationDto;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReactionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
@@ -63,9 +107,11 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.validation.IValidator;
 
 import javax.xml.namespace.QName;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
 
 /**
  * @author lazyman
@@ -291,7 +337,7 @@ public class SynchronizationStep extends WizardStep {
         DropDownChoice editorKind = new DropDownChoice<>(ID_EDITOR_KIND,
                 new PropertyModel<ShadowKindType>(model, ResourceSynchronizationDto.F_SELECTED + ".kind"),
                 WebMiscUtil.createReadonlyModelFromEnum(ShadowKindType.class),
-                new EnumChoiceRenderer<ShadowKindType>(this));
+                new EnumChoiceRenderer<ShadowKindType>());
         editorKind.setNullValid(true);
         editor.add(editorKind);
 
@@ -346,20 +392,9 @@ public class SynchronizationStep extends WizardStep {
 
                     @Override
                     public List<QName> getObject() {
-                        return createFocusTypeList();
+                        return WebMiscUtil.createFocusTypeList();
                     }
-                }, new IChoiceRenderer<QName>() {
-
-            @Override
-            public Object getDisplayValue(QName object) {
-                return object.getLocalPart();
-            }
-
-            @Override
-            public String getIdValue(QName object, int index) {
-                return Integer.toString(index);
-            }
-        });
+                }, new QNameChoiceRenderer());
         editorFocus.setNullValid(true);
         editor.add(editorFocus);
 
@@ -393,20 +428,9 @@ public class SynchronizationStep extends WizardStep {
 
                     @Override
                     public List<ObjectReferenceType> getObject() {
-                        return createObjectTemplateList();
+                    	return WebModelUtils.createObjectReferenceList(ObjectTemplateType.class, getPageBase(), model.getObject().getObjectTemplateMap());
                     }
-                }, new IChoiceRenderer<ObjectReferenceType>() {
-
-            @Override
-            public Object getDisplayValue(ObjectReferenceType object) {
-                return model.getObject().getObjectTemplateMap().get(object.getOid());
-            }
-
-            @Override
-            public String getIdValue(ObjectReferenceType object, int index) {
-                return Integer.toString(index);
-            }
-        });
+                }, new ObjectReferenceChoiceRenderer(model.getObject().getObjectTemplateMap()));
         editorObjectTemplate.setNullValid(true);
         editor.add(editorObjectTemplate);
 
@@ -618,17 +642,7 @@ public class SynchronizationStep extends WizardStep {
         return references;
     }
 
-    //TODO - add more FocusType items if needed
-    private List<QName> createFocusTypeList(){
-        List<QName> focusTypeList = new ArrayList<>();
-
-        focusTypeList.add(UserType.COMPLEX_TYPE);
-        focusTypeList.add(OrgType.COMPLEX_TYPE);
-        focusTypeList.add(RoleType.COMPLEX_TYPE);
-
-        return focusTypeList;
-    }
-
+   
     private void addDisableClassModifier(Component component){
         component.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
 

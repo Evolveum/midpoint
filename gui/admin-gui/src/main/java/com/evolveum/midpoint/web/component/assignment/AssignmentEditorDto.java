@@ -385,15 +385,15 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		this.status = status;
 	}
 
-	public boolean isModified() throws SchemaException {
-		return !getOldValue().equivalent(getNewValue());
+	public boolean isModified(PrismContext prismContext) throws SchemaException {
+		return !getOldValue().equivalent(getNewValue(prismContext));
 	}
 
 	public PrismContainerValue getOldValue() {
 		return oldAssignment.asPrismContainerValue();
 	}
 
-	public PrismContainerValue getNewValue() throws SchemaException {
+	public PrismContainerValue getNewValue(PrismContext prismContext) throws SchemaException {
 		if (AssignmentEditorDtoType.ORG_UNIT.equals(getType())) {
 			if (isOrgUnitManager()) {
 				newAssignment.getTargetRef().setRelation(SchemaConstants.ORG_MANAGER);
@@ -443,7 +443,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 				continue;
 			}
 
-			construction.getAttribute().add(attribute.getConstruction());
+			construction.getAttribute().add(attribute.getConstruction(prismContext));
 		}
 
 		return newAssignment.asPrismContainerValue();

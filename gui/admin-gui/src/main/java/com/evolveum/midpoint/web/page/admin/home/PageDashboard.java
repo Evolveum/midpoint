@@ -16,12 +16,27 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
-import com.evolveum.midpoint.prism.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.springframework.security.core.Authentication;
+
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -30,27 +45,28 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.util.CallableResult;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.home.component.*;
-import com.evolveum.midpoint.web.page.admin.home.dto.*;
-import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.page.admin.home.component.AsyncDashboardPanel;
+import com.evolveum.midpoint.web.page.admin.home.component.DashboardColor;
+import com.evolveum.midpoint.web.page.admin.home.component.DashboardPanel;
+import com.evolveum.midpoint.web.page.admin.home.component.MyAccountsPanel;
+import com.evolveum.midpoint.web.page.admin.home.component.MyAssignmentsPanel;
+import com.evolveum.midpoint.web.page.admin.home.component.PersonalInfoPanel;
+import com.evolveum.midpoint.web.page.admin.home.component.SystemInfoPanel;
+import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
+import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
+import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang.Validate;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.springframework.security.core.Authentication;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author lazyman
@@ -85,6 +101,28 @@ public class PageDashboard extends PageAdminHome {
         initMyAccounts();
         initAssignments();
         initSystemInfo();
+        
+//        DraggablesAcceptedByDroppable defaultValues = new DraggablesAcceptedByDroppable("one", "two", "three");
+//        DraggableElement draggable1 = new DraggableElement("draggable1");
+//        add(draggable1);
+//        
+//       
+//        draggable1.setOutputMarkupId(true);
+//
+//
+//        DroppableElement droppable1 = new DroppableElement("droppable1", defaultValues);
+//        add(droppable1);
+//        
+//        add(new DraggableAndDroppableElement("draggableDroppable1", new Model<String>("Drag me!"), defaultValues));
+//
+//        
+//        DraggableElement draggable2 = new DraggableElement("draggable2");
+//        add(draggable2);
+//        draggable2.setOutputMarkupId(true);
+//
+//        add(new DraggableAndDroppableElement("draggableDroppable2", new Model<String>("Drag me!"), defaultValues));
+//
+//        add(new DroppableElement("droppable2", defaultValues));
     }
 
     private AccountCallableResult<List<SimpleAccountDto>> loadAccounts() throws Exception {
@@ -235,6 +273,7 @@ public class PageDashboard extends PageAdminHome {
                     }
                 };
         add(assignedOrgUnits);
+
     }
 
     private CallableResult<List<AssignmentItemDto>> loadAssignments() throws Exception {

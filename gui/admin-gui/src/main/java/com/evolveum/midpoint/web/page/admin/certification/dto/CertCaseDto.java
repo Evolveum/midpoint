@@ -26,6 +26,7 @@ import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -45,18 +46,23 @@ import java.util.List;
 public class CertCaseDto extends CertCaseOrDecisionDto {
 
     public static final String F_REMEDIED_AT = "remediedAt";
+    public static final String F_REVIEWERS = "reviewers";
     public static final String F_REVIEWED_AT = "reviewedAt";
     public static final String F_REVIEWED_BY = "reviewedBy";
     public static final String F_COMMENTS = "comments";
     public static final String F_CURRENT_RESPONSE_STAGE_NUMBER = "currentResponseStageNumber";
 
+    private String allReviewers;
     private List<String> reviewerNames = new ArrayList<>();
     private List<String> comments = new ArrayList<>();
 
     public CertCaseDto(AccessCertificationCaseType _case, PageBase page, Task task, OperationResult result) {
         super(_case, page);
         for (AccessCertificationDecisionType decision : _case.getDecision()) {
-            if (decision.getComment() != null) {
+            if (decision.getResponse() == null && StringUtils.isEmpty(decision.getComment())) {
+                continue;
+            }
+            if (StringUtils.isNotEmpty(decision.getComment())) {
                 comments.add(decision.getComment());
             }
             PrismObject<UserType> reviewerObject = WebModelUtils.resolveReference(decision.getReviewerRef(), page, task, result);
@@ -64,6 +70,23 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
                 reviewerNames.add(WebMiscUtil.getName(reviewerObject));
             }
         }
+        List<String> names = new ArrayList<>();
+        for (ObjectReferenceType reviewerRef : _case.getReviewerRef()) {
+            // TODO optimize - don't resolve reviewers twice
+            PrismObject<UserType> reviewerObject = WebModelUtils.resolveReference(reviewerRef, page, task, result);
+            if (reviewerObject != null) {
+                names.add(WebMiscUtil.getName(reviewerObject));
+            }
+        }
+        if (names.isEmpty()) {
+            allReviewers = page.getString("PageCertCampaign.noReviewers");
+        } else {
+            allReviewers = StringUtils.join(names, ", ");
+        }
+    }
+
+    public String getReviewers() {
+        return allReviewers;
     }
 
     public String getReviewedBy() {

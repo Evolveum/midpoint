@@ -61,16 +61,18 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
         final Label name = new Label(ID_OBJECT_NAME, new AbstractReadOnlyModel<String>(){
 
             @Override
-            public String getObject(){
+            public String getObject() {
                 ObjectViewDto dto = getModel().getObject();
-
-                if (dto.getName() != null)
-                    return getModel().getObject().getName();
-                else if (ObjectViewDto.BAD_OID.equals(dto.getOid())){
-                    return createStringResource("chooseTypePanel.ObjectNameValue.badOid").getString();
-                } else {
-                    return createStringResource("chooseTypePanel.ObjectNameValue.null").getString();
+                if (dto != null) {
+                    if (dto.getName() != null)
+                        return getModel().getObject().getName();
+                    else if (ObjectViewDto.BAD_OID.equals(dto.getOid())) {
+                        return createStringResource("chooseTypePanel.ObjectNameValue.badOid").getString();
+                    } else {
+                        return createStringResource("chooseTypePanel.ObjectNameValue.null").getString();
+                    }
                 }
+                return "";
             }
         });
         name.setOutputMarkupId(true);

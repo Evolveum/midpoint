@@ -39,8 +39,10 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
+import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -670,4 +672,8 @@ public class PrismContext {
         }
         return definition.instantiate();
     }
+
+	public <T extends Objectable> T createObjectable(Class<T> clazz) {
+		return createObject(clazz).asObjectable();
+	}
 }

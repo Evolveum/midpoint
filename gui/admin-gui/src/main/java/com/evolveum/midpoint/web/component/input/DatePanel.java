@@ -18,7 +18,8 @@ package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.util.XmlGregorianCalendarModel;
+import com.evolveum.midpoint.web.model.XmlGregorianCalendarModel;
+
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 

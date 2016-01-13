@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2015-2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.admin.roles;
 
 import java.util.ArrayList;
@@ -69,9 +84,10 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.dialog.UserBrowserDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
@@ -100,7 +116,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
-public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
+public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 
 	private enum QueryScope {
 		ALL, SELECTED, TO_ADD
@@ -141,7 +157,7 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 			}
 		};
 
-		initCustomLayout();
+		initLayout();
 	}
 
 	private RoleMemberSearchDto getRoleMemberSearch() {
@@ -167,6 +183,11 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 				},
 
 				new IChoiceRenderer<V>() {
+					
+					@Override
+					public V getObject(String id, IModel<? extends List<? extends V>> choices) {
+						return choices.getObject().get(Integer.parseInt(id));
+					}
 
 					@Override
 					public String getDisplayValue(V object) {
@@ -175,7 +196,7 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 
 					@Override
 					public String getIdValue(V object, int index) {
-						return getValueForId(object);
+						return String.valueOf(index);
 					};
 				});
 		listSelect.add(new OnChangeAjaxBehavior() {
@@ -210,7 +231,7 @@ public class RoleMemberPanel<T extends FocusType> extends SimplePanel<T> {
 
 	}
 
-	private void initCustomLayout() {
+	private void initLayout() {
 
 		BasicSearchPanel<RoleMemberSearchDto> basicSearch = new BasicSearchPanel<RoleMemberSearchDto>(
 				ID_BASIC_SEARCH, searchModel) {

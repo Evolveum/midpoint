@@ -121,7 +121,7 @@ public class ACAttributeDto implements Serializable {
         return true;
     }
 
-    public ResourceAttributeDefinitionType getConstruction() throws SchemaException {
+    public ResourceAttributeDefinitionType getConstruction(PrismContext prismContext) throws SchemaException {
         if (isEmpty()) {
             return null;
         }
@@ -146,6 +146,7 @@ public class ACAttributeDto implements Serializable {
 
         List<ACValueConstructionDto> values = getValues();
         PrismProperty property = definition.instantiate();
+        property.revive(prismContext);      // needed in serializeValueElements below
         for (ACValueConstructionDto dto : values) {
             if (dto.getValue() == null) {
                 continue;

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.web.component.util.Choiceable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.io.Serializable;
@@ -24,7 +25,7 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class ObjectViewDto<T extends ObjectType> implements Serializable {
+public class ObjectViewDto<T extends ObjectType> implements Serializable, Choiceable {
 
     public static final String BAD_OID = "==BAD_OID==";
 
@@ -63,6 +64,7 @@ public class ObjectViewDto<T extends ObjectType> implements Serializable {
         return object;
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -73,6 +75,14 @@ public class ObjectViewDto<T extends ObjectType> implements Serializable {
 
     public String getOid() {
         return oid;
+    }
+
+    public String getKnownOid() {
+        if (BAD_OID.equals(oid)) {
+            return null;
+        } else {
+            return oid;
+        }
     }
 
     public void setOid(String oid){

@@ -18,10 +18,12 @@ package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.web.component.util.Choiceable;
+
 /**
  * @author lazyman
  */
-public class ResourceItemDto implements Serializable, Comparable<ResourceItemDto> {
+public class ResourceItemDto implements Serializable, Choiceable, Comparable<ResourceItemDto> {
 
     private String oid;
     private String name;
@@ -31,6 +33,7 @@ public class ResourceItemDto implements Serializable, Comparable<ResourceItemDto
         this.oid = oid;
     }
 
+    @Override
     public String getName() {
         return name;
     }

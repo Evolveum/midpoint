@@ -105,8 +105,6 @@ public class PropertyWrapper<I extends Item> implements ItemWrapper, Serializabl
 
         return container.isItemVisible(this);
     }
-    
-    
 
     public ContainerWrapper getContainer() {
         return container;
@@ -152,7 +150,7 @@ public class PropertyWrapper<I extends Item> implements ItemWrapper, Serializabl
     }
 
     private List<ValueWrapper> createValues() {
-        List<ValueWrapper> values = new ArrayList<ValueWrapper>();
+        List<ValueWrapper> values = new ArrayList<>();
 
         for (PrismValue prismValue : (List<PrismValue>) property.getValues()) {
             values.add(new ValueWrapper(this, prismValue, ValueStatus.NOT_CHANGED));

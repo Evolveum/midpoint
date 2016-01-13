@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -133,8 +134,10 @@ public class H3Header<O extends ObjectType> extends SimplePanel<ObjectWrapper<O>
         if (key == null) {
             key = "";
         }
+        
+        return PageTemplate.createStringResourceStatic(getPage(), key).getString();
 
-        return new StringResourceModel(key, getPage(), null, key).getString();
+//        return new StringResourceModel(key, getPage(), null, key).getString();
     }
 
     protected List<InlineMenuItem> createMenuItems() {

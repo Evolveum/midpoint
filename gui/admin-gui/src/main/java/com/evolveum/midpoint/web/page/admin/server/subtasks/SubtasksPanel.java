@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,39 +16,32 @@
 
 package com.evolveum.midpoint.web.page.admin.server.subtasks;
 
-import com.evolveum.midpoint.model.api.context.ModelState;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
-import com.evolveum.midpoint.web.component.model.delta.DeltaPanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.home.dto.MyWorkItemDto;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.util.BasePanel;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 
 /**
  * @author mederly
  */
-public class SubtasksPanel extends SimplePanel<List<TaskDto>> {
+public class SubtasksPanel extends BasePanel<List<TaskDto>> {
 
     private static final String ID_SUBTASKS_TABLE = "subtasksTable";
 
     public SubtasksPanel(String id, IModel<List<TaskDto>> model, boolean workflowsEnabled) {
         super(id, model);
-        initLayoutLocal(workflowsEnabled);
+        initLayout(workflowsEnabled);
     }
 
-    private void initLayoutLocal(boolean workflowsEnabled) {
+    private void initLayout(boolean workflowsEnabled) {
         List<IColumn<TaskDto, String>> columns = new ArrayList<IColumn<TaskDto, String>>();
         columns.add(PageTasks.createTaskNameColumn(this, "SubtasksPanel.label.name"));
         columns.add(PageTasks.createTaskCategoryColumn(this, "SubtasksPanel.label.category"));

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.PageAdminHome;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
@@ -45,20 +46,20 @@ public class PageSelfProfile extends PageUser {
 	private static final Trace LOGGER = TraceManager.getTrace(PageSelfProfile.class);
 
 	@Override
-	protected String getFocusOidParameter() {
+	protected String getObjectOidParameter() {
 		return WebModelUtils.getLoggedInUserOid();
 	}
 	
 	@Override
-	protected void setSpecificResponsePage() {
-		setResponsePage(PageSelfProfile.class);
+	protected PageBase getDefaultBackPage() {
+		return new PageSelfProfile();
 	}
-	
-	@Override
-	protected ExecuteChangeOptionsPanel initOptions(final Form mainForm) {
-		ExecuteChangeOptionsPanel optionsPanel = super.initOptions(mainForm);
-		optionsPanel.setVisible(false);
-		return optionsPanel;
-	}
+//
+//	@Override
+//	protected ExecuteChangeOptionsPanel initOptions(final Form mainForm) {
+//		ExecuteChangeOptionsPanel optionsPanel = super.initOptions(mainForm);
+//		optionsPanel.setVisible(false);
+//		return optionsPanel;
+//	}
 	
 }

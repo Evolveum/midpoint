@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 package com.evolveum.midpoint.web.component.form;
 
 import com.evolveum.midpoint.web.component.DateInput;
+import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.util.XmlGregorianCalendarModel;
+import com.evolveum.midpoint.web.model.XmlGregorianCalendarModel;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -32,7 +34,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 /**
  * @author lazyman
  */
-public class DateFormGroup extends SimplePanel<XMLGregorianCalendar> {
+public class DateFormGroup extends BasePanel<XMLGregorianCalendar> {
 
     private static final String ID_DATE = "date";
     private static final String ID_DATE_WRAPPER = "dateWrapper";

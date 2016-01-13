@@ -302,11 +302,11 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	}
 
 	protected void assertUserJack(PrismObject<UserType> user) {
-		assertUserJack(user, "Jack Sparrow", "Jack", "Sparrow");
+		assertUserJack(user, USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
 	}
 	
 	protected void assertUserJack(PrismObject<UserType> user, String fullName) {
-		assertUserJack(user, fullName, "Jack", "Sparrow");
+		assertUserJack(user, fullName, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
 	}
 	
 	protected void assertUserJack(PrismObject<UserType> user, String fullName, String givenName, String familyName) {
@@ -328,8 +328,9 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 			PrismAsserts.assertEqualsPolyString("Wrong jack locality", locality, userType.getLocality());
 		}
 	}
+	
 	protected void assertUserJack(PrismObject<UserType> user, String fullName, String givenName, String familyName, String locality) {
-		assertUserJack(user, "jack", fullName, givenName, familyName, locality);
+		assertUserJack(user, USER_JACK_USERNAME, fullName, givenName, familyName, locality);
 	}
 	
 	protected void assertDummyAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException {

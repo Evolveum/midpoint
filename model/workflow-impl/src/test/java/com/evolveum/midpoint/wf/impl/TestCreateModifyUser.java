@@ -51,9 +51,6 @@ public class TestCreateModifyUser extends AbstractWfTest {
 
     protected static final Trace LOGGER = TraceManager.getTrace(TestCreateModifyUser.class);
 
-    private static final File ELISABETH_FILE = new File(TEST_RESOURCE_DIR, "user-elisabeth.xml");
-    private static final String USER_ELISABETH_OID = "c0c010c0-d34d-b33f-f00d-111111112222";
-
     private static final File REQ_USER_ELISABETH_MODIFY_ADD_ASSIGNMENT_ROLE1 = new File(TEST_RESOURCE_DIR, "user-elisabeth-modify-add-assignment-role3.xml");
 
     public TestCreateModifyUser() throws JAXBException {
@@ -75,13 +72,13 @@ public class TestCreateModifyUser extends AbstractWfTest {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
-                addFocusDeltaToContext(context, (ObjectDelta) ObjectDelta.createAddDelta(PrismTestUtil.parseObject(ELISABETH_FILE)));
+                addFocusDeltaToContext(context, (ObjectDelta) ObjectDelta.createAddDelta(PrismTestUtil.parseObject(USER_ELISABETH_FILE)));
                 return context;
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 //assertNoObject(UserType.class, USER_ELISABETH_OID, task, result);
             }
@@ -122,8 +119,8 @@ public class TestCreateModifyUser extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 //assertNotAssignedRole(USER_ELISABETH_OID, ROLE_R3_OID, task, result);
             }

@@ -67,9 +67,13 @@ import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.LookupPropertyModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+
+import com.evolveum.midpoint.web.page.PageTemplate;
+
+import com.evolveum.midpoint.web.model.LoadableModel;
+import com.evolveum.midpoint.web.model.LookupPropertyModel;
+
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
@@ -179,7 +183,8 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
             @Override
             public void populateItem(Item item, String componentId, IModel model) {
                 String paramValue = new PropertyModel<String>(model, "name").getObject();
-                StringResourceModel paramDisplay = new StringResourceModel("runReportPopupContent.param.name." + paramValue, null, paramValue, new Object[]{});
+                StringResourceModel paramDisplay = PageTemplate.createStringResourceStatic(RunReportPopupPanel.this, "runReportPopupContent.param.name." + paramValue, new Object[]{});
+//                StringResourceModel paramDisplay = new StringResourceModel("runReportPopupContent.param.name." + paramValue, null, paramValue, new Object[]{});
                 item.add(new Label(componentId, paramDisplay)); // use display name rather than property name
             }
         });

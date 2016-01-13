@@ -509,7 +509,7 @@ public class PageCertDecisions extends PageAdminCertification {
         }
 
         private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour() {
-            return new AjaxFormComponentUpdatingBehavior("onchange") {
+            return new AjaxFormComponentUpdatingBehavior("change") {
 
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {

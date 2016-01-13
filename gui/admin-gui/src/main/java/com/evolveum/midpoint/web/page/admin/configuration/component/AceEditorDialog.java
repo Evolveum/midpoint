@@ -13,6 +13,7 @@ import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
 
 public class AceEditorDialog extends SimplePanel<String> {
@@ -63,7 +64,8 @@ public class AceEditorDialog extends SimplePanel<String> {
 	    }
 
 	    public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-	        return new StringResourceModel(resourceKey, this, new Model<String>(), resourceKey, objects);
+	    	return PageTemplate.createStringResourceStatic(this, resourceKey, objects);
+//	        return new StringResourceModel(resourceKey, this, new Model<String>(), resourceKey, objects);
 	    }
 	    
 	    public void closePerformed(AjaxRequestTarget target){

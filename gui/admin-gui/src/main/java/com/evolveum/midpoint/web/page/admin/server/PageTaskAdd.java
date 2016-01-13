@@ -16,6 +16,35 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.datetime.markup.html.form.DateTextField;
+import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
+import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
+import org.apache.wicket.extensions.yui.calendar.DateTimeField;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.util.string.Strings;
+
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -42,34 +71,35 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
+import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
+import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.dto.*;
+import com.evolveum.midpoint.web.model.LoadableModel;
+import com.evolveum.midpoint.web.page.admin.server.dto.ScheduleValidator;
+import com.evolveum.midpoint.web.page.admin.server.dto.StartEndDateValidator;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddResourcesDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TsaValidator;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.datetime.markup.html.form.DateTextField;
-import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
-import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
-import org.apache.wicket.extensions.yui.calendar.DateTimeField;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.util.string.Strings;
-
-import javax.xml.namespace.QName;
-import java.util.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author lazyman
@@ -148,18 +178,7 @@ public class PageTaskAdd extends PageAdminTasks {
                     public List<TaskAddResourcesDto> getObject() {
                         return createResourceList();
                     }
-                }, new IChoiceRenderer<TaskAddResourcesDto>() {
-
-            @Override
-            public Object getDisplayValue(TaskAddResourcesDto dto) {
-                return dto.getName();
-            }
-
-            @Override
-            public String getIdValue(TaskAddResourcesDto dto, int index) {
-                return Integer.toString(index);
-            }
-        });
+                }, new ChoiceableChoiceRenderer<TaskAddResourcesDto>());
         resource.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -171,7 +190,7 @@ public class PageTaskAdd extends PageAdminTasks {
                 return sync || recon || importAccounts;
             }
         });
-        resource.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+        resource.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -215,21 +234,7 @@ public class PageTaskAdd extends PageAdminTasks {
                     public List<QName> getObject() {
                         return createFocusTypeList();
                     }
-                }, new IChoiceRenderer<QName>() {
-
-            @Override
-            public Object getDisplayValue(QName object) {
-            	if (FocusType.COMPLEX_TYPE.equals(object)){
-            		return "All (including role,orgs,users)";
-            	}
-                return object.getLocalPart();
-            }
-
-            @Override
-            public String getIdValue(QName object, int index) {
-                return Integer.toString(index);
-            }
-        });
+                }, new QNameChoiceRenderer());
         focusType.setOutputMarkupId(true);
         focusType.add(new VisibleEnableBehaviour(){
 
@@ -244,24 +249,7 @@ public class PageTaskAdd extends PageAdminTasks {
         
         final DropDownChoice kind = new DropDownChoice<>(ID_KIND,
                 new PropertyModel<ShadowKindType>(model, TaskAddDto.F_KIND),
-                new AbstractReadOnlyModel<List<ShadowKindType>>() {
-
-                    @Override
-                    public List<ShadowKindType> getObject() {
-                        return createShadowKindTypeList();
-                    }
-                }, new IChoiceRenderer<ShadowKindType>() {
-
-            @Override
-            public Object getDisplayValue(ShadowKindType object) {
-                return object.value();
-            }
-
-            @Override
-            public String getIdValue(ShadowKindType object, int index) {
-                return Integer.toString(index);
-            }
-        });
+                WebMiscUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer<ShadowKindType>());
         kind.setOutputMarkupId(true);
         kind.add(new VisibleEnableBehaviour(){
 
@@ -319,21 +307,10 @@ public class PageTaskAdd extends PageAdminTasks {
 
                     @Override
                     public List<String> getObject() {
-                        return createCategoryList();
+                        return WebMiscUtil.createTaskCategoryList();
                     }
-                }, new IChoiceRenderer<String>() {
-
-            @Override
-            public Object getDisplayValue(String item) {
-                return PageTaskAdd.this.getString("pageTask.category." + item);
-            }
-
-            @Override
-            public String getIdValue(String item, int index) {
-                return Integer.toString(index);
-            }
-        });
-        type.add(new AjaxFormComponentUpdatingBehavior("onChange") {
+                }, new StringChoiceRenderer("pageTask.category."));
+        type.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -560,28 +537,7 @@ public class PageTaskAdd extends PageAdminTasks {
         mainForm.add(backButton);
     }
 
-    private List<String> createCategoryList() {
-        List<String> categories = new ArrayList<>();
-
-        // todo change to something better and add i18n
-//		TaskManager manager = getTaskManager();
-//		List<String> list = manager.getAllTaskCategories();
-//		if (list != null) {
-//			Collections.sort(list);
-//			for (String item : list) {
-//				if (item != TaskCategory.IMPORT_FROM_FILE && item != TaskCategory.WORKFLOW) {
-//					categories.add(item);
-//				}
-//			}
-//		}
-        categories.add(TaskCategory.LIVE_SYNCHRONIZATION);
-        categories.add(TaskCategory.RECONCILIATION);
-        categories.add(TaskCategory.IMPORTING_ACCOUNTS);
-        categories.add(TaskCategory.RECOMPUTATION);
-        categories.add(TaskCategory.DEMO);
-        return categories;
-    }
-
+   
     private List<ShadowKindType> createShadowKindTypeList(){
         List<ShadowKindType> kindList = new ArrayList<>();
 

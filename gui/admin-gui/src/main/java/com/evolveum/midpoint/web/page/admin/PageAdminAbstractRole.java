@@ -1,3 +1,19 @@
+/**
+ * Copyright (c) 2015 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.evolveum.midpoint.web.page.admin;
 
 import java.io.Serializable;
@@ -36,9 +52,9 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.LoadableModel;
+import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromPrismObjectModel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -48,14 +64,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends PageAdminFocus<T> {
 
-	private IModel<PrismObject<T>> summaryObject;
 	private LoadableModel<List<AssignmentEditorDto>> inducementsModel;
+	
+	public LoadableModel<List<AssignmentEditorDto>> getInducementsModel() {
+		return inducementsModel;
+	}
 
 	@Override
 	protected void prepareFocusDeltaForModify(ObjectDelta<T> focusDelta) throws SchemaException {
 		super.prepareFocusDeltaForModify(focusDelta);
 
-		PrismObject<T> abstractRole = getFocusWrapper().getObject();
+		PrismObject<T> abstractRole = getObjectWrapper().getObject();
 		PrismContainerDefinition<AssignmentType> def = abstractRole.getDefinition()
 				.findContainerDefinition(AbstractRoleType.F_INDUCEMENT);
 		handleAssignmentDeltas(focusDelta, inducementsModel.getObject(), def);
@@ -63,22 +82,20 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 		}
 
 	@Override
-	protected void prepareFocusForAdd(PrismObject<T> focus) throws SchemaException {
-		super.prepareFocusForAdd(focus);
+	protected void prepareObjectForAdd(PrismObject<T> focus) throws SchemaException {
+		super.prepareObjectForAdd(focus);
 		handleAssignmentForAdd(focus, AbstractRoleType.F_INDUCEMENT, inducementsModel.getObject());
-	
 	}
 	
 	@Override
-	protected void performCustomInitialization() {
+	protected void initializeModel(final PrismObject<T> objectToEdit) {
+		super.initializeModel(objectToEdit);
 		inducementsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
-
 			@Override
 			protected List<AssignmentEditorDto> load() {
 				return loadInducements();
 			}
 		};
-
 	}
 
 	// TODO unify with loadAssignments
@@ -86,7 +103,7 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 
 		List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
 
-		ObjectWrapper focusWrapper = getFocusWrapper();
+		ObjectWrapper focusWrapper = getObjectWrapper();
 		PrismObject<T> focus = focusWrapper.getObject();
 		List<AssignmentType> inducements = focus.asObjectable().getInducement();
 		for (AssignmentType inducement : inducements) {
@@ -98,46 +115,4 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 		return list;
 	}
 
-	@Override
-	protected void initTabs(List<ITab> tabs) {
-		tabs.add(new AbstractTab(createStringResource("FocusType.inducement")) {
-
-			@Override
-			public WebMarkupContainer getPanel(String panelId) {
-				return new AssignmentTablePanel(panelId, createStringResource("FocusType.inducement"), inducementsModel) {
-
-					@Override
-					public List<AssignmentType> getAssignmentTypeList() {
-						return ((AbstractRoleType) getFocusWrapper().getObject().asObjectable())
-								.getInducement();
-					}
-
-					@Override
-					public String getExcludeOid() {
-						return getFocusWrapper().getObject().asObjectable().getOid();
-					}
-				};
-			}
-		});
-	}
-
-	// private AssignmentTablePanel initInducements() {
-	// AssignmentTablePanel inducements = new
-	// AssignmentTablePanel(ID_INDUCEMENTS_TABLE,
-	// new Model<AssignmentTableDto>(),
-	// createStringResource("PageOrgUnit.title.inducements")) {
-	//
-	// @Override
-	// public List<AssignmentType> getAssignmentTypeList() {
-	// return ((AbstractRoleType)
-	// getFocusWrapper().getObject().asObjectable()).getInducement();
-	// }
-	//
-	// @Override
-	// public String getExcludeOid() {
-	// return getFocusWrapper().getObject().asObjectable().getOid();
-	// }
-	// };
-	// return inducements;
-	// }
 }

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.util;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.Validate;
 
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
@@ -49,6 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
  * @author lazyman
@@ -62,6 +65,7 @@ public class WebModelUtils {
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
+    private static final String OPERATION_LOAD_OBJECT_REFS = DOT_CLASS + "loadObjectReferences";
 
     public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, Task task, OperationResult result) {
         PrismObject<ObjectType> object = resolveReference(ref, page, task, result);
@@ -91,6 +95,42 @@ public class WebModelUtils {
         }
         return loadObject(definition.getCompileTimeClass(), reference.getOid(), page, task, result);
     }
+    
+    public static <O extends ObjectType> List<ObjectReferenceType> createObjectReferenceList(Class<O> type, PageBase page, Map<String, String> referenceMap){
+		referenceMap.clear();
+		
+        OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT_REFS);
+//        Task task = page.createSimpleTask(OPERATION_LOAD_PASSWORD_POLICIES);
+        
+        try{
+            List<PrismObject<O>> objects = searchObjects(type, null, result, page);
+        	result.recomputeStatus();
+        	if(objects != null){
+        		List<ObjectReferenceType> references = new ArrayList<>();
+                
+                for(PrismObject<O> object: objects){
+                	referenceMap.put(object.getOid(), WebMiscUtil.getName(object));
+                    references.add(ObjectTypeUtil.createObjectRef(object));
+                    
+                }
+                return references;
+            }
+        } catch (Exception e){
+            result.recordFatalError("Couldn't load password policies.", e);
+            LoggingUtils.logException(LOGGER, "Couldn't load password policies", e);
+        }
+
+        // TODO - show error somehow
+        // if(!result.isSuccess()){
+        //    getPageBase().showResult(result);
+        // }
+
+        return null;
+        
+
+       
+    }
+
 
     public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
                                                                    PageBase page, Task task, OperationResult result) {

@@ -39,9 +39,11 @@ import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
+import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
@@ -53,6 +55,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.Component;
@@ -623,8 +626,9 @@ public class PageTasks extends PageAdminTasks {
         String key = runnable ? "pageTasks.in" : "pageTasks.inForNotRunningTasks";
 
         //todo i18n
-        return new StringResourceModel(key, this, null, null,
-                DurationFormatUtils.formatDurationWords(time, true, true)).getString();
+        return PageTemplate.createStringResourceStatic(this, key, DurationFormatUtils.formatDurationWords(time, true, true)).getString();
+//        return new StringResourceModel(key, this, null, null,
+//                DurationFormatUtils.formatDurationWords(time, true, true)).getString();
     }
 
     private String createProgress(IModel<TaskDto> taskModel) {
@@ -1184,21 +1188,17 @@ public class PageTasks extends PageAdminTasks {
                             return createCategoryList();
                         }
                     },
-                    new IChoiceRenderer<String>() {
+                    new StringChoiceRenderer("pageTasks.category.") {
 
-                        @Override
-                        public Object getDisplayValue(String object) {
+                    	 @Override
+                        public String getDisplayValue(String object) {
                             if (ALL_CATEGORIES.equals(object)) {
                                 object = "AllCategories";
                             }
                             return getPage().getString("pageTasks.category." + object);
                         }
 
-                        @Override
-                        public String getIdValue(String object, int index) {
-                            return Integer.toString(index);
-                        }
-                    }
+                  }
             );
             categorySelect.setOutputMarkupId(true);
             categorySelect.setNullValid(false);
@@ -1231,7 +1231,7 @@ public class PageTasks extends PageAdminTasks {
         }
 
         private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour() {
-            return new AjaxFormComponentUpdatingBehavior("onchange") {
+            return new AjaxFormComponentUpdatingBehavior("change") {
 
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {

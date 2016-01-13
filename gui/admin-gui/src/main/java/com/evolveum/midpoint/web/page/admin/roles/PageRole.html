@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,101 +17,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-
-    <form wicket:id="mainForm" autocomplete="off" class="form-horizontal">
-
-		<div wicket:id="summaryPanel"/>
-
-        <div wicket:id="tabPanel" class="nav-tabs-custom" />
-          
-        <div style="margin: 20px 0;" class="form-group" wicket:id="executeOptions" />
-
-        <div wicket:id="progressPanel">[Status indicator here]</div>
-
-        <div class="main-button-bar">
-            <span class="button-group">
-                <a class="btn btn-default" wicket:id="back"/>
-            </span>
-            <!-- todo implement previes -->
-            
-            <a class="btn btn-primary" wicket:id="save"/>
-            <a class="btn btn-danger" wicket:id="abort"/>
-        </div>
-
-    </form>
-
-<!--     <div wicket:id="ownerChooser" /> -->
-
-<!--     <form wicket:id="mainForm" class="form-horizontal"> -->
-
-<!--         <div class="row"> -->
-<!--             <div class="col-md-6"> -->
-<!--                 <h3 style="margin-left: 20px;"><wicket:message key="PageRoleEditor.subtitle.basic"/></h3> -->
-<!--                 <div class="form-group" wicket:id="name" /> -->
-<!--                 <div class="form-group" wicket:id="displayName"/> -->
-<!--                 <div class="form-group" wicket:id="description" /> -->
-<!--                 <div class="form-group" wicket:id="roleType" /> -->
-<!--                 <div class="form-group" wicket:id="requestable" /> -->
-<!--                 <div class="form-group" wicket:id="identifier"/> -->
-<!--                 <div class="form-group" wicket:id="riskLevel"/> -->
-
-<!--                 Owner ref -->
-<!--                 <div class="form-group"> -->
-<!--                     <span class="col-md-4 control-label"> -->
-<!--                         <label><wicket:message key="PageRoleEditor.label.ownerRef"/></label> -->
-<!--                     </span> -->
-
-<!--                     <div wicket:id="ownerRefWrapper" class="col-md-6"> -->
-<!--                         <div class="input-group input-group-sm"> -->
-<!--                             <span class="input-group-btn"> -->
-<!--                                 <button wicket:id="ownerRefEdit" class="btn btn-primary" type="button"> -->
-<!--                                     <wicket:message key="PageBase.button.edit" /> -->
-<!--                                 </button> -->
-<!--                             </span> -->
-<!--                             <input type="text" class="form-control input-sm" wicket:id="ownerRefLabel" /> -->
-<!--                         </div> -->
-<!--                     </div> -->
-<!--                 </div> -->
-
-<!--                 Approver ref -->
-<!--                 <div class="form-group" wicket:id="approverRef" /> -->
-
-<!--                 Min and Max assignments configuration -->
-<!--                 <div class="form-group" wicket:id="minAssignmentsConfig" /> -->
-<!--                 <div class="form-group" wicket:id="maxAssignmentsConfig" /> -->
-
-<!--                 Activation -->
-<!--                 <h3 style="margin-left: 20px;"><wicket:message key="PageRoleEditor.subtitle.activation"/></h3> -->
-<!--                 <div class="form-group" wicket:id="adminStatus" /> -->
-<!--                 <div class="form-group" wicket:id="dateFrom" /> -->
-<!--                 <div class="form-group" wicket:id="dateTo" /> -->
-
-<!--                 Extension -->
-<!--                 <h3 wicket:id="extensionLabel" style="margin-left: 20px;"></h3> -->
-<!--                 <div class="form-group" wicket:id="extension"> -->
-<!--                     <div wicket:id="property"/> -->
-<!--                 </div> -->
-<!--             </div> -->
-
-<!--             <div class="col-md-6"> -->
-<!--                 <div wicket:id="inducementsPanel" /> -->
-<!--                 <div wicket:id="assignmentsPanel" style="margin-top: 30px" /> -->
-<!--             </div> -->
-<!--         </div> -->
-
-<!--         <div style="margin: 20px 0;" class="form-group" wicket:id="executeOptions" /> -->
-
-<!--         <div wicket:id="progressPanel">[Status indicator here]</div> -->
-
-<!--         <div class="main-button-bar"> -->
-<!--             <span class="button-group"> -->
-<!--                 <a class="btn btn-default" wicket:id="backButton" /> -->
-<!--             </span> -->
-<!--             <a class="btn btn-primary" wicket:id="saveButton" /> -->
-<!--             <a class="btn btn-danger" wicket:id="abortButton"/> -->
-<!--         </div> -->
-
-<!--     </form> -->
+   	    <wicket:child />
 </wicket:extend>
 </body>
 </html>

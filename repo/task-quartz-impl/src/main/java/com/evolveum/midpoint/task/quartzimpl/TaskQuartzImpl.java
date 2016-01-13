@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2429,6 +2429,7 @@ public class TaskQuartzImpl implements Task {
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 
 		if (!isPersistent()) {
+			result.recordSuccessIfUnknown();
 			return new ArrayList<>(0);
 		}
 
@@ -2439,9 +2440,15 @@ public class TaskQuartzImpl implements Task {
 //            throw new SystemException("Cannot create filter for 'parent equals task identifier' due to schema exception", e);
 //        }
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-
-        List<PrismObject<TaskType>> list = taskManager.getRepositoryService().searchObjects(TaskType.class, query, null, result);
-        result.recordSuccessIfUnknown();
+        
+        List<PrismObject<TaskType>> list;
+        try {
+        	list = taskManager.getRepositoryService().searchObjects(TaskType.class, query, null, result);
+        	result.recordSuccessIfUnknown();
+        } catch (SchemaException | RuntimeException e) {
+        	result.recordFatalError(e);
+        	throw e;
+        }
         return list;
     }
 
