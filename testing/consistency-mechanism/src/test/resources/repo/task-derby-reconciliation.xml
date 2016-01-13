@@ -36,10 +36,7 @@
 	<executionStatus>runnable</executionStatus>
 	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
 	<objectRef oid="ef2bc95b-76e0-59e2-86d6-999902d3abab"/>
-	<recurrence>recurring</recurrence>
+	<recurrence>single</recurrence>
 	<binding>tight</binding>
-	<schedule>
-		<interval>5</interval>
-	</schedule>
 
 </task>
