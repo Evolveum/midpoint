@@ -356,8 +356,11 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         // returning container to previous order
         Collections.sort(containers, new ItemWrapperComparator());
 
-        // Make sure we have all the definitions
-        object.getPrismContext().adopt(delta);
+        if (object.getPrismContext() != null) {
+	        // Make sure we have all the definitions
+	        object.getPrismContext().adopt(delta);
+        }
+        
         return delta;
     }
 

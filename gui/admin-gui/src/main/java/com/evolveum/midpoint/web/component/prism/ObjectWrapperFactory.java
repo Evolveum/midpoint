@@ -407,7 +407,7 @@ public class ObjectWrapperFactory {
 
     private PrismObject<ConnectorType> loadConnector(PrismObject object) {
         PrismReference connectorRef = object.findReference(ResourceType.F_CONNECTOR_REF);
-        return connectorRef.getValue().getObject();
+        return connectorRef != null ? (connectorRef.getValue() != null ? connectorRef.getValue().getObject() : null) : null;
         // todo reimplement
     }
 
