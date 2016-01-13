@@ -84,7 +84,7 @@ import java.util.List;
 /**
  * @author semancik
  */
-public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractFocusTabPanel {
+public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjectTabPanel {
 	private static final long serialVersionUID = 1L;
 	
 	private static final String ID_SHADOW_LIST = "shadowList";
@@ -186,7 +186,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractFocus
 	private List<InlineMenuItem> createShadowMenu() {
 		List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
 
-        PrismObjectDefinition def = getFocusWrapper().getObject().getDefinition();
+        PrismObjectDefinition def = getObjectWrapper().getObject().getDefinition();
         PrismReferenceDefinition ref = def.findReferenceDefinition(UserType.F_LINK_REF);
         InlineMenuItem item ;
         if (ref.canRead() && ref.canAdd()){

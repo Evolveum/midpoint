@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,6 +113,25 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		this.isOrgUnitManager = determineUserOrgRelation(assignment);
 	}
 
+	public static AssignmentEditorDto createDtoAddFromSelectedObject(ObjectType object, PageBase pageBase) {
+		AssignmentEditorDtoType aType = AssignmentEditorDtoType.getType(object.getClass());
+
+		ObjectReferenceType targetRef = new ObjectReferenceType();
+		targetRef.setOid(object.getOid());
+		targetRef.setType(aType.getQname());
+		targetRef.setTargetName(object.getName());
+
+		AssignmentType assignment = new AssignmentType();
+		assignment.setTargetRef(targetRef);
+
+		AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, assignment,
+				pageBase);
+		dto.setMinimized(false);
+		dto.setShowEmpty(true);
+		
+		return dto;
+	}
+	
 	private AssignmentEditorDtoType getType(AssignmentType assignment) {
 		if (assignment.getTarget() != null) {
 			// object assignment

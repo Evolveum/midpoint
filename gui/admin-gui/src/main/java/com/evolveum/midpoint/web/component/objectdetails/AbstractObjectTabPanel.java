@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -41,7 +42,9 @@ import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.LoadableModel;
+import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
@@ -57,6 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -83,95 +87,105 @@ import java.util.List;
 /**
  * @author semancik
  */
-public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabPanel {
+public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel {
 	private static final long serialVersionUID = 1L;
-	
-	protected static final String ID_FOCUS_FORM = "focusDetails";
-	
-	protected static final String ID_TASK_TABLE = "taskTable";
-	protected static final String ID_TASKS = "tasks";
 
-	private static final Trace LOGGER = TraceManager.getTrace(FocusDetailsTabPanel.class);
+	protected static final String ID_MAIN_FORM = "mainForm";
 
-	public FocusDetailsTabPanel(String id, Form mainForm, 
-			LoadableModel<ObjectWrapper<F>> focusWrapperModel, 
-			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, 
-			LoadableModel<List<FocusProjectionDto>> projectionModel,
-			PageBase pageBase) {
-		super(id, mainForm, focusWrapperModel, assignmentsModel, projectionModel, pageBase);
-		initLayout();
-	}
-	
-	private void initLayout() {
+	private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectTabPanel.class);
 
-		PrismObjectPanel panel = new PrismObjectPanel<F>(ID_FOCUS_FORM, getObjectWrapperModel(),
-				new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), getMainForm(), getPageBase()) {
+	private LoadableModel<ObjectWrapper<O>> objectWrapperModel;
+	private PageBase pageBase;
+	private Form mainForm;
 
-			@Override
-			protected IModel<String> createDescription(IModel<ObjectWrapper<F>> model) {
-				return createStringResource("pageAdminFocus.description");
-			}
-		};
-		add(panel);
-
-		WebMarkupContainer tasks = new WebMarkupContainer(ID_TASKS);
-		tasks.setOutputMarkupId(true);
-		add(tasks);
-		initTasks(tasks);
-
+	public AbstractObjectTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<O>> objectWrapperModel, PageBase pageBase) {
+		super(id);
+		this.objectWrapperModel = objectWrapperModel;
+		this.mainForm = mainForm;
+		this.pageBase = pageBase;
 	}
 
-	private void initTasks(WebMarkupContainer tasks) {
-		List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
-		final TaskDtoProvider taskDtoProvider = new TaskDtoProvider(getPageBase(), TaskDtoProviderOptions.minimalOptions());
-		taskDtoProvider.setQuery(createTaskQuery(null));
-		TablePanel taskTable = new TablePanel<TaskDto>(ID_TASK_TABLE, taskDtoProvider, taskColumns) {
-
-			@Override
-			protected void onInitialize() {
-				super.onInitialize();
-				StringValue oidValue = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-
-				taskDtoProvider.setQuery(createTaskQuery(oidValue != null ? oidValue.toString() : null));
-			}
-		};
-		tasks.add(taskTable);
-
-		tasks.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return taskDtoProvider.size() > 0;
-			}
-		});
+	public LoadableModel<ObjectWrapper<O>> getObjectWrapperModel() {
+		return objectWrapperModel;
 	}
 
-	private ObjectQuery createTaskQuery(String oid) {
-		List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
+	public ObjectWrapper<O> getObjectWrapper() {
+		return objectWrapperModel.getObject();
+	}
 
-		if (oid == null) {
-			oid = "non-existent"; // TODO !!!!!!!!!!!!!!!!!!!!
+	protected PrismContext getPrismContext() {
+		return pageBase.getPrismContext();
+	}
+
+	protected PageParameters getPageParameters() {
+		return pageBase.getPageParameters();
+	}
+	
+	public PageBase getPageBase() {
+		return pageBase;
+	}
+
+	public Form getMainForm() {
+		return mainForm;
+	}
+
+	public StringResourceModel createStringResource(String resourceKey, Object... objects) {
+		return PageTemplate.createStringResourceStatic(this, resourceKey, objects);
+//		return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
+	}
+
+	public String getString(String resourceKey, Object... objects) {
+		return createStringResource(resourceKey, objects).getString();
+	}
+
+	protected String createComponentPath(String... components) {
+		return StringUtils.join(components, ":");
+	}
+
+	protected void showResult(OperationResult result) {
+		pageBase.showResult(result);
+	}
+	
+	protected void showResultInSession(OperationResult result) {
+		pageBase.showResultInSession(result);
+	}
+
+	protected WebMarkupContainer getFeedbackPanel() {
+		return pageBase.getFeedbackPanel();
+	}
+
+	public Object findParam(String param, String oid, OperationResult result) {
+
+		Object object = null;
+
+		for (OperationResult subResult : result.getSubresults()) {
+			if (subResult != null && subResult.getParams() != null) {
+				if (subResult.getParams().get(param) != null
+						&& subResult.getParams().get(OperationResult.PARAM_OID) != null
+						&& subResult.getParams().get(OperationResult.PARAM_OID).equals(oid)) {
+					return subResult.getParams().get(param);
+				}
+				object = findParam(param, oid, subResult);
+
+			}
 		}
-		try {
-			filters.add(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class,
-					getPrismContext(), oid));
-			filters.add(NotFilter.createNot(EqualFilter.createEqual(TaskType.F_EXECUTION_STATUS,
-					TaskType.class, getPrismContext(), null, TaskExecutionStatusType.CLOSED)));
-			filters.add(EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null));
-		} catch (SchemaException e) {
-			throw new SystemException("Unexpected SchemaException when creating task filter", e);
-		}
-
-		return new ObjectQuery().createObjectQuery(AndFilter.createAnd(filters));
+		return object;
 	}
 
-	private List<IColumn<TaskDto, String>> initTaskColumns() {
-		List<IColumn<TaskDto, String>> columns = new ArrayList<IColumn<TaskDto, String>>();
-
-		columns.add(PageTasks.createTaskNameColumn(this, "pageAdminFocus.task.name"));
-		columns.add(PageTasks.createTaskCategoryColumn(this, "pageAdminFocus.task.category"));
-		columns.add(PageTasks.createTaskExecutionStatusColumn(this, "pageAdminFocus.task.execution"));
-		columns.add(PageTasks.createTaskResultStatusColumn(this, "pageAdminFocus.task.status"));
-		return columns;
+	protected void showModalWindow(String id, AjaxRequestTarget target) {
+		ModalWindow window = (ModalWindow) get(id);
+		window.show(target);
+		target.add(getFeedbackPanel());
 	}
-
+	
+	protected void addPrismPropertyPanel(MarkupContainer parentComponent, String id, QName propertyName) {
+		addPrismPropertyPanel(parentComponent, id, new ItemPath(propertyName));
+	}
+	
+	protected void addPrismPropertyPanel(MarkupContainer parentComponent, String id, ItemPath propertyPath) {
+		parentComponent.add(
+				new PrismPropertyPanel(id,
+						new PropertyWrapperFromObjectWrapperModel<PolyString,O>(getObjectWrapperModel(), propertyPath),
+						mainForm, pageBase));
+	}
 }
