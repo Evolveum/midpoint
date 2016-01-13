@@ -33,12 +33,33 @@
                     <div class="objectFormHeaderOperationButtons" wicket:id="operationButtons" />
                 </div>
             </div>
-            <div class="row header" wicket:id="header"/>
-            <div wicket:id="body">
-                <div wicket:id="containers">
-                    <div wicket:id="container"/>
+
+
+            <div class="box box-default">
+                <div class="box-header with-border">
+                    <!--<div wicket:id="header"/>-->
+                    <!--<h3 style="margin-top: 0px;">-->
+                        <div wicket:id="headerLabel"  style="margin-top: 0px;"/>
+                        <div class="box-tools pull-right">
+                            <button wicket:id="showEmptyFields" class="btn btn-box-tool" data-widget="tooltip"
+                                    data-original-title="Show empty fields"><i class="fa fa-arrows-alt"></i></button>
+                            <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                        </div>
+                    <!--</h3>-->
+                </div>
+                <div class="box-body" wicket:id="body">
+                    <div wicket:id="containers">
+                        <div wicket:id="container"/>
+                    </div>
                 </div>
             </div>
+
+            <!--<div class="row header" wicket:id="header"/>-->
+            <!--<div wicket:id="body">-->
+                <!--<div wicket:id="containers">-->
+                    <!--<div wicket:id="container"/>-->
+                <!--</div>-->
+            <!--</div>-->
         </div>
     </div>
 </wicket:panel>

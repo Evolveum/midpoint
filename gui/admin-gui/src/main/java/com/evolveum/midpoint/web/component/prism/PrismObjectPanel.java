@@ -35,6 +35,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -64,7 +65,9 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
 
     private static final String STRIPED_CLASS = "striped";
     private static final String ID_HEADER = "header";
-    
+    private static final String ID_HEADER_LABEL = "headerLabel";
+    private static final String ID_SHOW_EMPTY_FIELDS = "showEmptyFields";
+
     private static final Trace LOGGER = TraceManager.getTrace(PrismObjectPanel.class);
 
     private boolean showHeader = true;
@@ -75,7 +78,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
         setOutputMarkupId(true);
 
         LOGGER.trace("Creating object panel for {}", model.getObject());
-        
+
         this.pageBase = pageBase;
         initLayout(model, image, form);
     }
@@ -175,13 +178,14 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
 //    }
 
     protected Component createHeader(String id, IModel<ObjectWrapper<O>> model) {
-        H3Header header = new H3Header(id, model) {
-
-            @Override
-            protected List<InlineMenuItem> createMenuItems() {
-                return createDefaultMenuItems(getModel());
-            }
-        };
+        H3Header header = new H3Header(id, model);
+//        {
+//
+//            @Override
+//            protected List<InlineMenuItem> createMenuItems() {
+//                return createDefaultMenuItems(getModel());
+//            }
+//        };
 
         return header;
     }
@@ -249,7 +253,23 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
     }
 
     private void initLayout(final IModel<ObjectWrapper<O>> model, ResourceReference image, final Form form) {
-        add(createHeader(ID_HEADER, model));
+        add(createHeader(ID_HEADER_LABEL, model));
+//    add(new Label(ID_HEADER_LABEL, new AbstractReadOnlyModel<String>() {
+//
+//        @Override
+//        public String getObject() {
+//            return getDisplayName(model);
+//        }
+//    }));
+        AjaxLink showEmptyFieldsButton = new AjaxLink(ID_SHOW_EMPTY_FIELDS) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                ObjectWrapper wrapper = model.getObject();
+                wrapper.setShowEmpty(!wrapper.isShowEmpty());
+                target.add(PrismObjectPanel.this);
+            }
+        };
+        add(showEmptyFieldsButton);
 
         WebMarkupContainer headerPanel = new WebMarkupContainer("headerPanel");
         headerPanel.add(new AttributeAppender("class", createHeaderClassModel(model), " "));
@@ -262,7 +282,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
             @Override
             public boolean isVisible() {
                 return isShowHeader();
-                
+
             }
         });
 
@@ -373,5 +393,17 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
         ObjectWrapper<O> wrapper = model.getObject();
         wrapper.setMinimalized(!wrapper.isMinimalized());
         target.add(PrismObjectPanel.this);
+    }
+
+    private String getDisplayName(IModel<ObjectWrapper<O>> model) {
+        ObjectWrapper wrapper = model.getObject();
+        String key = wrapper.getDisplayName();
+        if (key == null) {
+            key = "";
+        }
+
+        return PageTemplate.createStringResourceStatic(getPage(), key).getString();
+
+//        return new StringResourceModel(key, getPage(), null, key).getString();
     }
 }

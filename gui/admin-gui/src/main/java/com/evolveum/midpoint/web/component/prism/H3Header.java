@@ -53,7 +53,7 @@ public class H3Header<O extends ObjectType> extends SimplePanel<ObjectWrapper<O>
     public H3Header(String id, IModel<ObjectWrapper<O>> model) {
         super(id, model);
 
-        add(AttributeModifier.append("class", "h3-header"));
+//        add(AttributeModifier.append("class", "h3-header"));
     }
 
     @Override
