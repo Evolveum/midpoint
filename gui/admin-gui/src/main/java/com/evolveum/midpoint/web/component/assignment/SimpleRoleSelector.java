@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.BasePanel;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -40,11 +41,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  * @author semancik
  */
 public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType> extends BasePanel<List<AssignmentEditorDto>> {
+	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(SimpleRoleSelector.class);
 	
 	private static final String ID_LIST = "list";
 	private static final String ID_ITEM = "item";
+	private static final String ID_BUTTON_RESET = "buttonReset";
 	
 	List<PrismObject<R>> availableRoles;
 
@@ -62,39 +65,34 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
 		return null;
 	}
 
-	private IModel<List<AssignmentEditorDto>> getAssignmentModel() {
+	protected IModel<List<AssignmentEditorDto>> getAssignmentModel() {
 		return getModel();
 	}
 
 	private void initLayout() {
+		setOutputMarkupId(true);
 		ListView<PrismObject<R>> list = new ListView<PrismObject<R>>(ID_LIST, availableRoles) {
 			@Override
 			protected void populateItem(ListItem<PrismObject<R>> item) {
-				item.add(createLink(ID_ITEM, item.getModel()));
+				item.add(createRoleLink(ID_ITEM, item.getModel()));
 			}
 		};
 		list.setOutputMarkupId(true);
 		add(list);
 
-//		AjaxCheckBox checkAll = new AjaxCheckBox(ID_CHECK_ALL, new Model()) {
-//
-//			@Override
-//			protected void onUpdate(AjaxRequestTarget target) {
-//				List<AssignmentEditorDto> assignmentEditors = getAssignmentModel().getObject();
-//
-//				for (AssignmentEditorDto dto : assignmentEditors) {
-//					dto.setSelected(this.getModelObject());
-//				}
-//
-//				target.add(assignments);
-//			}
-//		};
-//		assignments.add(checkAll);
-
+		AjaxLink<String> buttonReset = new AjaxLink<String>(ID_BUTTON_RESET) {
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				reset();
+				target.add(SimpleRoleSelector.this);
+			}
+		};
+		buttonReset.setBody(createStringResource("SimpleRoleSelector.reset"));
+		add(buttonReset);
 	}
 
 
-	private Component createLink(String id, IModel<PrismObject<R>> model) {
+	private Component createRoleLink(String id, IModel<PrismObject<R>> model) {
 		AjaxLink<PrismObject<R>> button = new AjaxLink<PrismObject<R>>(id, model) {
 			
 			@Override
@@ -105,7 +103,7 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				LOGGER.trace("{} CLICK: {}", this, getModel().getObject());
-				toggle(getModel().getObject());
+				toggleRole(getModel().getObject());
 				target.add(this);
 			}
 			
@@ -125,34 +123,59 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
 	}
 
 		
-	boolean isSelected(PrismObject<R> role) {
+	private boolean isSelected(PrismObject<R> role) {
 		for (AssignmentEditorDto dto: getAssignmentModel().getObject()) {
-			if (dto.getTargetRef() != null && role.getOid().equals(dto.getTargetRef().getOid())) {
-				if (dto.getStatus() != UserDtoStatus.DELETE) {
-					return true;
+			if (willProcessAssignment(dto)) {
+				if (dto.getTargetRef() != null && role.getOid().equals(dto.getTargetRef().getOid())) {
+					if (dto.getStatus() != UserDtoStatus.DELETE) {
+						return true;
+					}
 				}
 			}
 		}
 		return false;
 	}
 	
-	void toggle(PrismObject<R> role) {
+	private void toggleRole(PrismObject<R> role) {
 		Iterator<AssignmentEditorDto> iterator = getAssignmentModel().getObject().iterator();
 		while (iterator.hasNext()) {
 			AssignmentEditorDto dto = iterator.next();
-			if (dto.getTargetRef() != null && role.getOid().equals(dto.getTargetRef().getOid())) {
-				if (dto.getStatus() == UserDtoStatus.ADD) {
-					iterator.remove();
-				} else {
-					dto.setStatus(UserDtoStatus.DELETE);
+			if (willProcessAssignment(dto)) {
+				if (dto.getTargetRef() != null && role.getOid().equals(dto.getTargetRef().getOid())) {
+					if (dto.getStatus() == UserDtoStatus.ADD) {
+						iterator.remove();
+					} else {
+						dto.setStatus(UserDtoStatus.DELETE);
+					}
+					return;
 				}
-				return;
 			}
 		}
 		
+		AssignmentEditorDto dto = createAddAssignmentDto(role, getPageBase());
+		getAssignmentModel().getObject().add(dto);
+	}
+	
+	protected AssignmentEditorDto createAddAssignmentDto(PrismObject<R> role, PageBase pageBase) {
 		AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(role.asObjectable(), getPageBase());
 		dto.setMinimized(true);
-		getAssignmentModel().getObject().add(dto);
+		return dto;
+	}
+	
+	private void reset() {
+		Iterator<AssignmentEditorDto> iterator = getAssignmentModel().getObject().iterator();
+		while (iterator.hasNext()) {
+			AssignmentEditorDto dto = iterator.next();
+			if (dto.getStatus() == UserDtoStatus.ADD) {
+				iterator.remove();
+			} else if (dto.getStatus() == UserDtoStatus.DELETE) {
+				dto.setStatus(UserDtoStatus.MODIFY);
+			}
+		}
+	}
+	
+	protected boolean willProcessAssignment(AssignmentEditorDto dto) {
+		return true;
 	}
 	
 }

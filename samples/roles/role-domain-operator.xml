@@ -14,24 +14,12 @@
   ~ limitations under the License.
   -->
 
-<!DOCTYPE html>
-<html xmlns:wicket="http://wicket.apache.org">
-<wicket:panel>
-	<div>
-		<div class="row">
-			<span class="col-xs-9">
-				<div class="list-group">
-					<div wicket:id="list">
-						<a class="list-group-item" wicket:id="item"/>
-					</div>
-				</div>
-			</span>
-			<span class="col-xs-3">
-				<div class="btn-group-vertical" role="group">
-					<a class="btn btn-default btn-small" wicket:id="buttonReset"/>
-				</div>
-			</span>
-		</div>
-	</div>
-</wicket:panel>
-</html>
+<role oid="c5304364-ba0c-11e5-885f-eb69e80fc99a" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:ext="http://midpoint.evolveum.com/xml/ns/samples/extension-3">
+    <name>Domain Operator</name>
+    <description>Sample parametric role. It expects "domain" parameter that is used to compute values on resource.</description>
+    <roleType>domain</roleType>
+</role>
+
