@@ -52,7 +52,7 @@ public class OpResult implements Serializable {
     private int count;
     private String xml;
 
-    public static OpResult getOpResult(PageBase page, OperationResult result) throws SchemaException, RuntimeException {
+    public static OpResult getOpResult(PageBase page, OperationResult result){
         OpResult opResult = new OpResult();
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
@@ -109,7 +109,7 @@ public class OpResult implements Serializable {
             String m = "Can't create xml: " + ex;
 //			error(m);
             opResult.xml = "<?xml version='1.0'?><message>" + StringEscapeUtils.escapeXml(m) + "</message>";
-            throw ex;
+//            throw ex;
         }
         return opResult;
     }

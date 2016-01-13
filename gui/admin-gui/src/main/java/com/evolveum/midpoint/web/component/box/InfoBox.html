@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2010-2016 Evolveum
   ~
@@ -15,20 +14,23 @@
   ~ limitations under the License.
   -->
 
-<html xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:wicket="http://wicket.apache.org">
-<body>
-	<wicket:extend>
-		<div class="row">
-			<div wicket:id="lastStatus" />
-			<div wicket:id="sourceTarget" />
-			<div wicket:id="credentialsMapping" />
-			<div wicket:id="activationMapping" />
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+	<div class="col-md-3 col-sm-6 col-xs-12">
+		<div class="info-box">
+			<span class="info-box-icon bg-aqua" wicket:id="backgroundColor">
+				<i wicket:id="imageId"></i>
+			</span>
+
+			<div class="info-box-content">
+				<span class="info-box-text" wicket:id="description"></span>
+			</div>
+
 		</div>
 
-		<div calss="row">
-			<div wicket:id="capabilities" />
-		</div>
-	</wicket:extend>
-</body>
+	</div>
+
+</wicket:panel>
 </html>
