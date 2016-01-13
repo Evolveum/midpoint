@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary;
 
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -26,6 +25,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.GeneralChangeApprovalWorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
@@ -54,6 +54,9 @@ public class PcpExternalizationHelper {
     @Autowired
     private PrimaryChangeProcessor primaryChangeProcessor;
 
+    @Autowired
+    private MiscDataUtil miscDataUtil;
+
     public PrimaryChangeProcessorState externalizeState(Map<String, Object> variables) throws JAXBException, SchemaException {
         PrismContainerDefinition<PrimaryChangeProcessorState> extDefinition = prismContext.getSchemaRegistry().findContainerDefinitionByType(PrimaryChangeProcessorState.COMPLEX_TYPE);
         PrismContainer<PrimaryChangeProcessorState> extStateContainer = extDefinition.instantiate();
@@ -66,7 +69,7 @@ public class PcpExternalizationHelper {
             ObjectType objectToBeAdded = (ObjectType) prismContext.parseObject(objectXml, PrismContext.LANG_XML).asObjectable();
             state.setObjectToBeAdded(objectToBeAdded);
         }
-        state.setDelta(pcpRepoAccessHelper.getObjectDeltaType(variables, true));
+        //state.setFocusDelta(miscDataUtil.getFocusPrimaryObjectDeltaType(variables, true));
         state.asPrismContainerValue().setConcreteType(PrimaryChangeProcessorState.COMPLEX_TYPE);
         return state;
     }
@@ -84,7 +87,7 @@ public class PcpExternalizationHelper {
             }
         }
 
-        wic.setObjectDelta(pcpRepoAccessHelper.getObjectDeltaType(processInstanceVariables, true));
+        wic.setObjectDelta(miscDataUtil.getFocusPrimaryObjectDeltaType(processInstanceVariables, true));
 
         PrismObject<? extends ObjectType> objectAfter = pcpRepoAccessHelper.getObjectAfter(processInstanceVariables, wic.getObjectDelta(), objectBefore, prismContext, result);
         if (objectAfter != null) {

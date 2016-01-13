@@ -11280,6 +11280,7 @@
                     <xsd:element name="modifyUserAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="addResourceAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="modifyResourceAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
+                    <xsd:element name="addAssociationAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="otherAspect" type="tns:GenericPcpAspectConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
@@ -11357,8 +11358,25 @@
             <xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Condition specifying when the assignment is automatically approved (e.g. "user is
+                        Condition specifying when the item is automatically approved (e.g. "user is
                         from Board of Directors"). This is an expression that should yield a boolean value.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="applicabilityCondition" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Condition specifying if the workflow should be started in the first place.
+                        This is an expression that should yield a boolean value. It gets 'itemToApprove' parameter
+                        that contains item to be approved - it is aspect-specific: might be e.g. an assignment,
+                        an association + resource shadow discriminator, etc.
+
+                        The difference between applicabilityCondition and automaticallyApproved is that if the
+                        former yields false, workflow is not even started. If it yields true, workflow is started,
+                        and then 'automaticallyApproved' is evaluated. If it yields false, manaual approval is
+                        required. If true, item is automatically approved.
+
+                        CURRENTLY IMPLEMENTED ONLY IN AddAssociationAspect.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -11390,6 +11408,90 @@
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AssociationAdditionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Container for association-to-be-added in the context: resource shadow discriminator.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="association" type="tns:ShadowAssociationType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Association to be added.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="resourceShadowDiscriminator" type="tns:ShadowDiscriminatorType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        To which resource/kind/intent to add it.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="associationAddition" type="tns:AssociationAdditionType"/>
+
+    <xsd:complexType name="ObjectTreeDeltasType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Container for ChangesRequested (focus primary delta and/or projection primary deltas).
+            </xsd:documentation>
+            <!--<xsd:appinfo>-->
+                <!--<a:container/>-->
+            <!--</xsd:appinfo>-->
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="focusPrimaryDelta" type="t:ObjectDeltaType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="projectionPrimaryDelta" type="tns:ProjectionObjectDeltaType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="objectTreeDeltas" type="tns:ObjectTreeDeltasType"/>
+
+    <xsd:complexType name="ProjectionObjectDeltaType">
+        <xsd:annotation>
+
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <!--<xsd:appinfo>-->
+                <!--<a:container/>-->
+            <!--</xsd:appinfo>-->
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="resourceShadowDiscriminator" type="c:ShadowDiscriminatorType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="primaryDelta" type="t:ObjectDeltaType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 
     <!-- Report Types -->
@@ -12253,7 +12355,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="days" type="xsd:int" minOccurs="1">
+            <xsd:element name="days" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         How many days should the stage last?

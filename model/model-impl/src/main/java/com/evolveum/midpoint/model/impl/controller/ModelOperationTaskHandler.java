@@ -18,24 +18,32 @@ package com.evolveum.midpoint.model.impl.controller;
 
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -114,8 +122,16 @@ public class ModelOperationTaskHandler implements TaskHandler {
                 // here we brutally remove all the projection contexts -- because if we are continuing after rejection of a role/resource assignment
                 // that resulted in such projection contexts, we DO NOT want them to appear in the context any more
                 context.rot();
-                if (context.getProjectionContexts() != null) {
-                    context.getProjectionContexts().clear();
+                Iterator<LensProjectionContext> projectionIterator = context.getProjectionContextsIterator();
+                while (projectionIterator.hasNext()) {
+                    LensProjectionContext projectionContext = projectionIterator.next();
+                    if (projectionContext.getPrimaryDelta() != null && !projectionContext.getPrimaryDelta().isEmpty()) {
+                        continue;       // don't remove client requested actions!
+                    }
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Removing projection context {}", projectionContext.getHumanReadableName());
+                    }
+                    projectionIterator.remove();
                 }
                 clockwork.run(context, task, result);
 

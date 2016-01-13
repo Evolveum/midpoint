@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
+import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildJobCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -62,16 +63,16 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
     @Override
     public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext,
                                                                                WfConfigurationType wfConfigurationType,
-                                                                               ObjectDelta<? extends ObjectType> change,
+                                                                               ObjectTreeDeltas objectTreeDeltas,
                                                                                Task taskFromModel, OperationResult result) throws SchemaException {
         PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(wfConfigurationType, this);
         if (config == null) {
             return null;            // this should not occur (because this aspect is not enabled by default), but check it just to be sure
         }
-        if (!primaryChangeAspectHelper.isRelatedToType(modelContext, getObjectClass())) {
+        if (!primaryChangeAspectHelper.isRelatedToType(modelContext, getObjectClass()) || objectTreeDeltas.getFocusChange() == null) {
             return null;
         }
-        List<ApprovalRequest<T>> approvalRequestList = getApprovalRequests(modelContext, config, change, result);
+        List<ApprovalRequest<T>> approvalRequestList = getApprovalRequests(modelContext, config, objectTreeDeltas.getFocusChange(), result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return null;
         }

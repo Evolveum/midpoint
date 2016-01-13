@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -162,9 +163,9 @@ public class WfHook implements ChangeHook {
                     LoggingUtils.logException(LOGGER, "Schema exception while running change processor {}", e, changeProcessor.getClass().getName());   // todo message
                     result.recordFatalError("Schema exception while running change processor " + changeProcessor.getClass(), e);
                     return HookOperationMode.ERROR;
-                } catch (RuntimeException e) {
-                    LoggingUtils.logException(LOGGER, "Runtime exception while running change processor {}", e, changeProcessor.getClass().getName());   // todo message
-                    result.recordFatalError("Runtime exception while running change processor " + changeProcessor.getClass(), e);
+                } catch (ObjectNotFoundException|RuntimeException e) {
+                    LoggingUtils.logException(LOGGER, "Unexpected exception while running change processor {}", e, changeProcessor.getClass().getName());   // todo message
+                    result.recordFatalError("Unexpected exception while running change processor " + changeProcessor.getClass(), e);
                     return HookOperationMode.ERROR;
                 }
             }

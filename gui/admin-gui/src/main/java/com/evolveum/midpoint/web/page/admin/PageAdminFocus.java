@@ -423,7 +423,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			}
 
 			AssignmentType assignment = new AssignmentType();
-			PrismContainerValue value = assDto.getNewValue();
+			PrismContainerValue value = assDto.getNewValue(getPrismContext());
 			assignment.setupContainerValue(value);
 			value.applyDefinition(assignmentDef, false);
 			assignmentContainer.add(assignment.clone().asPrismContainerValue());
@@ -464,7 +464,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		ContainerDelta assDelta = new ContainerDelta(new ItemPath(), def.getName(), def, getPrismContext());
 
 		for (AssignmentEditorDto assDto : assignments) {
-			PrismContainerValue newValue = assDto.getNewValue();
+			PrismContainerValue newValue = assDto.getNewValue(getPrismContext());
 
 			switch (assDto.getStatus()) {
 				case ADD:
@@ -477,7 +477,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 					assDelta.addValueToDelete(oldValue.clone());
 					break;
 				case MODIFY:
-					if (!assDto.isModified()) {
+					if (!assDto.isModified(getPrismContext())) {
 						LOGGER.trace("Assignment '{}' not modified.", new Object[] { assDto.getName() });
 						continue;
 					}

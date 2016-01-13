@@ -21,7 +21,6 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -31,8 +30,6 @@ import com.evolveum.midpoint.wf.impl.processes.common.StringHolder;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import javax.xml.bind.JAXBException;
 
 /**
  * @author mederly
@@ -86,19 +83,38 @@ public class PcpChildJobCreationInstruction extends JobCreationInstruction {
         }
     }
 
+    @Deprecated
     public void setDeltaProcessAndTaskVariables(ObjectDelta delta) {
+//        try {
+//            addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_DELTA, new StringHolder(DeltaConvertor.toObjectDeltaTypeXml(delta)));
+//        } catch(JAXBException e) {
+//            throw new SystemException("Couldn't store primary delta into the process variable due to JAXB exception", e);
+//        } catch (SchemaException e) {
+//            throw new SystemException("Couldn't store primary delta into the process variable due to schema exception", e);
+//        }
+//
+//        try {
+//            addTaskDeltasVariable(getChangeProcessor().getWorkflowManager().getWfTaskUtil().getWfDeltaToProcessPropertyDefinition(), delta);
+//        } catch (SchemaException e) {
+//            throw new SystemException("Couldn't store primary delta into the task variable due to schema exception", e);
+//        }
+//
+        setObjectTreeDeltasProcessAndTaskVariables(new ObjectTreeDeltas(delta, getChangeProcessor().getPrismContext()));
+    }
+
+    public void setObjectTreeDeltasProcessAndTaskVariables(ObjectTreeDeltas objectTreeDeltas) {
         try {
-            addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_DELTA, new StringHolder(DeltaConvertor.toObjectDeltaTypeXml(delta)));
-        } catch(JAXBException e) {
-            throw new SystemException("Couldn't store primary delta into the process variable due to JAXB exception", e);
+            addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TREE_DELTAS,
+                    new StringHolder(ObjectTreeDeltas.toObjectTreeDeltasTypeXml(objectTreeDeltas)));
         } catch (SchemaException e) {
-            throw new SystemException("Couldn't store primary delta into the process variable due to schema exception", e);
+            throw new SystemException("Couldn't store primary delta(s) into the process variable due to schema exception", e);
         }
 
         try {
-            addTaskDeltasVariable(getChangeProcessor().getWorkflowManager().getWfTaskUtil().getWfDeltaToProcessPropertyDefinition(), delta);
+            addTaskVariable(getChangeProcessor().getWorkflowManager().getWfTaskUtil().getWfDeltasToProcessPropertyDefinition(),
+                    ObjectTreeDeltas.toObjectTreeDeltasType(objectTreeDeltas));
         } catch (SchemaException e) {
-            throw new SystemException("Couldn't store primary delta into the task variable due to schema exception", e);
+            throw new SystemException("Couldn't store primary delta(s) into the task variable due to schema exception", e);
         }
     }
 

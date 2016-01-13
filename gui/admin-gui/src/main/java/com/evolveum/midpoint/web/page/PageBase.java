@@ -471,9 +471,8 @@ public abstract class PageBase extends PageTemplate implements ModelServiceLocat
         MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.definitions"),
                 PageCertDefinitions.class);
         submenu.add(menu);
-        createFocusPageViewMenu(submenu, "PageAdmin.menu.top.certification.viewDefinition", PageCertDefinition.class);
         menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.newDefinition"),
-                PageImportObject.class);
+                PageCertDefinition.class);
         submenu.add(menu);
         menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.campaigns"),
                 PageCertCampaigns.class);
