@@ -93,7 +93,7 @@ public class OrganizationStructureTests extends AbstractSelenideTest {
         //click Assign menu item with the specified linkText
         $(By.linkText("Unassign")).shouldBe(visible).click();
         //click Yes button in the opened Confirm delete window
-        $(By.xpath("/html/body/div[5]/form/div/div[2]/div/div/div/div[2]/div/div/div/div/p[2]/a[1]"))
+        $(By.xpath("/html/body/div[4]/form/div/div[2]/div/div/div/div[2]/div/div/div/div/p[2]/a[1]"))
                 .shouldBe(visible).click();
         //click Save button
         $(By.linkText("Save")).click();

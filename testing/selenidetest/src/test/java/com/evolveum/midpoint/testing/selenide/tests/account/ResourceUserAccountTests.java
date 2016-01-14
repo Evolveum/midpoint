@@ -129,9 +129,9 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
                 .shouldBe(visible).setValue(ACCOUNT_COMMON_NAME_VALUE);
         $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:0:container:properties:42:property:values:0:value:valueContainer:input:input"))
                 .shouldBe(visible).setValue(ACCOUNT_SURNAME_VALUE);
-        $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:5:container:properties:0:property:values:0:value:valueContainer:input:inputContainer:password1"))
+        $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:6:container:properties:0:property:values:0:value:valueContainer:input:inputContainer:password1"))
                 .shouldBe(visible).setValue(ACCOUNT_PASSWORD_VALUE);
-        $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:5:container:properties:0:property:values:0:value:valueContainer:input:inputContainer:password2"))
+        $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:6:container:properties:0:property:values:0:value:valueContainer:input:inputContainer:password2"))
                 .shouldBe(visible).setValue(ACCOUNT_PASSWORD_VALUE);
 
         //click Save button
