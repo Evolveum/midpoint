@@ -1,0 +1,20 @@
+dn: olcDatabase={1}hdb,cn=config
+changetype: modify
+replace: olcAccess
+olcAccess: to attrs=userPassword,shadowLastChange by dn="cn=idm,ou=Administrators,dc=example,dc=com" write by dn="cn=phpldapadmin,ou=Administrators,dc=example,dc=com" write by dn="cn=apache,ou=Administrators,dc=example,dc=com" read by dn.exact=gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth write by anonymous auth by self write by * none
+olcAccess: to dn.base="" by * read
+olcAccess: to dn.subtree="ou=People,dc=example,dc=com" by dn="cn=idm,ou=Administrators,dc=example,dc=com" write by dn="cn=phpldapadmin,ou=Administrators,dc=example,dc=com" write by dn="cn=apache,ou=Administrators,dc=example,dc=com" read
+olcAccess: to dn.subtree="ou=Groups,dc=example,dc=com" by dn="cn=idm,ou=Administrators,dc=example,dc=com" write by dn="cn=phpldapadmin,ou=Administrators,dc=example,dc=com" write by dn="cn=apache,ou=Administrators,dc=example,dc=com" read
+olcAccess: to dn.subtree="ou=Projects,dc=example,dc=com" by dn="cn=idm,ou=Administrators,dc=example,dc=com" write by dn="cn=phpldapadmin,ou=Administrators,dc=example,dc=com" write
+olcAccess: to dn.subtree="ou=Orgs,dc=example,dc=com" by dn="cn=idm,ou=Administrators,dc=example,dc=com" write by dn="cn=phpldapadmin,ou=Administrators,dc=example,dc=com" write
+olcAccess: to * by dn.exact=gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth write by dn="cn=idm,ou=Administrators,dc=example,dc=com" read by dn="cn=phpldapadmin,ou=Administrators,dc=example,dc=com" read by self read by * none
+
+
+#dn: olcDatabase={1}hdb,cn=config
+#changetype: modify
+#replace: olcAccess
+#olcAccess: to attrs=userPassword,shadowLastChange by dn="cn=idm,ou=Administrators,dc=example,dc=com" write by dn.exact=gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth write by anonymous auth by self write by * none
+#olcAccess: to dn.base="" by * read
+#olcAccess: to dn.subtree="ou=people,dc=example,dc=com" by dn="cn=idm,ou=Administrators,dc=example,dc=com" write
+#olcAccess: to dn.subtree="ou=groups,dc=example,dc=com" by dn="cn=idm,ou=Administrators,dc=example,dc=com" write
+#olcAccess: to * by dn.exact=gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth write by dn="cn=idm,ou=Administrators,dc=example,dc=com" read by self read by * none
