@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -175,15 +175,15 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         add(values);
     }
 
-    protected String getInputCssClass(){
-        return"col-xs-9";
+    protected String getInputCssClass() {
+        return"col-xs-10";
     }
 
-    protected String getValuesClass(){
+    protected String getValuesClass() {
         return "col-md-6";
     }
 
-    protected String getValueCssClass(){
+    protected String getValueCssClass() {
         return "row";
     }
 
