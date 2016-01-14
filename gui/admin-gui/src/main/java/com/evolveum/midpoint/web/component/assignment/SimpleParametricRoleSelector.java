@@ -15,16 +15,20 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -38,6 +42,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
@@ -59,13 +64,15 @@ public class SimpleParametricRoleSelector<F extends FocusType, R extends Abstrac
 	private static final String ID_LABEL_PARAM = "labelParam";
 	private static final String ID_LIST_PARAM = "listParam";
 	private static final String ID_ITEM_PARAM = "itemParam";
-	private static final String ID_BUTTON_ADD = "buttonAdd";
-	private static final String ID_BUTTON_DELETE = "buttonDelete";
+	private static final String ID_ADD_INPUT = "addInput";
+	private static final String ID_ADD_LINK = "addLink";
+	private static final String ID_DELETE_LINK = "deleteLink";
 	
 	private String labelParam = null;
 	private String labelRole = null;
 	private ItemPath parameterPath;
-	private LoadableModel<List<String>> paramListModel;
+	private ListView<String> paramList;
+	final private IModel<List<String>> paramListModel;
 	private String selectedParam = null;
 
 	public SimpleParametricRoleSelector(String id, IModel<List<AssignmentEditorDto>> assignmentModel, List<PrismObject<R>> availableRoles, ItemPath parameterPath) {
@@ -91,14 +98,28 @@ public class SimpleParametricRoleSelector<F extends FocusType, R extends Abstrac
 		this.labelRole = labelRole;
 	}
 
-	private LoadableModel<List<String>> initParamListModel(final IModel<List<AssignmentEditorDto>> assignmentModel) {
-		LoadableModel<List<String>> paramListModel = new LoadableModel<List<String>>() {
+	private IModel<List<String>> initParamListModel(final IModel<List<AssignmentEditorDto>> assignmentModel) {
+		return new IModel<List<String>>() {
+
+			private List<String> list = null;
+			
 			@Override
-			protected List<String> load() {
-				return initParamList(assignmentModel.getObject());
+			public void detach() {
+			}
+
+			@Override
+			public List<String> getObject() {
+				if (list == null) {
+					list = initParamList(assignmentModel.getObject());
+				}
+				return list;
+			}
+
+			@Override
+			public void setObject(List<String> list) {
+				this.list = list;
 			}
 		};
-		return paramListModel;
 	}
 	
 	private List<String> initParamList(List<AssignmentEditorDto> assignmentDtos) {
@@ -184,24 +205,51 @@ public class SimpleParametricRoleSelector<F extends FocusType, R extends Abstrac
 			}
 		});
 		
-		ListView<String> list = new ListView<String>(ID_LIST_PARAM, paramListModel) {
+		paramList = new ListView<String>(ID_LIST_PARAM, paramListModel) {
 			@Override
 			protected void populateItem(ListItem<String> item) {
 				item.add(createParamLink(ID_ITEM_PARAM, item.getModel()));
 			}
+			
 		};
-		list.setOutputMarkupId(true);
-		add(list);
+		paramList.setOutputMarkupId(true);
+		add(paramList);
 
-//		AjaxLink<String> buttonReset = new AjaxLink<String>(ID_BUTTON_RESET) {
-//			@Override
-//			public void onClick(AjaxRequestTarget target) {
-//				reset();
-//				target.add(SimpleParametricRoleSelector.this);
-//			}
-//		};
-//		buttonReset.setBody(createStringResource("SimpleRoleSelector.reset"));
-//		add(buttonReset);
+		final Model<String> addInputModel = new Model<String>();
+		TextField<String> addInput = new TextField<>(ID_ADD_INPUT, addInputModel);
+		addInput.setOutputMarkupId(true);
+		addInput.add(new AjaxFormComponentUpdatingBehavior("blur") {
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				// nothing to do, Ajax behavior is there only to get data to model
+			}
+		});
+		add(addInput);
+		
+		AjaxLink<String> addLink = new AjaxLink<String>(ID_ADD_LINK) {
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				String newParam = addInputModel.getObject();
+				LOGGER.debug("ADD cliked, input field value: {}", newParam);
+				if (!StringUtils.isBlank(newParam)) {
+					addParam(newParam);
+					
+				}
+				addInputModel.setObject(null);
+				target.add(SimpleParametricRoleSelector.this);
+			}
+		};
+		add(addLink);
+		
+		AjaxLink<String> deleteLink = new AjaxLink<String>(ID_DELETE_LINK) {
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				LOGGER.debug("DELETE cliked, selected param: {}", selectedParam);
+				deleteParam(selectedParam);
+				target.add(SimpleParametricRoleSelector.this);
+			}
+		};
+		add(deleteLink);		
 	}
 
 
@@ -238,6 +286,29 @@ public class SimpleParametricRoleSelector<F extends FocusType, R extends Abstrac
 	private void toggleParam(String param) {
 		selectedParam = param;
 	}
+	
+	private void addParam(String newParam) {
+		List<String> params = paramListModel.getObject();
+		if (!params.contains(newParam)) {
+			params.add(newParam);
+		}
+	}
+
+	private void deleteParam(String paramToDelete) {
+		paramListModel.getObject().remove(paramToDelete);
+		// make sure that all the assignments with the parameter parameter are also removed from assignement model
+		Iterator<AssignmentEditorDto> iterator = getAssignmentModel().getObject().iterator();
+		while (iterator.hasNext()) {
+			AssignmentEditorDto dto = iterator.next();
+			if (isManagedRole(dto) && paramToDelete.equals(getParamValue(dto))) {
+				if (dto.getStatus() == UserDtoStatus.ADD) {
+					iterator.remove();
+				} else {
+					dto.setStatus(UserDtoStatus.DELETE);
+				}
+			}
+		}
+	}
 
 	@Override
 	protected AssignmentEditorDto createAddAssignmentDto(PrismObject<R> role, PageBase pageBase) {
@@ -256,6 +327,9 @@ public class SimpleParametricRoleSelector<F extends FocusType, R extends Abstrac
 
 	@Override
 	protected boolean willProcessAssignment(AssignmentEditorDto dto) {
+		if (!super.willProcessAssignment(dto)) {
+			return false;
+		}
 		if (selectedParam == null) {
 			return false;
 		}

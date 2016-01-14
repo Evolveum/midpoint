@@ -116,6 +116,10 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
 		        } else {
 		        	tag.put("class", "list-group-item");
 		        }
+		        String description = role.asObjectable().getDescription();
+		        if (description != null) {
+		        	tag.put("title", description);
+		        }
 		    }
 		};
 		button.setOutputMarkupId(true);
@@ -166,16 +170,30 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
 		Iterator<AssignmentEditorDto> iterator = getAssignmentModel().getObject().iterator();
 		while (iterator.hasNext()) {
 			AssignmentEditorDto dto = iterator.next();
-			if (dto.getStatus() == UserDtoStatus.ADD) {
-				iterator.remove();
-			} else if (dto.getStatus() == UserDtoStatus.DELETE) {
-				dto.setStatus(UserDtoStatus.MODIFY);
+			if (isManagedRole(dto) && willProcessAssignment(dto)) {
+				if (dto.getStatus() == UserDtoStatus.ADD) {
+					iterator.remove();
+				} else if (dto.getStatus() == UserDtoStatus.DELETE) {
+					dto.setStatus(UserDtoStatus.MODIFY);
+				}
 			}
 		}
 	}
 	
 	protected boolean willProcessAssignment(AssignmentEditorDto dto) {
 		return true;
+	}
+	
+	protected boolean isManagedRole(AssignmentEditorDto dto) {
+		if (dto.getTargetRef() == null || dto.getTargetRef().getOid() == null) {
+			return false;
+		}
+		for (PrismObject<R> availableRole: availableRoles) {
+			if (availableRole.getOid().equals(dto.getTargetRef().getOid())) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 }
