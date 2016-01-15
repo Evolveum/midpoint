@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,67 +16,72 @@
 
 package com.evolveum.midpoint.init;
 
+import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 
 public class ApplicationHomeSetup {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(ApplicationHomeSetup.class);
-    private String MIDPOINT_HOME;
+    private String midpointHomeSystemPropertyName;
 
-    public void init(String midpointHome) {
+    public void init(String midpointHomeSystemPropertyName) {
 
-        MIDPOINT_HOME = midpointHome;
+        this.midpointHomeSystemPropertyName = midpointHomeSystemPropertyName;
 
-        LOGGER.info(MIDPOINT_HOME + " = " + System.getProperty(MIDPOINT_HOME));
-        System.out.println(MIDPOINT_HOME + " = " + System.getProperty(MIDPOINT_HOME));
+        LOGGER.info(midpointHomeSystemPropertyName + " = " + System.getProperty(midpointHomeSystemPropertyName));
+        System.out.println(midpointHomeSystemPropertyName + " = " + System.getProperty(midpointHomeSystemPropertyName));
 
-        String mh = System.getProperty(MIDPOINT_HOME);
+        String midpointHomePath = System.getProperty(midpointHomeSystemPropertyName);
 
-        if (!checkDirectoryExistence(mh)) {
-            createDir(mh);
-        }
-
-        directorySetup(mh);
+        createMidpointHomeDirectories(midpointHomePath);
+        setupMidpointHomeDirectory(midpointHomePath);
 
     }
-
+    
     /**
      * Creates directory structure under root
      * <p/>
      * Directory information based on: http://wiki.evolveum.com/display/midPoint/midpoint.home+-+directory+structure
-     *
-     * @param midpointHomeDir
      */
-
-    protected void directorySetup(String midpointHomeDir) {
+    private void createMidpointHomeDirectories(String midpointHomePath) {
+    	
+    	if (!checkDirectoryExistence(midpointHomePath)) {
+            createDir(midpointHomePath);
+        }
+    	
         String[] directories = {
-                midpointHomeDir + "/icf-connectors",
-                midpointHomeDir + "/idm-legacy",
-                midpointHomeDir + "/log",
-                midpointHomeDir + "/schema",
-                midpointHomeDir + "/import",
-                midpointHomeDir + "/export"
+                midpointHomePath + "/icf-connectors",
+                midpointHomePath + "/idm-legacy",
+                midpointHomePath + "/log",
+                midpointHomePath + "/schema",
+                midpointHomePath + "/import",
+                midpointHomePath + "/export"
         };
 
         for (String directory : directories) {
             if (checkDirectoryExistence(directory)) {
                 continue;
             }
-            LOGGER.warn("Missing directory '{}'. Regeneration in progress...", new Object[]{directory});
+            LOGGER.warn("Missing midPoint home directory '{}'. Creating.", new Object[]{directory});
             createDir(directory);
         }
     }
+    
+    private void setupMidpointHomeDirectory(String midpointHomePath) {
+    	try {
+			ClassPathUtil.extractFilesFromClassPath("initial-midpoint-home", midpointHomePath, false);
+		} catch (URISyntaxException | IOException e) {
+			LOGGER.error("Error copying the content of initial-midpoint-home to {}: {}", midpointHomePath, e.getMessage(), e);
+		}
+    }
 
-    /**
-     * Checking directory existence
-     *
-     * @param dir
-     * @return
-     */
+
     private boolean checkDirectoryExistence(String dir) {
         File d = new File(dir);
         if (d.isFile()) {
@@ -93,11 +98,6 @@ public class ApplicationHomeSetup {
 
     }
 
-    /**
-     * Creates directory
-     *
-     * @param dir
-     */
     private void createDir(String dir) {
         File d = new File(dir);
         if (d.exists() && d.isDirectory()) {
