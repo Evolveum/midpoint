@@ -63,10 +63,7 @@ import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.admin.users.*;
 import com.evolveum.midpoint.web.page.admin.workflow.*;
 import com.evolveum.midpoint.web.page.self.PageSelfAssignments;
 import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
@@ -647,6 +644,8 @@ public abstract class PageBase extends PageTemplate implements ModelServiceLocat
 //        MenuItem search = new MenuItem(createStringResource("PageAdmin.menu.users.search"),
 //        PageUsersSearch.class);
 //        submenu.add(search);
+        MenuItem requestAssignment = new MenuItem(createStringResource("PageAdmin.menu.top.users.requestAssign"), PageAssignmentRequest.class);
+        submenu.add(requestAssignment);
 
         return item;
     }
