@@ -389,7 +389,7 @@ public final class WebMiscUtil {
     	
     	PrismProperty prop = object.findProperty(propertyName);
     	
-    	if (prop!= null && prop.getDefinition().getName() == DOMUtil.XSD_STRING){
+    	if (prop!= null && prop.getDefinition().getTypeName().equals(DOMUtil.XSD_STRING)){
     		return (String) prop.getRealValue();
     	}
     	

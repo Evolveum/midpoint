@@ -12,23 +12,22 @@ import com.evolveum.midpoint.web.component.util.BasePanel;
 public class CapabilitiesPanel extends BasePanel<CapabilitiesDto>{
 	
 	private static final String ID_ACTIVATION = "activation";
+	private static final String ID_ACTIVATION_LOCKOUT_STATUS = "activationLockoutStatus";
+	private static final String ID_ACTIVATION_STATUS = "activationStatus";
+	private static final String ID_ACTIVATION_VALIDITY = "activationValidity";
+	private static final String ID_AUXILIARY_OBJECT_CLASSES = "auxiliaryObjectClasses";
 	private static final String ID_CREDENTIALS = "credentials";
 	private static final String ID_LIVE_SYNC = "liveSync";
-	private static final String ID_TEST = "test";
-	private static final String ID_SCHEMA = "schema";
+	private static final String ID_TEST = "testConnection";
 	private static final String ID_CREATE = "create";
 	private static final String ID_UPDATE = "update";
-	
-	private static final String ID_ADD_ATTRIBUE_VALUES = "addAttributeValues";
-	private static final String ID_REMOVE_ATTRIBUTE_VALUES = "removeAttributeValues";
+	private static final String ID_COUNT_OBJECTS = "countObjects";
+	private static final String ID_PAGED_SEARCH = "pagedSearch";
+	private static final String ID_PASSWORD = "password";
+	private static final String ID_ADD_ATTRIBUE_VALUES = "addRemoveAttributeValues";
 	private static final String ID_DELETE = "delete";
 	private static final String ID_READ = "read";
-	private static final String ID_AUXILIARY_OBJECT_CLASS = "auxiliaryObjectClass";
-	private static final String ID_CONNECTOR_SCRIPT = "connectorScript";
-	private static final String ID_HOST_SCRIPT = "hostScript";
-	
-
-
+	private static final String ID_CONNECTOR_SCRIPT = "script";
 	
 	private static final long serialVersionUID = 1L;
 
@@ -46,16 +45,19 @@ public class CapabilitiesPanel extends BasePanel<CapabilitiesDto>{
 	    	createCapabilityButton(ID_CREDENTIALS);
 	    	createCapabilityButton(ID_LIVE_SYNC);
 	    	createCapabilityButton(ID_TEST);
-	    	createCapabilityButton(ID_SCHEMA);
 	    	createCapabilityButton(ID_CREATE);
 	    	createCapabilityButton(ID_UPDATE);
 	    	createCapabilityButton(ID_ADD_ATTRIBUE_VALUES);
-	    	createCapabilityButton(ID_REMOVE_ATTRIBUTE_VALUES);
 	    	createCapabilityButton(ID_DELETE);
 	    	createCapabilityButton(ID_READ);
-	    	createCapabilityButton(ID_AUXILIARY_OBJECT_CLASS);
 	    	createCapabilityButton(ID_CONNECTOR_SCRIPT);
-	    	createCapabilityButton(ID_HOST_SCRIPT);
+	    	createCapabilityButton(ID_PASSWORD);
+	    	createCapabilityButton(ID_PAGED_SEARCH);
+	    	createCapabilityButton(ID_AUXILIARY_OBJECT_CLASSES);
+	    	createCapabilityButton(ID_ACTIVATION_VALIDITY);
+	    	createCapabilityButton(ID_ACTIVATION_STATUS);
+	    	createCapabilityButton(ID_ACTIVATION_LOCKOUT_STATUS);
+	    	createCapabilityButton(ID_COUNT_OBJECTS);
 	    	
 	    	    }
 

@@ -19,15 +19,27 @@
 	xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-		<div class="col-md-12">
+		<div class="box">
 		<!-- Application buttons -->
 		<div class="box">
 			<div class="box-header">
 				<h3 class="box-title">Capabilities</h3>
 			</div>
 			<div class="box-body">
-
+	
 				<a class="btn btn-app" wicket:id="activation"> 
+					<i class="fa fa-lock"></i>
+					<span wicket:id="label" />
+				</a>
+				<a class="btn btn-app" wicket:id="activationLockoutStatus"> 
+					<i class="fa fa-lock"></i>
+					<span wicket:id="label" />
+				</a>
+				<a class="btn btn-app" wicket:id="activationStatus"> 
+					<i class="fa fa-lock"></i>
+					<span wicket:id="label" />
+				</a>
+				<a class="btn btn-app" wicket:id="activationValidity"> 
 					<i class="fa fa-lock"></i>
 					<span wicket:id="label" />
 				</a>
@@ -35,15 +47,25 @@
 					<i class="fa fa-key"></i>
 					<span wicket:id="label" />
 				</a>
+				
+				<a class="btn btn-app" wicket:id="password"> 
+					<i class="fa fa-key"></i>
+					<span wicket:id="label" />
+				</a>
 				<a class="btn btn-app" wicket:id="liveSync"> 
 					<i class="fa fa-refresh"></i>
 					<span wicket:id="label" />
 				</a>
-				<a class="btn btn-app" wicket:id="test"> 
+				<a class="btn btn-app" wicket:id="testConnection"> 
 					<i class="fa fa-question"></i>
 					<span wicket:id="label" />
 				</a>
-				<a class="btn btn-app" wicket:id="schema"> 
+				
+				<a class="btn btn-app" wicket:id="script"> 
+					<i class="fa fa-code"></i>
+					<span wicket:id="label" />
+				</a>
+				<a class="btn btn-app" wicket:id="auxiliaryObjectClasses"> 
 					<i class="fa fa-wrench"></i>
 					<span wicket:id="label" />
 				</a>
@@ -55,14 +77,12 @@
 					<i class="fa fa-edit"></i>
 					<span wicket:id="label" />
 				</a>
-				<a class="btn btn-app" wicket:id="addAttributeValues"> 
+							
+				<a class="btn btn-app" wicket:id="addRemoveAttributeValues"> 
 					<i class="fa fa-edit"></i>
 					<span wicket:id="label" />
 				</a>
-				<a class="btn btn-app" wicket:id="removeAttributeValues"> 
-					<i class="fa fa-edit"></i>
-					<span wicket:id="label" />
-				</a>
+				
 				<a class="btn btn-app" wicket:id="delete"> 
 					<i class="fa fa-minus"></i>
 					<span wicket:id="label" />
@@ -71,18 +91,17 @@
 					<i class="fa fa-book"></i>
 					<span wicket:id="label" />
 				</a>
-				<a class="btn btn-app" wicket:id="auxiliaryObjectClass"> 
+				
+				<a class="btn btn-app" wicket:id="countObjects"> 
+					<i class="fa fa-edit"></i>
+					<span wicket:id="label" />
+				</a>
+				
+				<a class="btn btn-app" wicket:id="pagedSearch"> 
 					<i class="fa fa-code"></i>
 					<span wicket:id="label" />
 				</a>
-				<a class="btn btn-app" wicket:id="connectorScript"> 
-					<i class="fa fa-code"></i>
-					<span wicket:id="label" />
-				</a>
-				<a class="btn btn-app" wicket:id="hostScript"> 
-					<i class="fa fa-code"></i>
-					<span wicket:id="label" />
-				</a>
+				
 
 			</div>
 			<!-- /.box-body -->
