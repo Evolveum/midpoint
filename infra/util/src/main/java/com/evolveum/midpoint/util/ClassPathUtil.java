@@ -158,12 +158,13 @@ public class ClassPathUtil {
 	 * a directory on a file system.
 	 */
 	public static boolean extractFilesFromClassPath(String srcPath, String dstPath, boolean overwrite) throws URISyntaxException, IOException {
-		URI srcUrl = ClassPathUtil.class.getClassLoader().getResource(srcPath).toURI();
-//		URL srcUrl = ClassLoader.getSystemResource(srcPath);
-		if (srcUrl == null) {
+		URL src = ClassPathUtil.class.getClassLoader().getResource(srcPath);
+		if (src == null) {
 			LOGGER.debug("No resource for {}", srcPath);
 			return false;
 		}
+		URI srcUrl = src.toURI();
+//		URL srcUrl = ClassLoader.getSystemResource(srcPath);
 		LOGGER.trace("URL: {}", srcUrl);
 		if (srcUrl.getPath().contains("!/")) {
 			URI srcFileUri = new URI(srcUrl.getPath().split("!/")[0]);		// e.g. file:/C:/Documents%20and%20Settings/user/.m2/repository/com/evolveum/midpoint/infra/test-util/2.1-SNAPSHOT/test-util-2.1-SNAPSHOT.jar
@@ -223,7 +224,7 @@ public class ClassPathUtil {
 	/**
 	 * Get clasess from JAR
 	 * 
-	 * @param candidateUrl
+	 * @param srcUrl
 	 * @param packageName
 	 * @return
 	 */
