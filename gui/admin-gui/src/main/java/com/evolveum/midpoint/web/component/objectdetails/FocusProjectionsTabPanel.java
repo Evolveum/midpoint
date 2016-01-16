@@ -181,6 +181,95 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		shadows.add(accountCheckAll);
 
 		shadows.add(accountList);
+
+		initResourceModal();
+	}
+
+	private void initResourceModal() {
+		ModalWindow window = new ModalWindow(MODAL_ID_RESOURCE);
+
+		final SimpleUserResourceProvider provider = new SimpleUserResourceProvider(this, projectionModel) {
+			@Override
+			protected void handlePartialError(OperationResult result) {
+				showResult(result);
+			}
+		};
+
+		ResourcesSelectionPanel.Context context = new ResourcesSelectionPanel.Context(this) {
+			@Override
+			public FocusProjectionsTabPanel getRealParent() {
+				return WebMiscUtil.theSameForPage(FocusProjectionsTabPanel.this, getCallingPageReference());
+			}
+
+			@Override
+			public SimpleUserResourceProvider getProvider() {
+				return provider;
+			}
+
+			@Override
+			public void addPerformed(AjaxRequestTarget target, List<ResourceType> newResources) {
+				getRealParent().addSelectedAccountPerformed(target, newResources);
+			}
+		};
+		ResourcesSelectionPage.prepareDialog(window, context, this, "pageAdminFocus.title.selectResource", ID_SHADOWS);
+
+		add(window);
+	}
+
+	private void addSelectedAccountPerformed(AjaxRequestTarget target, List<ResourceType> newResources) {
+		ModalWindow window = (ModalWindow) get(MODAL_ID_RESOURCE);
+		window.close(target);
+
+		if (newResources.isEmpty()) {
+			warn(getString("pageUser.message.noResourceSelected"));
+			return;
+		}
+
+		for (ResourceType resource : newResources) {
+			try {
+				ShadowType shadow = new ShadowType();
+				shadow.setResource(resource);
+
+				RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(
+						resource.asPrismObject(), LayerType.PRESENTATION, getPrismContext());
+				if (refinedSchema == null) {
+					error(getString("pageAdminFocus.message.couldntCreateAccountNoSchema",
+							resource.getName()));
+					continue;
+				}
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Refined schema for {}\n{}", resource, refinedSchema.debugDump());
+				}
+
+				RefinedObjectClassDefinition accountDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+				if (accountDefinition == null) {
+					error(getString("pageAdminFocus.message.couldntCreateAccountNoAccountSchema",
+							resource.getName()));
+					continue;
+				}
+
+				QName objectClass = accountDefinition.getObjectClassDefinition().getTypeName();
+				shadow.setObjectClass(objectClass);
+
+				getPrismContext().adopt(shadow);
+
+				ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(
+						WebMiscUtil.getOrigStringFromPoly(resource.getName()), null, shadow.asPrismObject(),
+						ContainerStatus.ADDING, getPageBase());
+				if (wrapper.getResult() != null
+						&& !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+					showResultInSession(wrapper.getResult());
+				}
+
+				wrapper.setShowEmpty(true);
+				wrapper.setMinimalized(false);
+				projectionModel.getObject().add(new FocusProjectionDto(wrapper, UserDtoStatus.ADD));
+			} catch (Exception ex) {
+				error(getString("pageAdminFocus.message.couldntCreateAccount", resource.getName(),
+						ex.getMessage()));
+				LoggingUtils.logException(LOGGER, "Couldn't create account", ex);
+			}
+		}
 	}
 	
 	private List<InlineMenuItem> createShadowMenu() {
