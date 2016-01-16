@@ -1043,6 +1043,7 @@
                                     <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
                                 </manifestEntries>
                             </archive>
+                            <attachClasses>true</attachClasses>
                         </configuration>
                     </plugin>
                     <!--plugin> <groupId>org.apache.maven.plugins</groupId> 
