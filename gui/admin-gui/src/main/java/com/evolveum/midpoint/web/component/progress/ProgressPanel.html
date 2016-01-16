@@ -20,18 +20,22 @@
 <wicket:panel>
 	<form wicket:id="progressForm" class="form-horizontal">
 	    <div wicket:id="contents">
-	        <table class="table table-striped table-condensed table-bordered" style="width: auto;">
-	            <tr>
-	                <th><wicket:message key="ProgressTableHeader.Activity"/></th>
-	                <th><wicket:message key="ProgressTableHeader.Status"/></th>
-	                <th><wicket:message key="ProgressTableHeader.ResourceObject"/></th>
-	            </tr>
-	            <tr wicket:id="progressReportActivities">
-	                <td><span wicket:id="description"/></td>
-	                <td><i wicket:id="status"></i></td>
-	                <td><span wicket:id="comment"/></td>
-	            </tr>
-	        </table>
+			<div class="box" style="width: auto; display: table;">
+				<div class="box-body no-padding">
+					<table class="table table-striped table-condensed table-bordered">
+						<tr>
+							<th><wicket:message key="ProgressTableHeader.Activity"/></th>
+							<th><wicket:message key="ProgressTableHeader.Status"/></th>
+							<th><wicket:message key="ProgressTableHeader.ResourceObject"/></th>
+						</tr>
+						<tr wicket:id="progressReportActivities">
+							<td><span wicket:id="description"/></td>
+							<td><i wicket:id="status"></i></td>
+							<td><span wicket:id="comment"/></td>
+						</tr>
+					</table>
+				</div>
+			</div>
 	
 	        <div wicket:id="statistics"/>
 	
