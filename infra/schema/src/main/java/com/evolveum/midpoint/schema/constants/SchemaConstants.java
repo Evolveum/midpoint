@@ -59,6 +59,7 @@ public abstract class SchemaConstants {
     public static final String NS_WFCF = "http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-3";
     public static final String NS_WFPIS = "http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-3";
     public static final String NS_FAULT = "http://midpoint.evolveum.com/xml/ns/public/common/fault-3";
+    public static final String NS_SAMPLES_EXTENSION = "http://midpoint.evolveum.com/xml/ns/samples/extension-3";
     
 
 	// COMMON NAMESPACE
@@ -252,4 +253,9 @@ public abstract class SchemaConstants {
 	public static final QName C_MODEL_CONTEXT = new QName(NS_C, "modelContext");
 	public static final QName C_ITEM_TO_APPROVE = new QName(NS_C, "itemToApprove");
 	public static final QName C_SHADOW_DISCRIMINATOR = new QName(NS_C, "shadowDiscriminator");
+	
+	// Samples
+	
+	public static final QName SAMPLES_SSN = new QName(SchemaConstants.NS_SAMPLES_EXTENSION, "ssn");
+	public static final QName SAMPLES_DOMAIN = new QName(SchemaConstants.NS_SAMPLES_EXTENSION, "domain");
 }

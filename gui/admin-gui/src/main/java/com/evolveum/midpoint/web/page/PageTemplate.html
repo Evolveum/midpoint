@@ -80,7 +80,6 @@
     </wicket:remove>
 
     <link href="css/admin-lte/fonts.css" type="text/css" rel="stylesheet"/>
-    <link href="css/dragdrop/dragdrop.css" type="text/css" rel="stylesheet"/>
 
     <wicket:link>
         <link href="../../../../../webjars/adminlte/2.3.0/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
@@ -114,6 +113,7 @@
     <link type="text/css" rel="stylesheet" href="wro/midpoint-theme.css"/>
 </head>
 <body class="skin-blue-light">
+    <div wicket:id="mainPopup"/>
     <div class="wrapper">
         <header class="main-header">
             <!-- Logo -->
@@ -126,6 +126,23 @@
                 <a wicket:id="menuToggle" role="button" data-toggle="offcanvas" class="sidebar-toggle" href="#">
                     <span class="sr-only"><wicket:message key="PageTemplate.toggleNavigation"/></span>
                 </a>
+                
+                <div class="navbar-title" wicket:id="pageTitleContainer">
+	                <span class="page-title" wicket:id="pageTitle">
+	                    <span wicket:id="pageTitleReal"></span>
+	                    <small wicket:id="pageSubtitle"></small>
+	                    <img id="ajax_busy" src="img/ajax-loader.gif"/>
+	                </span>
+	                <ol class="breadcrumb">
+	                    <li wicket:id="breadcrumb">
+	                        <a wicket:id="bcLink">
+	                            <i wicket:id="bcIcon"></i>&nbsp;
+	                            <span wicket:id="bcName"/>
+	                        </a>
+	                    </li>
+	                </ol>
+	            </div>
+                
                 <!-- Navbar Right Menu -->
                 <div class="navbar-custom-menu">
                     <ul class="nav navbar-nav">
@@ -148,8 +165,9 @@
             </aside>
         </wicket:enclosure>
         <div class="content-wrapper" style="min-height: 916px;">
+        
             <!-- Content Header (Page header) -->
-            <section class="content-header" wicket:id="pageTitleContainer">
+<!--             <section class="content-header" wicket:id="pageTitleContainer">
                 <h1 wicket:id="pageTitle">
                     <span wicket:id="pageTitleReal"></span>
                     <small wicket:id="pageSubtitle"></small>
@@ -163,7 +181,7 @@
                         </a>
                     </li>
                 </ol>
-            </section>
+            </section> -->
 
             <!-- Main content -->
             <section class="content">
@@ -187,7 +205,7 @@
         </footer>
     </div>
 
-     <!-- todo fix results -->
+    <wicket:remove><!-- todo fix results --></wicket:remove>
     <div id="blackWindow"/>
     <div id="xmlExport">
         <span id="xmlExportContent"/>

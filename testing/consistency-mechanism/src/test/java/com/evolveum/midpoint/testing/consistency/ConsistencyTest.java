@@ -1925,12 +1925,13 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		// WHEN
 		repoAddObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, TaskType.class, result);
 		verbose = true;
-		waitForTaskNextRunAssertSuccess(TASK_OPENDJ_RECONCILIATION_OID, false, 60000);
+		long started = System.currentTimeMillis();
+		waitForTaskNextRunAssertSuccess(TASK_OPENDJ_RECONCILIATION_OID, false, 120000);
+		LOGGER.info("Reconciliation task run took {} seconds", (System.currentTimeMillis()-started)/1000L);
 
 		// THEN
 		
-		// STOP the task. We don't need it any more and we don't want to give it
-		// a chance to run more than once
+		// STOP the task. We don't need it any more. Even if it's non-recurrent its safer to delete it
 		taskManager.deleteTask(TASK_OPENDJ_RECONCILIATION_OID, result);
 
 		// check if the account was added after reconciliation
@@ -1994,12 +1995,13 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		LOGGER.info("start running task");
 		// WHEN
 		repoAddObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, TaskType.class, result);
-		waitForTaskNextRunAssertSuccess(TASK_OPENDJ_RECONCILIATION_OID, false, 60000);
+		long started = System.currentTimeMillis();
+		waitForTaskNextRunAssertSuccess(TASK_OPENDJ_RECONCILIATION_OID, false, 120000);
+		LOGGER.info("Reconciliation task run took {} seconds", (System.currentTimeMillis()-started)/1000L);
 
 		// THEN
-		
-		// STOP the task. We don't need it any more and we don't want to give it
-		// a chance to run more than once
+
+		// STOP the task. We don't need it any more. Even if it's non-recurrent its safer to delete it
 		taskManager.deleteTask(TASK_OPENDJ_RECONCILIATION_OID, result);
 
 		// check if the account was added after reconciliation

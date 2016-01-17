@@ -67,7 +67,6 @@ public class ProgressReporter implements Serializable {
     private static final Trace LOGGER = TraceManager.getTrace(ProgressReporter.class);
 
     // links to wicket artefacts on parent page
-    private AjaxSubmitButton saveButton;
     private AjaxSubmitButton abortButton;
     private ProgressReportingAwarePage parentPage;
     private ProgressPanel progressPanel;
@@ -113,15 +112,6 @@ public class ProgressReporter implements Serializable {
     }
 
     // ===================== Dealing with the SAVE button =======================
-
-    /**
-     * By calling this, let the reporter know what is your "Save" button - e.g. in order to hide it when necessary.
-     */
-    public void registerSaveButton(AjaxSubmitButton saveButton) {
-        saveButton.setOutputMarkupId(true);
-        saveButton.setOutputMarkupPlaceholderTag(true);
-        this.saveButton = saveButton;
-    }
 
     /**
      * Should be called when "save" button is submitted.
@@ -222,14 +212,6 @@ public class ProgressReporter implements Serializable {
                         asyncOperationResult.recomputeStatus(); // because we set it to in-progress
 
                         stopRefreshingProgressPanel();
-
-                        // TODO this is a bit of heuristics - we give user a chance to retry the operation if the error is fatal (RETHINK/REVISE THIS "POLICY")
-                        if (asyncOperationResult.isFatalError()) {
-                            saveButton.setVisible(true);            // enable re-saving after fixing (potential) error
-                            target.add(saveButton);
-                        }
-                        abortButton.setVisible(false);
-                        target.add(abortButton);
 
                         parentPage.finishProcessing(target, asyncOperationResult);
                         asyncOperationResult = null;

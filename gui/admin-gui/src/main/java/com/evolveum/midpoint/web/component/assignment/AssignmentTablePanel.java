@@ -67,8 +67,6 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentTablePanel.class);
 
 	private static final String DOT_CLASS = AssignmentTablePanel.class.getName() + ".";
-	private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
-	private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
 
 	private static final String ID_ASSIGNMENTS = "assignments";
 	private static final String ID_CHECK_ALL = "assignmentsCheckAll";
@@ -392,21 +390,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 					continue;
 				}
 
-				AssignmentEditorDtoType aType = AssignmentEditorDtoType.getType(object.getClass());
-
-				ObjectReferenceType targetRef = new ObjectReferenceType();
-				targetRef.setOid(object.getOid());
-				targetRef.setType(aType.getQname());
-				targetRef.setTargetName(object.getName());
-
-				AssignmentType assignment = new AssignmentType();
-				assignment.setTargetRef(targetRef);
-
-				AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, assignment,
-						getPageBase());
-				dto.setMinimized(false);
-				dto.setShowEmpty(true);
-
+				AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(object, getPageBase());
 				assignments.add(dto);
 			} catch (Exception e) {
 				error(getString("AssignmentTablePanel.message.couldntAssignObject", object.getName(),
@@ -531,30 +515,11 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 			ItemPath deltaPath = delta.getPath().rest();
 			ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
 
-			delta.setParentPath(joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
+			delta.setParentPath(WebMiscUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
 			delta.applyDefinition(deltaDef);
 
 			userDelta.addModification(delta);
 		}
-	}
-
-	private ItemPath joinPath(ItemPath path, ItemPath deltaPath) {
-		List<ItemPathSegment> newPath = new ArrayList<ItemPathSegment>();
-
-		ItemPathSegment firstDeltaSegment = deltaPath != null ? deltaPath.first() : null;
-		if (path != null) {
-			for (ItemPathSegment seg : path.getSegments()) {
-				if (seg.equivalent(firstDeltaSegment)) {
-					break;
-				}
-				newPath.add(seg);
-			}
-		}
-		if (deltaPath != null) {
-			newPath.addAll(deltaPath.getSegments());
-		}
-
-		return new ItemPath(newPath);
 	}
 
 	/**

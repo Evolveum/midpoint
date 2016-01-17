@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
 import com.evolveum.midpoint.web.component.menu.SideBarMenuItem;
 import com.evolveum.midpoint.web.component.menu.SideBarMenuPanel;
 import com.evolveum.midpoint.web.component.menu.UserMenuPanel;
@@ -94,9 +95,10 @@ public abstract class PageTemplate extends WebPage {
     private static final String ID_MENU_TOGGLE = "menuToggle";
     private static final String ID_BREADCRUMBS="breadcrumbs";
     private static final String ID_BREADCRUMB="breadcrumb";
-    private static final String ID_BC_LINK="bcLink";
-    private static final String ID_BC_ICON="bcIcon";
-    private static final String ID_BC_NAME="bcName";
+    private static final String ID_BC_LINK = "bcLink";
+    private static final String ID_BC_ICON = "bcIcon";
+    private static final String ID_BC_NAME = "bcName";
+    private static final String ID_MAIN_POPUP = "mainPopup";
 
     private PageTemplate previousPage;                  // experimental -- where to return e.g. when 'Back' button is clicked [NOT a class, in order to eliminate reinitialization when it is not needed]
     private boolean reinitializePreviousPages;      // experimental -- should we reinitialize all the chain of previous pages?
@@ -243,6 +245,29 @@ public abstract class PageTemplate extends WebPage {
 //        FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK_LIST);
 //        feedbackList.setOutputMarkupId(true);
 //        add(feedbackList);
+
+        MainPopupDialog mainPopup = new MainPopupDialog(ID_MAIN_POPUP);
+        add(mainPopup);
+    }
+
+    public MainPopupDialog getMainPopup() {
+        return (MainPopupDialog) get(ID_MAIN_POPUP);
+    }
+
+    public void setMainPopupTitle(IModel<String> title) {
+        getMainPopup().setTitle(title);
+    }
+
+    public void setMainPopupContent(Component body) {
+        getMainPopup().setContent(body);
+    }
+
+    public void showMainPopup(AjaxRequestTarget target) {
+        getMainPopup().show(target);
+    }
+
+    public void hideMainPopup(AjaxRequestTarget target) {
+        getMainPopup().close(target);
     }
 
     private VisibleEnableBehaviour createUserStatusBehaviour(final boolean visibleIfLoggedIn) {
@@ -332,9 +357,7 @@ public abstract class PageTemplate extends WebPage {
 
     protected IModel<String> createPageSubTitleModel() {
         String key = getClass().getSimpleName() + ".subTitle";
-        return new StringResourceModel(key, this);
-    			
-//        return StringResourceModelMigration.of(key, this, new Model<String>(), "");
+        return new StringResourceModel(key, this).setDefaultValue("");
     }
 
     protected IModel<String> createPageTitleModel() {

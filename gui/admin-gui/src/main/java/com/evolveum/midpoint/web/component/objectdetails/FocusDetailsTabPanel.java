@@ -93,14 +93,18 @@ public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabP
 
 	private static final Trace LOGGER = TraceManager.getTrace(FocusDetailsTabPanel.class);
 
-	public FocusDetailsTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel, PageBase page) {
-		super(id, mainForm, focusModel, page);
+	public FocusDetailsTabPanel(String id, Form mainForm, 
+			LoadableModel<ObjectWrapper<F>> focusWrapperModel, 
+			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, 
+			LoadableModel<List<FocusProjectionDto>> projectionModel,
+			PageBase pageBase) {
+		super(id, mainForm, focusWrapperModel, assignmentsModel, projectionModel, pageBase);
 		initLayout();
 	}
 	
 	private void initLayout() {
 
-		PrismObjectPanel panel = new PrismObjectPanel<F>(ID_FOCUS_FORM, getFocusModel(),
+		PrismObjectPanel panel = new PrismObjectPanel<F>(ID_FOCUS_FORM, getObjectWrapperModel(),
 				new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), getMainForm(), getPageBase()) {
 
 			@Override

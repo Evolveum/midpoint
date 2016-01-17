@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div wicket:id="labelContainer" class="col-xs-4">
+    <div wicket:id="labelContainer" class="col-xs-2">
         <span wicket:id="label"/>
         <span wicket:id="required" style="color: #f00; font-weight: bold;"
                 wicket:message="title:prismPropertyPanel.required">*</span>
@@ -27,7 +27,7 @@
               wicket:message="title:prismPropertyPanel.hasPendingModification">*</span>
         <i wicket:id="help"/>
     </div>
-    <div class="col-md-8" wicket:id="values">
+    <div class="col-md-10" wicket:id="values">
         <div wicket:id="value"/>
     </div>
 </wicket:panel>

@@ -1,5 +1,5 @@
-dn: ou=Org,dc=example,dc=com
+dn: ou=Orgs,dc=example,dc=com
 objectClass: top
 objectClass: organizationalUnit
-ou: Org
-aci: (targetattr="*")(version 3.0; acl "IDM Access"; allow (all) userdn="ldap:///uid=idm,ou=Administrators,dc=example,dc=com";)
+ou: Orgs
+#aci: (targetattr="*")(version 3.0; acl "IDM Access"; allow (all) userdn="ldap:///uid=idm,ou=Administrators,dc=example,dc=com";)
