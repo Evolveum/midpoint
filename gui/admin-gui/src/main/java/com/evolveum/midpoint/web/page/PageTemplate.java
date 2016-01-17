@@ -353,9 +353,9 @@ public abstract class PageTemplate extends WebPage {
     	return new StringResourceModel(resourceKey, this).setModel(new Model<String>())
     			.setDefaultValue(resourceKey)
     			.setParameters(objects);
-    	
-//    	return StringResourceModelMigration.of(resourceKey, this, new Model<String>(), resourceKey, objects);
     }
+    	
+    
 
     public StringResourceModel createStringResource(Enum e) {
         String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
@@ -388,15 +388,23 @@ public abstract class PageTemplate extends WebPage {
         }
     }
     
-    public void showResultInSession(OperationResult result, String errorMessageKey, boolean showInSession) {
-    	showResult(result, errorMessageKey, true);
+    public void showResultInSession(OperationResult result, String errorMessageKey) {
+    	showResult(result, errorMessageKey, true, true);
+    }
+    
+    public void showResultInSession(OperationResult result, String errorMessageKey, boolean showSuccess) {
+    	showResult(result, errorMessageKey, true, showSuccess);
+    }
+    
+    public void showResult(OperationResult result, String errorMessageKey, boolean showSuccess) {
+    	showResult(result, errorMessageKey, false, showSuccess);
     }
     
     public void showResult(OperationResult result, String errorMessageKey) {
-    	showResult(result, errorMessageKey, false);
+    	showResult(result, errorMessageKey, false, true);
     }
     
-    private void showResult(OperationResult result, String errorMessageKey, boolean showInSession) {
+    private void showResult(OperationResult result, String errorMessageKey, boolean showInSession, boolean showSuccess) {
     	Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
 
@@ -419,6 +427,9 @@ public abstract class PageTemplate extends WebPage {
                 }
                 break;
             case SUCCESS:
+            	if (!showSuccess){
+            		break;
+            	}
                 if (showInSession) {
                     getSession().success(opResult);
                 } else {

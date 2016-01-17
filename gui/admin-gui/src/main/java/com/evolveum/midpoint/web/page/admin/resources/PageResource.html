@@ -19,6 +19,11 @@
 	xmlns:wicket="http://wicket.apache.org">
 <body>
 	<wicket:extend>
+	
+	<form wicket:id="details">
+	<div>
+	<div wicket:id="testConnectionResults"/>
+	</div>
 		<div class="row">
 			<div wicket:id="lastStatus" />
 			<div wicket:id="sourceTarget" />
@@ -33,6 +38,14 @@
 		<div>
 			<div wicket:id="resourceConfig" />
 		</div>
+		
+		<div class="main-button-bar">
+            <span class="button-group">
+                <a class="btn btn-default" wicket:id="testConnection" />
+            </span>
+        </div>
+        </form>
+		
 	</wicket:extend>
 </body>
 </html>
