@@ -130,7 +130,7 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
                 listItem.add(textWrapper);
 
                 TextField text = new TextField<>(ID_TEXT, createTextModel(listItem.getModel()));
-                text.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+                text.add(new AjaxFormComponentUpdatingBehavior("blur") {
                     @Override
                     protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {}
                 });

@@ -1274,7 +1274,7 @@ public class PageTaskEdit extends PageAdminTasks {
     private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
 
 		public EmptyOnBlurAjaxFormUpdatingBehaviour() {
-			super("onBlur");
+			super("Blur");
 		}
 
 		@Override

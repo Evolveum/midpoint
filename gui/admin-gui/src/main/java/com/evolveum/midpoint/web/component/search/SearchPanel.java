@@ -188,7 +188,7 @@ public class SearchPanel extends BasePanel<Search> {
 
         TextField addText = new TextField(ID_ADD_TEXT, new PropertyModel(moreDialogModel, MoreDialogDto.F_NAME_FILTER));
         popover.add(addText);
-        addText.add(new AjaxFormComponentUpdatingBehavior("onkeyup") {
+        addText.add(new AjaxFormComponentUpdatingBehavior("keyup") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
