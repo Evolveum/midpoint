@@ -285,7 +285,7 @@ public class LimitationsEditorDialog extends ModalWindow{
     }
 
     private AjaxFormComponentUpdatingBehavior prepareAjaxOnComponentTagUpdateBehavior(){
-        return new AjaxFormComponentUpdatingBehavior("onBlur") {
+        return new AjaxFormComponentUpdatingBehavior("Blur") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {}

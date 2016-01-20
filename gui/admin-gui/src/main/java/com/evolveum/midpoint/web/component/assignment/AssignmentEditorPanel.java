@@ -544,7 +544,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
     private void addAjaxOnBlurUpdateBehaviorToComponent(final Component component){
         component.setOutputMarkupId(true);
-        component.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
+        component.add(new AjaxFormComponentUpdatingBehavior("Blur") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {}

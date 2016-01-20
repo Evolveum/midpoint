@@ -106,7 +106,7 @@ public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<
             @Override
             protected void populateItem(final ListItem<T> item) {
                 TextField text = new TextField<>(ID_TEXT, createTextModel(item.getModel()));
-                text.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+                text.add(new AjaxFormComponentUpdatingBehavior("blur") {
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {}
                 });

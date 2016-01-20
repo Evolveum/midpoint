@@ -201,7 +201,7 @@ public class ObjectPolicyDialog extends ModalWindow {
 
 				TextField property = new TextField<>(ID_PROPERTY,
 						new PropertyModel<String>(item.getModel(), PropertyConstraintTypeDto.F_PROPERTY_PATH));
-				property.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+				property.add(new AjaxFormComponentUpdatingBehavior("blur") {
 					@Override
 					protected void onUpdate(AjaxRequestTarget target) {
 					}

@@ -21,6 +21,7 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractFocusTabPanel;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
@@ -28,16 +29,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * Sample showing a custom focus form that displays simple greeting.
+ * Sample showing a custom object form that displays simple greeting.
  * 
  * @author Radovan Semancik
  *
  */
-public class HelloFocusTabPanel<F extends FocusType> extends AbstractFocusTabPanel<F> {
+public class HelloObjectTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
 	
 	private static final String ID_HELLO_LABEL = "helloLabel";
 
-	public HelloFocusTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel, PageBase pageBase) {
+	public HelloObjectTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel, PageBase pageBase) {
 		super(id, mainForm, focusModel, pageBase);
 		initLayout();
 	}
@@ -46,7 +47,7 @@ public class HelloFocusTabPanel<F extends FocusType> extends AbstractFocusTabPan
 		add(new Label(ID_HELLO_LABEL, new Model<String>() {
 			@Override
 			public String getObject() {
-				PrismObject<F> focus = getFocusWrapper().getObject();
+				PrismObject<F> focus = getObjectWrapper().getObject();
 				if (focus != null) {
 					PolyStringType name = focus.asObjectable().getName();
 					if (name != null) {

@@ -518,30 +518,11 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			ItemPath deltaPath = delta.getPath().rest();
 			ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
 
-			delta.setParentPath(joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
+			delta.setParentPath(WebMiscUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
 			delta.applyDefinition(deltaDef);
 
 			focusDelta.addModification(delta);
 		}
-	}
-	
-	private ItemPath joinPath(ItemPath path, ItemPath deltaPath) {
-		List<ItemPathSegment> newPath = new ArrayList<ItemPathSegment>();
-
-		ItemPathSegment firstDeltaSegment = deltaPath != null ? deltaPath.first() : null;
-		if (path != null) {
-			for (ItemPathSegment seg : path.getSegments()) {
-				if (seg.equivalent(firstDeltaSegment)) {
-					break;
-				}
-				newPath.add(seg);
-			}
-		}
-		if (deltaPath != null) {
-			newPath.addAll(deltaPath.getSegments());
-		}
-
-		return new ItemPath(newPath);
 	}
 	
 	@Override

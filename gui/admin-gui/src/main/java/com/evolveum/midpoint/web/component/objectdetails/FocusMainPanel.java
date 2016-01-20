@@ -112,24 +112,40 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		if (AbstractFocusTabPanel.class.isAssignableFrom(panelClass)) {
 			Constructor<?> constructor;
 			try {
-				constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class, PageBase.class);
+				constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class, LoadableModel.class, LoadableModel.class, PageBase.class);
 			} catch (NoSuchMethodException | SecurityException e) {
-				throw new SystemException("Unable to locate constructor (String,Form,LoadableModel,PageBase) in "+panelClass+": "+e.getMessage(), e);
+				throw new SystemException("Unable to locate constructor (String,Form,LoadableModel,LoadableModel,LoadableModel,PageBase) in "+panelClass+": "+e.getMessage(), e);
 			}
 			AbstractFocusTabPanel<F> tabPanel;
 			try {
-				tabPanel = (AbstractFocusTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel(), parentPage);
+				tabPanel = (AbstractFocusTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel(), 
+						assignmentsModel, projectionModel ,parentPage);
 			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				throw new SystemException("Error instantiating "+panelClass+": "+e.getMessage(), e);
 			}
 			return tabPanel;
+		} else if (AbstractObjectTabPanel.class.isAssignableFrom(panelClass)) {
+			Constructor<?> constructor;
+			try {
+				constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class, PageBase.class);
+			} catch (NoSuchMethodException | SecurityException e) {
+				throw new SystemException("Unable to locate constructor (String,Form,LoadableModel,PageBase) in "+panelClass+": "+e.getMessage(), e);
+			}
+			AbstractObjectTabPanel<F> tabPanel;
+			try {
+				tabPanel = (AbstractObjectTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel(), parentPage);
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				throw new SystemException("Error instantiating "+panelClass+": "+e.getMessage(), e);
+			}
+			return tabPanel;
+		
 		} else {
-			throw new UnsupportedOperationException("Tab panels that are not subclasses of FocusTabPanel are not supported yet (got "+panelClass+")");
+			throw new UnsupportedOperationException("Tab panels that are not subclasses of AbstractObjectTabPanel or AbstractFocusTabPanel are not supported yet (got "+panelClass+")");
 		}
 	}
 
 	protected WebMarkupContainer createFocusDetailsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-		return new FocusDetailsTabPanel<F>(panelId, getMainForm(), getObjectModel(), parentPage);
+		return new FocusDetailsTabPanel<F>(panelId, getMainForm(), getObjectModel(), assignmentsModel, projectionModel, parentPage);
 	}
 	
 	protected WebMarkupContainer createFocusProjectionsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {

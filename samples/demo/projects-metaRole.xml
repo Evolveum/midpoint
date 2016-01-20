@@ -39,7 +39,7 @@
             <kind>account</kind>
             <intent>default</intent>
             <association>
-                <c:ref>ri:ldapProjects</c:ref>
+                <c:ref>ri:ldapGroups</c:ref>
                 <outbound>
                     <expression>
                         <associationFromLink>

@@ -84,7 +84,7 @@ public class ValueChoosePanel<T, C extends ObjectType> extends BasePanel<T> {
         textWrapper.setOutputMarkupId(true);
 
         TextField text = new TextField<>(ID_TEXT, createTextModel(value));
-        text.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+        text.add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
             protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
             }
