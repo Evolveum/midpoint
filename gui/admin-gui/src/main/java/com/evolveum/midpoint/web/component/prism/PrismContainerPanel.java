@@ -19,8 +19,10 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.wicket.AttributeModifier;
@@ -33,10 +35,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.*;
 
 /**
  * @author lazyman
@@ -99,8 +98,7 @@ public class PrismContainerPanel extends Panel {
 
             @Override
             public boolean isVisible() {
-                ContainerWrapper obj = model.getObject();
-                boolean boo = obj.isMain();
+                //
                 return true;
             }
         });
@@ -119,10 +117,36 @@ public class PrismContainerPanel extends Panel {
         header.add(showEmptyFieldsButton);
         add(header);
 
-        PropertyModel headerLabelModel = new PropertyModel<>(model, "displayName");
-        Object displayName = headerLabelModel.getObject();
-        if (displayName != null){
+        IModel headerLabelModel;
 
+        if (model.getObject().isMain()){
+//            headerLabelModel = new StringResourceModel(resourceKey, this);
+            ContainerWrapper wrappper = model.getObject();
+            ObjectWrapper objwrapper = wrappper.getObject();
+            final String key = objwrapper.getDisplayName();
+
+            headerLabelModel = new IModel<String>() {
+                @Override
+                public String getObject() {
+                    String displayName = PageTemplate.createStringResourceStatic(getPage(), key).getString();
+                    if (displayName.equals(key)){
+                        displayName = (new PropertyModel<String>(model, "displayName")).getObject();
+                    }
+                    return displayName;
+                }
+
+                @Override
+                public void setObject(String o) {
+
+                }
+
+                @Override
+                public void detach() {
+
+                }
+            };
+        } else {
+            headerLabelModel = new PropertyModel<>(model, "displayName");
         }
         header.add(new Label("label", headerLabelModel));
 
@@ -144,7 +168,7 @@ public class PrismContainerPanel extends Panel {
         add(properties);
     }
 
-    protected PageBase getPageBase(){
+    public PageBase getPageBase(){
         return pageBase;
     }
 

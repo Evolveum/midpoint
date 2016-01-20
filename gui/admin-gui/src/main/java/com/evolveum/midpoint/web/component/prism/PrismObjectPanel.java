@@ -64,10 +64,7 @@ import java.util.List;
 public class PrismObjectPanel<O extends ObjectType> extends Panel {
 
     private static final String STRIPED_CLASS = "striped";
-    private static final String ID_HEADER_LABEL = "headerLabel";
-    private static final String ID_HEADER_CONTAINER = "headerContainer";
-    private static final String ID_BOX_CONTAINER = "boxContainer";
-//    private static final String ID_SHOW_EMPTY_FIELDS = "showEmptyFields";
+    private static final String ID_HEADER = "header";
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismObjectPanel.class);
 
@@ -245,6 +242,12 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
     }
 
     private void initLayout(final IModel<ObjectWrapper<O>> model, ResourceReference image, final Form form) {
+        Component headerComponent = createHeader(ID_HEADER, model);
+        if (headerComponent instanceof H3Header) {
+            headerComponent.setVisible(false);
+        }
+        add(headerComponent);
+
         WebMarkupContainer headerPanel = new WebMarkupContainer("headerPanel");
         headerPanel.add(new AttributeAppender("class", createHeaderClassModel(model), " "));
 //        TODO - attempt to fix row color application when certain actions performed, similar to AssignmentEditorPanel.
@@ -287,41 +290,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
 
         initButtons(headerPanel, model);
 
-        final WebMarkupContainer boxContainer = new WebMarkupContainer(ID_BOX_CONTAINER);
-        final WebMarkupContainer headerContainer = new WebMarkupContainer(ID_HEADER_CONTAINER);
-        final Component headerLabel = createHeader(ID_HEADER_LABEL, model);
-        headerContainer.add(new VisibleEnableBehaviour(){
-            @Override
-            public boolean isVisible() {
-                if (headerLabel instanceof H3Header){
-                    Label headerTitle = (Label)headerLabel.get(H3Header.ID_TITLE);
-                    if (headerTitle != null){
-                        String displayName = headerTitle.getDefaultModelObjectAsString();
-                        boolean isVisible = !(displayName == null || displayName.trim().equals(""));
-                        if (!isVisible){
-                            boxContainer.add(new AttributeModifier("class", ""));
-                        }
-                        return isVisible;
-                    }
-                }
-                return true;
-            }
-        });
-        headerContainer.add(headerLabel);
-
-//        AjaxLink showEmptyFieldsButton = new AjaxLink(ID_SHOW_EMPTY_FIELDS) {
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                ObjectWrapper wrapper = model.getObject();
-//                wrapper.setShowEmpty(!wrapper.isShowEmpty());
-//                target.add(PrismObjectPanel.this);
-//            }
-//        };
-//        headerContainer.add(showEmptyFieldsButton);
-        boxContainer.add(headerContainer);
-
         WebMarkupContainer body = new WebMarkupContainer("body");
-        body.setVisible(true);
         body.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -330,9 +299,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
                 return !wrapper.isMinimalized();
             }
         });
-        body.setOutputMarkupPlaceholderTag(true);
-        boxContainer.add(body);
-        add(boxContainer);
+        add(body);
 
         ListView<ContainerWrapper> containers = new ListView<ContainerWrapper>("containers",
                 createContainerModel(model)) {
