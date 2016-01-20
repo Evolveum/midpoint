@@ -36,6 +36,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -62,6 +63,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
     public PrismPropertyPanel(String id, final IModel<IW> model, Form form, PageBase pageBase) {
         super(id);
+        Validate.notNull(model, "no model");
         this.pageBase = pageBase;
 
         LOGGER.trace("Creating property panel for {}", model.getObject());
