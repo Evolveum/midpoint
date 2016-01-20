@@ -138,10 +138,10 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractFocus
 						protected Component createHeader(String id, IModel<ObjectWrapper<F>> model) {
 							return new CheckTableHeader(id, (IModel) model) {
 
-								@Override
-								protected List<InlineMenuItem> createMenuItems() {
-									return createDefaultMenuItems(getModel());
-								}
+//								@Override
+//								protected List<InlineMenuItem> createMenuItems() {
+//									return createDefaultMenuItems(getModel());
+//								}
 							};
 						}
 					};

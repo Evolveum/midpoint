@@ -644,8 +644,6 @@ public abstract class PageBase extends PageTemplate implements ModelServiceLocat
 //        MenuItem search = new MenuItem(createStringResource("PageAdmin.menu.users.search"),
 //        PageUsersSearch.class);
 //        submenu.add(search);
-        MenuItem requestAssignment = new MenuItem(createStringResource("PageAdmin.menu.top.users.requestAssign"), PageAssignmentRequest.class);
-        submenu.add(requestAssignment);
 
         return item;
     }

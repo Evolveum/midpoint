@@ -24,6 +24,8 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -42,17 +44,20 @@ import org.apache.wicket.model.PropertyModel;
 public class PrismContainerPanel extends Panel {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismContainerPanel.class);
-	
+    private static final String ID_SHOW_EMPTY_FIELDS = "showEmptyFields";
+
     private boolean showHeader;
+    private boolean showEmptyFields;
     private PageBase pageBase;
 
     public PrismContainerPanel(String id, IModel<ContainerWrapper> model, Form form) {
-        this(id, model, true, form, null);
+        this(id, model, true, false, form, null);
     }
 
-    public PrismContainerPanel(String id, final IModel<ContainerWrapper> model, boolean showHeader, Form form, PageBase pageBase) {
+    public PrismContainerPanel(String id, final IModel<ContainerWrapper> model, boolean showHeader, boolean showEmptyFields, Form form, PageBase pageBase) {
         super(id);
         this.showHeader = showHeader;
+        this.showEmptyFields = showEmptyFields;
         this.pageBase = pageBase;
 
         LOGGER.trace("Creating container panel for {}", model.getObject());
@@ -94,12 +99,32 @@ public class PrismContainerPanel extends Panel {
 
             @Override
             public boolean isVisible() {
-                return !model.getObject().isMain();
+                ContainerWrapper obj = model.getObject();
+                boolean boo = obj.isMain();
+                return true;
             }
         });
+
+
+        AjaxLink showEmptyFieldsButton = new AjaxLink(ID_SHOW_EMPTY_FIELDS) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showEmptyFields = !showEmptyFields;
+                ContainerWrapper containerWrapper = model.getObject();
+                ObjectWrapper objectWrapper = containerWrapper.getObject();
+                objectWrapper.setShowEmpty(showEmptyFields);
+                target.add(PrismContainerPanel.this);
+            }
+        };
+        header.add(showEmptyFieldsButton);
         add(header);
 
-        header.add(new Label("label", new PropertyModel<>(model, "displayName")));
+        PropertyModel headerLabelModel = new PropertyModel<>(model, "displayName");
+        Object displayName = headerLabelModel.getObject();
+        if (displayName != null){
+
+        }
+        header.add(new Label("label", headerLabelModel));
 
         ListView<ItemWrapper> properties = new ListView<ItemWrapper>("properties",
                 new PropertyModel(model, "properties")) {
