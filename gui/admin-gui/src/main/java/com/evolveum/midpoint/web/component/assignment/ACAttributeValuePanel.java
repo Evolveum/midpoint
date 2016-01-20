@@ -69,7 +69,7 @@ public class ACAttributeValuePanel extends BasePanel<ACValueConstructionDto> {
             comp.setLabel(new PropertyModel(dto.getAttribute(), ACAttributeDto.F_NAME));
             comp.setRequired(required);
 
-            comp.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
+            comp.add(new AjaxFormComponentUpdatingBehavior("Blur") {
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {}
             });

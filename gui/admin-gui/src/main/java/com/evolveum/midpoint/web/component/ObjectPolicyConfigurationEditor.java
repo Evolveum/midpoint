@@ -107,7 +107,7 @@ public class ObjectPolicyConfigurationEditor extends SimplePanel<List<ObjectPoli
 
                 TextField name = new TextField<>(ID_NAME, createNameModel(item.getModel()));
                 name.setOutputMarkupId(true);
-                name.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+                name.add(new AjaxFormComponentUpdatingBehavior("blur") {
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {}
                 });
