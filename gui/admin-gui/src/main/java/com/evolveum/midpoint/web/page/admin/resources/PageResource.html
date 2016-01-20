@@ -20,9 +20,12 @@
 <body>
 	<wicket:extend>
 	
-	<form wicket:id="details">
+
 	<div>
 	<div wicket:id="testConnectionResults"/>
+	</div>
+	<div>
+		<div wicket:id="summary" />
 	</div>
 		<div class="row">
 			<div wicket:id="lastStatus" />
@@ -44,8 +47,7 @@
                 <a class="btn btn-default" wicket:id="testConnection" />
             </span>
         </div>
-        </form>
-		
+     
 	</wicket:extend>
 </body>
 </html>

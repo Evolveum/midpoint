@@ -9,7 +9,6 @@ import javax.xml.namespace.QName;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.repeater.Item;
@@ -88,6 +87,8 @@ public class PageResource extends PageAdminResources {
 	private static final String FIELD_CREDENTIALS_MAPPING = "credentialsMapping";
 	private static final String FIELD_ACTIVATION_MAPPING = "activationMapping";
 	
+	private static final String PANEL_RESOURCE_SUMMARY = "summary";
+	
 	private static final String BUTTON_TEST_CONNECTION_ID= "testConnection";
 
 	private static final String PANEL_CAPABILITIES = "capabilities";
@@ -163,24 +164,29 @@ public class PageResource extends PageAdminResources {
 			return;
 		}
 		
-		Form form = new Form(FORM_DETAILS_OD);
-		add(form);
+		ResourceSummaryPanel resourceSummary = new ResourceSummaryPanel(PANEL_RESOURCE_SUMMARY, resourceModel);
+		add(resourceSummary);
+	
 
-		form.add(createTestConnectionResult());
+		TestConnectionDialog testConnectionDialog = new TestConnectionDialog(TABLE_TEST_CONNECTION_RESULT_ID,
+				new ListModel());
+		add(testConnectionDialog);
+		
+//		form.add(createTestConnectionResult());
 		
 		ResourceType resource = getResourceType();
 
-		form.add(addLastAvailabilityStatusInfo(resource));
+		add(addLastAvailabilityStatusInfo(resource));
 
-		form.add(addSourceTargetInfo(resource));
+		add(addSourceTargetInfo(resource));
 
-		form.add(addCapabilityMappingInfo(FIELD_CREDENTIALS_MAPPING, determineCredentialsMappings(resource),
+		add(addCapabilityMappingInfo(FIELD_CREDENTIALS_MAPPING, determineCredentialsMappings(resource),
 				"PageResource.resource.mapping.credentials"));
-		form.add(addCapabilityMappingInfo(FIELD_ACTIVATION_MAPPING, determineActivationMappings(resource),
+		add(addCapabilityMappingInfo(FIELD_ACTIVATION_MAPPING, determineActivationMappings(resource),
 				"PageResource.resource.mapping.activation"));
 
 		CapabilitiesPanel capabilities = new CapabilitiesPanel(PANEL_CAPABILITIES, capabilitiesModel);
-		form.add(capabilities);
+		add(capabilities);
 
 		List<ResourceConfigurationDto> resourceConfigList = createResourceConfigList(resource);
 
@@ -222,10 +228,12 @@ public class PageResource extends PageAdminResources {
 			}
 			
 		};
+		
+		tableColumns.add(tasksColumn);
 
 		BoxedTablePanel<ResourceConfigurationDto> resourceConfig = new BoxedTablePanel(
 				"resourceConfig", resourceConfigProvider, tableColumns);
-		form.add(resourceConfig);
+		add(resourceConfig);
 		
 		AjaxButton test = new AjaxButton(BUTTON_TEST_CONNECTION_ID, createStringResource("pageResource.button.test")) {
 
@@ -234,7 +242,7 @@ public class PageResource extends PageAdminResources {
                 testConnectionPerformed(target);
             }
         };
-        form.add(test);
+        add(test);
 
 	}
 	
@@ -259,7 +267,7 @@ public class PageResource extends PageAdminResources {
             for (ConnectorTestOperation connectorOperation : ConnectorTestOperation.values()){
             for (OperationResult testResult : result.getSubresults()){
             	if (connectorOperation.getOperation().equals(testResult.getOperation())){
-            		TestConnectionResultDto resultDto = new TestConnectionResultDto(connectorOperation.getOperation(), testResult.getStatus(), testResult.getMessage());
+            		TestConnectionResultDto resultDto = new TestConnectionResultDto(getString("operation."+connectorOperation.getOperation()), testResult.getStatus(), testResult.getMessage());
             		resultsDto.add(resultDto);
             	}
             }
@@ -286,10 +294,9 @@ public class PageResource extends PageAdminResources {
             result.recomputeStatus();
         }
         
-        BoxedTablePanel connResult = (BoxedTablePanel) get(createComponentPath(FORM_DETAILS_OD, TABLE_TEST_CONNECTION_RESULT_ID));
-        ((ListDataProvider) connResult.getDataTable().getDataProvider()).getAvailableData().clear();
-        ((ListDataProvider) connResult.getDataTable().getDataProvider()).getAvailableData().addAll(resultsDto);
-        target.add(connResult);
+        TestConnectionDialog connResult = (TestConnectionDialog) get(createComponentPath(FORM_DETAILS_OD, TABLE_TEST_CONNECTION_RESULT_ID));
+        connResult.updateModel(new ListModel<TestConnectionResultDto>(resultsDto));
+        connResult.show(target);
         
         // this provides some additional tests, namely a test for schema handling section
        
@@ -367,9 +374,11 @@ public class PageResource extends PageAdminResources {
 		}
 		
 		for (ResourceObjectTypeDefinitionType objectType : objectTypes) {
+			boolean sync = false;
+			if (resource.getSynchronization() != null && resource.getSynchronization().getObjectSynchronization() != null){
+			 sync =  isSynchronizationFor	(objectType, resource.getSynchronization().getObjectSynchronization());
 
-			boolean sync = isSynchronizationFor(objectType, resource.getSynchronization().getObjectSynchronization());
-
+			}
 			List<TaskType> syncTask = getTaskFor(tasks, objectType);
 
 			ResourceConfigurationDto resourceConfig = new ResourceConfigurationDto(objectType, sync, syncTask);
@@ -529,7 +538,7 @@ public class PageResource extends PageAdminResources {
 		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
 
 		InfoBoxPanel lastAvailabilityStatus = new InfoBoxPanel(FIELD_LAST_AVAILABILITY_STATUS, boxModel);
-//		lastAvailabilityStatus.setOutputMarkupId(true);
+		lastAvailabilityStatus.setOutputMarkupId(true);
 		
 		return lastAvailabilityStatus;
 		
