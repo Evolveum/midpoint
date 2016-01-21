@@ -94,7 +94,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
     }
 
     private AjaxEventBehavior createHeaderOnClickBehaviour(final IModel<ObjectWrapper<O>> model) {
-        return new AjaxEventBehavior("onClick") {
+        return new AjaxEventBehavior("click") {
 
             @Override
             protected void onEvent(AjaxRequestTarget target) {

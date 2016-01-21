@@ -50,7 +50,7 @@ public class SelectableDataTable<T> extends DataTable<T, String> {
 //            }
 //        }));
 //
-//        rowItem.add(new AjaxEventBehavior("onclick") {
+//        rowItem.add(new AjaxEventBehavior("click") {
 //
 //            @Override
 //            protected void onEvent(AjaxRequestTarget target) {
