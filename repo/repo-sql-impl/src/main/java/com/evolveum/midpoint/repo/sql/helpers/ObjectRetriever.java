@@ -828,10 +828,10 @@ main:       for (;;) {
 
     private boolean isUseNewQueryInterpreter(ObjectQuery query) {
         //return query == null || query.isUseNewQueryInterpreter();
-        //return true;
-        boolean retval = isUseNewQueryInterpreterInternal(query);
-        LOGGER.debug("isUseNewQueryInterpreter for {} returns {}", query, retval);
-        return retval;
+        return true;
+//        boolean retval = isUseNewQueryInterpreterInternal(query);
+//        LOGGER.debug("isUseNewQueryInterpreter for {} returns {}", query, retval);
+//        return retval;
     }
 
     private boolean isUseNewQueryInterpreterInternal(ObjectQuery query) {

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.*;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
+import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -43,6 +45,7 @@ import java.util.Set;
  */
 @Entity
 @ForeignKey(name = "fk_task")
+@Persister(impl = MidPointJoinedPersister.class)
 public class RTask extends RObject<TaskType> implements OperationResult {
 
     private RPolyString name;

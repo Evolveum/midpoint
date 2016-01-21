@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
+import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 
@@ -48,6 +50,7 @@ import java.util.Set;
                 @Index(name = "iGivenName", columnNames = "givenName_orig"),
                 @Index(name = "iLocality", columnNames = "locality_orig")})
 @ForeignKey(name = "fk_user")
+@Persister(impl = MidPointJoinedPersister.class)
 public class RUser extends RFocus<UserType> implements OperationResult {
 
     private RPolyString name;

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RL2ContainerId;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
+import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -56,6 +57,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 //        @Index(name = "iObjectRefTargetOid", columnList = "objectRef_targetOid"),
 //        @Index(name = "iTargetRefTargetOid", columnList = "targetRef_targetOid")
 })
+@Persister(impl = MidPointSingleTablePersister.class)
 public class RAccessCertificationDecision implements L2Container<RAccessCertificationCase> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RAccessCertificationDecision.class);

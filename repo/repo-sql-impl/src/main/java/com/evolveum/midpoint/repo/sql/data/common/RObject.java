@@ -46,6 +46,7 @@ import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
+import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -60,6 +61,7 @@ import org.hibernate.annotations.NamedQueries;
 import org.hibernate.annotations.NamedQuery;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
+import org.hibernate.annotations.Persister;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.Column;
@@ -140,6 +142,7 @@ import java.util.Set;
         @Index(name = "iObjectTypeClass", columnList = "objectTypeClass"),
         @Index(name = "iObjectCreateTimestamp", columnList = "createTimestamp")})
 @Inheritance(strategy = InheritanceType.JOINED)
+@Persister(impl = MidPointJoinedPersister.class)
 public abstract class RObject<T extends ObjectType> implements Metadata<RObjectReference<RFocus>>, EntityState, Serializable {
 
     public static final String F_OBJECT_TYPE_CLASS = "objectTypeClass";

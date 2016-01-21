@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RAccessCertificationCampaignState;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
+import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Persister;
 
 import javax.persistence.Column;
 import javax.persistence.Embedded;
@@ -50,6 +52,7 @@ import java.util.Set;
 @Entity
 @Table(name = RAccessCertificationCampaign.TABLE_NAME,
         uniqueConstraints = @UniqueConstraint(name = "uc_acc_cert_campaign_name", columnNames = {"name_norm"}))
+@Persister(impl = MidPointJoinedPersister.class)
 @ForeignKey(name = "fk_acc_cert_campaign")
 public class RAccessCertificationCampaign extends RObject<AccessCertificationCampaignType> {
 

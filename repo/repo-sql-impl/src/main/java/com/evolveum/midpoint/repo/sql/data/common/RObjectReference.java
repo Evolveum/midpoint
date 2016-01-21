@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -30,6 +31,7 @@ import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
+import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 
@@ -42,6 +44,7 @@ import javax.persistence.*;
 @Table(name = "m_reference", indexes = {
         @javax.persistence.Index(name = "iReferenceTargetOid", columnList = "targetOid")
 })
+@Persister(impl = MidPointSingleTablePersister.class)
 public class RObjectReference<T extends RObject> implements ObjectReference {
 
     public static final String REFERENCE_TYPE = "reference_type";
