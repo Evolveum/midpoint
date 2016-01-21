@@ -135,7 +135,7 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
 
                 final PasswordAccountDto passwordAccountDto = rowModel.getObject();
 
-                imagePanel.add(new AjaxEventBehavior("onclick") {
+                imagePanel.add(new AjaxEventBehavior("click") {
                                    protected void onEvent(final AjaxRequestTarget target) {
                                        if (!passwordAccountDto.isMidpoint()) {
                                            if (passwordAccountDto.getCssClass().equals(PROPAGATED_ACCOUNT_ICON_CSS)) {
