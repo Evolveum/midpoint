@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.content.dto;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -68,19 +69,19 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
     private static final String OPERATION_LOAD_OWNER = DOT_CLASS + "loadOwner";
     private static final String OPERATION_COUNT_ACCOUNTS = DOT_CLASS + "countAccounts";
 
-    private IModel<String> resourceOid;
-    private IModel<QName> objectClass;
+    private IModel<String> resourceOidModel;
+    private IModel<RefinedObjectClassDefinition> objectClassModel;
     private IModel<Boolean> useObjectCountingModel;
     private Integer cachedSize;
 
-    public AccountContentDataProvider(Component component, IModel<String> resourceOid, IModel<QName> objectClass, IModel<Boolean> useObjectCountingModel) {
+    public AccountContentDataProvider(Component component, IModel<String> resourceOid, IModel<RefinedObjectClassDefinition> objectClass, IModel<Boolean> useObjectCountingModel) {
         super(component, false, false);     // don't use cache, don't use default sorting field (c:name)
 
         Validate.notNull(resourceOid, "Resource oid model must not be null.");
         Validate.notNull(objectClass, "Object class model must not be null.");
         Validate.notNull(useObjectCountingModel, "'Use object counting' model must not be null.");
-        this.resourceOid = resourceOid;
-        this.objectClass = objectClass;
+        this.resourceOidModel = resourceOid;
+        this.objectClassModel = objectClass;
         this.useObjectCountingModel = useObjectCountingModel;
     }
 
@@ -132,11 +133,11 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
     }
 
     private ObjectQuery getObjectQuery() throws SchemaException {
-    	if (objectClass.getObject() == null) {
-        	throw new SchemaException("No default account definition in resource "+resourceOid.getObject());
+    	if (objectClassModel.getObject() == null) {
+        	throw new SchemaException("No default account definition in resource "+resourceOidModel.getObject());
         }
-        ObjectQuery baseQuery = ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid.getObject(),
-                objectClass.getObject(), getPage().getPrismContext());
+        ObjectQuery baseQuery = ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOidModel.getObject(),
+                objectClassModel.getObject().getTypeName(), getPage().getPrismContext());
         ObjectQuery query = getQuery();
         if (query != null) {
             ObjectFilter baseFilter = baseQuery.getFilter();
