@@ -962,7 +962,7 @@ public class PageDebugList extends PageAdminConfiguration {
 					new PropertyModel(model, DebugSearchDto.F_RESOURCE_OID), resourcesModel,
 					createResourceRenderer());
 			resource.setNullValid(true);
-			resource.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+			resource.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
 				@Override
 				protected void onUpdate(AjaxRequestTarget target) {

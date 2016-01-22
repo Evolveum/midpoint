@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
 import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -944,28 +945,47 @@ public final class WebMiscUtil {
 	}
 
 	public static <T extends Component> T theSameForPage(T object, PageReference containingPageReference) {
-		Page containingPage = containingPageReference.getPage();
-		if (containingPage == null) {
-			return object;
-		}
-		String path = object.getPageRelativePath();
-		T retval = (T) containingPage.get(path);
-		if (retval == null) {
-			return object;
-			// throw new IllegalStateException("There is no component like " +
-			// object + " (path '" + path + "') on " + containingPage);
-		}
-		return retval;
-	}
+        Page containingPage = containingPageReference.getPage();
+        if (containingPage == null) {
+            return object;
+        }
+        String path = object.getPageRelativePath();
+        T retval = (T) containingPage.get(path);
+        if (retval == null) {
+            return object;
+//            throw new IllegalStateException("There is no component like " + object + " (path '" + path + "') on " + containingPage);
+        }
+        return retval;
+    }
+    
+    public static String debugHandler(IRequestHandler handler) {
+    	if (handler == null) {
+    		return null;
+    	}
+    	if (handler instanceof RenderPageRequestHandler) {
+    		return "RenderPageRequestHandler("+((RenderPageRequestHandler)handler).getPageClass().getName()+")";
+    	} else {
+    		return handler.toString();
+    	}
+    }
+    
+    public static ItemPath joinPath(ItemPath path, ItemPath deltaPath) {
+		List<ItemPathSegment> newPath = new ArrayList<ItemPathSegment>();
 
-	public static String debugHandler(IRequestHandler handler) {
-		if (handler == null) {
-			return null;
+		ItemPathSegment firstDeltaSegment = deltaPath != null ? deltaPath.first() : null;
+		if (path != null) {
+			for (ItemPathSegment seg : path.getSegments()) {
+				if (seg.equivalent(firstDeltaSegment)) {
+					break;
+				}
+				newPath.add(seg);
+			}
 		}
-		if (handler instanceof RenderPageRequestHandler) {
-			return "RenderPageRequestHandler(" + ((RenderPageRequestHandler) handler).getPageClass().getName() + ")";
-		} else {
-			return handler.toString();
+		if (deltaPath != null) {
+			newPath.addAll(deltaPath.getSegments());
 		}
+
+		return new ItemPath(newPath);
+>>>>>>> master
 	}
 }

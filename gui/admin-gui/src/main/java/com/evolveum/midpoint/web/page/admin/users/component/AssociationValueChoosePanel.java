@@ -100,7 +100,7 @@ public class AssociationValueChoosePanel <C extends ObjectType> extends BasePane
         textWrapper.setOutputMarkupId(true);
 
         TextField text = new TextField<>(ID_TEXT, createTextModel(value));
-        text.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+        text.add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
             protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
             }

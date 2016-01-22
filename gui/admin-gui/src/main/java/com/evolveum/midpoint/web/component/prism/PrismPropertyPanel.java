@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -62,6 +63,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
     public PrismPropertyPanel(String id, final IModel<IW> model, Form form, PageBase pageBase) {
         super(id);
+        Validate.notNull(model, "no model");
         this.pageBase = pageBase;
 
         LOGGER.trace("Creating property panel for {}", model.getObject());
@@ -175,15 +177,15 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         add(values);
     }
 
-    protected String getInputCssClass(){
-        return"col-xs-9";
+    protected String getInputCssClass() {
+        return"col-xs-10";
     }
 
-    protected String getValuesClass(){
+    protected String getValuesClass() {
         return "col-md-6";
     }
 
-    protected String getValueCssClass(){
+    protected String getValueCssClass() {
         return "row";
     }
 

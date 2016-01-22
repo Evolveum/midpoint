@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,37 +96,55 @@ public class ClassPathUtil {
 			return false;
 		}
 
-		// Copy content
-		OutputStream out = null;
+		return copyFile(is, src, dst);
+	}
+	
+	public static boolean copyFile(InputStream srcStream, String srcName, String dstPath) {
+		OutputStream dstStream = null;
 		try {
-			out = new FileOutputStream(dst);
+			dstStream = new FileOutputStream(dstPath);
 		} catch (FileNotFoundException e) {
-			LOGGER.error("Unable to open destination file " + dst + ":", e);
+			LOGGER.error("Unable to open destination file " + dstPath + ":", e);
 			return false;
 		}
+		return copyFile(srcStream, srcName, dstStream, dstPath);
+	}
+	
+	public static boolean copyFile(InputStream srcStream, String srcName, File dstFile) {
+		OutputStream dstStream = null;
+		try {
+			dstStream = new FileOutputStream(dstFile);
+		} catch (FileNotFoundException e) {
+			LOGGER.error("Unable to open destination file " + dstFile + ":", e);
+			return false;
+		}
+		return copyFile(srcStream, srcName, dstStream, dstFile.toString());
+	}
+	
+	public static boolean copyFile(InputStream srcStream, String srcName, OutputStream dstStream, String dstName) {
 		byte buf[] = new byte[655360];
 		int len;
 		try {
-			while ((len = is.read(buf)) > 0) {
+			while ((len = srcStream.read(buf)) > 0) {
 				try {
-					out.write(buf, 0, len);
+					dstStream.write(buf, 0, len);
 				} catch (IOException e) {
-					LOGGER.error("Unable to write file " + dst + ":", e);
+					LOGGER.error("Unable to write file " + dstName + ":", e);
 					return false;
 				}
 			}
 		} catch (IOException e) {
-			LOGGER.error("Unable to read file " + src + " from classpath", e);
+			LOGGER.error("Unable to read file " + srcName + " from classpath", e);
 			return false;
 		}
 		try {
-			out.close();
+			dstStream.close();
 		} catch (IOException e) {
-			LOGGER.error("Unable to close file " + dst + ":", e);
+			LOGGER.error("Unable to close file " + dstName + ":", e);
 			return false;
 		}
 		try {
-			is.close();
+			srcStream.close();
 		} catch (IOException e) {
 			LOGGER.error("This never happend:", e);
 			return false;
@@ -134,11 +152,79 @@ public class ClassPathUtil {
 
 		return true;
 	}
+	
+	/**
+	 * Extracts all files in a directory on a classPath (system resource) to
+	 * a directory on a file system.
+	 */
+	public static boolean extractFilesFromClassPath(String srcPath, String dstPath, boolean overwrite) throws URISyntaxException, IOException {
+		URL src = ClassPathUtil.class.getClassLoader().getResource(srcPath);
+		if (src == null) {
+			LOGGER.debug("No resource for {}", srcPath);
+			return false;
+		}
+		URI srcUrl = src.toURI();
+//		URL srcUrl = ClassLoader.getSystemResource(srcPath);
+		LOGGER.trace("URL: {}", srcUrl);
+		if (srcUrl.getPath().contains("!/")) {
+			URI srcFileUri = new URI(srcUrl.getPath().split("!/")[0]);		// e.g. file:/C:/Documents%20and%20Settings/user/.m2/repository/com/evolveum/midpoint/infra/test-util/2.1-SNAPSHOT/test-util-2.1-SNAPSHOT.jar
+			File srcFile = new File(srcFileUri);
+			JarFile jar = new JarFile(srcFile);
+			Enumeration<JarEntry> entries = jar.entries();
+			JarEntry jarEntry;
+			while (entries.hasMoreElements()) {
+				jarEntry = entries.nextElement();
+
+				// skip other files
+				if (!jarEntry.getName().contains(srcPath)) {
+					LOGGER.trace("Not relevant: ", jarEntry.getName());
+					continue;
+				}
+				
+				// prepare destination file
+				String filepath = jarEntry.getName().substring(srcPath.length());
+				File dstFile = new File(dstPath, filepath);
+				
+				if (!overwrite && dstFile.exists()) {
+					LOGGER.debug("Skipping file {}: exists", dstFile);
+					continue;
+				}
+				
+				if (jarEntry.isDirectory()) {
+					dstFile.mkdirs();
+					continue;
+				}
+				
+				InputStream is = ClassLoader.getSystemResourceAsStream(jarEntry.getName());
+				LOGGER.debug("Copying {} from {} to {} ", jarEntry.getName(), srcFile, dstFile);
+				copyFile(is, jarEntry.getName(), dstFile);
+			}
+			jar.close();
+		} else {
+			try {
+				File file = new File(srcUrl);
+				File[] files = file.listFiles();
+				for (File subFile : files) {
+					File dstFile = new File(dstPath, subFile.getName());
+					if (subFile.isDirectory()) {
+						LOGGER.debug("Copying directory {} to {} ", subFile, dstFile);
+						MiscUtil.copyDirectory(subFile, dstFile);
+					} else {
+						LOGGER.debug("Copying file {} to {} ", subFile, dstFile);
+						MiscUtil.copyFile(subFile, dstFile);
+					}
+				}
+			} catch (Exception ex) {
+				throw new IOException(ex);
+			}
+		}
+		return true;
+	}
 
 	/**
 	 * Get clasess from JAR
 	 * 
-	 * @param candidateUrl
+	 * @param srcUrl
 	 * @param packageName
 	 * @return
 	 */

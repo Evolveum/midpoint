@@ -24,6 +24,7 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.RResourceAdministrativeS
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
+import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBusinessConf
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Persister;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
@@ -46,6 +48,7 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_resource")
 @Table(uniqueConstraints = @UniqueConstraint(name = "uc_resource_name", columnNames = {"name_norm"}))
+@Persister(impl = MidPointJoinedPersister.class)
 public class RResource extends RObject<ResourceType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResource.class);

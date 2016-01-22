@@ -22,12 +22,14 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
+import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 
@@ -40,6 +42,7 @@ import javax.persistence.*;
 @Table(name = "m_assignment_reference", indexes = {
         @javax.persistence.Index(name = "iAssignmentReferenceTargetOid", columnList = "targetOid")
 })
+@Persister(impl = MidPointSingleTablePersister.class)
 public class RAssignmentReference extends RContainerReference {
 
     private RAssignment owner;
@@ -73,8 +76,9 @@ public class RAssignmentReference extends RContainerReference {
     @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true)
     @NotFound(action = NotFoundAction.IGNORE)
     @NotQueryable
+    // declared for HQL use only
     public RObject getTarget() {
-        return super.getTarget();
+        return null;
     }
 
     @Id

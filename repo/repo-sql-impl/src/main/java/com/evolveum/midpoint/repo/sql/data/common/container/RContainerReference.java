@@ -54,8 +54,6 @@ public abstract class RContainerReference implements ObjectReference {
     private String relation;
     private RObjectType type;
 
-    private RObject target;
-
     public RContainerReference() {
     }
 
@@ -78,8 +76,8 @@ public abstract class RContainerReference implements ObjectReference {
         return ownerId;
     }
 
-    public RObject getTarget() {
-        return target;
+    public RObject getTarget() {        // for HQL use only
+        return null;
     }
 
     @Override
@@ -116,7 +114,6 @@ public abstract class RContainerReference implements ObjectReference {
     }
 
     public void setTarget(RObject target) {     // shouldn't be called
-        this.target = target;
     }
 
     public void setTargetOid(String targetOid) {

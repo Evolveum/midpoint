@@ -109,7 +109,7 @@ public class MultiValueChoosePanel <T extends ObjectType> extends BasePanel<List
                 listItem.add(textWrapper);
 
                 TextField text = new TextField<>(ID_TEXT, createTextModel(listItem.getModel()));
-                text.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+                text.add(new AjaxFormComponentUpdatingBehavior("blur") {
                     @Override
                     protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {}
                 });

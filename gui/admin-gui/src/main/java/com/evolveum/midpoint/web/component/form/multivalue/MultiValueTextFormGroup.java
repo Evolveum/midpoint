@@ -96,7 +96,7 @@ public class MultiValueTextFormGroup<T extends Serializable> extends BasePanel<L
                 item.add(textWrapper);
 
                 TextField text = new TextField(ID_TEXT, createTextModel(item.getModel()));
-                text.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+                text.add(new AjaxFormComponentUpdatingBehavior("blur") {
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
                     }

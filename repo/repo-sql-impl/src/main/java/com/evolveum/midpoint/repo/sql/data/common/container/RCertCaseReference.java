@@ -23,12 +23,14 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
+import org.hibernate.annotations.Persister;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -58,6 +60,7 @@ import java.util.Set;
 @Table(name = RCertCaseReference.TABLE, indexes = {
         @javax.persistence.Index(name = "iCaseReferenceTargetOid", columnList = "targetOid")
 })
+@Persister(impl = MidPointSingleTablePersister.class)
 public class RCertCaseReference extends RContainerReference {
 
     public static final String TABLE = "m_acc_cert_case_reference";
@@ -99,8 +102,9 @@ public class RCertCaseReference extends RContainerReference {
     @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true)
     @NotFound(action = NotFoundAction.IGNORE)
     @NotQueryable
+    // only for HQL use
     public RObject getTarget() {
-        return super.getTarget();
+        return null;
     }
 
     @Id

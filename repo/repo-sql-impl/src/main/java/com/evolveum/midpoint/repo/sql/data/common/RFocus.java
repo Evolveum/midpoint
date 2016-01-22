@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
+import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -54,6 +55,7 @@ import java.util.Set;
 @org.hibernate.annotations.Table(appliesTo = "m_focus",
         indexes = {@Index(name = "iFocusAdministrative", columnNames = "administrativeStatus"),
                 @Index(name = "iFocusEffective", columnNames = "effectiveStatus")})
+@Persister(impl = MidPointJoinedPersister.class)
 public abstract class RFocus<T extends FocusType> extends RObject<T> {
 
     private Set<RObjectReference<RShadow>> linkRef;

@@ -358,7 +358,7 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
 
             IModel data = new PropertyModel(value, SearchValue.F_VALUE);
             final TextField input = new TextField(ID_TEXT_INPUT, data);
-            input.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+            input.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {

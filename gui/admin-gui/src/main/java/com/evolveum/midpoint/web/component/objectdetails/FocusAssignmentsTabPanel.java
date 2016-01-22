@@ -84,7 +84,7 @@ import java.util.List;
 /**
  * @author semancik
  */
-public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractFocusTabPanel {
+public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjectTabPanel {
 	private static final long serialVersionUID = 1L;
 	
 	private static final String ID_ASSIGNMENTS = "assignmentsContainer";
@@ -96,8 +96,9 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractFocus
 	
 	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
 
-	public FocusAssignmentsTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel, LoadableModel<List<AssignmentEditorDto>> assignmentsModel, PageBase page) {
-		super(id, mainForm, focusModel, page);
+	public FocusAssignmentsTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel, 
+			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, PageBase page) {
+		super(id, mainForm, focusWrapperModel, page);
 		this.assignmentsModel = assignmentsModel;
 		initLayout();
 	}

@@ -96,7 +96,7 @@ public class NotificationConfigPanel extends SimplePanel<NotificationConfigurati
 					}
 				}, new ChoiceableChoiceRenderer<MailServerConfigurationTypeDto>());
 		mailServerConfigChooser.setNullValid(true);
-		mailServerConfigChooser.add(new AjaxFormSubmitBehavior("onclick") {
+		mailServerConfigChooser.add(new AjaxFormSubmitBehavior("click") {
 
 			@Override
 			protected void onEvent(AjaxRequestTarget target) {

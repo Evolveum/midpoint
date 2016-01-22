@@ -1,0 +1,5 @@
+dn: cn=library,ou=Groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: library
+member: uid=leonardo, ou=People, dc=example,dc=com

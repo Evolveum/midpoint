@@ -359,7 +359,7 @@ public class PrismValuePanel extends Panel {
                 if (formComponent instanceof TextField) {
                     formComponent.add(new AttributeModifier("size", "42"));
                 }
-                formComponent.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
+                formComponent.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
@@ -368,7 +368,7 @@ public class PrismValuePanel extends Panel {
 
                 // Validation occurs when submitting the form
 //            if (form != null) {
-//                AjaxFormValidatingBehavior validator = new AjaxFormValidatingBehavior(form, "onBlur"); 
+//                AjaxFormValidatingBehavior validator = new AjaxFormValidatingBehavior(form, "Blur"); 
 //                 
 //                formComponent.add(validator);
 //            }

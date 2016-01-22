@@ -47,8 +47,7 @@ public class H3Header<O extends ObjectType> extends SimplePanel<ObjectWrapper<O>
 
     private static final String ID_STATUS = "status";
     private static final String ID_SHOW_MORE = "showMore";
-    private static final String ID_TITLE = "title";
-    private static final String ID_MENU = "menu";
+    public static final String ID_TITLE = "title";
 
     public H3Header(String id, IModel<ObjectWrapper<O>> model) {
         super(id, model);
@@ -68,16 +67,6 @@ public class H3Header<O extends ObjectType> extends SimplePanel<ObjectWrapper<O>
         add(title);
 
         final IModel<List<InlineMenuItem>> items = new Model((Serializable) createMenuItems());
-        InlineMenu menu = new InlineMenu(ID_MENU, items);
-        menu.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                List<InlineMenuItem> list = items.getObject();
-                return list != null && !list.isEmpty();
-            }
-        });
-        add(menu);
 
         BootstrapLabel status = new BootstrapLabel(ID_STATUS, createStringResource("H3Header.label.error"),
                 new Model(BootstrapLabel.State.DANGER));
