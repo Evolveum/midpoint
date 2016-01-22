@@ -3,7 +3,6 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.io.Serializable;
 
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 public class CapabilitiesDto implements Serializable {

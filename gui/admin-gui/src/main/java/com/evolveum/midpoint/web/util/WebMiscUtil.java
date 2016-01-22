@@ -986,6 +986,6 @@ public final class WebMiscUtil {
 		}
 
 		return new ItemPath(newPath);
->>>>>>> master
+
 	}
 }
