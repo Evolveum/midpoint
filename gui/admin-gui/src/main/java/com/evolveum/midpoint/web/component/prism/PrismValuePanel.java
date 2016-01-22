@@ -359,7 +359,7 @@ public class PrismValuePanel extends Panel {
                 if (formComponent instanceof TextField) {
                     formComponent.add(new AttributeModifier("size", "42"));
                 }
-                formComponent.add(new AjaxFormComponentUpdatingBehavior("Blur") {
+                formComponent.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
