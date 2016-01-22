@@ -439,6 +439,26 @@
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket-datetime</artifactId>
         </dependency>
+        
+        <!--  Wicketstuff -->
+	<dependency>
+		<groupId>org.wicketstuff</groupId>
+		<artifactId>wicketstuff-jwicket-ui-dragdrop</artifactId>
+		<version>6.11.0</version>
+	</dependency>
+
+	<dependency>
+		<groupId>org.wicketstuff</groupId>
+		<artifactId>wicketstuff-jwicket-ui-effects</artifactId>
+		<version>6.11.0</version>
+	</dependency>
+	
+	<dependency>
+		<groupId>org.wicketstuff</groupId>
+		<artifactId>wicketstuff-jwicket-ui-tooltip</artifactId>
+		<version>6.11.0</version>
+	</dependency>
+
 
         <dependency>
             <groupId>org.ocpsoft.prettytime</groupId>

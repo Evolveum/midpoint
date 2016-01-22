@@ -21,11 +21,13 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
+import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Persister;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -37,6 +39,7 @@ import java.util.Collection;
 @Entity
 @Table(name = RAccessCertificationDefinition.TABLE_NAME,
         uniqueConstraints = @UniqueConstraint(name = "uc_acc_cert_definition_name", columnNames = {"name_norm"}))
+@Persister(impl = MidPointJoinedPersister.class)
 @ForeignKey(name = "fk_acc_cert_definition")
 public class RAccessCertificationDefinition extends RObject<AccessCertificationDefinitionType> {
 

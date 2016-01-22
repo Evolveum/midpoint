@@ -343,7 +343,9 @@ public class ObjectUpdater {
             SchemaException, ObjectAlreadyExistsException, SerializationRelatedException {
 
         // clone - because some certification and lookup table related methods manipulate this collection and even their constituent deltas
+        // TODO clone elements only if necessary
         modifications = CloneUtil.cloneCollectionMembers(modifications);
+        //modifications = new ArrayList<>(modifications);
 
         LOGGER.debug("Modifying object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
         LOGGER_PERFORMANCE.debug("> modify object {}, oid={}, modifications={}", type.getSimpleName(), oid, modifications);
@@ -398,7 +400,6 @@ public class ObjectUpdater {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("OBJECT after:\n{}", prismObject.debugDump());
                 }
-
                 // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
                 // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.
                 boolean shouldPhotoBeRemoved = containsFocusPhotoModification && ((FocusType) prismObject.asObjectable()).getJpegPhoto() == null;
@@ -411,7 +412,6 @@ public class ObjectUpdater {
                 updateFullObject(rObject, prismObject);
                 LOGGER.trace("Starting merge.");
                 session.merge(rObject);
-
                 if (closureManager.isEnabled()) {
                     closureManager.updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY, closureContext);
                 }

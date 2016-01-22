@@ -20,6 +20,7 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
@@ -169,7 +170,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         PrismObject result = null;
         if (object != null) {
             String xml = RUtil.getXmlFromByteArray(object.getFullObject(), getConfiguration().isUseZip());
-            result = getPrismContext().parseObject(xml);
+            result = getPrismContext().parseObject(xml, XNodeProcessorEvaluationMode.COMPAT);
         }
 
         return result;

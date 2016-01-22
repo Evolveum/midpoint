@@ -37,6 +37,7 @@ import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
+import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -47,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Persister;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
@@ -86,6 +88,7 @@ import java.util.Set;
         @Index(name = "iTenantRefTargetOid", columnList = "tenantRef_targetOid"),
         @Index(name = "iOrgRefTargetOid", columnList = "orgRef_targetOid"),
         @Index(name = "iResourceRefTargetOid", columnList = "resourceRef_targetOid")})
+@Persister(impl = MidPointSingleTablePersister.class)
 public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     public static final String F_OWNER = "owner";

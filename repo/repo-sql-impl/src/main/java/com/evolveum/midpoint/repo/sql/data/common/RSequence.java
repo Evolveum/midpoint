@@ -20,11 +20,13 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
+import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Persister;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -38,6 +40,7 @@ import java.util.Collection;
 @Entity
 @ForeignKey(name = "fk_sequence")
 @Table(uniqueConstraints = @UniqueConstraint(name = "uc_sequence_name", columnNames = {"name_norm"}))
+@Persister(impl = MidPointJoinedPersister.class)
 public class RSequence extends RObject<SequenceType> {
 
     private RPolyString name;

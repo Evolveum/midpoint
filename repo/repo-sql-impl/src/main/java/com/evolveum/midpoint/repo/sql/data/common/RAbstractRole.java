@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
+import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Persister;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.Column;
@@ -58,6 +60,7 @@ import java.util.Set;
 @ForeignKey(name = "fk_abstract_role")
 @org.hibernate.annotations.Table(appliesTo = "m_abstract_role",
         indexes = {@Index(name = "iRequestable", columnNames = "requestable")})             // TODO correct index name
+@Persister(impl = MidPointJoinedPersister.class)
 public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T> {
 
     private Set<RExclusion> exclusion;
