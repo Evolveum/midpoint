@@ -77,7 +77,7 @@ public class ResourceObjectReferenceResolver {
 		
 		try {
 		
-			if (!ResourceTypeUtil.hasReadCapability(resource)){
+			if (!ResourceTypeUtil.isReadCapabilityEnabled(resource)){
 				throw new UnsupportedOperationException("Resource does not support 'read' operation");
 			}
 			

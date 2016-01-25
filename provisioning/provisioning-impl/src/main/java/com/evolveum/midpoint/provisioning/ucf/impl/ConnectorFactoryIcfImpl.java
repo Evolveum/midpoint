@@ -40,6 +40,7 @@ import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.common.Version;
 import org.identityconnectors.common.security.Encryptor;
 import org.identityconnectors.common.security.EncryptorFactory;
@@ -366,6 +367,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		ConnectorType connectorType = new ConnectorType();
 		ConnectorKey key = cinfo.getConnectorKey();
 		String stringID = keyToNamespaceSuffix(key);
+		StringBuilder displayName = new StringBuilder(StringUtils.substringAfterLast(key.getConnectorName(), "."));
 		StringBuilder connectorName = new StringBuilder("ICF ");
 		connectorName.append(key.getConnectorName());
 		connectorName.append(" v");
@@ -373,6 +375,9 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		if (hostType != null) {
 			connectorName.append(" @");
 			connectorName.append(hostType.getName());
+			displayName.append(" @");
+			displayName.append(hostType.getName());
+			
 		}
 		connectorType.setName(new PolyStringType(connectorName.toString()));
 		connectorType.setFramework(ICF_FRAMEWORK_URI);

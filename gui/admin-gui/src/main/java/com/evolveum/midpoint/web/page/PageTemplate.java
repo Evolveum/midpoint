@@ -30,10 +30,13 @@ import com.evolveum.midpoint.web.component.message.MainFeedback;
 import com.evolveum.midpoint.web.component.message.OpResult;
 import com.evolveum.midpoint.web.component.message.TempFeedback;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.*;
@@ -373,9 +376,9 @@ public abstract class PageTemplate extends WebPage {
     	return new StringResourceModel(resourceKey, this).setModel(new Model<String>())
     			.setDefaultValue(resourceKey)
     			.setParameters(objects);
-    	
-//    	return StringResourceModelMigration.of(resourceKey, this, new Model<String>(), resourceKey, objects);
     }
+    	
+    
 
     public StringResourceModel createStringResource(Enum e) {
         String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
@@ -394,6 +397,7 @@ public abstract class PageTemplate extends WebPage {
         return createStringResourceStatic(component, resourceKey);
     }
 
+    @Deprecated
     public void showResult(OperationResult result) {
         if (result == null) {
             return;
@@ -406,7 +410,68 @@ public abstract class PageTemplate extends WebPage {
             error(opResult);
         }
     }
+    
+    public void showResultInSession(OperationResult result, String errorMessageKey) {
+    	showResult(result, errorMessageKey, true, true);
+    }
+    
+    public void showResultInSession(OperationResult result, String errorMessageKey, boolean showSuccess) {
+    	showResult(result, errorMessageKey, true, showSuccess);
+    }
+    
+    public void showResult(OperationResult result, String errorMessageKey, boolean showSuccess) {
+    	showResult(result, errorMessageKey, false, showSuccess);
+    }
+    
+    public void showResult(OperationResult result, String errorMessageKey) {
+    	showResult(result, errorMessageKey, false, true);
+    }
+    
+    private void showResult(OperationResult result, String errorMessageKey, boolean showInSession, boolean showSuccess) {
+    	Validate.notNull(result, "Operation result must not be null.");
+        Validate.notNull(result.getStatus(), "Operation result status must not be null.");
 
+        OpResult opResult = OpResult.getOpResult((PageBase) getPage(), result);
+        switch (opResult.getStatus()) {
+            case FATAL_ERROR:
+            case PARTIAL_ERROR:
+                if (showInSession) {
+                    getSession().error(getString("pageAdminResources.message.cantLoadResource"));
+                } else {
+                    error(opResult);
+                }
+                break;
+            case IN_PROGRESS:
+            case NOT_APPLICABLE:
+                if (showInSession) {
+                    getSession().info(opResult);
+                } else {
+                    info(opResult);
+                }
+                break;
+            case SUCCESS:
+            	if (!showSuccess){
+            		break;
+            	}
+                if (showInSession) {
+                    getSession().success(opResult);
+                } else {
+                    success(opResult);
+                }
+                break;
+            case UNKNOWN:
+            case WARNING:
+            default:
+                if (showInSession) {
+                    getSession().warn(opResult);
+                } else {
+                    warn(opResult);
+                }
+        }
+       
+    }
+
+    @Deprecated
     public void showResultInSession(OperationResult result) {
         if (result == null) {
             return;
@@ -421,6 +486,7 @@ public abstract class PageTemplate extends WebPage {
         }
     }
 
+    @Deprecated
     private void showResult(OpResult opResult, boolean showInSession) {
         Validate.notNull(opResult, "Operation result must not be null.");
         Validate.notNull(opResult.getStatus(), "Operation result status must not be null.");

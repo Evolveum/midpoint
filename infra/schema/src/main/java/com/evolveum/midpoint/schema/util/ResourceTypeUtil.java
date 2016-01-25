@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ScriptOutputsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
@@ -41,11 +42,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationValidityCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AuxiliaryObjectClassesCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnectionCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
@@ -269,63 +279,88 @@ public class ResourceTypeUtil {
 		}		
 	}
 
-	public static boolean hasActivationCapability(ResourceType resource) {
-		return (getEffectiveCapability(resource, ActivationCapabilityType.class)!=null);
+	public static boolean isActivationCapabilityEnabled(ResourceType resource) {
+		return isCapabilityEnabled(getEffectiveCapability(resource, ActivationCapabilityType.class));
 	}
 	
-	public static boolean hasCredentialsCapability(ResourceType resource) {
-		return (getEffectiveCapability(resource, CredentialsCapabilityType.class)!=null);
+	public static boolean isActivationLockoutStatusCapabilityEnabled(ResourceType resource) {
+		return isCapabilityEnabled(getEffectiveCapability(resource, ActivationLockoutStatusCapabilityType.class));
 	}
 	
-	public static boolean hasReadCapability(ResourceType resource){
-		ReadCapabilityType readCap = getEffectiveCapability(resource, ReadCapabilityType.class);
-		if (readCap == null){
-			return false;
-		}
-		
-		if (readCap.isEnabled() == null){
-			return true;
-		}
-		
-		return readCap.isEnabled();
+	public static boolean isActivationStatusCapabilityEnabled(ResourceType resource) {
+		return isCapabilityEnabled(getEffectiveCapability(resource, ActivationStatusCapabilityType.class));
 	}
 	
-	public static boolean hasCreateCapability(ResourceType resource){
-		CreateCapabilityType createCap = getEffectiveCapability(resource, CreateCapabilityType.class);
-		if (createCap == null){
+	public static boolean isActivationValidityCapabilityEnabled(ResourceType resource) {
+		return isCapabilityEnabled(getEffectiveCapability(resource, ActivationValidityCapabilityType.class));
+	}
+	
+	public static boolean isCredentialsCapabilityEnabled(ResourceType resource) {
+		return isCapabilityEnabled(getEffectiveCapability(resource, CredentialsCapabilityType.class));
+	}
+	
+	public static boolean isCreateCapabilityEnabled(ResourceType resource){
+		return isCapabilityEnabled(getEffectiveCapability(resource, CreateCapabilityType.class));
+	}
+	
+	public static boolean isCountObjectsCapabilityEnabled(ResourceType resource){
+		return isCapabilityEnabled(getEffectiveCapability(resource, CountObjectsCapabilityType.class));
+	}
+	
+	public static boolean isPaswswordCapabilityEnabled(ResourceType resource){
+		return isCapabilityEnabled(getEffectiveCapability(resource, PasswordCapabilityType.class));
+	}
+	
+	public static boolean isLiveSyncCapabilityEnabled(ResourceType resource) {
+		return isCapabilityEnabled(getEffectiveCapability(resource, LiveSyncCapabilityType.class));
+	}
+	
+	public static boolean isScriptOnHostCapabilityEnabled(ResourceType resource) {
+		return isCapabilityEnabled(getEffectiveCapability(resource, ScriptCapabilityType.class));
+	}
+	
+	public static boolean isTestConnectionCapabilityEnabled(ResourceType resource) {
+		return isCapabilityEnabled(getEffectiveCapability(resource, TestConnectionCapabilityType.class));
+	}
+	
+	public static boolean isAuxiliaryObjectClassCapabilityEnabled(ResourceType resource) {
+		return isCapabilityEnabled(getEffectiveCapability(resource, AuxiliaryObjectClassesCapabilityType.class));
+	}
+	
+	public static boolean isPagedSearchCapabilityEnabled(ResourceType resource) {
+		return isCapabilityEnabled(getEffectiveCapability(resource, PagedSearchCapabilityType.class));
+	}
+	
+	public static boolean isReadCapabilityEnabled(ResourceType resource){
+		return isCapabilityEnabled(getEffectiveCapability(resource, ReadCapabilityType.class));	
+	}
+	
+	public static boolean isUpdateCapabilityEnabled(ResourceType resource){
+		return isCapabilityEnabled(getEffectiveCapability(resource, UpdateCapabilityType.class));
+	}
+	
+	public static boolean isAddRemoveAttributesValuesCapabilityEnabled(ResourceType resource){
+		return isCapabilityEnabled(getEffectiveCapability(resource, AddRemoveAttributeValuesCapabilityType.class));
+	}
+	
+	public static boolean isDeleteCapabilityEnabled(ResourceType resource){
+		return isCapabilityEnabled(getEffectiveCapability(resource, DeleteCapabilityType.class));
+	}
+	
+	private static boolean isCapabilityEnabled(CapabilityType cap){
+		if (cap == null){
 			return false;
 		}
 		
-		if (createCap.isEnabled() == null){
+		if (cap.isEnabled() == null){
 			return true;
 		}
 		
-		return createCap.isEnabled();
+		return cap.isEnabled();
 	}
-	public static boolean hasUpdateCapability(ResourceType resource){
-		UpdateCapabilityType updateCap = getEffectiveCapability(resource, UpdateCapabilityType.class);
-		if (updateCap == null){
-			return false;
-		}
-		
-		if (updateCap.isEnabled() == null){
-			return true;
-		}
-		
-		return updateCap.isEnabled();
-	}
-	public static boolean hasDeleteCapability(ResourceType resource){
-		DeleteCapabilityType deleteCap = getEffectiveCapability(resource, DeleteCapabilityType.class);
-		if (deleteCap == null){
-			return false;
-		}
-		
-		if (deleteCap.isEnabled() == null){
-			return true;
-		}
-		
-		return deleteCap.isEnabled();
-	}
+	
+	
+	
 	
 	public static boolean hasResourceNativeActivationCapability(ResourceType resource) {
 		ActivationCapabilityType activationCapability = null;
