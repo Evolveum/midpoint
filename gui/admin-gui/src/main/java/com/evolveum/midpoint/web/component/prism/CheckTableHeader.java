@@ -28,6 +28,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -250,8 +251,8 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
         if (key == null) {
             key = "";
         }
-
-        return new StringResourceModel(key, getPage(), null, key).getString();
+        return PageTemplate.createStringResourceStatic(getPage(), key).getString();
+//        return new StringResourceModel(key, getPage(), null, key).getString();
     }
 
     protected List<InlineMenuItem> createMenuItems() {

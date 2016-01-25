@@ -52,7 +52,7 @@ public class LocalePanel extends Panel {
 
         final IModel<LocaleDescriptor> model = new Model(getSelectedLocaleDescriptor());
         Select<LocaleDescriptor> select = new Select<>(ID_SELECT, model);
-        select.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+        select.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -77,8 +77,9 @@ public class LocalePanel extends Panel {
                 }) {
 
 
+        	
             @Override
-            protected SelectOption<LocaleDescriptor> newOption(String text, IModel<? extends LocaleDescriptor> model) {
+            protected SelectOption<LocaleDescriptor> newOption(String text, IModel<LocaleDescriptor> model) {
                 SelectOption option = super.newOption("&nbsp;" + text, model);
                 option.add(new AttributeModifier("data-icon", "flag-" + model.getObject().getFlag()));
 

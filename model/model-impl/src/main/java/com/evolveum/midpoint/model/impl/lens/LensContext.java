@@ -497,6 +497,20 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         }
         return allChanges;
     }
+
+	public boolean hasAnyPrimaryChange() throws SchemaException {
+		if (focusContext != null) {
+			if (!ObjectDelta.isNullOrEmpty(focusContext.getPrimaryDelta())) {
+				return true;
+			}
+		}
+		for (LensProjectionContext projCtx: getProjectionContexts()) {
+			if (!ObjectDelta.isNullOrEmpty(projCtx.getPrimaryDelta())) {
+				return true;
+			}
+		}
+		return false;
+	}
     
     public Collection<ObjectDelta<? extends ObjectType>> getPrimaryChanges() throws SchemaException {
         Collection<ObjectDelta<? extends ObjectType>> allChanges = new ArrayList<ObjectDelta<? extends ObjectType>>();

@@ -26,12 +26,12 @@ import org.apache.wicket.extensions.markup.html.repeater.data.sort.OrderByLink;
 public abstract class BasicOrderByBorder extends OrderByBorder {
 
     protected BasicOrderByBorder(String id, Object property, ISortStateLocator stateLocator) {
-        super(id, property, stateLocator, BasicCssProvider.getInstance());
+        super(id, property, stateLocator);
     }
 
     @Override
     protected OrderByLink newOrderByLink(String id, Object property, ISortStateLocator stateLocator) {
-        return new OrderByLink(id, property, stateLocator, new OrderByLink.VoidCssProvider()) {
+        return new OrderByLink(id, property, stateLocator) {
 
             @Override
             protected void onSortChanged() {
@@ -40,16 +40,5 @@ public abstract class BasicOrderByBorder extends OrderByBorder {
         };
     }
 
-    public static class BasicCssProvider extends OrderByLink.CssProvider {
 
-        private static BasicCssProvider instance = new BasicCssProvider();
-
-        private BasicCssProvider() {
-            super("sortable asc", "sortable desc", "sortable");
-        }
-
-        public static BasicCssProvider getInstance() {
-            return instance;
-        }
-    }
 }

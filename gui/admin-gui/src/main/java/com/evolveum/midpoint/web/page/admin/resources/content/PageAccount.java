@@ -33,11 +33,16 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+import com.evolveum.midpoint.web.page.PageTemplate;
+
+import com.evolveum.midpoint.web.model.LoadableModel;
+
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -82,25 +87,25 @@ public class PageAccount extends PageAdminResources {
 
     private IModel<ObjectWrapper<ShadowType>> accountModel;
 
-    public PageAccount() {
+    public PageAccount(final PageParameters parameters) {
         accountModel = new LoadableModel<ObjectWrapper<ShadowType>>(false) {
 
             @Override
             protected ObjectWrapper<ShadowType> load() {
-                return loadAccount();
+                return loadAccount(parameters);
             }
         };
         initLayout();
     }
 
-    private ObjectWrapper<ShadowType> loadAccount() {
+    private ObjectWrapper<ShadowType> loadAccount(PageParameters parameters) {
     	Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
         OperationResult result = task.getResult();
 
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
                 ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
-        StringValue oid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+        StringValue oid = parameters != null ? parameters.get(OnePageParameterEncoder.PARAMETER) : null;
         PrismObject<ShadowType> account = WebModelUtils.loadObject(ShadowType.class, oid.toString(), options,
                 PageAccount.this, task, result);
 
@@ -190,7 +195,8 @@ public class PageAccount extends PageAdminResources {
                 ResourceType resource = account.asObjectable().getResource();
                 String name = WebMiscUtil.getName(resource);
 
-                return new StringResourceModel("PageAccount.subTitle", PageAccount.this, null, null, name).getString();
+                return PageTemplate.createStringResourceStatic(PageAccount.this, "PageAccount.subTitle", name).getString();
+//                return new StringResourceModel("PageAccount.subTitle", PageAccount.this, null, null, name).getString();
             }
         };
     }

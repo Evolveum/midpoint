@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,49 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.content;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -41,11 +72,17 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.dialog.UserBrowserDialog;
+import com.evolveum.midpoint.web.component.input.RefinedObjectTypeChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.model.LoadableModel;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
@@ -60,29 +97,12 @@ import com.evolveum.midpoint.web.session.ResourcesStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.*;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import javax.xml.namespace.QName;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author lazyman
@@ -113,6 +133,8 @@ public class PageContentAccounts extends PageAdminResources {
     private static final String ID_NAME_CHECK = "nameCheck";
     private static final String ID_IDENTIFIERS_CHECK = "identifiersCheck";
     private static final String ID_TABLE = "table";
+    private static final String ID_OBJECTCLASS_FORM = "objectclassForm";
+    private static final String ID_OBJECTCLASS_INPUT = "objectclassInput";
 
     private IModel<PrismObject<ResourceType>> resourceModel;
     private IModel<AccountContentSearchDto> searchModel;
@@ -223,12 +245,14 @@ public class PageContentAccounts extends PageAdminResources {
             }
         };
         searchForm.add(basicSearch);
+        
+        IModel<RefinedObjectClassDefinition> objectClassModel = createObjectClassModel();
 
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
         AccountContentDataProvider provider = new AccountContentDataProvider(this,
-                new PropertyModel<String>(resourceModel, "oid"), createObjectClassModel(), createUseObjectCountingModel()) {
+                new PropertyModel<String>(resourceModel, "oid"), objectClassModel, createUseObjectCountingModel()) {
 
             @Override
             protected void addInlineMenuToDto(AccountContentDto dto) {
@@ -238,11 +262,22 @@ public class PageContentAccounts extends PageAdminResources {
         provider.setQuery(createQuery());
 
         List<IColumn> columns = initColumns();
-        TablePanel table = new TablePanel(ID_TABLE, provider, columns,
+        final TablePanel table = new TablePanel(ID_TABLE, provider, columns,
                 UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL, getItemsPerPage(UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL));
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
+        Form objectclassForm = new Form(ID_OBJECTCLASS_FORM);
+        add(objectclassForm);
+        RefinedObjectTypeChoicePanel objectclassInput = new RefinedObjectTypeChoicePanel(ID_OBJECTCLASS_INPUT, objectClassModel, resourceModel);
+        objectclassInput.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				target.add(table);
+			}
+		});
+        objectclassForm.add(objectclassInput);
+        
         initDialog();
     }
 
@@ -454,7 +489,8 @@ public class PageContentAccounts extends PageAdminResources {
             @Override
             protected String load() {
                 String name = WebMiscUtil.getName(resourceModel.getObject());
-                return new StringResourceModel("PageContentAccounts.subTitle", PageContentAccounts.this, null, null, name).getString();
+                return PageTemplate.createStringResourceStatic(PageContentAccounts.this, "PageContentAccounts.subTitle", name).getString();
+//                return new StringResourceModel("PageContentAccounts.subTitle", PageContentAccounts.this, null, null, name).getString();
             }
         };
     }
@@ -587,13 +623,13 @@ public class PageContentAccounts extends PageAdminResources {
         return null;
     }
 
-    private IModel<QName> createObjectClassModel() {
-        return new LoadableModel<QName>(false) {
+    private IModel<RefinedObjectClassDefinition> createObjectClassModel() {
+        return new LoadableModel<RefinedObjectClassDefinition>(false) {
 
             @Override
-            protected QName load() {
+            protected RefinedObjectClassDefinition load() {
                 try {
-                    return getObjectClassDefinition();
+                    return getAccountDefinition();
                 } catch (Exception ex) {
                     throw new SystemException(ex.getMessage(), ex);
                 }
@@ -615,18 +651,11 @@ public class PageContentAccounts extends PageAdminResources {
         };
     }
 
-
-    private QName getObjectClassDefinition() throws SchemaException {
-        ObjectClassComplexTypeDefinition def = getAccountDefinition();
-        return def != null ? def.getTypeName() : null;
-    }
-
-    private ObjectClassComplexTypeDefinition getAccountDefinition() throws SchemaException {
+    private RefinedObjectClassDefinition getAccountDefinition() throws SchemaException {
         MidPointApplication application = (MidPointApplication) getApplication();
         PrismObject<ResourceType> resource = resourceModel.getObject();
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, application.getPrismContext());
-        ObjectClassComplexTypeDefinition def = refinedSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
-        return def;
+        return refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
     }
 
     private boolean isUseObjectCounting() throws SchemaException {

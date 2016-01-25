@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package com.evolveum.midpoint.web.component.form;
 
-import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -32,7 +33,7 @@ import org.apache.wicket.model.Model;
 /**
  * @author lazyman
  */
-public class TextAreaFormGroup extends SimplePanel<String> {
+public class TextAreaFormGroup extends BasePanel<String> {
 
     private static final String ID_TEXT = "text";
     private static final String ID_TEXT_WRAPPER = "textWrapper";

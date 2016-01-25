@@ -19,22 +19,25 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.*;
 
 /**
  * @author lazyman
@@ -42,17 +45,21 @@ import org.apache.wicket.model.PropertyModel;
 public class PrismContainerPanel extends Panel {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismContainerPanel.class);
-	
+    private static final String ID_SHOW_EMPTY_FIELDS = "showEmptyFields";
+    private static final String STRIPED_CLASS = "striped";
+
     private boolean showHeader;
+    private boolean showEmptyFields;
     private PageBase pageBase;
 
     public PrismContainerPanel(String id, IModel<ContainerWrapper> model, Form form) {
-        this(id, model, true, form, null);
+        this(id, model, true, false, form, null);
     }
 
-    public PrismContainerPanel(String id, final IModel<ContainerWrapper> model, boolean showHeader, Form form, PageBase pageBase) {
+    public PrismContainerPanel(String id, final IModel<ContainerWrapper> model, boolean showHeader, boolean showEmptyFields, Form form, PageBase pageBase) {
         super(id);
         this.showHeader = showHeader;
+        this.showEmptyFields = showEmptyFields;
         this.pageBase = pageBase;
 
         LOGGER.trace("Creating container panel for {}", model.getObject());
@@ -67,7 +74,7 @@ public class PrismContainerPanel extends Panel {
                 if (prismContainer.getDefinition().isOperational()) {
                     return false;
                 }
-                
+
                 // HACK HACK HACK
                 if (ShadowType.F_ASSOCIATION.equals(prismContainer.getElementName())) {
                 	return true;
@@ -88,18 +95,72 @@ public class PrismContainerPanel extends Panel {
         initLayout(model, form);
     }
 
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("fixStripingOnPrismForm('").append(getMarkupId()).append("', '").append(STRIPED_CLASS).append("');");
+        response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
+    }
+
     private void initLayout(final IModel<ContainerWrapper> model, final Form form) {
         WebMarkupContainer header = new WebMarkupContainer("header");
         header.add(new VisibleEnableBehaviour() {
 
             @Override
             public boolean isVisible() {
-                return !model.getObject().isMain();
+                //
+                return true;
             }
         });
+
+
+        AjaxLink showEmptyFieldsButton = new AjaxLink(ID_SHOW_EMPTY_FIELDS) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showEmptyFields = !showEmptyFields;
+                ContainerWrapper containerWrapper = model.getObject();
+                ObjectWrapper objectWrapper = containerWrapper.getObject();
+                objectWrapper.setShowEmpty(showEmptyFields);
+                target.add(PrismContainerPanel.this);
+            }
+        };
+        header.add(showEmptyFieldsButton);
         add(header);
 
-        header.add(new Label("label", new PropertyModel<>(model, "displayName")));
+        IModel headerLabelModel;
+
+        if (model.getObject().isMain()){
+//            headerLabelModel = new StringResourceModel(resourceKey, this);
+            ContainerWrapper wrappper = model.getObject();
+            ObjectWrapper objwrapper = wrappper.getObject();
+            final String key = objwrapper.getDisplayName();
+
+            headerLabelModel = new IModel<String>() {
+                @Override
+                public String getObject() {
+                    String displayName = PageTemplate.createStringResourceStatic(getPage(), key).getString();
+                    if (displayName.equals(key)){
+                        displayName = (new PropertyModel<String>(model, "displayName")).getObject();
+                    }
+                    return displayName;
+                }
+
+                @Override
+                public void setObject(String o) {
+
+                }
+
+                @Override
+                public void detach() {
+
+                }
+            };
+        } else {
+            headerLabelModel = new PropertyModel<>(model, "displayName");
+        }
+        header.add(new Label("label", headerLabelModel));
 
         ListView<ItemWrapper> properties = new ListView<ItemWrapper>("properties",
                 new PropertyModel(model, "properties")) {
@@ -119,7 +180,7 @@ public class PrismContainerPanel extends Panel {
         add(properties);
     }
 
-    protected PageBase getPageBase(){
+    public PageBase getPageBase(){
         return pageBase;
     }
 

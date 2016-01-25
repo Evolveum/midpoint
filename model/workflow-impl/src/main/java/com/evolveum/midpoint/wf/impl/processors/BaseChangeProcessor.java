@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.wf.impl.processors;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -72,5 +73,10 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
 
     public WorkflowManagerImpl getWorkflowManager() {
         return workflowManager;
+    }
+
+    @Override
+    public PrismContext getPrismContext() {
+        return workflowManager.getPrismContext();
     }
 }

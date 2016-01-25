@@ -18,10 +18,12 @@ package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.web.component.util.Choiceable;
+
 /**
  *  @author shood
  * */
-public class ObjectTemplateConfigTypeReferenceDto implements Serializable{
+public class ObjectTemplateConfigTypeReferenceDto implements Serializable, Choiceable{
 
     private String name;
     private String oid;
@@ -31,6 +33,7 @@ public class ObjectTemplateConfigTypeReferenceDto implements Serializable{
         this.name = name;
     }
 
+    @Override
     public String getName() {
         return name;
     }

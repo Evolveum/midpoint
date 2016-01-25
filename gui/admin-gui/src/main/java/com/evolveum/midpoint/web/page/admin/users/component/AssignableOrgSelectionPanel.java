@@ -12,7 +12,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
 import com.evolveum.midpoint.web.component.org.OrgTreeTablePanel;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.model.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
@@ -20,12 +21,15 @@ import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -41,8 +45,9 @@ public class AssignableOrgSelectionPanel <T extends ObjectType> extends Abstract
     private static final String DOT_CLASS = AssignableOrgSelectionPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ORG_UNITS = DOT_CLASS + "loadOrgUnits";
 
+	private final static String ID_ERROR_LABEL = "errorLabel";
 	private final static String ID_TABS = "tabs";
-	private final static String ID_ASSIGN_ROOT = "assignRoot";
+	protected final static String ID_ASSIGN_ROOT = "assignRoot";
 	
 	public AssignableOrgSelectionPanel(String id, Context context) {
 		super(id, context);
@@ -73,31 +78,56 @@ public class AssignableOrgSelectionPanel <T extends ObjectType> extends Abstract
                     });
                 }
 
-                if (tabs.isEmpty()) {
-                    getSession().warn(getString("assignablePopupContent.message.noOrgStructureDefined"));
-                    throw new RestartResponseException(PageUsers.class);
-                }
-
                 return tabs;
             }
         };
 
 	    AjaxTabbedPanel tabbedPanel = new AjaxTabbedPanel(ID_TABS, tabModel.getObject(), new Model<>(0));
-	    tabbedPanel.setOutputMarkupId(true);
-	     addOrReplace(tabbedPanel);
-	     
-	     AjaxButton assignRootButton = new AjaxButton(ID_ASSIGN_ROOT, createStringResource("AssignableOrgSelectionPanel.button.assignRoot")) {
+        tabbedPanel.setOutputMarkupId(true);
+        tabbedPanel.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return tabModel.getObject() != null && tabModel.getObject().size() > 0;
+            }
+        });
+        add(tabbedPanel);
 
-	            @Override
-	            public void onClick(AjaxRequestTarget target) {
-	                addPerformed(target, getSelectedRoot());
-	            }
-	        };
-	        add(assignRootButton);
-	     return tabbedPanel;
-	}
-	
-	private List<PrismObject<OrgType>> loadOrgRoots() {
+        Label errorLabel = new Label(ID_ERROR_LABEL, getString("assignablePopupContent.message.noOrgStructureDefined"));
+        errorLabel.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return tabModel.getObject() == null || tabModel.getObject().size() == 0;
+            }
+        });
+        add(errorLabel);
+
+        AjaxButton assignRootButton = new AjaxButton(ID_ASSIGN_ROOT, createStringResource("AssignableOrgSelectionPanel.button.assignRoot")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addPerformed(target, getSelectedRoot());
+            }
+        };
+        assignRootButton.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return tabModel.getObject() != null && tabModel.getObject().size() > 0;
+            }
+        });
+        add(assignRootButton);
+
+        AjaxButton assignButton = (AjaxButton)get(ID_ADD);
+        if (assignButton != null){
+        assignButton.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return tabModel.getObject() != null && tabModel.getObject().size() > 0;
+            }
+        });}
+        return tabbedPanel;
+    }
+
+    private List<PrismObject<OrgType>> loadOrgRoots() {
         OperationResult result = new OperationResult(OPERATION_LOAD_ORG_UNITS);
 
         PageBase pageBase = WebMiscUtil.getPageBase(this);

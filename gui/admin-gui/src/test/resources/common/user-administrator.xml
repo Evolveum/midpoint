@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<user oid="00000000-0000-0000-0000-000000000002" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	<name>administrator</name>
+	<fullName>midPoint Administrator</fullName>
+	<givenName>midPoint</givenName>
+	<familyName>Administrator</familyName>
+	<emailAddress>administrator@evolveum.com</emailAddress>
+	<activation>
+		<administrativeStatus>enabled</administrativeStatus>
+	</activation>
+	<credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+		<password>
+		 <c:value> 
+            <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+               <t:encryptionMethod>
+                  <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
+               </t:encryptionMethod>
+               <t:keyInfo>
+                  <t:keyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</t:keyName>
+               </t:keyInfo>
+               <t:cipherData>
+                  <t:cipherValue>Q27VymuHR348Vb9Ln5p06RT667FqZPSijEMxVDWw7D8=</t:cipherValue>
+               </t:cipherData>
+            </t:encryptedData>
+         </c:value>
+<!-- 			<value xmlns:enc="http://www.w3.org/2001/04/xmlenc#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"> -->
+<!-- 				<enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element"> -->
+<!-- 					<enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc" /> -->
+<!-- 					<ds:KeyInfo> -->
+<!-- 						<ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName> -->
+<!-- 					</ds:KeyInfo> -->
+<!-- 					<enc:CipherData> -->
+<!-- 						<enc:CipherValue>LZ4QxLrHPrNz/VbNXm6tJU+fHverLrpLFaRudVOaIMAJEGJtpRu7gkgGqRlOJQEH</enc:CipherValue> -->
+<!-- 					</enc:CipherData> -->
+<!-- 				</enc:EncryptedData> -->
+<!-- 			</value> -->
+		</password>
+	</credentials>
+	<assignment>
+		<targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>
+	</assignment>
+</user>

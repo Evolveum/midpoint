@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,6 +91,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -317,6 +318,13 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         assertTrue("nTSecurityDescriptor modify", nTSecurityDescriptorDef.canModify());
         assertTrue("nTSecurityDescriptor add", nTSecurityDescriptorDef.canAdd());
         
+        ResourceAttributeDefinition<Long> lastLogonDef = accountObjectClassDefinition.findAttributeDefinition("lastLogon");
+        PrismAsserts.assertDefinition(lastLogonDef, new QName(MidPointConstants.NS_RI, "lastLogon"),
+        		DOMUtil.XSD_LONG, 0, 1);
+        assertTrue("lastLogonDef read", lastLogonDef.canRead());
+        assertTrue("lastLogonDef modify", lastLogonDef.canModify());
+        assertTrue("lastLogonDef add", lastLogonDef.canAdd());
+        
 	}
 	
 	@Test
@@ -330,7 +338,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 //        assertTrue("No native activation capability", ResourceTypeUtil.hasResourceNativeActivationCapability(resourceType));
 //        assertTrue("No native activation status capability", ResourceTypeUtil.hasResourceNativeActivationStatusCapability(resourceType));
 //        assertTrue("No native lockout capability", ResourceTypeUtil.hasResourceNativeActivationLockoutCapability(resourceType));
-        assertTrue("No native credentias capability", ResourceTypeUtil.hasCredentialsCapability(resourceType));
+        assertTrue("No native credentias capability", ResourceTypeUtil.isCredentialsCapabilityEnabled(resourceType));
 	}
 	
 	@Test
@@ -433,6 +441,13 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         jackAccountOid = shadow.getOid();
         
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
+        
+        assertAttribute(shadow, "dn", "CN=Jack Sparrow,CN=Users,DC=win,DC=evolveum,DC=com");
+        assertAttribute(shadow, "cn", ACCOUNT_JACK_FULL_NAME);
+        assertAttribute(shadow, "sn", "Sparrow");
+        assertAttribute(shadow, "info", "The best pirate the world has ever seen");
+        assertAttribute(shadow, "sAMAccountName", ACCOUNT_JACK_SAM_ACCOUNT_NAME);
+        assertAttribute(shadow, "lastLogon", 0L);
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
@@ -1340,5 +1355,13 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		TestUtil.assertSuccess(result);
 	}
 
+	public <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
+		assertAttribute(shadow, new QName(getResourceNamespace(), attrName), expectedValues);
+	}
+	
+	public <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrQname, T... expectedValues) {
+		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
+		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);
+	}
 	
 }

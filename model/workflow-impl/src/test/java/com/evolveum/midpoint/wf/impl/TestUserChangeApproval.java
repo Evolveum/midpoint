@@ -144,10 +144,10 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
-                assertNotAssignedRole(USER_JACK_OID, ROLE_R1_OID, task, result);
+                assertNotAssignedRole(USER_JACK_OID, ROLE_R1_OID, rootTask, result);
             }
 
             @Override
@@ -189,8 +189,8 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There is wrong number of modifications left in primary focus delta", 1, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 ItemDelta givenNameDelta = (ItemDelta) taskModelContext.getFocusContext().getPrimaryDelta().getModifications().iterator().next();
 
@@ -240,8 +240,8 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
-                assertFalse("There is model context in the root task (it should not be there)", wfTaskUtil.hasModelContext(task));
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                assertFalse("There is model context in the root task (it should not be there)", wfTaskUtil.hasModelContext(rootTask));
             }
 
             @Override
@@ -289,8 +289,8 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There is wrong number of modifications left in primary focus delta", 2, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 Iterator<? extends ItemDelta> it = taskModelContext.getFocusContext().getPrimaryDelta().getModifications().iterator();
                 ItemDelta addRoleDelta = null, activationChange = null;
@@ -349,8 +349,8 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
-                assertFalse("There is model context in the root task (it should not be there)", wfTaskUtil.hasModelContext(task));
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                assertFalse("There is model context in the root task (it should not be there)", wfTaskUtil.hasModelContext(rootTask));
             }
 
             @Override
@@ -404,8 +404,8 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 PrismObject<UserType> objectToAdd = taskModelContext.getFocusContext().getPrimaryDelta().getObjectToAdd();
                 assertNotNull("There is no object to add left in primary focus delta", objectToAdd);
                 assertFalse("There is assignment of R1 in reduced primary focus delta", assignmentExists(objectToAdd.asObjectable().getAssignment(), ROLE_R1_OID));
@@ -463,8 +463,8 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
-                assertFalse("There is model context in the root task (it should not be there)", wfTaskUtil.hasModelContext(task));
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                assertFalse("There is model context in the root task (it should not be there)", wfTaskUtil.hasModelContext(rootTask));
             }
 
             @Override
@@ -528,8 +528,8 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
             }
 
@@ -577,8 +577,8 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
             }
 
@@ -626,8 +626,8 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
             }
 
@@ -680,7 +680,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
                 // todo perhaps the role should be assigned even at this point?
             }
 
@@ -741,8 +741,8 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 UserType jack = getUser(USER_JACK_OID).asObjectable();
                 checkNoAssignmentValidity(jack);
@@ -843,10 +843,10 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
-                assertNotAssignedResource(USER_JACK_OID, RESOURCE_DUMMY_OID, task, result);
+                assertNotAssignedResource(USER_JACK_OID, RESOURCE_DUMMY_OID, rootTask, result);
             }
 
             @Override
@@ -892,8 +892,8 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 UserType jack = getUser(USER_JACK_OID).asObjectable();
                 checkNoAssignmentValidity(jack);
@@ -950,8 +950,8 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 UserType jack = getUser(USER_JACK_OID).asObjectable();
                 checkNoAssignmentConstruction(jack, "drink");

@@ -12,6 +12,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
+import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -142,7 +143,7 @@ public class Job {
         return jobs;
     }
 
-    public List<ObjectDelta<Objectable>> retrieveResultingDeltas() throws SchemaException {
+    public ObjectTreeDeltas retrieveResultingDeltas() throws SchemaException {
         return getWfTaskUtil().retrieveResultingDeltas(task);
     }
 

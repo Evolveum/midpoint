@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -273,6 +274,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
 	public RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, AuthorizationPhaseType phase)
 			throws SchemaException {
+    	Validate.notNull(resource, "Resource must not be null");
     	// TODO: maybe we need to expose owner resolver in the interface?
 		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(shadow, null);
 		if (LOGGER.isTraceEnabled()) {
@@ -541,6 +543,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	
 	private Collection<RoleSelectionSpecEntry> createSingleDisplayableValueCollection(
 			RoleSelectionSpecEntry dval) {
+		if (dval == null) {
+			return null;
+		}
 		Collection<RoleSelectionSpecEntry> col = new ArrayList<>(1);
 		col.add(dval);
 		return col;

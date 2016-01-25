@@ -1,412 +1,281 @@
-/*
- * Copyright (c) 2010-2015 Evolveum
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.util.ListModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
+
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.box.InfoBoxPanel;
+import com.evolveum.midpoint.web.component.box.InfoBoxType;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.data.column.LinkPanel;
+import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageTemplate;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceConfigurationDto;
+import com.evolveum.midpoint.web.page.admin.resources.dto.TestConnectionResultDto;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourcePasswordDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-/**
- * @author lazyman
- * @author Michal Serbak
- */
 @PageDescriptor(url = "/admin/resource", encoder = OnePageParameterEncoder.class, action = {
-        @AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
-                label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
-                description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCE_URL,
-                label = "PageResource.auth.resource.label",
-                description = "PageResource.auth.resource.description")})
+		@AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL, label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL, description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCE_URL, label = "PageResource.auth.resource.label", description = "PageResource.auth.resource.description") })
 public class PageResource extends PageAdminResources {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageResource.class);
+	private static final long serialVersionUID = 1L;
 
-    private static final String DOT_CLASS = PageResource.class.getName() + ".";
-    private static final String OPERATION_IMPORT_FROM_RESOURCE = DOT_CLASS + "importFromResource";
-    private static final String TEST_CONNECTION = DOT_CLASS + "testConnection";
+	private static final Trace LOGGER = TraceManager.getTrace(PageResource.class);
 
-    private static final String ID_FORM_MAIN = "mainForm";
-    private static final String ID_RESOURCE_OID = "resourceOid";
-    private static final String ID_RESOURCE_NAME = "resourceName";
-    private static final String ID_RESOURCE_TYPE = "resourceType";
-    private static final String ID_RESOURCE_VERSION = "resourceVersion";
-    private static final String ID_RESOURCE_PROGRESS = "resourceProgress";
-    private static final String ID_CONNECTORS = "connectors";
-    private static final String ID_OVERALL_STATUS = "overallStatus";
-    private static final String ID_CONF_VALIDATION = "confValidation";
-    private static final String ID_CON_INITIALIZATION = "conInitialization";
-    private static final String ID_CON_CONNECTION = "conConnection";
-    private static final String ID_CON_SCHEMA = "conSchema";
-    private static final String ID_LIST_CAPABILITIES = "listCapabilities";
-    private static final String ID_CAPABILITIES = "capabilities";
-    private static final String ID_TABLE_OBJECT_TYPE = "objectTypesTable";
-    private static final String ID_BUTTON_BACK = "back";
-    private static final String ID_BUTTON_EDIT = "editResource";
-    private static final String ID_BUTTON_TEST = "test";
-    private static final String ID_BUTTON_IMPORT_ACCOUNTS = "importAccounts";
-    private static final String ID_BUTTON_DELETE_SYNC_TOKEN = "deleteSyncToken";
+	private static final String DOT_CLASS = PageResource.class.getName() + ".";
+	private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
+	private static final String OPERATION_TEST_CONNECTION = DOT_CLASS + "testConnection";
 
-    private IModel<ResourceDto> model;
-    private PrismObject<ResourceType> resource;
+	private static final String FIELD_LAST_AVAILABILITY_STATUS = "lastStatus";
+	private static final String FIELD_SOURCE_TARGET = "sourceTarget";
+	private static final String FIELD_CREDENTIALS_MAPPING = "credentialsMapping";
+	private static final String FIELD_ACTIVATION_MAPPING = "activationMapping";
+	
+	private static final String PANEL_RESOURCE_SUMMARY = "summary";
+	
+	private static final String BUTTON_TEST_CONNECTION_ID= "testConnection";
 
-    public PageResource() {
-        initialize();
-    }
+	private static final String PANEL_CAPABILITIES = "capabilities";
+	
+	private static final String TABLE_TEST_CONNECTION_RESULT_ID = "testConnectionResults";
+	
+	private static final String FORM_DETAILS_OD = "details";
 
-    public PageResource(PageParameters parameters, PageTemplate previousPage) {
-        getPageParameters().overwriteWith(parameters);
-        setPreviousPage(previousPage);
-        initialize();
-    }
+	LoadableModel<PrismObject<ResourceType>> resourceModel;
 
-    private void initialize() {
-        model = new LoadableModel<ResourceDto>() {
+	private LoadableModel<CapabilitiesDto> capabilitiesModel;
+	
+	private ListModel testConnectionModel = new ListModel();
 
-            @Override
-            protected ResourceDto load() {
-                return loadResourceDto();
-            }
-        };
-        initLayout();
-    }
+	public PageResource() {
 
-    private ResourceDto loadResourceDto() {
-        if (!isResourceOidAvailable()) {
-            getSession().error(getString("pageResource.message.oidNotDefined"));
-            throw new RestartResponseException(PageResources.class);
-        }
+	}
 
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(ResourceType.F_CONNECTOR, GetOperationOptions.createResolve());
+	public PageResource(PageParameters parameters) {
+		getPageParameters().overwriteWith(parameters);
+		initialize();
+	}
 
-        resource = loadResource(options);
-        return new ResourceDto(resource, getPrismContext(), resource.asObjectable().getConnector(),
-                initCapabilities(resource.asObjectable()));
-    }
+	public PageResource(PageParameters parameters, PageTemplate previousPage) {
+		getPageParameters().overwriteWith(parameters);
+		setPreviousPage(previousPage);
+		initialize();
+	}
 
-    private void initLayout() {
-        Form mainForm = new Form(ID_FORM_MAIN);
-        add(mainForm);
+	private void initialize() {
 
-        SortableDataProvider<ResourceObjectTypeDto, String> provider = new ListDataProvider<>(this,
-                new PropertyModel<List<ResourceObjectTypeDto>>(model, "objectTypes"));
-        provider.setSort("displayName", SortOrder.ASCENDING);
-        TablePanel objectTypes = new TablePanel<>(ID_TABLE_OBJECT_TYPE, provider, initObjectTypesColumns(),
-                UserProfileStorage.TableId.PAGE_RESOURCE_PANEL, getItemsPerPage(UserProfileStorage.TableId.PAGE_RESOURCE_PANEL));
-        objectTypes.setShowPaging(true);
-        objectTypes.setOutputMarkupId(true);
-        mainForm.add(objectTypes);
+		resourceModel = new LoadableModel<PrismObject<ResourceType>>() {
 
-        initResourceColumns(mainForm);
-        initConnectorDetails(mainForm);
-        createCapabilitiesList(mainForm);
+			@Override
+			protected PrismObject<ResourceType> load() {
+				return loadResource();
+			}
+		};
 
-        initButtons(mainForm);
-    }
+		capabilitiesModel = new LoadableModel<CapabilitiesDto>() {
+			@Override
+			protected CapabilitiesDto load() {
+				return new CapabilitiesDto(getResourceType());
+			}
+		};
 
-    private void initResourceColumns(Form mainForm) {
-        mainForm.add(new Label(ID_RESOURCE_OID, new PropertyModel<>(model, "oid")));
-        mainForm.add(new Label(ID_RESOURCE_NAME, new PropertyModel<>(model, "name")));
-        mainForm.add(new Label(ID_RESOURCE_TYPE, new PropertyModel<>(model, "type")));
-        mainForm.add(new Label(ID_RESOURCE_VERSION, new PropertyModel<>(model, "version")));
-        mainForm.add(new Label(ID_RESOURCE_PROGRESS, new PropertyModel<>(model, "progress")));
-    }
+		initLayout();
+	}
 
-    private IModel<String> createTestConnectionStateTooltip(final String expression) {
-        return new AbstractReadOnlyModel<String>() {
+	protected String getResourceOid() {
+		StringValue resourceOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+		return resourceOid != null ? resourceOid.toString() : null;
+	}
 
-            @Override
-            public String getObject() {
-                PropertyModel<OperationResultStatus> pModel = new PropertyModel<OperationResultStatus>(model, expression);
-                OperationResultStatus status = pModel.getObject();
-                if (status == null) {
-                    return "";
-                }
+	private PrismObject<ResourceType> loadResource() {
+		String resourceOid = getResourceOid();
+		LOGGER.trace("Loading resource with oid: {}", resourceOid);
 
-                return PageResource.this.getString(OperationResultStatus.class.getSimpleName() + "." + status.name());
-            }
-        };
-    }
+		Task task = createSimpleTask(OPERATION_LOAD_RESOURCE);
+		OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE);
 
-    private Label createImageLabel(String id, IModel<String> title, IModel<String> cssClass) {
-        Label label = new Label(id);
-        label.add(AttributeModifier.replace("class", cssClass));
-        label.add(AttributeModifier.replace("title", title));
+		PrismObject<ResourceType> resource = WebModelUtils.loadObject(ResourceType.class, resourceOid, this, task,
+				result);
 
-        return label;
-    }
+		result.recomputeStatus();
+		showResult(result, "pageAdminResources.message.cantLoadResource", false);
 
-    private void initConnectorDetails(Form mainForm) {
-        WebMarkupContainer container = new WebMarkupContainer(ID_CONNECTORS);
-        container.setOutputMarkupId(true);
-        mainForm.add(container);
+		return resource;
+	}
 
-        container.add(createImageLabel(ID_OVERALL_STATUS, createTestConnectionStateTooltip("state.overall"),
-                new AbstractReadOnlyModel<String>() {
+	private void initLayout() {
+		if (resourceModel == null || resourceModel.getObject() == null) {
+			return;
+		}
+		
+		ResourceSummaryPanel resourceSummary = new ResourceSummaryPanel(PANEL_RESOURCE_SUMMARY, resourceModel);
+		add(resourceSummary);
+	
 
-                    @Override
-                    public String getObject() {
-                        return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getOverall()).getIcon();
-                    }
-                }
-        ));
-        container.add(createImageLabel(ID_CONF_VALIDATION, createTestConnectionStateTooltip("state.confValidation"),
-                new AbstractReadOnlyModel<String>() {
+		TestConnectionDialog testConnectionDialog = new TestConnectionDialog(TABLE_TEST_CONNECTION_RESULT_ID,
+				new ListModel());
+		add(testConnectionDialog);
+		
+//		form.add(createTestConnectionResult());
+		
+		ResourceType resource = getResourceType();
 
-                    @Override
-                    public String getObject() {
-                        return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getConfValidation()).getIcon();
-                    }
-                }
-        ));
-        container.add(createImageLabel(ID_CON_INITIALIZATION, createTestConnectionStateTooltip("state.conInitialization"),
-                new AbstractReadOnlyModel<String>() {
+		add(addLastAvailabilityStatusInfo(resource));
 
-                    @Override
-                    public String getObject() {
-                        return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getConInitialization()).getIcon();
-                    }
-                }
-        ));
-        container.add(createImageLabel(ID_CON_CONNECTION, createTestConnectionStateTooltip("state.conConnection"),
-                new AbstractReadOnlyModel<String>() {
+		add(addSourceTargetInfo(resource));
 
-                    @Override
-                    public String getObject() {
-                        return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getConConnection()).getIcon();
-                    }
-                }
-        ));
+		add(addCapabilityMappingInfo(FIELD_CREDENTIALS_MAPPING, determineCredentialsMappings(resource),
+				"PageResource.resource.mapping.credentials"));
+		add(addCapabilityMappingInfo(FIELD_ACTIVATION_MAPPING, determineActivationMappings(resource),
+				"PageResource.resource.mapping.activation"));
 
-        container.add(createImageLabel(ID_CON_SCHEMA, createTestConnectionStateTooltip("state.conSchema"),
-                new AbstractReadOnlyModel<String>() {
+		CapabilitiesPanel capabilities = new CapabilitiesPanel(PANEL_CAPABILITIES, capabilitiesModel);
+		add(capabilities);
 
-                    @Override
-                    public String getObject() {
-                        return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getConSchema()).getIcon();
-                    }
-                }
-        ));
-    }
+		List<ResourceConfigurationDto> resourceConfigList = createResourceConfigList(resource);
 
-    private List<String> initCapabilities(ResourceType resource) {
-        OperationResult result = new OperationResult("Load resource capabilities");
-        List<String> capabilitiesName = new ArrayList<>();
-        try {
-            List<Object> capabilitiesList = ResourceTypeUtil.getEffectiveCapabilities(resource);
+		ListDataProvider<ResourceConfigurationDto> resourceConfigProvider = new ListDataProvider<ResourceConfigurationDto>(
+				PageResource.this, new ListModel<ResourceConfigurationDto>(resourceConfigList));
 
-            if (capabilitiesList != null && !capabilitiesList.isEmpty()) {
-                for (int i = 0; i < capabilitiesList.size(); i++) {
-                    capabilitiesName.add(getCapabilityName(capabilitiesList.get(i)));
-                }
-            }
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't load resource capabilities for resource'"
-                    + new PropertyModel<>(model, "name") + ".", ex);
+		List<ColumnTypeDto> columns = Arrays.asList(
+				new ColumnTypeDto("ShadowType.kind", "objectTypeDefinition.kind", ShadowType.F_KIND.getLocalPart()),
+				new ColumnTypeDto<String>("ShadowType.objectClass", "objectTypeDefinition.objectClass.localPart",
+						ShadowType.F_OBJECT_CLASS.getLocalPart()),
+				new ColumnTypeDto<String>("ShadowType.intent", "objectTypeDefinition.intent",
+						ShadowType.F_INTENT.getLocalPart()),
+				new ColumnTypeDto<Boolean>("ResourceType.isSync", "sync", null));
 
-        }
-        return capabilitiesName;
-    }
+		List<IColumn> tableColumns = ColumnUtils.createColumns(columns);
 
-    private String getCapabilityName(Object capability) {
-        if (capability instanceof JAXBElement) {
-            capability = ((JAXBElement) capability).getValue();
-        }
+		// new ColumnTypeDto<>("ResourceType.tasks", "definedTasks", null, true)
+		PropertyColumn tasksColumn = new PropertyColumn(
+				createStringResource("ResourceType.tasks"), "definedTasks") {
 
-        StringBuilder sb = new StringBuilder();
+			@Override
+			public void populateItem(Item item, String componentId, final IModel rowModel) {
+				ResourceConfigurationDto conf = (ResourceConfigurationDto) rowModel.getObject();
+				RepeatingView repeater = new RepeatingView(componentId);
+				for (final TaskType task : conf.getDefinedTasks()){
+					repeater.add(new LinkPanel(repeater.newChildId(), new Model<String>(task.getName().getOrig())) {
 
-        String className = capability.getClass().getSimpleName();
-        if (className.endsWith("CapabilityType")) {
-            sb.append(className.substring(0, className.length() - "CapabilityType".length()));
-        } else {
-            sb.append(className);
-        }
+			            @Override
+			            public void onClick(AjaxRequestTarget target) {
+			                PageResource.this.taskDetailsPerformed(target, task.getOid());
+			            }
 
-        if (capability instanceof ScriptCapabilityType) {
-            ScriptCapabilityType script = (ScriptCapabilityType) capability;
-            sb.append(": ");
-            List<ProvisioningScriptHostType> hosts = new ArrayList<>();
-            for (ScriptCapabilityType.Host host : script.getHost()) {
-                hosts.add(host.getType());
-            }
+			           
+			        });
+				}
+				
+				
+				item.add(repeater);
+			}
+			
+		};
+		
+		tableColumns.add(tasksColumn);
 
-            sb.append(StringUtils.join(hosts, ", "));
-        }
-
-        return sb.toString();
-    }
-
-    private List<IColumn<ResourceObjectTypeDto, String>> initObjectTypesColumns() {
-        List<IColumn<ResourceObjectTypeDto, String>> columns = new ArrayList<IColumn<ResourceObjectTypeDto, String>>();
-
-        columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.displayName"),
-                "displayName", "displayName"));
-        columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.nativeObjectClass"),
-                "nativeObjectClass"));
-        columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.help"), "help"));
-        columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.type"), "type"));
-
-        return columns;
-    }
-
-    private void createCapabilitiesList(Form mainForm) {
-        ListView<String> listCapabilities = new ListView<String>(ID_LIST_CAPABILITIES, createCapabilitiesModel(model)) {
-
-            @Override
-            protected void populateItem(ListItem<String> item) {
-                item.add(new Label(ID_CAPABILITIES, item.getModel()));
-
-            }
-        };
-        mainForm.add(listCapabilities);
-    }
-
-    private IModel<List<String>> createCapabilitiesModel(final IModel<ResourceDto> model) {
-        return new LoadableModel<List<String>>(false) {
-
-            @Override
-            protected List<String> load() {
-                ResourceDto resource = model.getObject();
-                return resource.getCapabilities();
-            }
-        };
-    }
-
-    private void initButtons(Form mainForm) {
-        AjaxButton back = new AjaxButton(ID_BUTTON_BACK, createStringResource("pageResource.button.back")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                if (getPreviousPage() != null) {
-                    goBack(PageDashboard.class);            // the parameter is never used really
-                } else {
-                    setResponsePage(new PageResources(false));
-                }
-            }
-        };
-        mainForm.add(back);
-
-        AjaxButton test = new AjaxButton(ID_BUTTON_TEST, createStringResource("pageResource.button.test")) {
+		BoxedTablePanel<ResourceConfigurationDto> resourceConfig = new BoxedTablePanel(
+				"resourceConfig", resourceConfigProvider, tableColumns);
+		add(resourceConfig);
+		
+		AjaxButton test = new AjaxButton(BUTTON_TEST_CONNECTION_ID, createStringResource("pageResource.button.test")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 testConnectionPerformed(target);
             }
         };
-        mainForm.add(test);
+        add(test);
 
-        AjaxButton importAccounts = new AjaxButton(ID_BUTTON_IMPORT_ACCOUNTS,
-                createStringResource("pageResource.button.importAccounts")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                importFromResourcePerformed(target);
-            }
-        };
-        mainForm.add(importAccounts);
-
-        AjaxButton link = new AjaxButton(ID_BUTTON_EDIT, createStringResource("pageResource.editResource")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, model.getObject().getOid());
-                setResponsePage(new PageResourceWizard(parameters));
-            }
-        };
-        mainForm.add(link);
-
-        AjaxButton deleteToken = new AjaxButton(ID_BUTTON_DELETE_SYNC_TOKEN, createStringResource("pageResource.deleteSyncToken")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                deleteSyncTokenPerformed(target, model);
-            }
-        };
-        mainForm.add(deleteToken);
-    }
-
-    private void testConnectionPerformed(AjaxRequestTarget target) {
-        ResourceDto dto = model.getObject();
+	}
+	
+	private void testConnectionPerformed(AjaxRequestTarget target) {
+        PrismObject<ResourceType> dto = resourceModel.getObject();
         if (dto == null || StringUtils.isEmpty(dto.getOid())) {
             error(getString("pageResource.message.oidNotDefined"));
             target.add(getFeedbackPanel());
             return;
         }
 
-        Task task = createSimpleTask(TEST_CONNECTION);
-        OperationResult result = new OperationResult(TEST_CONNECTION);
+        OperationResult result = new OperationResult(OPERATION_TEST_CONNECTION);
+        PrismObject<ResourceType> resource = null;
+        List<TestConnectionResultDto> resultsDto = new ArrayList<TestConnectionResultDto>();
         try {
+        	
+        	 Task task = createSimpleTask(OPERATION_TEST_CONNECTION);
+             
+            
             result = getModelService().testResource(dto.getOid(), task);
-            ResourceController.updateResourceState(dto.getState(), result);
-
-            // this provides some additional tests, namely a test for schema handling section
-            getModelService().getObject(ResourceType.class, dto.getOid(), null, task, result);
+           
+            for (ConnectorTestOperation connectorOperation : ConnectorTestOperation.values()){
+            for (OperationResult testResult : result.getSubresults()){
+            	if (connectorOperation.getOperation().equals(testResult.getOperation())){
+            		TestConnectionResultDto resultDto = new TestConnectionResultDto(getString("operation."+connectorOperation.getOperation()), testResult.getStatus(), testResult.getMessage());
+            		resultsDto.add(resultDto);
+            	}
+            }
+            }
+            
+           resource  = getModelService().getObject(ResourceType.class, dto.getOid(), null, task, result);
+            
+            
         } catch (ObjectNotFoundException ex) {
             result.recordFatalError("Failed to test resource connection", ex);
         } catch (ConfigurationException e) {
@@ -419,52 +288,511 @@ public class PageResource extends PageAdminResources {
             result.recordFatalError("Failed to test resource connection", e);
         }
 
-        // a bit of hack: result of TestConnection contains a result of getObject as a subresult
-        // so in case of TestConnection succeeding we recompute the result to show any (potential) getObject problems
+//        // a bit of hack: result of TestConnection contains a result of getObject as a subresult
+//        // so in case of TestConnection succeeding we recompute the result to show any (potential) getObject problems
         if (result.isSuccess()) {
             result.recomputeStatus();
         }
-
-        WebMarkupContainer connectors = (WebMarkupContainer) get(ID_FORM_MAIN + ":" + ID_CONNECTORS);
-        target.add(connectors);
-
-        if (!result.isSuccess()) {
-            showResult(result);
-            target.add(getFeedbackPanel());
-        }
+        
+        TestConnectionDialog connResult = (TestConnectionDialog) get(createComponentPath(FORM_DETAILS_OD, TABLE_TEST_CONNECTION_RESULT_ID));
+        connResult.updateModel(new ListModel<TestConnectionResultDto>(resultsDto));
+        connResult.show(target);
+        
+        // this provides some additional tests, namely a test for schema handling section
+       
+        target.add(get(createComponentPath(FORM_DETAILS_OD, FIELD_LAST_AVAILABILITY_STATUS)));
+        
+        showResult(result, "Test connection failed", false);
+//        target.add(getFeedbackPanel());
+        
     }
+	
+	private BoxedTablePanel createTestConnectionResult(){
+		
+		final ListDataProvider<TestConnectionResultDto> listprovider = new ListDataProvider<TestConnectionResultDto>(getPage(), testConnectionModel);		
+		List<ColumnTypeDto> columns = Arrays.asList(
+				new ColumnTypeDto<String>("Operation Name", "operationName", null),
+				new ColumnTypeDto("Status", "status", null),
+				new ColumnTypeDto<String>("Error Message", "errorMessage", null));
+		
+		BoxedTablePanel testConnectionResults = new BoxedTablePanel(TABLE_TEST_CONNECTION_RESULT_ID, listprovider, ColumnUtils.createColumns(columns));
+//		DataTable table = new DataTable(TABLE_TEST_CONNECTION_RESULT_ID, ColumnUtils.createColumns(columns), listprovider, 10);
+////		TablePanel table = new TablePanel(TABLE_TEST_CONNECTION_RESULT_ID, listprovider, );
+//		testConnectionResults.setOutputMarkupId(true);
 
-    private void importFromResourcePerformed(AjaxRequestTarget target) {
-        ResourceDto dto = model.getObject();
-        LOGGER.debug("Import accounts from resource {} ({}), object class {}",
-                new Object[]{dto.getName(), dto.getOid(), dto.getDefaultAccountObjectClass()});
+		testConnectionResults.add(new VisibleEnableBehaviour(){
+			
+			@Override
+			public boolean isVisible() {
+				return CollectionUtils.isNotEmpty(listprovider.getAvailableData());
+			}
+		});
+		
+		return testConnectionResults;
+	}
 
-        OperationResult result = new OperationResult(OPERATION_IMPORT_FROM_RESOURCE);
-        try {
-            Task task = createSimpleTask(OPERATION_IMPORT_FROM_RESOURCE);
-            QName objectClass =  dto.getDefaultAccountObjectClass();
-            if (objectClass == null){
-                RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
-                        LayerType.MODEL, getPrismContext());
-                if (refinedSchema == null) {
-                    error("No refined schema for " + resource);
-                    LOGGER.debug("No refined schema for " + resource);
-                } else {
-                    objectClass = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT).getObjectClassDefinition()
-                            .getTypeName();
-                }
+	private void taskDetailsPerformed(AjaxRequestTarget target, String taskOid){
+		PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
+        setResponsePage(new PageTaskEdit(parameters, this));
+		
+	}
+	
+//	private List<IColumn<ResourceConfigurationDto, String>> createColumns(List<ColumnTypeDto> columns) {
+//		List<IColumn<ResourceConfigurationDto, String>> tableColumns = new ArrayList<IColumn<ResourceConfigurationDto, String>>();
+//		for (ColumnTypeDto column : columns) {
+//			// if (column.isMultivalue()) {
+//			// PropertyColumn tableColumn = new PropertyColumn(displayModel,
+//			// propertyExpression)
+//			// } else {
+//			PropertyColumn tableColumn = new PropertyColumn(createStringResource(column.getColumnName()),
+//					column.getSortableColumn(), column.getColumnValue());
+//			tableColumns.add(tableColumn);
+//			// }
+//		}
+//		return tableColumns;
+//	}
 
-            }
-            getModelService().importFromResource(dto.getOid(), objectClass, task, result);
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Error occurred during accounts import from resource {} ({}), class {}",
-                    ex, dto.getName(), dto.getOid(), dto.getDefaultAccountObjectClass());
-            result.recordFatalError("Error occurred during importing accounts from resource.", ex);
-        }
+	private List<ResourceConfigurationDto> createResourceConfigList(ResourceType resource) {
+		OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE);
+		Task task = createSimpleTask(OPERATION_LOAD_RESOURCE);
+		List<PrismObject<TaskType>> tasks = WebModelUtils.searchObjects(TaskType.class,
+				ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class,
+						getPrismContext(), resource.getOid())),
+				result, this);
 
-        result.computeStatus();
+		List<ResourceConfigurationDto> configs = new ArrayList<>();
+		
+		if (resource.getSchemaHandling() == null){
+			return configs;
+		}
+		
+		List<ResourceObjectTypeDefinitionType> objectTypes = resource.getSchemaHandling().getObjectType();
+		
+		if (objectTypes == null){
+			return configs;
+		}
+		
+		for (ResourceObjectTypeDefinitionType objectType : objectTypes) {
+			boolean sync = false;
+			if (resource.getSynchronization() != null && resource.getSynchronization().getObjectSynchronization() != null){
+			 sync =  isSynchronizationFor	(objectType, resource.getSynchronization().getObjectSynchronization());
 
-        showResult(result);
-        target.add(getFeedbackPanel());
-    }
+			}
+			List<TaskType> syncTask = getTaskFor(tasks, objectType);
+
+			ResourceConfigurationDto resourceConfig = new ResourceConfigurationDto(objectType, sync, syncTask);
+			configs.add(resourceConfig);
+		}
+
+		return configs;
+	}
+
+	private boolean isSynchronizationFor(ResourceObjectTypeDefinitionType obejctTypesDefinition,
+			List<ObjectSynchronizationType> synchronizationPolicies) {
+
+		for (ObjectSynchronizationType synchronizationPolicy : synchronizationPolicies) {
+			List<QName> policyObjectClasses = synchronizationPolicy.getObjectClass();
+			if (policyObjectClasses == null || policyObjectClasses.isEmpty()) {
+				return isSynchronizationFor(obejctTypesDefinition, null, synchronizationPolicy.getKind(),
+						synchronizationPolicy.getIntent());
+			}
+			for (QName policyObjetClass : policyObjectClasses) {
+				return isSynchronizationFor(obejctTypesDefinition, policyObjetClass, synchronizationPolicy.getKind(),
+						synchronizationPolicy.getIntent());
+			}
+		}
+
+		return false;
+	}
+
+	private boolean isSynchronizationFor(ResourceObjectTypeDefinitionType obejctTypesDefinition, QName objectClass,
+			ShadowKindType kind, String intent) {
+		if (obejctTypesDefinition.getObjectClass() != null) {
+			if (objectClass != null) {
+				if (!objectClass.equals(obejctTypesDefinition.getObjectClass())) {
+					return false;
+				}
+			}
+		}
+
+		// kind
+		ShadowKindType shadowKind = obejctTypesDefinition.getKind();
+		if (kind != null && shadowKind != null && !kind.equals(shadowKind)) {
+			return false;
+		}
+
+		// intent
+		// TODO is the intent always present in shadow at this time? [med]
+		String shadowIntent = obejctTypesDefinition.getIntent();
+		if (intent != null && shadowIntent != null && !MiscSchemaUtil.equalsIntent(shadowIntent, intent)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	private List<TaskType> getTaskFor(List<PrismObject<TaskType>> tasks,
+			ResourceObjectTypeDefinitionType objectTypeDefinition) {
+		List<TaskType> syncTasks = new ArrayList<TaskType>();
+		for (PrismObject<TaskType> task : tasks) {
+			PrismProperty<ShadowKindType> taskKind = task
+					.findProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
+			ShadowKindType taskKindValue = null;
+			if (taskKind != null) {
+				taskKindValue = taskKind.getRealValue();
+			}
+
+			PrismProperty<String> taskIntent = task
+					.findProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
+			String taskIntentValue = null;
+			if (taskIntent != null) {
+				taskIntentValue = taskIntent.getRealValue();
+			}
+
+			PrismProperty<QName> taskObjectClass = task
+					.findProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.OBJECTCLASS_PROPERTY_NAME));
+			QName taskObjectClassValue = null;
+			if (taskObjectClass != null) {
+				taskObjectClassValue = taskObjectClass.getRealValue();
+			}
+
+			if (isSynchronizationFor(objectTypeDefinition, taskObjectClassValue, taskKindValue, taskIntentValue)) {
+				syncTasks.add(task.asObjectable());
+			}
+		}
+
+		return syncTasks;
+	}
+
+	private InfoBoxPanel addCapabilityMappingInfo(String fieldId, SourceTarget sourceTarget, String messageKey) {
+		String backgroundColor = "bg-green";
+
+		List<String> description = new ArrayList<>();
+		description.add(getString(messageKey));
+
+		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, sourceTarget.getCssClass(), description);
+		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
+
+		return new InfoBoxPanel(fieldId, boxModel);
+	}
+
+	private InfoBoxPanel addSourceTargetInfo(ResourceType resource) {
+
+		String backgroundColor = "bg-green";
+		SourceTarget sourceTarget = determineIfSourceOrTarget(resource);
+		List<String> description = new ArrayList<>();
+
+		switch (sourceTarget) {
+		case SOURCE:
+			description.add(getString("PageResource.resource.source"));
+			break;
+		case TARGET:
+			description.add(getString("PageResource.resource.target"));
+			break;
+		case SOURCE_TARGET:
+			description.add(getString("PageResource.resource.source"));
+			description.add(getString("PageResource.resource.target"));
+			break;
+
+		default:
+			description.add("No");
+			description.add("mappings");
+			description.add("defined");
+			break;
+		}
+
+		// TODO: credentials and activation mappings
+
+		if (isSynchronizationDefined(resource)) {
+			description.add(getString("PageResource.resource.sync"));
+		}
+
+		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, sourceTarget.getCssClass(), description);
+		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
+
+		return new InfoBoxPanel(FIELD_SOURCE_TARGET, boxModel);
+		
+	}
+
+	private InfoBoxPanel addLastAvailabilityStatusInfo(ResourceType resource) {
+
+		String backgroundColor = "bg-green";
+
+		if (ResourceTypeUtil.isDown(resource)) {
+			backgroundColor = "bg-red";
+		}
+
+		List<String> description = new ArrayList<>();
+		Task task = createSimpleTask(OPERATION_LOAD_RESOURCE);
+		OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE);
+		PrismObject<ConnectorType> connector = WebModelUtils.loadObject(ConnectorType.class,
+				resource.getConnectorRef().getOid(), this, task, result);
+		description.add(StringUtils
+				.substringAfterLast(WebMiscUtil.getEffectiveName(connector, ConnectorType.F_CONNECTOR_TYPE), "."));
+		ConnectorType connectorType = connector.asObjectable();
+		description.add(connectorType.getConnectorVersion());
+		description.add(connectorType.getConnectorBundle());
+
+		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, "fa-power-off", description);
+		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
+
+		InfoBoxPanel lastAvailabilityStatus = new InfoBoxPanel(FIELD_LAST_AVAILABILITY_STATUS, boxModel);
+		lastAvailabilityStatus.setOutputMarkupId(true);
+		
+		return lastAvailabilityStatus;
+		
+	}
+
+	// TODO: ####### start of move to ResourceTypeUtil ###########
+
+	private boolean isOutboundDefined(ResourceAttributeDefinitionType attr) {
+		return attr.getOutbound() != null
+				&& (attr.getOutbound().getSource() != null || attr.getOutbound().getExpression() != null);
+	}
+
+	private boolean isInboundDefined(ResourceAttributeDefinitionType attr) {
+		return attr.getInbound() != null && CollectionUtils.isNotEmpty(attr.getInbound())
+				&& (attr.getInbound().get(0).getTarget() != null || attr.getInbound().get(0).getExpression() != null);
+	}
+
+	private boolean isSynchronizationDefined(ResourceType resource) {
+		if (resource.getSynchronization() == null) {
+			return false;
+		}
+
+		if (resource.getSynchronization().getObjectSynchronization().isEmpty()) {
+			return false;
+		}
+
+		for (ObjectSynchronizationType syncType : resource.getSynchronization().getObjectSynchronization()) {
+			if (syncType.isEnabled() != null && !syncType.isEnabled()) {
+				continue;
+			}
+
+			if (CollectionUtils.isEmpty(syncType.getReaction())) {
+				continue;
+			}
+
+			return true;
+
+		}
+
+		return false;
+
+	}
+
+	private SourceTarget determineCredentialsMappings(ResourceType resource) {
+		if (resource.getSchemaHandling() != null
+				&& CollectionUtils.isNotEmpty(resource.getSchemaHandling().getObjectType())) {
+
+			boolean hasOutbound = false;
+			boolean hasInbound = false;
+
+			for (ResourceObjectTypeDefinitionType resourceObjectTypeDefinition : resource.getSchemaHandling()
+					.getObjectType()) {
+
+				if (hasInbound && hasOutbound) {
+					return SourceTarget.SOURCE_TARGET;
+				}
+
+				if (resourceObjectTypeDefinition.getCredentials() == null) {
+					continue;
+				}
+
+				if (resourceObjectTypeDefinition.getCredentials().getPassword() == null) {
+					continue;
+				}
+
+				ResourcePasswordDefinitionType passwordDef = resourceObjectTypeDefinition.getCredentials()
+						.getPassword();
+				if (!hasOutbound) {
+					hasOutbound = passwordDef.getOutbound() != null;
+				}
+
+				if (!hasInbound) {
+					hasInbound = CollectionUtils.isNotEmpty(passwordDef.getInbound());
+				}
+			}
+
+			if (hasInbound) {
+				return SourceTarget.SOURCE;
+			}
+
+			if (hasOutbound) {
+				return SourceTarget.TARGET;
+			}
+
+		}
+
+		return SourceTarget.NOT_DEFINED;
+	}
+
+	private SourceTarget determineActivationMappings(ResourceType resource) {
+		if (resource.getSchemaHandling() != null
+				&& CollectionUtils.isNotEmpty(resource.getSchemaHandling().getObjectType())) {
+
+			boolean hasOutbound = false;
+			boolean hasInbound = false;
+
+			for (ResourceObjectTypeDefinitionType resourceObjectTypeDefinition : resource.getSchemaHandling()
+					.getObjectType()) {
+
+				if (hasInbound && hasOutbound) {
+					return SourceTarget.SOURCE_TARGET;
+				}
+
+				if (resourceObjectTypeDefinition.getActivation() == null) {
+					continue;
+				}
+
+				if (!hasOutbound) {
+					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition.getActivation();
+					if (activationDef.getAdministrativeStatus() != null
+							&& CollectionUtils.isNotEmpty(activationDef.getAdministrativeStatus().getOutbound())) {
+						hasOutbound = true;
+					}
+				}
+
+				if (!hasOutbound) {
+					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition.getActivation();
+					if (activationDef.getValidFrom() != null
+							&& CollectionUtils.isNotEmpty(activationDef.getValidFrom().getOutbound())) {
+						hasOutbound = true;
+					}
+				}
+
+				if (!hasOutbound) {
+					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition.getActivation();
+					if (activationDef.getValidTo() != null
+							&& CollectionUtils.isNotEmpty(activationDef.getValidTo().getOutbound())) {
+						hasOutbound = true;
+					}
+				}
+
+				if (!hasOutbound) {
+					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition.getActivation();
+					if (activationDef.getExistence() != null
+							&& CollectionUtils.isNotEmpty(activationDef.getExistence().getOutbound())) {
+						hasOutbound = true;
+					}
+				}
+
+				if (!hasInbound) {
+					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition.getActivation();
+					if (activationDef.getAdministrativeStatus() != null
+							&& CollectionUtils.isNotEmpty(activationDef.getAdministrativeStatus().getInbound())) {
+						hasInbound = true;
+					}
+				}
+
+				if (!hasInbound) {
+					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition.getActivation();
+					if (activationDef.getValidFrom() != null
+							&& CollectionUtils.isNotEmpty(activationDef.getValidFrom().getInbound())) {
+						hasInbound = true;
+					}
+				}
+
+				if (!hasInbound) {
+					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition.getActivation();
+					if (activationDef.getValidTo() != null
+							&& CollectionUtils.isNotEmpty(activationDef.getValidTo().getInbound())) {
+						hasInbound = true;
+					}
+				}
+
+				if (!hasInbound) {
+					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition.getActivation();
+					if (activationDef.getExistence() != null
+							&& CollectionUtils.isNotEmpty(activationDef.getExistence().getInbound())) {
+						hasInbound = true;
+					}
+				}
+			}
+
+			if (hasInbound) {
+				return SourceTarget.SOURCE;
+			}
+
+			if (hasOutbound) {
+				return SourceTarget.TARGET;
+			}
+
+		}
+
+		return SourceTarget.NOT_DEFINED;
+	}
+
+	private SourceTarget determineIfSourceOrTarget(ResourceType resource) {
+
+		if (resource.getSchemaHandling() != null
+				&& CollectionUtils.isNotEmpty(resource.getSchemaHandling().getObjectType())) {
+
+			boolean hasOutbound = false;
+			boolean hasInbound = false;
+
+			for (ResourceObjectTypeDefinitionType resourceObjectTypeDefinition : resource.getSchemaHandling()
+					.getObjectType()) {
+				if (CollectionUtils.isEmpty(resourceObjectTypeDefinition.getAttribute())) {
+					continue;
+				}
+
+				if (hasInbound && hasOutbound) {
+					return SourceTarget.SOURCE_TARGET;
+				}
+
+				for (ResourceAttributeDefinitionType attr : resourceObjectTypeDefinition.getAttribute()) {
+
+					if (hasInbound && hasOutbound) {
+						return SourceTarget.SOURCE_TARGET;
+					}
+
+					if (!hasOutbound) {
+						hasOutbound = isOutboundDefined(attr);
+					}
+
+					if (!hasInbound) {
+						hasInbound = isInboundDefined(attr);
+					}
+				}
+
+				// TODO: what about situation that we have only
+			}
+
+			if (hasOutbound) {
+				return SourceTarget.TARGET;
+			}
+
+			if (hasInbound) {
+				return SourceTarget.SOURCE;
+			}
+
+		}
+
+		return SourceTarget.NOT_DEFINED;
+	}
+
+	// TODO: ####### end of move to ResourceTypeUtil ###########
+
+	private ResourceType getResourceType() {
+		PrismObject<ResourceType> resource = resourceModel.getObject();
+		return resource.asObjectable();
+	}
+
+	private enum SourceTarget {
+
+		NOT_DEFINED("fa-square-o"), SOURCE("fa-sign-in"), TARGET("fa-sign-out"), SOURCE_TARGET("fa-exchange");
+
+		private String cssClass;
+
+		SourceTarget(String cssClass) {
+			this.cssClass = cssClass;
+		}
+
+		public String getCssClass() {
+			return cssClass;
+		}
+	}
+
 }

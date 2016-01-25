@@ -30,21 +30,23 @@ import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.PrismPropertyWrapperModel;
-import com.evolveum.midpoint.web.component.util.ReadOnlyWrapperModel;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromObjectWrapperModel;
+import com.evolveum.midpoint.web.model.ReadOnlyWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 /**
  * @author semancik
  *
  */
-public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {	
+public abstract class FocusSummaryPanel<O extends ObjectType> extends Panel {	
 	private static final long serialVersionUID = -3755521482914447912L;
 	
 	private static final String ID_BOX = "summaryBox";
@@ -65,7 +67,7 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
 	
 	private WebMarkupContainer box;
 
-	public FocusSummaryPanel(String id, final IModel<ObjectWrapper<F>> model) {
+	public FocusSummaryPanel(String id, final IModel<ObjectWrapper<O>> model) {
 		super(id, model);
 		
 		box = new WebMarkupContainer(ID_BOX);
@@ -73,17 +75,17 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
 		
 		box.add(new AttributeModifier("class", BOX_CSS_CLASS + " " + getBoxAdditionalCssClass()));
 		
-		box.add(new Label(ID_DISPLAY_NAME, new PrismPropertyWrapperModel<>(model, getDisplayNamePropertyName())));
-		box.add(new Label(ID_IDENTIFIER, new PrismPropertyWrapperModel<>(model, getIdentifierPropertyName())));
+		box.add(new Label(ID_DISPLAY_NAME, new PrismPropertyRealValueFromObjectWrapperModel<>(model, getDisplayNamePropertyName())));
+		box.add(new Label(ID_IDENTIFIER, new PrismPropertyRealValueFromObjectWrapperModel<>(model, getIdentifierPropertyName())));
 		if (getTitlePropertyName() == null) {
 			box.add(new Label(ID_TITLE, " "));
 		} else {
-			box.add(new Label(ID_TITLE, new PrismPropertyWrapperModel<>(model, getTitlePropertyName(), " ")));
+			box.add(new Label(ID_TITLE, new PrismPropertyRealValueFromObjectWrapperModel<>(model, getTitlePropertyName(), " ")));
 		}
 		
-		box.add(new Label(ID_ORGANIZATION, new ReadOnlyWrapperModel<F>(model) {
+		box.add(new Label(ID_ORGANIZATION, new ReadOnlyWrapperModel<String,O>(model) {
 			@Override
-			public Object getObject() {
+			public String getObject() {
 				Collection<PrismObject<OrgType>> parentOrgs = getWrapper().getParentOrgs();
 				if (parentOrgs.isEmpty()) {
 					return "";
@@ -93,18 +95,22 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
 				for (PrismObject<OrgType> org: parentOrgs) {
 					OrgType orgType = org.asObjectable();
 					if (orgType.getOrgType().contains("functional")) {
-						return orgType.getDisplayName();
+						return PolyString.getOrig(orgType.getDisplayName());
 					}
 				}
 				// Just use the first one as a fallback
-				return parentOrgs.iterator().next().asObjectable().getDisplayName();
+				return PolyString.getOrig(parentOrgs.iterator().next().asObjectable().getDisplayName());
 			}
 		}));
 		
-		SummaryTag<F> tagActivation = new SummaryTag<F>(ID_TAG_ACTIVATION, model) {
+		SummaryTag<O> tagActivation = new SummaryTag<O>(ID_TAG_ACTIVATION, model) {
 			@Override
-			protected void initialize(ObjectWrapper<F> wrapper) {
-				ActivationType activation = wrapper.getObject().asObjectable().getActivation();
+			protected void initialize(ObjectWrapper<O> wrapper) {
+				ActivationType activation = null;
+				O object = wrapper.getObject().asObjectable();
+				if (object instanceof FocusType) {
+					activation = ((FocusType)object).getActivation();
+				}
 				if (activation == null) {
 					setIconCssClass(ICON_CLASS_ACTIVATION_ACTIVE);
 					setLabel("Active");
@@ -133,7 +139,11 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
 
             @Override
             public AbstractResource getObject() {
-            	byte[] jpegPhoto = model.getObject().getObject().asObjectable().getJpegPhoto();
+            	byte[] jpegPhoto = null;
+            	O object = model.getObject().getObject().asObjectable();
+				if (object instanceof FocusType) {
+					jpegPhoto = ((FocusType)object).getJpegPhoto();
+				}
                 if(jpegPhoto == null) {
                 	return null;
                 } else {
@@ -144,7 +154,13 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
 		img.add(new VisibleEnableBehaviour(){    		
             @Override
             public boolean isVisible(){
-            	return model.getObject().getObject().asObjectable().getJpegPhoto() != null;
+            	O object = model.getObject().getObject().asObjectable();
+				if (object instanceof FocusType) {
+					if (((FocusType)object).getJpegPhoto() != null) {
+						return true;
+					}
+				}
+            	return false;
             }
         });
 		iconBox.add(img);
@@ -154,13 +170,19 @@ public abstract class FocusSummaryPanel<F extends FocusType> extends Panel {
         icon.add(new VisibleEnableBehaviour(){    		
             @Override
             public boolean isVisible(){
-            	return model.getObject().getObject().asObjectable().getJpegPhoto() == null;
+            	O object = model.getObject().getObject().asObjectable();
+				if (object instanceof FocusType) {
+					if (((FocusType)object).getJpegPhoto() != null) {
+						return false;
+					}
+				}
+            	return true;
             }
         });
         iconBox.add(icon);
 	}
 	
-	public void addTag(SummaryTag<F> tag) {
+	public void addTag(SummaryTag<O> tag) {
 		box.add(tag);
 	}
 	

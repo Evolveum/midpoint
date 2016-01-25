@@ -16,17 +16,11 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -35,7 +29,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -43,10 +36,23 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
+import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyStrictnessType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
  *  @author shood
@@ -175,20 +181,10 @@ public class ResourceDependencyEditor extends SimplePanel<List<ResourceObjectTyp
 
                             @Override
                             public List<ObjectReferenceType> getObject() {
-                                return createResourceList();
+                                return WebModelUtils.createObjectReferenceList(ResourceType.class, getPageBase(), resourceMap);
                             }
-                        }, new IChoiceRenderer<ObjectReferenceType>() {
-
-                    @Override
-                    public Object getDisplayValue(ObjectReferenceType object) {
-                        return createResourceReadLabel(object);
-                    }
-
-                    @Override
-                    public String getIdValue(ObjectReferenceType object, int index) {
-                        return Integer.toString(index);
-                    }
-                });
+                        }, new ObjectReferenceChoiceRenderer(resourceMap));
+                        
                 resource.add(prepareAjaxOnComponentTagUpdateBehavior());
                 dependencyBody.add(resource);
 
@@ -258,7 +254,7 @@ public class ResourceDependencyEditor extends SimplePanel<List<ResourceObjectTyp
     }
 
     private AjaxFormComponentUpdatingBehavior prepareAjaxOnComponentTagUpdateBehavior(){
-        return new AjaxFormComponentUpdatingBehavior("onBlur") {
+        return new AjaxFormComponentUpdatingBehavior("Blur") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {}

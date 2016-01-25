@@ -42,18 +42,28 @@ objectclass: top
 objectclass: organizationalunit
 ou: Administrators
 
-dn: uid=idm,ou=Administrators,dc=example,dc=com
-#cn: IDM Administrator
-cn: Directory manager
+dn: cn=idm,ou=Administrators,dc=example,dc=com
+cn: idm
 description: Special LDAP acccount used by the IDM to access the LDAP data.
 #ds-privilege-name: unindexed-search
 #ds-privilege-name: password-reset
 objectclass: person
-objectclass: inetOrgPerson
-objectclass: organizationalPerson
 objectclass: top
-ou: Administrators
 sn: IDM Administrator
-uid: idm
 userpassword: secret
 
+dn: cn=phpldapadmin,ou=Administrators,dc=example,dc=com
+cn: phpldapadmin
+description: Special LDAP acccount used by the phpldapadmin to access the LDAP data.
+objectclass: person
+objectclass: top
+sn: phpldapadmin user
+userpassword: secret
+
+dn: cn=apache,ou=Administrators,dc=example,dc=com
+cn: apache
+description: Special LDAP acccount used by the apache to access the LDAP data (library).
+objectclass: person
+objectclass: top
+sn: apache library user
+userpassword: secret

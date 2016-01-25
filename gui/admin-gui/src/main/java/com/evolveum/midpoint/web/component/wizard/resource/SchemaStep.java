@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.component.SchemaListPanel;
 import com.evolveum.midpoint.web.component.wizard.resource.component.XmlEditorPanel;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -89,7 +90,8 @@ public class SchemaStep extends WizardStep {
     }
 
     private IModel<String> createStringModel(String resourceKey) {
-        return new StringResourceModel(resourceKey, this, null, resourceKey);
+    	return PageTemplate.createStringResourceStatic(this, resourceKey);
+//        return new StringResourceModel(resourceKey, this, null, resourceKey);
     }
 
     private IModel<String> createXmlEditorModel() {

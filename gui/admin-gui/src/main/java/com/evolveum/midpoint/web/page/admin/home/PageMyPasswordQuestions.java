@@ -6,7 +6,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
+
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -36,7 +39,6 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.component.MyPasswordQuestionsPanel;
@@ -482,16 +484,17 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 		}
 
 		ContainerStatus status = ContainerStatus.MODIFYING;
-		ObjectWrapper wrapper = null;
+		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
+		ObjectWrapper wrapper;
 		try{
-			wrapper = ObjectWrapperUtil.createObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, status, this);
+			wrapper = owf.createObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, status);
 		} catch (Exception ex){
 			result.recordFatalError("Couldn't get user.", ex);
 			LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
-			wrapper = new ObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, null, status, this);
+			wrapper = owf.createObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, null, null, status, false);
 		}
 		//        ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails", null, user, status);
-		if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+		if (owf.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
 			showResultInSession(wrapper.getResult());
 		}
 

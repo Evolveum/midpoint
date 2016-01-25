@@ -18,10 +18,12 @@ package com.evolveum.midpoint.web.page.admin.server.dto;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.web.component.util.Choiceable;
+
 /**
  * @author mserbak
  */
-public class TaskAddResourcesDto implements Serializable {
+public class TaskAddResourcesDto implements Serializable, Choiceable {
 	private String name;
 	private String oid;
 
@@ -30,6 +32,7 @@ public class TaskAddResourcesDto implements Serializable {
 		this.name = name;
 	}
 
+	@Override
 	public String getName() {
 		return name;
 	}

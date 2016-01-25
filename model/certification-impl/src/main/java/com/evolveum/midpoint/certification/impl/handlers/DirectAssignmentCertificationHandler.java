@@ -89,6 +89,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
         if (campaign.getScopeDefinition() instanceof AccessCertificationAssignmentReviewScopeType) {
             assignmentScope = (AccessCertificationAssignmentReviewScopeType) campaign.getScopeDefinition();
         }
+        // TODO what if AccessCertificationObjectBasedScopeType?
 
         ObjectType object = objectPrism.asObjectable();
         if (!(object instanceof FocusType)) {

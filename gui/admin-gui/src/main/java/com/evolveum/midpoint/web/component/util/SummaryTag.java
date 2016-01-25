@@ -21,6 +21,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.model.ReadOnlyWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -42,24 +43,24 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 		super(id, model);
 		
 		Label tagIcon = new Label(ID_TAG_ICON, "");
-		tagIcon.add(new AttributeModifier("class", new SummaryTagWrapperModel(model) {
+		tagIcon.add(new AttributeModifier("class", new SummaryTagWrapperModel<String>(model) {
 			@Override
-			protected Object getValue() {
+			protected String getValue() {
 				return getIconCssClass();
 			}
 		}));
 		add(tagIcon);
 		
-		add(new Label(ID_TAG_LABEL, new SummaryTagWrapperModel(model) {
+		add(new Label(ID_TAG_LABEL, new SummaryTagWrapperModel<String>(model) {
 			@Override
-			protected Object getValue() {
+			protected String getValue() {
 				return getLabel();
 			}
 		}));
 		
-		add(new AttributeModifier("style", new SummaryTagWrapperModel(model) {
+		add(new AttributeModifier("style", new SummaryTagWrapperModel<String>(model) {
 			@Override
-			protected Object getValue() {
+			protected String getValue() {
 				if (getColor() == null) {
 					return null;
 				}
@@ -112,21 +113,21 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 
 	protected abstract void initialize(ObjectWrapper<O> objectWrapper);
 
-	abstract class SummaryTagWrapperModel extends ReadOnlyWrapperModel<O> {
+	abstract class SummaryTagWrapperModel<T> extends ReadOnlyWrapperModel<T,O> {
 		
 		public SummaryTagWrapperModel(IModel<ObjectWrapper<O>> wrapperModel) {
 			super(wrapperModel);
 		}
 
 		@Override
-		public Object getObject() {
+		public T getObject() {
 			if (!initialized) {
 				initialize(getWrapper());
 			}
 			return getValue();
 		}
 
-		protected abstract Object getValue();
+		protected abstract T getValue();
 
 	}
 }

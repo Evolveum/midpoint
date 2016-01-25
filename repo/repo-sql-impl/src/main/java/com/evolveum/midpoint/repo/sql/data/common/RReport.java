@@ -6,6 +6,7 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.RExportType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROrientationType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
+import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -13,6 +14,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 
@@ -21,6 +23,7 @@ import java.util.Collection;
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(name = "uc_report_name", columnNames = {"name_norm"}))
 @ForeignKey(name = "fk_report")
+@Persister(impl = MidPointJoinedPersister.class)
 public class RReport extends RObject<ReportType> {
 
     private RPolyString name;

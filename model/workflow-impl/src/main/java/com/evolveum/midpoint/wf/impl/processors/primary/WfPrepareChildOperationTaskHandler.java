@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
@@ -41,13 +42,17 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.jobs.Job;
 import com.evolveum.midpoint.wf.impl.jobs.JobController;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This handler prepares model operation to be executed within the context of child task:
@@ -100,11 +105,10 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
 
             // prepare deltaOut to be used
 
-            List<ObjectDelta<Objectable>> deltasOut = job.retrieveResultingDeltas();
+            ObjectTreeDeltas deltasOut = job.retrieveResultingDeltas();
             if (LOGGER.isTraceEnabled()) { dumpDeltaOut(deltasOut); }
-            ObjectDelta deltaOut = ObjectDelta.summarize(deltasOut);
 
-            if (deltaOut == null || deltaOut.isEmpty()) {
+            if (deltasOut == null || deltasOut.isEmpty()) {
 
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("There's no primary delta in focus context; task = " + task + ", model context = " + modelContext.debugDump());
@@ -115,20 +119,26 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
 
             } else {
 
-                setOidIfNeeded(deltaOut, task, result);         // fixes OID in deltaOut, if necessary
+                // TODO what about projection deltas?
+                setOidIfNeeded(deltasOut.getFocusChange(), task, result);         // fixes OID in deltaOut, if necessary
 
-                if (deltaOut.getOid() == null || deltaOut.getOid().equals(PrimaryChangeProcessor.UNKNOWN_OID)) {
-                    throw new IllegalStateException("Null or unknown OID in deltaOut: " + deltaOut.getOid());
-                }
+//                if (deltaOut.getOid() == null || deltaOut.getOid().equals(PrimaryChangeProcessor.UNKNOWN_OID)) {
+//                    throw new IllegalStateException("Null or unknown OID in deltaOut: " + deltaOut.getOid());
+//                }
 
                 // place deltaOut into model context
 
-                ObjectDelta primaryDelta = modelContext.getFocusContext().getPrimaryDelta();
-                if (primaryDelta == null || !primaryDelta.isModify()) {
-                    throw new IllegalStateException("Object delta in model context in task " + task + " should have been empty or of MODIFY type, but it isn't; it is " + primaryDelta.debugDump());
-                }
+//                ObjectDelta existingPrimaryDelta = modelContext.getFocusContext().getPrimaryDelta();
+//                if (existingPrimaryDelta == null || !existingPrimaryDelta.isModify()) {
+//                    throw new IllegalStateException("Object delta in model context in task " + task + " should have been empty or of MODIFY type, but it isn't; it is " + existingPrimaryDelta.debugDump());
+//                }
 
-                modelContext.getFocusContext().setPrimaryDelta(deltaOut);
+                modelContext.getFocusContext().setPrimaryDelta(deltasOut.getFocusChange());
+                Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> entries = deltasOut.getProjectionChangeMapEntries();
+                for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry : entries) {
+                    // TODO what if projection context does not exist?
+                    modelContext.findProjectionContext(entry.getKey()).setPrimaryDelta(entry.getValue());
+                }
 
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Resulting model context to be stored into task {}:\n{}", task, modelContext.debugDump(0));
@@ -161,6 +171,10 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
     }
 
     private void setOidIfNeeded(ObjectDelta deltaOut, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+
+        if (deltaOut == null) {
+            return;
+        }
 
         List<Task> prerequisites = task.listPrerequisiteTasks(result);
 
@@ -202,7 +216,9 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
         }
     }
 
-    private void dumpDeltaOut(List<ObjectDelta<Objectable>> deltaOut) {
+    // TODO implement correctly
+    private void dumpDeltaOut(ObjectTreeDeltas deltasOut) {
+        List<ObjectDelta<Objectable>> deltaOut = deltasOut != null ? deltasOut.getDeltaList() : new ArrayList<>();
         LOGGER.trace("deltaOut has " + deltaOut.size() + " modifications:");
         for (ObjectDelta<Objectable> delta : deltaOut) {
             LOGGER.trace(delta.debugDump());

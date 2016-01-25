@@ -299,7 +299,7 @@ public class ResourceObjectConverter {
 			}
 			transformActivationAttributes(ctx, shadowType, parentResult);
 			
-			if (!ResourceTypeUtil.hasCreateCapability(resource)){
+			if (!ResourceTypeUtil.isCreateCapabilityEnabled(resource)){
 				throw new UnsupportedOperationException("Resource does not support 'create' operation");
 			}
 			
@@ -384,7 +384,7 @@ public class ResourceObjectConverter {
 								SchemaDebugUtil.debugDump(additionalOperations) });
 			}
 			
-			if (!ResourceTypeUtil.hasDeleteCapability(ctx.getResource())){
+			if (!ResourceTypeUtil.isDeleteCapabilityEnabled(ctx.getResource())){
 				throw new UnsupportedOperationException("Resource does not support 'delete' operation");
 			}
 
@@ -559,7 +559,7 @@ public class ResourceObjectConverter {
 								SchemaDebugUtil.debugDump(identifiers,1), SchemaDebugUtil.debugDump(operations,1) });
 			}
 			
-			if (!ResourceTypeUtil.hasUpdateCapability(ctx.getResource())){
+			if (!ResourceTypeUtil.isUpdateCapabilityEnabled(ctx.getResource())){
 				if (operations == null || operations.isEmpty()){
 					LOGGER.debug("No modifications for connector object specified (after filtering). Skipping processing.");
 					parentResult.recordSuccess();
@@ -1547,7 +1547,7 @@ public class ResourceObjectConverter {
 		// shadow are not completed..therefore there need to be one more check,
 		// we must check not only if the activation is null, but if it is, also
 		// if the shadow doesn't have defined simulated activation capability
-		if (resourceObjectType.getActivation() != null || ResourceTypeUtil.hasActivationCapability(resourceType)) {
+		if (resourceObjectType.getActivation() != null || ResourceTypeUtil.isActivationCapabilityEnabled(resourceType)) {
 			ActivationType activationType = completeActivation(resourceObject, resourceType, parentResult);
 			LOGGER.trace("Determined activation, administrativeStatus: {}, lockoutStatus: {}",
 					activationType == null ? "null activationType" : activationType.getAdministrativeStatus(),
@@ -1589,7 +1589,7 @@ public class ResourceObjectConverter {
 
 		if (ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
 			return shadow.asObjectable().getActivation();
-		} else if (ResourceTypeUtil.hasActivationCapability(resource)) {
+		} else if (ResourceTypeUtil.isActivationCapabilityEnabled(resource)) {
 			return convertFromSimulatedActivationAttributes(resource, shadow, parentResult);
 		} else {
 			// No activation capability, nothing to do

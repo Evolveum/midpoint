@@ -2298,6 +2298,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
         	QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(secondaryIdentifierValue));
 			optionsBuilder.setContainer(containerQualifiedUid);
         }
+        
+        // Relax completeness requirements. This is a search, not get. So it is OK to
+        // return incomplete member lists and similar attributes.
+        optionsBuilder.setAllowPartialAttributeValues(true);
+        
 		OperationOptions options = optionsBuilder.build();
 
 		Filter filter;

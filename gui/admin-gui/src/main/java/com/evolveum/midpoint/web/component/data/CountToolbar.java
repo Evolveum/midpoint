@@ -1,7 +1,9 @@
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.PageTemplate;
+import com.evolveum.midpoint.web.model.LoadableModel;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractToolbar;
@@ -95,11 +97,10 @@ public class CountToolbar extends AbstractToolbar {
                 }
 
                 if (count > 0) {
-                    return new StringResourceModel("CountToolbar.label", CountToolbar.this, null,
-                            new Object[]{from, to, count}).getString();
+                	PageTemplate.createStringResourceStatic(CountToolbar.this, "CountToolbar.label", new Object[]{from, to, count});
                 }
 
-                return new StringResourceModel("CountToolbar.noFound", CountToolbar.this, null).getString();
+                return PageTemplate.createStringResourceStatic(CountToolbar.this, "CountToolbar.noFound").getString();
             }
         };
     }

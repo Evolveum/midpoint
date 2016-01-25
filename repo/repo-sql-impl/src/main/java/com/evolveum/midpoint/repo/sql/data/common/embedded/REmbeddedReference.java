@@ -51,8 +51,6 @@ import javax.persistence.MapsId;
 public class REmbeddedReference implements ObjectReference {
 
     //target
-    @NotFound(action = NotFoundAction.IGNORE)
-    private RObject target;
     private String targetOid;
     //other fields
     private RObjectType type;
@@ -72,15 +70,12 @@ public class REmbeddedReference implements ObjectReference {
     @NotFound(action = NotFoundAction.IGNORE)
     @NotQueryable
     public RObject getTarget() {
-        return target;
+        return null;
     }
 
     @Column(length = RUtil.COLUMN_LENGTH_OID, insertable = true, updatable = true, nullable = true /*, insertable = false, updatable = false */)
     @Override
     public String getTargetOid() {
-        if (target != null && targetOid == null) {
-            targetOid = target.getOid();
-        }
         return targetOid;
     }
 
@@ -103,7 +98,6 @@ public class REmbeddedReference implements ObjectReference {
     }
 
     public void setTarget(RObject target) {
-        this.target = target;
     }
 
     @Override

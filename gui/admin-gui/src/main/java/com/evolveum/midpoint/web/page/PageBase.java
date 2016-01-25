@@ -56,6 +56,7 @@ import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageImportResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceOld;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
@@ -63,10 +64,7 @@ import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.admin.users.*;
 import com.evolveum.midpoint.web.page.admin.workflow.*;
 import com.evolveum.midpoint.web.page.self.PageSelfAssignments;
 import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
@@ -76,11 +74,13 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.ModelServiceLocator;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -100,7 +100,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public abstract class PageBase extends PageTemplate {
+public abstract class PageBase extends PageTemplate implements ModelServiceLocator {
 
     private static final String DOT_CLASS = PageBase.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
@@ -192,6 +192,7 @@ public abstract class PageBase extends PageTemplate {
         return certificationManager;
     }
 
+    @Override
     public ModelService getModelService() {
         return modelService;
     }
@@ -208,6 +209,7 @@ public abstract class PageBase extends PageTemplate {
         return securityEnforcer;
     }
 
+    @Override
     public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
     }
@@ -220,9 +222,9 @@ public abstract class PageBase extends PageTemplate {
         return formValidatorRegistry;
     }
 
-    public static StringResourceModel createStringResourceStatic(Component component, String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, component, new Model<String>(), resourceKey, objects);
-    }
+//    public static StringResourceModel createStringResourceStatic(Component component, String resourceKey, Object... objects) {
+//        return new StringResourceModel(resourceKey, component, new Model<String>(), resourceKey, objects);
+//    }
 
     public static StringResourceModel createStringResourceStatic(Component component, Enum e) {
         String resourceKey = createEnumResourceKey(e);
@@ -467,9 +469,8 @@ public abstract class PageBase extends PageTemplate {
         MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.definitions"),
                 PageCertDefinitions.class);
         submenu.add(menu);
-        createFocusPageViewMenu(submenu, "PageAdmin.menu.top.certification.viewDefinition", PageCertDefinition.class);
         menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.newDefinition"),
-                PageImportObject.class);
+                PageCertDefinition.class);
         submenu.add(menu);
         menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.campaigns"),
                 PageCertCampaigns.class);

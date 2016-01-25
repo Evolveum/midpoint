@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.component.util;
 
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -58,7 +60,8 @@ public abstract class BaseDeprecatedPanel<T> extends Panel {
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
+    	return PageTemplate.createStringResourceStatic(this, resourceKey, objects);
+//        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 
     public StringResourceModel createStringResource(Enum e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ import java.util.Collections;
 
 /**
  * Puts together all objects necessary for managing progress reporting and abort functionality.
- * Provides a facade so that this functionality can be easily used from withing relevant wicket pages
+ * Provides a facade so that this functionality can be easily used from within relevant wicket pages
  * (edit user, org, role, ...).
  *
  * An instance of this class has to be created for each progress reporting case - e.g. at least
@@ -67,7 +67,6 @@ public class ProgressReporter implements Serializable {
     private static final Trace LOGGER = TraceManager.getTrace(ProgressReporter.class);
 
     // links to wicket artefacts on parent page
-    private AjaxSubmitButton saveButton;
     private AjaxSubmitButton abortButton;
     private ProgressReportingAwarePage parentPage;
     private ProgressPanel progressPanel;
@@ -83,22 +82,24 @@ public class ProgressReporter implements Serializable {
     private int refreshInterval;
     private boolean asynchronousExecution;
     private boolean abortEnabled;
+    
+    public ProgressPanel getProgressPanel() {
+		return progressPanel;
+	}
 
-    /**
+	/**
      * Creates and initializes a progress reporter instance. Should be called during initialization
      * of respective wicket page.
      *
      * @param parentPage The parent page (user, org, role, ...)
-     * @param mainForm A form onto which progress panel should be put
      * @param id Wicket ID of the progress panel
      * @return Progress reporter instance
      */
-    public static ProgressReporter create(ProgressReportingAwarePage parentPage, Form mainForm, String id) {
+    public static ProgressReporter create(String id, ProgressReportingAwarePage parentPage) {
         ProgressReporter reporter = new ProgressReporter();
-        reporter.progressPanel = new ProgressPanel(id, new Model<>(new ProgressDto()));
+        reporter.progressPanel = new ProgressPanel(id, new Model<>(new ProgressDto()), reporter, parentPage);
         reporter.progressPanel.setOutputMarkupId(true);
         reporter.progressPanel.hide();
-        mainForm.add(reporter.progressPanel);
 
         WebApplicationConfiguration config = parentPage.getWebApplicationConfiguration();
         reporter.refreshInterval = config.getProgressRefreshInterval();
@@ -111,15 +112,6 @@ public class ProgressReporter implements Serializable {
     }
 
     // ===================== Dealing with the SAVE button =======================
-
-    /**
-     * By calling this, let the reporter know what is your "Save" button - e.g. in order to hide it when necessary.
-     */
-    public void registerSaveButton(AjaxSubmitButton saveButton) {
-        saveButton.setOutputMarkupId(true);
-        saveButton.setOutputMarkupPlaceholderTag(true);
-        this.saveButton = saveButton;
-    }
 
     /**
      * Should be called when "save" button is submitted.
@@ -140,7 +132,8 @@ public class ProgressReporter implements Serializable {
      * @param target AjaxRequestTarget into which any synchronous changes are signalized.
      */
     public void executeChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, final ModelExecuteOptions options, final Task task, final OperationResult result, AjaxRequestTarget target) {
-        ModelService modelService = parentPage.getModelService();
+        parentPage.startProcessing(target, result);
+    	ModelService modelService = parentPage.getModelService();
         if (asynchronousExecution) {
             executeChangesAsync(deltas, options, task, result, target, modelService);
         } else {
@@ -198,23 +191,11 @@ public class ProgressReporter implements Serializable {
         if (abortEnabled) {
             showAbortButton(target);
         }
-        hideSaveButton(target);
-        //saveButton.setEnabled(false);         // this doesn't work as expected
 
         result.recordInProgress();              // to disable showing not-final results (why does it work? and why is the result shown otherwise?)
 
         asyncExecutionThread = new Thread(execution);
         asyncExecutionThread.start();
-    }
-
-    public void hideSaveButton(AjaxRequestTarget target) {
-        saveButton.setVisible(false);
-        target.add(saveButton);
-    }
-
-    public void showSaveButton(AjaxRequestTarget target) {
-        saveButton.setVisible(true);
-        target.add(saveButton);
     }
 
     private void startRefreshingProgressPanel(AjaxRequestTarget target) {
@@ -231,14 +212,6 @@ public class ProgressReporter implements Serializable {
                         asyncOperationResult.recomputeStatus(); // because we set it to in-progress
 
                         stopRefreshingProgressPanel();
-
-                        // TODO this is a bit of heuristics - we give user a chance to retry the operation if the error is fatal (RETHINK/REVISE THIS "POLICY")
-                        if (asyncOperationResult.isFatalError()) {
-                            saveButton.setVisible(true);            // enable re-saving after fixing (potential) error
-                            target.add(saveButton);
-                        }
-                        abortButton.setVisible(false);
-                        target.add(abortButton);
 
                         parentPage.finishProcessing(target, asyncOperationResult);
                         asyncOperationResult = null;

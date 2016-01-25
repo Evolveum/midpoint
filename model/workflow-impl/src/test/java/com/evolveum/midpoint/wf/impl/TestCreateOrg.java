@@ -88,10 +88,10 @@ public class TestCreateOrg extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertTrue("Primary focus delta is not empty", taskModelContext.getFocusContext().getPrimaryDelta().isEmpty());
-                assertNoObject(OrgType.class, ORG_TEST1_OID, task, result);
+                assertNoObject(OrgType.class, ORG_TEST1_OID, rootTask, result);
             }
 
             @Override
@@ -128,10 +128,10 @@ public class TestCreateOrg extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
+            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertTrue("Primary focus delta is not empty", taskModelContext.getFocusContext().getPrimaryDelta().isEmpty());
-                assertNoObject(OrgType.class, ORG_TEST1_OID, task, result);
+                assertNoObject(OrgType.class, ORG_TEST1_OID, rootTask, result);
             }
 
             @Override

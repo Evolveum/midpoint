@@ -790,6 +790,10 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         return createProperty(propertyQName);
     }
     
+    public <X> PrismProperty<X> findOrCreateProperty(ItemPath propertyPath) throws SchemaException {
+        return findOrCreateItem(propertyPath, PrismProperty.class, null);
+    }
+    
     public <X> PrismProperty<X> findOrCreateProperty(PrismPropertyDefinition propertyDef) throws SchemaException {
         PrismProperty<X> property = findItem(propertyDef.getName(), PrismProperty.class);
         if (property != null) {

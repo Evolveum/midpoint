@@ -24,15 +24,17 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.dto.ExpressionTypeDto;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -106,7 +108,7 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
                 new PropertyModel<ExpressionUtil.ExpressionEvaluatorType>(model, ExpressionTypeDto.F_TYPE),
                 WebMiscUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
                 new EnumChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType>(this));
-        type.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+        type.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -135,7 +137,7 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
                 new PropertyModel<ExpressionUtil.Language>(model, ExpressionTypeDto.F_LANGUAGE),
                 WebMiscUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
                 new EnumChoiceRenderer<ExpressionUtil.Language>(this));
-        language.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+        language.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -164,21 +166,11 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
 
                     @Override
                     public List<ObjectReferenceType> getObject() {
-                        return createPasswordPolicyList();
+                        return WebModelUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), policyMap);
                     }
-                }, new IChoiceRenderer<ObjectReferenceType>() {
-
-            @Override
-            public Object getDisplayValue(ObjectReferenceType object) {
-                return policyMap.get(object.getOid());
-            }
-
-            @Override
-            public String getIdValue(ObjectReferenceType object, int index) {
-                return Integer.toString(index);
-            }
-        });
-        policyRef.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+                }, new ObjectReferenceChoiceRenderer(policyMap));
+        
+        policyRef.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -222,40 +214,40 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
         add(expressionTooltip);
     }
 
-    private List<ObjectReferenceType> createPasswordPolicyList(){
-        policyMap.clear();
-        OperationResult result = new OperationResult(OPERATION_LOAD_PASSWORD_POLICIES);
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_PASSWORD_POLICIES);
-        List<PrismObject<ValuePolicyType>> policies = null;
-        List<ObjectReferenceType> references = new ArrayList<>();
-
-        try{
-            policies = getPageBase().getModelService().searchObjects(ValuePolicyType.class, new ObjectQuery(), null, task, result);
-            result.recomputeStatus();
-        } catch (Exception e){
-            result.recordFatalError("Couldn't load password policies.", e);
-            LoggingUtils.logException(LOGGER, "Couldn't load password policies", e);
-        }
-
-        // TODO - show error somehow
-        // if(!result.isSuccess()){
-        //    getPageBase().showResult(result);
-        // }
-
-        if(policies != null){
-            ObjectReferenceType ref;
-
-            for(PrismObject<ValuePolicyType> policy: policies){
-                policyMap.put(policy.getOid(), WebMiscUtil.getName(policy));
-                ref = new ObjectReferenceType();
-                ref.setType(ValuePolicyType.COMPLEX_TYPE);
-                ref.setOid(policy.getOid());
-                references.add(ref);
-            }
-        }
-
-        return references;
-    }
+//    private List<ObjectReferenceType> createPasswordPolicyList(){
+//        policyMap.clear();
+//        OperationResult result = new OperationResult(OPERATION_LOAD_PASSWORD_POLICIES);
+//        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_PASSWORD_POLICIES);
+//        List<PrismObject<ValuePolicyType>> policies = null;
+//        List<ObjectReferenceType> references = new ArrayList<>();
+//
+//        try{
+//            policies = getPageBase().getModelService().searchObjects(ValuePolicyType.class, new ObjectQuery(), null, task, result);
+//            result.recomputeStatus();
+//        } catch (Exception e){
+//            result.recordFatalError("Couldn't load password policies.", e);
+//            LoggingUtils.logException(LOGGER, "Couldn't load password policies", e);
+//        }
+//
+//        // TODO - show error somehow
+//        // if(!result.isSuccess()){
+//        //    getPageBase().showResult(result);
+//        // }
+//
+//        if(policies != null){
+//            ObjectReferenceType ref;
+//
+//            for(PrismObject<ValuePolicyType> policy: policies){
+//                policyMap.put(policy.getOid(), WebMiscUtil.getName(policy));
+//                ref = new ObjectReferenceType();
+//                ref.setType(ValuePolicyType.COMPLEX_TYPE);
+//                ref.setOid(policy.getOid());
+//                references.add(ref);
+//            }
+//        }
+//
+//        return references;
+//    }
 
     protected void updateExpressionPerformed(AjaxRequestTarget target){
         try {

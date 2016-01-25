@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
+import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameEditorPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.WizardUtil;
@@ -160,18 +161,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
                     public List<QName> getObject() {
                         return loadObjectReferences(false);
                     }
-                }, new IChoiceRenderer<QName>() {
-
-            @Override
-            public Object getDisplayValue(QName object) {
-                return prepareReferenceDisplayValue(object);
-            }
-
-            @Override
-            public String getIdValue(QName object, int index) {
-                return Integer.toString(index);
-            }
-        });
+                }, new QNameChoiceRenderer(true));
         associationAttribute.setNullValid(true);
         add(associationAttribute);
 
@@ -183,18 +173,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
                     public List<QName> getObject() {
                         return loadObjectReferences(false);
                     }
-                }, new IChoiceRenderer<QName>() {
-
-            @Override
-            public Object getDisplayValue(QName object) {
-                return prepareReferenceDisplayValue(object);
-            }
-
-            @Override
-            public String getIdValue(QName object, int index) {
-                return Integer.toString(index);
-            }
-        });
+                }, new QNameChoiceRenderer(true));
         valueAttribute.setNullValid(true);
         add(valueAttribute);
 
@@ -253,18 +232,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
                     public List<QName> getObject() {
                         return WebMiscUtil.getMatchingRuleList();
                     }
-                }, new IChoiceRenderer<QName>() {
-
-            @Override
-            public Object getDisplayValue(QName object) {
-                return object.getLocalPart();
-            }
-
-            @Override
-            public String getIdValue(QName object, int index) {
-                return Integer.toString(index);
-            }
-        });
+                }, new QNameChoiceRenderer());
         matchingRule.setNullValid(true);
         add(matchingRule);
 

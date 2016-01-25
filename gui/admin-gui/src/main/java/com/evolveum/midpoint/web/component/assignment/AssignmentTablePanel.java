@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,11 +35,12 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.page.admin.users.component.*;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -52,6 +53,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,13 +62,11 @@ import java.util.List;
 /**
  * @author shood
  */
-public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<List<AssignmentEditorDto>> {
+public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<AssignmentEditorDto>> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentTablePanel.class);
 
 	private static final String DOT_CLASS = AssignmentTablePanel.class.getName() + ".";
-	private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
-	private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
 
 	private static final String ID_ASSIGNMENTS = "assignments";
 	private static final String ID_CHECK_ALL = "assignmentsCheckAll";
@@ -86,7 +86,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<List
 			IModel<List<AssignmentEditorDto>> assignmentModel) {
 		super(id, assignmentModel);
 
-		initPanelLayout(label);
+		initLayout(label);
 	}
 
 	public List<AssignmentType> getAssignmentTypeList() {
@@ -101,7 +101,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<List
 		return getModel();
 	}
 
-	private void initPanelLayout(IModel<String> labelText) {
+	private void initLayout(IModel<String> labelText) {
 		final WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
 		assignments.setOutputMarkupId(true);
 		add(assignments);
@@ -390,21 +390,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<List
 					continue;
 				}
 
-				AssignmentEditorDtoType aType = AssignmentEditorDtoType.getType(object.getClass());
-
-				ObjectReferenceType targetRef = new ObjectReferenceType();
-				targetRef.setOid(object.getOid());
-				targetRef.setType(aType.getQname());
-				targetRef.setTargetName(object.getName());
-
-				AssignmentType assignment = new AssignmentType();
-				assignment.setTargetRef(targetRef);
-
-				AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, assignment,
-						getPageBase());
-				dto.setMinimized(false);
-				dto.setShowEmpty(true);
-
+				AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(object, getPageBase());
 				assignments.add(dto);
 			} catch (Exception e) {
 				error(getString("AssignmentTablePanel.message.couldntAssignObject", object.getName(),
@@ -451,7 +437,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<List
 			}
 
 			AssignmentType assignment = new AssignmentType();
-			PrismContainerValue value = assDto.getNewValue();
+			PrismContainerValue value = assDto.getNewValue(getPageBase().getPrismContext());
 			assignment.setupContainerValue(value);
 			value.applyDefinition(assignmentDef, false);
 			objectAssignments.add(assignment.clone());
@@ -476,7 +462,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<List
 
 		List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
 		for (AssignmentEditorDto assDto : assignments) {
-			PrismContainerValue newValue = assDto.getNewValue();
+			PrismContainerValue newValue = assDto.getNewValue(getPageBase().getPrismContext());
 			switch (assDto.getStatus()) {
 				case ADD:
 					newValue.applyDefinition(def, false);
@@ -488,7 +474,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<List
 					assDelta.addValueToDelete(oldValue.clone());
 					break;
 				case MODIFY:
-					if (!assDto.isModified()) {
+					if (!assDto.isModified(getPageBase().getPrismContext())) {
 						LOGGER.trace("Assignment '{}' not modified.", new Object[] { assDto.getName() });
 						continue;
 					}
@@ -529,30 +515,11 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<List
 			ItemPath deltaPath = delta.getPath().rest();
 			ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
 
-			delta.setParentPath(joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
+			delta.setParentPath(WebMiscUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
 			delta.applyDefinition(deltaDef);
 
 			userDelta.addModification(delta);
 		}
-	}
-
-	private ItemPath joinPath(ItemPath path, ItemPath deltaPath) {
-		List<ItemPathSegment> newPath = new ArrayList<ItemPathSegment>();
-
-		ItemPathSegment firstDeltaSegment = deltaPath != null ? deltaPath.first() : null;
-		if (path != null) {
-			for (ItemPathSegment seg : path.getSegments()) {
-				if (seg.equivalent(firstDeltaSegment)) {
-					break;
-				}
-				newPath.add(seg);
-			}
-		}
-		if (deltaPath != null) {
-			newPath.addAll(deltaPath.getSegments());
-		}
-
-		return new ItemPath(newPath);
 	}
 
 	/**

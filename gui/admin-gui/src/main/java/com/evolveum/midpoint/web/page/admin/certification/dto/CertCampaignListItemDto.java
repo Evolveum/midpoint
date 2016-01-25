@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
@@ -125,12 +126,14 @@ public class CertCampaignListItemDto extends Selectable implements InlineMenuabl
             //todo i18n for durations
             if (delta > 0) {
                 String key = stageLevelInfo ? "PageCertCampaigns.inForStage" : "PageCertCampaigns.inForCampaign";
-                return new StringResourceModel(key, page, null, null,
-                        DurationFormatUtils.formatDurationWords(delta, true, true)).getString();
+                return PageTemplate.createStringResourceStatic(page, key, DurationFormatUtils.formatDurationWords(delta, true, true)).getString();
+//                return new StringResourceModel(key, page, null, null,
+//                        DurationFormatUtils.formatDurationWords(delta, true, true)).getString();
             } else if (delta < 0) {
                 String key = stageLevelInfo ? "PageCertCampaigns.agoForStage" : "PageCertCampaigns.agoForCampaign";
-                return new StringResourceModel(key, page, null, null,
-                        DurationFormatUtils.formatDurationWords(-delta, true, true)).getString();
+                return PageTemplate.createStringResourceStatic(page, key, DurationFormatUtils.formatDurationWords(-delta, true, true)).getString();
+//                return new StringResourceModel(key, page, null, null,
+//                        DurationFormatUtils.formatDurationWords(-delta, true, true)).getString();
             } else {
                 String key = stageLevelInfo ? "PageCertCampaigns.nowForStage" : "PageCertCampaigns.nowForCampaign";
                 return page.getString(key);

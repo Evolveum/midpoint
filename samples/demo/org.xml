@@ -77,7 +77,7 @@
 			<construction>
 		    		<resourceRef oid="ebd0bf7b-7e80-4175-ba5e-4fd5de2ecd62" type="c:ResourceType"/>
 					<kind>account</kind>
-				<attribute>
+						<attribute>
 		                    <ref>ri:ou</ref>
 		                    <outbound>
 		                    	<expression>

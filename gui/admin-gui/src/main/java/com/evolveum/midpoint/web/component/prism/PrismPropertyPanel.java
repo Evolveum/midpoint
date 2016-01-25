@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -35,6 +36,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -42,6 +44,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.migrate.StringResourceModelMigration;
 import org.apache.wicket.model.*;
 
 import java.util.List;
@@ -49,7 +52,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class PrismPropertyPanel extends Panel {
+public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyPanel.class);
     private static final String ID_HAS_PENDING_MODIFICATION = "hasPendingModification";
@@ -58,8 +61,9 @@ public class PrismPropertyPanel extends Panel {
 
     private PageBase pageBase;
 
-    public PrismPropertyPanel(String id, final IModel<ItemWrapper> model, Form form, PageBase pageBase) {
+    public PrismPropertyPanel(String id, final IModel<IW> model, Form form, PageBase pageBase) {
         super(id);
+        Validate.notNull(model, "no model");
         this.pageBase = pageBase;
 
         LOGGER.trace("Creating property panel for {}", model.getObject());
@@ -84,7 +88,7 @@ public class PrismPropertyPanel extends Panel {
         initLayout(model, form);
     }
 
-    private void initLayout(final IModel<ItemWrapper> model, final Form form) {
+    private void initLayout(final IModel<IW> model, final Form form) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         labelContainer.setOutputMarkupId(true);
         add(labelContainer);
@@ -173,19 +177,19 @@ public class PrismPropertyPanel extends Panel {
         add(values);
     }
 
-    protected String getInputCssClass(){
-        return"col-xs-9";
+    protected String getInputCssClass() {
+        return"col-xs-10";
     }
 
-    protected String getValuesClass(){
+    protected String getValuesClass() {
         return "col-md-6";
     }
 
-    protected String getValueCssClass(){
+    protected String getValueCssClass() {
         return "row";
     }
 
-    private String loadHelpText(IModel<ItemWrapper> model) {
+    private String loadHelpText(IModel<IW> model) {
         Item property = (Item) model.getObject().getItem();
         ItemDefinition def = property.getDefinition();
         String doc = def.getHelp();
@@ -193,7 +197,8 @@ public class PrismPropertyPanel extends Panel {
             return null;
         }
 
-        return new StringResourceModel(doc, null, doc).getString();
+        return PageTemplate.createStringResourceStatic(this, doc).getString();
+//        return StringResourceModelMigration.of(doc, null, doc).getString();
     }
 
     private IModel<String> createStyleClassModel(final IModel<ValueWrapper> value) {
@@ -222,7 +227,7 @@ public class PrismPropertyPanel extends Panel {
         return -1;
     }
 
-    private boolean hasOutbound(IModel<ItemWrapper> model) {
+    private boolean hasOutbound(IModel<IW> model) {
         ItemWrapper wrapper = model.getObject();
         Item property = wrapper.getItem();
         ItemDefinition def = property.getDefinition();
@@ -234,7 +239,7 @@ public class PrismPropertyPanel extends Panel {
         return refinedDef.hasOutboundMapping();
     }
 
-    private boolean hasPendingModification(IModel<ItemWrapper> model) {
+    private boolean hasPendingModification(IModel<IW> model) {
         ItemWrapper propertyWrapper = model.getObject();
         ContainerWrapper containerWrapper = propertyWrapper.getContainer();
         ObjectWrapper objectWrapper = containerWrapper.getObject();
@@ -266,12 +271,12 @@ public class PrismPropertyPanel extends Panel {
         return false;
     }
 
-    private IModel<String> createDisplayName(final IModel<ItemWrapper> model) {
+    private IModel<String> createDisplayName(final IModel<IW> model) {
         return new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
-                ItemWrapper wrapper = model.getObject();
+                IW wrapper = model.getObject();
                 String displayName = wrapper.getDisplayName();
                 return getString(displayName, null, displayName);
             }

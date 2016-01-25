@@ -15,14 +15,15 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
-import java.io.Serializable;
-import java.util.List;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author semancik
@@ -43,6 +44,8 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
 	public ObjectDelta<O> getPrimaryDelta();
 	
 	public void setPrimaryDelta(ObjectDelta<O> primaryDelta);
+
+	void addPrimaryDelta(ObjectDelta<O> value) throws SchemaException;
 	
 	public ObjectDelta<O> getSecondaryDelta();
 	

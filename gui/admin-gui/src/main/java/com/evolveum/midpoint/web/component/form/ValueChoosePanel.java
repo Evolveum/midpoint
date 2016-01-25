@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2010-2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.component.form;
 
 import java.util.ArrayList;
@@ -5,8 +20,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPage;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import org.apache.wicket.Page;
-import org.apache.wicket.PageReference;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -27,7 +41,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.roles.component.UserOrgReferenceChoosePanel;
@@ -37,7 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class ValueChoosePanel<T, C extends ObjectType> extends SimplePanel<T> {
+public class ValueChoosePanel<T, C extends ObjectType> extends BasePanel<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(MultiValueChoosePanel.class);
 
@@ -70,7 +84,7 @@ public class ValueChoosePanel<T, C extends ObjectType> extends SimplePanel<T> {
         textWrapper.setOutputMarkupId(true);
 
         TextField text = new TextField<>(ID_TEXT, createTextModel(value));
-        text.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+        text.add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
             protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
             }
@@ -244,7 +258,7 @@ public class ValueChoosePanel<T, C extends ObjectType> extends SimplePanel<T> {
                 } else if (ort instanceof ObjectViewDto) {
                     return ((ObjectViewDto) ort).getName();
                 }
-                return ort.toString();
+                return ort != null ? ort.toString() : null;
 
             }
         };

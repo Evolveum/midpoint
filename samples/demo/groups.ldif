@@ -1,11 +1,11 @@
 dn: cn=painters,ou=Groups,dc=example,dc=com
-objectClass: groupOfUniqueNames
+objectClass: groupOfNames
 objectClass: top
 cn: painters
-uniqueMember: uid=leonardo, ou=People, dc=example,dc=com
+member: uid=leonardo, ou=People, dc=example,dc=com
 
 dn: cn=employees,ou=Groups,dc=example,dc=com
-objectClass: groupOfUniqueNames
+objectClass: groupOfNames
 objectClass: top
 cn: employees
 
