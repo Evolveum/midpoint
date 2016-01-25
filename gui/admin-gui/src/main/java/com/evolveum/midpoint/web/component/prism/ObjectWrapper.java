@@ -286,6 +286,10 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
     }
 
     public ObjectDelta<O> getObjectDelta() throws SchemaException {
+    	if (LOGGER.isTraceEnabled()) {
+    		LOGGER.trace("Wrapper before creating delta:\n{}", this.debugDump());
+    	}
+    	
         if (ContainerStatus.ADDING.equals(getStatus())) {
             return createAddingObjectDelta();
         }
@@ -332,13 +336,13 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
                         if (!pDelta.isEmpty()) {
                             delta.addModification(pDelta);
                         }
-                    }
-
-                    if (itemWrapper instanceof ReferenceWrapper) {
+                    } else if (itemWrapper instanceof ReferenceWrapper) {
                         ReferenceDelta pDelta = computeReferenceDeltas((ReferenceWrapper) itemWrapper, containerPath);
                         if (!pDelta.isEmpty()) {
                             delta.addModification(pDelta);
                         }
+                    } else {
+                    	LOGGER.trace("Delta from wrapper: ignoring {}", itemWrapper);
                     }
 
                 }
@@ -350,6 +354,10 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         if (object.getPrismContext() != null) {
 	        // Make sure we have all the definitions
 	        object.getPrismContext().adopt(delta);
+        }
+        
+        if (LOGGER.isTraceEnabled()) {
+        	LOGGER.trace("Creating delta from wrapper {}: existing object, creating delta:\n{}", this, delta.debugDump());
         }
         
         return delta;
@@ -405,9 +413,11 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
                 case ADDED:
                     if (newValCloned != null) {
                         if (SchemaConstants.PATH_PASSWORD.equivalent(containerPath)) {
-                            // password change will always look like
-                            // add,
+                            // password change will always look like add,
                             // therefore we push replace
+                        	if (LOGGER.isTraceEnabled()) {
+                        		LOGGER.trace("Delta from wrapper: {} (password) ADD -> replace {}", pDelta.getPath(), newValCloned);
+                        	}
                             pDelta.setValuesToReplace(Arrays.asList(newValCloned));
                         } else if (propertyDef.isSingleValue()) {
                             // values for single-valued properties
@@ -415,17 +425,29 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
                             // in order to prevent problems e.g. with
                             // summarizing deltas for
                             // unreachable resources
+                        	if (LOGGER.isTraceEnabled()) {
+                        		LOGGER.trace("Delta from wrapper: {} (single,new) ADD -> replace {}", pDelta.getPath(), newValCloned);
+                        	}
                             pDelta.setValueToReplace(newValCloned);
                         } else {
+                        	if (LOGGER.isTraceEnabled()) {
+                        		LOGGER.trace("Delta from wrapper: {} (multi,new) ADD -> add {}", pDelta.getPath(), newValCloned);
+                        	}
                             pDelta.addValueToAdd(newValCloned);
                         }
                     }
                     break;
                 case DELETED:
                     if (newValCloned != null) {
+                    	if (LOGGER.isTraceEnabled()) {
+                    		LOGGER.trace("Delta from wrapper: {} (new) DELETE -> delete {}", pDelta.getPath(), newValCloned);
+                    	}
                         pDelta.addValueToDelete(newValCloned);
                     }
                     if (oldValCloned != null) {
+                    	if (LOGGER.isTraceEnabled()) {
+                    		LOGGER.trace("Delta from wrapper: {} (old) DELETE -> delete {}", pDelta.getPath(), oldValCloned);
+                    	}
                         pDelta.addValueToDelete(oldValCloned);
                     }
                     break;
@@ -434,17 +456,29 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
                     if (propertyDef.isSingleValue()) {
                         // newValCloned.isEmpty()
                         if (newValCloned != null && !newValCloned.isEmpty()) {
+                        	if (LOGGER.isTraceEnabled()) {
+                        		LOGGER.trace("Delta from wrapper: {} (single,new) NOT_CHANGED -> replace {}", pDelta.getPath(), newValCloned);
+                        	}
                             pDelta.setValuesToReplace(Arrays.asList(newValCloned));
                         } else {
                             if (oldValCloned != null) {
+                            	if (LOGGER.isTraceEnabled()) {
+                            		LOGGER.trace("Delta from wrapper: {} (single,old) NOT_CHANGED -> delete {}", pDelta.getPath(), oldValCloned);
+                            	}
                                 pDelta.addValueToDelete(oldValCloned);
                             }
                         }
                     } else {
                         if (newValCloned != null && !newValCloned.isEmpty()) {
+                        	if (LOGGER.isTraceEnabled()) {
+                        		LOGGER.trace("Delta from wrapper: {} (multi,new) NOT_CHANGED -> add {}", pDelta.getPath(), newValCloned);
+                        	}
                             pDelta.addValueToAdd(newValCloned);
                         }
                         if (oldValCloned != null) {
+                        	if (LOGGER.isTraceEnabled()) {
+                        		LOGGER.trace("Delta from wrapper: {} (multi,old) NOT_CHANGED -> delete {}", pDelta.getPath(), oldValCloned);
+                        	}
                             pDelta.addValueToDelete(oldValCloned);
                         }
                     }
@@ -577,6 +611,10 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         // returning container to previous order
         Collections.sort(containers, new ItemWrapperComparator());
 
+        if (LOGGER.isTraceEnabled()) {
+        	LOGGER.trace("Creating delta from wrapper {}: adding object, creating complete ADD delta:\n{}", this, delta.debugDump());
+        }
+        
         if (InternalsConfig.consistencyChecks) {
             delta.checkConsistence(true, true, true, ConsistencyCheckScope.THOROUGH);
         }
