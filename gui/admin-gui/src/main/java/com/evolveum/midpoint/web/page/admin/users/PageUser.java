@@ -132,7 +132,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
 	@Override
 	protected PageBase getDefaultBackPage() {
-		return new PageUser();
+		return new PageUsers();
 	}
 
 }
