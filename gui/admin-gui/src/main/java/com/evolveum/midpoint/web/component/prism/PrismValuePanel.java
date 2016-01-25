@@ -36,7 +36,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
-import com.evolveum.midpoint.web.page.admin.users.component.AssociationValueChoosePanel;
+import com.evolveum.midpoint.web.page.admin.users.component.AssociationValueChoicePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.ClassUtils;
@@ -286,7 +286,7 @@ public class PrismValuePanel extends Panel {
             return false;
         }
         Component inputPanel = this.get(ID_VALUE_CONTAINER).get(ID_INPUT);
-        if (inputPanel instanceof  ValueChoosePanel || inputPanel instanceof AssociationValueChoosePanel){
+        if (inputPanel instanceof  ValueChoosePanel || inputPanel instanceof AssociationValueChoicePanel){
             return true;
         }
 
@@ -658,7 +658,7 @@ public class PrismValuePanel extends Panel {
 	            		assocTarget.getTypeName(), assocTarget.getKind(), assocTarget.getIntent());
 	
 	            List values = item.getValues();
-	            return new AssociationValueChoosePanel(id, model, values, false, ShadowType.class, query);
+	            return new AssociationValueChoicePanel(id, model, values, false, ShadowType.class, query);
             }
         }
 
@@ -785,7 +785,7 @@ public class PrismValuePanel extends Panel {
                 error("Couldn't delete already deleted item: " + wrapper.toString());
                 target.add(((PageBase) getPage()).getFeedbackPanel());
             case NOT_CHANGED:
-                if (inputPanel instanceof AssociationValueChoosePanel) {
+                if (inputPanel instanceof AssociationValueChoicePanel) {
                     ((PropertyWrapper)propertyWrapper).setStatus(ValueStatus.DELETED);
                 }
                 wrapper.setStatus(ValueStatus.DELETED);
@@ -799,7 +799,7 @@ public class PrismValuePanel extends Panel {
         if (count == 0 && !hasEmptyPlaceholder(propertyWrapper)) {
             if (inputPanel instanceof ValueChoosePanel) {
                 values.add(new ValueWrapper(propertyWrapper, new PrismReferenceValue(null), ValueStatus.ADDED));
-            } else if (inputPanel instanceof AssociationValueChoosePanel) {
+            } else if (inputPanel instanceof AssociationValueChoicePanel) {
                 Item item = propertyWrapper.getItem();
                 ItemPath path = item.getPath();
                 if (path != null){
