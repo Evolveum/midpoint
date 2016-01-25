@@ -77,7 +77,6 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
     private OperationResult result;
     private boolean protectedAccount;
 
-    private List<PrismContainerValue<ShadowAssociationType>> associations;
     private Collection<PrismObject<OrgType>> parentOrgs = new ArrayList<>();
 
     private OperationResult fetchResult;
@@ -125,14 +124,6 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
                 containerWrapper.revive(prismContext);
             }
         }
-    }
-
-    public List<PrismContainerValue<ShadowAssociationType>> getAssociations() {
-        return associations;
-    }
-
-    public void setAssociations(List<PrismContainerValue<ShadowAssociationType>> associations) {
-        this.associations = associations;
     }
 
     public Collection<PrismObject<OrgType>> getParentOrgs() {

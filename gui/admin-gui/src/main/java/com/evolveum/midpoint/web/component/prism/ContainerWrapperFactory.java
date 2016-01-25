@@ -21,6 +21,8 @@ import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -195,26 +197,31 @@ public class ContainerWrapperFactory {
         } else if (isShadowAssociation(cWrapper)) {
             PrismContext prismContext = objectWrapper.getObject().getPrismContext();
             Map<QName, PrismContainer<ShadowAssociationType>> assocMap = new HashMap<>();
-            if (objectWrapper.getAssociations() != null) {
-                List<PrismContainerValue<ShadowAssociationType>> associations = objectWrapper.getAssociations();
-                for (PrismContainerValue<ShadowAssociationType> cval : associations) {
-                    ShadowAssociationType associationType = cval.asContainerable();
-                    QName assocName = associationType.getName();
-                    PrismContainer<ShadowAssociationType> fractionalContainer = assocMap.get(assocName);
-                    if (fractionalContainer == null) {
-                        fractionalContainer = new PrismContainer<>(ShadowType.F_ASSOCIATION, ShadowAssociationType.class, cval.getPrismContext());
-                        fractionalContainer.setDefinition(cval.getParent().getDefinition());
-                        // HACK: set the name of the association as the element name so wrapper.getName() will return correct data.
-                        fractionalContainer.setElementName(assocName);
-                        assocMap.put(assocName, fractionalContainer);
-                    }
-                    try {
-                        fractionalContainer.add(cval.clone());
-                    } catch (SchemaException e) {
-                        // Should not happen
-                        throw new SystemException("Unexpected error: " + e.getMessage(), e);
-                    }
-                }
+            PrismContainer<ShadowAssociationType> associationContainer = cWrapper.getItem();
+        	if (associationContainer != null && associationContainer.getValues() != null) {
+	            // Do NOT load shadows here. This will be huge overhead if there are many associations.
+	        	// Load them on-demand (if necessary at all).
+	            List<PrismContainerValue<ShadowAssociationType>> associations = associationContainer.getValues();
+	            if (associations != null) {
+	                for (PrismContainerValue<ShadowAssociationType> cval : associations) {
+	                    ShadowAssociationType associationType = cval.asContainerable();
+	                    QName assocName = associationType.getName();
+	                    PrismContainer<ShadowAssociationType> fractionalContainer = assocMap.get(assocName);
+	                    if (fractionalContainer == null) {
+	                        fractionalContainer = new PrismContainer<>(ShadowType.F_ASSOCIATION, ShadowAssociationType.class, cval.getPrismContext());
+	                        fractionalContainer.setDefinition(cval.getParent().getDefinition());
+	                        // HACK: set the name of the association as the element name so wrapper.getName() will return correct data.
+	                        fractionalContainer.setElementName(assocName);
+	                        assocMap.put(assocName, fractionalContainer);
+	                    }
+	                    try {
+	                        fractionalContainer.add(cval.clone());
+	                    } catch (SchemaException e) {
+	                        // Should not happen
+	                        throw new SystemException("Unexpected error: " + e.getMessage(), e);
+	                    }
+	                }
+	            }
             }
 
             PrismReference resourceRef = parent.findReference(ShadowType.F_RESOURCE_REF);
@@ -341,7 +348,7 @@ public class ContainerWrapperFactory {
         return properties;
     }
 
-    private boolean isShadowAssociation(ContainerWrapper cWrapper) {
+	private boolean isShadowAssociation(ContainerWrapper cWrapper) {
         ObjectWrapper oWrapper = cWrapper.getObject();
         PrismContainer container = cWrapper.getItem();
 
