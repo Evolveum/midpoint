@@ -2301,7 +2301,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
         
         // Relax completeness requirements. This is a search, not get. So it is OK to
         // return incomplete member lists and similar attributes.
-//        optionsBuilder.setAllowPartialAttributeValues(true);
+        optionsBuilder.setAllowPartialAttributeValues(true);
         
 		OperationOptions options = optionsBuilder.build();
 
