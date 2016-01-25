@@ -29,6 +29,8 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -44,6 +46,7 @@ public class PrismContainerPanel extends Panel {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismContainerPanel.class);
     private static final String ID_SHOW_EMPTY_FIELDS = "showEmptyFields";
+    private static final String STRIPED_CLASS = "striped";
 
     private boolean showHeader;
     private boolean showEmptyFields;
@@ -71,7 +74,7 @@ public class PrismContainerPanel extends Panel {
                 if (prismContainer.getDefinition().isOperational()) {
                     return false;
                 }
-                
+
                 // HACK HACK HACK
                 if (ShadowType.F_ASSOCIATION.equals(prismContainer.getElementName())) {
                 	return true;
@@ -90,6 +93,15 @@ public class PrismContainerPanel extends Panel {
         });
 
         initLayout(model, form);
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("fixStripingOnPrismForm('").append(getMarkupId()).append("', '").append(STRIPED_CLASS).append("');");
+        response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
     }
 
     private void initLayout(final IModel<ContainerWrapper> model, final Form form) {
