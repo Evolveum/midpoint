@@ -143,6 +143,10 @@ public class ObjectWrapperFactory {
 
         objectWrapper.setResult(this.result);
 
+        if (LOGGER.isTraceEnabled()) {
+        	LOGGER.trace("Created object wrapper:\n{}", objectWrapper.debugDump());
+        }
+        
         return objectWrapper;
     }
 
