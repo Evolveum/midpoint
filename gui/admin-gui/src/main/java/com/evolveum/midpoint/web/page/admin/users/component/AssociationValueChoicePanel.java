@@ -64,9 +64,9 @@ import java.util.List;
     // (for now ValueChoosePanel works only with PrismReferenceValue);
     //in future some super class is to be created to union the common
     // functionality of these 2 classes
-public class AssociationValueChoosePanel <C extends ObjectType> extends BasePanel<PrismContainerValue<ShadowAssociationType>> {
+public class AssociationValueChoicePanel <C extends ObjectType> extends BasePanel<PrismContainerValue<ShadowAssociationType>> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AssociationValueChoosePanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AssociationValueChoicePanel.class);
 
     private static final String ID_LABEL = "label";
 
@@ -82,7 +82,7 @@ public class AssociationValueChoosePanel <C extends ObjectType> extends BasePane
     private IModel<ValueWrapper<PrismContainerValue<ShadowAssociationType>>> model;
     private ObjectQuery query = null;
 
-    public AssociationValueChoosePanel(String id, IModel<ValueWrapper<PrismContainerValue<ShadowAssociationType>>> model, List<PrismPropertyValue> values, boolean required, Class<C> type,
+    public AssociationValueChoicePanel(String id, IModel<ValueWrapper<PrismContainerValue<ShadowAssociationType>>> model, List<PrismPropertyValue> values, boolean required, Class<C> type,
                                        ObjectQuery query){
         super(id, (IModel)new PropertyModel<>(model, "value"));
         this.model = model;
@@ -166,8 +166,8 @@ public class AssociationValueChoosePanel <C extends ObjectType> extends BasePane
         ObjectSelectionPanel.Context context = new ObjectSelectionPanel.Context(this) {
 
             // See analogous discussion in ChooseTypePanel
-            public AssociationValueChoosePanel getRealParent() {
-                return WebMiscUtil.theSameForPage(AssociationValueChoosePanel.this, getCallingPageReference());
+            public AssociationValueChoicePanel getRealParent() {
+                return WebMiscUtil.theSameForPage(AssociationValueChoicePanel.this, getCallingPageReference());
             }
 
             @Override
@@ -208,8 +208,8 @@ public class AssociationValueChoosePanel <C extends ObjectType> extends BasePane
         ObjectSelectionPanel.Context context = new ObjectSelectionPanel.Context(this) {
 
             // See analogous discussion in ChooseTypePanel
-            public AssociationValueChoosePanel getRealParent() {
-                return WebMiscUtil.theSameForPage(AssociationValueChoosePanel.this, getCallingPageReference());
+            public AssociationValueChoicePanel getRealParent() {
+                return WebMiscUtil.theSameForPage(AssociationValueChoicePanel.this, getCallingPageReference());
             }
 
             @Override
@@ -288,9 +288,9 @@ public class AssociationValueChoosePanel <C extends ObjectType> extends BasePane
             	}
             	PrismReferenceValue shadowRef = cval.findReference(ShadowAssociationType.F_SHADOW_REF).getValue();
             	if (shadowRef.getObject() == null) {
-            		ShadowIdentifiersType identifiers = cval.asContainerable().getIdentifiers();
-            		Element e = (Element) identifiers.getAny().get(0);
-            		return e.getTextContent();
+            		PrismContainer<Containerable> identifiersContainer = cval.findContainer(ShadowAssociationType.F_IDENTIFIERS);
+            		PrismProperty<String> identifierProp = (PrismProperty<String>) identifiersContainer.getValue().getItems().get(0);
+            		return identifierProp.getRealValue();
             	} else {
             		return shadowRef.getObject().getName().toString();
             	}
