@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContainerable;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
@@ -29,11 +30,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class MidPointDataSource implements JRDataSource{
 
-	Collection<PrismObject<? extends ObjectType>> resultList = null;
-	Iterator<PrismObject<? extends ObjectType>> iterator = null;
-	PrismObject<? extends ObjectType> currentObject = null; 
+	public static final String PARENT_NAME = "_parent_";
+
+	Collection<PrismContainerValue<? extends Containerable>> resultList = null;
+	Iterator<PrismContainerValue<? extends Containerable>> iterator = null;
+	PrismContainerValue<? extends Containerable> currentObject = null;
 	
-	public MidPointDataSource(Collection<PrismObject<? extends ObjectType>> results) {
+	public MidPointDataSource(Collection<PrismContainerValue<? extends Containerable>> results) {
 		this.resultList = results;
 		if (results != null){
 			iterator = results.iterator();
@@ -43,7 +46,6 @@ public class MidPointDataSource implements JRDataSource{
 	
 	@Override
 	public boolean next() throws JRException {
-		// TODO Auto-generated method stub
 		boolean hasNext = false;
 		if (this.iterator != null) {
 			hasNext = this.iterator.hasNext();
@@ -54,22 +56,29 @@ public class MidPointDataSource implements JRDataSource{
 		}
 
 		return hasNext;
-//		}
-//		throw new UnsupportedOperationException("dataSource.next() not supported");
-//		return false;
 	}
 
 	@Override
 	public Object getFieldValue(JRField jrField) throws JRException {
-		// TODO Auto-generated method stub
 		String fieldName = jrField.getName();
 		if (fieldName.equals("oid")){
-			return currentObject.getOid();
+			if (currentObject.getParent() instanceof PrismObject) {
+				return ((PrismObject) currentObject.getParent()).getOid();
+			} else {
+				throw new IllegalStateException("oid property is not supported for " + currentObject.getClass());
+			}
 		}
+		if (PARENT_NAME.equals(fieldName)) {
+			PrismContainerable parent1 = currentObject.getParent();
+			if (!(parent1 instanceof PrismContainer)) {
+				return null;
+			}
+			return ((PrismContainer) parent1).getParent();
+		}
+
 		Item i = currentObject.findItem(new QName(fieldName));
-		if (i == null){
+		if (i == null) {
 			return null;
-//			throw new JRException("Object of type " + currentObject.getCompileTimeClass().getSimpleName() + " does not contain field " + fieldName +".");
 		}
 	
 		if (i instanceof PrismProperty){

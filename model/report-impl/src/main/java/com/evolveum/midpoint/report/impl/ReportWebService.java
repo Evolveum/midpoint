@@ -68,7 +68,7 @@ public class ReportWebService implements ReportPortType, ReportPort {
 	public ObjectListType evaluateScript(String script, RemoteReportParametersType parameters) {
 		try {
 			Map<QName, Object> params = getParamsMap(parameters);
-			Collection<PrismObject<? extends ObjectType>> resultList = reportService.evaluateScript(script,
+			Collection resultList = reportService.evaluateScript(script,
 					params);
 			return createObjectListType(resultList);
 		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
@@ -121,14 +121,24 @@ public class ReportWebService implements ReportPortType, ReportPort {
 
 	}
 
-	private ObjectListType createObjectListType(Collection<PrismObject<? extends ObjectType>> resultList) {
+	private ObjectListType createObjectListType(Collection resultList) {
 		if (resultList == null) {
 			return new ObjectListType();
 		}
 
 		ObjectListType results = new ObjectListType();
-		for (PrismObject<? extends ObjectType> prismObject : resultList) {
-			results.getObject().add(prismObject.asObjectable());
+		int skipped = 0;
+		for (Object object : resultList) {
+			if (object instanceof PrismObject) {
+				results.getObject().add(((PrismObject<ObjectType>) object).asObjectable());
+			} else if (object instanceof ObjectType) {
+				results.getObject().add((ObjectType) object);
+			} else {
+				skipped++;
+			}
+		}
+		if (skipped > 0) {
+			LOGGER.warn("{} non-PrismObject data objects not returned, as these are not supported by ReportWebService yet", skipped);
 		}
 
 		return results;
