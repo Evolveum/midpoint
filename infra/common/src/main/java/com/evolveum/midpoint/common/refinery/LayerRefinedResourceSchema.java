@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.common.refinery;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -217,7 +218,7 @@ public class LayerRefinedResourceSchema extends RefinedResourceSchema {
 		return refinedResourceSchema.createObjectClassDefinition(typeName);
 	}
 
-	public Collection<? extends RefinedObjectClassDefinition> getRefinedDefinitions() {
+	public List<? extends RefinedObjectClassDefinition> getRefinedDefinitions() {
 		return refinedResourceSchema.getRefinedDefinitions();
 	}
 

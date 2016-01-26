@@ -2,6 +2,8 @@ package com.evolveum.midpoint.web.component.input;
 
 import java.util.List;
 
+import com.ctc.wstx.util.StringUtil;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 
@@ -27,6 +29,6 @@ public class ChoiceableChoiceRenderer<T extends Choiceable> implements IChoiceRe
 
 	@Override
 	public T getObject(String id, IModel<? extends List<? extends T>> choices) {
-		return choices.getObject().get(Integer.parseInt(id));
+		return StringUtils.isNotEmpty(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
 	}
 }

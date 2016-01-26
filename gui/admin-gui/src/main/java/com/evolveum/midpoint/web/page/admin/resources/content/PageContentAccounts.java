@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -32,6 +34,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -76,6 +79,7 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.dialog.UserBrowserDialog;
+import com.evolveum.midpoint.web.component.input.RefinedObjectTypeChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageTemplate;
@@ -129,6 +133,8 @@ public class PageContentAccounts extends PageAdminResources {
     private static final String ID_NAME_CHECK = "nameCheck";
     private static final String ID_IDENTIFIERS_CHECK = "identifiersCheck";
     private static final String ID_TABLE = "table";
+    private static final String ID_OBJECTCLASS_FORM = "objectclassForm";
+    private static final String ID_OBJECTCLASS_INPUT = "objectclassInput";
 
     private IModel<PrismObject<ResourceType>> resourceModel;
     private IModel<AccountContentSearchDto> searchModel;
@@ -239,12 +245,14 @@ public class PageContentAccounts extends PageAdminResources {
             }
         };
         searchForm.add(basicSearch);
+        
+        IModel<RefinedObjectClassDefinition> objectClassModel = createObjectClassModel();
 
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
         AccountContentDataProvider provider = new AccountContentDataProvider(this,
-                new PropertyModel<String>(resourceModel, "oid"), createObjectClassModel(), createUseObjectCountingModel()) {
+                new PropertyModel<String>(resourceModel, "oid"), objectClassModel, createUseObjectCountingModel()) {
 
             @Override
             protected void addInlineMenuToDto(AccountContentDto dto) {
@@ -254,11 +262,22 @@ public class PageContentAccounts extends PageAdminResources {
         provider.setQuery(createQuery());
 
         List<IColumn> columns = initColumns();
-        TablePanel table = new TablePanel(ID_TABLE, provider, columns,
+        final TablePanel table = new TablePanel(ID_TABLE, provider, columns,
                 UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL, getItemsPerPage(UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL));
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
+        Form objectclassForm = new Form(ID_OBJECTCLASS_FORM);
+        add(objectclassForm);
+        RefinedObjectTypeChoicePanel objectclassInput = new RefinedObjectTypeChoicePanel(ID_OBJECTCLASS_INPUT, objectClassModel, resourceModel);
+        objectclassInput.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				target.add(table);
+			}
+		});
+        objectclassForm.add(objectclassInput);
+        
         initDialog();
     }
 
@@ -604,13 +623,13 @@ public class PageContentAccounts extends PageAdminResources {
         return null;
     }
 
-    private IModel<QName> createObjectClassModel() {
-        return new LoadableModel<QName>(false) {
+    private IModel<RefinedObjectClassDefinition> createObjectClassModel() {
+        return new LoadableModel<RefinedObjectClassDefinition>(false) {
 
             @Override
-            protected QName load() {
+            protected RefinedObjectClassDefinition load() {
                 try {
-                    return getObjectClassDefinition();
+                    return getAccountDefinition();
                 } catch (Exception ex) {
                     throw new SystemException(ex.getMessage(), ex);
                 }
@@ -632,18 +651,11 @@ public class PageContentAccounts extends PageAdminResources {
         };
     }
 
-
-    private QName getObjectClassDefinition() throws SchemaException {
-        ObjectClassComplexTypeDefinition def = getAccountDefinition();
-        return def != null ? def.getTypeName() : null;
-    }
-
-    private ObjectClassComplexTypeDefinition getAccountDefinition() throws SchemaException {
+    private RefinedObjectClassDefinition getAccountDefinition() throws SchemaException {
         MidPointApplication application = (MidPointApplication) getApplication();
         PrismObject<ResourceType> resource = resourceModel.getObject();
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, application.getPrismContext());
-        ObjectClassComplexTypeDefinition def = refinedSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
-        return def;
+        return refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
     }
 
     private boolean isUseObjectCounting() throws SchemaException {

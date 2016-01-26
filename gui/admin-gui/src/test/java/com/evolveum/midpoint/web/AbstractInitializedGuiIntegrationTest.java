@@ -70,7 +70,8 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
 		dummyResourceCtl.setResource(resourceDummy);
 				
 		repoAddObjectFromFile(USER_JACK_FILE, UserType.class, true, initResult);
-
+		
+		importObjectFromFile(ROLE_MAPMAKER_FILE);
 	}
 
 	@Test

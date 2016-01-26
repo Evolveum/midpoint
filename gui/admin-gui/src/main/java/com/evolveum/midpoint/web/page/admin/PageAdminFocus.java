@@ -291,45 +291,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				wrapper.setSelectable(true);
 				wrapper.setMinimalized(true);
 
-				if (ShadowType.class.equals(type)) {
-
-					PrismContainer<ShadowAssociationType> associationContainer = projection
-							.findContainer(ShadowType.F_ASSOCIATION);
-					if (associationContainer != null && associationContainer.getValues() != null) {
-						List<PrismContainerValue<ShadowAssociationType>> associations = new ArrayList<>(
-								associationContainer.getValues().size());
-						for (PrismContainerValue<ShadowAssociationType> associationVal : associationContainer.getValues()) {
-							ShadowAssociationType associationType = (ShadowAssociationType) associationVal
-									.asContainerable();
-							ObjectReferenceType shadowRef = associationType.getShadowRef();
-							// shadowRef can be null in case of "broken"
-							// associations we can safely eliminate fetching
-							// from resource, because we need only the name
-							if (shadowRef != null) {
-								PrismObject<ShadowType> associationTargetShadow = getModelService().getObject(ShadowType.class, 
-										shadowRef.getOid(), SelectorOptions.createCollection(GetOperationOptions.createNoFetch()),
-										task, subResult);
-								shadowRef.asReferenceValue().setObject(associationTargetShadow);
-								associations.add(associationVal);
-							}
-						}
-						wrapper.setAssociations(associations);
-					}
-
-				}
 				wrapper.initializeContainers(this);
 
 				list.add(new FocusProjectionDto(wrapper, UserDtoStatus.MODIFY));
 
 				subResult.recomputeStatus();
-			} catch (ObjectNotFoundException ex) {
-				// this is fix for MID-854, full user/accounts/assignments
-				// reload if accountRef reference is broken
-				// because consistency already fixed it.
-				getObjectModel().reset();
-				projectionModel.reset();
-				getParentOrgModel().reset();
-				assignmentsModel.reset();
+
 			} catch (Exception ex) {
 				subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
 				LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
