@@ -23,7 +23,6 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -51,7 +50,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationS
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -109,11 +107,6 @@ public class CertificationManagerImpl implements CertificationManager {
 
     @Autowired
     private AccessCertificationRemediationTaskHandler remediationTaskHandler;
-
-    // TODO temporary hack because of some problems in model service...
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    protected RepositoryService repositoryService;
 
     private Map<String,CertificationHandler> registeredHandlers = new HashMap<>();
 
@@ -349,7 +342,7 @@ public class CertificationManagerImpl implements CertificationManager {
         OperationResult result = parentResult.createSubresult(OPERATION_RECORD_DECISION);
         try {
             AccessCertificationCampaignType campaign = helper.getCampaign(campaignOid, null, task, result);
-            updateHelper.recordDecision(campaign, caseId, decision, result);
+            updateHelper.recordDecision(campaign, caseId, decision, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't record reviewer decision: unexpected exception: " + e.getMessage(), e);
             throw e;

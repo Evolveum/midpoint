@@ -40,7 +40,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -130,11 +129,6 @@ public class AccCertUpdateHelper {
     @Autowired
     protected AccCertQueryHelper queryHelper;
 
-    // TODO temporary hack because of some problems in model service...
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    protected RepositoryService repositoryService;
-
     void addObject(ObjectType objectType, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         ObjectDelta objectDelta = ObjectDelta.createAddDelta(objectType.asPrismObject());
         Collection<ObjectDeltaOperation<?>> ops = modelService.executeChanges((Collection) Arrays.asList(objectDelta), null, task, result);
@@ -142,7 +136,7 @@ public class AccCertUpdateHelper {
         objectType.setOid(odo.getObjectDelta().getOid());
     }
 
-    void recordDecision(AccessCertificationCampaignType campaign, long caseId, AccessCertificationDecisionType decision, OperationResult result) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    void recordDecision(AccessCertificationCampaignType campaign, long caseId, AccessCertificationDecisionType decision, Task task, OperationResult result) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         String campaignOid = campaign.getOid();
 
         if (!AccessCertificationCampaignStateType.IN_REVIEW_STAGE.equals(campaign.getState())) {
@@ -168,7 +162,7 @@ public class AccCertUpdateHelper {
             decision.setReviewerRef(ObjectTypeUtil.createObjectRef(currentUser));
         }
 
-        AccessCertificationCaseType _case = queryHelper.getCase(campaignOid, caseId, result);
+        AccessCertificationCaseType _case = queryHelper.getCase(campaignOid, caseId, task, result);
         if (_case == null) {
             throw new ObjectNotFoundException("Case " + caseId + " was not found in campaign " + ObjectTypeUtil.toShortString(campaign));
         }
@@ -209,12 +203,11 @@ public class AccCertUpdateHelper {
                         helper.getCampaignObjectDefinition(), newResponse);
                 deltaList.add(currentResponseDelta);
             }
-            // TODO: call model service instead of repository
-            repositoryService.modifyObject(AccessCertificationCampaignType.class, campaignOid, deltaList, result);
+            modifyObject(AccessCertificationCampaignType.class, campaignOid, deltaList, task, result);
         }
     }
 
-    void closeCampaign(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+    void closeCampaign(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, SecurityViolationException {
         LOGGER.info("Closing campaign {}", ObjectTypeUtil.toShortString(campaign));
         int currentStageNumber = campaign.getStageNumber();
         int lastStageNumber = CertCampaignTypeUtil.getNumberOfStages(campaign);
@@ -223,8 +216,8 @@ public class AccCertUpdateHelper {
         PropertyDelta<Integer> stageNumberDelta = createStageNumberDelta(lastStageNumber + 1);
         PropertyDelta<AccessCertificationCampaignStateType> stateDelta = createStateDelta(CLOSED);
         ContainerDelta triggerDelta = createTriggerDeleteDelta();
-        repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(),
-                Arrays.asList(stateDelta, stageNumberDelta, triggerDelta), result);
+        modifyObject(AccessCertificationCampaignType.class, campaign.getOid(),
+                Arrays.asList(stateDelta, stageNumberDelta, triggerDelta), task, result);
 
         AccessCertificationCampaignType updatedCampaign = refreshCampaign(campaign, task, result);
         LOGGER.info("Updated campaign state: {}", updatedCampaign.getState());
@@ -237,27 +230,38 @@ public class AccCertUpdateHelper {
             List<ItemDelta> deltas = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
                     .item(F_LAST_CAMPAIGN_CLOSED_TIMESTAMP).replace(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
                     .asItemDeltas();
-            repositoryService.modifyObject(AccessCertificationDefinitionType.class, campaign.getDefinitionRef().getOid(), deltas, result);
+            modifyObject(AccessCertificationDefinitionType.class, campaign.getDefinitionRef().getOid(), deltas, task, result);
+        }
+    }
+
+    private <T extends ObjectType> void modifyObject(Class<T> objectClass, String oid, Collection<ItemDelta> itemDeltas, Task task, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ObjectNotFoundException {
+        ObjectDelta<T> objectDelta = ObjectDelta.createModifyDelta(oid, itemDeltas, objectClass, prismContext);
+        try {
+            modelService.executeChanges((List) Arrays.asList(objectDelta), null, task, result);
+        } catch (ExpressionEvaluationException|CommunicationException|ConfigurationException|PolicyViolationException e) {
+            throw new SystemException("Unexpected exception when modifying " + objectClass.getSimpleName() + " " + oid + ": " + e.getMessage(), e);
         }
     }
 
     // TODO implement more efficiently
-    public AccessCertificationCampaignType refreshCampaign(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        return repositoryService.getObject(AccessCertificationCampaignType.class, campaign.getOid(), null, result).asObjectable();
+    public AccessCertificationCampaignType refreshCampaign(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+        try {
+            return modelService.getObject(AccessCertificationCampaignType.class, campaign.getOid(), null, task, result).asObjectable();
+        } catch (CommunicationException|ConfigurationException e) {
+            throw new SystemException("Unexpected exception while fetching a campaign: " + e.getMessage(), e);
+        }
     }
 
     void setStageNumberAndState(AccessCertificationCampaignType campaign, int number, AccessCertificationCampaignStateType state,
-                                        Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+                                        Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, SecurityViolationException {
         PropertyDelta<Integer> stageNumberDelta = createStageNumberDelta(number);
         PropertyDelta<AccessCertificationCampaignStateType> stateDelta = createStateDelta(state);
-        // todo switch to model service
-        repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), Arrays.asList(stateDelta, stageNumberDelta), result);
+        modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), Arrays.<ItemDelta>asList(stateDelta, stageNumberDelta), task, result);
     }
 
-    private void setState(AccessCertificationCampaignType campaign, AccessCertificationCampaignStateType state, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+    private void setState(AccessCertificationCampaignType campaign, AccessCertificationCampaignStateType state, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, SecurityViolationException {
         PropertyDelta<AccessCertificationCampaignStateType> stateDelta = createStateDelta(state);
-        // todo switch to model service
-        repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), Arrays.asList(stateDelta), result);
+        modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), Arrays.<ItemDelta>asList(stateDelta), task, result);
     }
 
     private PropertyDelta<Integer> createStageNumberDelta(int number) {
@@ -393,7 +397,7 @@ public class AccCertUpdateHelper {
             _case.getDecision().addAll(decisions);
 
             PrismContainerValue<AccessCertificationCaseType> caseCVal = _case.asPrismContainerValue();
-            caseCVal.setId((long) (i + 1));
+            //caseCVal.setId((long) (i + 1));
             caseDelta.addValueToAdd(caseCVal);
 
             if (LOGGER.isTraceEnabled()) {
@@ -401,18 +405,12 @@ public class AccCertUpdateHelper {
             }
         }
 
-        // there are some problems with container IDs when using model - as a temporary hack we go directly into repo
-        // todo fix it and switch to model service
-//        ObjectDelta<AccessCertificationCampaignType> campaignDelta = ObjectDelta.createModifyDelta(campaign.getOid(),
-//                caseDelta, AccessCertificationCampaignType.class, prismContext);
-//        modelService.executeChanges((Collection) Arrays.asList(campaignDelta), null, task, result);
-
         ContainerDelta<AccessCertificationStageType> stageDelta = ContainerDelta.createDelta(AccessCertificationCampaignType.F_STAGE,
                 AccessCertificationCampaignType.class, prismContext);
         stageDelta.addValueToAdd(stage.asPrismContainerValue());
 
-        repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(),
-                Arrays.asList(caseDelta, stageDelta), result);
+        modifyObject(AccessCertificationCampaignType.class, campaign.getOid(),
+                Arrays.<ItemDelta>asList(caseDelta, stageDelta), task, result);
         LOGGER.trace("Created stage and {} cases for campaign {}", caseList.size(), campaignShortName);
     }
 
@@ -522,7 +520,7 @@ public class AccCertUpdateHelper {
         stageDelta.addValueToAdd(stage.asPrismContainerValue());
         campaignDeltaList.add(stageDelta);
 
-        repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), campaignDeltaList, result);
+        modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), campaignDeltaList, task, result);
         LOGGER.debug("Created a stage, updated reviewers and timestamps in {} cases for campaign {}", caseList.size(), ObjectTypeUtil.toShortString(campaign));
     }
 
@@ -575,7 +573,7 @@ public class AccCertUpdateHelper {
             ContainerDelta<TriggerType> triggerDelta = ContainerDelta.createModificationReplace(ObjectType.F_TRIGGER, AccessCertificationCampaignType.class, prismContext, triggers);
             itemDeltaList.add(triggerDelta);
         }
-        repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), itemDeltaList, result);
+        modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), itemDeltaList, task, result);
 
         // notifications
         campaign = refreshCampaign(campaign, task, result);
@@ -594,7 +592,7 @@ public class AccCertUpdateHelper {
             List<ItemDelta> deltas = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
                     .item(F_LAST_CAMPAIGN_STARTED_TIMESTAMP).replace(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
                     .asItemDeltas();
-            repositoryService.modifyObject(AccessCertificationDefinitionType.class, campaign.getDefinitionRef().getOid(), deltas, result);
+            modifyObject(AccessCertificationDefinitionType.class, campaign.getDefinitionRef().getOid(), deltas, task, result);
         }
     }
 
@@ -604,7 +602,7 @@ public class AccCertUpdateHelper {
         campaignDeltaList.add(stateDelta);
         ContainerDelta triggerDelta = createTriggerDeleteDelta();
         campaignDeltaList.add(triggerDelta);
-        repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), campaignDeltaList, result);
+        modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), campaignDeltaList, task, result);
 
         campaign = refreshCampaign(campaign, task, result);
         eventHelper.onCampaignStageEnd(campaign, task, result);
@@ -643,7 +641,7 @@ public class AccCertUpdateHelper {
     }
 
     // TODO temporary implementation - should be done somehow in batches in order to improve performance
-    public void markCaseAsRemedied(String campaignOid, long caseId, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+    public void markCaseAsRemedied(String campaignOid, long caseId, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, SecurityViolationException {
         Validate.notNull(campaignOid, "campaignOid");
         Validate.notNull(task, "task");
         Validate.notNull(parentResult, "parentResult");
@@ -655,7 +653,7 @@ public class AccCertUpdateHelper {
                         new NameItemPathSegment(AccessCertificationCaseType.F_REMEDIED_TIMESTAMP)),
                 helper.getCampaignObjectDefinition(), XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 
-        repositoryService.modifyObject(AccessCertificationCampaignType.class, campaignOid, Arrays.asList(reviewRemediedDelta), parentResult);
+        modifyObject(AccessCertificationCampaignType.class, campaignOid, Arrays.<ItemDelta>asList(reviewRemediedDelta), task, parentResult);
     }
 
     public void recordLastCampaignIdUsed(String definitionOid, int lastIdUsed, Task task, OperationResult result) {
@@ -663,8 +661,8 @@ public class AccCertUpdateHelper {
             List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
                     .item(F_LAST_CAMPAIGN_ID_USED).replace(lastIdUsed)
                     .asItemDeltas();
-            repositoryService.modifyObject(AccessCertificationDefinitionType.class, definitionOid, modifications, result);
-        } catch (SchemaException|ObjectNotFoundException|RuntimeException|ObjectAlreadyExistsException e) {
+            modifyObject(AccessCertificationDefinitionType.class, definitionOid, modifications, task, result);
+        } catch (SchemaException|ObjectNotFoundException|RuntimeException|ObjectAlreadyExistsException|SecurityViolationException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update last campaign ID for definition {}", e, definitionOid);
         }
     }

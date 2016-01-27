@@ -24,6 +24,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -85,6 +86,7 @@ public interface ModelService {
 	static final String CLASS_NAME_WITH_DOT = ModelService.class.getName() + ".";
 	static final String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
 	static final String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
+	static final String SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + "searchContainers";
 	static final String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
 	static final String EXECUTE_CHANGES = CLASS_NAME_WITH_DOT + "executeChanges";
 	static final String EXECUTE_CHANGE = CLASS_NAME_WITH_DOT + "executeChange";
@@ -417,7 +419,24 @@ public interface ModelService {
 	<T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException;
-	
+
+	/**
+	 * Search for "sub-object" structures, i.e. containers.
+	 * Currently, only one type of search is available: certification case search.
+	 *
+	 * @param type
+	 * @param query
+	 * @param options
+	 * @param parentResult
+	 * @param <T>
+	 * @return
+	 * @throws SchemaException
+	 */
+	<T extends Containerable> SearchResultList<T> searchContainers(
+			Class<T> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+
 	/**
 	 * <p>
 	 * Search for objects in iterative fashion (using callback).

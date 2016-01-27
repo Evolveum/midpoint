@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -43,7 +42,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationD
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -67,17 +65,12 @@ public class AccCertGeneralHelper {
     @Autowired
     private PrismContext prismContext;
 
-    // TODO temporary hack because of some problems in model service...
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    protected RepositoryService repositoryService;
-
     @Autowired
     private AccCertUpdateHelper updateHelper;
 
     private PrismObjectDefinition<AccessCertificationCampaignType> campaignObjectDefinition = null;     // lazily evaluated
 
-    public PrismObjectDefinition<?> getCampaignObjectDefinition() {
+    public PrismObjectDefinition<AccessCertificationCampaignType> getCampaignObjectDefinition() {
         if (campaignObjectDefinition != null) {
             return campaignObjectDefinition;
         }
@@ -97,7 +90,7 @@ public class AccCertGeneralHelper {
     }
 
     AccessCertificationCampaignType createCampaignObject(AccessCertificationDefinitionType definition, AccessCertificationCampaignType campaign,
-                                                                 Task task, OperationResult result) throws SecurityViolationException, SchemaException {
+                                                                 Task task, OperationResult result) throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
         AccessCertificationCampaignType newCampaign = new AccessCertificationCampaignType(prismContext);
         Date now = new Date();
 
@@ -168,7 +161,7 @@ public class AccCertGeneralHelper {
         return newCampaign;
     }
 
-    private PolyStringType generateCampaignName(AccessCertificationDefinitionType definition, Task task, OperationResult result) throws SchemaException {
+    private PolyStringType generateCampaignName(AccessCertificationDefinitionType definition, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
         String prefix = definition.getName().getOrig();
         Integer lastCampaignIdUsed = definition.getLastCampaignIdUsed() != null ? definition.getLastCampaignIdUsed() : 0;
         for (int i = lastCampaignIdUsed+1;; i++) {
@@ -180,10 +173,10 @@ public class AccCertGeneralHelper {
         }
     }
 
-    private boolean campaignExists(String name, Task task, OperationResult result) throws SchemaException {
+    private boolean campaignExists(String name, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
         ObjectQuery query = ObjectQueryUtil.createNameQuery(AccessCertificationCampaignType.class, prismContext, name);
         SearchResultList<PrismObject<AccessCertificationCampaignType>> existingCampaigns =
-                repositoryService.searchObjects(AccessCertificationCampaignType.class, query, null, result);
+                modelService.searchObjects(AccessCertificationCampaignType.class, query, null, task, result);
         return !existingCampaigns.isEmpty();
     }
 

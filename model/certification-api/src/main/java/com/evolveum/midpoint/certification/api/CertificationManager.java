@@ -45,7 +45,7 @@ public interface CertificationManager {
 
     /**
      * Creates a certification campaign. Basically, it prepares AccessCertificationCampaignType object, based on
-     * general information in certification definition (mandatory), and specific configuration values for this campaign,
+     * general information in certification definition (mandatory), and specific configuration values for this campaign
      * that may be provided in the form of campaign object.
      *
      * Mandatory information in the certification definition are:

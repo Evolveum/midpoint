@@ -20,6 +20,7 @@
         <classes>
             <class name="com.evolveum.midpoint.certification.test.BasicCertificationTest"/>
             <class name="com.evolveum.midpoint.certification.test.RoleInducementCertificationTest"/>
+            <class name="com.evolveum.midpoint.certification.test.CriticalRolesCertificationTest"/>
         </classes>
     </test>
 </suite>

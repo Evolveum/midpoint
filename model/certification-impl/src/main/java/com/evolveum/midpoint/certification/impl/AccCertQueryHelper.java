@@ -33,7 +33,6 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -46,6 +45,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
@@ -97,29 +97,29 @@ public class AccCertQueryHelper {
     @Autowired
     protected AccCertGeneralHelper helper;
 
-    // TODO temporary hack because of some problems in model service...
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    protected RepositoryService repositoryService;
-
     protected List<AccessCertificationCaseType> searchCases(String campaignOid, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
         ObjectQuery newQuery;
         InOidFilter inOidFilter = InOidFilter.createOwnerHasOidIn(campaignOid);
+        newQuery = replaceFilter(query, inOidFilter);
+        newQuery = hackPaging(newQuery);
+
+        List<AccessCertificationCaseType> caseList = modelService.searchContainers(AccessCertificationCaseType.class, newQuery, options, task, result);
+        return caseList;
+    }
+
+    private ObjectQuery replaceFilter(ObjectQuery query, ObjectFilter newFilter) {
+        ObjectQuery newQuery;
         if (query == null) {
-            newQuery = ObjectQuery.createObjectQuery(inOidFilter);
+            newQuery = ObjectQuery.createObjectQuery(newFilter);
         } else {
             newQuery = query.clone();
             if (query.getFilter() == null) {
-                newQuery.setFilter(inOidFilter);
+                newQuery.setFilter(newFilter);
             } else {
-                newQuery.setFilter(AndFilter.createAnd(query.getFilter(), inOidFilter));
+                newQuery.setFilter(AndFilter.createAnd(query.getFilter(), newFilter));
             }
         }
-
-        newQuery = hackPaging(newQuery);
-
-        List<AccessCertificationCaseType> caseList = repositoryService.searchContainers(AccessCertificationCaseType.class, newQuery, options, result);
-        return caseList;
+        return newQuery;
     }
 
     /**
@@ -206,21 +206,11 @@ public class AccCertQueryHelper {
             filterToAdd = reviewerAndEnabledFilter;
         }
 
-        if (query == null) {
-            newQuery = ObjectQuery.createObjectQuery(filterToAdd);
-        } else {
-            newQuery = query.clone();
-            if (query.getFilter() == null) {
-                newQuery.setFilter(filterToAdd);
-            } else {
-                newQuery.setFilter(AndFilter.createAnd(query.getFilter(), filterToAdd));
-            }
-        }
-
+        newQuery = replaceFilter(query, filterToAdd);
         newQuery = hackPaging(newQuery);
 
         // retrieve cases, filtered
-        List<AccessCertificationCaseType> caseList = repositoryService.searchContainers(AccessCertificationCaseType.class, newQuery, options, result);
+        List<AccessCertificationCaseType> caseList = modelService.searchContainers(AccessCertificationCaseType.class, newQuery, options, task, result);
 
         // campaigns already loaded
         Map<String,AccessCertificationCampaignType> campaigns = new HashMap<>();
@@ -235,7 +225,7 @@ public class AccCertQueryHelper {
             String campaignOid = _case.getCampaignRef().getOid();
             AccessCertificationCampaignType campaign = campaigns.get(campaignOid);
             if (campaign == null) {
-                campaign = repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, null, result).asObjectable();    // TODO error checking + call model instead of repo
+                campaign = modelService.getObject(AccessCertificationCampaignType.class, campaignOid, null, task, result).asObjectable();    // TODO error checking
                 campaigns.put(campaignOid, campaign);
             }
 
@@ -293,14 +283,20 @@ public class AccCertQueryHelper {
         return caseList;
     }
 
-    public AccessCertificationCaseType getCase(String campaignOid, long caseId, OperationResult result) throws SchemaException {
+    public AccessCertificationCaseType getCase(String campaignOid, long caseId, Task task, OperationResult result) throws SchemaException, SecurityViolationException {
         ObjectFilter filter = AndFilter.createAnd(
                 InOidFilter.createOwnerHasOidIn(campaignOid),
                 InOidFilter.createInOid(String.valueOf(caseId))
         );
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
-        List<AccessCertificationCaseType> caseList = repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
+        List<AccessCertificationCaseType> caseList;
+        try {
+            caseList = modelService.searchContainers(AccessCertificationCaseType.class, query, null, task, result);
+        } catch (ConfigurationException|ObjectNotFoundException e) {
+            throw new SystemException("Unexpected exception when retrieving certification case " + caseId +
+                " in campaign " + campaignOid + ": " + e.getMessage(), e);
+        }
         if (caseList.isEmpty()) {
             return null;
         } else if (caseList.size() == 1) {
