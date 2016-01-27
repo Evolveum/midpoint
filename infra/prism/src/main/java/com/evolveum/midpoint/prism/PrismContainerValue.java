@@ -1570,4 +1570,11 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     }
 
 
+	public static <T extends Containerable> List<PrismContainerValue<T>> toPcvList(List<T> beans) {
+		List<PrismContainerValue<T>> rv = new ArrayList<>(beans.size());
+		for (T bean : beans) {
+			rv.add(bean.asPrismContainerValue());
+		}
+		return rv;
+	}
 }

@@ -7,6 +7,8 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRDataset;
 import net.sf.jasperreports.engine.JRException;
@@ -68,13 +70,14 @@ public class MidPointLocalQueryExecutor extends MidPointQueryExecutor{
 	}
 	
 	@Override
-	protected Collection searchObjects(Object query, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException{
+	protected Collection<PrismObject<? extends ObjectType>> searchObjects(Object query, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException{
 		return reportService.searchObjects((ObjectQuery) query, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 	}
 	
 	@Override
-	protected Collection evaluateScript(String script,
-			Map<QName, Object> parameters) throws SchemaException, ObjectNotFoundException,
+	protected Collection<PrismContainerValue<? extends Containerable>>
+	evaluateScript(String script,
+				   Map<QName, Object> parameters) throws SchemaException, ObjectNotFoundException,
 			SecurityViolationException, CommunicationException, ConfigurationException,
 			ExpressionEvaluationException {
 		return reportService.evaluateScript(script, getParameters());
@@ -86,7 +89,20 @@ public class MidPointLocalQueryExecutor extends MidPointQueryExecutor{
 	}
 	
 	@Override
-	protected JRDataSource createDataSource(Collection results) {
+	protected JRDataSource createDataSourceFromObjects(Collection<PrismObject<? extends ObjectType>> results) {
+		return new MidPointDataSource(toPcvList(results));
+	}
+
+	private Collection<PrismContainerValue<? extends Containerable>> toPcvList(Collection<PrismObject<? extends ObjectType>> objects) {
+		ArrayList<PrismContainerValue<? extends Containerable>> pcvList = new ArrayList<>(objects.size());
+		for (PrismObject object : objects) {
+			pcvList.add(object.asObjectable().asPrismContainerValue());
+		}
+		return pcvList;
+	}
+
+	@Override
+	protected JRDataSource createDataSourceFromContainerValues(Collection<PrismContainerValue<? extends Containerable>> results) {
 		return new MidPointDataSource(results);
 	}
 	

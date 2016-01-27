@@ -17,6 +17,8 @@ package com.evolveum.midpoint.report.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +27,18 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionForReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -76,14 +90,16 @@ public class ReportFunctions {
 
     private PrismContext prismContext;
     private ModelService model;
+    private RepositoryService repository;           // temporary
 
     private TaskManager taskManager;
 
     private AuditService auditService;
 
-    public ReportFunctions(PrismContext prismContext, ModelService modelService, TaskManager taskManager, AuditService auditService) {
+    public ReportFunctions(PrismContext prismContext, ModelService modelService, RepositoryService repositoryService, TaskManager taskManager, AuditService auditService) {
         this.prismContext = prismContext;
         this.model = modelService;
+        this.repository = repositoryService;
         this.taskManager = taskManager;
         this.auditService = auditService;
     }
@@ -288,4 +304,102 @@ public class ReportFunctions {
     Object parseObjectFromXML (String xml) throws SchemaException {
         return prismContext.parseAnyData(xml, PrismContext.LANG_XML);
     }
+
+    /**
+     * Retrieves all definitions.
+     * Augments them by count of campaigns (all + open ones).
+     *
+     * TODO query parameters, customizable sorting
+     * definitions and campaigns counts are expected to be low, so we can afford to go through all of them here
+     */
+    public Collection<PrismObject<AccessCertificationDefinitionForReportType>> searchCertificationDefinitions() throws ConfigurationException, SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
+
+        Task task = taskManager.createTaskInstance();
+        OperationResult result = task.getResult();
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
+        List<PrismObject<AccessCertificationDefinitionType>> definitions = model.searchObjects(AccessCertificationDefinitionType.class, null, options, task, result);
+        final Map<String,PrismObject<AccessCertificationDefinitionForReportType>> definitionsForReportMap = new HashMap<>();
+        for (PrismObject<AccessCertificationDefinitionType> definition : definitions) {
+            // create subclass with the values copied from the superclass
+            PrismObject<AccessCertificationDefinitionForReportType> definitionForReport = prismContext.createObjectable(AccessCertificationDefinitionForReportType.class).asPrismObject();
+            for (Item<?,?> item : definition.getValue().getItems()) {
+                definitionForReport.getValue().add(item.clone());
+            }
+            definitionsForReportMap.put(definition.getOid(), definitionForReport);
+        }
+
+        ResultHandler<AccessCertificationCampaignType> handler = new ResultHandler<AccessCertificationCampaignType>() {
+            @Override
+            public boolean handle(PrismObject<AccessCertificationCampaignType> campaignObject, OperationResult parentResult) {
+                AccessCertificationCampaignType campaign = campaignObject.asObjectable();
+                if (campaign.getDefinitionRef() != null) {
+                    String definitionOid = campaign.getDefinitionRef().getOid();
+                    PrismObject<AccessCertificationDefinitionForReportType> definitionObject = definitionsForReportMap.get(definitionOid);
+                    if (definitionObject != null) {
+                        AccessCertificationDefinitionForReportType definition = definitionObject.asObjectable();
+                        int campaigns = definition.getCampaigns() != null ? definition.getCampaigns() : 0;
+                        definition.setCampaigns(campaigns+1);
+                        AccessCertificationCampaignStateType state = campaign.getState();
+                        if (state != AccessCertificationCampaignStateType.CREATED && state != AccessCertificationCampaignStateType.CLOSED) {
+                            int openCampaigns = definition.getOpenCampaigns() != null ? definition.getOpenCampaigns() : 0;
+                            definition.setOpenCampaigns(openCampaigns+1);
+                        }
+                    }
+                }
+                return true;
+            }
+        };
+        model.searchObjectsIterative(AccessCertificationCampaignType.class, null, handler, null, task, result);
+
+        List<PrismObject<AccessCertificationDefinitionForReportType>> rv = new ArrayList<>(definitionsForReportMap.values());
+        Collections.sort(rv, new Comparator<PrismObject<AccessCertificationDefinitionForReportType>>() {
+            @Override
+            public int compare(PrismObject<AccessCertificationDefinitionForReportType> o1, PrismObject<AccessCertificationDefinitionForReportType> o2) {
+                String n1 = o1.asObjectable().getName().getOrig();
+                String n2 = o2.asObjectable().getName().getOrig();
+                if (n1 == null) {
+                    n1 = "";
+                }
+                return n1.compareTo(n2);
+            }
+        });
+        return rv;
+    }
+
+    public List<PrismContainerValue<AccessCertificationCaseType>> getCertificationCampaignCases(String campaignName) throws SchemaException {
+        List<AccessCertificationCaseType> cases = getCertificationCampaignCasesAsBeans(campaignName);
+        return PrismContainerValue.toPcvList(cases);
+    }
+
+    private List<AccessCertificationCaseType> getCertificationCampaignCasesAsBeans(String campaignName) throws SchemaException {
+        ObjectQuery query;
+        if (StringUtils.isEmpty(campaignName)) {
+            //query = null;
+            return new ArrayList<>();
+        } else {
+            query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+                    .item(PrismConstants.T_PARENT, ObjectType.F_NAME)
+                    .eqPoly(campaignName, "")
+                    .matchingOrig()
+                    .build();
+        }
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
+        return repository.searchContainers(AccessCertificationCaseType.class, query, options, new OperationResult("dummy"));
+    }
+
+    public List<PrismContainerValue<AccessCertificationDecisionType>> getCertificationCampaignDecisions(String campaignName, Integer stageNumber) throws SchemaException {
+        List<AccessCertificationCaseType> cases = getCertificationCampaignCasesAsBeans(campaignName);
+        List<AccessCertificationDecisionType> decisions = new ArrayList<>();
+        for (AccessCertificationCaseType aCase : cases) {
+            for (AccessCertificationDecisionType decision : aCase.getDecision()) {
+                if (stageNumber == null || decision.getStageNumber() == stageNumber) {
+                    decisions.add(decision);
+                }
+            }
+        }
+        return PrismContainerValue.toPcvList(decisions);
+    }
+
 }
