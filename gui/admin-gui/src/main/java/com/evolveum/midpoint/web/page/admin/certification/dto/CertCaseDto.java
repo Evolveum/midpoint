@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -106,14 +107,7 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
     }
 
     private Date getReviewedTimestamp(AccessCertificationCaseType certCase) {
-        Date lastDate = null;
-        for (AccessCertificationDecisionType decision : certCase.getDecision()) {
-            Date decisionDate = XmlTypeConverter.toDate(decision.getTimestamp());
-            if (lastDate == null || decisionDate.after(lastDate)) {
-                lastDate = decisionDate;
-            }
-        }
-        return lastDate;
+        return CertCampaignTypeUtil.getReviewedTimestamp(certCase.getDecision());
     }
 
     public AccessCertificationResponseType getCurrentResponse() {
