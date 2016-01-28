@@ -18,6 +18,9 @@ package com.evolveum.midpoint.web.component.sample;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 
@@ -92,7 +95,13 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
 			// TODO: better errror reporting
 		}
 		
-		add(new SimpleRoleSelector<F,RoleType>(ID_ROLES, assignmentsModel, availableRoles));
+		add(new SimpleRoleSelector<F,RoleType>(ID_ROLES, assignmentsModel, getDataProvider()));
 	}
+
+    private ObjectDataProvider getDataProvider(){
+        ObjectDataProvider provider = new ObjectDataProvider(SampleFormFocusTabPanel.this, RoleType.class);
+        provider.setQuery(new ObjectQuery());
+        return provider;
+    }
 
 }

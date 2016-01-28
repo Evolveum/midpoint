@@ -1,6 +1,9 @@
 package com.evolveum.midpoint.web.component.input;
 
+import com.evolveum.midpoint.web.component.assignment.SimpleRoleSelector;
+import com.evolveum.midpoint.web.component.sample.SampleFormFocusTabPanel;
 import com.evolveum.midpoint.web.component.util.BasePanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.form.Form;
@@ -21,6 +24,7 @@ public class ListMultipleChoiceTransferPanel<T extends String> extends BasePanel
     private static final String ID_BUTTON_REMOVE = "remove";
     private static final String ID_BUTTON_ADD = "add";
     private static final String ID_FORM = "form";
+    private static final String ID_ROLE_SELECTOR = "roleSelector";
     private ArrayList<String> selectedOriginals = new ArrayList<>();
     private ArrayList<String> selectedDestinations = new ArrayList<>();
 

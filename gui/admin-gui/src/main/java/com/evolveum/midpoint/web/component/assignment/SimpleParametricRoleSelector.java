@@ -21,11 +21,13 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
@@ -47,10 +49,6 @@ import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * @author semancik
@@ -75,8 +73,8 @@ public class SimpleParametricRoleSelector<F extends FocusType, R extends Abstrac
 	final private IModel<List<String>> paramListModel;
 	private String selectedParam = null;
 
-	public SimpleParametricRoleSelector(String id, IModel<List<AssignmentEditorDto>> assignmentModel, List<PrismObject<R>> availableRoles, ItemPath parameterPath) {
-		super(id, assignmentModel, availableRoles);
+	public SimpleParametricRoleSelector(String id, IModel<List<AssignmentEditorDto>> assignmentModel, ISortableDataProvider provider, ItemPath parameterPath) {
+		super(id, assignmentModel, provider);
 		this.parameterPath = parameterPath;
 		paramListModel = initParamListModel(assignmentModel);
 		initLayout();
@@ -297,7 +295,7 @@ public class SimpleParametricRoleSelector<F extends FocusType, R extends Abstrac
 	private void deleteParam(String paramToDelete) {
 		paramListModel.getObject().remove(paramToDelete);
 		// make sure that all the assignments with the parameter parameter are also removed from assignement model
-		Iterator<AssignmentEditorDto> iterator = getAssignmentModel().getObject().iterator();
+		Iterator<AssignmentEditorDto> iterator = ((List<AssignmentEditorDto>)getAssignmentModel().getObject()).iterator();
 		while (iterator.hasNext()) {
 			AssignmentEditorDto dto = iterator.next();
 			if (isManagedRole(dto) && paramToDelete.equals(getParamValue(dto))) {
@@ -311,7 +309,7 @@ public class SimpleParametricRoleSelector<F extends FocusType, R extends Abstrac
 	}
 
 	@Override
-	protected AssignmentEditorDto createAddAssignmentDto(PrismObject<R> role, PageBase pageBase) {
+    protected AssignmentEditorDto createAddAssignmentDto(PrismObject<R> role, PageBase pageBase) {
 		AssignmentEditorDto dto = super.createAddAssignmentDto(role, pageBase);
 		PrismContainerValue<AssignmentType> newValue;
 		try {

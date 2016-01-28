@@ -52,6 +52,7 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 	private static final String ID_PAGING = "paging";
 	private static final String ID_COUNT = "count";
 	private static final String ID_MENU = "menu";
+	private static final String ID_FOOTER_CONTAINER = "footerContainer";
 
 	private UserProfileStorage.TableId tableId;
 	private boolean showPaging;
@@ -136,6 +137,19 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 		return new PagingFooter(footerId, ID_PAGING_FOOTER, this, this);
 	}
 
+	public Component getFooterMenu() {
+		return ((PagingFooter)getFooter()).getFooterMenu();
+	}
+
+
+	public Component getFooterCountLabel() {
+		return ((PagingFooter)getFooter()).getFooterCountLabel();
+	}
+
+	public Component getFooterPaging() {
+		return ((PagingFooter)getFooter()).getFooterPaging();
+    }
+
 	@Override
 	public void setCurrentPage(ObjectPaging paging) {
 		WebMiscUtil.setCurrentPage(this, paging);
@@ -157,6 +171,9 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 
 		private void initLayout(final Table table) {
 			final DataTable dataTable = table.getDataTable();
+            WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
+            footerContainer.setOutputMarkupId(true);
+
 			final Label count = new Label(ID_COUNT, new AbstractReadOnlyModel<String>() {
 
 				@Override
@@ -174,7 +191,7 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 					target.add(count);
 				}
 			};
-			add(nb2);
+            footerContainer.add(nb2);
 
 			TableConfigurationPanel menu = new TableConfigurationPanel(ID_MENU) {
 
@@ -191,8 +208,21 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 					target.add((Component) table);
 				}
 			};
-			add(menu);
+            footerContainer.add(menu);
+            add(footerContainer);
 		}
+
+        public Component getFooterMenu(){
+            return get(ID_FOOTER_CONTAINER).get(ID_MENU);
+        }
+
+        public Component getFooterCountLabel(){
+            return get(ID_COUNT);
+        }
+
+        public Component getFooterPaging(){
+            return get(ID_FOOTER_CONTAINER).get(ID_PAGING);
+        }
 
 		private String createCountString(IPageable pageable) {
 			long from = 0;

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2010-2016 Evolveum
   ~
@@ -14,15 +15,17 @@
   ~ limitations under the License.
   -->
 
-<!DOCTYPE html>
-<html xmlns:wicket="http://wicket.apache.org">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:wicket="http://wicket.apache.org">
+<body>
 <wicket:panel>
+
     <form wicket:id="form">
-        <div wicket:id="roleSelector" />
+        <div class="row">
         <div class="col-md-10">
             <div class="col-md-4">
                 <wicket:message key="PageAssignmentRequest.availableRoles" />
-                <select wicket:id="existingValuesPanel" size="10" class="form-control"/>
+                <div wicket:id="availableRoles"/>
             </div>
             <div class="col-md-1" style="vertical-align: middle; horiz-align: center;">
 
@@ -32,9 +35,13 @@
             </div>
             <div class="col-md-4">
                 <wicket:message key="PageAssignmentRequest.currentRoles" />
-                <select wicket:id="choicesPanel" size="10" class="form-control"/>
+                <div wicket:id="currentRoles"/>
             </div>
         </div>
+        </div>
     </form>
+
 </wicket:panel>
+</body>
 </html>
+
