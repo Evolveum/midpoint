@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2014 Evolveum
+  ~ Copyright (c) 2014-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -44,20 +44,24 @@
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
-            <artifactId>maven-archiver</artifactId>
+            <artifactId>maven-model</artifactId>
         </dependency>
-    <dependency>
-      <groupId>org.codehaus.plexus</groupId>
-      <artifactId>plexus-utils</artifactId>
-    </dependency>
-    <dependency>
-		<groupId>org.codehaus.plexus</groupId>
-		<artifactId>plexus-container-default</artifactId>
-	</dependency>
-	<dependency>
-		<groupId>org.codehaus.plexus</groupId>
-		<artifactId>plexus-interactivity-api</artifactId>
-	</dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-artifact</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-archiver</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-io</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
     <dependency>
 		<groupId>xml-resolver</groupId>
 		<artifactId>xml-resolver</artifactId>
