@@ -1,57 +1,59 @@
+/*
+ * Copyright (c) 2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
-import com.evolveum.midpoint.web.component.util.BasePanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.BasePanel;
+import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 /**
- * Created by Honchar
+ * @author semancik
  */
-public class SimpleRoleSelector<O extends FocusType, F extends FocusType> extends BasePanel<List<AssignmentEditorDto>> {
+public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType> extends BasePanel<List<AssignmentEditorDto>> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleRoleSelector.class);
 
-    private static final String ID_TABLE = "table";
+    private static final String ID_LIST = "list";
+    private static final String ID_ITEM = "item";
     private static final String ID_BUTTON_RESET = "buttonReset";
-    private static final int ITEMS_PER_PAGE = 10;
-    //    List<PrismObject<F>> choicesList;
-    private PrismObject<F> prismObject;
-    private ISortableDataProvider<F, String> provider;
 
-    public SimpleRoleSelector(String id, IModel<List<AssignmentEditorDto>> assignmentModel, ISortableDataProvider provider) {
+    List<PrismObject<R>> availableRoles;
+
+    public SimpleRoleSelector(String id, IModel<List<AssignmentEditorDto>> assignmentModel, List<PrismObject<R>> availableRoles) {
         super(id, assignmentModel);
-        this.provider = provider;
-
+        this.availableRoles = availableRoles;
         initLayout();
     }
 
@@ -69,6 +71,15 @@ public class SimpleRoleSelector<O extends FocusType, F extends FocusType> extend
 
     private void initLayout() {
         setOutputMarkupId(true);
+        ListView<PrismObject<R>> list = new ListView<PrismObject<R>>(ID_LIST, availableRoles) {
+            @Override
+            protected void populateItem(ListItem<PrismObject<R>> item) {
+                item.add(createRoleLink(ID_ITEM, item.getModel()));
+            }
+        };
+        list.setOutputMarkupId(true);
+        add(list);
+
         AjaxLink<String> buttonReset = new AjaxLink<String>(ID_BUTTON_RESET) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -78,54 +89,34 @@ public class SimpleRoleSelector<O extends FocusType, F extends FocusType> extend
         };
         buttonReset.setBody(createStringResource("SimpleRoleSelector.reset"));
         add(buttonReset);
-
-
-//        ISortableDataProvider provider = new ListDataProvider(this, getModel());
-
-
-//        if (provider != null) {
-//            provider.setQuery(createQuery());
-//        }
-
-        List<IColumn<SelectableBean<F>, String>> columns = initColumns();
-
-        BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns,
-                UserProfileStorage.TableId.TABLE_ROLES, ITEMS_PER_PAGE);
-        updateBoxedTablePanelStyles(table);
-        //hide footer menu
-        table.getFooterMenu().setVisible(false);
-        //hide footer count label
-        table.getFooterCountLabel().setVisible(false);
-        table.setOutputMarkupId(true);
-
-        add(table);
     }
 
-    private Component createRowLink(String id, IModel<SelectableBean<F>> model) {
-        AjaxLink<SelectableBean<F>> button = new AjaxLink<SelectableBean<F>>(id, model) {
+
+    private Component createRoleLink(String id, IModel<PrismObject<R>> model) {
+        AjaxLink<PrismObject<R>> button = new AjaxLink<PrismObject<R>>(id, model) {
 
             @Override
             public IModel<?> getBody() {
-                return new Model<String>(getModel().getObject().getValue().asPrismObject().asObjectable().getName().getOrig());
+                return new Model<String>(getModel().getObject().asObjectable().getName().getOrig());
             }
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 LOGGER.trace("{} CLICK: {}", this, getModel().getObject());
-                toggleFocus(getModel().getObject().getValue().asPrismObject());
+                toggleRole(getModel().getObject());
                 target.add(this);
             }
 
             @Override
             protected void onComponentTag(ComponentTag tag) {
                 super.onComponentTag(tag);
-                PrismObject<F> focus = getModel().getObject().getValue().asPrismObject();
-                if (isSelected(focus)) {
+                PrismObject<R> role = getModel().getObject();
+                if (isSelected(role)) {
                     tag.put("class", "list-group-item active");
                 } else {
                     tag.put("class", "list-group-item");
                 }
-                String description = focus.asObjectable().getDescription();
+                String description = role.asObjectable().getDescription();
                 if (description != null) {
                     tag.put("title", description);
                 }
@@ -136,11 +127,10 @@ public class SimpleRoleSelector<O extends FocusType, F extends FocusType> extend
     }
 
 
-    private boolean isSelected(PrismObject<F> prismObject) {
-        this.prismObject = prismObject;
+    private boolean isSelected(PrismObject<R> role) {
         for (AssignmentEditorDto dto: getAssignmentModel().getObject()) {
             if (willProcessAssignment(dto)) {
-                if (dto.getTargetRef() != null && prismObject.getOid().equals(dto.getTargetRef().getOid())) {
+                if (dto.getTargetRef() != null && role.getOid().equals(dto.getTargetRef().getOid())) {
                     if (dto.getStatus() != UserDtoStatus.DELETE) {
                         return true;
                     }
@@ -150,12 +140,12 @@ public class SimpleRoleSelector<O extends FocusType, F extends FocusType> extend
         return false;
     }
 
-    private void toggleFocus(PrismObject<F> focus) {
+    private void toggleRole(PrismObject<R> role) {
         Iterator<AssignmentEditorDto> iterator = getAssignmentModel().getObject().iterator();
         while (iterator.hasNext()) {
             AssignmentEditorDto dto = iterator.next();
             if (willProcessAssignment(dto)) {
-                if (dto.getTargetRef() != null && focus.getOid().equals(dto.getTargetRef().getOid())) {
+                if (dto.getTargetRef() != null && role.getOid().equals(dto.getTargetRef().getOid())) {
                     if (dto.getStatus() == UserDtoStatus.ADD) {
                         iterator.remove();
                     } else {
@@ -166,12 +156,12 @@ public class SimpleRoleSelector<O extends FocusType, F extends FocusType> extend
             }
         }
 
-        AssignmentEditorDto dto = createAddAssignmentDto(focus, getPageBase());
+        AssignmentEditorDto dto = createAddAssignmentDto(role, getPageBase());
         getAssignmentModel().getObject().add(dto);
     }
 
-    protected AssignmentEditorDto createAddAssignmentDto(PrismObject<F> prismObject, PageBase pageBase) {
-        AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(prismObject.asObjectable(), getPageBase());
+    protected AssignmentEditorDto createAddAssignmentDto(PrismObject<R> role, PageBase pageBase) {
+        AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(role.asObjectable(), getPageBase());
         dto.setMinimized(true);
         return dto;
     }
@@ -198,41 +188,12 @@ public class SimpleRoleSelector<O extends FocusType, F extends FocusType> extend
         if (dto.getTargetRef() == null || dto.getTargetRef().getOid() == null) {
             return false;
         }
-        Iterator iterator = provider.iterator(0, provider.size());
-        while (iterator.hasNext()) {
-            PrismObject<F> choice = ((F)iterator.next()).asPrismObject();
-            if (choice.getOid().equals(dto.getTargetRef().getOid())) {
+        for (PrismObject<R> availableRole: availableRoles) {
+            if (availableRole.getOid().equals(dto.getTargetRef().getOid())) {
                 return true;
             }
         }
         return false;
     }
-
-    public  void setResetButtonVisibility(boolean isVisible){
-        get(ID_BUTTON_RESET).setVisible(isVisible);
-    }
-
-    private ObjectQuery createQuery() {
-        return new ObjectQuery();
-    }
-
-    private List<IColumn<SelectableBean<F>, String>> initColumns() {
-        List<IColumn<SelectableBean<F>, String>> columns = new ArrayList<>();
-        columns.add(new AbstractColumn<SelectableBean<F>, String>(new Model()) {
-            public void populateItem(Item<ICellPopulator<SelectableBean<F>>> cellItem, String componentId,
-                                     IModel<SelectableBean<F>> rowModel) {
-                cellItem.add(createRowLink(componentId, rowModel));
-            }
-        });
-
-        return columns;
-    }
-
-    private void updateBoxedTablePanelStyles(BoxedTablePanel panel) {
-        panel.getDataTable().add(new AttributeModifier("class", ""));
-        panel.getDataTable().add(new AttributeAppender("style", "width: 100%;"));
-        panel.getFooterPaging().getParent().add(new AttributeModifier("class", "col-md-10"));
-    }
-
 
 }
