@@ -10,6 +10,9 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -83,6 +86,9 @@ public class ReportServiceImpl implements ReportService {
 	
 	@Autowired(required = true)
 	private FunctionLibrary midpointFunctionLibrary;
+
+	@Autowired
+	private RepositoryService repositoryService;		// temporary
 
 	@Override
 	public ObjectQuery parseQuery(String query, Map<QName, Object> parameters) throws SchemaException,
@@ -171,10 +177,10 @@ public class ReportServiceImpl implements ReportService {
 
 	}
 
-	public Collection<PrismObject<? extends ObjectType>> evaluateScript(String script,
+	public Collection<PrismContainerValue<? extends Containerable>> evaluateScript(String script,
 			Map<QName, Object> parameters) throws SchemaException, ExpressionEvaluationException,
 			ObjectNotFoundException {
-		List<PrismObject<? extends ObjectType>> results = new ArrayList<>();
+		List<PrismContainerValue<? extends Containerable>> results = new ArrayList<>();
 
 		ExpressionVariables variables = new ExpressionVariables();
 		variables.addVariableDefinitions(parameters);
@@ -182,7 +188,7 @@ public class ReportServiceImpl implements ReportService {
 		// special variable for audit report
 		variables.addVariableDefinition(new QName("auditParams"), getConvertedParams(parameters));
 
-		Task task = taskManager.createTaskInstance(ReportService.class.getName() + ".searchObjects()");
+		Task task = taskManager.createTaskInstance(ReportService.class.getName() + ".evaluateScript");
 		OperationResult parentResult = task.getResult();
 
 		Collection<FunctionLibrary> functions = createFunctionLibraries();
@@ -205,20 +211,30 @@ public class ReportServiceImpl implements ReportService {
 				Collection resultSet = (Collection) o;
 				if (resultSet != null && !resultSet.isEmpty()) {
 					for (Object obj : resultSet) {
-						if (obj instanceof PrismObject) {
-							results.add((PrismObject) obj);
-						} else if (obj instanceof Objectable) {
-							results.add(((Objectable) obj).asPrismObject());
-						}
+						results.add(convertResultingObject(obj));
 					}
 				}
 
 			} else {
-				results.add((PrismObject) o);
+				results.add(convertResultingObject(o));
 			}
 		}
 
 		return results;
+	}
+
+	protected PrismContainerValue convertResultingObject(Object obj) {
+		if (obj instanceof PrismObject) {
+            return ((PrismObject) obj).asObjectable().asPrismContainerValue();
+        } else if (obj instanceof Objectable) {
+            return ((Objectable) obj).asPrismContainerValue();
+        } else if (obj instanceof PrismContainerValue) {
+            return (PrismContainerValue) obj;
+        } else if (obj instanceof Containerable) {
+            return ((Containerable) obj).asPrismContainerValue();
+        } else {
+            throw new IllegalStateException("Reporting script should return something compatible with PrismContainerValue, not a " + obj.getClass());
+        }
 	}
 
 	public Collection<AuditEventRecord> evaluateAuditScript(String script, Map<QName, Object> parameters)
@@ -292,7 +308,7 @@ public class ReportServiceImpl implements ReportService {
 		FunctionLibrary midPointLib = new FunctionLibrary();
 		midPointLib.setVariableName("report");
 		midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
-		ReportFunctions reportFunctions = new ReportFunctions(prismContext, model, taskManager, auditService);
+		ReportFunctions reportFunctions = new ReportFunctions(prismContext, model, repositoryService, taskManager, auditService);
 		midPointLib.setGenericFunctions(reportFunctions);
 //		
 //		MidpointFunctionsImpl mp = new MidpointFunctionsImpl();
@@ -305,5 +321,4 @@ public class ReportServiceImpl implements ReportService {
 		functions.add(midPointLib);
 		return functions;
 	}
-
 }

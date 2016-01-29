@@ -12324,6 +12324,26 @@
     </xsd:complexType>
     <xsd:element name="accessCertificationDefinition" type="tns:AccessCertificationDefinitionType" substitutionGroup="c:object"/>
 
+    <xsd:complexType name="AccessCertificationDefinitionForReportType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Access certification definition augmented with report-related information
+                (e.g. number of campaigns).
+
+                EXPERIMENTAL. It is to be seen if this form is OK.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AccessCertificationDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="campaigns" type="xsd:int" minOccurs="0"/>
+                    <xsd:element name="openCampaigns" type="xsd:int" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="accessCertificationDefinitionForReport" type="tns:AccessCertificationDefinitionForReportType" substitutionGroup="c:object"/>
+
     <xsd:complexType name="AccessCertificationStageDefinitionType">
         <xsd:annotation>
             <xsd:documentation>

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
@@ -26,7 +27,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationR
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -189,5 +194,38 @@ public class CertCampaignTypeUtil {
         } else {
             return 100;
         }
+    }
+
+    public static Date getReviewedTimestamp(List<AccessCertificationDecisionType> decisions) {
+        Date lastDate = null;
+        for (AccessCertificationDecisionType decision : decisions) {
+            Date decisionDate = XmlTypeConverter.toDate(decision.getTimestamp());
+            if (lastDate == null || decisionDate.after(lastDate)) {
+                lastDate = decisionDate;
+            }
+        }
+        return lastDate;
+    }
+
+    public static List<ObjectReferenceType> getReviewedBy(List<AccessCertificationDecisionType> decisions) {
+        List<ObjectReferenceType> rv = new ArrayList<>();
+        for (AccessCertificationDecisionType decision : decisions) {
+            if (decision.getResponse() == null && StringUtils.isEmpty(decision.getComment())) {
+                continue;
+            }
+            rv.add(decision.getReviewerRef());
+        }
+        return rv;
+    }
+
+    public static List<String> getComments(List<AccessCertificationDecisionType> decisions) {
+        List<String> rv = new ArrayList<>();
+        for (AccessCertificationDecisionType decision : decisions) {
+            if (StringUtils.isEmpty(decision.getComment())) {
+                continue;
+            }
+            rv.add(decision.getComment());
+        }
+        return rv;
     }
 }
