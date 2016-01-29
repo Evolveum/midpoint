@@ -98,7 +98,7 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         AccessCertificationCampaignType campaign =
-                certificationManager.createCampaign(certificationDefinition.getOid(), null, task, result);
+                certificationManager.createCampaign(certificationDefinition.getOid(), task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -160,7 +160,7 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
         guybrush->COO               cheese                      elaine
          */
 
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         assertEquals("unexpected # of cases", 2, caseList.size());
         AccessCertificationCaseType elaineCeoCase = findCase(caseList, USER_ELAINE_OID, ROLE_CEO_OID);
         AccessCertificationCaseType guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
@@ -180,7 +180,7 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
         Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -197,7 +197,7 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        caseList = queryHelper.searchCases(campaignOid, null, null, result);
         display("caseList", caseList);
 
         assertEquals("unexpected # of cases", 2, caseList.size());
@@ -238,7 +238,7 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
         assertApproximateTime("stage 1 start", new Date(), stage.getStart());
         //assertApproximateTime("stage 1 end", new Date(), stage.getStart());       // TODO when implemented
 
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         assertEquals("unexpected # of cases", 2, caseList.size());
         AccessCertificationCaseType elaineCeoCase = findCase(caseList, USER_ELAINE_OID, ROLE_CEO_OID);
         AccessCertificationCaseType guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
@@ -281,7 +281,7 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
         assertApproximateTime("stage 2 start", new Date(), stage.getStart());
         assertNotNull("stage 2 end", stage.getEnd());       // too lazy to compute exact datetime
 
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         assertEquals("Wrong number of certification cases", 2, caseList.size());
         AccessCertificationCaseType elaineCeoCase = findCase(caseList, USER_ELAINE_OID, ROLE_CEO_OID);
         AccessCertificationCaseType guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
@@ -329,7 +329,7 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
         Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -346,7 +346,7 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 2", campaign);
 
-        caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        caseList = queryHelper.searchCases(campaignOid, null, null, result);
         display("caseList", caseList);
 
         guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
@@ -415,7 +415,7 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
         assertApproximateTime("stage 2 start", new Date(), stage.getStart());
         //assertApproximateTime("stage 1 end", new Date(), stage.getStart());       // TODO when implemented
 
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         assertEquals("wrong # of cases", 2, caseList.size());
         AccessCertificationCaseType elaineCeoCase = findCase(caseList, USER_ELAINE_OID, ROLE_CEO_OID);
         AccessCertificationCaseType guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
@@ -458,7 +458,7 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
         // TODO assertApproximateTime("end time", new Date(), campaign.getEnd());
         assertEquals("wrong # of stages", 2, campaign.getStage().size());
 
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         assertEquals("wrong # of cases", 2, caseList.size());
         AccessCertificationCaseType elaineCeoCase = findCase(caseList, USER_ELAINE_OID, ROLE_CEO_OID);
         AccessCertificationCaseType guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);

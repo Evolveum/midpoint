@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
-import com.evolveum.midpoint.certification.api.CertificationManager;
+import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -77,8 +77,8 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
             Collection<SelectorOptions<GetOperationOptions>> resolveNames =
                     SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
 
-            CertificationManager certificationManager = getPage().getCertificationManager();
-            List<AccessCertificationCaseType> caseList = certificationManager.searchDecisions(caseQuery, reviewerOid, notDecidedOnly, resolveNames, task, result);
+            AccessCertificationService acs = getPage().getCertificationService();
+            List<AccessCertificationCaseType> caseList = acs.searchDecisionsToReview(caseQuery, notDecidedOnly, resolveNames, task, result);
 
             for (AccessCertificationCaseType _case : caseList) {
                 getAvailableData().add(new CertDecisionDto(_case, getPage()));
@@ -111,10 +111,10 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
             Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
-            CertificationManager certificationManager = getPage().getCertificationManager();
+            AccessCertificationService acs = getPage().getCertificationService();
             ObjectQuery query = getQuery().clone();
             query.setPaging(null);          // when counting decisions we need to exclude offset+size (and sorting info is irrelevant)
-            List<AccessCertificationCaseType> caseList = certificationManager.searchDecisions(query, reviewerOid, notDecidedOnly, null, task, result);
+            List<AccessCertificationCaseType> caseList = acs.searchDecisionsToReview(query, notDecidedOnly, null, task, result);
             count = caseList.size();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);

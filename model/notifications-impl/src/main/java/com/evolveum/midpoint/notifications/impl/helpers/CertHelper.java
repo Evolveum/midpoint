@@ -104,7 +104,7 @@ public class CertHelper {
         AccessCertificationCasesStatisticsType stat;
         try {
             stat = certificationManager.getCampaignStatistics(campaign.getOid(), false, task, result);
-        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|ConfigurationException|CommunicationException|ObjectAlreadyExistsException|RuntimeException e) {
+        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|ObjectAlreadyExistsException|RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get campaign statistics", e);
             sb.append("Couldn't get campaign statistics because of ").append(e);
             return;

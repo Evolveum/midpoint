@@ -37,9 +37,6 @@ import java.util.Set;
 @Component
 public class AccCertEventHelper implements AccessCertificationEventListener {
 
-    @Autowired
-    private CertificationManagerImpl certificationManager;
-
     private Set<AccessCertificationEventListener> listeners = new HashSet<>();
 
     public void registerEventListener(AccessCertificationEventListener listener) {

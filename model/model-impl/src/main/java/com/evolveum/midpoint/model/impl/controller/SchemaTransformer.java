@@ -15,14 +15,13 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -118,24 +117,40 @@ public class SchemaTransformer {
 	}
 
 	// Expecting that C is a direct child of T.
-	// LIMITATION: It evaluates the child with relation to an empty parent - so any conditions related to parent attributes
-	// would not work. If this would have to work, we'd need to implement code that fetches parent objects along with their children,
-	// and provides them to this method.
+	// Expecting that container values point to their respective parents (in order to evaluate the security!)
 	public <C extends Containerable, T extends ObjectType>
 	SearchResultList<C> applySchemasAndSecurityToContainers(SearchResultList<C> originalResultList, Class<T> parentObjectType, QName childItemName,
 															GetOperationOptions options, AuthorizationPhaseType phase, Task task, OperationResult result)
 			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ConfigurationException {
+
 		List<C> newValues = new ArrayList<>();
+		Map<PrismObject<T>,Object> processedParents = new IdentityHashMap<>();
+		final ItemPath childItemPath = new ItemPath(childItemName);
+
 		for (C value: originalResultList) {
-			// in order to adapt to existing code (instead of changing it) we simply create an artificial parent object
-			// and execute all the checks on it
-			PrismObject<T> parent = prismContext.createObject(parentObjectType);
-			PrismContainer<C> childContainer = parent.findOrCreateItem(new ItemPath(childItemName), PrismContainer.class);
-			childContainer.add(value.asPrismContainerValue());
-			applySchemasAndSecurity(parent, options, phase, task, result);
-			PrismContainer<C> updatedChildContainer = parent.findContainer(new ItemPath(childItemName));
+			Long originalId = value.asPrismContainerValue().getId();
+			if (originalId == null) {
+				throw new SchemaException("No ID in container value " + value);
+			}
+			PrismObject<T> parent = ObjectTypeUtil.getParentObject(value);
+			boolean wasProcessed;
+			if (parent != null) {
+				wasProcessed = processedParents.containsKey(parent);
+			} else {
+				// temporary solution TODO reconsider
+				parent = prismContext.createObject(parentObjectType);
+				PrismContainer<C> childContainer = parent.findOrCreateItem(childItemPath, PrismContainer.class);
+				childContainer.add(value.asPrismContainerValue());
+				wasProcessed = false;
+			}
+			if (!wasProcessed) {
+				applySchemasAndSecurity(parent, options, phase, task, result);
+				processedParents.put(parent, null);
+			}
+			PrismContainer<C> updatedChildContainer = parent.findContainer(childItemPath);
 			if (updatedChildContainer != null) {
-				for (PrismContainerValue<C> updatedChildValue : updatedChildContainer.getValues()) {
+				PrismContainerValue<C> updatedChildValue = updatedChildContainer.getValue(originalId);
+				if (updatedChildValue != null) {
 					newValues.add(updatedChildValue.asContainerable());
 				}
 			}

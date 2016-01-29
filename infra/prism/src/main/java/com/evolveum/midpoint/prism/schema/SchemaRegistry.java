@@ -41,6 +41,7 @@ import javax.xml.validation.SchemaFactory;
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
@@ -637,6 +638,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 			throw new IllegalStateException("Couldn't find definition for referenced object for " + targetTypeName + ", path=" + rest);
 		}
 		return def;
+	}
+
+	public Class<? extends ObjectType> getCompileTimeClassForObjectType(QName objectType) {
+		PrismObjectDefinition definition = findObjectDefinitionByType(objectType);
+		if (definition == null) {
+			return null;
+		}
+		return definition.getCompileTimeClass();
 	}
 
 	class Input implements LSInput {

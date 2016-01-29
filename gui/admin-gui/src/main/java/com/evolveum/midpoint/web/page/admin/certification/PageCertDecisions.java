@@ -401,7 +401,7 @@ public class PageCertDecisions extends PageAdminCertification {
             newDecision.setStageNumber(0);
             newDecision.setComment(certDecisionDto.getComment());
             try {
-                getCertificationManager().recordDecision(
+                getCertificationService().recordDecision(
                         certDecisionDto.getCampaignRef().getOid(),
                         certDecisionDto.getCaseId(), newDecision, task, resultOne);
             } catch (Exception ex) {
@@ -434,7 +434,7 @@ public class PageCertDecisions extends PageAdminCertification {
         OperationResult result = new OperationResult(OPERATION_RECORD_ACTION);
         try {
             Task task = createSimpleTask(OPERATION_RECORD_ACTION);
-            getCertificationManager().recordDecision(
+            getCertificationService().recordDecision(
                     decisionDto.getCampaignRef().getOid(),
                     decisionDto.getCaseId(), newDecision, task, result);
         } catch (Exception ex) {

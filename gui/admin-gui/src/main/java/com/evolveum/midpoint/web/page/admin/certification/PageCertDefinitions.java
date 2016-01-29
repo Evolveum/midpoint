@@ -227,7 +227,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
         OperationResult result = new OperationResult(OPERATION_CREATE_CAMPAIGN);
         try {
             Task task = createSimpleTask(OPERATION_CREATE_CAMPAIGN);
-            getCertificationManager().createCampaign(definition.getOid(), null, task, result);
+            getCertificationService().createCampaign(definition.getOid(), task, result);
         } catch (Exception ex) {
             result.recordFatalError(ex);
         } finally {

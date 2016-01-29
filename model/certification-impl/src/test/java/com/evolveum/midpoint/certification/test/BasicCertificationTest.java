@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -38,12 +39,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationD
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -53,6 +51,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.getOrderBy;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CREATED;
@@ -60,6 +59,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.REVIEW_STAGE_DONE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_ACTIVATION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_TARGET_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_ADMINISTRATIVE_STATUS;
 import static org.testng.AssertJUnit.assertEquals;
@@ -99,7 +99,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         AccessCertificationCampaignType campaign =
-                certificationManager.createCampaign(certificationDefinition.getOid(), null, task, result);
+                certificationManager.createCampaign(certificationDefinition.getOid(), task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -135,7 +135,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -198,7 +198,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -224,9 +224,9 @@ public class BasicCertificationTest extends AbstractCertificationTest {
                 SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
         ObjectFilter filter = RefFilter.createReferenceEqual(new ItemPath(AccessCertificationCaseType.F_OBJECT_REF),
                 AccessCertificationCaseType.class, prismContext, ObjectTypeUtil.createObjectRef(userAdministrator).asReferenceValue());
-        ObjectPaging paging = ObjectPaging.createPaging(2, 2, AccessCertificationCaseType.F_TARGET_REF, OrderDirection.DESCENDING);
+        ObjectPaging paging = ObjectPaging.createPaging(2, 2, getOrderBy(F_TARGET_REF), OrderDirection.DESCENDING);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter, paging);
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, query, resolveNames, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, query, resolveNames, result);
 
         // THEN
         // Cases for administrator are (ordered by name, descending):
@@ -259,7 +259,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         List<AccessCertificationCaseType> caseList =
-                certificationManager.searchDecisions(null, USER_ADMINISTRATOR_OID, false, null, task, result);
+                queryHelper.searchDecisions(null, USER_ADMINISTRATOR_OID, false, null, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -286,7 +286,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
                 .item(AccessCertificationCaseType.F_TENANT_REF).ref(ORG_GOVERNOR_OFFICE_OID)
                 .build();
         List<AccessCertificationCaseType> caseList =
-                certificationManager.searchDecisions(query, USER_ADMINISTRATOR_OID, false, null, task, result);
+                queryHelper.searchDecisions(query, USER_ADMINISTRATOR_OID, false, null, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -313,7 +313,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
                 .item(AccessCertificationCaseType.F_ORG_REF).ref(ORG_SCUMM_BAR_OID)
                 .build();
         List<AccessCertificationCaseType> caseList =
-                certificationManager.searchDecisions(query, USER_ADMINISTRATOR_OID, false, null, task, result);
+                queryHelper.searchDecisions(query, USER_ADMINISTRATOR_OID, false, null, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -340,7 +340,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
                 .item(F_ACTIVATION, F_ADMINISTRATIVE_STATUS).eq(ENABLED)
                 .build();
         List<AccessCertificationCaseType> caseList =
-                certificationManager.searchDecisions(query, USER_ADMINISTRATOR_OID, false, null, task, result);
+                queryHelper.searchDecisions(query, USER_ADMINISTRATOR_OID, false, null, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -361,7 +361,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
 
         // WHEN
@@ -380,7 +380,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        caseList = queryHelper.searchCases(campaignOid, null, null, result);
         display("caseList", caseList);
         checkAllCases(caseList, campaignOid);
 
@@ -406,7 +406,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         AccessCertificationCaseType ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
 
         // WHEN
@@ -424,7 +424,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        caseList = queryHelper.searchCases(campaignOid, null, null, result);
         display("caseList", caseList);
         checkAllCases(caseList, campaignOid);
 
@@ -450,7 +450,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         AccessCertificationCaseType ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
 
         // WHEN
@@ -468,7 +468,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        caseList = queryHelper.searchCases(campaignOid, null, null, result);
         display("caseList", caseList);
         checkAllCases(caseList, campaignOid);
 
@@ -564,7 +564,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         assertEquals("wrong # of stages", 1, campaign.getStage().size());
         //assertApproximateTime("stage 1 end", new Date(), stage.getStart());       // TODO when implemented
 
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         AccessCertificationCaseType jackCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         assertApproximateTime("ceoDummyCase.remediedTimestamp", new Date(), jackCase.getRemediedTimestamp());
 

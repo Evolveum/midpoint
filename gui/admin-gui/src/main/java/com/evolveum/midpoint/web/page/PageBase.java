@@ -137,8 +137,11 @@ public abstract class PageBase extends PageTemplate implements ModelServiceLocat
     @SpringBean(name = "reportManager")
     private ReportManager reportManager;
 
-    @SpringBean(name = "certificationManager")
-    private CertificationManager certificationManager;
+//    @SpringBean(name = "certificationManager")
+//    private CertificationManager certificationManager;
+
+    @SpringBean(name = "modelController")
+    private AccessCertificationService certficationService;
 
     @SpringBean(name = "accessDecisionManager")
     private SecurityEnforcer securityEnforcer;
@@ -188,8 +191,8 @@ public abstract class PageBase extends PageTemplate implements ModelServiceLocat
         return reportManager;
     }
 
-    public CertificationManager getCertificationManager() {
-        return certificationManager;
+    public AccessCertificationService getCertificationService() {
+        return certficationService;
     }
 
     @Override

@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
@@ -42,6 +39,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -74,6 +72,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NOT_DECIDED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
 
 /**
  * @author mederly
@@ -384,6 +384,23 @@ public class CertificationTest extends BaseSQLRepoTest {
         expectedCases.addAll(campaign1.getCase());
         expectedCases.addAll(campaign2.getCase());
         PrismAsserts.assertEqualsCollectionUnordered("list of cases is different", cases, expectedCases.toArray(new AccessCertificationCaseType[0]));
+
+        for (AccessCertificationCaseType aCase : cases) {
+            ObjectReferenceType campaignRef = aCase.getCampaignRef();
+            String campaignOid = campaignRef.getOid();
+            AccessCertificationCampaignType owner = null;
+            if (campaignOid.equals(campaign1Oid)) {
+                owner = campaign1;
+            } else if (campaignOid.equals(campaign2Oid)) {
+                owner = campaign2;
+            } else {
+                fail("Unknown campaign OID: " + campaignOid + " in case: " + aCase);
+            }
+
+            PrismObject<AccessCertificationCampaignType> campaign = getOwningCampaignChecked(aCase);
+            assertEquals("Wrong owning campaign OID", owner.getOid(), campaign.getOid());
+            assertEquals("Wrong owning campaign name", owner.getName(), campaign.asObjectable().getName());
+        }
     }
 
     @Test
@@ -450,9 +467,21 @@ public class CertificationTest extends BaseSQLRepoTest {
         List<AccessCertificationCaseType> cases = repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
         for (AccessCertificationCaseType aCase : cases) {
             AssertJUnit.assertEquals("wrong campaign ref", oid, aCase.getCampaignRef().getOid());
+            PrismObject<AccessCertificationCampaignType> campaign = getOwningCampaignChecked(aCase);
+            AssertJUnit.assertEquals("wrong parent OID", oid, campaign.getOid());
         }
         AccessCertificationCampaignType campaign = getFullCampaign(oid, result).asObjectable();
         PrismAsserts.assertEqualsCollectionUnordered("list of cases is different", cases, campaign.getCase().toArray(new AccessCertificationCaseType[0]));
+    }
+
+    private PrismObject<AccessCertificationCampaignType> getOwningCampaignChecked(AccessCertificationCaseType aCase) {
+        PrismContainer caseContainer = (PrismContainer) aCase.asPrismContainerValue().getParent();
+        AssertJUnit.assertNotNull("campaign is not fetched (case parent is null)", caseContainer);
+        PrismContainerValue campaignValue = (PrismContainerValue) caseContainer.getParent();
+        AssertJUnit.assertNotNull("campaign is not fetched (case container parent is null)", caseContainer);
+        PrismObject<AccessCertificationCampaignType> campaign = (PrismObject) campaignValue.getParent();
+        AssertJUnit.assertNotNull("campaign is not fetched (campaign PCV parent is null)", campaign);
+        return campaign;
     }
 
     @Test

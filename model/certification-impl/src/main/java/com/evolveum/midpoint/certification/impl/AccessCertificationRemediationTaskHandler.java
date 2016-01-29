@@ -17,6 +17,8 @@ package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -28,13 +30,19 @@ import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -66,8 +74,15 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
 
     @Autowired
     private AccCertUpdateHelper updateHelper;
-	
-	private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationRemediationTaskHandler.class);
+
+    @Autowired
+    private AccCertQueryHelper queryHelper;
+
+    @Autowired
+    @Qualifier("cacheRepositoryService")
+    private RepositoryService repositoryService;
+
+    private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationRemediationTaskHandler.class);
 
 	@PostConstruct
 	private void initialize() {
@@ -108,7 +123,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
             int revokedOk = 0;
             int revokedError = 0;
 
-            List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, (com.evolveum.midpoint.prism.query.ObjectQuery) null, (java.util.Collection<com.evolveum.midpoint.schema.SelectorOptions<com.evolveum.midpoint.schema.GetOperationOptions>>) null, (Task) task, (OperationResult) opResult);
+            List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, opResult);
             for (AccessCertificationCaseType _case : caseList) {
                 if (helper.isRevoke(_case, campaign)) {
                     OperationResult caseResult = opResult.createMinorSubresult(opResult.getOperation()+".revoke");
@@ -168,12 +183,14 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
         return null;
     }
 
-    public void launch(AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) {
+    public void launch(AccessCertificationCampaignType campaign, Task callingTask, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 
         LOGGER.info("Launching remediation task handler for campaign {} as asynchronous task", ObjectTypeUtil.toShortString(campaign));
 
         OperationResult result = parentResult.createSubresult(CLASS_DOT + "launch");
         result.addParam("campaignOid", campaign.getOid());
+
+        Task task = taskManager.createTaskInstance();
 
         // Set handler URI so we will be called back
         task.setHandlerUri(HANDLER_URI);
@@ -184,6 +201,8 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
 
         // Set reference to the resource
         task.setObjectRef(ObjectTypeUtil.createObjectRef(campaign));
+
+        task.setOwner(repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result));
 
         taskManager.switchToBackground(task, result);
         if (result.isInProgress()) {

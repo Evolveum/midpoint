@@ -126,7 +126,10 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	private static final String USER_ANGELICA_NAME = "angelika";
 
 	private static final String USER_RUM_ROGERS_NAME = "rum";
-	
+
+	protected static final File ROLE_READ_JACKS_CAMPAIGNS_FILE = new File(TEST_DIR, "role-read-jacks-campaigns.xml");
+	protected static final String ROLE_READ_JACKS_CAMPAIGNS_OID = "00000000-0000-0000-0000-00000001aa00";
+
 	protected static final File ROLE_READONLY_FILE = new File(TEST_DIR, "role-readonly.xml");
 	protected static final String ROLE_READONLY_OID = "00000000-0000-0000-0000-00000000aa01";
 	protected static final File ROLE_READONLY_REQ_FILE = new File(TEST_DIR, "role-readonly-req.xml");
@@ -255,6 +258,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_EXEC_ALL_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_READ_JACKS_CAMPAIGNS_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_WRITE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_FILE, RoleType.class, initResult);
@@ -606,6 +610,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
+
+		assertReadCertCasesDeny();
         
         RoleSelectionSpecification roleSpec = getAssignableRoleSpecification(userJack);
         assertNotNull("Null role spec "+roleSpec, roleSpec);
@@ -629,6 +635,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAddAllow();
         assertModifyAllow();
         assertDeleteAllow();
+
+		assertReadCertCasesAllow();
         
         RoleSelectionSpecification roleSpec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
         assertNotNull("Null role spec "+roleSpec, roleSpec);
@@ -652,6 +660,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
+
+		assertReadCertCasesAllow();
         
         assertGlobalStateUntouched();
 	}
@@ -759,6 +769,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SELF_OID);
+		assignRole(USER_JACK_OID, ROLE_READ_JACKS_CAMPAIGNS_OID);		// we cannot specify "own campaigns" yet
         login(USER_JACK_USERNAME);
         
         // WHEN
@@ -770,7 +781,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertVisibleUsers(1);
         // The search wit ObjectClass is important. It is a very different case
         // than searching just for UserType
-        assertSearch(ObjectType.class, null, 1);
+        assertSearch(ObjectType.class, null, 2);		// user + campaign
 
         assertAddDeny();
         
@@ -779,10 +790,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         assertDeleteDeny();
         assertDeleteDeny(UserType.class, USER_JACK_OID);
+
+		assertReadCertCases(2);
         
         assertGlobalStateUntouched();
 	}
-	
+
 	@Test
     public void test205AutzJackObjectFilterModifyCaribbeanfRole() throws Exception {
 		final String TEST_NAME = "test205AutzJackObjectFilterModifyCaribbeanfRole";
@@ -1923,6 +1936,14 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
 	private void assertReadDeny() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		assertReadDeny(0);
+	}
+
+	private void assertReadCertCasesDeny() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		assertReadCertCases(0);
+	}
+
+	private void assertReadCertCasesAllow() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		assertReadCertCases(3);
 	}
 
     private void assertReadCertCases(int expectedNumber) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {

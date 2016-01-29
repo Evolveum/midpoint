@@ -870,15 +870,15 @@ public interface MidpointFunctions {
 
     List<String> toList(String... s);
 
-    Collection<String> getManagersOids(UserType user) throws SchemaException, ObjectNotFoundException;
+    Collection<String> getManagersOids(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
-    Collection<String> getManagersOidsExceptUser(UserType user) throws SchemaException, ObjectNotFoundException;
+    Collection<String> getManagersOidsExceptUser(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
-    Collection<UserType> getManagers(UserType user) throws SchemaException, ObjectNotFoundException;
+    Collection<UserType> getManagers(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
     
-    Collection<UserType> getManagersByOrgType(UserType user, String orgType) throws SchemaException, ObjectNotFoundException;
+    Collection<UserType> getManagersByOrgType(UserType user, String orgType) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
     
-    Collection<UserType> getManagers(UserType user, String orgType, boolean allowSelf) throws SchemaException, ObjectNotFoundException;
+    Collection<UserType> getManagers(UserType user, String orgType, boolean allowSelf) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
     UserType getUserByOid(String oid) throws ObjectNotFoundException, SchemaException;
 
@@ -890,7 +890,7 @@ public interface MidpointFunctions {
 
 	OrgType getOrgByOid(String oid) throws SchemaException;
 
-    OrgType getOrgByName(String name) throws SchemaException;
+    OrgType getOrgByName(String name) throws SchemaException, SecurityViolationException;
 
     /**
      * Returns parent orgs of the specified object that have a specific relation and orgType.

@@ -90,7 +90,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
             task.startCollectingOperationStatsFromStoredValues(true, false, false);
 
             LOGGER.info("Creating campaign with definition of {}", definitionOid);
-            AccessCertificationCampaignType campaign = certificationManager.createCampaign(definitionOid, null, task, opResult);
+            AccessCertificationCampaignType campaign = certificationManager.createCampaign(definitionOid, task, opResult);
             LOGGER.info("Campaign {} was created.", ObjectTypeUtil.toShortString(campaign));
 
             // TODO split this try-catch to two pieces in order to correctly work with iterative op failure recording

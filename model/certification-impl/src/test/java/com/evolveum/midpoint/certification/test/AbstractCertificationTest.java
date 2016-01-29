@@ -18,6 +18,7 @@ package com.evolveum.midpoint.certification.test;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.certification.impl.AccCertGeneralHelper;
+import com.evolveum.midpoint.certification.impl.AccCertQueryHelper;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -152,6 +153,9 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	@Autowired
 	protected AccCertGeneralHelper helper;
+
+	@Autowired
+	protected AccCertQueryHelper queryHelper;
 
 	protected RoleType roleCeo;
 	protected RoleType roleCoo;

@@ -87,7 +87,12 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
      * Option to limit propagation only for the source resource
      */
     Boolean limitPropagation;
-    
+
+	/**
+	 * Is this operation already authorized, i.e. should it be executed without any further authorization checks?
+	 * EXPERIMENTAL. Currently supported only for raw executions.
+	 */
+	Boolean preAuthorized;
 
     public Boolean getForce() {
 		return force;
@@ -113,6 +118,10 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 		return opts;
 	}
 
+	public ModelExecuteOptions setForce() {
+		setForce(true);
+		return this;
+	}
 
 	public Boolean getRaw() {
 		return raw;
@@ -136,6 +145,11 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setRaw(true);
 		return opts;
+	}
+
+	public ModelExecuteOptions setRaw() {
+		setRaw(true);
+		return this;
 	}
 
 	public Boolean getNoCrypt() {
@@ -162,6 +176,11 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 		return opts;
 	}
 
+	public ModelExecuteOptions setNoCrypt() {
+		setNoCrypt(true);
+		return this;
+	}
+
 	public Boolean getReconcile() {
 		return reconcile;
 	}
@@ -184,6 +203,11 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setReconcile(true);
 		return opts;
+	}
+
+	public ModelExecuteOptions setReconcile(){
+		setReconcile(true);
+		return this;
 	}
 
     public Boolean getReconcileAffected() {
@@ -210,6 +234,11 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
         return opts;
     }
 
+	public ModelExecuteOptions setReconcileAffected() {
+		setReconcileAffected(true);
+		return this;
+	}
+
     public Boolean getOverwrite() {
 		return overwrite;
 	}
@@ -232,6 +261,11 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setOverwrite(true);
 		return opts;
+	}
+
+	public ModelExecuteOptions setOverwrite() {
+		setOverwrite(true);
+		return this;
 	}
 
 	public Boolean getIsImport() {
@@ -257,6 +291,11 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 		opts.setIsImport(true);
 		return opts;
 	}
+
+	public ModelExecuteOptions setIsImport(){
+		setIsImport(true);
+		return this;
+	}
 	
     public void setExecuteImmediatelyAfterApproval(Boolean executeImmediatelyAfterApproval) {
         this.executeImmediatelyAfterApproval = executeImmediatelyAfterApproval;
@@ -271,14 +310,14 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
         }
         return options.executeImmediatelyAfterApproval;
     }
-    
-    public static ModelExecuteOptions createIsLimitPropagation() {
+
+	public static ModelExecuteOptions createExecuteImmediatelyAfterApproval(){
 		ModelExecuteOptions opts = new ModelExecuteOptions();
-		opts.setLimitPropagation(true);
+		opts.setExecuteImmediatelyAfterApproval(true);
 		return opts;
 	}
-    
-    public void setLimitPropagation(Boolean limitPropagation) {
+
+	public void setLimitPropagation(Boolean limitPropagation) {
 		this.limitPropagation = limitPropagation;
 	}
     
@@ -292,11 +331,17 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
     	return options.limitPropagation;
     }
 
-    public static ModelExecuteOptions createExecuteImmediatelyAfterApproval(){
-        ModelExecuteOptions opts = new ModelExecuteOptions();
-        opts.setExecuteImmediatelyAfterApproval(true);
-        return opts;
-    }
+	public static ModelExecuteOptions createLimitPropagation() {
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setLimitPropagation(true);
+		return opts;
+	}
+
+	public ModelExecuteOptions setLimitPropagation() {
+		setLimitPropagation(true);
+		return this;
+	}
+
 
 	public Boolean getReevaluateSearchFilters() {
 		return reevaluateSearchFilters;
@@ -322,6 +367,40 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 		return opts;
 	}
 
+	public ModelExecuteOptions setReevaluateSearchFilters(){
+		setReevaluateSearchFilters(true);
+		return this;
+	}
+
+	public Boolean getPreAuthorized() {
+		return preAuthorized;
+	}
+
+	public void setPreAuthorized(Boolean value) {
+		this.preAuthorized = value;
+	}
+
+	public static boolean isPreAuthorized(ModelExecuteOptions options) {
+		if (options == null) {
+			return false;
+		}
+		if (options.preAuthorized == null){
+			return false;
+		}
+		return options.preAuthorized;
+	}
+
+	public static ModelExecuteOptions createPreAuthorized() {
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setPreAuthorized(true);
+		return opts;
+	}
+
+	public ModelExecuteOptions setPreAuthorized() {
+		setPreAuthorized(true);
+		return this;
+	}
+
 	public ModelExecuteOptionsType toModelExecutionOptionsType() {
         ModelExecuteOptionsType retval = new ModelExecuteOptionsType();
         retval.setForce(force);
@@ -333,6 +412,7 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
         retval.setIsImport(isImport);
         retval.setLimitPropagation(limitPropagation);
 		retval.setReevaluateSearchFilters(reevaluateSearchFilters);
+		// preAuthorized is purposefully omitted (security reasons)
         return retval;
     }
 
@@ -350,6 +430,7 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
         retval.setIsImport(type.isIsImport());
         retval.setLimitPropagation(type.isLimitPropagation());
 		retval.setReevaluateSearchFilters(type.isReevaluateSearchFilters());
+		// preAuthorized is purposefully omitted (security reasons)
         return retval;
     }
     
@@ -387,6 +468,7 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 			if (ModelExecuteOptionsType.F_REEVALUATE_SEARCH_FILTERS.getLocalPart().equals(option)){
 				retVal.setReevaluateSearchFilters(true);
 			}
+			// preAuthorized is purposefully omitted (security reasons)
     	}
     	
     	return retVal;
@@ -399,12 +481,15 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 				+ ",executeImmediatelyAfterApproval="
 				+ executeImmediatelyAfterApproval + ",overwrite=" + overwrite
 				+ ",limitPropagation="+limitPropagation
-				+ ",reevaluateSearchFilters="+reevaluateSearchFilters+"]";
+				+ ",reevaluateSearchFilters="+reevaluateSearchFilters
+				+ ",preAuthorized="+preAuthorized+"]";
     }
 
     public ModelExecuteOptions clone() {
         // not much efficient, but...
-        return fromModelExecutionOptionsType(toModelExecutionOptionsType());
+        ModelExecuteOptions clone = fromModelExecutionOptionsType(toModelExecutionOptionsType());
+		clone.setPreAuthorized(this.preAuthorized);
+		return clone;
     }
 
 }

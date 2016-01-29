@@ -304,6 +304,20 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     @Override
+    public S_ConditionEntry item(PrismContainerDefinition containerDefinition, QName... names) throws SchemaException {
+        return item(containerDefinition, new ItemPath(names));
+    }
+
+    @Override
+    public S_ConditionEntry item(PrismContainerDefinition containerDefinition, ItemPath itemPath) throws SchemaException {
+        ItemDefinition itemDefinition = containerDefinition.findItemDefinition(itemPath);
+        if (itemDefinition == null) {
+            throw new SchemaException("No definition of " + itemPath + " in " + containerDefinition);
+        }
+        return item(itemPath, itemDefinition);
+    }
+
+    @Override
     public S_AtomicFilterExit endBlock() throws SchemaException {
         if (parentFilter == null) {
             throw new SchemaException("endBlock() call without preceding block() one");

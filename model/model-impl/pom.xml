@@ -86,6 +86,11 @@
             <artifactId>workflow-api</artifactId>
             <version>3.4-SNAPSHOT</version>
         </dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.model</groupId>
+			<artifactId>certification-api</artifactId>
+			<version>3.4-SNAPSHOT</version>
+		</dependency>
         <dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>security-api</artifactId>
