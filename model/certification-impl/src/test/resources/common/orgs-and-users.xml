@@ -130,6 +130,9 @@
 		<assignment>
 			<targetRef oid="00000000-d34d-b33f-f00d-000000000001" type="c:RoleType"/>		<!-- CEO -->
 		</assignment>
+		<assignment>
+			<targetRef oid="00000000-d34d-b33f-f00d-ffffffff0000" type="c:RoleType"/>		<!-- reviewer -->
+		</assignment>
 		<fullName>Elaine Marley</fullName>
 		<givenName>Elaine</givenName>
 		<familyName>Marley</familyName>
@@ -149,6 +152,9 @@
 		</assignment>
 		<assignment>
 			<targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>       <!-- Superuser -->
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-d34d-b33f-f00d-ffffffff0000" type="c:RoleType"/>		<!-- reviewer -->
 		</assignment>
 		<fullName>Ignatius Cheese</fullName>
 		<givenName>Ignatius</givenName>
@@ -230,6 +236,9 @@
 		<parentOrgRef oid="00000000-8888-6666-0000-200000000002" type="c:OrgType"/>
 		<assignment>
 			<targetRef oid="00000000-8888-6666-0000-200000000002" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-d34d-b33f-f00d-ffffffff0001" type="c:RoleType"/>	<!-- eroot user assignment campaign owner -->
 		</assignment>
 		<fullName>Ghost Pirate Bob</fullName>
 		<givenName>Bob</givenName>

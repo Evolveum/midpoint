@@ -467,7 +467,7 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
 
         userElaine = getUser(USER_ELAINE_OID).asObjectable();
         display("userElaine", userElaine);
-        assertEquals("wrong # of userElaine's assignments", 2, userElaine.getAssignment().size());
+        assertEquals("wrong # of userElaine's assignments", 3, userElaine.getAssignment().size());
 
         userGuybrush = getUser(USER_GUYBRUSH_OID).asObjectable();
         display("userGuybrush", userGuybrush);

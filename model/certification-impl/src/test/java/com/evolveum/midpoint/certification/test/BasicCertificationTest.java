@@ -28,10 +28,11 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
@@ -66,6 +67,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
 
 /**
  * Very simple certification test.
@@ -84,17 +86,43 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
     private String campaignOid;
 
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+
+        certificationDefinition = repoAddObjectFromFile(CERT_DEF_USER_ASSIGNMENT_BASIC_FILE,
+                AccessCertificationDefinitionType.class, initResult).asObjectable();
+    }
+
     @Test
-    public void test010CreateCampaign() throws Exception {
-        final String TEST_NAME = "test010CreateCampaign";
+    public void test005CreateCampaignDenied() throws Exception {
+        final String TEST_NAME = "test005CreateCampaignDenied";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        login(getUserFromRepo(USER_ELAINE_OID));            // elaine is a reviewer, not authorized to create campaigns
 
-        certificationDefinition = repoAddObjectFromFile(CERT_DEF_USER_ASSIGNMENT_BASIC_FILE,
-                AccessCertificationDefinitionType.class, result).asObjectable();
+        // WHEN/THEN
+        TestUtil.displayWhen(TEST_NAME);
+        try {
+            certificationManager.createCampaign(certificationDefinition.getOid(), task, result);
+            fail("Unexpected success");
+        } catch (SecurityViolationException e) {
+            System.out.println("Expected security violation exception: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void test010CreateCampaignAllowed() throws Exception {
+        final String TEST_NAME = "test010CreateCampaignAllowed";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        login(getUserFromRepo(USER_BOB_OID));
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -125,10 +153,24 @@ public class BasicCertificationTest extends AbstractCertificationTest {
     }
 
     @Test
-    public void test012SearchAllCases() throws Exception {
-        final String TEST_NAME = "test012SearchAllCases";
+    public void test012SearchAllCasesDenied() throws Exception {
+        final String TEST_NAME = "test012SearchAllCasesDenied";
         TestUtil.displayTestTile(this, TEST_NAME);
+        login(getUserFromRepo(USER_ELAINE_OID));
 
+        searchWithNoCasesExpected(TEST_NAME);
+    }
+
+    @Test
+    public void test013SearchAllCasesAllowed() throws Exception {
+        final String TEST_NAME = "test013SearchAllCasesAllowed";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        login(getUserFromRepo(USER_BOB_OID));
+
+        searchWithNoCasesExpected(TEST_NAME);
+    }
+
+    protected void searchWithNoCasesExpected(String TEST_NAME) throws SchemaException {
         // GIVEN
         Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -148,13 +190,34 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
 
     @Test
-    public void test020OpenFirstStage() throws Exception {
-        final String TEST_NAME = "test020OpenFirstStage";
+    public void test020OpenFirstStageDenied() throws Exception {
+        final String TEST_NAME = "test020OpenFirstStageDenied";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        login(getUserFromRepo(USER_ELAINE_OID));
+
+        // WHEN+THEN
+        TestUtil.displayWhen(TEST_NAME);
+        try {
+            certificationManager.openNextStage(campaignOid, 1, task, result);
+            fail("Unexpected success");
+        } catch (SecurityViolationException e) {
+            System.out.println("Got expected denial exception: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void test021OpenFirstStageAllowed() throws Exception {
+        final String TEST_NAME = "test021OpenFirstStageAllowed";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        login(getUserFromRepo(USER_BOB_OID));
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -188,9 +251,19 @@ public class BasicCertificationTest extends AbstractCertificationTest {
     }
 
     @Test
-    public void test030SearchAllCases() throws Exception {
-        final String TEST_NAME = "test030SearchCases";
+    public void test030SearchAllCasesDenied() throws Exception {
+        final String TEST_NAME = "test030SearchCasesDenied";
         TestUtil.displayTestTile(this, TEST_NAME);
+        login(getUserFromRepo(USER_ELAINE_OID));
+
+        searchWithNoCasesExpected(TEST_NAME);
+    }
+
+    @Test
+    public void test032SearchAllCasesAllowed() throws Exception {
+        final String TEST_NAME = "test032SearchAllCasesAllowed";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        login(getUserFromRepo(USER_BOB_OID));
 
         // GIVEN
         Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
@@ -248,9 +321,10 @@ public class BasicCertificationTest extends AbstractCertificationTest {
     }
 
     @Test
-    public void test050SearchDecisions() throws Exception {
+    public void test050SearchDecisionsAdministrator() throws Exception {
         final String TEST_NAME = "test050SearchDecisionsAdministrator";
         TestUtil.displayTestTile(this, TEST_NAME);
+        login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
         Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
@@ -259,7 +333,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         List<AccessCertificationCaseType> caseList =
-                queryHelper.searchDecisions(null, USER_ADMINISTRATOR_OID, false, null, task, result);
+                certificationService.searchDecisionsToReview(null, false, null, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -267,7 +341,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         TestUtil.assertSuccess(result);
 
         display("caseList", caseList);
-        assertEquals("Wrong number of certification cases", 6, caseList.size());
+        assertEquals("Wrong number of certification cases", 7, caseList.size());
         checkAllCases(caseList, campaignOid);
     }
 
@@ -371,7 +445,6 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         decision.setComment("no comment");
         decision.setStageNumber(0);     // will be replaced by current stage number
         ObjectReferenceType administratorRef = ObjectTypeUtil.createObjectRef(USER_ADMINISTRATOR_OID, ObjectTypes.USER);
-        decision.setReviewerRef(administratorRef);
         long id = superuserCase.asPrismContainerValue().getId();
         certificationManager.recordDecision(campaignOid, id, decision, task, result);
 
@@ -487,7 +560,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
     }
 
     protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid) {
-        assertEquals("Wrong number of certification cases", 6, caseList.size());
+        assertEquals("Wrong number of certification cases", 7, caseList.size());
         checkCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, userAdministrator, campaignOid);
         checkCase(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID, userAdministrator, campaignOid);
         checkCase(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, userAdministrator, campaignOid);
@@ -570,7 +643,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         userJack = getUser(USER_JACK_OID).asObjectable();
         display("jack", userJack);
-        assertEquals("wrong # of jack's assignments", 1, userJack.getAssignment().size());
+        assertEquals("wrong # of jack's assignments", 2, userJack.getAssignment().size());
         assertEquals("wrong target OID", ORG_EROOT_OID, userJack.getAssignment().get(0).getTargetRef().getOid());
     }
 }

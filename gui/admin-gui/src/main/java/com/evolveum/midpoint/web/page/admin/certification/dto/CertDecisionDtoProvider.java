@@ -69,10 +69,13 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
             Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
             
             ObjectQuery caseQuery = getQuery();
-            if (caseQuery == null){
+            if (caseQuery == null) {
             	caseQuery = new ObjectQuery();
+            } else {
+                caseQuery = caseQuery.clone();
             }
             caseQuery.setPaging(paging);
+            SearchingUtils.hackPaging(caseQuery);
 
             Collection<SelectorOptions<GetOperationOptions>> resolveNames =
                     SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
