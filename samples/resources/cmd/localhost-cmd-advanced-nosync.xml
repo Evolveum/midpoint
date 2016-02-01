@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+	xmlns:my="http://myself.me/schemas/whatever"
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+
+	<c:resource oid="ff2a583a-c4d8-11e5-9d26-3c970e44b9e2">
+
+		<!-- Resource name. It will be displayed in GUI.  -->
+		<c:name>Localhost CMD Connector</c:name>
+
+		<connectorRef type="ConnectorType">
+			<filter>
+				<q:equal>
+					<q:path>c:connectorType</q:path>
+					<q:value>net.tirasa.connid.bundles.cmd.CmdConnector</q:value>
+				</q:equal>
+			</filter>
+		</connectorRef>
+
+		<!-- Configuration section contains configuration of the connector,
+             such as hostnames and passwords -->
+		<c:connectorConfiguration>
+
+			<!-- Configuration specific for the CMD connector -->
+			<!-- Please create /tmp/homedirs directory before testing of update the scripts -->
+			<icfc:configurationProperties
+			xmlns:connidcmd="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/net.tirasa.connid.bundles.cmd/net.tirasa.connid.bundles.cmd.CmdConnector">
+				<connidcmd:testCmdPath>/opt/midpoint.home-master-node1/scripts/cmd-sample/TestScript.sh</connidcmd:testCmdPath>
+				<connidcmd:createCmdPath>/opt/midpoint.home-master-node1/scripts/cmd-sample/CreateScript.sh</connidcmd:createCmdPath>
+<!-- Renaming / changing __UID__ (__NAME__ == __UID__) not supported by CMD connector -->
+				<connidcmd:updateCmdPath>/opt/midpoint.home-master-node1/scripts/cmd-sample/UpdateScript.sh</connidcmd:updateCmdPath>
+<!--                                <connidcmd:deleteCmdPath>/opt/midpoint.home-master-node1/scripts/cmd-sample/DeleteScript.sh</connidcmd:deleteCmdPath>-->
+				<connidcmd:searchCmdPath>/opt/midpoint.home-master-node1/scripts/cmd-sample/SearchScript.sh</connidcmd:searchCmdPath>
+
+			</icfc:configurationProperties>
+
+			<!-- Generic ICF configuration -->
+
+
+		</c:connectorConfiguration>
+
+			<!-- CMD connector does not support schema -->
+   <schema>
+      <definition>
+         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                     elementFormDefault="qualified"
+                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
+            <xsd:complexType name="AccountObjectClass">
+               <xsd:annotation>
+                  <xsd:appinfo>
+                     <ra:resourceObject/>
+                     <ra:identifier>icfs:uid</ra:identifier>
+                     <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                     <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
+                     <ra:kind>account</ra:kind>
+                     <ra:default>true</ra:default>
+                  </xsd:appinfo>
+               </xsd:annotation>
+               <xsd:sequence>
+                  <xsd:element minOccurs="0" ref="icfs:uid">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>ICF UID</a:displayName>
+                           <a:access>read</a:access>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element ref="icfs:name">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>ICF NAME</a:displayName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+		  <xsd:element minOccurs="1" maxOccurs="1" name="permissions" type="xsd:string">
+		     <xsd:annotation>
+			<xsd:appinfo>
+			   <a:displayName>permissions</a:displayName>
+			</xsd:appinfo>
+		     </xsd:annotation>
+		  </xsd:element>
+               </xsd:sequence>
+            </xsd:complexType>
+         </xsd:schema>
+      </definition>
+   </schema>
+		<!-- Resource Schema Handling definition.
+             This part defines how the schema defined above will be used by
+             midPoint. It defines expressions and limitations for individual
+             schema attributes.
+
+             The expressions that describe both inbound and outbound flow of
+             the attributes are defined in this section.
+
+             This is the part where most of the customization takes place.
+        -->
+		<schemaHandling>
+
+			<!-- Definition of default account type.
+                 This is now the only account type that midPoint can work with. -->
+			<objectType>
+				<!-- Readable name for the account type -->
+				<displayName>Default Account</displayName>
+				<default>true</default>
+
+				<!-- Reference to the Resource Schema (see above) specifying
+                     object class for this account type -->
+				<objectClass>ri:AccountObjectClass</objectClass>
+				<attribute>
+					<ref>icfs:uid</ref>
+
+					<displayName>Entry UUID</displayName>
+					<limitations>
+						<access>
+							<read>true</read>
+						</access>
+					</limitations>
+				</attribute>
+				<attribute>
+					<ref>icfs:name</ref>
+					<!-- Readable name for the attribute. This will be used in GUI -->
+					<displayName>Name</displayName>
+					<limitations>
+						<minOccurs>0</minOccurs>
+					</limitations>
+					<outbound>
+<!-- FIXME: CMD connector does not support changing __NAME__ (Update script is
+     not allowed to return different __UID__) -->
+						<strength>weak</strength>
+						<source>
+							<path>$user/name</path>
+						</source>
+						<expression>
+							<script>
+								<code>'/tmp/homedirs/' + name</code>
+							</script>
+						</expression>
+					</outbound>
+				</attribute>
+				<attribute>
+					<ref>ri:permissions</ref>
+					<displayName>Linux Permissions (e.g. 755)</displayName>
+					<limitations>
+						<minOccurs>0</minOccurs>
+					</limitations>
+					<outbound>
+						<strength>weak</strength>
+						<expression>
+							<script>
+								<code>return 755</code>
+							</script>
+						</expression>
+					</outbound>
+				</attribute>
+			</objectType>
+		</schemaHandling>
+  <capabilities>
+      <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+         <cap:testConnection/>
+	 <cap:create/>
+	 <cap:read/>
+	 <cap:update/>
+<!--         <cap:delete/>-->
+<!--         <cap:script>-->
+<!--            <cap:host>-->
+<!--               <cap:type>resource</cap:type>-->
+<!--            </cap:host>-->
+<!--            <cap:host>-->
+<!--               <cap:type>connector</cap:type>-->
+<!--            </cap:host>-->
+<!--         </cap:script>-->
+      </native>
+   </capabilities>
+	</c:resource>
+
+</c:objects>
