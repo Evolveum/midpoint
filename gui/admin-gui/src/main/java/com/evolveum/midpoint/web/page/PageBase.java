@@ -347,7 +347,11 @@ public abstract class PageBase extends PageTemplate implements ModelServiceLocat
             }
         }
 
-        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CERTIFICATION_URL,
+        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CERTIFICATION_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_CERTIFICATION_DEFINITIONS_URL,
+                AuthorizationConstants.AUTZ_UI_CERTIFICATION_NEW_DEFINITION_URL,
+                AuthorizationConstants.AUTZ_UI_CERTIFICATION_CAMPAIGNS_URL,
+                AuthorizationConstants.AUTZ_UI_CERTIFICATION_DECISIONS_URL,
                 AuthorizationConstants.AUTZ_GUI_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)
                 && SystemConfigurationHolder.isExperimentalCodeEnabled()) {
             items.add(createCertificationItems());

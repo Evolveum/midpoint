@@ -65,7 +65,10 @@ import java.util.List;
 @PageDescriptor(url = "/admin/certification/definitions", action = {
         @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
                 label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
-                description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION)
+                description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS,
+                label = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS_LABEL,
+                description = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS_DESCRIPTION)
         })
 public class PageCertDefinitions extends PageAdminWorkItems {
 

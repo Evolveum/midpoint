@@ -97,7 +97,11 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 		action = {
 				@AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
 						label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
-						description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION) })
+						description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
+				@AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGN,
+						label = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGN_LABEL,
+						description = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGN_DESCRIPTION)
+		})
 public class PageCertCampaign extends PageAdminCertification {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageCertCampaign.class);
