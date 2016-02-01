@@ -133,6 +133,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	public static final File ROLE_COO_FILE = new File(COMMON_DIR, "role-coo.xml");
 	protected static final String ROLE_COO_OID = "00000000-d34d-b33f-f00d-000000000002";
+	protected static final File ROLE_INDUCEMENT_CERT_DEF_FILE = new File(COMMON_DIR, "certification-of-role-inducements.xml");
 
 	protected DummyResource dummyResource;
 	protected DummyResourceContoller dummyResourceCtl;
@@ -299,7 +300,13 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	}
 
 	protected void assertDefinitionAndOwner(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType certificationDefinition) {
-		assertRefEquals("Unexpected ownerRef", ObjectTypeUtil.createObjectRef(getSecurityContextUserOid(), ObjectTypes.USER), campaign.getOwnerRef());
+		assertDefinitionAndOwner(campaign, certificationDefinition, getSecurityContextUserOid());
+	}
+
+	protected void assertDefinitionAndOwner(AccessCertificationCampaignType campaign,
+											AccessCertificationDefinitionType certificationDefinition,
+											String expectedOwnerOid) {
+		assertRefEquals("Unexpected ownerRef", ObjectTypeUtil.createObjectRef(expectedOwnerOid, ObjectTypes.USER), campaign.getOwnerRef());
 		assertRefEquals("Unexpected definitionRef",
 				ObjectTypeUtil.createObjectRef(certificationDefinition),
 				campaign.getDefinitionRef());

@@ -17,10 +17,14 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 
@@ -241,5 +245,11 @@ public class CertCampaignTypeUtil {
         } else {
             return new ItemPath(oldName);
         }
+    }
+
+    public static ObjectQuery createCasesForCampaignQuery(String campaignOid, PrismContext prismContext) throws SchemaException {
+        return QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+                .ownerId(campaignOid)
+                .build();
     }
 }

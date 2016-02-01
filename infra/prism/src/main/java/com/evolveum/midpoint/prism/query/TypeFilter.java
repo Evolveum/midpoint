@@ -16,14 +16,14 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import javax.xml.namespace.QName;
 
@@ -31,6 +31,8 @@ import javax.xml.namespace.QName;
  * @author lazyman
  */
 public class TypeFilter extends ObjectFilter {
+
+    private static final Trace LOGGER = TraceManager.getTrace(TypeFilter.class);
 
     private QName type;
     private ObjectFilter filter;
@@ -62,9 +64,33 @@ public class TypeFilter extends ObjectFilter {
         return new TypeFilter(type, f);
     }
 
+    // untested; TODO test this method
     @Override
     public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-        return false;
+        if (value == null) {
+            return false;           // just for safety
+        }
+        PrismContainerDefinition definition = value.getConcreteTypeDefinition();
+        if (definition == null) {
+            if (!(value.getParent() instanceof PrismContainer)) {
+                LOGGER.trace("Parent of {} is not a PrismContainer, returning false; it is {}", value, value.getParent());
+                return false;
+            }
+            PrismContainer container = (PrismContainer) value.getParent();
+            definition = container.getDefinition();
+            if (definition == null) {
+                LOGGER.trace("Parent of {} has no definition, returning false", value);
+                return false;
+            }
+        }
+        if (!QNameUtil.match(definition.getTypeName(), type)) {
+            return false;
+        }
+        if (filter == null) {
+            return true;
+        } else {
+            return filter.match(value, matchingRuleRegistry);
+        }
     }
     
     @Override

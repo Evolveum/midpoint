@@ -38,7 +38,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -64,8 +63,6 @@ import static org.testng.AssertJUnit.fail;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class RoleInducementCertificationTest extends AbstractCertificationTest {
 
-    protected static final File CERT_DEF_FILE = new File(COMMON_DIR, "certification-of-role-inducements.xml");
-
     protected AccessCertificationDefinitionType certificationDefinition;
 
     private String campaignOid;
@@ -79,7 +76,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        certificationDefinition = repoAddObjectFromFile(CERT_DEF_FILE,
+        certificationDefinition = repoAddObjectFromFile(ROLE_INDUCEMENT_CERT_DEF_FILE,
                 AccessCertificationDefinitionType.class, result).asObjectable();
 
         // WHEN

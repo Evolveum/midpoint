@@ -392,8 +392,7 @@ public class CertificationManagerImpl implements CertificationManager {
             AccessCertificationCasesStatisticsType stat = new AccessCertificationCasesStatisticsType(prismContext);
 
             Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(F_CASE, GetOperationOptions.createRetrieve());
-            AccessCertificationCampaignType campaign =
-                    null;
+            AccessCertificationCampaignType campaign;
             try {
                 campaign = modelService.getObject(AccessCertificationCampaignType.class, campaignOid, options, task, parentResult).asObjectable();
             } catch (CommunicationException|ConfigurationException e) {

@@ -16,6 +16,7 @@
 
 <role oid="00000000-d34d-b33f-f00d-ffffffff0001"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>ERoot user assignment campaign owner</name>
     <authorization>
@@ -34,12 +35,19 @@
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#closeCertificationCampaignReviewStage</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#startCertificationRemediation</action>
         <object>
+            <type>AccessCertificationCampaignType</type>
             <filter>
                 <q:ref>
                     <q:path>definitionRef</q:path>
                     <q:value><oid>33333333-0000-0000-0000-000000000001</oid></q:value>
                 </q:ref>
             </filter>
+        </object>
+    </authorization>
+    <authorization>         <!-- to be able to read user information during tests -->
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>UserType</type>
         </object>
     </authorization>
 </role>
