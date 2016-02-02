@@ -16,21 +16,17 @@
 
 package com.evolveum.midpoint.certification.impl;
 
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.model.api.expr.OrgStructFunctions;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
@@ -60,21 +56,14 @@ import java.util.List;
 public class AccCertReviewersHelper {
 
     @Autowired
-    private ModelService modelService;
+    private OrgStructFunctions orgStructFunctions;
 
-    @Autowired
-    private MidpointFunctions midpointFunctions;
-
-    // TODO temporary hack because of some problems in model service...
     @Autowired
     @Qualifier("cacheRepositoryService")
-    protected RepositoryService repositoryService;
+    private RepositoryService repositoryService;
 
     @Autowired
-    private CertificationManagerImpl certificationManager;
-
-    @Autowired
-    protected ObjectResolver objectResolver;
+    private PrismContext prismContext;
 
     public AccessCertificationReviewerSpecificationType findReviewersSpecification(AccessCertificationCampaignType campaign,
                                                                                    int stage, Task task, OperationResult result) {
@@ -83,7 +72,7 @@ public class AccCertReviewersHelper {
     }
 
     public void setupReviewersForCase(AccessCertificationCaseType _case, AccessCertificationCampaignType campaign,
-                                      AccessCertificationReviewerSpecificationType reviewerSpec, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
+                                      AccessCertificationReviewerSpecificationType reviewerSpec, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         _case.getReviewerRef().clear();
         if (reviewerSpec == null) {
@@ -132,23 +121,21 @@ public class AccCertReviewersHelper {
         return false;
     }
 
-    private Collection<ObjectReferenceType> getObjectManagers(AccessCertificationCaseType _case, ManagerSearchType managerSearch, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private Collection<ObjectReferenceType> getObjectManagers(AccessCertificationCaseType _case, ManagerSearchType managerSearch, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
         ModelExpressionThreadLocalHolder.pushCurrentResult(result);
         ModelExpressionThreadLocalHolder.pushCurrentTask(task);
         try {
             ObjectReferenceType objectRef = _case.getObjectRef();
-            ObjectType object = midpointFunctions.resolveReference(objectRef);
-            if (object == null) {
-                return null;
-            }
+            ObjectType object = resolveReference(objectRef, ObjectType.class, result);
+
             String orgType = managerSearch.getOrgType();
             boolean allowSelf = Boolean.TRUE.equals(managerSearch.isAllowSelf());
             Collection<UserType> managers;
             if (object instanceof UserType) {
-                managers = midpointFunctions.getManagers((UserType) object, orgType, allowSelf);
+                managers = orgStructFunctions.getManagers((UserType) object, orgType, allowSelf, true);
             } else if (object instanceof OrgType) {
                 // TODO more elaborate behavior; eliminate unneeded resolveReference above
-                managers = midpointFunctions.getManagersOfOrg(object.getOid());
+                managers = orgStructFunctions.getManagersOfOrg(object.getOid(), true);
             } else if (object instanceof RoleType) {
                 // TODO implement
                 managers = new HashSet<>();
@@ -161,6 +148,9 @@ public class AccCertReviewersHelper {
                 retval.add(ObjectTypeUtil.createObjectRef(manager));
             }
             return retval;
+        } catch (SecurityViolationException e) {
+            // never occurs, as preAuthorized is TRUE above
+            throw new IllegalStateException("Impossible has happened: " + e.getMessage(), e);
         } finally {
             ModelExpressionThreadLocalHolder.popCurrentResult();
             ModelExpressionThreadLocalHolder.popCurrentTask();
@@ -171,7 +161,7 @@ public class AccCertReviewersHelper {
         if (_case.getTargetRef() == null) {
             return null;
         }
-        ObjectType target = objectResolver.resolve(_case.getTargetRef(), ObjectType.class, null, "resolving cert case target", task, result);
+        ObjectType target = resolveReference(_case.getTargetRef(), ObjectType.class, result);
         if (target instanceof AbstractRoleType) {
             ObjectReferenceType ownerRef = ((AbstractRoleType) target).getOwnerRef();
             if (ownerRef != null) {
@@ -190,7 +180,7 @@ public class AccCertReviewersHelper {
         if (_case.getObjectRef() == null) {
             return null;
         }
-        ObjectType object = objectResolver.resolve(_case.getObjectRef(), ObjectType.class, null, "resolving cert case object", task, result);
+        ObjectType object = resolveReference(_case.getObjectRef(), ObjectType.class, result);
         if (object instanceof AbstractRoleType) {
             ObjectReferenceType ownerRef = ((AbstractRoleType) object).getOwnerRef();
             if (ownerRef != null) {
@@ -207,7 +197,7 @@ public class AccCertReviewersHelper {
         if (_case.getTargetRef() == null) {
             return null;
         }
-        ObjectType target = objectResolver.resolve(_case.getTargetRef(), ObjectType.class, null, "resolving cert case target", task, result);
+        ObjectType target = resolveReference(_case.getTargetRef(), ObjectType.class, result);
         if (target instanceof AbstractRoleType) {
             return ((AbstractRoleType) target).getApproverRef();
         } else if (target instanceof ResourceType) {
@@ -221,7 +211,7 @@ public class AccCertReviewersHelper {
         if (_case.getObjectRef() == null) {
             return null;
         }
-        ObjectType object = objectResolver.resolve(_case.getObjectRef(), ObjectType.class, null, "resolving cert case object", task, result);
+        ObjectType object = resolveReference(_case.getObjectRef(), ObjectType.class, result);
         if (object instanceof AbstractRoleType) {
             return ((AbstractRoleType) object).getApproverRef();
         } else {
@@ -229,6 +219,19 @@ public class AccCertReviewersHelper {
         }
     }
 
+    private ObjectType resolveReference(ObjectReferenceType objectRef, Class<? extends ObjectType> defaultObjectTypeClass, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        final Class<? extends ObjectType> objectTypeClass;
+        if (objectRef.getType() != null) {
+            objectTypeClass = (Class<? extends ObjectType>) prismContext.getSchemaRegistry().getCompileTimeClassForObjectType(objectRef.getType());
+            if (objectTypeClass == null) {
+                throw new SchemaException("No object class found for " + objectRef.getType());
+            }
+        } else {
+            objectTypeClass = defaultObjectTypeClass;
+        }
+        PrismObject<? extends ObjectType> object = repositoryService.getObject(objectTypeClass, objectRef.getOid(), null, result);
+        return object.asObjectable();
+    }
 
 
 }

@@ -17,21 +17,16 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectOrdering;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -40,39 +35,20 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_STAGE_NUMBER;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_DECISION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_REVIEWER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_STAGE_NUMBER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
@@ -89,87 +65,41 @@ public class AccCertQueryHelper {
     private PrismContext prismContext;
 
     @Autowired
-    private ModelService modelService;
-
-    @Autowired
-    private MatchingRuleRegistry matchingRuleRegistry;
+    @Qualifier("cacheRepositoryService")
+    private RepositoryService repositoryService;
 
     @Autowired
     protected AccCertGeneralHelper helper;
 
-    // TODO temporary hack because of some problems in model service...
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    protected RepositoryService repositoryService;
-
-    protected List<AccessCertificationCaseType> searchCases(String campaignOid, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+    // public because of certification tests
+    public List<AccessCertificationCaseType> searchCases(String campaignOid, ObjectQuery query,
+                                                            Collection<SelectorOptions<GetOperationOptions>> options,
+                                                            OperationResult result) throws SchemaException {
         ObjectQuery newQuery;
         InOidFilter inOidFilter = InOidFilter.createOwnerHasOidIn(campaignOid);
-        if (query == null) {
-            newQuery = ObjectQuery.createObjectQuery(inOidFilter);
-        } else {
-            newQuery = query.clone();
-            if (query.getFilter() == null) {
-                newQuery.setFilter(inOidFilter);
-            } else {
-                newQuery.setFilter(AndFilter.createAnd(query.getFilter(), inOidFilter));
-            }
-        }
-
-        newQuery = hackPaging(newQuery);
+        newQuery = replaceFilter(query, inOidFilter);
 
         List<AccessCertificationCaseType> caseList = repositoryService.searchContainers(AccessCertificationCaseType.class, newQuery, options, result);
         return caseList;
     }
 
-    /**
-     * Maps from "old style" of specifying sorting criteria to current one:
-     *   targetRef -> targetRef/@/name
-     *   objectRef -> objectRef/@/name
-     *   campaignRef -> ../name
-     *
-     * Plus adds ID as secondary criteria, in order to avoid random shuffling the result set.
-     *
-     * Temporary solution - until we implement that in GUI.
-     */
-    private ObjectQuery hackPaging(ObjectQuery query) {
-        if (query.getPaging() == null || !query.getPaging().hasOrdering()) {
-            return query;
-        }
-        if (query.getPaging().getOrderingInstructions().size() > 1) {
-            return query;
-        }
-        ItemPath oldPath = query.getPaging().getOrderBy();
-        OrderDirection oldDirection = query.getPaging().getDirection();
-        if (oldPath.size() != 1 || !(oldPath.first() instanceof NameItemPathSegment)) {
-            return query;
-        }
-        QName oldName = ((NameItemPathSegment) oldPath.first()).getName();
-        ItemPath newPath;
-        if (QNameUtil.match(oldName, AccessCertificationCaseType.F_TARGET_REF)) {
-            newPath = new ItemPath(AccessCertificationCaseType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
-        } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_OBJECT_REF)) {
-            newPath = new ItemPath(AccessCertificationCaseType.F_OBJECT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
-        } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_TENANT_REF)) {
-            newPath = new ItemPath(AccessCertificationCaseType.F_TENANT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
-        } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_ORG_REF)) {
-            newPath = new ItemPath(AccessCertificationCaseType.F_ORG_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
-        } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_CAMPAIGN_REF)) {
-            newPath = new ItemPath(T_PARENT, ObjectType.F_NAME);
+    ObjectQuery replaceFilter(ObjectQuery query, ObjectFilter newFilter) {
+        ObjectQuery newQuery;
+        if (query == null) {
+            newQuery = ObjectQuery.createObjectQuery(newFilter);
         } else {
-            newPath = oldPath;
+            newQuery = query.clone();
+            if (query.getFilter() == null) {
+                newQuery.setFilter(newFilter);
+            } else {
+                newQuery.setFilter(AndFilter.createAnd(query.getFilter(), newFilter));
+            }
         }
-        ObjectPaging paging1 = query.getPaging().clone();
-        ObjectOrdering primary = ObjectOrdering.createOrdering(newPath, oldDirection);
-        ObjectOrdering secondary = ObjectOrdering.createOrdering(new ItemPath(PrismConstants.T_ID), OrderDirection.ASCENDING);     // to avoid random shuffling if first criteria is too vague
-        ObjectOrdering tertiary = ObjectOrdering.createOrdering(new ItemPath(T_PARENT, PrismConstants.T_ID), OrderDirection.ASCENDING); // campaign OID
-        paging1.setOrdering(primary, secondary, tertiary);
-        ObjectQuery query1 = query.clone();
-        query1.setPaging(paging1);
-        return query1;
+        return newQuery;
     }
 
-    protected List<AccessCertificationCaseType> searchDecisions(ObjectQuery query, String reviewerOid, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+    // public because of testing
+    public List<AccessCertificationCaseType> searchDecisions(ObjectQuery query, String reviewerOid, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         // enhance filter with reviewerRef + enabled
         ObjectQuery newQuery;
@@ -206,18 +136,7 @@ public class AccCertQueryHelper {
             filterToAdd = reviewerAndEnabledFilter;
         }
 
-        if (query == null) {
-            newQuery = ObjectQuery.createObjectQuery(filterToAdd);
-        } else {
-            newQuery = query.clone();
-            if (query.getFilter() == null) {
-                newQuery.setFilter(filterToAdd);
-            } else {
-                newQuery.setFilter(AndFilter.createAnd(query.getFilter(), filterToAdd));
-            }
-        }
-
-        newQuery = hackPaging(newQuery);
+        newQuery = replaceFilter(query, filterToAdd);
 
         // retrieve cases, filtered
         List<AccessCertificationCaseType> caseList = repositoryService.searchContainers(AccessCertificationCaseType.class, newQuery, options, result);
@@ -235,7 +154,7 @@ public class AccCertQueryHelper {
             String campaignOid = _case.getCampaignRef().getOid();
             AccessCertificationCampaignType campaign = campaigns.get(campaignOid);
             if (campaign == null) {
-                campaign = repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, null, result).asObjectable();    // TODO error checking + call model instead of repo
+                campaign = repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, null, result).asObjectable();    // TODO error checking
                 campaigns.put(campaignOid, campaign);
             }
 
@@ -284,16 +203,15 @@ public class AccCertQueryHelper {
     }
 
     public List<AccessCertificationCaseType> getCasesForReviewer(AccessCertificationCampaignType campaign,
-                                                                 String reviewerOid, Task task, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
+                                                                 String reviewerOid, Task task, OperationResult result) throws SchemaException {
 
         ObjectFilter filter = getReviewerAndEnabledFilter(reviewerOid);
 
-        List<AccessCertificationCaseType> caseList = searchCases(campaign.getOid(), ObjectQuery.createObjectQuery(filter), null, task, result);
+        List<AccessCertificationCaseType> caseList = searchCases(campaign.getOid(), ObjectQuery.createObjectQuery(filter), null, result);
         return caseList;
     }
 
-    public AccessCertificationCaseType getCase(String campaignOid, long caseId, OperationResult result) throws SchemaException {
+    public AccessCertificationCaseType getCase(String campaignOid, long caseId, Task task, OperationResult result) throws SchemaException, SecurityViolationException {
         ObjectFilter filter = AndFilter.createAnd(
                 InOidFilter.createOwnerHasOidIn(campaignOid),
                 InOidFilter.createInOid(String.valueOf(caseId))
@@ -301,6 +219,7 @@ public class AccCertQueryHelper {
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
         List<AccessCertificationCaseType> caseList = repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
+
         if (caseList.isEmpty()) {
             return null;
         } else if (caseList.size() == 1) {

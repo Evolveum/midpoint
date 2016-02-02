@@ -71,7 +71,11 @@ import java.util.List;
 		action = {
 				@AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
 						label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
-						description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION) })
+						description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
+				@AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_DEFINITION,
+						label = PageAdminCertification.AUTH_CERTIFICATION_DEFINITION_LABEL,
+						description = PageAdminCertification.AUTH_CERTIFICATION_DEFINITION_DESCRIPTION)
+				})
 public class PageCertDefinition extends PageAdminCertification {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageCertDefinition.class);

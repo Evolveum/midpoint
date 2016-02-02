@@ -23,21 +23,20 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
 import com.evolveum.midpoint.repo.sql.data.common.container.RCertCaseReference;
-import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
-import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
-import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
@@ -53,6 +52,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Contains methods specific to handle certification cases.
@@ -77,6 +77,9 @@ public class CertificationCaseHelper {
 
     @Autowired
     private NameResolutionHelper nameResolutionHelper;
+
+    @Autowired
+    private ObjectRetriever objectRetriever;
 
     public void addCertificationCampaignCases(Session session, RObject object, boolean merge) {
         if (!(object instanceof RAccessCertificationCampaign)) {
@@ -276,14 +279,36 @@ public class CertificationCaseHelper {
 
 
     // TODO find a better name
-    public AccessCertificationCaseType updateLoadedCertificationCase(GetObjectResult result,
+    public AccessCertificationCaseType updateLoadedCertificationCase(GetContainerableResult result, Map<String, PrismObject> ownersMap,
                                                                      Collection<SelectorOptions<GetOperationOptions>> options,
                                                                      Session session) throws SchemaException {
 
         AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(result.getFullObject(), prismContext, false);
         nameResolutionHelper.resolveNamesIfRequested(session, aCase.asPrismContainerValue(), options);
         generalHelper.validateContainerable(aCase, AccessCertificationCaseType.class);
+
+        String ownerOid = result.getOwnerOid();
+        PrismObject<AccessCertificationCampaignType> campaign = resolveCampaign(ownerOid, ownersMap, session);
+        if (campaign != null) {
+            campaign.asObjectable().getCase().add(aCase);
+        }
+
         return aCase;
+    }
+
+    private PrismObject<AccessCertificationCampaignType> resolveCampaign(String campaignOid, Map<String, PrismObject> campaignsCache, Session session) {
+        PrismObject campaign = campaignsCache.get(campaignOid);
+        if (campaign != null) {
+            return campaign;
+        }
+        try {
+            campaign = objectRetriever.getObjectInternal(session, AccessCertificationCampaignType.class, campaignOid, null, false);
+        } catch (ObjectNotFoundException|SchemaException|DtoTranslationException|QueryException|RuntimeException e) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get campaign with OID {}", e, campaignOid);
+            return null;
+        }
+        campaignsCache.put(campaignOid, campaign);
+        return campaign;
     }
 
     // adds cases to campaign if requested by options

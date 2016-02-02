@@ -82,9 +82,7 @@ public class AccessCertificationCloseStageTriggerHandler implements TriggerHandl
 				LOGGER.info("Automatically opening next stage of {}", ObjectTypeUtil.toShortString(campaign));
 				certificationManager.openNextStage(campaign.getOid(), currentStageNumber + 1, task, result);
 			}
-		} catch (SchemaException|ObjectNotFoundException|ExpressionEvaluationException|CommunicationException|
-				ObjectAlreadyExistsException|ConfigurationException|PolicyViolationException|
-				SecurityViolationException|RuntimeException e) {
+		} catch (SchemaException|ObjectNotFoundException|ObjectAlreadyExistsException|SecurityViolationException|RuntimeException e) {
 			LoggingUtils.logException(LOGGER, "Couldn't close current campaign and possibly advance to the next one", e);
 		}
 	}

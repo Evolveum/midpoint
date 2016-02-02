@@ -15,10 +15,13 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -73,6 +76,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import javax.xml.namespace.QName;
+
 /**
  * Transforms the schema and objects by applying security constraints,
  * object template schema refinements, etc.
@@ -90,7 +95,11 @@ public class SchemaTransformer {
 	
 	@Autowired(required = true)
 	private SecurityEnforcer securityEnforcer;
-	
+
+	@Autowired
+	private PrismContext prismContext;
+
+	// TODO why are the following two methods distinct? Clarify their names.
 	public <T extends ObjectType> void applySchemasAndSecurityToObjectTypes(Collection<T> objectTypes, 
 			GetOperationOptions options, AuthorizationPhaseType phase, Task task, OperationResult result) 
 					throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException {
@@ -103,23 +112,69 @@ public class SchemaTransformer {
 			GetOperationOptions options, AuthorizationPhaseType phase, Task task, OperationResult result) 
 					throws SecurityViolationException, SchemaException {
 		for (PrismObject<T> object: objects) {
-			OperationResult subresult = new OperationResult(ModelController.class.getName()+".applySchemasAndSecurityToObjects");
-			try {	
-				applySchemasAndSecurity(object, options, phase, task, subresult);
-			} catch (IllegalArgumentException|IllegalStateException|SchemaException|SecurityViolationException|ConfigurationException|ObjectNotFoundException e) {
-				LOGGER.error("Error post-processing object {}: {}", new Object[]{object, e.getMessage(), e});
-				OperationResultType fetchResult = object.asObjectable().getFetchResult();
-				if (fetchResult == null) {
-					fetchResult = subresult.createOperationResultType();
-					object.asObjectable().setFetchResult(fetchResult);
-				} else {
-					fetchResult.getPartialResults().add(subresult.createOperationResultType());
-				}
-				fetchResult.setStatus(OperationResultStatusType.FATAL_ERROR);
-			}
+			applySchemaAndSecurityToObject(object, options, phase, task);
 		}
 	}
-	
+
+	// Expecting that C is a direct child of T.
+	// Expecting that container values point to their respective parents (in order to evaluate the security!)
+	public <C extends Containerable, T extends ObjectType>
+	SearchResultList<C> applySchemasAndSecurityToContainers(SearchResultList<C> originalResultList, Class<T> parentObjectType, QName childItemName,
+															GetOperationOptions options, AuthorizationPhaseType phase, Task task, OperationResult result)
+			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ConfigurationException {
+
+		List<C> newValues = new ArrayList<>();
+		Map<PrismObject<T>,Object> processedParents = new IdentityHashMap<>();
+		final ItemPath childItemPath = new ItemPath(childItemName);
+
+		for (C value: originalResultList) {
+			Long originalId = value.asPrismContainerValue().getId();
+			if (originalId == null) {
+				throw new SchemaException("No ID in container value " + value);
+			}
+			PrismObject<T> parent = ObjectTypeUtil.getParentObject(value);
+			boolean wasProcessed;
+			if (parent != null) {
+				wasProcessed = processedParents.containsKey(parent);
+			} else {
+				// temporary solution TODO reconsider
+				parent = prismContext.createObject(parentObjectType);
+				PrismContainer<C> childContainer = parent.findOrCreateItem(childItemPath, PrismContainer.class);
+				childContainer.add(value.asPrismContainerValue());
+				wasProcessed = false;
+			}
+			if (!wasProcessed) {
+				applySchemasAndSecurity(parent, options, phase, task, result);
+				processedParents.put(parent, null);
+			}
+			PrismContainer<C> updatedChildContainer = parent.findContainer(childItemPath);
+			if (updatedChildContainer != null) {
+				PrismContainerValue<C> updatedChildValue = updatedChildContainer.getValue(originalId);
+				if (updatedChildValue != null) {
+					newValues.add(updatedChildValue.asContainerable());
+				}
+			}
+		}
+		return new SearchResultList<>(newValues, originalResultList.getMetadata());
+	}
+
+	protected <T extends ObjectType> void applySchemaAndSecurityToObject(PrismObject<T> object, GetOperationOptions options, AuthorizationPhaseType phase, Task task) {
+		OperationResult subresult = new OperationResult(ModelController.class.getName()+".applySchemasAndSecurityToObjects");
+		try {
+            applySchemasAndSecurity(object, options, phase, task, subresult);
+        } catch (IllegalArgumentException|IllegalStateException|SchemaException |SecurityViolationException |ConfigurationException |ObjectNotFoundException e) {
+            LOGGER.error("Error post-processing object {}: {}", new Object[]{object, e.getMessage(), e});
+            OperationResultType fetchResult = object.asObjectable().getFetchResult();
+            if (fetchResult == null) {
+                fetchResult = subresult.createOperationResultType();
+                object.asObjectable().setFetchResult(fetchResult);
+            } else {
+                fetchResult.getPartialResults().add(subresult.createOperationResultType());
+            }
+            fetchResult.setStatus(OperationResultStatusType.FATAL_ERROR);
+        }
+	}
+
 	/**
 	 * Validate the objects, apply security to the object definition, remove any non-visible properties (security),
 	 * apply object template definitions and so on. This method is called for

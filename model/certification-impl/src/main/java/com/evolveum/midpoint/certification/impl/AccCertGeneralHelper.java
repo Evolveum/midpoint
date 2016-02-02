@@ -59,25 +59,15 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 public class AccCertGeneralHelper {
 
     @Autowired
-    private ModelService modelService;
-
-    @Autowired
-    private SecurityEnforcer securityEnforcer;
+    @Qualifier("cacheRepositoryService")
+    private RepositoryService repositoryService;
 
     @Autowired
     private PrismContext prismContext;
 
-    // TODO temporary hack because of some problems in model service...
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    protected RepositoryService repositoryService;
-
-    @Autowired
-    private AccCertUpdateHelper updateHelper;
-
     private PrismObjectDefinition<AccessCertificationCampaignType> campaignObjectDefinition = null;     // lazily evaluated
 
-    public PrismObjectDefinition<?> getCampaignObjectDefinition() {
+    public PrismObjectDefinition<AccessCertificationCampaignType> getCampaignObjectDefinition() {
         if (campaignObjectDefinition != null) {
             return campaignObjectDefinition;
         }
@@ -88,107 +78,12 @@ public class AccCertGeneralHelper {
         return campaignObjectDefinition;
     }
 
-    AccessCertificationCampaignType getCampaign(String campaignOid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
-        return modelService.getObject(AccessCertificationCampaignType.class, campaignOid, options, task, parentResult).asObjectable();
+    AccessCertificationCampaignType getCampaign(String campaignOid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+        return repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, options, parentResult).asObjectable();
     }
 
     public boolean isRevoke(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign) {
         return aCase.getCurrentResponse() == REVOKE;
-    }
-
-    AccessCertificationCampaignType createCampaignObject(AccessCertificationDefinitionType definition, AccessCertificationCampaignType campaign,
-                                                                 Task task, OperationResult result) throws SecurityViolationException, SchemaException {
-        AccessCertificationCampaignType newCampaign = new AccessCertificationCampaignType(prismContext);
-        Date now = new Date();
-
-        if (campaign != null && campaign.getName() != null) {
-            campaign.setName(campaign.getName());
-        } else if (definition != null && definition.getName() != null) {
-            newCampaign.setName(generateCampaignName(definition, task, result));
-        } else {
-            throw new SchemaException("Couldn't create a campaign without name");
-        }
-
-        if (campaign != null && campaign.getDescription() != null) {
-            newCampaign.setDescription(newCampaign.getDescription());
-        } else if (definition != null) {
-            newCampaign.setDescription(definition.getDescription());
-        }
-
-        if (campaign != null && campaign.getOwnerRef() != null) {
-            newCampaign.setOwnerRef(campaign.getOwnerRef());
-        } else if (definition.getOwnerRef() != null) {
-            newCampaign.setOwnerRef(definition.getOwnerRef());
-        } else {
-            newCampaign.setOwnerRef(securityEnforcer.getPrincipal().toObjectReference());
-        }
-
-        if (campaign != null && campaign.getTenantRef() != null) {
-            newCampaign.setTenantRef(campaign.getTenantRef());
-        } else {
-            newCampaign.setTenantRef(definition.getTenantRef());
-        }
-
-        if (definition != null && definition.getOid() != null) {
-            newCampaign.setDefinitionRef(ObjectTypeUtil.createObjectRef(definition));
-        }
-
-        if (campaign != null && campaign.getHandlerUri() != null) {
-            newCampaign.setHandlerUri(campaign.getHandlerUri());
-        } else if (definition != null && definition.getHandlerUri() != null) {
-            newCampaign.setHandlerUri(definition.getHandlerUri());
-        } else {
-            throw new SchemaException("Couldn't create a campaign without handlerUri");
-        }
-
-        if (campaign != null && campaign.getScopeDefinition() != null) {
-            newCampaign.setScopeDefinition(campaign.getScopeDefinition());
-        } else if (definition != null && definition.getScopeDefinition() != null) {
-            newCampaign.setScopeDefinition(definition.getScopeDefinition());
-        }
-
-        if (campaign != null && campaign.getRemediationDefinition() != null) {
-            newCampaign.setRemediationDefinition(campaign.getRemediationDefinition());
-        } else if (definition != null && definition.getRemediationDefinition() != null) {
-            newCampaign.setRemediationDefinition(definition.getRemediationDefinition());
-        }
-
-        if (campaign != null && CollectionUtils.isNotEmpty(campaign.getStageDefinition())) {
-            newCampaign.getStageDefinition().addAll(CloneUtil.cloneCollectionMembers(campaign.getStageDefinition()));
-        } else if (definition != null && CollectionUtils.isNotEmpty(definition.getStageDefinition())) {
-            newCampaign.getStageDefinition().addAll(CloneUtil.cloneCollectionMembers(definition.getStageDefinition()));
-        }
-        CertCampaignTypeUtil.checkStageDefinitionConsistency(newCampaign.getStageDefinition());
-
-        newCampaign.setStart(null);
-        newCampaign.setEnd(null);
-        newCampaign.setState(CREATED);
-        newCampaign.setStageNumber(0);
-
-        return newCampaign;
-    }
-
-    private PolyStringType generateCampaignName(AccessCertificationDefinitionType definition, Task task, OperationResult result) throws SchemaException {
-        String prefix = definition.getName().getOrig();
-        Integer lastCampaignIdUsed = definition.getLastCampaignIdUsed() != null ? definition.getLastCampaignIdUsed() : 0;
-        for (int i = lastCampaignIdUsed+1;; i++) {
-            String name = generateName(prefix, i);
-            if (!campaignExists(name, task, result)) {
-                updateHelper.recordLastCampaignIdUsed(definition.getOid(), i, task, result);
-                return new PolyStringType(name);
-            }
-        }
-    }
-
-    private boolean campaignExists(String name, Task task, OperationResult result) throws SchemaException {
-        ObjectQuery query = ObjectQueryUtil.createNameQuery(AccessCertificationCampaignType.class, prismContext, name);
-        SearchResultList<PrismObject<AccessCertificationCampaignType>> existingCampaigns =
-                repositoryService.searchObjects(AccessCertificationCampaignType.class, query, null, result);
-        return !existingCampaigns.isEmpty();
-    }
-
-    private String generateName(String prefix, int i) {
-        return prefix + " " + i;
     }
 
 }

@@ -126,6 +126,9 @@ public class CloneUtil {
 	}
 
 	public static <T> Collection<T> cloneCollectionMembers(Collection<T> collection) {
+		if (collection == null) {
+			return null;
+		}
 		List<T> clonedCollection = new ArrayList<>(collection.size());
 		for (T element : collection) {
 			clonedCollection.add(clone(element));

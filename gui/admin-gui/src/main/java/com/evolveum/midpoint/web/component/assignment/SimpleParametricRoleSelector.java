@@ -56,286 +56,286 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  * @author semancik
  */
 public class SimpleParametricRoleSelector<F extends FocusType, R extends AbstractRoleType> extends SimpleRoleSelector<F,R> {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(SimpleParametricRoleSelector.class);
-	
-	private static final String ID_LABEL_ROLE = "labelRole";
-	private static final String ID_LABEL_PARAM = "labelParam";
-	private static final String ID_LIST_PARAM = "listParam";
-	private static final String ID_ITEM_PARAM = "itemParam";
-	private static final String ID_ADD_INPUT = "addInput";
-	private static final String ID_ADD_LINK = "addLink";
-	private static final String ID_DELETE_LINK = "deleteLink";
-	
-	private String labelParam = null;
-	private String labelRole = null;
-	private ItemPath parameterPath;
-	private ListView<String> paramList;
-	final private IModel<List<String>> paramListModel;
-	private String selectedParam = null;
+    private static final Trace LOGGER = TraceManager.getTrace(SimpleParametricRoleSelector.class);
 
-	public SimpleParametricRoleSelector(String id, IModel<List<AssignmentEditorDto>> assignmentModel, List<PrismObject<R>> availableRoles, ItemPath parameterPath) {
-		super(id, assignmentModel, availableRoles);
-		this.parameterPath = parameterPath;
-		paramListModel = initParamListModel(assignmentModel);
-		initLayout();
-	}
+    private static final String ID_LABEL_ROLE = "labelRole";
+    private static final String ID_LABEL_PARAM = "labelParam";
+    private static final String ID_LIST_PARAM = "listParam";
+    private static final String ID_ITEM_PARAM = "itemParam";
+    private static final String ID_ADD_INPUT = "addInput";
+    private static final String ID_ADD_LINK = "addLink";
+    private static final String ID_DELETE_LINK = "deleteLink";
 
-	public String getLabelParam() {
-		return labelParam;
-	}
+    private String labelParam = null;
+    private String labelRole = null;
+    private ItemPath parameterPath;
+    private ListView<String> paramList;
+    final private IModel<List<String>> paramListModel;
+    private String selectedParam = null;
 
-	public void setLabelParam(String labelParam) {
-		this.labelParam = labelParam;
-	}
+    public SimpleParametricRoleSelector(String id, IModel<List<AssignmentEditorDto>> assignmentModel, List<PrismObject<R>> availableRoles, ItemPath parameterPath) {
+        super(id, assignmentModel, availableRoles);
+        this.parameterPath = parameterPath;
+        paramListModel = initParamListModel(assignmentModel);
+        initLayout();
+    }
 
-	public String getLabelRole() {
-		return labelRole;
-	}
+    public String getLabelParam() {
+        return labelParam;
+    }
 
-	public void setLabelRole(String labelRole) {
-		this.labelRole = labelRole;
-	}
+    public void setLabelParam(String labelParam) {
+        this.labelParam = labelParam;
+    }
 
-	private IModel<List<String>> initParamListModel(final IModel<List<AssignmentEditorDto>> assignmentModel) {
-		return new IModel<List<String>>() {
+    public String getLabelRole() {
+        return labelRole;
+    }
 
-			private List<String> list = null;
-			
-			@Override
-			public void detach() {
-			}
+    public void setLabelRole(String labelRole) {
+        this.labelRole = labelRole;
+    }
 
-			@Override
-			public List<String> getObject() {
-				if (list == null) {
-					list = initParamList(assignmentModel.getObject());
-				}
-				return list;
-			}
+    private IModel<List<String>> initParamListModel(final IModel<List<AssignmentEditorDto>> assignmentModel) {
+        return new IModel<List<String>>() {
 
-			@Override
-			public void setObject(List<String> list) {
-				this.list = list;
-			}
-		};
-	}
-	
-	private List<String> initParamList(List<AssignmentEditorDto> assignmentDtos) {
-		List<String> params = new ArrayList<>();
-		for (AssignmentEditorDto assignmentDto: assignmentDtos) {
-			String paramVal = getParamValue(assignmentDto);
-			if (paramVal != null) {
-				if (!params.contains(paramVal)) {
-					params.add(paramVal);
-				}
-			}
-		}
-		Collections.sort(params);
-		return params;
-	}
+            private List<String> list = null;
 
-	private String getParamValue(AssignmentEditorDto assignmentDto) {
-		PrismContainerValue newValue;
-		try {
-			newValue = assignmentDto.getNewValue(getPageBase().getPrismContext());
-		} catch (SchemaException e) {
-			throw new SystemException(e.getMessage(),e);
-		}
-		if (newValue != null) {
-			PrismProperty<String> paramProp =  newValue.findProperty(parameterPath);
-			if (paramProp != null) {
-				return paramProp.getRealValue();
-			}
-		}
-		PrismContainerValue oldValue = assignmentDto.getOldValue();
-		if (oldValue != null) {
-			PrismProperty<String> paramProp =  oldValue.findProperty(parameterPath);
-			if (paramProp != null) {
-				return paramProp.getRealValue();
-			}
-		}
-		return null;
-	}
-	 
-	private void initLayout() {
-		
-		IModel<String> labelParamModel = new IModel<String>() {
-			@Override
-			public void detach() {
-			}
+            @Override
+            public void detach() {
+            }
 
-			@Override
-			public String getObject() {
-				return getLabelParam();
-			}
+            @Override
+            public List<String> getObject() {
+                if (list == null) {
+                    list = initParamList(assignmentModel.getObject());
+                }
+                return list;
+            }
 
-			@Override
-			public void setObject(String object) {
-			}			
-		};
-		add(new Label(ID_LABEL_PARAM, labelParamModel) {
-			@Override
-			protected void onConfigure() {
-				setVisible(getLabelParam() != null);
-				super.onConfigure();
-			}
-		});
-		
-		IModel<String> labelRoleModel = new IModel<String>() {
-			@Override
-			public void detach() {
-			}
+            @Override
+            public void setObject(List<String> list) {
+                this.list = list;
+            }
+        };
+    }
 
-			@Override
-			public String getObject() {
-				return getLabelRole();
-			}
+    private List<String> initParamList(List<AssignmentEditorDto> assignmentDtos) {
+        List<String> params = new ArrayList<>();
+        for (AssignmentEditorDto assignmentDto: assignmentDtos) {
+            String paramVal = getParamValue(assignmentDto);
+            if (paramVal != null) {
+                if (!params.contains(paramVal)) {
+                    params.add(paramVal);
+                }
+            }
+        }
+        Collections.sort(params);
+        return params;
+    }
 
-			@Override
-			public void setObject(String object) {
-			}			
-		};
-		add(new Label(ID_LABEL_ROLE, labelRoleModel) {
-			@Override
-			protected void onConfigure() {
-				setVisible(getLabelRole() != null);
-				super.onConfigure();
-			}
-		});
-		
-		paramList = new ListView<String>(ID_LIST_PARAM, paramListModel) {
-			@Override
-			protected void populateItem(ListItem<String> item) {
-				item.add(createParamLink(ID_ITEM_PARAM, item.getModel()));
-			}
-			
-		};
-		paramList.setOutputMarkupId(true);
-		add(paramList);
+    private String getParamValue(AssignmentEditorDto assignmentDto) {
+        PrismContainerValue newValue;
+        try {
+            newValue = assignmentDto.getNewValue(getPageBase().getPrismContext());
+        } catch (SchemaException e) {
+            throw new SystemException(e.getMessage(),e);
+        }
+        if (newValue != null) {
+            PrismProperty<String> paramProp =  newValue.findProperty(parameterPath);
+            if (paramProp != null) {
+                return paramProp.getRealValue();
+            }
+        }
+        PrismContainerValue oldValue = assignmentDto.getOldValue();
+        if (oldValue != null) {
+            PrismProperty<String> paramProp =  oldValue.findProperty(parameterPath);
+            if (paramProp != null) {
+                return paramProp.getRealValue();
+            }
+        }
+        return null;
+    }
 
-		final Model<String> addInputModel = new Model<String>();
-		TextField<String> addInput = new TextField<>(ID_ADD_INPUT, addInputModel);
-		addInput.setOutputMarkupId(true);
-		addInput.add(new AjaxFormComponentUpdatingBehavior("blur") {
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				// nothing to do, Ajax behavior is there only to get data to model
-			}
-		});
-		add(addInput);
-		
-		AjaxLink<String> addLink = new AjaxLink<String>(ID_ADD_LINK) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				String newParam = addInputModel.getObject();
-				LOGGER.debug("ADD cliked, input field value: {}", newParam);
-				if (!StringUtils.isBlank(newParam)) {
-					addParam(newParam);
-					
-				}
-				addInputModel.setObject(null);
-				target.add(SimpleParametricRoleSelector.this);
-			}
-		};
-		add(addLink);
-		
-		AjaxLink<String> deleteLink = new AjaxLink<String>(ID_DELETE_LINK) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				LOGGER.debug("DELETE cliked, selected param: {}", selectedParam);
-				deleteParam(selectedParam);
-				target.add(SimpleParametricRoleSelector.this);
-			}
-		};
-		add(deleteLink);		
-	}
+    private void initLayout() {
+
+        IModel<String> labelParamModel = new IModel<String>() {
+            @Override
+            public void detach() {
+            }
+
+            @Override
+            public String getObject() {
+                return getLabelParam();
+            }
+
+            @Override
+            public void setObject(String object) {
+            }
+        };
+        add(new Label(ID_LABEL_PARAM, labelParamModel) {
+            @Override
+            protected void onConfigure() {
+                setVisible(getLabelParam() != null);
+                super.onConfigure();
+            }
+        });
+
+        IModel<String> labelRoleModel = new IModel<String>() {
+            @Override
+            public void detach() {
+            }
+
+            @Override
+            public String getObject() {
+                return getLabelRole();
+            }
+
+            @Override
+            public void setObject(String object) {
+            }
+        };
+        add(new Label(ID_LABEL_ROLE, labelRoleModel) {
+            @Override
+            protected void onConfigure() {
+                setVisible(getLabelRole() != null);
+                super.onConfigure();
+            }
+        });
+
+        paramList = new ListView<String>(ID_LIST_PARAM, paramListModel) {
+            @Override
+            protected void populateItem(ListItem<String> item) {
+                item.add(createParamLink(ID_ITEM_PARAM, item.getModel()));
+            }
+
+        };
+        paramList.setOutputMarkupId(true);
+        add(paramList);
+
+        final Model<String> addInputModel = new Model<String>();
+        TextField<String> addInput = new TextField<>(ID_ADD_INPUT, addInputModel);
+        addInput.setOutputMarkupId(true);
+        addInput.add(new AjaxFormComponentUpdatingBehavior("blur") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                // nothing to do, Ajax behavior is there only to get data to model
+            }
+        });
+        add(addInput);
+
+        AjaxLink<String> addLink = new AjaxLink<String>(ID_ADD_LINK) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                String newParam = addInputModel.getObject();
+                LOGGER.debug("ADD cliked, input field value: {}", newParam);
+                if (!StringUtils.isBlank(newParam)) {
+                    addParam(newParam);
+
+                }
+                addInputModel.setObject(null);
+                target.add(SimpleParametricRoleSelector.this);
+            }
+        };
+        add(addLink);
+
+        AjaxLink<String> deleteLink = new AjaxLink<String>(ID_DELETE_LINK) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                LOGGER.debug("DELETE cliked, selected param: {}", selectedParam);
+                deleteParam(selectedParam);
+                target.add(SimpleParametricRoleSelector.this);
+            }
+        };
+        add(deleteLink);
+    }
 
 
-	private Component createParamLink(String id, IModel<String> itemModel) {
-		AjaxLink<String> button = new AjaxLink<String>(id, itemModel) {
-			
-			@Override
-			public IModel<?> getBody() {
-				return new Model<String>(getModel().getObject());
-			}
+    private Component createParamLink(String id, IModel<String> itemModel) {
+        AjaxLink<String> button = new AjaxLink<String>(id, itemModel) {
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				LOGGER.trace("{} CLICK param: {}", this, getModel().getObject());
-				toggleParam(getModel().getObject());
-				target.add(SimpleParametricRoleSelector.this);
-			}
-			
-			@Override
-		    protected void onComponentTag(ComponentTag tag) {
-		        super.onComponentTag(tag);
-		        String param = getModel().getObject();
-		        if (param.equals(selectedParam)) {
-		        	tag.put("class", "list-group-item active");
-		        } else {
-		        	tag.put("class", "list-group-item");
-		        }
-		    }
-		};
-		button.setOutputMarkupId(true);
-		return button;
-	}
-		
-	private void toggleParam(String param) {
-		selectedParam = param;
-	}
-	
-	private void addParam(String newParam) {
-		List<String> params = paramListModel.getObject();
-		if (!params.contains(newParam)) {
-			params.add(newParam);
-		}
-	}
+            @Override
+            public IModel<?> getBody() {
+                return new Model<String>(getModel().getObject());
+            }
 
-	private void deleteParam(String paramToDelete) {
-		paramListModel.getObject().remove(paramToDelete);
-		// make sure that all the assignments with the parameter parameter are also removed from assignement model
-		Iterator<AssignmentEditorDto> iterator = getAssignmentModel().getObject().iterator();
-		while (iterator.hasNext()) {
-			AssignmentEditorDto dto = iterator.next();
-			if (isManagedRole(dto) && paramToDelete.equals(getParamValue(dto))) {
-				if (dto.getStatus() == UserDtoStatus.ADD) {
-					iterator.remove();
-				} else {
-					dto.setStatus(UserDtoStatus.DELETE);
-				}
-			}
-		}
-	}
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                LOGGER.trace("{} CLICK param: {}", this, getModel().getObject());
+                toggleParam(getModel().getObject());
+                target.add(SimpleParametricRoleSelector.this);
+            }
 
-	@Override
-	protected AssignmentEditorDto createAddAssignmentDto(PrismObject<R> role, PageBase pageBase) {
-		AssignmentEditorDto dto = super.createAddAssignmentDto(role, pageBase);
-		PrismContainerValue<AssignmentType> newValue;
-		try {
-			newValue = dto.getNewValue(getPageBase().getPrismContext());
-			PrismProperty<String> prop = newValue.findOrCreateProperty(parameterPath);
-			prop.setRealValue(selectedParam);
-		} catch (SchemaException e) {
-			throw new SystemException(e.getMessage(), e);
-		}
-		
-		return dto;
-	}
+            @Override
+            protected void onComponentTag(ComponentTag tag) {
+                super.onComponentTag(tag);
+                String param = getModel().getObject();
+                if (param.equals(selectedParam)) {
+                    tag.put("class", "list-group-item active");
+                } else {
+                    tag.put("class", "list-group-item");
+                }
+            }
+        };
+        button.setOutputMarkupId(true);
+        return button;
+    }
 
-	@Override
-	protected boolean willProcessAssignment(AssignmentEditorDto dto) {
-		if (!super.willProcessAssignment(dto)) {
-			return false;
-		}
-		if (selectedParam == null) {
-			return false;
-		}
-		return selectedParam.equals(getParamValue(dto));
-	}
-	
-	
-		
+    private void toggleParam(String param) {
+        selectedParam = param;
+    }
+
+    private void addParam(String newParam) {
+        List<String> params = paramListModel.getObject();
+        if (!params.contains(newParam)) {
+            params.add(newParam);
+        }
+    }
+
+    private void deleteParam(String paramToDelete) {
+        paramListModel.getObject().remove(paramToDelete);
+        // make sure that all the assignments with the parameter parameter are also removed from assignement model
+        Iterator<AssignmentEditorDto> iterator = getAssignmentModel().getObject().iterator();
+        while (iterator.hasNext()) {
+            AssignmentEditorDto dto = iterator.next();
+            if (isManagedRole(dto) && paramToDelete.equals(getParamValue(dto))) {
+                if (dto.getStatus() == UserDtoStatus.ADD) {
+                    iterator.remove();
+                } else {
+                    dto.setStatus(UserDtoStatus.DELETE);
+                }
+            }
+        }
+    }
+
+    @Override
+    protected AssignmentEditorDto createAddAssignmentDto(PrismObject<R> role, PageBase pageBase) {
+        AssignmentEditorDto dto = super.createAddAssignmentDto(role, pageBase);
+        PrismContainerValue<AssignmentType> newValue;
+        try {
+            newValue = dto.getNewValue(getPageBase().getPrismContext());
+            PrismProperty<String> prop = newValue.findOrCreateProperty(parameterPath);
+            prop.setRealValue(selectedParam);
+        } catch (SchemaException e) {
+            throw new SystemException(e.getMessage(), e);
+        }
+
+        return dto;
+    }
+
+    @Override
+    protected boolean willProcessAssignment(AssignmentEditorDto dto) {
+        if (!super.willProcessAssignment(dto)) {
+            return false;
+        }
+        if (selectedParam == null) {
+            return false;
+        }
+        return selectedParam.equals(getParamValue(dto));
+    }
+
+
+
 }

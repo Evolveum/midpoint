@@ -18,6 +18,8 @@ package com.evolveum.midpoint.certification.test;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.certification.impl.AccCertGeneralHelper;
+import com.evolveum.midpoint.certification.impl.AccCertQueryHelper;
+import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -57,6 +59,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
@@ -112,7 +116,12 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	protected static final String USER_JACK_USERNAME = "jack";
-	
+
+	public static final File ROLE_REVIEWER_FILE = new File(COMMON_DIR, "role-reviewer.xml");
+	protected static final String ROLE_REVIEWER_OID = "00000000-d34d-b33f-f00d-ffffffff0000";
+
+	public static final File ROLE_EROOT_USER_ASSIGNMENT_CAMPAIGN_OWNER_FILE = new File(COMMON_DIR, "role-eroot-user-assignment-campaign-owner.xml");
+
 	public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
 	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
@@ -124,6 +133,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	public static final File ROLE_COO_FILE = new File(COMMON_DIR, "role-coo.xml");
 	protected static final String ROLE_COO_OID = "00000000-d34d-b33f-f00d-000000000002";
+	protected static final File ROLE_INDUCEMENT_CERT_DEF_FILE = new File(COMMON_DIR, "certification-of-role-inducements.xml");
 
 	protected DummyResource dummyResource;
 	protected DummyResourceContoller dummyResourceCtl;
@@ -151,7 +161,13 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
     protected CertificationManager certificationManager;
 
 	@Autowired
+	protected AccessCertificationService certificationService;
+
+	@Autowired
 	protected AccCertGeneralHelper helper;
+
+	@Autowired
+	protected AccCertQueryHelper queryHelper;
 
 	protected RoleType roleCeo;
 	protected RoleType roleCoo;
@@ -184,6 +200,8 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		roleSuperuser = repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult).asObjectable();
 		roleCeo = repoAddObjectFromFile(ROLE_CEO_FILE, RoleType.class, initResult).asObjectable();
 		roleCoo = repoAddObjectFromFile(ROLE_COO_FILE, RoleType.class, initResult).asObjectable();
+		repoAddObjectFromFile(ROLE_REVIEWER_FILE, RoleType.class, initResult).asObjectable();
+		repoAddObjectFromFile(ROLE_EROOT_USER_ASSIGNMENT_CAMPAIGN_OWNER_FILE, RoleType.class, initResult).asObjectable();
 
 		// Administrator
 		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult).asObjectable();
@@ -282,7 +300,13 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	}
 
 	protected void assertDefinitionAndOwner(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType certificationDefinition) {
-		assertRefEquals("Unexpected ownerRef", ObjectTypeUtil.createObjectRef(USER_ADMINISTRATOR_OID, ObjectTypes.USER), campaign.getOwnerRef());
+		assertDefinitionAndOwner(campaign, certificationDefinition, getSecurityContextUserOid());
+	}
+
+	protected void assertDefinitionAndOwner(AccessCertificationCampaignType campaign,
+											AccessCertificationDefinitionType certificationDefinition,
+											String expectedOwnerOid) {
+		assertRefEquals("Unexpected ownerRef", ObjectTypeUtil.createObjectRef(expectedOwnerOid, ObjectTypes.USER), campaign.getOwnerRef());
 		assertRefEquals("Unexpected definitionRef",
 				ObjectTypeUtil.createObjectRef(certificationDefinition),
 				campaign.getDefinitionRef());
@@ -303,16 +327,22 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	protected void recordDecision(String campaignOid, AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment,
 								  int stageNumber, String reviewerOid, Task task, OperationResult result)
 			throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException {
+		Authentication originalAuthentication = null;
 		AccessCertificationDecisionType decision = new AccessCertificationDecisionType(prismContext);
 		decision.setResponse(response);
 		decision.setComment(comment);
 		decision.setStageNumber(stageNumber);
 		if (reviewerOid != null) {
-			ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
-			decision.setReviewerRef(reviewerRef);
+			originalAuthentication = SecurityContextHolder.getContext().getAuthentication();
+			login(getUser(reviewerOid));
+//			ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
+//			decision.setReviewerRef(reviewerRef);
 		}
 		long id = _case.asPrismContainerValue().getId();
 		certificationManager.recordDecision(campaignOid, id, decision, task, result);
+		if (reviewerOid != null) {
+			SecurityContextHolder.getContext().setAuthentication(originalAuthentication);
+		}
 	}
 
 	protected void assertDecision(AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment, int stageNumber, String reviewerOid, AccessCertificationResponseType aggregatedResponse, boolean enabled) {
