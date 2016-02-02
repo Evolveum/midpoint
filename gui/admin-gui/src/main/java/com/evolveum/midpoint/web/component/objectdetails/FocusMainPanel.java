@@ -50,8 +50,8 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	private LoadableModel<List<FocusProjectionDto>> projectionModel;
 	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
 	
-	public FocusMainPanel(String id, LoadableModel<ObjectWrapper<F>> objectModel, 
-			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, LoadableModel<List<FocusProjectionDto>> projectionModel, 
+        public FocusMainPanel(String id, LoadableModel<ObjectWrapper<F>> objectModel,
+			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, LoadableModel<List<FocusProjectionDto>> projectionModel,
 			PageAdminFocus<F> parentPage) {
 		super(id, objectModel, parentPage);
 		Validate.notNull(projectionModel, "Null projection model");
@@ -156,6 +156,10 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		return new FocusAssignmentsTabPanel<F>(panelId, getMainForm(), getObjectModel(), assignmentsModel, parentPage);
 	}
 
+	protected WebMarkupContainer createRequestAssignmentTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
+		return new RequestAssignmentTabPanel<F>(panelId, getMainForm(), getObjectModel(), assignmentsModel, parentPage);
+	}
+
 	protected void addDefaultTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
 		tabs.add(
 				new AbstractTab(parentPage.createStringResource("pageAdminFocus.basic")){
@@ -177,6 +181,13 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					public WebMarkupContainer getPanel(String panelId) {
 						return createFocusAssignmentsTabPanel(panelId, parentPage); 
 					}
+				});
+		tabs.add(
+				new AbstractTab(parentPage.createStringResource("pageAdminFocus.request")){
+					@Override
+					public WebMarkupContainer getPanel(String panelId) {
+						return createRequestAssignmentTabPanel(panelId, parentPage);
+                    }
 				});
 	}
 }

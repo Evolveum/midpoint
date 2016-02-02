@@ -15,14 +15,16 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.model.IModel;
+import org.springframework.expression.spel.ast.Assign;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -66,7 +68,7 @@ public class RequestAssignmentTabPanel<F extends FocusType> extends AbstractObje
             @Override
 
             protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form form) {
-                update(target, availableRolesPanel, currentRolesPanel);
+                addToProviderList(target, availableRolesPanel, currentRolesPanel);
             }
         };
 //        add(add);
@@ -74,13 +76,14 @@ public class RequestAssignmentTabPanel<F extends FocusType> extends AbstractObje
         Form<?> form = new Form<Void>(ID_FORM) {
             @Override
             protected void onSubmit() {
+                updateAssignmentsModel();
             }
         };
 
         AjaxButton remove = new AjaxButton(ID_BUTTON_REMOVE) {
             @Override
             protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form form) {
-                update(target, currentRolesPanel, availableRolesPanel);
+                deleteFromProviderList(target, currentRolesPanel, availableRolesPanel);
             }
         };
         form.add(remove);
@@ -92,36 +95,39 @@ public class RequestAssignmentTabPanel<F extends FocusType> extends AbstractObje
 
     }
 
-    private void update(AjaxRequestTarget target, MultipleAssignmentSelector from, MultipleAssignmentSelector to) {
+    private void addToProviderList(AjaxRequestTarget target, MultipleAssignmentSelector from, MultipleAssignmentSelector to) {
         List<SelectableBean<RoleType>> fromList = (List<SelectableBean<RoleType>>)from.getModel().getObject();
         for (SelectableBean<RoleType> role : fromList) {
-            if (!providerList.contains(role)){
+            boolean toBeAdded = true;
+            for (SelectableBean<RoleType> providerRole : providerList){
+                if (providerRole.getValue().getOid().equals(role.getValue().getOid())){
+                    toBeAdded = false;
+                    break;
+                }
+            }
+            if (toBeAdded){
                 providerList.add(role);
             }
             role.setSelected(false);
-//
-//            Iterator<SelectableBean<RoleType>> toIterator = to.getProvider().iterator(0, to.getProvider().size());
-//            boolean isFound = false;
-//while (toIterator.hasNext()) {
-//
-//                if (toDto.getTargetRef().getOid().equals(fromDto.getTargetRef().getOid())){
-//                    isFound = true;
-//                    break;
-//                }
-//            }
-//            if (!isFound){
-////                fromDto.setStatus(UserDtoStatus.DELETE);
-//                toList.add(fromDto);
-//            }
         }
-//providerList.
-
-
-//        fromList.clear();
-//        to.deselectAll();
-//        from.deselectAll();
+        fromList.clear();
         target.add(to);
         target.add(from);
+    }
+
+    private void deleteFromProviderList(AjaxRequestTarget target, MultipleAssignmentSelector from, MultipleAssignmentSelector to){
+        List<SelectableBean<RoleType>> fromList = (List<SelectableBean<RoleType>>)from.getModel().getObject();
+        for (SelectableBean<RoleType> role : fromList) {
+            role.setSelected(false);
+            if (providerList.contains(role)) {
+
+                providerList.remove(role);
+            }
+        }
+
+        target.add(to);
+        target.add(from);
+
     }
 
     private List<PrismObject<RoleType>> getAvailableRoles(){
@@ -155,6 +161,22 @@ public class RequestAssignmentTabPanel<F extends FocusType> extends AbstractObje
         return selectableBean;
     }
 
+    private AssignmentEditorDto createAssignmentEditorDto(SelectableBean<RoleType>  role){
+        ObjectReferenceType targetRef = new ObjectReferenceType();
+        targetRef.setOid(role.getValue().getOid());
+        targetRef.setType(RoleType.COMPLEX_TYPE);
+        targetRef.setTargetName(role.getValue().getName());
+
+        AssignmentType assignment = new AssignmentType();
+        assignment.setTargetRef(targetRef);
+
+        AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, assignment, getPageBase());
+        dto.setMinimized(false);
+        dto.setShowEmpty(true);
+
+        return dto;
+    }
+
     private ObjectDataProvider getAvailableRolesDataProvider(){
         ObjectDataProvider provider = new ObjectDataProvider(RequestAssignmentTabPanel.this, RoleType.class);
         provider.setQuery(new ObjectQuery());
@@ -178,6 +200,10 @@ public class RequestAssignmentTabPanel<F extends FocusType> extends AbstractObje
 
             }
         });
+        ISortState sort = provider.getSortState();
+        if (sort != null){
+
+        }
         return provider;
     }
 
@@ -225,5 +251,36 @@ public class RequestAssignmentTabPanel<F extends FocusType> extends AbstractObje
         role.setOid(targetRef.getOid());
         role.setName(targetRef.getTargetName());
         return role;
+    }
+
+    private void updateAssignmentsModel(){
+        for (AssignmentEditorDto dto : assignmentsModel.getObject()){
+            if (dto.getType().equals(AssignmentEditorDtoType.ROLE)){
+                boolean toBeDeleted = true;
+                for (SelectableBean<RoleType> role : providerList){
+                    if (dto.getTargetRef().getOid().equals(role.getValue().getOid())){
+                        toBeDeleted = false;
+                    }
+                }
+                if (toBeDeleted){
+                    dto.setStatus(UserDtoStatus.DELETE);
+                }
+            }
+        }
+        List<AssignmentEditorDto> assignmentsToAdd = new ArrayList<>();
+        for (SelectableBean<RoleType> role : providerList){
+                boolean toBeAdded = true;
+                for (AssignmentEditorDto dto : assignmentsModel.getObject()){
+                    if (dto.getTargetRef().getOid().equals(role.getValue().getOid())){
+                        toBeAdded = false;
+                    }
+                }
+                if (toBeAdded){
+                    AssignmentEditorDto newAssignmentDto = createAssignmentEditorDto(role);
+                    newAssignmentDto.setStatus(UserDtoStatus.ADD);
+                    assignmentsToAdd.add(newAssignmentDto);
+                }
+        }
+        assignmentsModel.getObject().addAll(assignmentsToAdd);
     }
 }

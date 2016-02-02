@@ -98,8 +98,8 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
         add(table);
     }
 
-    private Component createRowLink(String id, final IModel<SelectableBean<F>> model) {
-        AjaxLink<SelectableBean<F>> button = new AjaxLink<SelectableBean<F>>(id, model) {
+    private Component createRowLink(String id, final IModel<SelectableBean<F>> rowModel) {
+        AjaxLink<SelectableBean<F>> button = new AjaxLink<SelectableBean<F>>(id, rowModel) {
 
             @Override
             public IModel<?> getBody() {
@@ -110,8 +110,8 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
             public void onClick(AjaxRequestTarget target) {
                 LOGGER.trace("{} CLICK: {}", this, getModel().getObject());
 //                toggleFocus(getModel().getObject());
-                model.getObject().setSelected(!model.getObject().isSelected());
-                getSelectorModel().getObject().add(model.getObject());
+                rowModel.getObject().setSelected(!rowModel.getObject().isSelected());
+                getSelectorModel().getObject().add(rowModel.getObject());
                 target.add(this);
             }
 
@@ -119,12 +119,12 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
             protected void onComponentTag(ComponentTag tag) {
                 super.onComponentTag(tag);
 //                PrismObject<F> focus = getModel().getObject().getValue().asPrismObject();
-                if (model.getObject().isSelected()) {
+                if (rowModel.getObject().isSelected()) {
                     tag.put("class", "list-group-item active");
                 } else {
                     tag.put("class", "list-group-item");
                 }
-                String description = model.getObject().getValue().getDescription();
+                String description = rowModel.getObject().getValue().getDescription();
                 if (description != null) {
                     tag.put("title", description);
                 }
