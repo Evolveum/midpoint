@@ -238,8 +238,14 @@ public class ComplexTypeDefinition extends Definition {
 			} else if (first instanceof IdItemPathSegment) {
 				path = path.rest();
 			} else if (first instanceof ParentPathSegment) {
-				ComplexTypeDefinition parent = getSchemaRegistry().determineParentDefinition(this, path.rest());
-				return parent.findItemDefinition(path.rest(), clazz);
+				ItemPath rest = path.rest();
+				ComplexTypeDefinition parent = getSchemaRegistry().determineParentDefinition(this, rest);
+				if (rest.isEmpty()) {
+					// requires that the parent is defined as an item (container, object)
+					return (ID) getSchemaRegistry().findItemDefinitionByType(parent.getTypeName());
+				} else {
+					return parent.findItemDefinition(rest, clazz);
+				}
 			} else if (first instanceof ObjectReferencePathSegment) {
 				throw new IllegalStateException("Couldn't use '@' path segment in this context. CTD=" + getTypeName() + ", path=" + path);
 			} else {

@@ -46,11 +46,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
-import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.repo.sql.util.ScrollableResultsIterator;
+import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -83,11 +79,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman, mederly
@@ -414,11 +406,12 @@ public class ObjectRetriever {
             QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
             RQuery rQuery = engine.interpret(query, type, options, false, session);
 
-            List<GetObjectResult> items = rQuery.list();
+            List<GetContainerableResult> items = rQuery.list();
             LOGGER.trace("Found {} items, translating to JAXB.", items.size());
 
-            for (GetObjectResult item : items) {
-                C value = (C) caseHelper.updateLoadedCertificationCase(item, options, session);
+            Map<String,PrismObject> ownersCache = new HashMap<>();
+            for (GetContainerableResult item : items) {
+                C value = (C) caseHelper.updateLoadedCertificationCase(item, ownersCache, options, session);
                 list.add(value);
             }
 

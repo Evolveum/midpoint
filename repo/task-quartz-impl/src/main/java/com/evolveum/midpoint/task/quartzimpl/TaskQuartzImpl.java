@@ -241,9 +241,7 @@ public class TaskQuartzImpl implements Task {
     }
 
 	private PrismObject<TaskType> createPrism() {
-		PrismObjectDefinition<TaskType> taskTypeDef = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
-		PrismObject<TaskType> taskPrism = taskTypeDef.instantiate();
-		return taskPrism;
+		return getPrismContext().createObject(TaskType.class);
 	}
 
 	private void setDefaults() {

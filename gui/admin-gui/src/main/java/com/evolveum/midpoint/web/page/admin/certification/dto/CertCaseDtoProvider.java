@@ -16,13 +16,18 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
-import com.evolveum.midpoint.certification.api.CertificationManager;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -65,17 +70,10 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrDeci
         try {
             ObjectPaging paging = createPaging(first, count);
             
-            ObjectQuery caseQuery = getQuery();
-            if (caseQuery == null){
-            	caseQuery = new ObjectQuery();
-            }
-            caseQuery.setPaging(paging);
-
             Collection<SelectorOptions<GetOperationOptions>> resolveNames =
                     SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
 
-            CertificationManager certificationManager = getPage().getCertificationManager();
-            List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, caseQuery, resolveNames, task, result);
+            List<AccessCertificationCaseType> caseList = searchCases(campaignOid, paging, resolveNames, task, result);
 
             for (AccessCertificationCaseType _case : caseList) {
                 getAvailableData().add(new CertCaseDto(_case, getPage(), task, result));
@@ -100,7 +98,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrDeci
         throw new RestartResponseException(PageError.class);
     }
 
-    // TODO replace searchDecisions with countDecisions (when it will be available)
+    // TODO replace searchCases with countCases (when it will be available)
     @Override
     protected int internalSize() {
         LOGGER.trace("begin::internalSize()");
@@ -108,10 +106,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrDeci
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
             Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
-            CertificationManager certificationManager = getPage().getCertificationManager();
-            ObjectQuery query = getQuery().clone();
-            query.setPaging(null);          // when counting decisions we need to exclude offset+size (and sorting info is irrelevant)
-            List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, query, null, task, result);
+            List<AccessCertificationCaseType> caseList = searchCases(campaignOid, null, null, task, result);
             count = caseList.size();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);
@@ -136,4 +131,28 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrDeci
     public void setCampaignOid(String campaignOid) {
         this.campaignOid = campaignOid;
     }
+
+    private List<AccessCertificationCaseType> searchCases(String campaignOid, ObjectPaging paging, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
+        final InOidFilter inOidFilter = InOidFilter.createOwnerHasOidIn(campaignOid);
+
+        ObjectQuery query = getQuery();
+        if (query != null) {
+            query = query.clone();
+            if (query.getFilter() == null) {
+                query.setFilter(inOidFilter);
+            } else {
+                query.setFilter(AndFilter.createAnd(query.getFilter(), inOidFilter));
+            }
+        } else {
+            query = new ObjectQuery();
+            query.setFilter(inOidFilter);
+        }
+
+        query.setPaging(paging);
+        SearchingUtils.hackPaging(query);
+
+        return getModel().searchContainers(AccessCertificationCaseType.class, query, options, task, result);
+    }
+
+
 }

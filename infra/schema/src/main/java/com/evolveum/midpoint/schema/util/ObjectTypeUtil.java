@@ -16,13 +16,7 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.parser.XPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -335,6 +329,34 @@ public class ObjectTypeUtil {
     	if (type.equals(ObjectType.class)) {
     		throw new IllegalArgumentException("The type "+type.getName()+" is abstract");
     	}
+    }
+
+    public static PrismObject getParentObject(Containerable containerable) {
+        if (containerable == null) {
+            return null;
+        }
+        PrismContainerable<? extends Containerable> parent1 = containerable.asPrismContainerValue().getParent();
+        if (parent1 == null) {
+            return null;
+        }
+        if (!(parent1 instanceof PrismContainer)) {
+            throw new IllegalArgumentException("Parent of " + containerable + " is not a PrismContainer. It is " + parent1.getClass());
+        }
+        PrismValue parent2 = ((PrismContainer) parent1).getParent();
+        if (parent2 == null) {
+            return null;
+        }
+        if (!(parent2 instanceof PrismContainerValue)) {
+            throw new IllegalArgumentException("Grandparent of " + containerable + " is not a PrismContainerValue. It is " + parent2.getClass());
+        }
+        Itemable parent3 = parent2.getParent();
+        if (parent3 == null) {
+            return null;
+        }
+        if (!(parent3 instanceof PrismObject)) {
+            throw new IllegalArgumentException("Grandgrandparent of " + containerable + " is not a PrismObject. It is " + parent3.getClass());
+        }
+        return (PrismObject) parent3;
     }
 
 

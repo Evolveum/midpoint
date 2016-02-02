@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.certification.api.CertificationManager;
+import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -96,7 +97,11 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 		action = {
 				@AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
 						label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
-						description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION) })
+						description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
+				@AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGN,
+						label = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGN_LABEL,
+						description = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGN_DESCRIPTION)
+		})
 public class PageCertCampaign extends PageAdminCertification {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageCertCampaign.class);
@@ -174,7 +179,7 @@ public class PageCertCampaign extends PageAdminCertification {
 		AccessCertificationCasesStatisticsType stat = null;
 		try {
 			Task task = createSimpleTask("dummy");  // todo
-			stat = getCertificationManager().getCampaignStatistics(getCampaignOid(), false, task, result);
+			stat = getCertificationService().getCampaignStatistics(getCampaignOid(), false, task, result);
 			result.recordSuccessIfUnknown();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get campaign statistics", ex);
@@ -464,26 +469,26 @@ public class PageCertCampaign extends PageAdminCertification {
 	private void executeCampaignStateOperation(AjaxRequestTarget target, String action) {
 		OperationResult result = new OperationResult(OPERATION_ADVANCE_LIFECYCLE);
 		try {
-			CertificationManager cm = getCertificationManager();
+			AccessCertificationService acs = getCertificationService();
 			int currentStage = campaignModel.getObject().getCurrentStageNumber();
 			Task task;
 			switch (action) {
 				case OP_START_CAMPAIGN:
 				case OP_OPEN_NEXT_STAGE:
 					task = createSimpleTask(OPERATION_OPEN_NEXT_STAGE);
-					cm.openNextStage(getCampaignOid(), currentStage + 1, task, result);
+					acs.openNextStage(getCampaignOid(), currentStage + 1, task, result);
 					break;
 				case OP_CLOSE_STAGE:
 					task = createSimpleTask(OPERATION_CLOSE_STAGE);
-					cm.closeCurrentStage(getCampaignOid(), currentStage, task, result);
+					acs.closeCurrentStage(getCampaignOid(), currentStage, task, result);
 					break;
 				case OP_START_REMEDIATION:
 					task = createSimpleTask(OPERATION_START_REMEDIATION);
-					cm.startRemediation(getCampaignOid(), task, result);
+					acs.startRemediation(getCampaignOid(), task, result);
 					break;
 				case OP_CLOSE_CAMPAIGN:
 					task = createSimpleTask(OPERATION_CLOSE_CAMPAIGN);
-					cm.closeCampaign(getCampaignOid(), task, result);
+					acs.closeCampaign(getCampaignOid(), task, result);
 					break;
 				default:
 					throw new IllegalStateException("Unknown action: " + action);

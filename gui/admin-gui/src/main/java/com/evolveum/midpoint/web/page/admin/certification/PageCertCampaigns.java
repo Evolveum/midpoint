@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.certification.api.CertificationManager;
+import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -82,7 +83,15 @@ import java.util.List;
 /**
  * @author mederly
  */
-@PageDescriptor(url = "/admin/certification/campaigns", encoder = OnePageParameterEncoder.class, action = { @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL, label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL, description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION) })
+@PageDescriptor(url = "/admin/certification/campaigns", encoder = OnePageParameterEncoder.class,
+		action = {
+				@AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
+						label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
+						description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
+				@AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS,
+						label = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_LABEL,
+						description = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_DESCRIPTION)})
+
 public class PageCertCampaigns extends PageAdminCertification {
 
 	private static final Trace LOGGER = TraceManager
@@ -655,10 +664,10 @@ public class PageCertCampaigns extends PageAdminCertification {
 	private void startRemediationPerformed(AjaxRequestTarget target, AccessCertificationCampaignType campaign) {
 		LOGGER.debug("Start remediation performed for {}", campaign.asPrismObject());
 		OperationResult result = new OperationResult(OPERATION_START_REMEDIATION);
-		CertificationManager cm = getCertificationManager();
+		AccessCertificationService acs = getCertificationService();
 		try {
 			Task task = createSimpleTask(OPERATION_START_REMEDIATION);
-			cm.startRemediation(campaign.getOid(), task, result);
+			acs.startRemediation(campaign.getOid(), task, result);
 		} catch (Exception ex) {
 			result.recordFatalError(ex);
 		} finally {
@@ -672,11 +681,11 @@ public class PageCertCampaigns extends PageAdminCertification {
 	private void openNextStagePerformed(AjaxRequestTarget target, AccessCertificationCampaignType campaign) {
 		LOGGER.debug("Start campaign / open next stage performed for {}", campaign.asPrismObject());
 		OperationResult result = new OperationResult(OPERATION_OPEN_NEXT_STAGE);
-		CertificationManager cm = getCertificationManager();
+		AccessCertificationService acs = getCertificationService();
 		try {
 			Task task = createSimpleTask(OPERATION_OPEN_NEXT_STAGE);
 			int currentStage = campaign.getStageNumber();
-			cm.openNextStage(campaign.getOid(), currentStage + 1, task, result);
+			acs.openNextStage(campaign.getOid(), currentStage + 1, task, result);
 		} catch (Exception ex) {
 			result.recordFatalError(ex);
 		} finally {
@@ -693,9 +702,9 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 		OperationResult result = new OperationResult(OPERATION_CLOSE_CAMPAIGN);
 		try {
-			CertificationManager cm = getCertificationManager();
+			AccessCertificationService acs = getCertificationService();
 			Task task = createSimpleTask(OPERATION_CLOSE_CAMPAIGN);
-			cm.closeCampaign(campaign.getOid(), task, result);
+			acs.closeCampaign(campaign.getOid(), task, result);
 		} catch (Exception ex) {
 			result.recordFatalError(ex);
 		} finally {
@@ -713,9 +722,9 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 		OperationResult result = new OperationResult(OPERATION_CLOSE_STAGE);
 		try {
-			CertificationManager cm = getCertificationManager();
+			AccessCertificationService acs = getCertificationService();
 			Task task = createSimpleTask(OPERATION_CLOSE_STAGE);
-			cm.closeCurrentStage(campaign.getOid(), campaign.getStageNumber(), task, result);
+			acs.closeCurrentStage(campaign.getOid(), campaign.getStageNumber(), task, result);
 		}catch (Exception ex) {
 			result.recordFatalError(ex);
 		} finally {
@@ -777,7 +786,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 	private void actOnCampaignsPerformed(AjaxRequestTarget target,
 			String operationName, List<CertCampaignListItemDto> items) {
 		int processed = 0;
-		CertificationManager cm = getCertificationManager();
+		AccessCertificationService acs = getCertificationService();
 
 		OperationResult result = new OperationResult(operationName);
 		for (CertCampaignListItemDto item : items) {
@@ -787,13 +796,13 @@ public class PageCertCampaigns extends PageAdminCertification {
 				switch (operationName) {
 				case OPERATION_START_CAMPAIGN:
 					if (campaign.getState() == AccessCertificationCampaignStateType.CREATED) {
-						cm.openNextStage(campaign.getOid(), 1, task, result);
+						acs.openNextStage(campaign.getOid(), 1, task, result);
 						processed++;
 					}
 					break;
 				case OPERATION_CLOSE_CAMPAIGN:
 					if (campaign.getState() != AccessCertificationCampaignStateType.CLOSED) {
-						cm.closeCampaign(campaign.getOid(), task, result);
+						acs.closeCampaign(campaign.getOid(), task, result);
 						processed++;
 					}
 					break;

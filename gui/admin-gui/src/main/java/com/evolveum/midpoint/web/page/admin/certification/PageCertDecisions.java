@@ -82,7 +82,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
         action = {
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
                         label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
-                        description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION)})
+                        description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_DECISIONS,
+                        label = PageAdminCertification.AUTH_CERTIFICATION_DECISIONS_LABEL,
+                        description = PageAdminCertification.AUTH_CERTIFICATION_DECISIONS_DESCRIPTION)})
 
 public class PageCertDecisions extends PageAdminCertification {
 
@@ -401,7 +404,7 @@ public class PageCertDecisions extends PageAdminCertification {
             newDecision.setStageNumber(0);
             newDecision.setComment(certDecisionDto.getComment());
             try {
-                getCertificationManager().recordDecision(
+                getCertificationService().recordDecision(
                         certDecisionDto.getCampaignRef().getOid(),
                         certDecisionDto.getCaseId(), newDecision, task, resultOne);
             } catch (Exception ex) {
@@ -434,7 +437,7 @@ public class PageCertDecisions extends PageAdminCertification {
         OperationResult result = new OperationResult(OPERATION_RECORD_ACTION);
         try {
             Task task = createSimpleTask(OPERATION_RECORD_ACTION);
-            getCertificationManager().recordDecision(
+            getCertificationService().recordDecision(
                     decisionDto.getCampaignRef().getOid(),
                     decisionDto.getCaseId(), newDecision, task, result);
         } catch (Exception ex) {

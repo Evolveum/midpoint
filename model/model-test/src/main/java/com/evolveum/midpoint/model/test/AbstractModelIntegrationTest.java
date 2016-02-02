@@ -985,6 +985,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		TestUtil.assertSuccess("getObject(User) result not success", result);
 		return user;
 	}
+
+	protected PrismObject<UserType> getUserFromRepo(String userOid) throws ObjectNotFoundException, SchemaException {
+		return repositoryService.getObject(UserType.class, userOid, null, new OperationResult("dummy"));
+	}
 	
 	protected <O extends ObjectType> PrismObject<O> findObjectByName(Class<O> type, String name) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".findObjectByName");
@@ -2032,6 +2036,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         SecurityContextHolder.getContext().setAuthentication(
 				new UsernamePasswordAuthenticationToken(
 						new MidPointPrincipal(object.asObjectable()), null));
+	}
+
+	protected String getSecurityContextUserOid() {
+		return ((MidPointPrincipal) (SecurityContextHolder.getContext().getAuthentication().getPrincipal())).getOid();
 	}
 	
 	protected <F extends FocusType> void assertSideEffectiveDeltasOnly(String desc, ObjectDelta<F> focusDelta) {

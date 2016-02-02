@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -55,6 +57,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
@@ -123,7 +126,10 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	private static final String USER_ANGELICA_NAME = "angelika";
 
 	private static final String USER_RUM_ROGERS_NAME = "rum";
-	
+
+	protected static final File ROLE_READ_JACKS_CAMPAIGNS_FILE = new File(TEST_DIR, "role-read-jacks-campaigns.xml");
+	protected static final String ROLE_READ_JACKS_CAMPAIGNS_OID = "00000000-0000-0000-0000-00000001aa00";
+
 	protected static final File ROLE_READONLY_FILE = new File(TEST_DIR, "role-readonly.xml");
 	protected static final String ROLE_READONLY_OID = "00000000-0000-0000-0000-00000000aa01";
 	protected static final File ROLE_READONLY_REQ_FILE = new File(TEST_DIR, "role-readonly-req.xml");
@@ -225,6 +231,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	private static final String LOG_PREFIX_ATTEMPT = "SSSSS=> ";
 	private static final String LOG_PREFIX_DENY = "SSSSS=- ";
 	private static final String LOG_PREFIX_ALLOW = "SSSSS=+ ";
+
+    protected static final File CAMPAIGNS_FILE = new File(TEST_DIR, "campaigns.xml");
 	
 	private static final ItemPath PASSWORD_PATH = new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 	
@@ -233,6 +241,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+
+        repoAddObjectsFromFile(CAMPAIGNS_FILE, initResult);
 		
 		repoAddObjectFromFile(ROLE_READONLY_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_READONLY_REQ_FILE, RoleType.class, initResult);
@@ -248,6 +258,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_EXEC_ALL_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_READ_JACKS_CAMPAIGNS_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_WRITE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_FILE, RoleType.class, initResult);
@@ -258,7 +269,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_ASSIGN_REQUESTABLE_ROLES_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_ORG_READ_ORGS_MINISTRY_OF_RUM_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_LOCATION_SHADOWS_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_FILE, RoleType.class, initResult);
+ 		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_FILE, RoleType.class, initResult);
 		
 		repoAddObjectFromFile(ROLE_APPLICATION_1_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_APPLICATION_2_FILE, RoleType.class, initResult);
@@ -599,6 +610,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
+
+		assertReadCertCasesDeny();
         
         RoleSelectionSpecification roleSpec = getAssignableRoleSpecification(userJack);
         assertNotNull("Null role spec "+roleSpec, roleSpec);
@@ -622,6 +635,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAddAllow();
         assertModifyAllow();
         assertDeleteAllow();
+
+		assertReadCertCasesAllow();
         
         RoleSelectionSpecification roleSpec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
         assertNotNull("Null role spec "+roleSpec, roleSpec);
@@ -645,6 +660,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
+
+		assertReadCertCasesAllow();
         
         assertGlobalStateUntouched();
 	}
@@ -752,6 +769,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SELF_OID);
+		assignRole(USER_JACK_OID, ROLE_READ_JACKS_CAMPAIGNS_OID);		// we cannot specify "own campaigns" yet
         login(USER_JACK_USERNAME);
         
         // WHEN
@@ -763,7 +781,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertVisibleUsers(1);
         // The search wit ObjectClass is important. It is a very different case
         // than searching just for UserType
-        assertSearch(ObjectType.class, null, 1);
+        assertSearch(ObjectType.class, null, 2);		// user + campaign
 
         assertAddDeny();
         
@@ -772,10 +790,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         assertDeleteDeny();
         assertDeleteDeny(UserType.class, USER_JACK_OID);
+
+		assertReadCertCases(2);
         
         assertGlobalStateUntouched();
 	}
-	
+
 	@Test
     public void test205AutzJackObjectFilterModifyCaribbeanfRole() throws Exception {
 		final String TEST_NAME = "test205AutzJackObjectFilterModifyCaribbeanfRole";
@@ -1128,6 +1148,14 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         // Not linked to jack
         assertGetDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
+
+		// enable after implementing MID-2789 and MID-2790
+//		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+//				.item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
+//				.and().item(ShadowType.F_OBJECT_CLASS).eq(new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"))
+//				.build();
+//		assertSearch(ShadowType.class, query, null, 1);
+//		assertSearch(ShadowType.class, query, SelectorOptions.createCollection(GetOperationOptions.createRaw()), 1);
         
         // Not linked to jack
         assertAddDeny(ACCOUNT_JACK_DUMMY_RED_FILE);
@@ -1910,6 +1938,18 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		assertReadDeny(0);
 	}
 
+	private void assertReadCertCasesDeny() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		assertReadCertCases(0);
+	}
+
+	private void assertReadCertCasesAllow() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		assertReadCertCases(3);
+	}
+
+    private void assertReadCertCases(int expectedNumber) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+        assertContainerSearch(AccessCertificationCaseType.class, null, expectedNumber);
+    }
+
 	private void assertReadDeny(int expectedNumAllUsers) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         assertGetDeny(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
@@ -2017,6 +2057,10 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	private <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		assertSearch(type, query, null, expectedResults);
 	}
+
+    private <C extends Containerable> void assertContainerSearch(Class<C> type, ObjectQuery query, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+        assertContainerSearch(type, query, null, expectedResults);
+    }
 	
 	private <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query, 
 			Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -2088,6 +2132,30 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 			failAllow("search", type, query, e);
 		}
 	}
+
+    private <C extends Containerable>
+    void assertContainerSearch(Class<C> type, ObjectQuery query,
+                               Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+        Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertSearchContainers");
+        OperationResult result = task.getResult();
+        try {
+            logAttempt("searchContainers", type, query);
+            List<C> objects = modelService.searchContainers(type, query, options, task, result);
+            display("Search returned", objects.toString());
+            if (objects.size() > expectedResults) {
+                failDeny("search", type, query, expectedResults, objects.size());
+            } else if (objects.size() < expectedResults) {
+                failAllow("search", type, query, expectedResults, objects.size());
+            }
+            result.computeStatus();
+            TestUtil.assertSuccess(result);
+        } catch (SecurityViolationException e) {
+            // this should not happen
+            result.computeStatus();
+            TestUtil.assertFailure(result);
+            failAllow("search", type, query, e);
+        }
+    }
 	
 	private void assertAddDeny(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
 		assertAddDeny(file, null);
@@ -2282,15 +2350,15 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		TestUtil.assertSetEquals("Wrong action in "+authorization, authorization.getAction(), action);
 	}
 	
-	private <O extends ObjectType> void failDeny(String action, Class<O> type, ObjectQuery query, int expected, int actual) {
+	private void failDeny(String action, Class<?> type, ObjectQuery query, int expected, int actual) {
 		failDeny(action, type, (query==null?"null":query.toString())+", expected "+expected+", actual "+actual);
 	}
 	
-	private <O extends ObjectType> void failDeny(String action, Class<O> type, String oid, ItemPath itemPath) {
+	private void failDeny(String action, Class<?> type, String oid, ItemPath itemPath) {
 		failDeny(action, type, oid+" prop "+itemPath);
 	}
 	
-	private <O extends ObjectType> void failDeny(String action, Class<O> type, String desc) {
+	private void failDeny(String action, Class<?> type, String desc) {
 		String msg = "Failed to deny "+action+" of "+type.getSimpleName()+":"+desc;
 		System.out.println(LOG_PREFIX_FAIL+msg);
 		LOGGER.error(LOG_PREFIX_FAIL+msg);
@@ -2304,19 +2372,19 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		AssertJUnit.fail(msg);
 	}
 
-	private <O extends ObjectType> void failAllow(String action, Class<O> type, ObjectQuery query, SecurityViolationException e) throws SecurityViolationException {
+	private void failAllow(String action, Class<?> type, ObjectQuery query, SecurityViolationException e) throws SecurityViolationException {
 		failAllow(action, type, query==null?"null":query.toString(), e);
 	}
 
-	private <O extends ObjectType> void failAllow(String action, Class<O> type, ObjectQuery query, int expected, int actual) throws SecurityViolationException {
+	private void failAllow(String action, Class<?> type, ObjectQuery query, int expected, int actual) throws SecurityViolationException {
 		failAllow(action, type, (query==null?"null":query.toString())+", expected "+expected+", actual "+actual, null);
 	}
 
-	private <O extends ObjectType> void failAllow(String action, Class<O> type, String oid, ItemPath itemPath, SecurityViolationException e) throws SecurityViolationException {
+	private void failAllow(String action, Class<?> type, String oid, ItemPath itemPath, SecurityViolationException e) throws SecurityViolationException {
 		failAllow(action, type, oid+" prop "+itemPath, e);
 	}
 	
-	private <O extends ObjectType> void failAllow(String action, Class<O> type, String desc, SecurityViolationException e) throws SecurityViolationException {
+	private void failAllow(String action, Class<?> type, String desc, SecurityViolationException e) throws SecurityViolationException {
 		String msg = "Failed to allow "+action+" of "+type.getSimpleName()+":"+desc;
 		System.out.println(LOG_PREFIX_FAIL+msg);
 		LOGGER.error(LOG_PREFIX_FAIL+msg);
@@ -2338,15 +2406,15 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		}
 	}
 
-	private <O extends ObjectType> void logAttempt(String action, Class<O> type, ObjectQuery query) {
+	private void logAttempt(String action, Class<?> type, ObjectQuery query) {
 		logAttempt(action, type, query==null?"null":query.toString());
 	}
 	
-	private <O extends ObjectType> void logAttempt(String action, Class<O> type, String oid, ItemPath itemPath) {
+	private void logAttempt(String action, Class<?> type, String oid, ItemPath itemPath) {
 		logAttempt(action, type, oid+" prop "+itemPath);
 	}
 	
-	private <O extends ObjectType> void logAttempt(String action, Class<O> type, String desc) {
+	private void logAttempt(String action, Class<?> type, String desc) {
 		String msg = LOG_PREFIX_ATTEMPT+"Trying "+action+" of "+type.getSimpleName()+":"+desc;
 		System.out.println(msg);
 		LOGGER.info(msg);

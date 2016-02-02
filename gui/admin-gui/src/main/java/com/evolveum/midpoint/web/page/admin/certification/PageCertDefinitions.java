@@ -65,7 +65,10 @@ import java.util.List;
 @PageDescriptor(url = "/admin/certification/definitions", action = {
         @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
                 label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
-                description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION)
+                description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS,
+                label = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS_LABEL,
+                description = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS_DESCRIPTION)
         })
 public class PageCertDefinitions extends PageAdminWorkItems {
 
@@ -227,7 +230,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
         OperationResult result = new OperationResult(OPERATION_CREATE_CAMPAIGN);
         try {
             Task task = createSimpleTask(OPERATION_CREATE_CAMPAIGN);
-            getCertificationManager().createCampaign(definition.getOid(), null, task, result);
+            getCertificationService().createCampaign(definition.getOid(), task, result);
         } catch (Exception ex) {
             result.recordFatalError(ex);
         } finally {
