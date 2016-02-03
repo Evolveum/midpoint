@@ -236,7 +236,7 @@ public class ReportUtils {
     public static String prettyPrintForReport(PrismReferenceValue prv, boolean showType) {
         StringBuilder sb = new StringBuilder();
         if (showType) {
-            sb.append(prettyPrintForReport(prv.getTargetType()));
+            sb.append(getTypeDisplayName(prv.getTargetType()));
             sb.append(": ");
         }
         if (prv.getTargetName() != null) {
@@ -257,7 +257,7 @@ public class ReportUtils {
         }
         StringBuilder sb = new StringBuilder();
         if (showType || prv.getTargetName() == null) {
-            sb.append(prettyPrintForReport(prv.getType()));
+            sb.append(getTypeDisplayName(prv.getType()));
             sb.append(": ");
         }
         if (prv.getTargetName() != null) {
@@ -606,6 +606,20 @@ public class ReportUtils {
         if (response == null || response == AccessCertificationResponseType.NO_RESPONSE) {
             return "";
         }
-        return String.valueOf(response);        // TODO i18n
+        return getPropertyString("AccessCertificationResponseType."+response.name());
+    }
+
+    public static String prettyPrintForReport(Enum e) {
+        if (e == null) {
+            return "";
+        }
+        return getPropertyString(e.getClass().getSimpleName()+"."+e.name(), e.name());
+    }
+
+    public static String getTypeDisplayName(QName typeName) {
+        if (typeName == null) {
+            return null;
+        }
+        return getPropertyString("ObjectType." + typeName.getLocalPart(), typeName.getLocalPart());
     }
 }

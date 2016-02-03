@@ -260,8 +260,18 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     }
 
     @Override
+    public S_FilterExit asc(ItemPath path) throws SchemaException {
+        return finish().asc(path);
+    }
+
+    @Override
     public S_FilterExit desc(QName... names) throws SchemaException {
         return finish().desc(names);
+    }
+
+    @Override
+    public S_FilterExit desc(ItemPath path) throws SchemaException {
+        return finish().desc(path);
     }
 
     @Override
