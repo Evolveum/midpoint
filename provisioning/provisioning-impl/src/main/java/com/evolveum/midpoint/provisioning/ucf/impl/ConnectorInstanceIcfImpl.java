@@ -2296,6 +2296,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			optionsBuilder.setContainer(containerQualifiedUid);
         }
 		OperationOptions options = optionsBuilder.build();
+		optionsBuilder.setAllowPartialAttributeValues(true);
 
 		Filter filter;
 		try {
