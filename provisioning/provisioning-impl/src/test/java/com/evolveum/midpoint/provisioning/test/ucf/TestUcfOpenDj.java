@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -400,7 +400,14 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		assertNotNull("No last token value", lastToken.getRealValue());
 
 		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, result);
-		AssertJUnit.assertEquals(0, changes.size());
+		
+		// Just one pseudo-change that updates the token
+		AssertJUnit.assertEquals(1, changes.size());
+		Change<ShadowType> change = changes.get(0);
+		assertNull(change.getCurrentShadow());
+		assertNull(change.getIdentifiers());
+		assertNull(change.getObjectDelta());
+		assertNotNull(change.getToken());
 	}
 
 	private PrismProperty createProperty(String propertyName, String propertyValue) {
