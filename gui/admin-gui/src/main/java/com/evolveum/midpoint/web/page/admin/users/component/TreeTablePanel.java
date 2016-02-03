@@ -27,6 +27,9 @@ import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -54,6 +57,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
@@ -99,6 +103,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -112,6 +117,11 @@ import java.util.Set;
  * @author lazyman
  */
 public class TreeTablePanel extends AbstractTreeTablePanel {
+	
+	private static final String ID_CONTAINER_MEMBER_RESOURCE = "resourceMembers";
+	private static final String ID_CONTAINER_MEMBER_ROLES = "roleMembers";
+	private static final String ID_RESOURCE_MEMBER_TABLE = "memberResourceTable";
+	private static final String ID_ROLE_MEMBER_TABLE = "memberRoleTable";
 
     private static final Trace LOGGER = TraceManager.getTrace(TreeTablePanel.class);
 
@@ -387,8 +397,99 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
             }
         });
         managerContainer.add(managerTablePanel);
+//        managerContainer.add(new VisibleEnableBehaviour(){
+//        	
+//        	@Override
+//        	public boolean isVisible() {
+//        		return !managerTableProvider.getAvailableData().isEmpty();
+//        	}
+//        });
 
-        //Member container initialization
+        //Member container initialization -RESOURCES
+        final ObjectDataProvider memberResourceTableProvider = new ObjectDataProvider<OrgTableDto, ResourceType>(this, ResourceType.class) {
+
+            @Override
+            public OrgTableDto createDataObjectWrapper(PrismObject<ResourceType> obj) {
+                return OrgTableDto.createDto(obj);
+            }
+
+            @Override
+            public ObjectQuery getQuery() {
+                return createMemberQuery();
+            }
+        };
+ 
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+        options.add(SelectorOptions.create(ItemPath.EMPTY_PATH,
+                GetOperationOptions.createRetrieve(RetrieveOption.DEFAULT)));
+        memberResourceTableProvider.setOptions(options);
+
+        WebMarkupContainer memberResourceContainer = new WebMarkupContainer(ID_CONTAINER_MEMBER_RESOURCE);
+        memberResourceContainer.setOutputMarkupId(true);
+        memberResourceContainer.setOutputMarkupPlaceholderTag(true);
+        form.add(memberResourceContainer);
+
+        List<IColumn<OrgTableDto, String>> memberResourceTableColumns = createResourceTableColumns(false);
+        final TablePanel memberResourceTablePanel = new TablePanel<>(ID_RESOURCE_MEMBER_TABLE, memberResourceTableProvider, memberResourceTableColumns,
+                UserProfileStorage.TableId.TREE_TABLE_PANEL_MEMBER, UserProfileStorage.DEFAULT_PAGING_SIZE);
+        memberResourceTablePanel.setOutputMarkupId(true);
+        memberResourceTablePanel.getNavigatorPanel().add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return memberResourceTableProvider.size() > memberResourceTablePanel.getDataTable().getItemsPerPage();
+            }
+        });
+        memberResourceContainer.add(memberResourceTablePanel);
+//        memberResourceContainer.add(new VisibleEnableBehaviour(){
+//        	
+//        	@Override
+//        	public boolean isVisible() {
+//        		return !memberResourceTableProvider.getAvailableData().isEmpty();
+//        	}
+//        });
+//        
+      //Member container initialization -ROLES
+        final ObjectDataProvider memberRoleTableProvider = new ObjectDataProvider<OrgTableDto, RoleType>(this, RoleType.class) {
+
+            @Override
+            public OrgTableDto createDataObjectWrapper(PrismObject<RoleType> obj) {
+                return OrgTableDto.createDto(obj);
+            }
+
+            @Override
+            public ObjectQuery getQuery() {
+                return createMemberQuery();
+            }
+        };
+        memberRoleTableProvider.setOptions(WebModelUtils.createMinimalOptions());
+
+        WebMarkupContainer memberRoleContainer = new WebMarkupContainer(ID_CONTAINER_MEMBER_ROLES);
+        memberRoleContainer.setOutputMarkupId(true);
+        memberRoleContainer.setOutputMarkupPlaceholderTag(true);
+        form.add(memberRoleContainer);
+
+        List<IColumn<OrgTableDto, String>> memberRoleTableColumns = createRoleTableColumns(false);
+        final TablePanel memberRoleTablePanel = new TablePanel<>(ID_ROLE_MEMBER_TABLE, memberRoleTableProvider, memberRoleTableColumns,
+                UserProfileStorage.TableId.TREE_TABLE_PANEL_MEMBER, UserProfileStorage.DEFAULT_PAGING_SIZE);
+        memberRoleTablePanel.setOutputMarkupId(true);
+        memberRoleTablePanel.getNavigatorPanel().add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                return memberRoleTableProvider.size() > memberRoleTablePanel.getDataTable().getItemsPerPage();
+            }
+        });
+        memberRoleContainer.add(memberRoleTablePanel);
+//        memberRoleContainer.add(new VisibleEnableBehaviour(){
+//        	
+//        	@Override
+//        	public boolean isVisible() {
+//        		return !memberRoleTableProvider.getAvailableData().isEmpty();
+//        	}
+//        });
+        
+      //Member container initialization 
         final ObjectDataProvider memberTableProvider = new ObjectDataProvider<OrgTableDto, UserType>(this, UserType.class) {
 
             @Override
@@ -420,6 +521,13 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
             }
         });
         memberContainer.add(memberTablePanel);
+//        memberContainer.add(new VisibleEnableBehaviour(){
+//        	
+//        	@Override
+//        	public boolean isVisible() {
+//        		return !memberTableProvider.getAvailableData().isEmpty();
+//        	}
+//        });
     }
 
     private List<InlineMenuItem> createTreeMenu() {
@@ -609,6 +717,127 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
         return columns;
     }
+    
+    private List<IColumn<OrgTableDto, String>> createRoleTableColumns(boolean isManagerTable) {
+        List<IColumn<OrgTableDto, String>> columns = new ArrayList<>();
+
+        columns.add(new CheckBoxHeaderColumn<OrgTableDto>());
+        columns.add(new IconColumn<OrgTableDto>(createStringResource("")) {
+
+            @Override
+            protected IModel<String> createIconModel(IModel<OrgTableDto> rowModel) {
+                OrgTableDto dto = rowModel.getObject();
+                OrgTreeDto selectedDto = selected.getObject();
+                String selectedOid = dto != null ? selectedDto.getOid() : getModel().getObject();
+
+                ObjectTypeGuiDescriptor guiDescriptor = null;
+                if(dto != null && dto.getRelation() == null) {
+                    guiDescriptor = ObjectTypeGuiDescriptor.getDescriptor(dto.getType());
+                } else {
+                    if(dto != null){
+                        for(ObjectReferenceType parentOrgRef: dto.getObject().getParentOrgRef()){
+                            if(parentOrgRef.getOid().equals(selectedOid) && SchemaConstants.ORG_MANAGER.equals(parentOrgRef.getRelation())){
+                                guiDescriptor = ObjectTypeGuiDescriptor.getDescriptor(dto.getRelation());
+                                String icon = guiDescriptor != null ? guiDescriptor.getIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
+                                return new Model<>(icon);
+                            }
+                        }
+
+                        guiDescriptor = ObjectTypeGuiDescriptor.getDescriptor(dto.getType());
+                    }
+                }
+
+                String icon = guiDescriptor != null ? guiDescriptor.getIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
+
+                return new Model<>(icon);
+            }
+        });
+
+        columns.add(new LinkColumn<OrgTableDto>(createStringResource("ObjectType.name"), OrgTableDto.F_NAME, "name") {
+
+//            @Override
+//            public boolean isEnabled(IModel<OrgTableDto> rowModel) {
+//                OrgTableDto dto = rowModel.getObject();
+//                return UserType.class.equals(dto.getType()) || OrgType.class.equals(dto.getType());
+//            }
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<OrgTableDto> rowModel) {
+                OrgTableDto dto = rowModel.getObject();
+                PageParameters parameters = new PageParameters();
+                parameters.add(OnePageParameterEncoder.PARAMETER, dto.getOid());
+                getSession().getSessionStorage().setPreviousPage(PageOrgTree.class);
+                setResponsePage(new PageRole(parameters, (PageTemplate) target.getPage()));
+            }
+        });
+        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("RoleType.identifier"),
+                RoleType.F_IDENTIFIER.getLocalPart(), OrgTableDto.F_OBJECT + ".identifier"));
+        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("RoleType.roleType"),
+                RoleType.F_ROLE_TYPE.getLocalPart(), OrgTableDto.F_OBJECT + ".roleType"));
+        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("RoleType.description"),
+                RoleType.F_DESCRIPTION.getLocalPart(), OrgTableDto.F_OBJECT + ".description"));
+      
+      
+        return columns;
+    }
+    
+    private List<IColumn<OrgTableDto, String>> createResourceTableColumns(boolean isManagerTable) {
+        List<IColumn<OrgTableDto, String>> columns = new ArrayList<>();
+
+        columns.add(new CheckBoxHeaderColumn<OrgTableDto>());
+        columns.add(new IconColumn<OrgTableDto>(createStringResource("")) {
+
+            @Override
+            protected IModel<String> createIconModel(IModel<OrgTableDto> rowModel) {
+                OrgTableDto dto = rowModel.getObject();
+                OrgTreeDto selectedDto = selected.getObject();
+                String selectedOid = dto != null ? selectedDto.getOid() : getModel().getObject();
+
+                ObjectTypeGuiDescriptor guiDescriptor = null;
+                if(dto != null && dto.getRelation() == null) {
+                    guiDescriptor = ObjectTypeGuiDescriptor.getDescriptor(dto.getType());
+                } else {
+                    if(dto != null){
+                        for(ObjectReferenceType parentOrgRef: dto.getObject().getParentOrgRef()){
+                            if(parentOrgRef.getOid().equals(selectedOid) && SchemaConstants.ORG_MANAGER.equals(parentOrgRef.getRelation())){
+                                guiDescriptor = ObjectTypeGuiDescriptor.getDescriptor(dto.getRelation());
+                                String icon = guiDescriptor != null ? guiDescriptor.getIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
+                                return new Model<>(icon);
+                            }
+                        }
+
+                        guiDescriptor = ObjectTypeGuiDescriptor.getDescriptor(dto.getType());
+                    }
+                }
+
+                String icon = guiDescriptor != null ? guiDescriptor.getIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
+
+                return new Model<>(icon);
+            }
+        });
+
+        columns.add(new LinkColumn<OrgTableDto>(createStringResource("ObjectType.name"), OrgTableDto.F_NAME, "name") {
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<OrgTableDto> rowModel) {
+                OrgTableDto dto = rowModel.getObject();
+                PageParameters parameters = new PageParameters();
+                parameters.add(OnePageParameterEncoder.PARAMETER, dto.getOid());
+                getSession().getSessionStorage().setPreviousPage(PageOrgTree.class);
+                setResponsePage(new PageRole(parameters, (PageTemplate) target.getPage()));
+            }
+        });
+//        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("RoleType.identifier"),
+//                ResourceType.F_CONNECTORF_IDENTIFIER.getLocalPart(), OrgTableDto.F_OBJECT + ".identifier"));
+//        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("RoleType.roleType"),
+//                RoleType.F_ROLE_TYPE.getLocalPart(), OrgTableDto.F_OBJECT + ".roleType"));
+//        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("RoleType.description"),
+//                RoleType.F_DESCRIPTION.getLocalPart(), OrgTableDto.F_OBJECT + ".description"));
+//      
+      
+        return columns;
+    }
+    
 
     private List<InlineMenuItem> initOrgChildInlineMenu() {
         List<InlineMenuItem> headerMenuItems = new ArrayList<>();
@@ -1017,6 +1246,14 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
     private WebMarkupContainer getMemberContainer() {
         return (WebMarkupContainer) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER));
     }
+    
+    private WebMarkupContainer getRoleMemberContainer() {
+        return (WebMarkupContainer) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER_ROLES));
+    }
+    
+    private WebMarkupContainer getResourceMemberContainer() {
+        return (WebMarkupContainer) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER_RESOURCE));
+    }
 
     private WebMarkupContainer getManagerContainer() {
         return (WebMarkupContainer) get(createComponentPath(ID_FORM, ID_CONTAINER_MANAGER));
@@ -1024,6 +1261,14 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
     private TablePanel getMemberTable() {
         return (TablePanel) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
+    }
+    
+    private TablePanel getRoleMemberTable() {
+        return (TablePanel) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_ROLE_MEMBER_TABLE));
+    }
+    
+    private TablePanel getResourceMemberTable() {
+        return (TablePanel) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_RESOURCE_MEMBER_TABLE));
     }
 
     private TablePanel getManagerTable() {
@@ -1042,8 +1287,14 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
         TablePanel managerTable = getManagerTable();
         managerTable.setCurrentPage(null);
+        
+        TablePanel roleMemberTable = getRoleMemberTable();
+        managerTable.setCurrentPage(null);
+        
+        TablePanel resourceMemberTable = getResourceMemberTable();
+        managerTable.setCurrentPage(null);
 
-        target.add(getOrgChildContainer(), getMemberContainer(), getManagerContainer());
+        target.add(getOrgChildContainer(), getMemberContainer(), getManagerContainer(), getRoleMemberContainer(), getResourceMemberContainer());
         target.add(get(ID_SEARCH_FORM));
     }
 

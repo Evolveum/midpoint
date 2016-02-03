@@ -196,6 +196,7 @@ public class LensUtil {
 			ResourceType resource = context.getResource(rsd.getResourceOid());
 			accountSyncContext.setResource(resource);
 		}
+		accountSyncContext.setDoReconciliation(context.isDoReconciliationForAllProjections());
 		return accountSyncContext;
 	}
 	

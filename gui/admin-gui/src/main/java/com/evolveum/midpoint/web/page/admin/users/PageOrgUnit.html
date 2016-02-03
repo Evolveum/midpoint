@@ -18,11 +18,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
- 
+
+<div wicket:id="selectResourceDefinition" /> 
 <!--  		    <div wicket:id="assignmentsPreviewPopup" /> -->
     <form wicket:id="mainForm" autocomplete="off" class="form-horizontal">
     
     	<div wicket:id="summaryPanel"/>
+
+
 
         <div wicket:id="tabPanel" class="nav-tabs-custom" />
 
@@ -35,9 +38,12 @@
                 <a class="btn btn-default" wicket:id="back"/>
             </span>
             <!-- todo implement previes -->
+            
+           
            
 	 <a class="btn btn-primary" wicket:id="save"/>
             <a class="btn btn-danger" wicket:id="abort"/>
+            <a class="btn btn-primary" wicket:id="generateResourceDefinition"/>
         </div>
     </form>
 
