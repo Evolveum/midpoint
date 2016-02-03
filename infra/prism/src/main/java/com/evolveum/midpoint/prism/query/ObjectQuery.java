@@ -177,4 +177,13 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 		return sb.toString();
 	}
 
+	public void addFilter(ObjectFilter objectFilter) {
+		if (objectFilter == null || objectFilter instanceof AllFilter) {
+			// nothing to do
+		} else if (filter == null || filter instanceof AllFilter) {
+			setFilter(objectFilter);
+		} else {
+			setFilter(AndFilter.createAnd(objectFilter, filter));
+		}
+	}
 }

@@ -344,11 +344,27 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     @Override
+    public S_FilterExit asc(ItemPath path) throws SchemaException {
+        if (ItemPath.isNullOrEmpty(path)) {
+            throw new SchemaException("There must be non-empty path for asc(...) ordering");
+        }
+        return addOrdering(ObjectOrdering.createOrdering(path, OrderDirection.ASCENDING));
+    }
+
+    @Override
     public S_FilterExit desc(QName... names) throws SchemaException {
         if (names.length == 0) {
             throw new SchemaException("There must be at least one name for asc(...) ordering");
         }
         return addOrdering(ObjectOrdering.createOrdering(new ItemPath(names), OrderDirection.DESCENDING));
+    }
+
+    @Override
+    public S_FilterExit desc(ItemPath path) throws SchemaException {
+        if (ItemPath.isNullOrEmpty(path)) {
+            throw new SchemaException("There must be non-empty path for desc(...) ordering");
+        }
+        return addOrdering(ObjectOrdering.createOrdering(path, OrderDirection.DESCENDING));
     }
 
     @Override

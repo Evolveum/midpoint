@@ -812,6 +812,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 
 	@Override
 	public void shutdown() {
+		LOGGER.info("Shutting down ConnId framework");
 		ConnectorFacadeFactory.getInstance().dispose();
 	}
 

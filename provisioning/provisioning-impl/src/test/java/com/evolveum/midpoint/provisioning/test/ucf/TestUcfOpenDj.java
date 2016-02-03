@@ -400,7 +400,15 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		assertNotNull("No last token value", lastToken.getRealValue());
 
 		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, result);
-		AssertJUnit.assertEquals(0, changes.size());
+		display("Changes", changes);
+		
+		// Just one pseudo-change that updates the token
+		AssertJUnit.assertEquals(1, changes.size());
+		Change<ShadowType> change = changes.get(0);
+		assertNull(change.getCurrentShadow());
+		assertNull(change.getIdentifiers());
+		assertNull(change.getObjectDelta());
+		assertNotNull(change.getToken());
 	}
 
 	private PrismProperty createProperty(String propertyName, String propertyValue) {
