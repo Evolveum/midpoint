@@ -1,16 +1,15 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -27,13 +26,12 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
  * Created by Honchar
  */
-public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<List<SelectableBean<F>>> {
+public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<List<AssignmentEditorDto>> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(MultipleAssignmentSelector.class);
@@ -41,27 +39,13 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
     private static final String ID_TABLE = "table";
     private static final String ID_BUTTON_RESET = "buttonReset";
     private static final int ITEMS_PER_PAGE = 10;
-    //    List<PrismObject<F>> choicesList;
-    private PrismObject<F> prismObject;
     private ISortableDataProvider<F, String> provider;
 
-    public MultipleAssignmentSelector(String id, IModel<List<SelectableBean<F>>> selectorModel, ISortableDataProvider provider) {
+    public MultipleAssignmentSelector(String id, IModel<List<AssignmentEditorDto>> selectorModel, ISortableDataProvider provider) {
         super(id, selectorModel);
         this.provider = provider;
 
         initLayout();
-    }
-
-    public List<AssignmentType> getAssignmentTypeList() {
-        return null;
-    }
-
-    public String getExcludeOid() {
-        return null;
-    }
-
-    protected IModel<List<SelectableBean<F>>> getSelectorModel() {
-        return getModel();
     }
 
     private void initLayout() {
@@ -73,18 +57,10 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
                 target.add(MultipleAssignmentSelector.this);
             }
         };
-        buttonReset.setBody(createStringResource("SimpleRoleSelector.reset"));
+        buttonReset.setBody(createStringResource("MultipleAssignmentSelector.reset"));
         add(buttonReset);
 
-
-//        ISortableDataProvider provider = new ListDataProvider(this, getModel());
-
-
-//        if (provider != null) {
-//            provider.setQuery(createQuery());
-//        }
-
-        List<IColumn<SelectableBean<F>, String>> columns = initColumns();
+        List<IColumn<SelectableBean<AssignmentEditorDto>, String>> columns = initColumns();
 
         BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns,
                 UserProfileStorage.TableId.TABLE_ROLES, ITEMS_PER_PAGE);
@@ -98,33 +74,30 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
         add(table);
     }
 
-    private Component createRowLink(String id, final IModel<SelectableBean<F>> rowModel) {
-        AjaxLink<SelectableBean<F>> button = new AjaxLink<SelectableBean<F>>(id, rowModel) {
+    private Component createRowLink(String id, final IModel<SelectableBean<AssignmentEditorDto>> rowModel) {
+        AjaxLink<SelectableBean<AssignmentEditorDto>> button = new AjaxLink<SelectableBean<AssignmentEditorDto>>(id, rowModel) {
 
             @Override
             public IModel<?> getBody() {
-                return new Model<String>(getModel().getObject().getValue().asPrismObject().asObjectable().getName().getOrig());
+                return new Model<String>(((AssignmentEditorDto) rowModel.getObject()).getName());
             }
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                LOGGER.trace("{} CLICK: {}", this, getModel().getObject());
-//                toggleFocus(getModel().getObject());
-                rowModel.getObject().setSelected(!rowModel.getObject().isSelected());
-                getSelectorModel().getObject().add(rowModel.getObject());
+                LOGGER.trace("{} CLICK: {}", this, rowModel.getObject());
+                toggleRow(rowModel);
                 target.add(this);
             }
 
             @Override
             protected void onComponentTag(ComponentTag tag) {
                 super.onComponentTag(tag);
-//                PrismObject<F> focus = getModel().getObject().getValue().asPrismObject();
                 if (rowModel.getObject().isSelected()) {
                     tag.put("class", "list-group-item active");
                 } else {
                     tag.put("class", "list-group-item");
                 }
-                String description = rowModel.getObject().getValue().getDescription();
+                String description = ((AssignmentEditorDto) rowModel.getObject()).getDescription();
                 if (description != null) {
                     tag.put("title", description);
                 }
@@ -134,93 +107,29 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
         return button;
     }
 
-
-    private boolean isSelected(PrismObject<F> prismObject) {
-
-//        this.prismObject = prismObject;
-//        for (AssignmentEditorDto dto: getSelectorModel().getObject()) {
-//            if (willProcessAssignment(dto)) {
-//                if (dto.getTargetRef() != null && prismObject.getOid().equals(dto.getTargetRef().getOid())) {
-//                    if (dto.getStatus() != UserDtoStatus.DELETE) {
-//                        return true;
-//                    }
-//                }
-//            }
-//        }
-        return false;
-    }
-
-    private void toggleFocus(PrismObject<F> focus) {
-//        Iterator<AssignmentEditorDto> iterator = getSelectorModel().getObject().iterator();
-//        while (iterator.hasNext()) {
-//            AssignmentEditorDto dto = iterator.next();
-//            if (willProcessAssignment(dto)) {
-//                if (dto.getTargetRef() != null && focus.getOid().equals(dto.getTargetRef().getOid())) {
-//                    if (dto.getStatus() == UserDtoStatus.ADD) {
-//                        iterator.remove();
-//                    } else {
-//                        dto.setStatus(UserDtoStatus.DELETE);
-//                    }
-//                    return;
-//                }
-//            }
-//        }
-//
-//        AssignmentEditorDto dto = createAddAssignmentDto(focus, getPageBase());
-//        getSelectorModel().getObject().add(dto);
-    }
-
-    protected AssignmentEditorDto createAddAssignmentDto(PrismObject<F> prismObject, PageBase pageBase) {
-        AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(prismObject.asObjectable(), getPageBase());
-        dto.setMinimized(true);
-        return dto;
-    }
-
     private void reset() {
-//        Iterator<AssignmentEditorDto> iterator = getSelectorModel().getObject().iterator();
-//        while (iterator.hasNext()) {
-//            AssignmentEditorDto dto = iterator.next();
-//            if (isManagedRole(dto) && willProcessAssignment(dto)) {
-//                if (dto.getStatus() == UserDtoStatus.ADD) {
-//                    iterator.remove();
-//                } else if (dto.getStatus() == UserDtoStatus.DELETE) {
-//                    dto.setStatus(UserDtoStatus.MODIFY);
-//                }
-//            }
-//        }
-    }
-
-    protected boolean willProcessAssignment(AssignmentEditorDto dto) {
-        return true;
-    }
-
-    protected boolean isManagedRole(AssignmentEditorDto dto) {
-        if (dto.getTargetRef() == null || dto.getTargetRef().getOid() == null) {
-            return false;
-        }
-        Iterator iterator = provider.iterator(0, provider.size());
-        while (iterator.hasNext()) {
-            PrismObject<F> choice = ((F)iterator.next()).asPrismObject();
-            if (choice.getOid().equals(dto.getTargetRef().getOid())) {
-                return true;
+        List<AssignmentEditorDto> assignmentsList = getModel().getObject();
+        List<AssignmentEditorDto> listToBeRemoved = new ArrayList<>();
+        for (AssignmentEditorDto dto : assignmentsList){
+            if (dto.getStatus().equals(UserDtoStatus.ADD)) {
+                listToBeRemoved.add(dto);
+             } else if (dto.getStatus() == UserDtoStatus.DELETE) {
+                dto.setStatus(UserDtoStatus.MODIFY);
             }
         }
-        return false;
+        assignmentsList.removeAll(listToBeRemoved);
     }
+
 
     public  void setResetButtonVisibility(boolean isVisible){
         get(ID_BUTTON_RESET).setVisible(isVisible);
     }
 
-    private ObjectQuery createQuery() {
-        return new ObjectQuery();
-    }
-
-    private List<IColumn<SelectableBean<F>, String>> initColumns() {
-        List<IColumn<SelectableBean<F>, String>> columns = new ArrayList<>();
-        columns.add(new AbstractColumn<SelectableBean<F>, String>(new Model()) {
-            public void populateItem(Item<ICellPopulator<SelectableBean<F>>> cellItem, String componentId,
-                                     IModel<SelectableBean<F>> rowModel) {
+    private List<IColumn<SelectableBean<AssignmentEditorDto>, String>> initColumns() {
+        List<IColumn<SelectableBean<AssignmentEditorDto>, String>> columns = new ArrayList<>();
+        columns.add(new AbstractColumn<SelectableBean<AssignmentEditorDto>, String>(new Model()) {
+            public void populateItem(Item<ICellPopulator<SelectableBean<AssignmentEditorDto>>> cellItem, String componentId,
+                                     IModel<SelectableBean<AssignmentEditorDto>> rowModel) {
                 cellItem.add(createRowLink(componentId, rowModel));
             }
         });
@@ -234,14 +143,19 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
         panel.getFooterPaging().getParent().add(new AttributeModifier("class", "col-md-10"));
     }
 
-    public void deselectAll(){
-//        List<AssignmentEditorDto> list = getModel().getObject();
-//        for (AssignmentEditorDto dto : list){
-//            dto.setStatus(UserDtoStatus.DELETE);
-//        }
-    }
-
     public ISortableDataProvider<F, String> getProvider() {
         return provider;
+    }
+
+    private void toggleRow(IModel<SelectableBean<AssignmentEditorDto>> rowModel){
+        rowModel.getObject().setSelected(!rowModel.getObject().isSelected());
+        List<AssignmentEditorDto> providerList = ((BaseSortableDataProvider) getProvider()).getAvailableData();
+        for (AssignmentEditorDto dto : providerList){
+            if (dto.getTargetRef().getOid().equals(((AssignmentEditorDto) rowModel.getObject()).getTargetRef().getOid())){
+                dto.setSelected(rowModel.getObject().isSelected());
+                break;
+            }
+        }
+
     }
 }
