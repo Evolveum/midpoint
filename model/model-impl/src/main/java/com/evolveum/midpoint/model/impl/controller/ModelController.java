@@ -182,7 +182,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Autowired(required = false)                        // not required in all circumstances
     private WorkflowManager workflowManager;
 
-	@Autowired
+	@Autowired(required = false)                        // not required in all circumstances
 	private CertificationManager certificationManager;
 
     @Autowired
@@ -218,10 +218,24 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Autowired
 	private SchemaTransformer schemaTransformer;
 	
-	
 	public ModelObjectResolver getObjectResolver() {
 		return objectResolver;
 	}
+
+	private WorkflowManager getWorkflowManagerChecked() {
+		if (workflowManager == null) {
+			throw new SystemException("Workflow manager not present");
+		}
+		return workflowManager;
+	}
+
+	private CertificationManager getCertificationManagerChecked() {
+		if (certificationManager == null) {
+			throw new SystemException("Certification manager not present");
+		}
+		return certificationManager;
+	}
+
 
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
@@ -739,7 +753,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(type, "Object type must not be null.");
-		Validate.notNull(parentResult, "Result type must not be null.");
+		Validate.notNull(parentResult, "Operation result must not be null.");
 		if (query != null) {
 			ModelUtils.validatePaging(query.getPaging());
 		}
@@ -1698,72 +1712,72 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     //region Workflow-related operations
     @Override
     public int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-        return workflowManager.countWorkItemsRelatedToUser(userOid, assigned, parentResult);
+        return getWorkflowManagerChecked().countWorkItemsRelatedToUser(userOid, assigned, parentResult);
     }
 
     @Override
     public List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-        return workflowManager.listWorkItemsRelatedToUser(userOid, assigned, first, count, parentResult);
+        return getWorkflowManagerChecked().listWorkItemsRelatedToUser(userOid, assigned, first, count, parentResult);
     }
 
     @Override
     public WorkItemType getWorkItemDetailsById(String workItemId, OperationResult parentResult) throws ObjectNotFoundException {
-        return workflowManager.getWorkItemDetailsById(workItemId, parentResult);
+        return getWorkflowManagerChecked().getWorkItemDetailsById(workItemId, parentResult);
     }
 
     @Override
     public int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult) {
-        return workflowManager.countProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished, parentResult);
+        return getWorkflowManagerChecked().countProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished, parentResult);
     }
 
     @Override
     public List<WfProcessInstanceType> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult) {
-        return workflowManager.listProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished, first, count, parentResult);
+        return getWorkflowManagerChecked().listProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished, first, count, parentResult);
     }
 
     @Override
     public WfProcessInstanceType getProcessInstanceByWorkItemId(String workItemId, OperationResult parentResult) throws ObjectNotFoundException {
-        return workflowManager.getProcessInstanceByWorkItemId(workItemId, parentResult);
+        return getWorkflowManagerChecked().getProcessInstanceByWorkItemId(workItemId, parentResult);
     }
 
     @Override
     public WfProcessInstanceType getProcessInstanceById(String instanceId, boolean historic, boolean getWorkItems, OperationResult parentResult) throws ObjectNotFoundException {
-        return workflowManager.getProcessInstanceById(instanceId, historic, getWorkItems, parentResult);
+        return getWorkflowManagerChecked().getProcessInstanceById(instanceId, historic, getWorkItems, parentResult);
     }
 
     @Override
     public void approveOrRejectWorkItem(String workItemId, boolean decision, OperationResult parentResult) {
-        workflowManager.approveOrRejectWorkItem(workItemId, decision, parentResult);
+        getWorkflowManagerChecked().approveOrRejectWorkItem(workItemId, decision, parentResult);
     }
 
     @Override
     public void approveOrRejectWorkItemWithDetails(String workItemId, PrismObject specific, boolean decision, OperationResult result) {
-        workflowManager.approveOrRejectWorkItemWithDetails(workItemId, specific, decision, result);
+        getWorkflowManagerChecked().approveOrRejectWorkItemWithDetails(workItemId, specific, decision, result);
     }
 
     @Override
     public void completeWorkItemWithDetails(String workItemId, PrismObject specific, String decision, OperationResult parentResult) {
-        workflowManager.completeWorkItemWithDetails(workItemId, specific, decision, parentResult);
+        getWorkflowManagerChecked().completeWorkItemWithDetails(workItemId, specific, decision, parentResult);
     }
 
     @Override
     public void stopProcessInstance(String instanceId, String username, OperationResult parentResult) {
-        workflowManager.stopProcessInstance(instanceId, username, parentResult);
+        getWorkflowManagerChecked().stopProcessInstance(instanceId, username, parentResult);
     }
 
     @Override
     public void deleteProcessInstance(String instanceId, OperationResult parentResult) {
-        workflowManager.deleteProcessInstance(instanceId, parentResult);
+        getWorkflowManagerChecked().deleteProcessInstance(instanceId, parentResult);
     }
 
     @Override
     public void claimWorkItem(String workItemId, OperationResult parentResult) {
-        workflowManager.claimWorkItem(workItemId, parentResult);
+        getWorkflowManagerChecked().claimWorkItem(workItemId, parentResult);
     }
 
     @Override
     public void releaseWorkItem(String workItemId, OperationResult parentResult) {
-        workflowManager.releaseWorkItem(workItemId, parentResult);
+        getWorkflowManagerChecked().releaseWorkItem(workItemId, parentResult);
     }
     //endregion
 
@@ -1796,43 +1810,42 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	@Override
 	public AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
-		return certificationManager.getCampaignStatistics(campaignOid, currentStageOnly, task, parentResult);
+		return getCertificationManagerChecked().getCampaignStatistics(campaignOid, currentStageOnly, task, parentResult);
 	}
 
 	@Override
 	public void recordDecision(String campaignOid, long caseId, AccessCertificationDecisionType decision, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
-		certificationManager.recordDecision(campaignOid, caseId, decision, task, parentResult);
+		getCertificationManagerChecked().recordDecision(campaignOid, caseId, decision, task, parentResult);
 	}
 
 	@Override
 	public List<AccessCertificationCaseType> searchDecisionsToReview(ObjectQuery caseQuery, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
-		return certificationManager.searchDecisionsToReview(caseQuery, notDecidedOnly, options, task, parentResult);
+		return getCertificationManagerChecked().searchDecisionsToReview(caseQuery, notDecidedOnly, options, task, parentResult);
 	}
 
 	@Override
 	public void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
-		certificationManager.closeCampaign(campaignOid, task, result);
+		getCertificationManagerChecked().closeCampaign(campaignOid, task, result);
 	}
 
 	@Override
 	public void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
-		certificationManager.startRemediation(campaignOid, task, result);
+		getCertificationManagerChecked().startRemediation(campaignOid, task, result);
 	}
 
 	@Override
 	public void closeCurrentStage(String campaignOid, int stageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
-		certificationManager.closeCurrentStage(campaignOid, stageNumber, task, parentResult);
+		getCertificationManagerChecked().closeCurrentStage(campaignOid, stageNumber, task, parentResult);
 	}
 
 	@Override
 	public void openNextStage(String campaignOid, int stageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
-		certificationManager.openNextStage(campaignOid, stageNumber, task, parentResult);
+		getCertificationManagerChecked().openNextStage(campaignOid, stageNumber, task, parentResult);
 	}
 
 	@Override
 	public AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
-		return certificationManager.createCampaign(definitionOid, task, parentResult);
+		return getCertificationManagerChecked().createCampaign(definitionOid, task, parentResult);
 	}
-
 	//endregion
 }

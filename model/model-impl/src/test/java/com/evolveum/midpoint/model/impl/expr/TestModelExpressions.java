@@ -28,6 +28,8 @@ import java.util.Set;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -129,7 +131,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
 		ExpressionVariables variables = null;
 		
 		// WHEN
-		List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, null, result);
+		List<PrismPropertyValue<String>> scriptOutputs = evaluate(scriptExpression, variables, false, TEST_NAME, null, result);
 		
 		// THEN
 		display("Script output", scriptOutputs);
@@ -138,7 +140,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
 		assertEquals("Unexpected script output", "Hello swashbuckler", scriptOutput.getValue());
 	}
 
-	private ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, IOException, JAXBException {
+    private ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, IOException, JAXBException {
 		ScriptExpressionEvaluatorType expressionType = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, fileName), ScriptExpressionEvaluatorType.COMPLEX_TYPE);
 		return expressionType;
@@ -170,7 +172,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
         variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "user"), chef);
 
         // WHEN
-        List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, null, result);
+        List<PrismPropertyValue<String>> scriptOutputs = evaluate(scriptExpression, variables, false, TEST_NAME, null, result);
 
         // THEN
         display("Script output", scriptOutputs);
@@ -198,7 +200,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
         variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "user"), chef);
 
         // WHEN
-        List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, null, result);
+        List<PrismPropertyValue<String>> scriptOutputs = evaluate(scriptExpression, variables, false, TEST_NAME, null, result);
 
         // THEN
         display("Script output", scriptOutputs);
@@ -223,16 +225,33 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
         importIfNeeded();
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + TEST_NAME + ".xml");
-        ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
+        ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
         ExpressionVariables variables = new ExpressionVariables();
 
         // WHEN
-        List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, null, result);
+        List<PrismPropertyValue<String>> scriptOutputs = evaluate(scriptExpression, variables, false, TEST_NAME, null, result);
 
         // THEN
         display("Script output", scriptOutputs);
         assertEquals("Unexpected number of script outputs", 1, scriptOutputs.size());
         assertEquals("Unexpected script output", F0006_OID, scriptOutputs.get(0).getValue());
+    }
+
+    private List<PrismPropertyValue<String>> evaluate(ScriptExpression scriptExpression, ExpressionVariables variables, boolean useNew,
+                                                      String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+        if (task == null) {
+            task = taskManager.createTaskInstance();
+        }
+        try {
+            ModelExpressionThreadLocalHolder.pushCurrentResult(result);
+            ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+
+            return scriptExpression.evaluate(variables, null, useNew, contextDescription, task, result);
+        } finally {
+            ModelExpressionThreadLocalHolder.popCurrentTask();
+            ModelExpressionThreadLocalHolder.popCurrentResult();
+        }
     }
 
 }

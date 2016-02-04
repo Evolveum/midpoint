@@ -114,6 +114,15 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	}
 
 	public static AssignmentEditorDto createDtoAddFromSelectedObject(ObjectType object, PageBase pageBase) {
+		AssignmentEditorDto dto = createDtoFromObject(object, UserDtoStatus.ADD,
+				pageBase);
+		dto.setMinimized(false);
+		dto.setShowEmpty(true);
+		
+		return dto;
+	}
+	
+	public static AssignmentEditorDto createDtoFromObject(ObjectType object, UserDtoStatus status, PageBase pageBase) {
 		AssignmentEditorDtoType aType = AssignmentEditorDtoType.getType(object.getClass());
 
 		ObjectReferenceType targetRef = new ObjectReferenceType();
@@ -124,14 +133,10 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		AssignmentType assignment = new AssignmentType();
 		assignment.setTargetRef(targetRef);
 
-		AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, assignment,
+		return new AssignmentEditorDto(status, assignment,
 				pageBase);
-		dto.setMinimized(false);
-		dto.setShowEmpty(true);
-		
-		return dto;
 	}
-	
+
 	private AssignmentEditorDtoType getType(AssignmentType assignment) {
 		if (assignment.getTarget() != null) {
 			// object assignment

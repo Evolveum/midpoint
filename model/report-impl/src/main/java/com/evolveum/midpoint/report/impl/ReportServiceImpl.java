@@ -87,9 +87,6 @@ public class ReportServiceImpl implements ReportService {
 	@Autowired(required = true)
 	private FunctionLibrary midpointFunctionLibrary;
 
-	@Autowired
-	private RepositoryService repositoryService;		// temporary
-
 	@Override
 	public ObjectQuery parseQuery(String query, Map<QName, Object> parameters) throws SchemaException,
 			ObjectNotFoundException, ExpressionEvaluationException {
@@ -308,7 +305,7 @@ public class ReportServiceImpl implements ReportService {
 		FunctionLibrary midPointLib = new FunctionLibrary();
 		midPointLib.setVariableName("report");
 		midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
-		ReportFunctions reportFunctions = new ReportFunctions(prismContext, model, repositoryService, taskManager, auditService);
+		ReportFunctions reportFunctions = new ReportFunctions(prismContext, model, taskManager, auditService);
 		midPointLib.setGenericFunctions(reportFunctions);
 //		
 //		MidpointFunctionsImpl mp = new MidpointFunctionsImpl();
