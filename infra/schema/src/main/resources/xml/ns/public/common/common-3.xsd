@@ -12286,6 +12286,14 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="reviewStrategy" type="tns:AccessCertificationCaseReviewStrategyType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Strategy used to compute review outcome for a given case, based on results of individual stages,
+                                along with instructions when a case review advances from a stage to next one.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="lastCampaignIdUsed" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -12405,6 +12413,37 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="outcomeStrategy" type="tns:AccessCertificationCaseOutcomeStrategyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to determine outcome of the approval process (e.g. if multiple reviewers are present)?
+                        Default is oneAcceptAccepts.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="outcomeIfNoReviewers" type="tns:AccessCertificationResponseType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What is the outcome if no reviewers are available? (This is not the same situation as if some reviewers were computed but none of them responded!)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="stopReviewOn" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What decisions stop the case from advancing to the next stage?
+                        If neither stopReviewOn nor advanceToNextStageOn is used, a default (defined at the campaign level) is used.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="advanceToNextStageOn" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What decisions make the case to advance to the next stage?
+                        If neither stopReviewOn nor advanceToNextStageOn is used, a default (defined at the campaign level) is used.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -12506,13 +12545,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="approvalStrategy" type="tns:AccessCertificationApprovalStrategyType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        How to determine outcome of the approval process (e.g. if multiple reviewers are present)?
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -12571,6 +12603,14 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Definition of individual stages.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="reviewStrategy" type="tns:AccessCertificationCaseReviewStrategyType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Strategy used to compute review outcome for a given case, based on results of individual stages,
+                                along with instructions when a case review advances from a stage to next one.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -12927,10 +12967,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="currentResponse" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="currentOutcome" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Currently valid response, relevant to the current stage. It is recomputed on each reviewer's
+                        Currently valid outcome, relevant to the current stage. It is recomputed on each reviewer's
                         response based on defined algorithms. If the case is not transferred into the next stage,
                         the value of this item stays as it is.
                     </xsd:documentation>
@@ -12940,7 +12980,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         The number of current stage in which this case is.
-                        E.g. currentResponse relates to the currentStage.
+                        E.g. currentOutcome relates to the currentStage.
                         Case is "enabled" for a current campaign stage if and only if case.currentStage == campaign.stageNumber.
 
                         When opening a campaign stage, case's currentStage either advances (if it is transferred to stage being opened)
@@ -12949,21 +12989,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!--<xsd:element name="currentApprovalStrategy" type="tns:AccessCertificationApprovalStrategyType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="completedStageOutcome" type="tns:AccessCertificationCaseStageOutcomeType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How the response is computed from individual reviewers' decisions.
+                        Outcomes of stages that are already completed.
                     </xsd:documentation>
                 </xsd:annotation>
-            </xsd:element>-->
-            <!--<xsd:element name="enabled" type="xsd:boolean" minOccurs="1" maxOccurs="1">-->
-                <!--<xsd:annotation>-->
-                    <!--<xsd:documentation>-->
-                        <!--Is the case enabled for the current stage? E.g. cases that have been marked as "remove" in a given stage-->
-                        <!--may be disabled for later stages.-->
-                    <!--</xsd:documentation>-->
-                <!--</xsd:annotation>-->
-            <!--</xsd:element>-->
+            </xsd:element>
+
             <xsd:element name="remediedTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -12994,6 +13027,19 @@
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     <xsd:element name="accessCertificationCase" type="tns:AccessCertificationCaseType"/>
+
+    <xsd:complexType name="AccessCertificationCaseStageOutcomeType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="stageNumber" type="xsd:int" minOccurs="1" />
+            <xsd:element name="outcome" type="tns:AccessCertificationResponseType" minOccurs="1" />
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+    </xsd:complexType>
 
     <xsd:complexType name="AccessCertificationAssignmentCaseType">
         <xsd:annotation>
@@ -13155,20 +13201,50 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:simpleType name="AccessCertificationApprovalStrategyType">
+    <xsd:complexType name="AccessCertificationCaseReviewStrategyType">
+        <xsd:sequence>
+            <xsd:element name="outcomeStrategy" type="tns:AccessCertificationCaseOutcomeStrategyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Strategy used to compute review outcome for a given case, based on results of individual stages.
+                        Default is oneDenyDenies.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="stopReviewOn" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What decisions stop the case from advancing to the next stage?
+                        If neither stopReviewOn nor advanceToNextStageOn is used, a default (defined by the outcomeStrategy) is used.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="advanceToNextStageOn" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What decisions make the case to advance to the next stage?
+                        If neither stopReviewOn nor advanceToNextStageOn is used, a default (defined by the outcomeStrategy) is used.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="AccessCertificationCaseOutcomeStrategyType">
         <xsd:annotation>
             <xsd:documentation>
-                An enumeration that defines possible strategies for approval result computation.
+                An enumeration that defines possible strategies for case outcome (approval) computation - currently both at the stage and campaign level.
+                (In the future, these uses might be split.)
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="oneApprovalApproves">
+            <xsd:enumeration value="oneAcceptAccepts">
                 <xsd:annotation>
                     <xsd:documentation>
                         If at least one reviewer approves, the result is "APPROVED" regardless of the other votes.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ONE_APPROVAL_APPROVES"/>
+                        <jaxb:typesafeEnumMember name="ONE_ACCEPT_ACCEPTS"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -13183,24 +13259,24 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="approvedIfNotDenied">
+            <xsd:enumeration value="acceptedIfNotDenied">
                 <xsd:annotation>
                     <xsd:documentation>
                         Approved if none of the reviewers denies (either via revoke or reduce).
                         So e.g. if nobody says anything, the case is approved.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="APPROVED_IF_NOT_DENIED"/>
+                        <jaxb:typesafeEnumMember name="ACCEPTED_IF_NOT_DENIED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="allMustApprove">
+            <xsd:enumeration value="allMustAccept">
                 <xsd:annotation>
                     <xsd:documentation>
                         All reviewers must approve, i.e. no revoke, reduce, noResponse is acceptable.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ALL_MUST_APPROVE"/>
+                        <jaxb:typesafeEnumMember name="ALL_MUST_ACCEPT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

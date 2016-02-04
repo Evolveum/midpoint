@@ -64,8 +64,9 @@ Superuser-Dummy:          -                         jack,administrator
         <days>14</days>
         <reviewerSpecification>
             <useObjectOwner>true</useObjectOwner>
-            <approvalStrategy>approvedIfNotDenied</approvalStrategy>
         </reviewerSpecification>
+        <outcomeStrategy>acceptedIfNotDenied</outcomeStrategy>
+        <outcomeIfNoReviewers>accept</outcomeIfNoReviewers>
     </stageDefinition>
     <stageDefinition>
         <number>2</number>
@@ -73,7 +74,7 @@ Superuser-Dummy:          -                         jack,administrator
         <reviewerSpecification>
             <useTargetOwner>true</useTargetOwner>
             <additionalReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />    <!-- administrator -->
-            <approvalStrategy>allMustApprove</approvalStrategy>
         </reviewerSpecification>
+        <outcomeStrategy>allMustAccept</outcomeStrategy>
     </stageDefinition>
 </accessCertificationDefinition>

@@ -41,7 +41,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationD
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -556,8 +555,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         assertEquals("wrong reviewerRef", administratorRef, storedDecision.getReviewerRef());
         assertEquals("wrong stage number", 1, storedDecision.getStageNumber());
         assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
-        assertEquals("wrong current response", AccessCertificationResponseType.ACCEPT, superuserCase.getCurrentResponse());
-        //assertEquals("wrong enabled", true, superuserCase.isEnabled());
+        assertEquals("wrong current response", AccessCertificationResponseType.ACCEPT, superuserCase.getCurrentOutcome());
     }
 
     @Test
@@ -601,8 +599,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         assertEquals("wrong reviewerRef", ObjectTypeUtil.createObjectRef(USER_ADMINISTRATOR_OID, ObjectTypes.USER), storedDecision.getReviewerRef());
         assertEquals("wrong stage number", 1, storedDecision.getStageNumber());
         assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
-        assertEquals("wrong current response", AccessCertificationResponseType.ACCEPT, ceoCase.getCurrentResponse());
-        //assertEquals("wrong enabled", true, ceoCase.isEnabled());
+        assertEquals("wrong current response", AccessCertificationResponseType.ACCEPT, ceoCase.getCurrentOutcome());
     }
 
     @Test
@@ -647,8 +644,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         assertEquals("wrong reviewerRef", ObjectTypeUtil.createObjectRef(USER_ADMINISTRATOR_OID, ObjectTypes.USER), storedDecision.getReviewerRef());
         assertEquals("wrong stage number", 1, storedDecision.getStageNumber());
         assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
-        assertEquals("wrong current response", AccessCertificationResponseType.REVOKE, ceoCase.getCurrentResponse());
-        //assertEquals("wrong enabled", true, ceoCase.isEnabled());
+        assertEquals("wrong current response", AccessCertificationResponseType.REVOKE, ceoCase.getCurrentOutcome());
     }
 
     protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid) {

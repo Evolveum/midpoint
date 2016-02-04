@@ -73,7 +73,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
     private AccCertGeneralHelper helper;
 
     @Autowired
-    private AccCertUpdateHelper updateHelper;
+    private AccCertCaseOperationsHelper caseHelper;
 
     @Autowired
     private AccCertQueryHelper queryHelper;
@@ -131,7 +131,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
                     caseResult.addContext("caseId", caseId);
                     try {
                         handler.doRevoke(_case, campaign, task, caseResult);
-                        updateHelper.markCaseAsRemedied(campaignOid, caseId, task, caseResult);
+                        caseHelper.markCaseAsRemedied(campaignOid, caseId, task, caseResult);
                         caseResult.computeStatus();
                         revokedOk++;
                     } catch (Exception e) {     // TODO

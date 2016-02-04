@@ -18,6 +18,8 @@ package com.evolveum.midpoint.prism.delta.builder;
 
 import com.evolveum.midpoint.prism.PrismValue;
 
+import java.util.Collection;
+
 /**
  * @author mederly
  */
@@ -29,5 +31,6 @@ public interface S_ValuesEntry {
     S_ItemEntry delete(PrismValue... values);
     S_ItemEntry replace(Object... realValues);
     S_ItemEntry replace(PrismValue... values);
+    S_ItemEntry replace(Collection<PrismValue> values);     // TODO
 
 }
