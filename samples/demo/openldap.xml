@@ -43,9 +43,8 @@
         </description>
         <filter>
             <q:equal>
-            <q:path>c:connectorType</q:path>
+                <q:path>c:connectorType</q:path>
                 <q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
-                <q:version>v1.4.3.0-SNAPSHOT</q:version>
             </q:equal>
         </filter>
     </connectorRef>
