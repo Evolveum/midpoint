@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -755,12 +756,12 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
 
-        assertManager(USER_JACK_OID, null, null, false);
-        assertManager(USER_JACK_OID, null, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_JACK_OID, USER_JACK_OID, null, true);
-        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_JACK_OID, null, null, false, result);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_JACK_OID, USER_JACK_OID, null, true, result);
+        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true, result);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -785,19 +786,19 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertAssignedOrg(userElaine, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER);
         assertHasOrg(userElaine, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER);
         
-        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false);
-        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_JACK_OID, USER_JACK_OID, null, true);
-        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false, result);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_JACK_OID, USER_JACK_OID, null, true, result);
+        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true, result);
         
-        assertManager(USER_ELAINE_OID, null, null, false);
-        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_ELAINE_OID, null, null, true);
-        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_ELAINE_OID, null, null, false, result);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_ELAINE_OID, null, null, true, result);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true, result);
 
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -823,19 +824,19 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertAssignedOrg(userElaine, ORG_GOVERNOR_OFFICE_OID);
         assertHasOrg(userElaine, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER);
         
-        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false);
-        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_JACK_OID, USER_JACK_OID, null, true);
-        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false, result);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_JACK_OID, USER_JACK_OID, null, true, result);
+        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true, result);
         
-        assertManager(USER_ELAINE_OID, null, null, false);
-        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, null, true);
-        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_ELAINE_OID, null, null, false, result);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, null, true, result);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true, result);
 
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -860,26 +861,26 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertAssignedOrg(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID);
         assertHasOrg(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID);
         
-        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false);
-        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_JACK_OID, USER_JACK_OID, null, true);
-        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false, result);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_JACK_OID, USER_JACK_OID, null, true, result);
+        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true, result);
         
-        assertManager(USER_ELAINE_OID, null, null, false);
-        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, null, true);
-        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_ELAINE_OID, null, null, false, result);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, null, true, result);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true, result);
 
-        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, null, false);
-        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, null, true);
-        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, null, false, result);
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, null, true, result);
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, true, result);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -906,26 +907,26 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertHasOrg(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID);
         assertHasOrg(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID, SchemaConstants.ORG_MANAGER);
         
-        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false);
-        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_JACK_OID, USER_JACK_OID, null, true);
-        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false, result);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_JACK_OID, USER_JACK_OID, null, true, result);
+        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true, result);
         
-        assertManager(USER_ELAINE_OID, null, null, false);
-        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, null, true);
-        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_ELAINE_OID, null, null, false, result);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, null, true, result);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true, result);
 
-        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, null, false);
-        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, null, true);
-        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, null, false, result);
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, null, true, result);
+        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, true, result);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -950,33 +951,33 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertAssignedOrg(userBarbossa, ORG_MINISTRY_OF_OFFENSE_OID);
         assertHasOrg(userBarbossa, ORG_MINISTRY_OF_OFFENSE_OID);
         
-        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false);
-        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_JACK_OID, USER_JACK_OID, null, true);
-        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false, result);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_JACK_OID, USER_JACK_OID, null, true, result);
+        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true, result);
         
-        assertManager(USER_ELAINE_OID, null, null, false);
-        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, null, true);
-        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_ELAINE_OID, null, null, false, result);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, null, true, result);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true, result);
 
-        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, null, false);
-        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, null, true);
-        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, null, false, result);
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, null, true, result);
+        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, true, result);
         
-        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, null, false);
-        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_BARBOSSA_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, null, true);
-        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_BARBOSSA_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, null, false, result);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_BARBOSSA_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, null, true, result);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_BARBOSSA_OID, null, ORG_TYPE_PROJECT, true, result);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -1003,40 +1004,40 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertAssignedOrg(userHerman, ORG_SWASHBUCKLER_SECTION_OID);
         assertHasOrg(userHerman, ORG_SWASHBUCKLER_SECTION_OID);
         
-        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false);
-        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_JACK_OID, USER_JACK_OID, null, true);
-        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, null, false, result);
+        assertManager(USER_JACK_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_JACK_OID, USER_JACK_OID, null, true, result);
+        assertManager(USER_JACK_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_JACK_OID, null, ORG_TYPE_PROJECT, true, result);
         
-        assertManager(USER_ELAINE_OID, null, null, false);
-        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, null, true);
-        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_ELAINE_OID, null, null, false, result);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, null, true, result);
+        assertManager(USER_ELAINE_OID, USER_ELAINE_OID, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_ELAINE_OID, null, ORG_TYPE_PROJECT, true, result);
 
-        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, null, false);
-        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, null, true);
-        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, null, false, result);
+        assertManager(USER_GUYBRUSH_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, null, true, result);
+        assertManager(USER_GUYBRUSH_OID, USER_GUYBRUSH_OID, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_GUYBRUSH_OID, null, ORG_TYPE_PROJECT, true, result);
         
-        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, null, false);
-        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_BARBOSSA_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, null, true);
-        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_BARBOSSA_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, null, false, result);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_BARBOSSA_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, null, true, result);
+        assertManager(USER_BARBOSSA_OID, USER_JACK_OID, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_BARBOSSA_OID, null, ORG_TYPE_PROJECT, true, result);
 
-        assertManager(USER_HERMAN_OID, USER_GUYBRUSH_OID, null, false);
-        assertManager(USER_HERMAN_OID, USER_GUYBRUSH_OID, ORG_TYPE_FUNCTIONAL, false);
-        assertManager(USER_HERMAN_OID, null, ORG_TYPE_PROJECT, false);
-        assertManager(USER_HERMAN_OID, USER_GUYBRUSH_OID, null, true);
-        assertManager(USER_HERMAN_OID, USER_GUYBRUSH_OID, ORG_TYPE_FUNCTIONAL, true);
-        assertManager(USER_HERMAN_OID, null, ORG_TYPE_PROJECT, true);
+        assertManager(USER_HERMAN_OID, USER_GUYBRUSH_OID, null, false, result);
+        assertManager(USER_HERMAN_OID, USER_GUYBRUSH_OID, ORG_TYPE_FUNCTIONAL, false, result);
+        assertManager(USER_HERMAN_OID, null, ORG_TYPE_PROJECT, false, result);
+        assertManager(USER_HERMAN_OID, USER_GUYBRUSH_OID, null, true, result);
+        assertManager(USER_HERMAN_OID, USER_GUYBRUSH_OID, ORG_TYPE_FUNCTIONAL, true, result);
+        assertManager(USER_HERMAN_OID, null, ORG_TYPE_PROJECT, true, result);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -1331,9 +1332,11 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
 	}
 
-	private void assertManager(String userOid, String managerOid, String orgType, boolean allowSelf) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	private void assertManager(String userOid, String managerOid, String orgType, boolean allowSelf, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		PrismObject<UserType> user = getUser(userOid);
+		ModelExpressionThreadLocalHolder.pushCurrentResult(result);
 		Collection<UserType> managers = libraryMidpointFunctions.getManagers(user.asObjectable(), orgType, allowSelf);
+		ModelExpressionThreadLocalHolder.popCurrentResult();
 		if (managerOid == null) {
 			if (managers == null || managers.isEmpty()) {
 				return;
