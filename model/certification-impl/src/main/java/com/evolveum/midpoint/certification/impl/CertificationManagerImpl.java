@@ -404,7 +404,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 if (currentStageOnly && _case.getCurrentStageNumber() != campaign.getStageNumber()) {
                     continue;
                 }
-                AccessCertificationResponseType response = _case.getCurrentOutcome();
+                AccessCertificationResponseType response = _case.getCurrentStageOutcome();
                 if (response == null) {
                     response = AccessCertificationResponseType.NO_RESPONSE;
                 }

@@ -71,7 +71,7 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
             }
         }
         List<String> names = new ArrayList<>();
-        for (ObjectReferenceType reviewerRef : _case.getReviewerRef()) {
+        for (ObjectReferenceType reviewerRef : _case.getCurrentReviewerRef()) {
             // TODO optimize - don't resolve reviewers twice
             PrismObject<UserType> reviewerObject = WebModelUtils.resolveReference(reviewerRef, page, task, result);
             if (reviewerObject != null) {
@@ -110,7 +110,7 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
     }
 
     public AccessCertificationResponseType getCurrentResponse() {
-        return getCertCase().getCurrentOutcome();
+        return getCertCase().getCurrentStageOutcome();
     }
 
     public Integer getCurrentResponseStageNumber() {

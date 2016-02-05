@@ -164,7 +164,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         AccessCertificationStageType stage = campaign.getStage().get(0);
         assertEquals("wrong stage #", 1, stage.getNumber());
         assertApproximateTime("stage 1 start", new Date(), stage.getStart());
-        assertNotNull("stage 1 end", stage.getEnd());       // too lazy to compute exact datetime
+        assertNotNull("stage 1 end", stage.getDeadline());       // too lazy to compute exact datetime
         assertEquals("Wrong number of certification cases", 5, campaign.getCase().size());
     }
 
@@ -315,7 +315,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         AccessCertificationStageType stage = campaign.getStage().get(0);
         assertEquals("wrong stage #", 1, stage.getNumber());
         assertApproximateTime("stage 1 start", new Date(), stage.getStart());
-        assertNotNull("stage 1 end", stage.getEnd());       // too lazy to compute exact datetime
+        assertNotNull("stage 1 end", stage.getDeadline());       // too lazy to compute exact datetime
         checkAllCases(campaign.getCase(), campaignOid);
     }
 
@@ -555,7 +555,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         assertEquals("wrong reviewerRef", administratorRef, storedDecision.getReviewerRef());
         assertEquals("wrong stage number", 1, storedDecision.getStageNumber());
         assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
-        assertEquals("wrong current response", AccessCertificationResponseType.ACCEPT, superuserCase.getCurrentOutcome());
+        assertEquals("wrong current response", AccessCertificationResponseType.ACCEPT, superuserCase.getCurrentStageOutcome());
     }
 
     @Test
@@ -599,7 +599,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         assertEquals("wrong reviewerRef", ObjectTypeUtil.createObjectRef(USER_ADMINISTRATOR_OID, ObjectTypes.USER), storedDecision.getReviewerRef());
         assertEquals("wrong stage number", 1, storedDecision.getStageNumber());
         assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
-        assertEquals("wrong current response", AccessCertificationResponseType.ACCEPT, ceoCase.getCurrentOutcome());
+        assertEquals("wrong current response", AccessCertificationResponseType.ACCEPT, ceoCase.getCurrentStageOutcome());
     }
 
     @Test
@@ -644,7 +644,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         assertEquals("wrong reviewerRef", ObjectTypeUtil.createObjectRef(USER_ADMINISTRATOR_OID, ObjectTypes.USER), storedDecision.getReviewerRef());
         assertEquals("wrong stage number", 1, storedDecision.getStageNumber());
         assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
-        assertEquals("wrong current response", AccessCertificationResponseType.REVOKE, ceoCase.getCurrentOutcome());
+        assertEquals("wrong current response", AccessCertificationResponseType.REVOKE, ceoCase.getCurrentStageOutcome());
     }
 
     protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid) {

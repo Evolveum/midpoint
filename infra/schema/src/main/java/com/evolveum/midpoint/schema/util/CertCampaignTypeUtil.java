@@ -169,7 +169,7 @@ public class CertCampaignTypeUtil {
                 continue;
             }
             boolean done;
-            if (aCase.getReviewerRef().isEmpty()) {
+            if (aCase.getCurrentReviewerRef().isEmpty()) {
                 done = false;       // no reviewers => this case cannot be 'answered' (points to a misconfiguration)
             } else {
                 done = true;

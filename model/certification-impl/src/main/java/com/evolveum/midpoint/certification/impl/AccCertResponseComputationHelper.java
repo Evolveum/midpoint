@@ -76,8 +76,8 @@ public class AccCertResponseComputationHelper {
             return false;           // it is not enabled in the current stage at all
         }
         final AccessCertificationResponseType currentOutcome;
-        if (_case.getCurrentOutcome() != null) {
-            currentOutcome =_case.getCurrentOutcome();
+        if (_case.getCurrentStageOutcome() != null) {
+            currentOutcome =_case.getCurrentStageOutcome();
         } else {
             currentOutcome = NO_RESPONSE;
         }
@@ -153,10 +153,10 @@ public class AccCertResponseComputationHelper {
         }
         OutcomeStrategy strategyImpl = getOutcomeStrategy(outcomeStrategy);
 
-        if (_case.getReviewerRef().isEmpty()) {
+        if (_case.getCurrentReviewerRef().isEmpty()) {
             return outcomeIfNoReviewers;
         } else {
-            List<AccessCertificationResponseType> responses = extractResponses(allDecisions, _case.getReviewerRef());
+            List<AccessCertificationResponseType> responses = extractResponses(allDecisions, _case.getCurrentReviewerRef());
             ResponsesSummary summary = summarize(responses);        // TODO eventually merge extraction and summarizing
             return strategyImpl.computeOutcome(summary);
         }

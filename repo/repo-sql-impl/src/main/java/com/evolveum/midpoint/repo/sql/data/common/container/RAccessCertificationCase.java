@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RAccessCertificationResponse;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerGetter;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
@@ -106,6 +107,7 @@ public class RAccessCertificationCase implements Container {
     private Set<RAccessCertificationDecision> decisions;
     private RAccessCertificationResponse currentResponse;
     private Integer currentStageNumber;
+    private RAccessCertificationResponse overallOutcome;
 
     public RAccessCertificationCase() {
         this(null);
@@ -142,6 +144,7 @@ public class RAccessCertificationCase implements Container {
         return id;
     }
 
+    @JaxbName(localPart = "currentReviewerRef")
     @Where(clause = RCertCaseReference.REFERENCE_TYPE + "= 2")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @org.hibernate.annotations.ForeignKey(name = "none")
@@ -182,10 +185,12 @@ public class RAccessCertificationCase implements Container {
         return activation;
     }
 
+    @JaxbName(localPart = "currentReviewRequestedTimestamp")
     public XMLGregorianCalendar getReviewRequestedTimestamp() {
         return reviewRequestedTimestamp;
     }
 
+    @JaxbName(localPart = "currentReviewDeadline")
     public XMLGregorianCalendar getReviewDeadline() {
         return reviewDeadline;
     }
@@ -204,12 +209,17 @@ public class RAccessCertificationCase implements Container {
         return decisions;
     }
 
+    @JaxbName(localPart = "currentStageOutcome")
     public RAccessCertificationResponse getCurrentResponse() {
         return currentResponse;
     }
 
     public Integer getCurrentStageNumber() {
         return currentStageNumber;
+    }
+
+    public RAccessCertificationResponse getOverallOutcome() {
+        return overallOutcome;
     }
 
     public void setOwner(RObject owner) {
@@ -266,6 +276,10 @@ public class RAccessCertificationCase implements Container {
 
     public void setCurrentStageNumber(Integer currentStageNumber) {
         this.currentStageNumber = currentStageNumber;
+    }
+
+    public void setOverallOutcome(RAccessCertificationResponse overallOutcome) {
+        this.overallOutcome = overallOutcome;
     }
 
     @Lob
@@ -368,12 +382,13 @@ public class RAccessCertificationCase implements Container {
             rCase.setActivation(activation);
         }
         rCase.getReviewerRef().addAll(RCertCaseReference.safeListReferenceToSet(
-                case1.getReviewerRef(), prismContext, rCase, RCReferenceOwner.CASE_REVIEWER));
-        rCase.setReviewRequestedTimestamp(case1.getReviewRequestedTimestamp());
-        rCase.setReviewDeadline(case1.getReviewDeadline());
+                case1.getCurrentReviewerRef(), prismContext, rCase, RCReferenceOwner.CASE_REVIEWER));
+        rCase.setReviewRequestedTimestamp(case1.getCurrentReviewRequestedTimestamp());
+        rCase.setReviewDeadline(case1.getCurrentReviewDeadline());
         rCase.setRemediedTimestamp(case1.getRemediedTimestamp());
-        rCase.setCurrentResponse(RUtil.getRepoEnumValue(case1.getCurrentOutcome(), RAccessCertificationResponse.class));
+        rCase.setCurrentResponse(RUtil.getRepoEnumValue(case1.getCurrentStageOutcome(), RAccessCertificationResponse.class));
         rCase.setCurrentStageNumber(case1.getCurrentStageNumber());
+        rCase.setOverallOutcome(RUtil.getRepoEnumValue(case1.getOverallOutcome(), RAccessCertificationResponse.class));
         for (AccessCertificationDecisionType decision : case1.getDecision()) {
             RAccessCertificationDecision rDecision = RAccessCertificationDecision.toRepo(rCase, decision, prismContext);
             rCase.getDecision().add(rDecision);

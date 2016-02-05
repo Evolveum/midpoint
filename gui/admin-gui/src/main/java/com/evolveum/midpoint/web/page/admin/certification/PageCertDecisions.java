@@ -117,7 +117,7 @@ public class PageCertDecisions extends PageAdminCertification {
         provider.setQuery(createCaseQuery());
         provider.setCampaignQuery(createCampaignQuery());
         provider.setReviewerOid(getCurrentUserOid());
-        provider.setSort(AccessCertificationCaseType.F_REVIEW_DEADLINE.getLocalPart(), SortOrder.ASCENDING);        // default sorting
+        provider.setSort(AccessCertificationCaseType.F_CURRENT_REVIEW_DEADLINE.getLocalPart(), SortOrder.ASCENDING);        // default sorting
         return provider;
     }
 
@@ -240,7 +240,7 @@ public class PageCertDecisions extends PageAdminCertification {
 
         column = new PropertyColumn<CertDecisionDto, String>(
                 createStringResource("PageCertDecisions.table.requested"),
-                AccessCertificationCaseType.F_REVIEW_REQUESTED_TIMESTAMP.getLocalPart(),
+                AccessCertificationCaseType.F_CURRENT_REVIEW_REQUESTED_TIMESTAMP.getLocalPart(),
                 CertDecisionDto.F_REVIEW_REQUESTED) {
             @Override
             public void populateItem(Item<ICellPopulator<CertDecisionDto>> item, String componentId, IModel<CertDecisionDto> rowModel) {
@@ -256,11 +256,11 @@ public class PageCertDecisions extends PageAdminCertification {
         columns.add(column);
 
         column = new PropertyColumn<CertDecisionDto, String>(createStringResource("PageCertDecisions.table.deadline"),
-                AccessCertificationCaseType.F_REVIEW_DEADLINE.getLocalPart(), CertDecisionDto.F_DEADLINE_AS_STRING) {
+                AccessCertificationCaseType.F_CURRENT_REVIEW_DEADLINE.getLocalPart(), CertDecisionDto.F_DEADLINE_AS_STRING) {
             @Override
             public void populateItem(Item<ICellPopulator<CertDecisionDto>> item, String componentId, final IModel<CertDecisionDto> rowModel) {
                 super.populateItem(item, componentId, rowModel);
-                XMLGregorianCalendar deadline = rowModel.getObject().getCertCase().getReviewDeadline();
+                XMLGregorianCalendar deadline = rowModel.getObject().getCertCase().getCurrentReviewDeadline();
                 if (deadline != null) {
                     item.add(AttributeModifier.replace("title", WebMiscUtil.formatDate(deadline)));
                     item.add(new TooltipBehavior());

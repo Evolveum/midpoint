@@ -135,7 +135,7 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
         AccessCertificationStageType stage = campaign.getStage().get(0);
         assertEquals("wrong stage #", 1, stage.getNumber());
         assertApproximateTime("stage 1 start", new Date(), stage.getStart());
-        assertNotNull("stage 1 end", stage.getEnd());       // too lazy to compute exact datetime
+        assertNotNull("stage 1 end", stage.getDeadline());       // too lazy to compute exact datetime
 
         /*
         Expected cases and reviewers:
@@ -268,7 +268,7 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
 
         assertEquals("wrong stage #", 2, stage.getNumber());
         assertApproximateTime("stage 2 start", new Date(), stage.getStart());
-        assertNotNull("stage 2 end", stage.getEnd());       // too lazy to compute exact datetime
+        assertNotNull("stage 2 end", stage.getDeadline());       // too lazy to compute exact datetime
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         assertEquals("Wrong number of certification cases", 2, caseList.size());

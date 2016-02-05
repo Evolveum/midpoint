@@ -238,8 +238,8 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	protected AccessCertificationCaseType checkCase(Collection<AccessCertificationCaseType> caseList, String subjectOid, String targetOid, FocusType focus, String campaignOid) {
 		AccessCertificationCaseType ccase = findCase(caseList, subjectOid, targetOid);
 		assertNotNull("Certification case for " + subjectOid + ":" + targetOid + " was not found", ccase);
-		assertNotNull("reviewRequestedTimestamp", ccase.getReviewRequestedTimestamp());
-		assertNotNull("deadline", ccase.getReviewDeadline());
+		assertNotNull("reviewRequestedTimestamp", ccase.getCurrentReviewRequestedTimestamp());
+		assertNotNull("deadline", ccase.getCurrentReviewDeadline());
 		assertNull("remediedTimestamp", ccase.getRemediedTimestamp());
 		if (campaignOid != null) {
 			assertEquals("incorrect campaign OID in case", campaignOid, ccase.getCampaignRef().getOid());
@@ -317,10 +317,10 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	protected void assertCaseReviewers(AccessCertificationCaseType _case, AccessCertificationResponseType currentResponse,
 									   int currentResponseStage, List<String> reviewerOidList) {
-		assertEquals("wrong current response", currentResponse, _case.getCurrentOutcome());
+		assertEquals("wrong current response", currentResponse, _case.getCurrentStageOutcome());
 		assertEquals("wrong current response stage number", currentResponseStage, _case.getCurrentStageNumber());
 		Set<String> realReviewerOids = new HashSet<>();
-		for (ObjectReferenceType ref : _case.getReviewerRef()) {
+		for (ObjectReferenceType ref : _case.getCurrentReviewerRef()) {
 			realReviewerOids.add(ref.getOid());
 		}
 		assertEquals("wrong reviewer oids", new HashSet<>(reviewerOidList), realReviewerOids);
@@ -358,7 +358,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		if (response != null) {
 			assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
 		}
-		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentOutcome());
+		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentStageOutcome());
 		if (checkHistory) {
 			assertHistoricOutcome(_case, stageNumber, aggregatedResponse);
 		}
@@ -402,14 +402,14 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	protected void assertNoDecision(AccessCertificationCaseType _case, int stage, AccessCertificationResponseType aggregatedResponse, boolean checkHistory) {
 		List<AccessCertificationDecisionType> currentDecisions = getCurrentDecisions(_case, stage, true);
 		assertEquals("wrong # of decisions", 0, currentDecisions.size());
-		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentOutcome());
+		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentStageOutcome());
 		if (checkHistory) {
 			assertHistoricOutcome(_case, stage, aggregatedResponse);
 		}
 	}
 
 	protected void assertCurrentState(AccessCertificationCaseType _case, AccessCertificationResponseType aggregatedResponse, int currentResponseStage) {
-		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentOutcome());
+		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentStageOutcome());
 		assertEquals("wrong current response stage number", currentResponseStage, _case.getCurrentStageNumber());
 	}
 
@@ -426,7 +426,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		if (response != null) {
 			assertApproximateTime("timestamp", new Date(), decision.getTimestamp());
 		}
-		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentOutcome());
+		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentStageOutcome());
 	}
 
 	protected AccessCertificationCampaignType getCampaignWithCases(String campaignOid) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {

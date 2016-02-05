@@ -184,7 +184,7 @@ public class AccCertQueryHelper {
                         .findComplexTypeDefinitionByCompileTimeClass(AccessCertificationCampaignType.class)
                         .findPropertyDefinition(F_STATE);
         return QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                    .item(F_REVIEWER_REF).ref(reviewerOid, UserType.COMPLEX_TYPE)
+                    .item(F_CURRENT_REVIEWER_REF).ref(reviewerOid, UserType.COMPLEX_TYPE)
                     .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
                     .and().item(statePath, stateDef).eq(IN_REVIEW_STAGE)
                     .buildFilter();
@@ -234,7 +234,7 @@ public class AccCertQueryHelper {
         List<AccessCertificationCaseType> rv = new ArrayList<>();
         for (AccessCertificationCaseType aCase : caseList) {
             if (aCase.getCurrentStageNumber() == campaign.getStageNumber()) {
-                for (ObjectReferenceType reviewerRef : aCase.getReviewerRef()) {
+                for (ObjectReferenceType reviewerRef : aCase.getCurrentReviewerRef()) {
                     if (reviewerOid.equals(reviewerRef.getOid())) {
                         rv.add(aCase.clone());
                         break;

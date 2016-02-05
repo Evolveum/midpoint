@@ -66,6 +66,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -236,8 +237,8 @@ public class AccCertUpdateHelper {
             itemDeltaList.add(startDelta);
         }
 
-        final XMLGregorianCalendar end = newStage.getEnd();
-        if (end != null) {
+        final XMLGregorianCalendar stageDeadline = newStage.getDeadline();
+        if (stageDeadline != null) {
             // auto-closing and notifications triggers
             final AccessCertificationStageDefinitionType stageDef =
                     CertCampaignTypeUtil.findStageDefinition(campaign, newStage.getNumber());
@@ -249,13 +250,13 @@ public class AccCertUpdateHelper {
 
             final TriggerType triggerClose = new TriggerType(prismContext);
             triggerClose.setHandlerUri(AccessCertificationCloseStageTriggerHandler.HANDLER_URI);
-            triggerClose.setTimestamp(end);
+            triggerClose.setTimestamp(stageDeadline);
             triggerClose.setId(lastId);
             triggers.add(triggerClose);
 
-            for (Integer hoursBeforeDeadline : stageDef.getNotifyBeforeDeadline()) {
-                final XMLGregorianCalendar beforeEnd = CloneUtil.clone(end);
-                beforeEnd.add(XmlTypeConverter.createDuration(false, 0, 0, 0, hoursBeforeDeadline, 0, 0));
+            for (Duration beforeDeadline : stageDef.getNotifyBeforeDeadline()) {
+                final XMLGregorianCalendar beforeEnd = CloneUtil.clone(stageDeadline);
+                beforeEnd.add(beforeDeadline.negate());
                 if (XmlTypeConverter.toMillis(beforeEnd) > System.currentTimeMillis()) {
                     final TriggerType triggerBeforeEnd = new TriggerType(prismContext);
                     triggerBeforeEnd.setHandlerUri(AccessCertificationCloseStageApproachingTriggerHandler.HANDLER_URI);
@@ -278,8 +279,8 @@ public class AccCertUpdateHelper {
 
         AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, stage.getNumber());
         XMLGregorianCalendar end = (XMLGregorianCalendar) stage.getStart().clone();
-        if (stageDef.getDays() != null) {
-            end.add(XmlTypeConverter.createDuration(true, 0, 0, stageDef.getDays(), 0, 0, 0));
+        if (stageDef.getDuration() != null) {
+            end.add(stageDef.getDuration());
         }
         end.setHour(23);
         end.setMinute(59);

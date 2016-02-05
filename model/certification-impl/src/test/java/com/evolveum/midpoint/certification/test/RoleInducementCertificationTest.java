@@ -189,7 +189,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         AccessCertificationStageType stage = campaign.getStage().get(0);
         assertEquals("wrong stage #", 1, stage.getNumber());
         assertApproximateTime("stage 1 start", new Date(), stage.getStart());
-        assertNotNull("stage 1 end", stage.getEnd());       // too lazy to compute exact datetime
+        assertNotNull("stage 1 end", stage.getDeadline());       // too lazy to compute exact datetime
         checkAllCases(campaign.getCase(), campaignOid);
 
         PrismObject<AccessCertificationDefinitionType> def = getObject(AccessCertificationDefinitionType.class, certificationDefinition.getOid());
@@ -258,7 +258,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         display("caseList", caseList);
         checkAllCases(caseList, campaignOid);
         AccessCertificationCaseType _case = checkCase(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, roleSuperuser, campaignOid);
-        assertEquals("Unexpected number of reviewers in superuser case", 0, _case.getReviewerRef().size());
+        assertEquals("Unexpected number of reviewers in superuser case", 0, _case.getCurrentReviewerRef().size());
     }
 
     @Test
@@ -541,7 +541,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
 
         assertEquals("wrong stage #", 2, stage.getNumber());
         assertApproximateTime("stage 2 start", new Date(), stage.getStart());
-        assertNotNull("stage 2 end", stage.getEnd());       // too lazy to compute exact datetime
+        assertNotNull("stage 2 end", stage.getDeadline());       // too lazy to compute exact datetime
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         assertEquals("Wrong number of certification cases", 5, caseList.size());
