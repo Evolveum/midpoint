@@ -616,5 +616,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 				+ ", isOrgUnitManager=" + isOrgUnitManager + ")";
 	}
 	
-	
+    public String getNameForTargetObject(){
+        return getNameForTargetObject(this.newAssignment);
+    }
 }

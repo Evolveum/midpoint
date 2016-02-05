@@ -79,7 +79,7 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
 
             @Override
             public IModel<?> getBody() {
-                return new Model<String>(((AssignmentEditorDto) rowModel.getObject()).getName());
+                return new Model<String>(((AssignmentEditorDto) rowModel.getObject()).getNameForTargetObject());
             }
 
             @Override
