@@ -122,7 +122,11 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	protected static final File GROUP_SWASHBUCKLERS_FILE = new File(TEST_DIR, "group-swashbucklers.xml");
 	protected static final String GROUP_SWASHBUCKLERS_OID = "3d96846e-c570-11e3-a80f-001e8c717e5b";
 	protected static final String GROUP_SWASHBUCKLERS_DN = "cn=swashbucklers,ou=groups,dc=example,dc=com";
-	
+
+	protected static final File GROUP_SPECIALISTS_FILE = new File(TEST_DIR, "group-specialists.xml");
+	protected static final String GROUP_SPECIALISTS_OID = "3da6ddca-cc0b-11e5-9b3f-2b7f453dbfb3";
+	protected static final String GROUP_SPECIALISTS_DN = "cn=specialists,ou=specialgroups,dc=example,dc=com";
+
 	protected static final File GROUP_CORSAIRS_FILE = new File(TEST_DIR, "group-corsairs.xml");
 	protected static final String GROUP_CORSAIRS_OID = "70a1f3ee-4b5b-11e5-95d0-001e8c717e5b";
 	protected static final String GROUP_CORSAIRS_DN = "cn=corsairs,ou=groups,dc=example,dc=com";

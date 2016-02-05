@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -50,6 +51,7 @@ public class ShadowUtil {
 		return getIdentifiers(shadowType.asPrismObject());
 	}
 	
+	// TODO: rename to getPrimaryIdentifiers
 	public static Collection<ResourceAttribute<?>> getIdentifiers(PrismObject<? extends ShadowType> shadow) {
 		ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
 		if (attributesContainer == null) {
@@ -77,7 +79,7 @@ public class ShadowUtil {
 		}
 		ResourceAttribute<?> secondaryIdentifier = null;
 		for (ResourceAttribute<?> identifier: identifiers) {
-			if (identifier.getDefinition().isIdentifier(objectClassDefinition)) {
+			if (identifier.getDefinition().isSecondaryIdentifier(objectClassDefinition)) {
 				if (secondaryIdentifier != null) {
 					throw new SchemaException("More than one secondary identifier in "+objectClassDefinition);
 				}
@@ -85,6 +87,14 @@ public class ShadowUtil {
 			}
 		}
 		return secondaryIdentifier;
+	}
+	
+	public static Collection<ResourceAttribute<?>> getAllIdentifiers(PrismObject<? extends ShadowType> shadow) {
+		ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
+		if (attributesContainer == null) {
+			return null;
+		}
+		return attributesContainer.getAllIdentifiers();	
 	}
 	
 	public static ResourceAttribute<String> getNamingAttribute(ShadowType shadow){
@@ -549,5 +559,11 @@ public class ShadowUtil {
 		return value.getValue();
 		// return
 		// attributesContainer.getNamingAttribute().getValue().getValue();
+	}
+
+	public static ResourceObjectIdentification getResourceObjectIdentification(
+			PrismObject<ShadowType> shadow, ObjectClassComplexTypeDefinition objectClassDefinition) {
+		return new ResourceObjectIdentification(objectClassDefinition, 
+				ShadowUtil.getIdentifiers(shadow), ShadowUtil.getSecondaryIdentifiers(shadow));
 	}
 }

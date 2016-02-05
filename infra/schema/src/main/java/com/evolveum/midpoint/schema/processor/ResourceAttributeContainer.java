@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	}
 
 	/**
-	 * Returns a (single) identifier.
+	 * Returns a (single) primary identifier.
 	 * 
 	 * This method returns a property that acts as an (primary) identifier for
 	 * the resource object. Primary identifiers are used to access the resource
@@ -113,7 +113,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	}
 
 	/**
-	 * Returns identifiers.
+	 * Returns primary identifiers.
 	 * 
 	 * This method returns properties that act as (primary) identifiers for the
 	 * resource object. Primary identifiers are used to access the resource
@@ -129,6 +129,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 * 
 	 * @return set of identifier properties
 	 */
+	// TODO: rename to getPrimaryIdentifiers
 	public Collection<ResourceAttribute<?>> getIdentifiers() {
 		return extractAttributesByDefinitions(getDefinition().getIdentifiers());
 	}
@@ -177,6 +178,10 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 */	
 	public Collection<ResourceAttribute<?>> getSecondaryIdentifiers() {
 		return extractAttributesByDefinitions(getDefinition().getSecondaryIdentifiers());
+	}
+	
+	public Collection<ResourceAttribute<?>> getAllIdentifiers() {
+		return extractAttributesByDefinitions(getDefinition().getAllIdentifiers());
 	}
 
 	private Collection<ResourceAttribute<?>> extractAttributesByDefinitions(Collection<? extends ResourceAttributeDefinition> definitions) {

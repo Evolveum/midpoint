@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,9 +136,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * The two principal classes that do the operations are:
  *   ResourceObjectConvertor: executes operations on resource
  *   ShadowManager: executes operations in the repository
- *   
- * Note: These three classes were refactored recently. But it will need more refactoring.
- * It is not a very pretty OO code. But it is better than before.
  * 
  * @author Radovan Semancik
  * @author Katarina Valalikova
@@ -713,6 +710,14 @@ public abstract class ShadowCache {
 		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query.getFilter());
 		final ProvisioningContext ctx = ctxFactory.create(coordinates, task, parentResult);
 		ctx.assertDefinition();
+		
+		return searchObjectsIterative(ctx, query, options, handler, readFromRepository, parentResult);
+	}
+		
+	public SearchResultMetadata searchObjectsIterative(final ProvisioningContext ctx, ObjectQuery query,
+			   Collection<SelectorOptions<GetOperationOptions>> options, final ShadowHandler<ShadowType> handler,
+			   final boolean readFromRepository, final OperationResult parentResult) throws SchemaException,
+					ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		applyDefinition(ctx, query);
 		
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
@@ -796,7 +801,6 @@ public abstract class ShadowCache {
             } else if (attributeFilter.size() == 1) {
                 attributeQuery = ObjectQuery.createObjectQuery(attributeFilter.iterator().next());
             }
-
         }
 
         if (query != null && query.getPaging() != null){
@@ -820,35 +824,30 @@ public abstract class ShadowCache {
     
     private List<ObjectFilter> createAttributeQueryInternal(List<? extends ObjectFilter> conditions) throws SchemaException{
 		List<ObjectFilter> attributeFilter = new ArrayList<>();
-		ItemPath objectClassPath = new ItemPath(ShadowType.F_OBJECT_CLASS);
-		ItemPath resourceRefPath = new ItemPath(ShadowType.F_RESOURCE_REF);
-		for (ObjectFilter f : conditions){
-			if (f instanceof EqualFilter){
-				if (objectClassPath.equivalent(((EqualFilter) f).getFullPath())){
+		for (ObjectFilter f : conditions) {
+			if (f instanceof EqualFilter) {
+				ItemPath parentPath = ((EqualFilter) f).getParentPath();
+				if (parentPath == null || parentPath.isEmpty()) {
 					continue;
 				}
-				if (resourceRefPath.equivalent(((EqualFilter) f).getFullPath())){
-					continue;
-				}
-				
 				attributeFilter.add(f);
-			} else if (f instanceof NaryLogicalFilter){
+			} else if (f instanceof NaryLogicalFilter) {
 				List<ObjectFilter> subFilters = createAttributeQueryInternal(((NaryLogicalFilter) f).getConditions());
-	            if (subFilters.size() > 1){
+	            if (subFilters.size() > 1) {
 	            	if (f instanceof OrFilter){
 						attributeFilter.add(OrFilter.createOr(subFilters));
-					} else if (f instanceof AndFilter){
+					} else if (f instanceof AndFilter) {
 						attributeFilter.add(AndFilter.createAnd(subFilters));
 					} else {
 						throw new IllegalArgumentException("Could not translate query filter. Unknow type: " + f);
 					}
-	            } else if (subFilters.size() < 1){
+	            } else if (subFilters.size() < 1) {
 	                continue;
 	            } else if (subFilters.size() == 1) {
 	            	attributeFilter.add(subFilters.iterator().next());
 	            }
 				
-			} else if (f instanceof SubstringFilter){
+			} else if (f instanceof SubstringFilter) {
 				attributeFilter.add(f);
 			}
 			

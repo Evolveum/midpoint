@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -204,6 +204,11 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
     @Override
 	public Collection<? extends LayerRefinedAttributeDefinition<?>> getIdentifiers() {
         return substituteLayerRefinedAttributeDefinitionCollection(refinedObjectClassDefinition.getIdentifiers());
+	}
+    
+    @Override
+	public Collection<? extends LayerRefinedAttributeDefinition<?>> getAllIdentifiers() {
+        return substituteLayerRefinedAttributeDefinitionCollection(refinedObjectClassDefinition.getAllIdentifiers());
 	}
 
     @Override
