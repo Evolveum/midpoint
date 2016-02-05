@@ -61,7 +61,7 @@ Superuser-Dummy:          -                         jack,administrator
     </remediationDefinition>
     <stageDefinition>
         <number>1</number>
-        <days>14</days>
+        <duration>P14D</duration>
         <reviewerSpecification>
             <useObjectOwner>true</useObjectOwner>
         </reviewerSpecification>
@@ -70,7 +70,7 @@ Superuser-Dummy:          -                         jack,administrator
     </stageDefinition>
     <stageDefinition>
         <number>2</number>
-        <days>7</days>
+        <duration>P7D</duration>
         <reviewerSpecification>
             <useTargetOwner>true</useTargetOwner>
             <additionalReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />    <!-- administrator -->

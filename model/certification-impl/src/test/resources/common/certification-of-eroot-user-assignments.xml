@@ -39,7 +39,7 @@
     </remediationDefinition>
     <stageDefinition>
         <number>1</number>
-        <days>14</days>
+        <duration>P14D</duration>
         <reviewerSpecification>
             <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />   <!-- administrator -->
         </reviewerSpecification>

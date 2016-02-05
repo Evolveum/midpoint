@@ -32,9 +32,9 @@
         <number>1</number>
         <name>Administrator's review</name>
         <description>In this stage, the administrator has to review all the assignments of all users.</description>
-        <days>14</days>
-        <notifyBeforeDeadline>48</notifyBeforeDeadline>
-        <notifyBeforeDeadline>12</notifyBeforeDeadline>
+        <duration>P14D</duration>
+        <notifyBeforeDeadline>PT48H</notifyBeforeDeadline>
+        <notifyBeforeDeadline>PT12H</notifyBeforeDeadline>
         <notifyOnlyWhenNoDecision>true</notifyOnlyWhenNoDecision>
         <reviewerSpecification>
             <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002"
@@ -54,12 +54,13 @@
     <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           id="1"
           xsi:type="c:AccessCertificationAssignmentCaseType">
-        <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
-        <reviewerRef oid="00000001-0000-0000-0000-000000000002" type="c:UserType"></reviewerRef>
         <objectRef oid="00000001-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
         <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
-        <reviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</reviewRequestedTimestamp>
-        <reviewDeadline>2015-12-18T23:59:59.999+01:00</reviewDeadline>
+        <currentStageNumber>1</currentStageNumber>
+        <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+        <currentReviewerRef oid="00000001-0000-0000-0000-000000000002" type="c:UserType"></currentReviewerRef>
+        <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
+        <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
         <decision id="1">
             <stageNumber>1</stageNumber>
             <reviewerRef oid="00000001-0000-0000-0000-000000000002"
@@ -67,8 +68,7 @@
             <response>accept</response>
             <timestamp>2015-12-04T01:10:20.032+01:00</timestamp>
         </decision>
-        <currentOutcome>accept</currentOutcome>
-        <currentStageNumber>1</currentStageNumber>
+        <currentStageOutcome>accept</currentStageOutcome>
         <assignment id="1">
             <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"></targetRef>
         </assignment>

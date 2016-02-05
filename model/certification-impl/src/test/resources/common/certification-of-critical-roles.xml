@@ -61,7 +61,7 @@ guybrush->COO               cheese                      elaine
     </remediationDefinition>
     <stageDefinition>
         <number>1</number>
-        <days>7</days>
+        <duration>P7D</duration>
         <reviewerSpecification>
             <useObjectManager>
                 <orgType>functional</orgType>
@@ -71,7 +71,7 @@ guybrush->COO               cheese                      elaine
     </stageDefinition>
     <stageDefinition>
         <number>2</number>
-        <days>14</days>
+        <duration>P14D</duration>
         <reviewerSpecification>
             <defaultReviewerRef oid="c0c010c0-d34d-b33f-f00d-11111111111e" type="UserType" />   <!-- elaine -->
         </reviewerSpecification>

@@ -347,7 +347,7 @@ public class AccCertUpdateHelper {
     }
 
     List<ItemDelta> getDeltasForStageClose(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        List<ItemDelta> rv = caseHelper.createOutcomeDeltas(campaign, task, result);
+        List<ItemDelta> rv = caseHelper.createOutcomeDeltas(campaign, result);
 
         PropertyDelta<AccessCertificationCampaignStateType> stateDelta = createStateDelta(REVIEW_STAGE_DONE);
         rv.add(stateDelta);
