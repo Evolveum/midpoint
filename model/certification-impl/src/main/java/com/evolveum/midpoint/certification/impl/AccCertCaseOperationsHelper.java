@@ -393,7 +393,9 @@ public class AccCertCaseOperationsHelper {
     List<ItemDelta> createOutcomeDeltas(AccessCertificationCampaignType campaign, OperationResult result) throws ObjectNotFoundException, SchemaException {
         final List<ItemDelta> rv = new ArrayList<>();
 
-        LOGGER.trace("Updating current outcome for cases in {}", ObjectTypeUtil.toShortString(campaign));
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Updating current outcome for cases in {}", ObjectTypeUtil.toShortString(campaign));
+        }
         final List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaign.getOid(), null, null, result);
 
         for (int i = 0; i < caseList.size(); i++) {

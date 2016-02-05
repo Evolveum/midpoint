@@ -346,16 +346,25 @@ public class AccCertUpdateHelper {
         }
     }
 
-    List<ItemDelta> getDeltasForStageClose(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    List<ItemDelta> getDeltasForStageClose(AccessCertificationCampaignType campaign, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         List<ItemDelta> rv = caseHelper.createOutcomeDeltas(campaign, result);
 
-        PropertyDelta<AccessCertificationCampaignStateType> stateDelta = createStateDelta(REVIEW_STAGE_DONE);
-        rv.add(stateDelta);
-
-        ContainerDelta triggerDelta = createTriggerDeleteDelta();
-        rv.add(triggerDelta);
+        rv.add(createStateDelta(REVIEW_STAGE_DONE));
+        rv.add(createStageEndTimeDelta(campaign));
+        rv.add(createTriggerDeleteDelta());
 
         return rv;
+    }
+
+    private ItemDelta createStageEndTimeDelta(AccessCertificationCampaignType campaign) throws SchemaException {
+        AccessCertificationStageType stage = CertCampaignTypeUtil.findStage(campaign, campaign.getStageNumber());
+        Long stageId = stage.asPrismContainerValue().getId();
+        assert stageId != null;
+        XMLGregorianCalendar currentTime = XmlTypeConverter.createXMLGregorianCalendar(new Date());
+        ItemDelta delta = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+                .item(AccessCertificationCampaignType.F_STAGE, stageId, AccessCertificationStageType.F_END).replace(currentTime)
+                .asItemDelta();
+        return delta;
     }
 
     void afterStageClose(String campaignOid, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {

@@ -251,7 +251,7 @@ public class CertificationManagerImpl implements CertificationManager {
             } else if (!IN_REVIEW_STAGE.equals(state)) {
                 result.recordFatalError("Couldn't close review stage " + stageNumberToClose + " as it is currently not open");
             } else {
-                List<ItemDelta> deltas = updateHelper.getDeltasForStageClose(campaign, task, result);
+                List<ItemDelta> deltas = updateHelper.getDeltasForStageClose(campaign, result);
                 updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
                 updateHelper.afterStageClose(campaignOid, task, result);
             }
