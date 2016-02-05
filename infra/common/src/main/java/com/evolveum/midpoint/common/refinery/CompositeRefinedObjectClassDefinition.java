@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,12 +158,19 @@ public class CompositeRefinedObjectClassDefinition extends RefinedObjectClassDef
 		return structuralObjectClassDefinition.getDisplayNameAttribute();
 	}
 
+	@Override
 	public Collection<? extends RefinedAttributeDefinition<?>> getIdentifiers() {
 		return structuralObjectClassDefinition.getIdentifiers();
 	}
 
+	@Override
 	public Collection<? extends RefinedAttributeDefinition<?>> getSecondaryIdentifiers() {
 		return structuralObjectClassDefinition.getSecondaryIdentifiers();
+	}
+	
+	@Override
+	public Collection<? extends RefinedAttributeDefinition<?>> getAllIdentifiers() {
+		return structuralObjectClassDefinition.getAllIdentifiers();
 	}
 
 	public boolean isAuxiliary() {

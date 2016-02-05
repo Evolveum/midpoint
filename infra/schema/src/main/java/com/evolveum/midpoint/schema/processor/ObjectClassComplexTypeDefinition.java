@@ -58,7 +58,7 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	}
 	
 	/**
-	 * Returns the definition of identifier attributes of a resource object.
+	 * Returns the definition of primary identifier attributes of a resource object.
 	 * 
 	 * May return empty set if there are no identifier attributes. Must not
 	 * return null.
@@ -71,6 +71,7 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	 * @throws IllegalStateException
 	 *             if there is no definition for the referenced attributed
 	 */
+	// TODO: rename to getPrimaryIdentifiers
 	public Collection<? extends ResourceAttributeDefinition> getIdentifiers() {
 		if (identifiers == null) {
 			identifiers = new ArrayList<ResourceAttributeDefinition>(1);
@@ -78,6 +79,7 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 		return identifiers;
 	}
 	
+	// TODO: rename to isPrimaryIdentifier
 	public boolean isIdentifier(QName attrName) {
 		for (ResourceAttributeDefinition idDef: getIdentifiers()) {
 			if (idDef.getName().equals(attrName)) {
@@ -116,6 +118,17 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 			}
 		}
 		return false;
+	}
+	
+	public Collection<? extends ResourceAttributeDefinition> getAllIdentifiers() {
+		Collection<? extends ResourceAttributeDefinition> allIdentifiers = new ArrayList<>();
+		if (identifiers != null) {
+			allIdentifiers.addAll((Collection)getIdentifiers());
+		}
+		if (secondaryIdentifiers != null) {
+			allIdentifiers.addAll((Collection)getSecondaryIdentifiers());
+		}
+		return allIdentifiers;
 	}
 	
 	/**

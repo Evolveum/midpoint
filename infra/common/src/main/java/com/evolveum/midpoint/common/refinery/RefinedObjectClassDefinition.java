@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -199,6 +199,17 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 			secondaryIdentifiers = createIdentifiersCollection();
 		}
 		return secondaryIdentifiers;
+	}
+	
+	public Collection<? extends RefinedAttributeDefinition<?>> getAllIdentifiers() {
+		Collection<? extends RefinedAttributeDefinition<?>> allIdentifiers = new ArrayList<>();
+		if (identifiers != null) {
+			allIdentifiers.addAll((Collection)getIdentifiers());
+		}
+		if (secondaryIdentifiers != null) {
+			allIdentifiers.addAll((Collection)getSecondaryIdentifiers());
+		}
+		return allIdentifiers;
 	}
 
 	private Collection<? extends RefinedAttributeDefinition<?>> createIdentifiersCollection() {

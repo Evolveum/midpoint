@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1076,7 +1076,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
 			SchemaException, SecurityViolationException, ConfigurationException {
 
-		Collection<? extends ResourceAttribute<?>> identifiers = resourceObjectIdentification.getIdentifiers();
+		Collection<? extends ResourceAttribute<?>> identifiers = resourceObjectIdentification.getPrimaryIdentifiers();
 		ObjectClassComplexTypeDefinition objectClassDefinition = resourceObjectIdentification.getObjectClassDefinition();
 		// Result type for this operation
 		OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName()
@@ -2291,8 +2291,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
         if (searchHierarchyConstraints != null) {
         	ResourceObjectIdentification baseContextIdentification = searchHierarchyConstraints.getBaseContext();
         	// Only LDAP connector really supports base context. And this one will work better with
-        	// DN. And DN is usually stored in icfs:name. This is ugly, but practical. It works around ConnId problems.
-        	ResourceAttribute<?> secondaryIdentifier = ShadowUtil.getSecondaryIdentifier(objectClassDefinition, baseContextIdentification.getIdentifiers());
+        	// DN. And DN is secondary identifier (__NAME__). This is ugly, but practical. It works around ConnId problems.
+        	ResourceAttribute<?> secondaryIdentifier = baseContextIdentification.getSecondaryIdentifier();
+        	if (secondaryIdentifier == null) {
+        		SchemaException e = new SchemaException("No secondary identifier in base context identification "+baseContextIdentification);
+        		result.recordFatalError(e);
+        		throw e;
+        	}
         	String secondaryIdentifierValue = secondaryIdentifier.getRealValue(String.class);
         	ObjectClass baseContextIcfObjectClass = icfNameMapper.objectClassToIcf(baseContextIdentification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
         	QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(secondaryIdentifierValue));

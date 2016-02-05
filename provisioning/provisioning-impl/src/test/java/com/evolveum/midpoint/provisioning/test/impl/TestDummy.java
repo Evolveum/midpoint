@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1428,6 +1428,48 @@ public class TestDummy extends AbstractDummyTest {
 		display("searchObjectsIterative result", result);
 		TestUtil.assertSuccess(result);
 		assertShadowFetchOperationCountIncrement(0);
+
+		display("Found shadows", foundObjects);
+		
+		assertEquals(4, foundObjects.size());
+		checkConsistency(foundObjects);
+		assertProtected(foundObjects, 1);       // MID-1640
+		
+		assertSteadyResource();
+	}
+	
+	@Test
+	public void test112SeachIterativeKindIntent() throws Exception {
+		final String TEST_NAME = "test112SeachIterativeKindIntent";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+
+		ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_DUMMY_OID, 
+				ShadowKindType.ACCOUNT, "default", prismContext);
+		display("query", query);
+
+		final List<PrismObject<ShadowType>> foundObjects = new ArrayList<PrismObject<ShadowType>>();
+		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+
+			@Override
+			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
+				foundObjects.add(object);
+				return true;
+			}
+		};
+		
+		rememberShadowFetchOperationCount();
+		
+		// WHEN
+		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, null, result);
+
+		// THEN
+		result.computeStatus();
+		display("searchObjectsIterative result", result);
+		TestUtil.assertSuccess(result);
+		assertShadowFetchOperationCountIncrement(1);
 
 		display("Found shadows", foundObjects);
 		

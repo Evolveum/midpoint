@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	}
 
 	/**
-	 * Returns the definition of identifier attributes of a resource object.
+	 * Returns the definition of primary identifier attributes of a resource object.
 	 * 
 	 * May return empty set if there are no identifier attributes. Must not
 	 * return null.
@@ -85,6 +85,7 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	 * @throws IllegalStateException
 	 *             if there is no definition for the referenced attributed
 	 */
+	// TODO: rename to getPrimaryIdentifiers
 	public Collection<? extends ResourceAttributeDefinition> getIdentifiers() {
 		return getComplexTypeDefinition().getIdentifiers();
 	}
@@ -106,6 +107,10 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	 */
 	public Collection<? extends ResourceAttributeDefinition> getSecondaryIdentifiers() {
 		return getComplexTypeDefinition().getSecondaryIdentifiers();
+	}
+	
+	public Collection<? extends ResourceAttributeDefinition> getAllIdentifiers() {
+		return getComplexTypeDefinition().getAllIdentifiers();
 	}
 
 	/**
