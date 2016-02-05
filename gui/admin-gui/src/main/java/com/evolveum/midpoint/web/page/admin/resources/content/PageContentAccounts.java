@@ -625,7 +625,6 @@ public class PageContentAccounts extends PageAdminResources {
 
     private IModel<RefinedObjectClassDefinition> createObjectClassModel() {
         return new LoadableModel<RefinedObjectClassDefinition>(false) {
-
             @Override
             protected RefinedObjectClassDefinition load() {
                 try {
@@ -634,6 +633,12 @@ public class PageContentAccounts extends PageAdminResources {
                     throw new SystemException(ex.getMessage(), ex);
                 }
             }
+
+			@Override
+			public void setObject(RefinedObjectClassDefinition object) {
+				super.setObject(object);
+			}
+            
         };
     }
 
