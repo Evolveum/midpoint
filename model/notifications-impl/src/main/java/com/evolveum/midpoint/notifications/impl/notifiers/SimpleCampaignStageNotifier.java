@@ -127,6 +127,7 @@ public class SimpleCampaignStageNotifier extends GeneralNotifier {
         if (csEvent.isAdd() || csEvent.isDelete()) {
             body.append("\nRequester: ").append(formatRequester(event, result));
             body.append("\nOperation status: ").append(certHelper.formatStatus(csEvent));
+            body.append("\n");
         }
 
         body.append("\n");

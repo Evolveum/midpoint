@@ -20,26 +20,16 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -47,11 +37,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
@@ -60,7 +47,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.REVIEW_STAGE_DONE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NOT_DECIDED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REVOKE;
 import static org.testng.AssertJUnit.assertEquals;
@@ -167,8 +153,11 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
         checkSpecificCase(elaineCeoCase, userElaine);
         checkSpecificCase(guybrushCooCase, userGuybrush);
 
-        assertCaseReviewers(elaineCeoCase, null, true, 1, Arrays.asList(USER_ELAINE_OID));
-        assertCaseReviewers(guybrushCooCase, null, true, 1, Arrays.asList(USER_CHEESE_OID));
+        assertCaseReviewers(elaineCeoCase, NO_RESPONSE, 1, Arrays.asList(USER_ELAINE_OID));
+        assertCaseReviewers(guybrushCooCase, NO_RESPONSE, 1, Arrays.asList(USER_CHEESE_OID));
+
+        assertSingleDecision(elaineCeoCase, null, null, 1, USER_ELAINE_OID, NO_RESPONSE, false);
+        assertSingleDecision(guybrushCooCase, null, null, 1, USER_CHEESE_OID, NO_RESPONSE, false);
     }
 
     @Test
@@ -204,8 +193,8 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
         elaineCeoCase = findCase(caseList, USER_ELAINE_OID, ROLE_CEO_OID);
         guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
 
-        assertDecision(elaineCeoCase, REVOKE, null, 1, USER_ELAINE_OID, REVOKE, true);
-        assertDecision(guybrushCooCase, ACCEPT, null, 1, USER_CHEESE_OID, ACCEPT, true);
+        assertSingleDecision(elaineCeoCase, REVOKE, null, 1, USER_ELAINE_OID, REVOKE, false);
+        assertSingleDecision(guybrushCooCase, ACCEPT, null, 1, USER_CHEESE_OID, ACCEPT, false);
     }
 
     @Test
@@ -243,8 +232,8 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
         AccessCertificationCaseType elaineCeoCase = findCase(caseList, USER_ELAINE_OID, ROLE_CEO_OID);
         AccessCertificationCaseType guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
 
-        assertDecision(elaineCeoCase, REVOKE, null, 1, USER_ELAINE_OID, REVOKE, true);
-        assertDecision(guybrushCooCase, ACCEPT, null, 1, USER_CHEESE_OID, ACCEPT, true);
+        assertSingleDecision(elaineCeoCase, REVOKE, null, 1, USER_ELAINE_OID, REVOKE, false);
+        assertSingleDecision(guybrushCooCase, ACCEPT, null, 1, USER_CHEESE_OID, ACCEPT, false);
     }
 
     @Test
@@ -286,8 +275,14 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
         AccessCertificationCaseType elaineCeoCase = findCase(caseList, USER_ELAINE_OID, ROLE_CEO_OID);
         AccessCertificationCaseType guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
 
-        assertCaseReviewers(elaineCeoCase, REVOKE, false, 1, Arrays.<String>asList());
-        assertCaseReviewers(guybrushCooCase, null, true, 2, Arrays.asList(USER_ELAINE_OID));
+        assertCaseReviewers(elaineCeoCase, REVOKE, 1, Arrays.<String>asList());
+        assertCaseReviewers(guybrushCooCase, NO_RESPONSE, 2, Arrays.asList(USER_ELAINE_OID));
+
+        assertSingleDecision(elaineCeoCase, REVOKE, null, 1, USER_ELAINE_OID, REVOKE, false);
+        assertNoDecision(elaineCeoCase, 2, REVOKE, false);
+
+        assertSingleDecision(guybrushCooCase, ACCEPT, null, 1, USER_CHEESE_OID, NO_RESPONSE, false);
+        assertSingleDecision(guybrushCooCase, null, null, 2, USER_ELAINE_OID, NO_RESPONSE, false);
     }
 
     @Test
@@ -352,7 +347,11 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
         guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
 
         assertDecisions(guybrushCooCase, 2);
-        assertDecision2(guybrushCooCase, ACCEPT, "OK", 2, USER_ELAINE_OID, ACCEPT, true);
+
+        assertSingleDecision(guybrushCooCase, ACCEPT, null, 1, USER_CHEESE_OID, ACCEPT, false);
+        assertSingleDecision(guybrushCooCase, ACCEPT, "OK", 2, USER_ELAINE_OID, ACCEPT, false);
+        // alternative assertion
+        assertDecision2(guybrushCooCase, ACCEPT, "OK", 2, USER_ELAINE_OID, ACCEPT);
     }
 
     @Test
@@ -419,8 +418,8 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
         assertEquals("wrong # of cases", 2, caseList.size());
         AccessCertificationCaseType elaineCeoCase = findCase(caseList, USER_ELAINE_OID, ROLE_CEO_OID);
         AccessCertificationCaseType guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
-        assertCurrentState(elaineCeoCase, REVOKE, 1, false);
-        assertCurrentState(guybrushCooCase, ACCEPT, 2, true);
+        assertCurrentState(elaineCeoCase, REVOKE, 1);
+        assertCurrentState(guybrushCooCase, ACCEPT, 2);
     }
 
     @Test

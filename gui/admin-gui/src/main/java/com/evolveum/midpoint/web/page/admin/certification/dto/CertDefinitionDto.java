@@ -21,14 +21,11 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -38,7 +35,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -56,12 +52,17 @@ public class CertDefinitionDto implements Serializable {
     public static final String F_STAGE_DEFINITION = "stageDefinition";
     public static final String F_LAST_STARTED = "lastStarted";
     public static final String F_LAST_CLOSED = "lastClosed";
+    public static final String F_OUTCOME_STRATEGY = "outcomeStrategy";
+    public static final String F_STOP_REVIEW_ON = "stopReviewOn";
+    //public static final String F_ADVANCE_TO_NEXT_STAGE_ON = "advanceToNextStageOn";
 
     private AccessCertificationDefinitionType oldDefinition;            // to be able to compute the delta when saving
     private AccessCertificationDefinitionType definition;               // definition that is (at least partially) dynamically updated when editing the form
     private final DefinitionScopeDto definitionScopeDto;
     private final List<StageDefinitionDto> stageDefinition;
     private AccessCertificationRemediationStyleType remediationStyle;
+    private AccessCertificationCaseOutcomeStrategyType outcomeStrategy;
+    //private List<AccessCertificationResponseType> stopReviewOn, advanceToNextStageOn;
     private String xml;
     private ObjectViewDto owner;
 
@@ -85,6 +86,11 @@ public class CertDefinitionDto implements Serializable {
             remediationStyle = definition.getRemediationDefinition().getStyle();
         } else {
             remediationStyle = AccessCertificationRemediationStyleType.AUTOMATED;           // TODO consider the default...
+        }
+        if (definition.getReviewStrategy() != null) {
+            outcomeStrategy = definition.getReviewStrategy().getOutcomeStrategy();
+        } else {
+            outcomeStrategy = AccessCertificationCaseOutcomeStrategyType.ONE_DENY_DENIES;   // TODO consider the default...
         }
     }
 
@@ -138,6 +144,16 @@ public class CertDefinitionDto implements Serializable {
             definition.setRemediationDefinition(remDef);
         } else {
             definition.setRemediationDefinition(null);
+        }
+        if (outcomeStrategy != null) {
+            if (definition.getReviewStrategy() == null) {
+                definition.setReviewStrategy(new AccessCertificationCaseReviewStrategyType());
+            }
+            definition.getReviewStrategy().setOutcomeStrategy(outcomeStrategy);
+        } else {
+            if (definition.getReviewStrategy() != null) {
+                definition.getReviewStrategy().setOutcomeStrategy(null);
+            }
         }
         return definition;
     }
@@ -231,6 +247,8 @@ public class CertDefinitionDto implements Serializable {
             dto.setNotifyBeforeDeadline(convertListIntegerToString(stageDefObj.getNotifyBeforeDeadline()));
             dto.setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefObj.isNotifyOnlyWhenNoDecision()));
             dto.setReviewerDto(createAccessCertificationReviewerDto(stageDefObj.getReviewerSpecification()));
+            dto.setOutcomeStrategy(stageDefObj.getOutcomeStrategy());
+            dto.setOutcomeIfNoReviewers(stageDefObj.getOutcomeIfNoReviewers());
         } else {
             dto.setReviewerDto(new AccessCertificationReviewerDto());
         }
@@ -249,7 +267,6 @@ public class CertDefinitionDto implements Serializable {
             dto.setUseObjectManager(createManagerSearchDto(reviewer.getUseObjectManager()));
             dto.setDefaultReviewerRef(cloneListObjects(reviewer.getDefaultReviewerRef()));
             dto.setAdditionalReviewerRef(cloneListObjects(reviewer.getAdditionalReviewerRef()));
-            dto.setApprovalStrategy(reviewer.getApprovalStrategy());
             dto.setFirstDefaultReviewerRef(loadOwnerReference(reviewer.getDefaultReviewerRef() == null ? null :
                     (reviewer.getDefaultReviewerRef().size() == 0 ? null : reviewer.getDefaultReviewerRef().get(0))));
             dto.setFirstAdditionalReviewerRef(loadOwnerReference(reviewer.getAdditionalReviewerRef() == null ? null :
@@ -335,6 +352,8 @@ public class CertDefinitionDto implements Serializable {
             stageDefType.getNotifyBeforeDeadline().addAll(convertStringToListInteger(stageDefDto.getNotifyBeforeDeadline()));
             stageDefType.setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefDto.isNotifyOnlyWhenNoDecision()));
             stageDefType.setReviewerSpecification(createAccessCertificationReviewerType(stageDefDto.getReviewerDto()));
+            stageDefType.setOutcomeStrategy(stageDefDto.getOutcomeStrategy());
+            stageDefType.setOutcomeIfNoReviewers(stageDefDto.getOutcomeIfNoReviewers());
         }
         return stageDefType;
     }
@@ -355,7 +374,6 @@ public class CertDefinitionDto implements Serializable {
             updateAdditionalReviewer(reviewerDto);
             reviewerObject.getAdditionalReviewerRef().clear();
             reviewerObject.getAdditionalReviewerRef().addAll(cloneListObjectsForSave(reviewerDto.getAdditionalReviewerRef()));
-            reviewerObject.setApprovalStrategy(reviewerDto.getApprovalStrategy());
         }
         return reviewerObject;
     }
@@ -460,5 +478,13 @@ public class CertDefinitionDto implements Serializable {
 
     public String getLastClosed() {
         return formatDate(definition.getLastCampaignClosedTimestamp());
+    }
+
+    public AccessCertificationCaseOutcomeStrategyType getOutcomeStrategy() {
+        return outcomeStrategy;
+    }
+
+    public void setOutcomeStrategy(AccessCertificationCaseOutcomeStrategyType outcomeStrategy) {
+        this.outcomeStrategy = outcomeStrategy;
     }
 }

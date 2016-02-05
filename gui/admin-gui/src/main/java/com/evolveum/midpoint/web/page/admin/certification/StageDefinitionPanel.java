@@ -1,21 +1,18 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.certification.dto.*;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationApprovalStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
@@ -47,7 +44,8 @@ public class StageDefinitionPanel extends SimplePanel<StageDefinitionDto> {
     private static final String ID_ADDITIONAL_REVIEWER_REF_CONTAINER = "additionalReviewerRefContainer";
     private static final String ID_ADDITIONAL_REVIEWER_REF = "additionalReviewerRef";
     private static final String ID_APPROVAL_STRATEGY_CHECKBOX = "approvalStrategyCheckbox";
-    private static final String ID_APPROVAL_STRATEGY = "approvalStrategy";
+    private static final String ID_OUTCOME_STRATEGY = "outcomeStrategy";
+    private static final String ID_OUTCOME_IF_NO_REVIEWERS = "outcomeIfNoReviewers";
 
     public StageDefinitionPanel(String id, IModel<StageDefinitionDto> model) {
         super(id, model);
@@ -130,37 +128,19 @@ public class StageDefinitionPanel extends SimplePanel<StageDefinitionDto> {
         additionalOwnerRefChooser.setOutputMarkupId(true);
         add(additionalOwnerRefChooser);
 
-//        DropDownChoicePanel approvalStrategy = new DropDownChoicePanel(ID_APPROVAL_STRATEGY,
-//                new PropertyModel(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_APPROVAL_STRATEGY),
-//                WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationApprovalStrategyType.class),
-//                new IChoiceRenderer<AccessCertificationApprovalStrategyType>() {
-//
-//                    @Override
-//                    public Object getDisplayValue(AccessCertificationApprovalStrategyType item) {
-//                        return item.name();
-//                    }
-//
-//                    @Override
-//                    public String getIdValue(AccessCertificationApprovalStrategyType item, int index) {
-//                        return Integer.toString(index);
-//                    }
-//                });
-//        add(approvalStrategy);
+        DropDownChoice outcomeStrategy1 =
+                new DropDownChoice<>(ID_OUTCOME_STRATEGY,
+                        new PropertyModel<AccessCertificationCaseOutcomeStrategyType>(getModel(), StageDefinitionDto.F_OUTCOME_STRATEGY),
+                        WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationCaseOutcomeStrategyType.class),
+                new EnumChoiceRenderer<AccessCertificationCaseOutcomeStrategyType>(this));
+        add(outcomeStrategy1);
 
-        DropDownChoice approvalStrategy1 = new DropDownChoice<>(ID_APPROVAL_STRATEGY, new Model<AccessCertificationApprovalStrategyType>() {
-
-            @Override
-            public AccessCertificationApprovalStrategyType getObject() {
-                return getModelObject().getReviewerDto() == null ? null : getModelObject().getReviewerDto().getApprovalStrategy();
-            }
-
-            @Override
-            public void setObject(AccessCertificationApprovalStrategyType object) {
-                getModelObject().getReviewerDto().setApprovalStrategy(object);
-            }
-        }, WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationApprovalStrategyType.class),
-                new EnumChoiceRenderer<AccessCertificationApprovalStrategyType>(this));
-        add(approvalStrategy1);
+        DropDownChoice<AccessCertificationResponseType> outcomeIfNoReviewers =
+                new DropDownChoice<>(ID_OUTCOME_IF_NO_REVIEWERS,
+                        new PropertyModel<AccessCertificationResponseType>(getModel(), StageDefinitionDto.F_OUTCOME_IF_NO_REVIEWERS),
+                        WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationResponseType.class),
+                new EnumChoiceRenderer<AccessCertificationResponseType>(this));
+        add(outcomeIfNoReviewers);
     }
 
 

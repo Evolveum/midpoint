@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 
 /**
  * @author mederly
@@ -47,6 +48,10 @@ public class CertCampaignTypeUtil {
             }
         }
         return null;
+    }
+
+    public static AccessCertificationStageDefinitionType getCurrentStageDefinition(AccessCertificationCampaignType campaign) {
+        return findStageDefinition(campaign, campaign.getStageNumber());
     }
 
     public static AccessCertificationStageDefinitionType findStageDefinition(AccessCertificationCampaignType campaign, int stageNumber) {
@@ -174,7 +179,7 @@ public class CertCampaignTypeUtil {
                 if (decision.getStageNumber() != aCase.getCurrentStageNumber()) {
                     continue;
                 }
-                if (decision.getResponse() != null && decision.getResponse() != AccessCertificationResponseType.NO_RESPONSE) {
+                if (decision.getResponse() != null && decision.getResponse() != NO_RESPONSE) {
                     continue;
                 }
                 done = false;
@@ -188,10 +193,10 @@ public class CertCampaignTypeUtil {
     }
 
     public static int getPercentComplete(List<AccessCertificationCaseType> caseList, int campaignStageNumber, AccessCertificationCampaignStateType state) {
-        int active = getActiveCases(caseList, campaignStageNumber, state);
-        if (active > 0) {
+        int cases = caseList.size();
+        if (cases > 0) {
             int unanswered = getUnansweredCases(caseList, campaignStageNumber, state);
-            return 100 * (active - unanswered) / active;
+            return 100 * (cases - unanswered) / cases;
         } else {
             return 100;
         }
@@ -200,6 +205,9 @@ public class CertCampaignTypeUtil {
     public static Date getReviewedTimestamp(List<AccessCertificationDecisionType> decisions) {
         Date lastDate = null;
         for (AccessCertificationDecisionType decision : decisions) {
+            if (isEmpty(decision)) {
+                continue;
+            }
             Date decisionDate = XmlTypeConverter.toDate(decision.getTimestamp());
             if (lastDate == null || decisionDate.after(lastDate)) {
                 lastDate = decisionDate;
@@ -208,10 +216,14 @@ public class CertCampaignTypeUtil {
         return lastDate;
     }
 
+    protected static boolean isEmpty(AccessCertificationDecisionType decision) {
+        return (decision.getResponse() == null || decision.getResponse() == NO_RESPONSE) && StringUtils.isEmpty(decision.getComment());
+    }
+
     public static List<ObjectReferenceType> getReviewedBy(List<AccessCertificationDecisionType> decisions) {
         List<ObjectReferenceType> rv = new ArrayList<>();
         for (AccessCertificationDecisionType decision : decisions) {
-            if (decision.getResponse() == null && StringUtils.isEmpty(decision.getComment())) {
+            if (isEmpty(decision)) {
                 continue;
             }
             rv.add(decision.getReviewerRef());

@@ -753,7 +753,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(type, "Object type must not be null.");
-		Validate.notNull(parentResult, "Result type must not be null.");
+		Validate.notNull(parentResult, "Operation result must not be null.");
 		if (query != null) {
 			ModelUtils.validatePaging(query.getPaging());
 		}
