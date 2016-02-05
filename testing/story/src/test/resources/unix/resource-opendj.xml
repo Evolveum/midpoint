@@ -222,6 +222,15 @@
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
             <objectClass>ri:groupOfUniqueNames</objectClass>
+            <baseContext>
+            	<objectClass>ri:organizationalUnit</objectClass>
+            	<filter>
+            		<q:equal>
+            			<q:path>attributes/dn</q:path>
+            			<q:value>ou=groups,dc=example,dc=com</q:value>
+            		</q:equal>
+            	</filter>
+            </baseContext>
             <attribute>
                 <ref>ri:dn</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
@@ -273,6 +282,15 @@
             <displayName>UNIX Group</displayName>
             <objectClass>ri:groupOfNames</objectClass>
             <auxiliaryObjectClass>ri:posixGroup</auxiliaryObjectClass>
+            <baseContext>
+            	<objectClass>ri:organizationalUnit</objectClass>
+            	<filter>
+            		<q:equal>
+            			<q:path>attributes/dn</q:path>
+            			<q:value>ou=unixgroups,dc=example,dc=com</q:value>
+            		</q:equal>
+            	</filter>
+            </baseContext>
             <attribute>
                 <ref>ri:dn</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
