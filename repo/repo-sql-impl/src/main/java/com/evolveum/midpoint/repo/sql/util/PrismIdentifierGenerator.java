@@ -117,6 +117,7 @@ public class PrismIdentifierGenerator {
                     containers.add(decisionContainer);
                 }
             }
+            containers.add(parent.findContainer(AccessCertificationCampaignType.F_STAGE));
         }
 
         if (FocusType.class.isAssignableFrom(parent.getCompileTimeClass())) {

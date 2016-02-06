@@ -206,7 +206,12 @@ public class AccCertResponseComputationHelper {
         return summary;
     }
 
+    public AccessCertificationResponseType computeOverallOutcome(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign) {
+        return computeOverallOutcome(aCase, campaign, null);
+    }
+
     // aCase contains outcomes from stages 1..N-1. Outcome from stage N is in currentStageOutcome
+    // (alternatively: aCase has stages 1..N and currentStageOutcome is null)
     public AccessCertificationResponseType computeOverallOutcome(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign,
                                                                  AccessCertificationCaseStageOutcomeType currentStageOutcome) {
         final OutcomeStrategy strategy = getOverallOutcomeStrategy(campaign);
@@ -214,7 +219,9 @@ public class AccCertResponseComputationHelper {
         for (AccessCertificationCaseStageOutcomeType stageOutcome : aCase.getCompletedStageOutcome()) {
             stageOutcomes.add(stageOutcome.getOutcome());
         }
-        stageOutcomes.add(currentStageOutcome.getOutcome());
+        if (currentStageOutcome != null) {
+            stageOutcomes.add(currentStageOutcome.getOutcome());
+        }
         return strategy.computeOutcome(summarize(stageOutcomes));
     }
 }

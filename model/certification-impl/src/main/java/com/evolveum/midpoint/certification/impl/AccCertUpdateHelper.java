@@ -278,15 +278,15 @@ public class AccCertUpdateHelper {
         stage.setStart(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 
         AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, stage.getNumber());
-        XMLGregorianCalendar end = (XMLGregorianCalendar) stage.getStart().clone();
+        XMLGregorianCalendar deadline = (XMLGregorianCalendar) stage.getStart().clone();
         if (stageDef.getDuration() != null) {
-            end.add(stageDef.getDuration());
+            deadline.add(stageDef.getDuration());
         }
-        end.setHour(23);
-        end.setMinute(59);
-        end.setSecond(59);
-        end.setMillisecond(999);
-        stage.setEnd(end);
+        deadline.setHour(23);
+        deadline.setMinute(59);
+        deadline.setSecond(59);
+        deadline.setMillisecond(999);
+        stage.setDeadline(deadline);
 
         stage.setName(stageDef.getName());
         stage.setDescription(stageDef.getDescription());

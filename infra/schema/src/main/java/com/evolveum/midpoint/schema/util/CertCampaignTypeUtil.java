@@ -264,4 +264,13 @@ public class CertCampaignTypeUtil {
                 .ownerId(campaignOid)
                 .build();
     }
+
+    public static AccessCertificationCaseStageOutcomeType getStageOutcome(AccessCertificationCaseType aCase, int stageNumber) {
+        for (AccessCertificationCaseStageOutcomeType outcome : aCase.getCompletedStageOutcome()) {
+            if (outcome.getStageNumber() == stageNumber) {
+                return outcome;
+            }
+        }
+        throw new IllegalStateException("No outcome registered for stage " + stageNumber + " in case " + aCase);
+    }
 }
