@@ -327,7 +327,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		assertNull("unexpected stage 1 end", stage.getEnd());
         assertEquals("Wrong number of certification cases", cases, campaign.getCase().size());
 
-		PrismObject<AccessCertificationDefinitionType> def = getObject(AccessCertificationDefinitionType.class, definition.getOid());
+		PrismObject<AccessCertificationDefinitionType> def = getObjectViaRepo(AccessCertificationDefinitionType.class, definition.getOid());
 		assertApproximateTime("last campaign started", new Date(), def.asObjectable().getLastCampaignStartedTimestamp());
 		assertNull("unexpected last campaign closed", def.asObjectable().getLastCampaignClosedTimestamp());
     }

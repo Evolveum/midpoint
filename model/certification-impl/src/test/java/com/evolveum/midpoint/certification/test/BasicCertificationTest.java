@@ -279,6 +279,14 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         assertAfterCampaignStart(campaign, certificationDefinition, 7);
         checkAllCases(campaign.getCase(), campaignOid);
+        List<AccessCertificationCaseType> caseList = campaign.getCase();
+        // no responses -> NO_RESPONSE in all cases
+        checkCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, NO_RESPONSE, NO_RESPONSE, null);
+        checkCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID, NO_RESPONSE, NO_RESPONSE, null);
+        checkCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
+        checkCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ORG_EROOT_OID, NO_RESPONSE, NO_RESPONSE, null);
+        checkCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
+        checkCaseOutcome(caseList, USER_JACK_OID, ORG_EROOT_OID, NO_RESPONSE, NO_RESPONSE, null);
     }
 
     @Test

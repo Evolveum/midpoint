@@ -176,14 +176,26 @@ public class AccCertCaseOperationsHelper {
 
             AccessCertificationResponseType newCurrentOutcome = computationHelper.computeOutcomeForStage(_case, decision, campaign);
             if (!ObjectUtils.equals(newCurrentOutcome, _case.getCurrentStageOutcome())) {
-                PropertyDelta currentResponseDelta = PropertyDelta.createModificationReplaceProperty(
+                PropertyDelta currentOutcomeDelta = PropertyDelta.createModificationReplaceProperty(
                         new ItemPath(
                                 new NameItemPathSegment(F_CASE),
                                 new IdItemPathSegment(_case.asPrismContainerValue().getId()),
                                 new NameItemPathSegment(F_CURRENT_STAGE_OUTCOME)),
                         generalHelper.getCampaignObjectDefinition(), newCurrentOutcome);
-                deltaList.add(currentResponseDelta);
+                deltaList.add(currentOutcomeDelta);
             }
+
+            AccessCertificationResponseType newOverallOutcome = computationHelper.computeOverallOutcome(_case, campaign, newCurrentOutcome);
+            if (!ObjectUtils.equals(newOverallOutcome, _case.getOverallOutcome())) {
+                PropertyDelta overallOutcomeDelta = PropertyDelta.createModificationReplaceProperty(
+                        new ItemPath(
+                                new NameItemPathSegment(F_CASE),
+                                new IdItemPathSegment(_case.asPrismContainerValue().getId()),
+                                new NameItemPathSegment(F_OVERALL_OUTCOME)),
+                        generalHelper.getCampaignObjectDefinition(), newOverallOutcome);
+                deltaList.add(overallOutcomeDelta);
+            }
+
             updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltaList, task, result);
         }
     }
@@ -270,8 +282,9 @@ public class AccCertCaseOperationsHelper {
             List<AccessCertificationDecisionType> decisions = createEmptyDecisionsForCase(_case.getCurrentReviewerRef(), 1);
             _case.getDecision().addAll(decisions);
 
-            _case.setCurrentStageOutcome(computationHelper.computeInitialResponseForStage(_case, campaign, 1));
-            _case.setOverallOutcome(null);
+            final AccessCertificationResponseType currentStageOutcome = computationHelper.computeInitialResponseForStage(_case, campaign, 1);
+            _case.setCurrentStageOutcome(currentStageOutcome);
+            _case.setOverallOutcome(computationHelper.computeOverallOutcome(_case, campaign, currentStageOutcome));
 
             PrismContainerValue<AccessCertificationCaseType> caseCVal = _case.asPrismContainerValue();
             caseDelta.addValueToAdd(caseCVal);
@@ -422,7 +435,7 @@ public class AccCertCaseOperationsHelper {
                     .asItemDelta();
             rv.add(stageOutcomeDelta);
 
-            final AccessCertificationResponseType newOverallOutcome = computationHelper.computeOverallOutcome(_case, campaign, stageOutcomeRecord);
+            final AccessCertificationResponseType newOverallOutcome = computationHelper.computeOverallOutcome(_case, campaign, newStageOutcome);
             if (newOverallOutcome != _case.getOverallOutcome()) {
                 if (newOverallOutcome == null) {
                     throw new IllegalStateException("Computed overallOutcome is null for case id " + _case.asPrismContainerValue().getId());

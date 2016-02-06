@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType.ALL_MUST_ACCEPT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType.ONE_ACCEPT_ACCEPTS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType.ONE_DENY_DENIES;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.DELEGATE;
@@ -54,7 +55,7 @@ public class AccCertResponseComputationHelper {
     private static final transient Trace LOGGER = TraceManager.getTrace(AccCertResponseComputationHelper.class);
 
     public static final AccessCertificationCaseOutcomeStrategyType DEFAULT_CASE_STAGE_OUTCOME_STRATEGY = ONE_ACCEPT_ACCEPTS;
-    public static final AccessCertificationCaseOutcomeStrategyType DEFAULT_CASE_OVERALL_OUTCOME_STRATEGY = ONE_DENY_DENIES;
+    public static final AccessCertificationCaseOutcomeStrategyType DEFAULT_CASE_OVERALL_OUTCOME_STRATEGY = ALL_MUST_ACCEPT;
 
     Map<AccessCertificationCaseOutcomeStrategyType, OutcomeStrategy> outcomeStrategyMap = new HashMap<>();
 
@@ -213,14 +214,14 @@ public class AccCertResponseComputationHelper {
     // aCase contains outcomes from stages 1..N-1. Outcome from stage N is in currentStageOutcome
     // (alternatively: aCase has stages 1..N and currentStageOutcome is null)
     public AccessCertificationResponseType computeOverallOutcome(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign,
-                                                                 AccessCertificationCaseStageOutcomeType currentStageOutcome) {
+                                                                 AccessCertificationResponseType currentStageOutcome) {
         final OutcomeStrategy strategy = getOverallOutcomeStrategy(campaign);
         final List<AccessCertificationResponseType> stageOutcomes = new ArrayList<>();
         for (AccessCertificationCaseStageOutcomeType stageOutcome : aCase.getCompletedStageOutcome()) {
             stageOutcomes.add(stageOutcome.getOutcome());
         }
         if (currentStageOutcome != null) {
-            stageOutcomes.add(currentStageOutcome.getOutcome());
+            stageOutcomes.add(currentStageOutcome);
         }
         return strategy.computeOutcome(summarize(stageOutcomes));
     }

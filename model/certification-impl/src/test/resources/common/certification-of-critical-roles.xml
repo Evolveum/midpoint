@@ -68,6 +68,10 @@ guybrush->COO               cheese                      elaine
                 <allowSelf>true</allowSelf>
             </useObjectManager>
         </reviewerSpecification>
+        <!-- very strict strategy: only ACCEPT is allowed to proceed -->
+        <outcomeStrategy>allMustAccept</outcomeStrategy>
+        <outcomeIfNoReviewers>notDecided</outcomeIfNoReviewers>     <!-- just something different from 'no response' -->
+        <advanceToNextStageOn>accept</advanceToNextStageOn>
     </stageDefinition>
     <stageDefinition>
         <number>2</number>
@@ -76,4 +80,7 @@ guybrush->COO               cheese                      elaine
             <defaultReviewerRef oid="c0c010c0-d34d-b33f-f00d-11111111111e" type="UserType" />   <!-- elaine -->
         </reviewerSpecification>
     </stageDefinition>
+    <reviewStrategy>
+        <outcomeStrategy>oneDenyDenies</outcomeStrategy>
+    </reviewStrategy>
 </accessCertificationDefinition>

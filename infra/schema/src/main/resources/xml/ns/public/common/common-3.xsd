@@ -13012,7 +13012,7 @@
             <xsd:element name="overallOutcome" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The outcome, taking into account all closed stages. Recomputed at the end of each stage.
+                        The outcome, taking into account all closed stages plus current stage (if any).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
