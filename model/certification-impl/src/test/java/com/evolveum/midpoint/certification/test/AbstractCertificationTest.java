@@ -144,6 +144,10 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	public static final File ROLE_COO_FILE = new File(COMMON_DIR, "role-coo.xml");
 	protected static final String ROLE_COO_OID = "00000000-d34d-b33f-f00d-000000000002";
+
+	public static final File ROLE_CTO_FILE = new File(COMMON_DIR, "role-cto.xml");
+	protected static final String ROLE_CTO_OID = "00000000-d34d-b33f-f00d-000000000003";
+
 	protected static final File ROLE_INDUCEMENT_CERT_DEF_FILE = new File(COMMON_DIR, "certification-of-role-inducements.xml");
 
 	protected DummyResource dummyResource;
@@ -182,6 +186,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	protected RoleType roleCeo;
 	protected RoleType roleCoo;
+	protected RoleType roleCto;
 	protected RoleType roleSuperuser;
 
 	protected UserType userAdministrator;
@@ -211,6 +216,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		roleSuperuser = repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult).asObjectable();
 		roleCeo = repoAddObjectFromFile(ROLE_CEO_FILE, RoleType.class, initResult).asObjectable();
 		roleCoo = repoAddObjectFromFile(ROLE_COO_FILE, RoleType.class, initResult).asObjectable();
+		roleCto = repoAddObjectFromFile(ROLE_CTO_FILE, RoleType.class, initResult).asObjectable();
 		repoAddObjectFromFile(ROLE_REVIEWER_FILE, RoleType.class, initResult).asObjectable();
 		repoAddObjectFromFile(ROLE_EROOT_USER_ASSIGNMENT_CAMPAIGN_OWNER_FILE, RoleType.class, initResult).asObjectable();
 
@@ -365,10 +371,10 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 				campaign.getDefinitionRef());
 	}
 
-	protected void assertCaseReviewers(AccessCertificationCaseType _case, AccessCertificationResponseType currentResponse,
-									   int currentResponseStage, List<String> reviewerOidList) {
-		assertEquals("wrong current response", currentResponse, _case.getCurrentStageOutcome());
-		assertEquals("wrong current response stage number", currentResponseStage, _case.getCurrentStageNumber());
+	protected void assertCaseReviewers(AccessCertificationCaseType _case, AccessCertificationResponseType currentStageOutcome,
+									   int currentStage, List<String> reviewerOidList) {
+		assertEquals("wrong current stage outcome", currentStageOutcome, _case.getCurrentStageOutcome());
+		assertEquals("wrong current stage number", currentStage, _case.getCurrentStageNumber());
 		Set<String> realReviewerOids = new HashSet<>();
 		for (ObjectReferenceType ref : _case.getCurrentReviewerRef()) {
 			realReviewerOids.add(ref.getOid());
@@ -397,8 +403,9 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		}
 	}
 
-	// TODO remove redundant check on outcomes (see checkCaseOutcome)
-	protected void assertSingleDecision(AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment, int stageNumber, String reviewerOid, AccessCertificationResponseType aggregatedResponse, boolean checkHistory) {
+	// TODO remove redundant check on outcomes (see assertCaseOutcome)
+	protected void assertSingleDecision(AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment,
+										int stageNumber, String reviewerOid, AccessCertificationResponseType currentStageOutcome, boolean checkHistory) {
 		List<AccessCertificationDecisionType> currentDecisions = getCurrentDecisions(_case, stageNumber, false);
 		assertEquals("wrong # of decisions for stage " + stageNumber, 1, currentDecisions.size());
 		AccessCertificationDecisionType storedDecision = currentDecisions.get(0);
@@ -409,9 +416,24 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		if (response != null) {
 			assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
 		}
-		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentStageOutcome());
+		assertEquals("wrong current stage outcome", currentStageOutcome, _case.getCurrentStageOutcome());
 		if (checkHistory) {
-			assertHistoricOutcome(_case, stageNumber, aggregatedResponse);
+			assertHistoricOutcome(_case, stageNumber, currentStageOutcome);
+		}
+	}
+
+	protected void assertReviewerDecision(AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment,
+										int stageNumber, String reviewerOid, AccessCertificationResponseType currentStageOutcome, boolean checkHistory) {
+		AccessCertificationDecisionType storedDecision = getDecisionForReviewer(_case, stageNumber, reviewerOid);
+		assertNotNull("No decision for reviewer " + reviewerOid + " in stage " + stageNumber, storedDecision);
+		assertEquals("wrong response", response, storedDecision.getResponse());
+		assertEquals("wrong comment", comment, storedDecision.getComment());
+		if (response != null) {
+			assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
+		}
+		assertEquals("wrong current stage outcome", currentStageOutcome, _case.getCurrentStageOutcome());
+		if (checkHistory) {
+			assertHistoricOutcome(_case, stageNumber, currentStageOutcome);
 		}
 	}
 
@@ -448,6 +470,15 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 			}
 		}
 		return currentDecisions;
+	}
+
+	public AccessCertificationDecisionType getDecisionForReviewer(AccessCertificationCaseType _case, int stageNumber, String reviewerOid) {
+		for (AccessCertificationDecisionType decision : _case.getDecision()) {
+			if (decision.getStageNumber() == stageNumber && decision.getReviewerRef().getOid().equals(reviewerOid)) {
+				return decision;
+			}
+		}
+		return null;
 	}
 
 	protected void assertNoDecision(AccessCertificationCaseType _case, int stage, AccessCertificationResponseType aggregatedResponse, boolean checkHistory) {
@@ -525,8 +556,8 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	}
 
 	// completedStage - if null, checks the stage outcome in the history list
-	protected void checkCaseOutcome(List<AccessCertificationCaseType> caseList, String subjectOid, String targetOid,
-									AccessCertificationResponseType stageOutcome, AccessCertificationResponseType overallOutcome, Integer completedStage) {
+	protected void assertCaseOutcome(List<AccessCertificationCaseType> caseList, String subjectOid, String targetOid,
+									 AccessCertificationResponseType stageOutcome, AccessCertificationResponseType overallOutcome, Integer completedStage) {
         AccessCertificationCaseType ccase = findCase(caseList, subjectOid, targetOid);
         assertEquals("Wrong stage outcome in " + ccase, stageOutcome, ccase.getCurrentStageOutcome());
         assertEquals("Wrong overall outcome in " + ccase, overallOutcome, ccase.getOverallOutcome());
@@ -535,6 +566,11 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 			assertHistoricOutcome(ccase, completedStage, stageOutcome);
 		}
     }
+
+	protected void assertPercentComplete(String campaignOid, int expCasesComplete, int expCasesDecided, int expDecisionsDone) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+		assertPercentComplete(campaign, expCasesComplete, expCasesDecided, expDecisionsDone);
+	}
 
 	protected void assertPercentComplete(AccessCertificationCampaignType campaign, int expCasesComplete, int expCasesDecided, int expDecisionsDone) {
 		int casesCompletePercentage = Math.round(CertCampaignTypeUtil.getCasesCompletedPercentage(campaign));

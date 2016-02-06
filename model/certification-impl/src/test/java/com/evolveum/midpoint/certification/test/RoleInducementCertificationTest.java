@@ -167,11 +167,11 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         checkAllCases(campaign.getCase(), campaignOid);
 
         List<AccessCertificationCaseType> caseList = campaign.getCase();
-        checkCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, null);
-        checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, null);
-        checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, ACCEPT, ACCEPT, null);
-        checkCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, null);
-        checkCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, null);
         assertPercentComplete(campaign, 20, 100, 0);     // preliminary outcomes for all aases are "ACCEPT"
     }
 
@@ -380,11 +380,11 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         assertSingleDecision(cooDummyBlackCase, ACCEPT, "OK", 1, USER_ADMINISTRATOR_OID, ACCEPT, false);
         assertSingleDecision(cooSuperuserCase, NOT_DECIDED, "I'm so procrastinative...", 1, USER_ADMINISTRATOR_OID, ACCEPT, false);
 
-        checkCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
-        checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
-        checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, ACCEPT, ACCEPT, null);
-        checkCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, null);
-        checkCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, null);
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         assertPercentComplete(campaign, 100, 100, 100);
@@ -457,11 +457,11 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         assertSingleDecision(cooSuperuserCase, NOT_DECIDED, "I'm so procrastinative...", 1, USER_ADMINISTRATOR_OID, ACCEPT, true);
         assertNoDecision(superuserDummyCase, 1, ACCEPT, true);
 
-        checkCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, 1);
-        checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, 1);
-        checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, ACCEPT, ACCEPT, 1);
-        checkCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, 1);
-        checkCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, 1);
+        assertCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, 1);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, 1);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, ACCEPT, ACCEPT, 1);
+        assertCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, 1);
+        assertCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, 1);
 
         assertPercentComplete(campaign, 100, 100, 100);
     }
@@ -538,11 +538,11 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         assertCaseHistoricOutcomes(cooSuperuserCase, ACCEPT);
         assertCaseHistoricOutcomes(superuserDummyCase, ACCEPT);
 
-        checkCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
-        checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
-        checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, NO_RESPONSE, NO_RESPONSE, null);
-        checkCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, NO_RESPONSE, NO_RESPONSE, null);
-        checkCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, NO_RESPONSE, NO_RESPONSE, null);
+        assertCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, NO_RESPONSE, NO_RESPONSE, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, NO_RESPONSE, NO_RESPONSE, null);
+        assertCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, NO_RESPONSE, NO_RESPONSE, null);
 
         // 40% of cases is answered (not advanced to this stage)
         // 40% is decided ("REVOKE" in stage 1 + "NO_RESPONSE" in stage 2)
@@ -668,11 +668,11 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         assertCaseHistoricOutcomes(cooSuperuserCase, ACCEPT);
         assertCaseHistoricOutcomes(superuserDummyCase, ACCEPT);
 
-        checkCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
-        checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
-        checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, REVOKE, REVOKE, null);
-        checkCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, null);
-        checkCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, NO_RESPONSE, NO_RESPONSE, null);
+        assertCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, REVOKE, REVOKE, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, NO_RESPONSE, NO_RESPONSE, null);
 
         /*
 Subject-Target            Stage 1                       Stage 2                             Overall
@@ -761,11 +761,11 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         assertCaseHistoricOutcomes(cooSuperuserCase, ACCEPT, ACCEPT);
         assertCaseHistoricOutcomes(superuserDummyCase, ACCEPT, NO_RESPONSE);
 
-        checkCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, 1);
-        checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, 1);
-        checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, REVOKE, REVOKE, 2);
-        checkCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, 2);
-        checkCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, NO_RESPONSE, NO_RESPONSE, 2);
+        assertCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, 1);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, 1);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, REVOKE, REVOKE, 2);
+        assertCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, 2);
+        assertCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, NO_RESPONSE, NO_RESPONSE, 2);
 
         // 80% cases has all decisions (or is not in current stage)
         // 80% cases has an outcome
