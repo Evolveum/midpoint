@@ -21,7 +21,7 @@ import java.util.*;
  */
 public class PrismIdentifierGenerator {
 
-    public static enum Operation {ADD, ADD_WITH_OVERWRITE, MODIFY}
+    public enum Operation {ADD, ADD_WITH_OVERWRITE, MODIFY}
 
     /**
      * Method inserts id for prism container values, which didn't have ids,
