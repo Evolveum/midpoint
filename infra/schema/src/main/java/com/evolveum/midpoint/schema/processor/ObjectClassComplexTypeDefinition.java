@@ -368,6 +368,96 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 		clone.secondaryIdentifiers = this.secondaryIdentifiers;
 		clone.auxiliary = this.auxiliary;
 	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + (auxiliary ? 1231 : 1237);
+		result = prime * result + (defaultInAKind ? 1231 : 1237);
+		result = prime * result + ((descriptionAttribute == null) ? 0 : descriptionAttribute.hashCode());
+		result = prime * result + ((displayNameAttribute == null) ? 0 : displayNameAttribute.hashCode());
+		result = prime * result + ((identifiers == null) ? 0 : identifiers.hashCode());
+		result = prime * result + ((intent == null) ? 0 : intent.hashCode());
+		result = prime * result + ((kind == null) ? 0 : kind.hashCode());
+		result = prime * result + ((namingAttribute == null) ? 0 : namingAttribute.hashCode());
+		result = prime * result + ((nativeObjectClass == null) ? 0 : nativeObjectClass.hashCode());
+		result = prime * result + ((secondaryIdentifiers == null) ? 0 : secondaryIdentifiers.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!super.equals(obj)) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		ObjectClassComplexTypeDefinition other = (ObjectClassComplexTypeDefinition) obj;
+		if (auxiliary != other.auxiliary) {
+			return false;
+		}
+		if (defaultInAKind != other.defaultInAKind) {
+			return false;
+		}
+		if (descriptionAttribute == null) {
+			if (other.descriptionAttribute != null) {
+				return false;
+			}
+		} else if (!descriptionAttribute.equals(other.descriptionAttribute)) {
+			return false;
+		}
+		if (displayNameAttribute == null) {
+			if (other.displayNameAttribute != null) {
+				return false;
+			}
+		} else if (!displayNameAttribute.equals(other.displayNameAttribute)) {
+			return false;
+		}
+		if (identifiers == null) {
+			if (other.identifiers != null) {
+				return false;
+			}
+		} else if (!identifiers.equals(other.identifiers)) {
+			return false;
+		}
+		if (intent == null) {
+			if (other.intent != null) {
+				return false;
+			}
+		} else if (!intent.equals(other.intent)) {
+			return false;
+		}
+		if (kind != other.kind) {
+			return false;
+		}
+		if (namingAttribute == null) {
+			if (other.namingAttribute != null) {
+				return false;
+			}
+		} else if (!namingAttribute.equals(other.namingAttribute)) {
+			return false;
+		}
+		if (nativeObjectClass == null) {
+			if (other.nativeObjectClass != null) {
+				return false;
+			}
+		} else if (!nativeObjectClass.equals(other.nativeObjectClass)) {
+			return false;
+		}
+		if (secondaryIdentifiers == null) {
+			if (other.secondaryIdentifiers != null) {
+				return false;
+			}
+		} else if (!secondaryIdentifiers.equals(other.secondaryIdentifiers)) {
+			return false;
+		}
+		return true;
+	}
 
 	@Override
 	protected String getDebugDumpClassName() {

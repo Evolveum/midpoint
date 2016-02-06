@@ -940,6 +940,159 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	}
 
     @Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((associations == null) ? 0 : associations.hashCode());
+		result = prime * result + ((attributeDefinitions == null) ? 0 : attributeDefinitions.hashCode());
+		result = prime * result
+				+ ((auxiliaryObjectClassDefinitions == null) ? 0 : auxiliaryObjectClassDefinitions.hashCode());
+		result = prime * result + ((baseContext == null) ? 0 : baseContext.hashCode());
+		result = prime * result + ((description == null) ? 0 : description.hashCode());
+		result = prime * result + ((displayName == null) ? 0 : displayName.hashCode());
+		result = prime * result
+				+ ((displayNameAttributeDefinition == null) ? 0 : displayNameAttributeDefinition.hashCode());
+		result = prime * result + ((identifiers == null) ? 0 : identifiers.hashCode());
+		result = prime * result + ((intent == null) ? 0 : intent.hashCode());
+		result = prime * result + (isDefault ? 1231 : 1237);
+		result = prime * result + ((kind == null) ? 0 : kind.hashCode());
+		result = prime * result + ((objectClassDefinition == null) ? 0 : objectClassDefinition.hashCode());
+		result = prime * result + ((objectDefinition == null) ? 0 : objectDefinition.hashCode());
+		result = prime * result + ((protectedObjectPatterns == null) ? 0 : protectedObjectPatterns.hashCode());
+		result = prime * result + ((resourceType == null) ? 0 : resourceType.hashCode());
+		result = prime * result + ((schemaHandlingObjectTypeDefinitionType == null) ? 0
+				: schemaHandlingObjectTypeDefinitionType.hashCode());
+		result = prime * result + ((secondaryIdentifiers == null) ? 0 : secondaryIdentifiers.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!super.equals(obj)) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		RefinedObjectClassDefinition other = (RefinedObjectClassDefinition) obj;
+		if (associations == null) {
+			if (other.associations != null) {
+				return false;
+			}
+		} else if (!associations.equals(other.associations)) {
+			return false;
+		}
+		if (attributeDefinitions == null) {
+			if (other.attributeDefinitions != null) {
+				return false;
+			}
+		} else if (!attributeDefinitions.equals(other.attributeDefinitions)) {
+			return false;
+		}
+		if (auxiliaryObjectClassDefinitions == null) {
+			if (other.auxiliaryObjectClassDefinitions != null) {
+				return false;
+			}
+		} else if (!auxiliaryObjectClassDefinitions.equals(other.auxiliaryObjectClassDefinitions)) {
+			return false;
+		}
+		if (baseContext == null) {
+			if (other.baseContext != null) {
+				return false;
+			}
+		} else if (!baseContext.equals(other.baseContext)) {
+			return false;
+		}
+		if (description == null) {
+			if (other.description != null) {
+				return false;
+			}
+		} else if (!description.equals(other.description)) {
+			return false;
+		}
+		if (displayName == null) {
+			if (other.displayName != null) {
+				return false;
+			}
+		} else if (!displayName.equals(other.displayName)) {
+			return false;
+		}
+		if (displayNameAttributeDefinition == null) {
+			if (other.displayNameAttributeDefinition != null) {
+				return false;
+			}
+		} else if (!displayNameAttributeDefinition.equals(other.displayNameAttributeDefinition)) {
+			return false;
+		}
+		if (identifiers == null) {
+			if (other.identifiers != null) {
+				return false;
+			}
+		} else if (!identifiers.equals(other.identifiers)) {
+			return false;
+		}
+		if (intent == null) {
+			if (other.intent != null) {
+				return false;
+			}
+		} else if (!intent.equals(other.intent)) {
+			return false;
+		}
+		if (isDefault != other.isDefault) {
+			return false;
+		}
+		if (kind != other.kind) {
+			return false;
+		}
+		if (objectClassDefinition == null) {
+			if (other.objectClassDefinition != null) {
+				return false;
+			}
+		} else if (!objectClassDefinition.equals(other.objectClassDefinition)) {
+			return false;
+		}
+		if (objectDefinition == null) {
+			if (other.objectDefinition != null) {
+				return false;
+			}
+		} else if (!objectDefinition.equals(other.objectDefinition)) {
+			return false;
+		}
+		if (protectedObjectPatterns == null) {
+			if (other.protectedObjectPatterns != null) {
+				return false;
+			}
+		} else if (!protectedObjectPatterns.equals(other.protectedObjectPatterns)) {
+			return false;
+		}
+		if (resourceType == null) {
+			if (other.resourceType != null) {
+				return false;
+			}
+		} else if (!resourceType.equals(other.resourceType)) {
+			return false;
+		}
+		if (schemaHandlingObjectTypeDefinitionType == null) {
+			if (other.schemaHandlingObjectTypeDefinitionType != null) {
+				return false;
+			}
+		} else if (!schemaHandlingObjectTypeDefinitionType.equals(other.schemaHandlingObjectTypeDefinitionType)) {
+			return false;
+		}
+		if (secondaryIdentifiers == null) {
+			if (other.secondaryIdentifiers != null) {
+				return false;
+			}
+		} else if (!secondaryIdentifiers.equals(other.secondaryIdentifiers)) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
     public String debugDump() {
         return debugDump(0);
     }
@@ -988,8 +1141,21 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	public String getHumanReadableName() {
 		if (getDisplayName() != null) {
 			return getDisplayName();
-		} else {
+		} else if (getKind() != null) {
 			return getKind()+":"+getIntent();
+		} else if (getTypeName() != null) {
+			return getTypeName().getLocalPart();
+		} else {
+			return "null";
+		}
+	}
+	
+	@Override
+	public String toString() {
+		if (getKind() == null) {
+			return getDebugDumpClassName() + " ("+PrettyPrinter.prettyPrint(getTypeName())+")";
+		} else {
+			return getDebugDumpClassName() + " ("+getKind()+":"+getIntent()+"="+PrettyPrinter.prettyPrint(getTypeName())+")";
 		}
 	}
 

@@ -324,6 +324,46 @@ public class CompositeRefinedObjectClassDefinition extends RefinedObjectClassDef
 	}
 
 	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result
+				+ ((auxiliaryObjectClassDefinitions == null) ? 0 : auxiliaryObjectClassDefinitions.hashCode());
+		result = prime * result
+				+ ((structuralObjectClassDefinition == null) ? 0 : structuralObjectClassDefinition.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!super.equals(obj)) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		CompositeRefinedObjectClassDefinition other = (CompositeRefinedObjectClassDefinition) obj;
+		if (auxiliaryObjectClassDefinitions == null) {
+			if (other.auxiliaryObjectClassDefinitions != null) {
+				return false;
+			}
+		} else if (!auxiliaryObjectClassDefinitions.equals(other.auxiliaryObjectClassDefinitions)) {
+			return false;
+		}
+		if (structuralObjectClassDefinition == null) {
+			if (other.structuralObjectClassDefinition != null) {
+				return false;
+			}
+		} else if (!structuralObjectClassDefinition.equals(other.structuralObjectClassDefinition)) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
     public String debugDump() {
         return debugDump(0);
     }

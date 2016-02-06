@@ -356,6 +356,74 @@ public class ComplexTypeDefinition extends Definition {
 		}
 		throw new IllegalArgumentException("The definition with name "+propertyName+" was not found in complex type "+getTypeName());
 	}
+	
+	
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((compileTimeClass == null) ? 0 : compileTimeClass.hashCode());
+		result = prime * result + (containerMarker ? 1231 : 1237);
+		result = prime * result + ((extensionForType == null) ? 0 : extensionForType.hashCode());
+		result = prime * result + ((itemDefinitions == null) ? 0 : itemDefinitions.hashCode());
+		result = prime * result + (objectMarker ? 1231 : 1237);
+		result = prime * result + ((superType == null) ? 0 : superType.hashCode());
+		result = prime * result + (xsdAnyMarker ? 1231 : 1237);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!super.equals(obj)) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		ComplexTypeDefinition other = (ComplexTypeDefinition) obj;
+		if (compileTimeClass == null) {
+			if (other.compileTimeClass != null) {
+				return false;
+			}
+		} else if (!compileTimeClass.equals(other.compileTimeClass)) {
+			return false;
+		}
+		if (containerMarker != other.containerMarker) {
+			return false;
+		}
+		if (extensionForType == null) {
+			if (other.extensionForType != null) {
+				return false;
+			}
+		} else if (!extensionForType.equals(other.extensionForType)) {
+			return false;
+		}
+		if (itemDefinitions == null) {
+			if (other.itemDefinitions != null) {
+				return false;
+			}
+		} else if (!itemDefinitions.equals(other.itemDefinitions)) {
+			return false;
+		}
+		if (objectMarker != other.objectMarker) {
+			return false;
+		}
+		if (superType == null) {
+			if (other.superType != null) {
+				return false;
+			}
+		} else if (!superType.equals(other.superType)) {
+			return false;
+		}
+		if (xsdAnyMarker != other.xsdAnyMarker) {
+			return false;
+		}
+		return true;
+	}
 
 	@Override
 	public String debugDump(int indent) {

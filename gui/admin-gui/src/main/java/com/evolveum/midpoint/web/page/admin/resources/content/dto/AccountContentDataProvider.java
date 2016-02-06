@@ -100,7 +100,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
             query.setPaging(paging);
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Query filter:\n{}", query);
+                LOGGER.trace("Query filter for {}:\n{}", objectClassModel.getObject(), query.debugDump());
             }
 
             Collection<SelectorOptions<GetOperationOptions>> options =
@@ -133,11 +133,19 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
     }
 
     private ObjectQuery getObjectQuery() throws SchemaException {
-    	if (objectClassModel.getObject() == null) {
-        	throw new SchemaException("No default account definition in resource "+resourceOidModel.getObject());
+    	RefinedObjectClassDefinition rOcDef = objectClassModel.getObject();
+    	if (rOcDef == null) {
+        	throw new SchemaException("No object class definition ("+resourceOidModel.getObject()+")");
         }
-        ObjectQuery baseQuery = ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOidModel.getObject(),
-                objectClassModel.getObject().getTypeName(), getPage().getPrismContext());
+    	
+    	ObjectQuery baseQuery;
+    	if (rOcDef.getKind() != null) {
+    		baseQuery = ObjectQueryUtil.createResourceAndKindIntent(resourceOidModel.getObject(), 
+    				rOcDef.getKind(), rOcDef.getIntent(), getPage().getPrismContext());
+    	} else {    	
+	        baseQuery = ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOidModel.getObject(),
+	        		rOcDef.getTypeName(), getPage().getPrismContext());
+    	}
         ObjectQuery query = getQuery();
         if (query != null) {
             ObjectFilter baseFilter = baseQuery.getFilter();
