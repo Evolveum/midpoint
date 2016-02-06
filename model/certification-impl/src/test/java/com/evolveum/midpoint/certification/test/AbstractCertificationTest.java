@@ -535,4 +535,18 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 			assertHistoricOutcome(ccase, completedStage, stageOutcome);
 		}
     }
+
+	protected void assertPercentComplete(AccessCertificationCampaignType campaign, int expCasesComplete, int expCasesDecided, int expDecisionsDone) {
+		int casesCompletePercentage = Math.round(CertCampaignTypeUtil.getCasesCompletedPercentage(campaign));
+		System.out.println("Cases completed = " + casesCompletePercentage + " %");
+		assertEquals("Wrong case complete percentage", expCasesComplete, casesCompletePercentage);
+
+		int casesDecidedPercentage = Math.round(CertCampaignTypeUtil.getCasesDecidedPercentage(campaign));
+		System.out.println("Cases decided = " + casesDecidedPercentage + " %");
+		assertEquals("Wrong case complete percentage", expCasesDecided, casesDecidedPercentage);
+
+		int decisionsDonePercentage = Math.round(CertCampaignTypeUtil.getDecisionsDonePercentage(campaign));
+		System.out.println("Decisions completed = " + decisionsDonePercentage + " %");
+		assertEquals("Wrong decisions complete percentage", expDecisionsDone, decisionsDonePercentage);
+    }
 }

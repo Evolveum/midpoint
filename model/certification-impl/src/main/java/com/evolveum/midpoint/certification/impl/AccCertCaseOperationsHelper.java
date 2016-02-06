@@ -379,6 +379,16 @@ public class AccCertCaseOperationsHelper {
                     currentOutcome);
             rv.add(currentOutcomeDelta);
 
+            final AccessCertificationResponseType overallOutcome = computationHelper.computeOverallOutcome(_case, campaign, currentOutcome);
+            final PropertyDelta overallOutcomeDelta = PropertyDelta.createModificationReplaceProperty(
+                    new ItemPath(
+                            new NameItemPathSegment(F_CASE),
+                            new IdItemPathSegment(caseId),
+                            new NameItemPathSegment(F_OVERALL_OUTCOME)),
+                    generalHelper.getCampaignObjectDefinition(),
+                    overallOutcome);
+            rv.add(overallOutcomeDelta);
+
             final PropertyDelta currentStageNumberDelta = PropertyDelta.createModificationReplaceProperty(
                     new ItemPath(
                             new NameItemPathSegment(F_CASE),

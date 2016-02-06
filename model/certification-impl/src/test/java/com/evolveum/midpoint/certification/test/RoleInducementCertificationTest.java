@@ -88,6 +88,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         campaign = getCampaignWithCases(campaignOid);
         display("campaign", campaign);
         assertAfterCampaignCreate(campaign, certificationDefinition);
+        assertPercentComplete(campaign, 100, 100, 100);
     }
 
     @Test
@@ -171,6 +172,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, ACCEPT, ACCEPT, null);
         checkCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, null);
         checkCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, null);
+        assertPercentComplete(campaign, 20, 100, 0);     // preliminary outcomes for all aases are "ACCEPT"
     }
 
     protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid) {
@@ -383,6 +385,9 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, ACCEPT, ACCEPT, null);
         checkCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, null);
         checkCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, null);
+
+        AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+        assertPercentComplete(campaign, 100, 100, 100);
     }
 
     @Test
@@ -457,6 +462,8 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, ACCEPT, ACCEPT, 1);
         checkCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, 1);
         checkCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, 1);
+
+        assertPercentComplete(campaign, 100, 100, 100);
     }
 
     @Test
@@ -533,9 +540,14 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
 
         checkCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
         checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
-        checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, NO_RESPONSE, ACCEPT, null);
-        checkCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, NO_RESPONSE, ACCEPT, null);
-        checkCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, NO_RESPONSE, ACCEPT, null);
+        checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, NO_RESPONSE, NO_RESPONSE, null);
+        checkCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, NO_RESPONSE, NO_RESPONSE, null);
+        checkCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, NO_RESPONSE, NO_RESPONSE, null);
+
+        // 40% of cases is answered (not advanced to this stage)
+        // 40% is decided ("REVOKE" in stage 1 + "NO_RESPONSE" in stage 2)
+        // 0% decisions of current stage is done
+        assertPercentComplete(campaign, 40, 40, 0);
     }
 
     @Test
@@ -661,6 +673,21 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, REVOKE, REVOKE, null);
         checkCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, null);
         checkCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, NO_RESPONSE, NO_RESPONSE, null);
+
+        /*
+Subject-Target            Stage 1                       Stage 2                             Overall
+===================================================================================================
+CEO-Dummy:                elaine:RV -> RV               jack,administrator (skipped)        RV
+COO-Dummy:                administrator:RV -> RV        jack,administrator (skipped)        RV
+COO-DummyBlack:           administrator:A -> A          administrator:A,elaine:RV -> RV     RV
+COO-Superuser:            administrator:ND -> A         administrator:A                     A
+Superuser-Dummy:          - -> A                        jack:A,administrator:null -> NR     NR
+         */
+
+        // 80% cases has all decisions (or is not in current stage)
+        // 80% cases has an outcome
+        // 80% decisions for this stage was done
+        assertPercentComplete(campaign, 80, 80, 80);
     }
 
     @Test
@@ -739,6 +766,11 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         checkCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, REVOKE, REVOKE, 2);
         checkCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, 2);
         checkCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, NO_RESPONSE, NO_RESPONSE, 2);
+
+        // 80% cases has all decisions (or is not in current stage)
+        // 80% cases has an outcome
+        // 80% decisions for this stage was done
+        assertPercentComplete(campaign, 80, 80, 80);
     }
 
     @Test
@@ -799,6 +831,11 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
 
         PrismObject<AccessCertificationDefinitionType> def = getObject(AccessCertificationDefinitionType.class, certificationDefinition.getOid());
         assertApproximateTime("last campaign closed", new Date(), def.asObjectable().getLastCampaignClosedTimestamp());
+
+        // 80% cases has all decisions (or is not in current stage)
+        // 80% cases has an outcome
+        // 80% decisions for this stage was done
+        assertPercentComplete(campaign, 80, 80, 80);
     }
 
     @Test
