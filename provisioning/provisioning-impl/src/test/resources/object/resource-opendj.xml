@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -140,6 +140,46 @@
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
             <objectClass>ri:groupOfUniqueNames</objectClass>
+            <baseContext>
+            	<objectClass>ri:organizationalUnit</objectClass>
+            	<filter>
+            		<q:equal>
+            			<q:path>attributes/dn</q:path>
+            			<q:value>ou=groups,dc=example,dc=com</q:value>
+            		</q:equal>
+            	</filter>
+            </baseContext>
+            <attribute>
+				<ref>ri:entryUUID</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+			</attribute>
+            <attribute>
+				<ref>ri:dn</ref>
+				<matchingRule>mr:distinguishedName</matchingRule>
+			</attribute>
+			<attribute>
+				<ref>ri:uniqueMember</ref>
+				<matchingRule>mr:distinguishedName</matchingRule>
+				<fetchStrategy>minimal</fetchStrategy>
+			</attribute>
+        </objectType>
+        
+        <objectType>
+        	<!-- Another entitlement. Same objectclass, but a different baseContext.
+        	     We use that to check that these two won't get mixed. -->
+        	<kind>entitlement</kind>
+            <intent>specialGroup</intent>
+            <displayName>Special LDAP Group</displayName>
+            <objectClass>ri:groupOfUniqueNames</objectClass>
+            <baseContext>
+            	<objectClass>ri:organizationalUnit</objectClass>
+            	<filter>
+            		<q:equal>
+            			<q:path>attributes/dn</q:path>
+            			<q:value>ou=specialgroups,dc=example,dc=com</q:value>
+            		</q:equal>
+            	</filter>
+            </baseContext>
             <attribute>
 				<ref>ri:entryUUID</ref>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>

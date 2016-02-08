@@ -98,6 +98,7 @@ public class PageCertDefinition extends PageAdminCertification {
 //	private static final String ID_OWNER_INPUT = "ownerInput";
 	private static final String ID_OWNER_REF_CHOOSER = "ownerRefChooser";
 	private static final String ID_REMEDIATION = "remediation";
+	private static final String ID_OUTCOME_STRATEGY = "outcomeStrategy";
 
 	private static final String ID_BACK_BUTTON = "backButton";
 	private static final String ID_SAVE_BUTTON = "saveButton";
@@ -291,6 +292,12 @@ public class PageCertDefinition extends PageAdminCertification {
                 new EnumChoiceRenderer<AccessCertificationRemediationStyleType>(this));
         mainForm.add(remediation);
 
+		DropDownChoice outcomeStrategy =
+				new DropDownChoice<>(ID_OUTCOME_STRATEGY,
+						new PropertyModel<AccessCertificationCaseOutcomeStrategyType>(definitionModel, CertDefinitionDto.F_OUTCOME_STRATEGY),
+						WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationCaseOutcomeStrategyType.class),
+				new EnumChoiceRenderer<AccessCertificationCaseOutcomeStrategyType>(this));
+		mainForm.add(outcomeStrategy);
 
 //        mainForm.add(new Label(ID_REVIEW_STAGE_CAMPAIGNS, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
 //        mainForm.add(new Label(ID_CAMPAIGNS_TOTAL, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));

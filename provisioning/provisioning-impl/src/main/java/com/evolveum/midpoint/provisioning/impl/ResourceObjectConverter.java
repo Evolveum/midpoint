@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -997,9 +997,9 @@ public class ResourceObjectConverter {
 		SearchHierarchyConstraints searchHierarchyConstraints = null;
 		ResourceObjectReferenceType baseContextRef = objectClassDef.getBaseContext();
 		if (baseContextRef != null) {
-			PrismObject<ShadowType> baseContextShadow = resourceObjectReferenceResolver.resolve(baseContextRef, "base context specification in "+objectClassDef, parentResult);
+			PrismObject<ShadowType> baseContextShadow = resourceObjectReferenceResolver.resolve(ctx, baseContextRef, null, "base context specification in "+objectClassDef, parentResult);
 			RefinedObjectClassDefinition baseContextObjectClassDefinition = ctx.getRefinedSchema().determineCompositeObjectClassDefinition(baseContextShadow);
-			ResourceObjectIdentification baseContextIdentification = new ResourceObjectIdentification(baseContextObjectClassDefinition, ShadowUtil.getIdentifiers(baseContextShadow));
+			ResourceObjectIdentification baseContextIdentification =  ShadowUtil.getResourceObjectIdentification(baseContextShadow, baseContextObjectClassDefinition);
 			searchHierarchyConstraints = new SearchHierarchyConstraints(baseContextIdentification, null);
 		}
 		
@@ -1508,7 +1508,8 @@ public class ResourceObjectConverter {
 					if (ctx.isWildcard()) {
 						if (!MiscUtil.equals(shadowAttrsToReturn, attrsToReturn)) {
 							// re-fetch the shadow if necessary (if attributesToGet does not match)
-							ResourceObjectIdentification identification = new ResourceObjectIdentification(shadowCtx.getObjectClassDefinition(), change.getIdentifiers());
+							ResourceObjectIdentification identification = new ResourceObjectIdentification(shadowCtx.getObjectClassDefinition(), 
+									change.getIdentifiers(), null);
 							LOGGER.trace("Re-fetching object {} because of attrsToReturn", identification);
 							currentShadow = connector.fetchObject(ShadowType.class, identification, shadowAttrsToReturn, ctx, parentResult);
 						}

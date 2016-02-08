@@ -1,5 +1,8 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -15,6 +18,8 @@ public class StageDefinitionDto implements Serializable {
     public final static String F_NOTIFY_ONLY_WHEN_NO_DECISION = "notifyOnlyWhenNoDecision";
     public final static String F_REVIEWER_SPECIFICATION = "reviewerSpecification";
     public final static String F_REVIEWER_DTO = "reviewerDto";
+    public final static String F_OUTCOME_STRATEGY = "outcomeStrategy";
+    public final static String F_OUTCOME_IF_NO_REVIEWERS = "outcomeIfNoReviewers";
 
     private int number;
     private String name;
@@ -23,6 +28,8 @@ public class StageDefinitionDto implements Serializable {
     private String notifyBeforeDeadline;
     private boolean notifyOnlyWhenNoDecision;
     private AccessCertificationReviewerDto reviewerDto;
+    private AccessCertificationCaseOutcomeStrategyType outcomeStrategy;
+    private AccessCertificationResponseType outcomeIfNoReviewers;
 
     public int getNumber() {
         return number;
@@ -80,4 +87,19 @@ public class StageDefinitionDto implements Serializable {
         this.reviewerDto = reviewerDto;
     }
 
+    public AccessCertificationCaseOutcomeStrategyType getOutcomeStrategy() {
+        return outcomeStrategy;
+    }
+
+    public void setOutcomeStrategy(AccessCertificationCaseOutcomeStrategyType outcomeStrategy) {
+        this.outcomeStrategy = outcomeStrategy;
+    }
+
+    public AccessCertificationResponseType getOutcomeIfNoReviewers() {
+        return outcomeIfNoReviewers;
+    }
+
+    public void setOutcomeIfNoReviewers(AccessCertificationResponseType outcomeIfNoReviewers) {
+        this.outcomeIfNoReviewers = outcomeIfNoReviewers;
+    }
 }

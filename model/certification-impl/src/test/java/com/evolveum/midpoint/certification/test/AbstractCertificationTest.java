@@ -45,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationAssignmentCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseStageOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
@@ -64,6 +65,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -73,6 +75,7 @@ import java.util.Set;
 
 import static com.evolveum.midpoint.schema.RetrieveOption.INCLUDE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -313,9 +316,8 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	}
 
 	protected void assertCaseReviewers(AccessCertificationCaseType _case, AccessCertificationResponseType currentResponse,
-									 boolean enabled, int currentResponseStage, List<String> reviewerOidList) {
-		assertEquals("wrong current response", currentResponse, _case.getCurrentResponse());
-		//assertEquals("wrong enabled", enabled, _case.isEnabled());
+									   int currentResponseStage, List<String> reviewerOidList) {
+		assertEquals("wrong current response", currentResponse, _case.getCurrentOutcome());
 		assertEquals("wrong current response stage number", currentResponseStage, _case.getCurrentStageNumber());
 		Set<String> realReviewerOids = new HashSet<>();
 		for (ObjectReferenceType ref : _case.getReviewerRef()) {
@@ -345,28 +347,70 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		}
 	}
 
-	protected void assertDecision(AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment, int stageNumber, String reviewerOid, AccessCertificationResponseType aggregatedResponse, boolean enabled) {
-		assertEquals("wrong # of decisions", 1, _case.getDecision().size());
-		AccessCertificationDecisionType storedDecision = _case.getDecision().get(0);
+	protected void assertSingleDecision(AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment, int stageNumber, String reviewerOid, AccessCertificationResponseType aggregatedResponse, boolean checkHistory) {
+		List<AccessCertificationDecisionType> currentDecisions = getCurrentDecisions(_case, stageNumber, false);
+		assertEquals("wrong # of decisions", 1, currentDecisions.size());
+		AccessCertificationDecisionType storedDecision = currentDecisions.get(0);
 		assertEquals("wrong response", response, storedDecision.getResponse());
 		assertEquals("wrong comment", comment, storedDecision.getComment());
 		assertRefEquals("wrong reviewerRef", ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER), storedDecision.getReviewerRef());
 		assertEquals("wrong stage number", stageNumber, storedDecision.getStageNumber());
-		assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
-		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentResponse());
-		//assertEquals("wrong enabled", enabled, _case.isEnabled());
+		if (response != null) {
+			assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
+		}
+		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentOutcome());
+		if (checkHistory) {
+			assertHistoricOutcome(_case, stageNumber, aggregatedResponse);
+		}
 	}
 
-	protected void assertNoDecision(AccessCertificationCaseType _case, AccessCertificationResponseType aggregatedResponse, boolean enabled) {
-		assertEquals("wrong # of decisions", 0, _case.getDecision().size());
-		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentResponse());
-		//assertEquals("wrong enabled", enabled, _case.isEnabled());
+	protected void assertHistoricOutcome(AccessCertificationCaseType aCase, int stageNumber, AccessCertificationResponseType outcome) {
+		boolean found = false;
+		for (AccessCertificationCaseStageOutcomeType stageOutcome : aCase.getCompletedStageOutcome()) {
+			if (stageOutcome.getStageNumber() == stageNumber) {
+				assertEquals("Wrong outcome stored for stage #" + stageNumber + " in " + aCase, outcome, stageOutcome.getOutcome());
+				if (found) {
+					fail("Duplicate outcome stored for stage #" + stageNumber + " in " + aCase);
+				}
+				found = true;
+			}
+		}
+		assertTrue("No outcome stored for stage #" + stageNumber + " in " + aCase, found);
 	}
 
-	protected void assertCurrentState(AccessCertificationCaseType _case, AccessCertificationResponseType aggregatedResponse, int currentResponseStage, boolean enabled) {
-		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentResponse());
+	protected void assertCaseOutcomes(AccessCertificationCaseType aCase, AccessCertificationResponseType... outcomes) {
+		for (int stage = 0; stage < outcomes.length; stage++) {
+			assertHistoricOutcome(aCase, stage+1, outcomes[stage]);
+		}
+		assertEquals("wrong # of stored stage outcomes", outcomes.length, aCase.getCompletedStageOutcome().size());
+	}
+
+
+	public List<AccessCertificationDecisionType> getCurrentDecisions(AccessCertificationCaseType _case, int stageNumber, boolean decidedOnly) {
+		List<AccessCertificationDecisionType> currentDecisions = new ArrayList<>();
+		for (AccessCertificationDecisionType decision : _case.getDecision()) {
+			if (decidedOnly && (decision.getResponse() == null || decision.getResponse() == NO_RESPONSE)) {
+				continue;
+			}
+			if (decision.getStageNumber() == stageNumber) {
+				currentDecisions.add(decision.clone());
+			}
+		}
+		return currentDecisions;
+	}
+
+	protected void assertNoDecision(AccessCertificationCaseType _case, int stage, AccessCertificationResponseType aggregatedResponse, boolean checkHistory) {
+		List<AccessCertificationDecisionType> currentDecisions = getCurrentDecisions(_case, stage, true);
+		assertEquals("wrong # of decisions", 0, currentDecisions.size());
+		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentOutcome());
+		if (checkHistory) {
+			assertHistoricOutcome(_case, stage, aggregatedResponse);
+		}
+	}
+
+	protected void assertCurrentState(AccessCertificationCaseType _case, AccessCertificationResponseType aggregatedResponse, int currentResponseStage) {
+		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentOutcome());
 		assertEquals("wrong current response stage number", currentResponseStage, _case.getCurrentStageNumber());
-//		assertEquals("wrong enabled", enabled, _case.isEnabled());
 	}
 
 	protected void assertDecisions(AccessCertificationCaseType _case, int count) {
@@ -374,14 +418,15 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	}
 
 	protected void assertDecision2(AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment,
-								 int stageNumber, String reviewerOid, AccessCertificationResponseType aggregatedResponse, boolean enabled) {
+								   int stageNumber, String reviewerOid, AccessCertificationResponseType aggregatedResponse) {
 		AccessCertificationDecisionType decision = CertCampaignTypeUtil.findDecision(_case, stageNumber, reviewerOid);
 		assertNotNull("decision does not exist", decision);
 		assertEquals("wrong response", response, decision.getResponse());
 		assertEquals("wrong comment", comment, decision.getComment());
-		assertApproximateTime("timestamp", new Date(), decision.getTimestamp());
-		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentResponse());
-//		assertEquals("wrong enabled", enabled, _case.isEnabled());
+		if (response != null) {
+			assertApproximateTime("timestamp", new Date(), decision.getTimestamp());
+		}
+		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentOutcome());
 	}
 
 	protected AccessCertificationCampaignType getCampaignWithCases(String campaignOid) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {

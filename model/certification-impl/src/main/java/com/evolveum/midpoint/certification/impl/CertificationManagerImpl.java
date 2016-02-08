@@ -21,15 +21,12 @@ import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
@@ -120,6 +117,9 @@ public class CertificationManagerImpl implements CertificationManager {
 
     @Autowired
     protected AccCertUpdateHelper updateHelper;
+
+    @Autowired
+    protected AccCertCaseOperationsHelper caseHelper;
 
     @Autowired
     private AccessCertificationRemediationTaskHandler remediationTaskHandler;
@@ -293,7 +293,7 @@ public class CertificationManagerImpl implements CertificationManager {
             } else if (!REVIEW_STAGE_DONE.equals(state)) {
                 result.recordFatalError("Couldn't start the remediation as the last stage was not properly closed.");
             } else {
-                List<ItemDelta> deltas = updateHelper.getDeltasForSetStageNumberAndState(lastStageNumber + 1, IN_REMEDIATION);
+                List<ItemDelta> deltas = updateHelper.createDeltasForStageNumberAndState(lastStageNumber + 1, IN_REMEDIATION);
                 updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
 
                 if (CertCampaignTypeUtil.isRemediationAutomatic(campaign)) {
@@ -350,7 +350,7 @@ public class CertificationManagerImpl implements CertificationManager {
             securityEnforcer.authorize(ModelAuthorizationAction.RECORD_CERTIFICATION_DECISION.getUrl(), null,
                     null, null, null, null, result);
             AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
-            updateHelper.recordDecision(campaign, caseId, decision, task, result);
+            caseHelper.recordDecision(campaign, caseId, decision, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't record reviewer decision: unexpected exception: " + e.getMessage(), e);
             throw e;
@@ -404,7 +404,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 if (currentStageOnly && _case.getCurrentStageNumber() != campaign.getStageNumber()) {
                     continue;
                 }
-                AccessCertificationResponseType response = _case.getCurrentResponse();
+                AccessCertificationResponseType response = _case.getCurrentOutcome();
                 if (response == null) {
                     response = AccessCertificationResponseType.NO_RESPONSE;
                 }

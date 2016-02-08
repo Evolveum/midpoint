@@ -1414,7 +1414,7 @@
                 <response>notDecided</response>
                 <timestamp>2015-12-04T01:10:20.032+01:00</timestamp>
             </decision>
-            <currentResponse>notDecided</currentResponse>
+            <currentOutcome>notDecided</currentOutcome>
             <currentStageNumber>1</currentStageNumber>
             <assignment id="1">
                 <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
@@ -1435,7 +1435,7 @@
                 <response>accept</response>
                 <timestamp>2015-12-04T01:04:06.385+01:00</timestamp>
             </decision>
-            <currentResponse>accept</currentResponse>
+            <currentOutcome>accept</currentOutcome>
             <currentStageNumber>1</currentStageNumber>
             <assignment id="2">
                 <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
@@ -1456,7 +1456,7 @@
                 <response>noResponse</response>
                 <timestamp>2015-12-04T01:10:08.670+01:00</timestamp>
             </decision>
-            <currentResponse>noResponse</currentResponse>
+            <currentOutcome>noResponse</currentOutcome>
             <currentStageNumber>1</currentStageNumber>
             <assignment id="3">
                 <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
@@ -1477,7 +1477,7 @@
                 <response>revoke</response>
                 <timestamp>2015-12-04T01:10:13.814+01:00</timestamp>
             </decision>
-            <currentResponse>revoke</currentResponse>
+            <currentOutcome>revoke</currentOutcome>
             <currentStageNumber>1</currentStageNumber>
             <assignment id="1">
                 <construction>
@@ -1518,7 +1518,7 @@
                 <response>revoke</response>
                 <timestamp>2015-12-04T01:10:14.614+01:00</timestamp>
             </decision>
-            <currentResponse>revoke</currentResponse>
+            <currentOutcome>revoke</currentOutcome>
             <currentStageNumber>1</currentStageNumber>
             <assignment id="1">
                 <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
@@ -1539,7 +1539,7 @@
                 <response>reduce</response>
                 <timestamp>2015-12-04T01:10:15.375+01:00</timestamp>
             </decision>
-            <currentResponse>reduce</currentResponse>
+            <currentOutcome>reduce</currentOutcome>
             <currentStageNumber>1</currentStageNumber>
             <assignment id="2">
                 <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
@@ -1560,7 +1560,7 @@
                 <response>revoke</response>
                 <timestamp>2015-12-04T01:10:16.136+01:00</timestamp>
             </decision>
-            <currentResponse>revoke</currentResponse>
+            <currentOutcome>revoke</currentOutcome>
             <currentStageNumber>1</currentStageNumber>
             <assignment id="3">
                 <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>

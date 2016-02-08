@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema.processor;
 import java.util.Collection;
 
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
@@ -26,17 +27,46 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 public class ResourceObjectIdentification {
 	
 	private ObjectClassComplexTypeDefinition objectClassDefinition;
-	private Collection<? extends ResourceAttribute<?>> identifiers;
+	private Collection<? extends ResourceAttribute<?>> primaryIdentifiers;
+	private Collection<? extends ResourceAttribute<?>> secondaryIdentifiers;
 	// TODO: identification strategy
 	
-	public ResourceObjectIdentification(ObjectClassComplexTypeDefinition objectClassDefinition, Collection<? extends ResourceAttribute<?>> identifiers) {
+	public ResourceObjectIdentification(ObjectClassComplexTypeDefinition objectClassDefinition, 
+			Collection<? extends ResourceAttribute<?>> primaryIdentifiers, 
+			Collection<? extends ResourceAttribute<?>> secondaryIdentifiers) {
 		this.objectClassDefinition = objectClassDefinition;
-		this.identifiers = identifiers;
+		this.primaryIdentifiers = primaryIdentifiers;
+		this.secondaryIdentifiers = secondaryIdentifiers;
 	}
 
-	public Collection<? extends ResourceAttribute<?>> getIdentifiers() {
-		return identifiers;
+	public Collection<? extends ResourceAttribute<?>> getPrimaryIdentifiers() {
+		return primaryIdentifiers;
 	}
+	
+	public ResourceAttribute<?> getPrimaryIdentifier() throws SchemaException {
+		if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
+			return null;
+		}
+		if (primaryIdentifiers.size() > 1) {
+			throw new SchemaException("More than one primary identifier in "+this);
+		}
+		return primaryIdentifiers.iterator().next();
+	}
+
+	public Collection<? extends ResourceAttribute<?>> getSecondaryIdentifiers() {
+		return secondaryIdentifiers;
+	}
+	
+	public ResourceAttribute<?> getSecondaryIdentifier() throws SchemaException {
+		if (secondaryIdentifiers == null || secondaryIdentifiers.isEmpty()) {
+			return null;
+		}
+		if (secondaryIdentifiers.size() > 1) {
+			throw new SchemaException("More than one secondary identifier in "+this);
+		}
+		return secondaryIdentifiers.iterator().next();
+	}
+
 
 	public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
 		return objectClassDefinition;
@@ -46,7 +76,7 @@ public class ResourceObjectIdentification {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((identifiers == null) ? 0 : identifiers.hashCode());
+		result = prime * result + ((primaryIdentifiers == null) ? 0 : primaryIdentifiers.hashCode());
 		result = prime * result + ((objectClassDefinition == null) ? 0 : objectClassDefinition.hashCode());
 		return result;
 	}
@@ -60,10 +90,10 @@ public class ResourceObjectIdentification {
 		if (getClass() != obj.getClass())
 			return false;
 		ResourceObjectIdentification other = (ResourceObjectIdentification) obj;
-		if (identifiers == null) {
-			if (other.identifiers != null)
+		if (primaryIdentifiers == null) {
+			if (other.primaryIdentifiers != null)
 				return false;
-		} else if (!identifiers.equals(other.identifiers))
+		} else if (!primaryIdentifiers.equals(other.primaryIdentifiers))
 			return false;
 		if (objectClassDefinition == null) {
 			if (other.objectClassDefinition != null)
@@ -76,7 +106,7 @@ public class ResourceObjectIdentification {
 	@Override
 	public String toString() {
 		return "ResourceObjectIdentification(" + PrettyPrinter.prettyPrint(objectClassDefinition.getTypeName()) 
-				+ ": " + identifiers + ")";
+				+ ": primary=" + primaryIdentifiers + ", secondary=" + secondaryIdentifiers + ")";
 	}
 	
 }

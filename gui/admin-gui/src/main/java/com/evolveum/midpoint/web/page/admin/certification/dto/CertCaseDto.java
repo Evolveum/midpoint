@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -111,7 +110,7 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
     }
 
     public AccessCertificationResponseType getCurrentResponse() {
-        return getCertCase().getCurrentResponse();
+        return getCertCase().getCurrentOutcome();
     }
 
     public Integer getCurrentResponseStageNumber() {

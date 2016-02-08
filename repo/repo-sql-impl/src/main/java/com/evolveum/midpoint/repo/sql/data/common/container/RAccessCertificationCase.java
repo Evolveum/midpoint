@@ -30,9 +30,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerGetter;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
 import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
-import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -374,7 +372,7 @@ public class RAccessCertificationCase implements Container {
         rCase.setReviewRequestedTimestamp(case1.getReviewRequestedTimestamp());
         rCase.setReviewDeadline(case1.getReviewDeadline());
         rCase.setRemediedTimestamp(case1.getRemediedTimestamp());
-        rCase.setCurrentResponse(RUtil.getRepoEnumValue(case1.getCurrentResponse(), RAccessCertificationResponse.class));
+        rCase.setCurrentResponse(RUtil.getRepoEnumValue(case1.getCurrentOutcome(), RAccessCertificationResponse.class));
         rCase.setCurrentStageNumber(case1.getCurrentStageNumber());
         for (AccessCertificationDecisionType decision : case1.getDecision()) {
             RAccessCertificationDecision rDecision = RAccessCertificationDecision.toRepo(rCase, decision, prismContext);
