@@ -262,10 +262,14 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
                 return AssignmentEditorDto.createDtoFromObject(obj.asObjectable(), UserDtoStatus.MODIFY, getPageBase());
             }
 
-            @Override
-            public ObjectQuery getQuery() {
-                return new ObjectQuery();
-            }
+//            @Override
+//            public ObjectQuery getQuery() {
+//                if (getQuery() != null) {
+//                    return getQuery();
+//                } else {
+//                    return new ObjectQuery();
+//                }
+//            }
         };
     }
 

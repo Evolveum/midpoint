@@ -19,10 +19,7 @@ package com.evolveum.midpoint.web.component.search;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -47,6 +44,9 @@ public class SearchFactory {
                 new ItemPath(UserType.F_FULL_NAME),
                 new ItemPath(UserType.F_ADDITIONAL_NAME),
                 new ItemPath(UserType.F_COST_CENTER)));
+        SEARCHABLE_OBJECTS.put(RoleType.class, Arrays.asList(
+                new ItemPath(RoleType.F_NAME),
+                new ItemPath(RoleType.F_ROLE_TYPE)));
 
         //todo add other object types and properties which can be used in search
     }
@@ -76,9 +76,8 @@ public class SearchFactory {
             List<ItemPath> pathList = SEARCHABLE_OBJECTS.get(typeClass);
             if (pathList != null) {
                 map.putAll(createAvailableDefinitions(typeClass, ctx, pathList));
-
-                typeClass = (Class<T>) typeClass.getSuperclass();
             }
+            typeClass = (Class<T>) typeClass.getSuperclass();
         }
 
         return map;
