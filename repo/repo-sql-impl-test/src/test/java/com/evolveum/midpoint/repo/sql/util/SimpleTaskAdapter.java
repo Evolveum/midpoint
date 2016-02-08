@@ -312,6 +312,11 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public <T> T getExtensionPropertyRealValue(QName propertyName) {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
     public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getExtensionItem(QName propertyName) {
         throw new UnsupportedOperationException("not implemented yet.");
     }

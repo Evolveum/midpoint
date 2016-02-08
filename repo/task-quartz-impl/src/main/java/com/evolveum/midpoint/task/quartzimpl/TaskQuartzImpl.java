@@ -1718,7 +1718,7 @@ public class TaskQuartzImpl implements Task {
 	}
 	
 	@Override
-	public PrismProperty<?> getExtensionProperty(QName propertyName) {
+	public <T> PrismProperty<T> getExtensionProperty(QName propertyName) {
         if (getExtension() != null) {
 		    return getExtension().findProperty(propertyName);
         } else {
@@ -1726,7 +1726,17 @@ public class TaskQuartzImpl implements Task {
         }
 	}
 
-    @Override
+	@Override
+	public <T> T getExtensionPropertyRealValue(QName propertyName) {
+		PrismProperty<T> property = getExtensionProperty(propertyName);
+		if (property == null || property.isEmpty()) {
+			return null;
+		} else {
+			return property.getRealValue();
+		}
+	}
+
+	@Override
     public Item<?,?> getExtensionItem(QName propertyName) {
         if (getExtension() != null) {
             return getExtension().findItem(propertyName);
