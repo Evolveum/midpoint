@@ -3,6 +3,7 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 
+import javax.xml.datatype.Duration;
 import java.io.Serializable;
 import java.util.List;
 
@@ -13,7 +14,7 @@ public class StageDefinitionDto implements Serializable {
     public final static String F_NUMBER = "number";
     public final static String F_NAME = "name";
     public final static String F_DESCRIPTION = "description";
-    public final static String F_DAYS = "days";
+    public final static String F_DURATION = "duration";
     public final static String F_NOTIFY_BEFORE_DEADLINE = "notifyBeforeDeadline";
     public final static String F_NOTIFY_ONLY_WHEN_NO_DECISION = "notifyOnlyWhenNoDecision";
     public final static String F_REVIEWER_SPECIFICATION = "reviewerSpecification";
@@ -24,7 +25,7 @@ public class StageDefinitionDto implements Serializable {
     private int number;
     private String name;
     private String description;
-    private Integer days;
+    private String duration;
     private String notifyBeforeDeadline;
     private boolean notifyOnlyWhenNoDecision;
     private AccessCertificationReviewerDto reviewerDto;
@@ -55,12 +56,12 @@ public class StageDefinitionDto implements Serializable {
         this.description = description;
     }
 
-    public Integer getDays() {
-        return days;
+    public String getDuration() {
+        return duration;
     }
 
-    public void setDays(Integer days) {
-        this.days = days;
+    public void setDuration(String duration) {
+        this.duration = duration;
     }
 
     public String getNotifyBeforeDeadline() {

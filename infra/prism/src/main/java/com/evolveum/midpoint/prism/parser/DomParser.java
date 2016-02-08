@@ -29,18 +29,15 @@ import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -53,11 +50,12 @@ import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class DomParser implements Parser {
-	
+
+	public static final Trace LOGGER = TraceManager.getTrace(DomParser.class);
+
 	private static final QName SCHEMA_ELEMENT_QNAME = DOMUtil.XSD_SCHEMA_ELEMENT;
 	
 	private SchemaRegistry schemaRegistry;
@@ -270,8 +268,8 @@ public class DomParser implements Parser {
         }
 
         @Override
-        public T parse(QName typeName) throws SchemaException {
-            return parsePrimitiveElementValue(element, typeName);
+        public T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
+            return parsePrimitiveElementValue(element, typeName, mode);
         }
         @Override
         public boolean isEmpty() {
@@ -299,8 +297,8 @@ public class DomParser implements Parser {
 			this.attr = attr;
 		}
 		@Override
-		public T parse(QName typeName) throws SchemaException {
-			return parsePrimitiveAttrValue(attr, typeName);
+		public T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
+			return parsePrimitiveAttrValue(attr, typeName, mode);
 		}
 
 		@Override
@@ -332,18 +330,30 @@ public class DomParser implements Parser {
 		return xnode;
 	}
 		
-	private static <T> T parsePrimitiveElementValue(Element element, QName typeName) throws SchemaException {
-		if (ItemPath.XSD_TYPE.equals(typeName)) {
-			return (T) parsePath(element);
-		} else if (DOMUtil.XSD_QNAME.equals(typeName)) {
-            return (T) DOMUtil.getQNameValue(element);
-        } else if (XmlTypeConverter.canConvert(typeName)) {
-			return (T) XmlTypeConverter.toJavaValue(element, typeName);
-		} else if (DOMUtil.XSD_ANYTYPE.equals(typeName)) {
-            return (T) element.getTextContent();                // if parsing primitive as xsd:anyType, we can safely parse it as string
-        } else {
-			throw new SchemaException("Cannot convert element '"+element+"' to "+typeName);
+	private static <T> T parsePrimitiveElementValue(Element element, QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
+		try {
+			if (ItemPath.XSD_TYPE.equals(typeName)) {
+				return (T) parsePath(element);
+			} else if (DOMUtil.XSD_QNAME.equals(typeName)) {
+				return (T) DOMUtil.getQNameValue(element);
+			} else if (XmlTypeConverter.canConvert(typeName)) {
+				return (T) XmlTypeConverter.toJavaValue(element, typeName);
+			} else if (DOMUtil.XSD_ANYTYPE.equals(typeName)) {
+				return (T) element.getTextContent();                // if parsing primitive as xsd:anyType, we can safely parse it as string
+			} else {
+				throw new SchemaException("Cannot convert element '" + element + "' to " + typeName);
+			}
+		} catch (IllegalArgumentException e) {
+			return processIllegalArgumentException(element.getTextContent(), typeName, e, mode);		// primitive way of ensuring compatibility mode
 		}
+	}
+
+	private static <T> T processIllegalArgumentException(String value, QName typeName, IllegalArgumentException e, XNodeProcessorEvaluationMode mode) {
+		if (mode != XNodeProcessorEvaluationMode.COMPAT) {
+			throw e;
+		}
+		LOGGER.warn("Value of '{}' couldn't be parsed as '{}' -- interpreting as null because of COMPAT mode set", value, typeName, e);
+		return null;
 	}
 
 	private <T> PrimitiveXNode<T> parseAttributeValue(final Attr attr) {
@@ -353,13 +363,21 @@ public class DomParser implements Parser {
 		return xnode;
 	}
 
-	private static <T> T parsePrimitiveAttrValue(Attr attr, QName typeName) throws SchemaException {
+	private static <T> T parsePrimitiveAttrValue(Attr attr, QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
 		if (DOMUtil.XSD_QNAME.equals(typeName)) {
-			return (T) DOMUtil.getQNameValue(attr);
+			try {
+				return (T) DOMUtil.getQNameValue(attr);
+			} catch (IllegalArgumentException e) {
+				return processIllegalArgumentException(attr.getTextContent(), typeName, e, mode);		// primitive way of ensuring compatibility mode
+			}
 		}
 		if (XmlTypeConverter.canConvert(typeName)) {
 			String stringValue = attr.getTextContent();
-			return XmlTypeConverter.toJavaValue(stringValue, typeName);
+			try {
+				return XmlTypeConverter.toJavaValue(stringValue, typeName);
+			} catch (IllegalArgumentException e) {
+				return processIllegalArgumentException(attr.getTextContent(), typeName, e, mode);		// primitive way of ensuring compatibility mode
+			}
 		} else {
 			throw new SchemaException("Cannot convert attribute '"+attr+"' to "+typeName);
 		}

@@ -16,7 +16,6 @@ import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.namespace.QName;
@@ -59,7 +58,7 @@ public class StageDefinitionPanel extends SimplePanel<StageDefinitionDto> {
         TextArea descriptionField = new TextArea(ID_DESCRIPTION, new PropertyModel<>(getModel(), StageDefinitionDto.F_DESCRIPTION));
         add(descriptionField);
 
-        TextField durationField = new TextField(ID_DURATION, new PropertyModel<>(getModel(), StageDefinitionDto.F_DAYS));
+        TextField durationField = new TextField(ID_DURATION, new PropertyModel<>(getModel(), StageDefinitionDto.F_DURATION));
         add(durationField);
 
         TextField notifyBeforeDeadlineField = new TextField(ID_NOTIFY_BEFORE_DEADLINE,
