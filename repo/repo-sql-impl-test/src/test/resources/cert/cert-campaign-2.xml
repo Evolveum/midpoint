@@ -67,7 +67,7 @@
             <response>accept</response>
             <timestamp>2015-12-04T01:10:20.032+01:00</timestamp>
         </decision>
-        <currentResponse>accept</currentResponse>
+        <currentOutcome>accept</currentOutcome>
         <currentStageNumber>1</currentStageNumber>
         <assignment id="1">
             <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"></targetRef>

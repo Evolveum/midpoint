@@ -4426,12 +4426,19 @@
             </xsd:appinfo>
      	</xsd:annotation>
      	<xsd:sequence>
+     		<xsd:element name="objectClass" type="xsd:QName" minOccurs="0" maxOccurs="1">
+     			<xsd:annotation>
+     				<xsd:documentation>
+		     			Specifies the object class of the referenced object.
+		     			This clause for objectClass may be omitted if it can be determined by other means.     				
+     				</xsd:documentation>
+     			</xsd:annotation>
+     		</xsd:element>
      		<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
      			<xsd:annotation>
      				<xsd:documentation>
      					The filter used to look for the object. This filter does NOT need to contain
-     					clauses for resource. This will be automatically added by midpoint. In some situation also
-     					the clause for objectClass may be omitted (if it can be determined by other means).
+     					clauses for resource. This will be automatically added by midpoint.
      				</xsd:documentation>
      			</xsd:annotation>
      		</xsd:element>

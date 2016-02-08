@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,12 +158,19 @@ public class CompositeRefinedObjectClassDefinition extends RefinedObjectClassDef
 		return structuralObjectClassDefinition.getDisplayNameAttribute();
 	}
 
+	@Override
 	public Collection<? extends RefinedAttributeDefinition<?>> getIdentifiers() {
 		return structuralObjectClassDefinition.getIdentifiers();
 	}
 
+	@Override
 	public Collection<? extends RefinedAttributeDefinition<?>> getSecondaryIdentifiers() {
 		return structuralObjectClassDefinition.getSecondaryIdentifiers();
+	}
+	
+	@Override
+	public Collection<? extends RefinedAttributeDefinition<?>> getAllIdentifiers() {
+		return structuralObjectClassDefinition.getAllIdentifiers();
 	}
 
 	public boolean isAuxiliary() {
@@ -314,6 +321,46 @@ public class CompositeRefinedObjectClassDefinition extends RefinedObjectClassDef
 			}
 		}
 		return new CompositeRefinedObjectClassDefinition(structuralObjectClassDefinitionClone, auxiliaryObjectClassDefinitionsClone);
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result
+				+ ((auxiliaryObjectClassDefinitions == null) ? 0 : auxiliaryObjectClassDefinitions.hashCode());
+		result = prime * result
+				+ ((structuralObjectClassDefinition == null) ? 0 : structuralObjectClassDefinition.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!super.equals(obj)) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		CompositeRefinedObjectClassDefinition other = (CompositeRefinedObjectClassDefinition) obj;
+		if (auxiliaryObjectClassDefinitions == null) {
+			if (other.auxiliaryObjectClassDefinitions != null) {
+				return false;
+			}
+		} else if (!auxiliaryObjectClassDefinitions.equals(other.auxiliaryObjectClassDefinitions)) {
+			return false;
+		}
+		if (structuralObjectClassDefinition == null) {
+			if (other.structuralObjectClassDefinition != null) {
+				return false;
+			}
+		} else if (!structuralObjectClassDefinition.equals(other.structuralObjectClassDefinition)) {
+			return false;
+		}
+		return true;
 	}
 
 	@Override

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.component.input;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -23,7 +24,10 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
@@ -32,6 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  */
 public class RefinedObjectTypeChoicePanel extends DropDownChoicePanel<RefinedObjectClassDefinition> {
 
+	private static final Trace LOGGER = TraceManager.getTrace(RefinedObjectTypeChoicePanel.class);
+	
 	public RefinedObjectTypeChoicePanel(String id, IModel<RefinedObjectClassDefinition> model, IModel<PrismObject<ResourceType>> resourceModel) {
 		super(id, model, createChoiceModel(resourceModel), createRenderer(), false);
 	}
@@ -46,7 +52,14 @@ public class RefinedObjectTypeChoicePanel extends DropDownChoicePanel<RefinedObj
 				} catch (SchemaException e) {
 					throw new IllegalArgumentException(e.getMessage(),e);
 				}
-				return refinedSchema.getRefinedDefinitions();
+				List<? extends RefinedObjectClassDefinition> refinedDefinitions = refinedSchema.getRefinedDefinitions();
+				List<? extends RefinedObjectClassDefinition> defs = new ArrayList<>();
+				for (RefinedObjectClassDefinition rdef: refinedDefinitions) {
+					if (rdef.getKind() != null) {
+						((List)defs).add(rdef);
+					}
+				}
+				return defs;
 			}
 
 			@Override
