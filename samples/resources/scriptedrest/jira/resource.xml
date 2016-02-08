@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
 
     <resource oid="54035104-938e-468e-a4ef-d627ccb9c4fa">
 
@@ -46,20 +47,18 @@
 
         <schemaHandling>
             <objectType>
+                <kind>account</kind>
+                <intent>account</intent>
                 <displayName>Default Account</displayName>
                 <default>true</default>
                 <objectClass>ri:AccountObjectClass</objectClass>
-                <kind>account</kind>
-                <intent>account</intent>
                 <attribute>
                     <c:ref>icfs:name</c:ref>
                     <displayName>userName</displayName>
                     <limitations>
                         <minOccurs>0</minOccurs>
                     </limitations>
-                    <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
-                        mr:stringIgnoreCase
-                    </matchingRule>
+                    <matchingRule>mr:stringIgnoreCase</matchingRule>
                     <inbound>
                         <strength>normal</strength>
                         <target>
@@ -154,9 +153,9 @@
 
         <synchronization>
             <objectSynchronization>
-                <enabled>true</enabled>
                 <kind>account</kind>
                 <intent>account</intent>
+                <enabled>true</enabled>
                 <correlation>
                     <q:equal>
                         <q:path>name</q:path>
