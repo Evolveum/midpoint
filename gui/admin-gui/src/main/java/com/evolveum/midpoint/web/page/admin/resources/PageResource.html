@@ -19,35 +19,30 @@
 	xmlns:wicket="http://wicket.apache.org">
 <body>
 	<wicket:extend>
-	
 
-	<div>
-	<div wicket:id="testConnectionResults"/>
-	</div>
-	<div>
-		<div wicket:id="summary" />
-	</div>
-		<div class="row">
-			<div wicket:id="lastStatus" />
-			<div wicket:id="sourceTarget" />
-			<div wicket:id="credentialsMapping" />
-			<div wicket:id="activationMapping" />
-		</div>
 
-		<div calss="box">
-			<div wicket:id="capabilities" />
-		</div>
-		
+<!-- 		<div> -->
+<!-- 			<div wicket:id="testConnectionResults" /> -->
+<!-- 		</div> -->
 		<div>
-			<div wicket:id="resourceConfig" />
+			<div wicket:id="summary" />
 		</div>
-		
+
+
+		<div>
+			<div wicket:id="tabPanel" class="nav-tabs-custom" />
+		</div>
+
 		<div class="main-button-bar">
-            <span class="button-group">
-                <a class="btn btn-default" wicket:id="testConnection" />
-            </span>
-        </div>
-     
+			<span class="button-group"> 
+				<a class="btn btn-default" wicket:id="back" />
+				<a class="btn btn-default" wicket:id="testConnection" />
+				<a class="btn btn-default" wicket:id="refreshSchema" />
+				<a class="btn btn-default" wicket:id="editXml" />
+				<a class="btn btn-default" wicket:id="wizard" />
+			</span>
+		</div>
+
 	</wicket:extend>
 </body>
 </html>

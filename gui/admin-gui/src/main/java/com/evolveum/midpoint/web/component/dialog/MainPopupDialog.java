@@ -16,13 +16,28 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
+import java.util.List;
+
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.util.ListModel;
+
+import com.evolveum.midpoint.web.page.admin.resources.dto.TestConnectionResultDto;
 
 /**
  * @author Viliam Repan (lazyman)
  */
 public class MainPopupDialog extends ModalWindow {
+	
+	private static final String ID_MAIN_POPUP_BODY = "popupBody";
+	
+	private boolean initialized;
 
     public MainPopupDialog(String id) {
         super(id);
@@ -50,5 +65,27 @@ public class MainPopupDialog extends ModalWindow {
                 MainPopupDialog.this.close(target);
             }
         });
+        
+        WebMarkupContainer content = new WebMarkupContainer(getContentId());
+        setContent(content);
     }
+    
+    @Override
+    protected void onBeforeRender(){
+        super.onBeforeRender();
+     
+        if(initialized){
+            return;
+        }
+
+        setBody(new Label(ID_MAIN_POPUP_BODY, new Model<String>("Not initialized")));
+       initialized = true;
+    }
+    
+    public void setBody(Component component){
+    	WebMarkupContainer content = (WebMarkupContainer) get(getContentId());
+    	content.addOrReplace(component);
+    }
+    
+   
 }
