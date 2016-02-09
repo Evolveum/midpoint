@@ -109,6 +109,7 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
         mainButton.add(label);
 
         AjaxLink deleteButton = new AjaxLink(ID_DELETE_BUTTON) {
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 deletePerformed(target);
