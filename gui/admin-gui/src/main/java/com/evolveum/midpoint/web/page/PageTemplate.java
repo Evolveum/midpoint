@@ -102,6 +102,7 @@ public abstract class PageTemplate extends WebPage {
     private static final String ID_BC_ICON = "bcIcon";
     private static final String ID_BC_NAME = "bcName";
     private static final String ID_MAIN_POPUP = "mainPopup";
+    private static final String ID_MAIN_POPUP_BODY = "popupBody";
 
     private PageTemplate previousPage;                  // experimental -- where to return e.g. when 'Back' button is clicked [NOT a class, in order to eliminate reinitialization when it is not needed]
     private boolean reinitializePreviousPages;      // experimental -- should we reinitialize all the chain of previous pages?
@@ -256,13 +257,17 @@ public abstract class PageTemplate extends WebPage {
     public MainPopupDialog getMainPopup() {
         return (MainPopupDialog) get(ID_MAIN_POPUP);
     }
+    
+    public String getMainPopupBodyId() {
+        return ID_MAIN_POPUP_BODY;
+    }
 
     public void setMainPopupTitle(IModel<String> title) {
         getMainPopup().setTitle(title);
     }
 
     public void setMainPopupContent(Component body) {
-        getMainPopup().setContent(body);
+        getMainPopup().setBody(body);
     }
 
     public void showMainPopup(AjaxRequestTarget target) {
