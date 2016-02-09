@@ -105,7 +105,7 @@ public class RAccessCertificationCase implements Container {
     private XMLGregorianCalendar reviewDeadline;
     private XMLGregorianCalendar remediedTimestamp;
     private Set<RAccessCertificationDecision> decisions;
-    private RAccessCertificationResponse currentResponse;
+    private RAccessCertificationResponse currentStageOutcome;
     private Integer currentStageNumber;
     private RAccessCertificationResponse overallOutcome;
 
@@ -209,9 +209,8 @@ public class RAccessCertificationCase implements Container {
         return decisions;
     }
 
-    @JaxbName(localPart = "currentStageOutcome")
-    public RAccessCertificationResponse getCurrentResponse() {
-        return currentResponse;
+    public RAccessCertificationResponse getCurrentStageOutcome() {
+        return currentStageOutcome;
     }
 
     public Integer getCurrentStageNumber() {
@@ -270,8 +269,8 @@ public class RAccessCertificationCase implements Container {
         this.decisions = decisions;
     }
 
-    public void setCurrentResponse(RAccessCertificationResponse currentResponse) {
-        this.currentResponse = currentResponse;
+    public void setCurrentStageOutcome(RAccessCertificationResponse currentStageOutcome) {
+        this.currentStageOutcome = currentStageOutcome;
     }
 
     public void setCurrentStageNumber(Integer currentStageNumber) {
@@ -314,7 +313,7 @@ public class RAccessCertificationCase implements Container {
         if (remediedTimestamp != null ? !remediedTimestamp.equals(that.remediedTimestamp) : that.remediedTimestamp != null)
             return false;
         if (decisions != null ? !decisions.equals(that.decisions) : that.decisions != null) return false;
-        if (currentResponse != that.currentResponse) return false;
+        if (currentStageOutcome != that.currentStageOutcome) return false;
         return !(currentStageNumber != null ? !currentStageNumber.equals(that.currentStageNumber) : that.currentStageNumber != null);
 
     }
@@ -329,7 +328,7 @@ public class RAccessCertificationCase implements Container {
         result = 31 * result + (reviewRequestedTimestamp != null ? reviewRequestedTimestamp.hashCode() : 0);
         result = 31 * result + (reviewDeadline != null ? reviewDeadline.hashCode() : 0);
         result = 31 * result + (remediedTimestamp != null ? remediedTimestamp.hashCode() : 0);
-        result = 31 * result + (currentResponse != null ? currentResponse.hashCode() : 0);
+        result = 31 * result + (currentStageOutcome != null ? currentStageOutcome.hashCode() : 0);
         result = 31 * result + (currentStageNumber != null ? currentStageNumber.hashCode() : 0);
         return result;
     }
@@ -386,7 +385,7 @@ public class RAccessCertificationCase implements Container {
         rCase.setReviewRequestedTimestamp(case1.getCurrentReviewRequestedTimestamp());
         rCase.setReviewDeadline(case1.getCurrentReviewDeadline());
         rCase.setRemediedTimestamp(case1.getRemediedTimestamp());
-        rCase.setCurrentResponse(RUtil.getRepoEnumValue(case1.getCurrentStageOutcome(), RAccessCertificationResponse.class));
+        rCase.setCurrentStageOutcome(RUtil.getRepoEnumValue(case1.getCurrentStageOutcome(), RAccessCertificationResponse.class));
         rCase.setCurrentStageNumber(case1.getCurrentStageNumber());
         rCase.setOverallOutcome(RUtil.getRepoEnumValue(case1.getOverallOutcome(), RAccessCertificationResponse.class));
         for (AccessCertificationDecisionType decision : case1.getDecision()) {
