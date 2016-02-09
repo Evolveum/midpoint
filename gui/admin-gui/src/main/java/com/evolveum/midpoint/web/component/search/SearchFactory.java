@@ -51,8 +51,8 @@ public class SearchFactory {
         //todo add other object types and properties which can be used in search
     }
 
-    public static <T extends ObjectType> Search createSearch(Class<T> type, PrismContext ctx) {
-        Map<ItemPath, ItemDefinition> availableDefs = getAvailableDefinitions(type, ctx);
+    public static <T extends ObjectType> Search createSearch(Class<T> type, PrismContext ctx, boolean useDefsFromSuperclass) {
+        Map<ItemPath, ItemDefinition> availableDefs = getAvailableDefinitions(type, ctx, useDefsFromSuperclass);
 
         Search search = new Search(type, availableDefs);
 
@@ -66,7 +66,7 @@ public class SearchFactory {
     }
 
     private static <T extends ObjectType> Map<ItemPath, ItemDefinition> getAvailableDefinitions(
-            Class<T> type, PrismContext ctx) {
+            Class<T> type, PrismContext ctx, boolean useDefsFromSuperclass) {
 
         Map<ItemPath, ItemDefinition> map = new HashMap<>();
         map.putAll(createExtensionDefinitionList(type, ctx));
@@ -76,6 +76,9 @@ public class SearchFactory {
             List<ItemPath> pathList = SEARCHABLE_OBJECTS.get(typeClass);
             if (pathList != null) {
                 map.putAll(createAvailableDefinitions(typeClass, ctx, pathList));
+            }
+            if (!useDefsFromSuperclass){
+                break;
             }
             typeClass = (Class<T>) typeClass.getSuperclass();
         }

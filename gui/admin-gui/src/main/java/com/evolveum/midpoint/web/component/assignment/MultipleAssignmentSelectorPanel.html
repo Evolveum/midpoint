@@ -29,29 +29,29 @@
                     <wicket:message key="PageAssignmentRequest.availableRoles"/>
                     <div wicket:id="availableAssignments"/>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4" style="margin-top: 60px;">
                     <div wicket:id="tenantRefContainer" class="form-group">
                         <div class="col-md-4">
-                            <span><wicket:message key="AssignmentEditorPanel.tenantRef" /></span>
+                            <wicket:message key="AssignmentEditorPanel.tenantRef" />
                         </div>
                         <div class="col-md-4" wicket:id="tenantRefChooser"/>
                     </div>
                     <div wicket:id="orgRefContainer" class="form-group">
                         <div class="col-md-4">
-                            <span><wicket:message key="AssignmentEditorPanel.orgRef" /></span>
+                            <wicket:message key="AssignmentEditorPanel.orgRef" />
                         </div>
                         <div class="col-md-4" wicket:id="orgRefChooser"/>
                     </div>
-                    <div class="form-group">
-                    <span class="col-md-4"  style="display:flex; align-items: center;">
-                        <button wicket:id="add" type="button" class="btn btn-default btn-small"><i class="fa fa-long-arrow-right"></i></button>
-                    </span>
-                        </div>
-                        <div class="form-group">
-                    <span class="col-md-4" style="display:flex; align-items: center;">
-                        <button wicket:id="remove" type="button" class="btn btn-default btn-small"><i class="fa fa-long-arrow-left"></i></button>
-                    </span>
-                            </div>
+                    <!--<div class="form-group">-->
+                    <div class="centre">
+                        <button wicket:id="add" type="button" class="btn btn-default btn-small vertical-button-group"><i class="fa fa-long-arrow-right"></i></button>
+                    </div>
+                        <!--</div>-->
+                        <!--<div class="form-group">-->
+                    <div class="centre">
+                       <button wicket:id="remove" type="button" class="btn btn-default btn-small vertical-button-group"><i class="fa fa-long-arrow-left"></i></button>
+                    </div>
+                            <!--</div>-->
                 </div>
                 <div class="col-md-4">
                     <wicket:message key="PageAssignmentRequest.currentRoles"/>
