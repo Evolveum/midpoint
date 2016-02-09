@@ -152,6 +152,16 @@ public interface AccessCertificationService {
     void recordDecision(String campaignOid, long caseId, AccessCertificationDecisionType decision,
                         Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException;
 
+    /**
+     * Provides statistical information about outcomes of cases in a given campaign.
+     *
+     * @param campaignOid OID of the campaign to report on
+     * @param currentStageOnly Whether to report on stage outcomes for current-stage cases (if true), or to report on overall outcomes of all cases (if false).
+     * @param task Task in context of which all operations will take place.
+     * @param parentResult Result for the operations.
+     * @return filled-in statistics object
+     */
+
     AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException;
 

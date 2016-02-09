@@ -109,8 +109,8 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
         return CertCampaignTypeUtil.getReviewedTimestamp(certCase.getDecision());
     }
 
-    public AccessCertificationResponseType getCurrentResponse() {
-        return getCertCase().getCurrentStageOutcome();
+    public AccessCertificationResponseType getOverallOutcome() {
+        return getCertCase().getOverallOutcome();
     }
 
     public Integer getCurrentResponseStageNumber() {

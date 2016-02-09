@@ -995,14 +995,14 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         TestUtil.assertSuccess(result);
 
         display("statistics", stat.asPrismContainerValue());
-        assertEquals(2, stat.getMarkedAsAccept());                      // TODO check overall outcome => one would be in NO_RESPONSE instead of ACCEPT
+        assertEquals(1, stat.getMarkedAsAccept());
         assertEquals(1, stat.getMarkedAsRevoke());
         assertEquals(1, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
         assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(1, stat.getMarkedAsNotDecide());
-        assertEquals(2, stat.getWithoutResponse());
+        assertEquals(3, stat.getWithoutResponse());
     }
 
 }
