@@ -77,7 +77,7 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
 
             @Override
             public Search load() {
-                Search search =  SearchFactory.createSearch(RoleType.class, getPageBase().getPrismContext());
+                Search search =  SearchFactory.createSearch(RoleType.class, getPageBase().getPrismContext(), false);
                 return search;
             }
         };
@@ -252,7 +252,7 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
     private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
         BoxedTablePanel panel = getTable();
         DataTable table = panel.getDataTable();
-        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
+        BaseSortableDataProvider provider = (BaseSortableDataProvider) table.getDataProvider();
         provider.setQuery(query);
 
         panel.setCurrentPage(null);

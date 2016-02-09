@@ -135,7 +135,7 @@ public class PageUsers extends PageAdminUsers {
                 UsersStorage storage = getSessionStorage().getUsers();
                 Search search = storage.getUsersSearch();
                 if (search == null) {
-                    search = SearchFactory.createSearch(UserType.class, getPrismContext());
+                    search = SearchFactory.createSearch(UserType.class, getPrismContext(), true);
                 }
 
                 return search;
