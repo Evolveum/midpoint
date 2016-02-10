@@ -1393,7 +1393,7 @@
         <start>2015-12-04T00:38:03.031+01:00</start>
         <state>inReviewStage</state>
         <stageNumber>1</stageNumber>
-        <stage>
+        <stage id="8">
             <number>1</number>
             <name>Administrator's review</name>
             <description>In this stage, the administrator has to review all the assignments of all users.</description>
