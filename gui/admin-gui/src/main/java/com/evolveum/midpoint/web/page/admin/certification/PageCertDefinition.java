@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -36,7 +37,6 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto;
@@ -114,7 +114,7 @@ public class PageCertDefinition extends PageAdminCertification {
 		this(parameters, null);
 	}
 
-	public PageCertDefinition(PageParameters parameters, PageTemplate previousPage) {
+	public PageCertDefinition(PageParameters parameters, PageBase previousPage) {
 		setPreviousPage(previousPage);
 		getPageParameters().overwriteWith(parameters);
 		initModels();

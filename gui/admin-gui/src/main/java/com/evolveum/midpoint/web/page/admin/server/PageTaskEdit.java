@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.ArrayList;
@@ -56,6 +55,7 @@ import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.util.time.Duration;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -93,8 +93,6 @@ import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationS
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.server.currentState.TaskCurrentStateDtoModel;
 import com.evolveum.midpoint.web.page.admin.server.currentState.TaskStatePanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.ScheduleValidator;
@@ -223,7 +221,7 @@ public class PageTaskEdit extends PageAdminTasks {
         this(new PageParameters(), null);
     }
 
-    public PageTaskEdit(PageParameters parameters, PageTemplate previousPage) {
+    public PageTaskEdit(PageParameters parameters, PageBase previousPage) {
 
         this.parameters = parameters;
         setPreviousPage(previousPage);

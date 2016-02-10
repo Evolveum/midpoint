@@ -13,19 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.web.util;
-
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
 
 /**
- * @author semancik
- *
+ * GUI API package for various utility classes and interfaces. 
+ * 
+ * @author Radovan Semancik
  */
-public interface ModelServiceLocator {
-	
-	ModelService getModelService();
-	
-	ModelInteractionService getModelInteractionService();
-
-}
+package com.evolveum.midpoint.gui.api.util;

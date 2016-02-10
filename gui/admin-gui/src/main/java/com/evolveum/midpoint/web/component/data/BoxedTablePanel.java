@@ -30,12 +30,10 @@ import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.data.DataViewBase;
 import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.StringResourceModel;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.util.BasePanel;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 
@@ -253,11 +251,11 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 
 			if (count > 0) {
 				if (count == Integer.MAX_VALUE) {
-					return PageTemplate.createStringResourceStatic(PagingFooter.this, "CountToolbar.lable",
+					return PageBase.createStringResourceStatic(PagingFooter.this, "CountToolbar.lable",
 							new Object[] { from, to }).getString();
 				}
 				
-				return PageTemplate.createStringResourceStatic(PagingFooter.this, "CountToolbar.label",
+				return PageBase.createStringResourceStatic(PagingFooter.this, "CountToolbar.label",
 						new Object[] { from, to, count }).getString();
 
 				// new StringResourceModel("CountToolbar.label",
@@ -265,7 +263,7 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 				// new Object[]{from, to, count}).getString();
 			}
 
-			return PageTemplate.createStringResourceStatic(PagingFooter.this, "CountToolbar.noFound", new Object[] {})
+			return PageBase.createStringResourceStatic(PagingFooter.this, "CountToolbar.noFound", new Object[] {})
 					.getString();
 		}
 	}

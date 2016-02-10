@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.web.component.wf;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItem;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;

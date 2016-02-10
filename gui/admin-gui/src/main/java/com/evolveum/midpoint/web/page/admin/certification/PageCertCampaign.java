@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
+
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -34,7 +36,6 @@ import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON
 import com.evolveum.midpoint.web.component.data.column.MultiButtonColumn;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseDtoProvider;
@@ -143,7 +144,7 @@ public class PageCertCampaign extends PageAdminCertification {
 		this(parameters, null);
 	}
 
-	public PageCertCampaign(PageParameters parameters, PageTemplate previousPage) {
+	public PageCertCampaign(PageParameters parameters, PageBase previousPage) {
 		setPreviousPage(previousPage);
 		getPageParameters().overwriteWith(parameters);
 		initModels();

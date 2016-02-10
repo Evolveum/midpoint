@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.component.util;
 
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 
 /**
  * @author semancik
