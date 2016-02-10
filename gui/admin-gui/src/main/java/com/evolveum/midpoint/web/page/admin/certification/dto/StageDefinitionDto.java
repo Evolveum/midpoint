@@ -1,6 +1,8 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseReviewStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 
 import javax.xml.datatype.Duration;
@@ -31,6 +33,8 @@ public class StageDefinitionDto implements Serializable {
     private AccessCertificationReviewerDto reviewerDto;
     private AccessCertificationCaseOutcomeStrategyType outcomeStrategy;
     private AccessCertificationResponseType outcomeIfNoReviewers;
+    private List<AccessCertificationResponseType> stopReviewOnRaw;
+    private List<AccessCertificationResponseType> advanceToNextStageOnRaw;
 
     public int getNumber() {
         return number;
@@ -102,5 +106,28 @@ public class StageDefinitionDto implements Serializable {
 
     public void setOutcomeIfNoReviewers(AccessCertificationResponseType outcomeIfNoReviewers) {
         this.outcomeIfNoReviewers = outcomeIfNoReviewers;
+    }
+
+    public List<AccessCertificationResponseType> getStopReviewOn() {
+        if (stopReviewOnRaw.isEmpty() && advanceToNextStageOnRaw.isEmpty()) {
+            return null;
+        }
+        return CertCampaignTypeUtil.getOutcomesToStopOn(stopReviewOnRaw, advanceToNextStageOnRaw);
+    }
+
+    public List<AccessCertificationResponseType> getStopReviewOnRaw() {
+        return stopReviewOnRaw;
+    }
+
+    public void setStopReviewOnRaw(List<AccessCertificationResponseType> stopReviewOnRaw) {
+        this.stopReviewOnRaw = stopReviewOnRaw;
+    }
+
+    public List<AccessCertificationResponseType> getAdvanceToNextStageOnRaw() {
+        return advanceToNextStageOnRaw;
+    }
+
+    public void setAdvanceToNextStageOnRaw(List<AccessCertificationResponseType> advanceToNextStageOnRaw) {
+        this.advanceToNextStageOnRaw = advanceToNextStageOnRaw;
     }
 }

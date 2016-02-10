@@ -33,7 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +41,6 @@ import java.util.Objects;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType.ALL_MUST_ACCEPT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType.ONE_ACCEPT_ACCEPTS;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType.ONE_DENY_DENIES;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.DELEGATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 
@@ -89,11 +87,11 @@ public class AccCertResponseComputationHelper {
         final List<AccessCertificationResponseType> rv;
         AccessCertificationStageDefinitionType stageDefinition = CertCampaignTypeUtil.getCurrentStageDefinition(campaign);
         if (!stageDefinition.getStopReviewOn().isEmpty() || !stageDefinition.getAdvanceToNextStageOn().isEmpty()) {
-            rv = getOutcomesToStopOn(stageDefinition.getStopReviewOn(), stageDefinition.getAdvanceToNextStageOn());
+            rv = CertCampaignTypeUtil.getOutcomesToStopOn(stageDefinition.getStopReviewOn(), stageDefinition.getAdvanceToNextStageOn());
         } else {
             final AccessCertificationCaseReviewStrategyType reviewStrategy = campaign.getReviewStrategy();
             if (reviewStrategy != null && (!reviewStrategy.getStopReviewOn().isEmpty() || !reviewStrategy.getAdvanceToNextStageOn().isEmpty())) {
-                rv = getOutcomesToStopOn(reviewStrategy.getStopReviewOn(), reviewStrategy.getAdvanceToNextStageOn());
+                rv = CertCampaignTypeUtil.getOutcomesToStopOn(reviewStrategy.getStopReviewOn(), reviewStrategy.getAdvanceToNextStageOn());
             } else {
                 final OutcomeStrategy outcomeStrategy = getOverallOutcomeStrategy(campaign);
                 rv = outcomeStrategy.getOutcomesToStopOn();
@@ -116,15 +114,6 @@ public class AccCertResponseComputationHelper {
             LOGGER.trace("Outcome strategy for {} is {}", toShortString(campaign), strategyName);
         }
         return getOutcomeStrategy(strategyName);
-    }
-
-    private List<AccessCertificationResponseType> getOutcomesToStopOn(List<AccessCertificationResponseType> stopReviewOn, List<AccessCertificationResponseType> advanceToNextStageOn) {
-        if (!stopReviewOn.isEmpty()) {
-            return stopReviewOn;
-        }
-        List<AccessCertificationResponseType> rv = new ArrayList<>(Arrays.asList(AccessCertificationResponseType.values()));
-        rv.removeAll(advanceToNextStageOn);
-        return rv;
     }
 
     public AccessCertificationResponseType computeOutcomeForStage(AccessCertificationCaseType _case, AccessCertificationDecisionType newDecision,

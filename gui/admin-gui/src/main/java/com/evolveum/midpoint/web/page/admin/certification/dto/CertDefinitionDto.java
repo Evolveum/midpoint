@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -253,6 +254,8 @@ public class CertDefinitionDto implements Serializable {
             dto.setReviewerDto(createAccessCertificationReviewerDto(stageDefObj.getReviewerSpecification()));
             dto.setOutcomeStrategy(stageDefObj.getOutcomeStrategy());
             dto.setOutcomeIfNoReviewers(stageDefObj.getOutcomeIfNoReviewers());
+            dto.setStopReviewOnRaw(new ArrayList<>(stageDefObj.getStopReviewOn()));
+            dto.setAdvanceToNextStageOnRaw(new ArrayList<>(stageDefObj.getAdvanceToNextStageOn()));
         } else {
             dto.setReviewerDto(new AccessCertificationReviewerDto());
         }
@@ -487,5 +490,16 @@ public class CertDefinitionDto implements Serializable {
 
     public void setOutcomeStrategy(AccessCertificationCaseOutcomeStrategyType outcomeStrategy) {
         this.outcomeStrategy = outcomeStrategy;
+    }
+
+    public List<AccessCertificationResponseType> getStopReviewOn() {
+        if (definition.getReviewStrategy() == null) {
+            return null;
+        }
+        AccessCertificationCaseReviewStrategyType strategy = definition.getReviewStrategy();
+        if (strategy.getStopReviewOn().isEmpty() && strategy.getAdvanceToNextStageOn().isEmpty()) {
+            return null;
+        }
+        return CertCampaignTypeUtil.getOutcomesToStopOn(strategy.getStopReviewOn(), strategy.getAdvanceToNextStageOn());
     }
 }

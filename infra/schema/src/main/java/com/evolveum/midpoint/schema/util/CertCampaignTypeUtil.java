@@ -30,6 +30,7 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -326,5 +327,14 @@ public class CertCampaignTypeUtil {
             }
         }
         throw new IllegalStateException("No outcome registered for stage " + stageNumber + " in case " + aCase);
+    }
+
+    public static List<AccessCertificationResponseType> getOutcomesToStopOn(List<AccessCertificationResponseType> stopReviewOn, List<AccessCertificationResponseType> advanceToNextStageOn) {
+        if (!stopReviewOn.isEmpty()) {
+            return stopReviewOn;
+        }
+        List<AccessCertificationResponseType> rv = new ArrayList<>(Arrays.asList(AccessCertificationResponseType.values()));
+        rv.removeAll(advanceToNextStageOn);
+        return rv;
     }
 }
