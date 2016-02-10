@@ -19,24 +19,24 @@
         oid="33333333-0000-0000-0000-000000000002">
     <name>User Assignment Cert (more reviewers)</name>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/certification-3#user-assignment-basic</handlerUri>
-    <stage>
+    <stageDefinition>
         <number>1</number>
-        <days>14</days>
+        <duration>P14D</duration>
         <reviewerSpecification>
-            <useTargetObjectOwner>true</useTargetObjectOwner>
+            <useTargetOwner>true</useTargetOwner>
             <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />   <!-- administrator -->
             <additionalReviewerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType" />   <!-- jack -->
-            <approvalStrategy>oneApprovalApproves</approvalStrategy>
         </reviewerSpecification>
-    </stage>
-    <stage>
+        <outcomeStrategy>oneAcceptAccepts</outcomeStrategy>
+    </stageDefinition>
+    <stageDefinition>
         <number>2</number>
-        <days>7</days>
+        <duration>P7D</duration>
         <reviewerSpecification>
-            <useTargetObjectApprover>true</useTargetObjectApprover>
+            <useTargetApprover>true</useTargetApprover>
             <additionalReviewerRef oid="c0c010c0-d34d-b33f-f00d-222222222222" type="UserType" />   <!-- chief reviewer -->
-            <approvalStrategy>allMustApprove</approvalStrategy>
         </reviewerSpecification>
-    </stage>
+        <outcomeStrategy>allMustAccept</outcomeStrategy>
+    </stageDefinition>
 
 </accessCertificationDefinition>

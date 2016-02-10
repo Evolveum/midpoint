@@ -16,10 +16,14 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -52,6 +56,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -76,7 +82,6 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
@@ -100,6 +105,7 @@ public class PageTasks extends PageAdminTasks {
     private static final String OPERATION_RESUME_TASKS = DOT_CLASS + "resumeTasks";
     private static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
     private static final String OPERATION_DELETE_TASKS = DOT_CLASS + "deleteTasks";
+    private static final String OPERATION_DELETE_ALL_CLOSED_TASKS = DOT_CLASS + "deleteAllClosedTasks";
     private static final String OPERATION_SCHEDULE_TASKS = DOT_CLASS + "scheduleTasks";
     private static final String OPERATION_DELETE_NODES = DOT_CLASS + "deleteNodes";
     private static final String OPERATION_START_SCHEDULERS = DOT_CLASS + "startSchedulers";
@@ -122,6 +128,7 @@ public class PageTasks extends PageAdminTasks {
     private static final String ID_NODE_TABLE = "nodeTable";
     private static final String ID_SEARCH_CLEAR = "searchClear";
     private static final String ID_DELETE_TASKS_POPUP = "deleteTasksPopup";
+    private static final String ID_DELETE_ALL_CLOSED_TASKS_POPUP = "deleteAllClosedTasksPopup";
     private static final String ID_TABLE_HEADER = "tableHeader";
 
     public static final String SELECTED_CATEGORY = "category";
@@ -243,6 +250,16 @@ public class PageTasks extends PageAdminTasks {
             }
         });
 
+        add(new ConfirmationDialog(ID_DELETE_ALL_CLOSED_TASKS_POPUP,
+                createStringResource("pageTasks.dialog.title.confirmDelete"),
+                createStringResource("pageTasks.message.deleteAllClosedTasksConfirm")) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                close(target);
+                deleteAllClosedTasksConfirmedPerformed(target);
+            }
+        });
 
         initDiagnosticButtons();
     }
@@ -486,7 +503,14 @@ public class PageTasks extends PageAdminTasks {
                         deleteTasksPerformed(target);
                     }
                 }));
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteAllClosedTasks"), false,
+                new HeaderMenuAction(this) {
 
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        deleteAllClosedTasksPerformed(target);
+                    }
+                }));
         return items;
     }
 
@@ -806,7 +830,11 @@ public class PageTasks extends PageAdminTasks {
         }
         ModalWindow dialog = (ModalWindow) get(ID_DELETE_TASKS_POPUP);
         dialog.show(target);
+    }
 
+    private void deleteAllClosedTasksPerformed(AjaxRequestTarget target) {
+        ModalWindow dialog = (ModalWindow) get(ID_DELETE_ALL_CLOSED_TASKS_POPUP);
+        dialog.show(target);
     }
 
     private void scheduleTasksPerformed(AjaxRequestTarget target) {
@@ -1263,4 +1291,35 @@ public class PageTasks extends PageAdminTasks {
             return categories;
         }
     }
+
+    private void deleteAllClosedTasksConfirmedPerformed(AjaxRequestTarget target) {
+        OperationResult launchResult = new OperationResult(OPERATION_DELETE_ALL_CLOSED_TASKS);
+        Task task = createSimpleTask(OPERATION_DELETE_ALL_CLOSED_TASKS);
+
+        task.setHandlerUri(ModelPublicConstants.CLEANUP_TASK_HANDLER_URI);
+        task.setName("Closed tasks cleanup");
+
+        try {
+            CleanupPolicyType policy = new CleanupPolicyType();
+            policy.setMaxAge(XmlTypeConverter.createDuration(0));
+
+            CleanupPoliciesType policies = new CleanupPoliciesType();
+            policies.setClosedTasks(policy);
+
+            PrismProperty<CleanupPoliciesType> policiesProperty = getPrismContext().getSchemaRegistry()
+                    .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES).instantiate();
+            policiesProperty.setRealValue(policies);
+            task.setExtensionProperty(policiesProperty);
+        } catch (SchemaException e) {
+            LOGGER.error("Error dealing with schema (task {})", task, e);
+            launchResult.recordFatalError("Error dealing with schema", e);
+            throw new IllegalStateException("Error dealing with schema", e);
+        }
+
+        getTaskManager().switchToBackground(task, launchResult);
+
+        showResult(launchResult);
+        target.add(getFeedbackPanel());
+    }
+
 }

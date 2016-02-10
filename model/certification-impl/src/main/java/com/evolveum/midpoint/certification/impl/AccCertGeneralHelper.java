@@ -66,7 +66,7 @@ public class AccCertGeneralHelper {
     }
 
     public boolean isRevoke(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign) {
-        return aCase.getCurrentOutcome() == REVOKE;
+        return aCase.getOverallOutcome() == REVOKE;
     }
 
 }

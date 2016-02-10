@@ -18,7 +18,6 @@
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
 
     <accessCertificationCampaign>
@@ -32,7 +31,7 @@
             <number>1</number>
             <name>Administrator's review</name>
             <description>In this stage, the administrator has to review all the assignments of all users.</description>
-            <days>14</days>
+            <duration>P14D</duration>
             <reviewerSpecification>
                 <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></defaultReviewerRef>
             </reviewerSpecification>
@@ -50,19 +49,19 @@
         <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               id="1"
               xsi:type="c:AccessCertificationAssignmentCaseType">
-            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
             <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
             <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
-            <reviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</reviewRequestedTimestamp>
-            <reviewDeadline>2015-12-18T23:59:59.999+01:00</reviewDeadline>
+            <currentStageNumber>1</currentStageNumber>
+            <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+            <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
+            <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
             <decision id="1">
                 <stageNumber>1</stageNumber>
                 <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
                 <response>notDecided</response>
                 <timestamp>2015-12-04T01:10:20.032+01:00</timestamp>
             </decision>
-            <currentOutcome>notDecided</currentOutcome>
-            <currentStageNumber>1</currentStageNumber>
+            <currentStageOutcome>notDecided</currentStageOutcome>
             <assignment id="1">
                 <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
             </assignment>
@@ -81,7 +80,7 @@
             <number>1</number>
             <name>Administrator's review</name>
             <description>In this stage, the administrator has to review all the assignments of all users.</description>
-            <days>14</days>
+            <duration>P14D</duration>
             <reviewerSpecification>
                 <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></defaultReviewerRef>
             </reviewerSpecification>
@@ -99,19 +98,19 @@
         <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               id="2"
               xsi:type="c:AccessCertificationAssignmentCaseType">
-            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
             <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
             <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
-            <reviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</reviewRequestedTimestamp>
-            <reviewDeadline>2015-12-18T23:59:59.999+01:00</reviewDeadline>
+            <currentStageNumber>1</currentStageNumber>
+            <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+            <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
+            <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
             <decision id="1">
                 <stageNumber>1</stageNumber>
                 <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
                 <response>accept</response>
                 <timestamp>2015-12-04T01:04:06.385+01:00</timestamp>
             </decision>
-            <currentOutcome>accept</currentOutcome>
-            <currentStageNumber>1</currentStageNumber>
+            <currentStageOutcome>accept</currentStageOutcome>
             <assignment id="2">
                 <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
             </assignment>
@@ -120,19 +119,19 @@
         <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               id="3"
               xsi:type="c:AccessCertificationAssignmentCaseType">
-            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
             <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
             <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
-            <reviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</reviewRequestedTimestamp>
-            <reviewDeadline>2015-12-18T23:59:59.999+01:00</reviewDeadline>
+            <currentStageNumber>1</currentStageNumber>
+            <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+            <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
+            <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
             <decision id="1">
                 <stageNumber>1</stageNumber>
                 <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
                 <response>noResponse</response>
                 <timestamp>2015-12-04T01:10:08.670+01:00</timestamp>
             </decision>
-            <currentOutcome>noResponse</currentOutcome>
-            <currentStageNumber>1</currentStageNumber>
+            <currentStageOutcome>noResponse</currentStageOutcome>
             <assignment id="3">
                 <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
             </assignment>

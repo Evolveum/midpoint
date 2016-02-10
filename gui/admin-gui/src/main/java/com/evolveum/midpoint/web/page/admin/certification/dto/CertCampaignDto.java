@@ -52,7 +52,7 @@ public class CertCampaignDto extends Selectable {
     public static final String F_CAMPAIGN_START = "campaignStart";
     public static final String F_CAMPAIGN_END = "campaignEnd";
     public static final String F_STAGE_START = "stageStart";
-    public static final String F_STAGE_END = "stageEnd";
+    public static final String F_STAGE_DEADLINE = "stageDeadline";
 
     private AccessCertificationCampaignType campaign;           // TODO consider replacing this by constituent primitive data items
     private String ownerName;
@@ -131,6 +131,11 @@ public class CertCampaignDto extends Selectable {
     public String getStageStart() {
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
         return stage != null ? WebMiscUtil.formatDate(stage.getStart()) : null;
+    }
+
+    public String getStageDeadline() {
+        AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
+        return stage != null ? WebMiscUtil.formatDate(stage.getDeadline()) : null;
     }
 
     public String getStageEnd() {

@@ -21,6 +21,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -67,10 +68,10 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 		this.value = value;
 	}
 
-	public void parseValue(QName typeName) throws SchemaException {
+	public void parseValue(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
         Validate.notNull(typeName, "Cannot parse primitive XNode without knowing its type");
 		if (valueParser != null) {
-			value = valueParser.parse(typeName);
+			value = valueParser.parse(typeName, mode);
 			// Necessary. It marks that the value is parsed. It also frees some memory.
 			valueParser = null;
 		}
@@ -81,8 +82,12 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 	}
 
 	public T getParsedValue(QName typeName) throws SchemaException {
+		return getParsedValue(typeName, XNodeProcessorEvaluationMode.STRICT);
+	}
+
+	public T getParsedValue(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
 		if (!isParsed()) {
-			parseValue(typeName);
+			parseValue(typeName, mode);
 		}
 		return value;
 	}
@@ -149,7 +154,7 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
         if (isParsed()) {
             return value;
         } else {
-            return valueParser.parse(typeName);
+            return valueParser.parse(typeName, XNodeProcessorEvaluationMode.STRICT);
         }
     }
 
@@ -184,7 +189,7 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
         if (getTypeQName() == null) {
             throw new IllegalStateException("Cannot fetch formatted value if type definition is not set");
         }
-        T value = valueParser.parse(getTypeQName());
+        T value = valueParser.parse(getTypeQName(), XNodeProcessorEvaluationMode.STRICT);
         return formatValue(value);
     }
 

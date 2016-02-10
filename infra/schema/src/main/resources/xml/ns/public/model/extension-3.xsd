@@ -271,6 +271,18 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="cleanupPolicies" type="c:CleanupPoliciesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Overrides default system cleanup policy for CleanUpTaskHandler.
+                Used e.g. to cleanup all currently closed tasks.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
 </xsd:schema>
 
 

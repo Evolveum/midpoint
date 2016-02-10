@@ -34,7 +34,11 @@ import java.util.Date;
 import java.util.List;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.DELEGATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REDUCE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REVOKE;
 
 /**
  * @author mederly
@@ -159,8 +163,9 @@ public class CertCampaignTypeUtil {
     }
 
     // unanswered cases = cases where one or more answers from reviewers are missing
+    // "no reviewers" cases are treated as answered, because no answer can be provided
     public static int getUnansweredCases(List<AccessCertificationCaseType> caseList, int campaignStageNumber, AccessCertificationCampaignStateType state) {
-        int unanswered = 0;
+        int unansweredCases = 0;
         if (state == AccessCertificationCampaignStateType.IN_REMEDIATION || state == AccessCertificationCampaignStateType.CLOSED) {
             campaignStageNumber = campaignStageNumber - 1;          // move to last campaign state
         }
@@ -168,37 +173,86 @@ public class CertCampaignTypeUtil {
             if (aCase.getCurrentStageNumber() != campaignStageNumber) {
                 continue;
             }
-            boolean done;
-            if (aCase.getReviewerRef().isEmpty()) {
-                done = false;       // no reviewers => this case cannot be 'answered' (points to a misconfiguration)
-            } else {
-                done = true;
-            }
-            // we assume that empty decision was created for each reviewer
+            // we assume that an empty decision was created for each reviewer
             for (AccessCertificationDecisionType decision : aCase.getDecision()) {
                 if (decision.getStageNumber() != aCase.getCurrentStageNumber()) {
                     continue;
                 }
-                if (decision.getResponse() != null && decision.getResponse() != NO_RESPONSE) {
-                    continue;
+                if (decision.getResponse() == null || decision.getResponse() == NO_RESPONSE || decision.getResponse() == DELEGATE) {
+                    unansweredCases++;
+                    break;
                 }
-                done = false;
-                break;
-            }
-            if (!done) {
-                unanswered++;
             }
         }
-        return unanswered;
+        return unansweredCases;
     }
 
+    // backwards compatibility (for reports)
     public static int getPercentComplete(List<AccessCertificationCaseType> caseList, int campaignStageNumber, AccessCertificationCampaignStateType state) {
+        return Math.round(getCasesCompletedPercentage(caseList, campaignStageNumber, state));
+    }
+
+    // what % of cases is fully decided? (i.e. either they have all the decisions or they are not in the current stage at all)
+    public static float getCasesCompletedPercentage(AccessCertificationCampaignType campaign) {
+        return getCasesCompletedPercentage(campaign.getCase(), campaign.getStageNumber(), campaign.getState());
+    }
+
+    public static float getCasesCompletedPercentage(List<AccessCertificationCaseType> caseList, int campaignStageNumber, AccessCertificationCampaignStateType state) {
         int cases = caseList.size();
         if (cases > 0) {
             int unanswered = getUnansweredCases(caseList, campaignStageNumber, state);
-            return 100 * (cases - unanswered) / cases;
+            return 100 * ((float) cases - (float) unanswered) / (float) cases;
         } else {
-            return 100;
+            return 100.0f;
+        }
+    }
+
+    // what % of cases is effectively decided? (i.e. their preliminary outcome is ACCEPT, REJECT, or REVOKE)
+    public static float getCasesDecidedPercentage(AccessCertificationCampaignType campaign) {
+        return getCasesDecidedPercentage(campaign.getCase());
+    }
+
+    public static float getCasesDecidedPercentage(List<AccessCertificationCaseType> caseList) {
+        if (caseList.isEmpty()) {
+            return 100.0f;
+        }
+        int decided = 0;
+        for (AccessCertificationCaseType aCase : caseList) {
+            if (aCase.getOverallOutcome() == ACCEPT || aCase.getOverallOutcome() == REVOKE || aCase.getOverallOutcome() == REDUCE) {
+                decided++;
+            }
+        }
+        return 100.0f * (float) decided / (float) caseList.size();
+    }
+
+    // what % of decisions is complete?
+    public static float getDecisionsDonePercentage(AccessCertificationCampaignType campaign) {
+        return getDecisionsDonePercentage(campaign.getCase(), campaign.getStageNumber(), campaign.getState());
+    }
+
+    // we expect that we have a 'placeholder' decision for each reviewer
+    public static float getDecisionsDonePercentage(List<AccessCertificationCaseType> caseList, int campaignStageNumber, AccessCertificationCampaignStateType state) {
+        int decisionsRequested = 0;
+        int decisionsDone = 0;
+        if (state == AccessCertificationCampaignStateType.IN_REMEDIATION || state == AccessCertificationCampaignStateType.CLOSED) {
+            campaignStageNumber = campaignStageNumber - 1;          // move to last campaign state
+        }
+
+        for (AccessCertificationCaseType aCase : caseList) {
+            for (AccessCertificationDecisionType decision : aCase.getDecision()) {
+                if (decision.getStageNumber() != campaignStageNumber) {
+                    continue;
+                }
+                decisionsRequested++;
+                if (decision.getResponse() != null && decision.getResponse() != NO_RESPONSE && decision.getResponse() != DELEGATE) {
+                    decisionsDone++;
+                }
+            }
+        }
+        if (decisionsRequested == 0) {
+            return 100.0f;
+        } else {
+            return 100.0f * (float) decisionsDone / (float) decisionsRequested;
         }
     }
 
@@ -263,5 +317,14 @@ public class CertCampaignTypeUtil {
         return QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
                 .ownerId(campaignOid)
                 .build();
+    }
+
+    public static AccessCertificationCaseStageOutcomeType getStageOutcome(AccessCertificationCaseType aCase, int stageNumber) {
+        for (AccessCertificationCaseStageOutcomeType outcome : aCase.getCompletedStageOutcome()) {
+            if (outcome.getStageNumber() == stageNumber) {
+                return outcome;
+            }
+        }
+        throw new IllegalStateException("No outcome registered for stage " + stageNumber + " in case " + aCase);
     }
 }

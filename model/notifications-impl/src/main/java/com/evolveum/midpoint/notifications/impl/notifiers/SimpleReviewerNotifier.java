@@ -113,9 +113,9 @@ public class SimpleReviewerNotifier extends GeneralNotifier {
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
         if (stage != null) {
             body.append("Stage start time: ").append(XmlTypeConverter.toDate(stage.getStart()));
-            body.append("\nStage end time: ").append(XmlTypeConverter.toDate(stage.getEnd()));
-            if (stage.getEnd() != null) {
-                long delta = XmlTypeConverter.toMillis(stage.getEnd()) - System.currentTimeMillis();
+            body.append("\nStage deadline: ").append(XmlTypeConverter.toDate(stage.getDeadline()));
+            if (stage.getDeadline() != null) {
+                long delta = XmlTypeConverter.toMillis(stage.getDeadline()) - System.currentTimeMillis();
                 if (delta > 0) {
                     if (reviewEvent.isModify()) {
                         body.append("\n\nThis is to notify you that the stage ends in ");
@@ -124,7 +124,7 @@ public class SimpleReviewerNotifier extends GeneralNotifier {
                     }
                     body.append(DurationFormatUtils.formatDurationWords(delta, true, true));
                 } else if (delta < 0) {
-                    body.append("\n\nThe stage ended ");
+                    body.append("\n\nThe stage should have ended ");
                     body.append(DurationFormatUtils.formatDurationWords(-delta, true, true));
                     body.append(" ago");
                 }

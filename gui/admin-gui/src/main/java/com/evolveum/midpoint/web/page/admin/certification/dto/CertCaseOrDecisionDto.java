@@ -126,7 +126,7 @@ public class CertCaseOrDecisionDto extends Selectable {
     }
 
     public Date getReviewRequested() {
-        XMLGregorianCalendar date = certCase.getReviewRequestedTimestamp();
+        XMLGregorianCalendar date = certCase.getCurrentReviewRequestedTimestamp();
         return XmlTypeConverter.toDate(date);
     }
 
@@ -161,7 +161,7 @@ public class CertCaseOrDecisionDto extends Selectable {
     }
 
     private String computeDeadlineAsString(PageBase page) {
-        XMLGregorianCalendar deadline = certCase.getReviewDeadline();
+        XMLGregorianCalendar deadline = certCase.getCurrentReviewDeadline();
 
         if (deadline == null) {
             return "";

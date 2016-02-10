@@ -19,6 +19,7 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.certification.impl.AccCertGeneralHelper;
 import com.evolveum.midpoint.certification.impl.AccCertQueryHelper;
+import com.evolveum.midpoint.certification.impl.AccCertResponseComputationHelper;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -50,6 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -74,6 +76,9 @@ import java.util.List;
 import java.util.Set;
 
 import static com.evolveum.midpoint.schema.RetrieveOption.INCLUDE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CREATED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.REVIEW_STAGE_DONE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 import static org.testng.AssertJUnit.assertEquals;
@@ -87,6 +92,9 @@ import static org.testng.AssertJUnit.fail;
  *
  */
 public class AbstractCertificationTest extends AbstractModelIntegrationTest {
+
+	@Autowired
+	private AccCertResponseComputationHelper computationHelper;
 	
 	public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
 	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
@@ -136,6 +144,10 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	public static final File ROLE_COO_FILE = new File(COMMON_DIR, "role-coo.xml");
 	protected static final String ROLE_COO_OID = "00000000-d34d-b33f-f00d-000000000002";
+
+	public static final File ROLE_CTO_FILE = new File(COMMON_DIR, "role-cto.xml");
+	protected static final String ROLE_CTO_OID = "00000000-d34d-b33f-f00d-000000000003";
+
 	protected static final File ROLE_INDUCEMENT_CERT_DEF_FILE = new File(COMMON_DIR, "certification-of-role-inducements.xml");
 
 	protected DummyResource dummyResource;
@@ -174,6 +186,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	protected RoleType roleCeo;
 	protected RoleType roleCoo;
+	protected RoleType roleCto;
 	protected RoleType roleSuperuser;
 
 	protected UserType userAdministrator;
@@ -203,6 +216,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		roleSuperuser = repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult).asObjectable();
 		roleCeo = repoAddObjectFromFile(ROLE_CEO_FILE, RoleType.class, initResult).asObjectable();
 		roleCoo = repoAddObjectFromFile(ROLE_COO_FILE, RoleType.class, initResult).asObjectable();
+		roleCto = repoAddObjectFromFile(ROLE_CTO_FILE, RoleType.class, initResult).asObjectable();
 		repoAddObjectFromFile(ROLE_REVIEWER_FILE, RoleType.class, initResult).asObjectable();
 		repoAddObjectFromFile(ROLE_EROOT_USER_ASSIGNMENT_CAMPAIGN_OWNER_FILE, RoleType.class, initResult).asObjectable();
 
@@ -238,8 +252,8 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	protected AccessCertificationCaseType checkCase(Collection<AccessCertificationCaseType> caseList, String subjectOid, String targetOid, FocusType focus, String campaignOid) {
 		AccessCertificationCaseType ccase = findCase(caseList, subjectOid, targetOid);
 		assertNotNull("Certification case for " + subjectOid + ":" + targetOid + " was not found", ccase);
-		assertNotNull("reviewRequestedTimestamp", ccase.getReviewRequestedTimestamp());
-		assertNotNull("deadline", ccase.getReviewDeadline());
+		assertNotNull("reviewRequestedTimestamp", ccase.getCurrentReviewRequestedTimestamp());
+		assertNotNull("deadline", ccase.getCurrentReviewDeadline());
 		assertNull("remediedTimestamp", ccase.getRemediedTimestamp());
 		if (campaignOid != null) {
 			assertEquals("incorrect campaign OID in case", campaignOid, ccase.getCampaignRef().getOid());
@@ -297,6 +311,48 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 				Math.abs(actualAsDate.getTime() - expected.getTime()) < 600000);     // 10 minutes
     }
 
+	protected void assertAfterCampaignCreate(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition) {
+		assertEquals("Unexpected certification cases", 0, campaign.getCase().size());
+		assertStateAndStage(campaign, CREATED, 0);
+		assertEquals("Unexpected # of stages", definition.getStageDefinition().size(), campaign.getStageDefinition().size());
+		assertDefinitionAndOwner(campaign, definition);
+		assertNull("Unexpected start time", campaign.getStart());
+		assertNull("Unexpected end time", campaign.getEnd());
+	}
+	protected void assertAfterCampaignStart(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int cases) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {
+        assertStateAndStage(campaign, IN_REVIEW_STAGE, 1);
+        assertDefinitionAndOwner(campaign, definition);
+        assertApproximateTime("start time", new Date(), campaign.getStart());
+        assertNull("Unexpected end time", campaign.getEnd());
+        assertEquals("wrong # of defined stages", definition.getStageDefinition().size(), campaign.getStageDefinition().size());
+        assertEquals("wrong # of stages", 1, campaign.getStage().size());
+        AccessCertificationStageType stage = campaign.getStage().get(0);
+        assertEquals("wrong stage #", 1, stage.getNumber());
+        assertApproximateTime("stage 1 start", new Date(), stage.getStart());
+        assertNotNull("stage 1 deadline", stage.getDeadline());       // too lazy to compute exact datetime
+		assertNull("unexpected stage 1 end", stage.getEnd());
+        assertEquals("Wrong number of certification cases", cases, campaign.getCase().size());
+
+		PrismObject<AccessCertificationDefinitionType> def = getObjectViaRepo(AccessCertificationDefinitionType.class, definition.getOid());
+		assertApproximateTime("last campaign started", new Date(), def.asObjectable().getLastCampaignStartedTimestamp());
+		assertNull("unexpected last campaign closed", def.asObjectable().getLastCampaignClosedTimestamp());
+    }
+
+	protected void assertAfterStageOpen(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int stageNumber) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {
+		assertStateAndStage(campaign, IN_REVIEW_STAGE, stageNumber);
+		assertDefinitionAndOwner(campaign, definition);
+		assertApproximateTime("start time", new Date(), campaign.getStart());
+		assertNull("Unexpected end time", campaign.getEnd());
+		assertEquals("wrong # of defined stages", definition.getStageDefinition().size(), campaign.getStageDefinition().size());
+		assertEquals("wrong # of stages", stageNumber, campaign.getStage().size());
+		AccessCertificationStageType stage = CertCampaignTypeUtil.findStage(campaign, stageNumber);
+		assertEquals("wrong stage #", stageNumber, stage.getNumber());
+		assertApproximateTime("stage start", new Date(), stage.getStart());
+		assertNotNull("stage deadline", stage.getDeadline());       // too lazy to compute exact datetime
+		assertNull("unexpected stage end", stage.getEnd());
+	}
+
+
 	protected void assertStateAndStage(AccessCertificationCampaignType campaign, AccessCertificationCampaignStateType state, int stage) {
 		assertEquals("Unexpected campaign state", state, campaign.getState());
 		assertEquals("Unexpected stage number", stage, campaign.getStageNumber());
@@ -315,12 +371,12 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 				campaign.getDefinitionRef());
 	}
 
-	protected void assertCaseReviewers(AccessCertificationCaseType _case, AccessCertificationResponseType currentResponse,
-									   int currentResponseStage, List<String> reviewerOidList) {
-		assertEquals("wrong current response", currentResponse, _case.getCurrentOutcome());
-		assertEquals("wrong current response stage number", currentResponseStage, _case.getCurrentStageNumber());
+	protected void assertCaseReviewers(AccessCertificationCaseType _case, AccessCertificationResponseType currentStageOutcome,
+									   int currentStage, List<String> reviewerOidList) {
+		assertEquals("wrong current stage outcome", currentStageOutcome, _case.getCurrentStageOutcome());
+		assertEquals("wrong current stage number", currentStage, _case.getCurrentStageNumber());
 		Set<String> realReviewerOids = new HashSet<>();
-		for (ObjectReferenceType ref : _case.getReviewerRef()) {
+		for (ObjectReferenceType ref : _case.getCurrentReviewerRef()) {
 			realReviewerOids.add(ref.getOid());
 		}
 		assertEquals("wrong reviewer oids", new HashSet<>(reviewerOidList), realReviewerOids);
@@ -347,9 +403,11 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		}
 	}
 
-	protected void assertSingleDecision(AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment, int stageNumber, String reviewerOid, AccessCertificationResponseType aggregatedResponse, boolean checkHistory) {
+	// TODO remove redundant check on outcomes (see assertCaseOutcome)
+	protected void assertSingleDecision(AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment,
+										int stageNumber, String reviewerOid, AccessCertificationResponseType currentStageOutcome, boolean checkHistory) {
 		List<AccessCertificationDecisionType> currentDecisions = getCurrentDecisions(_case, stageNumber, false);
-		assertEquals("wrong # of decisions", 1, currentDecisions.size());
+		assertEquals("wrong # of decisions for stage " + stageNumber, 1, currentDecisions.size());
 		AccessCertificationDecisionType storedDecision = currentDecisions.get(0);
 		assertEquals("wrong response", response, storedDecision.getResponse());
 		assertEquals("wrong comment", comment, storedDecision.getComment());
@@ -358,9 +416,24 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		if (response != null) {
 			assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
 		}
-		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentOutcome());
+		assertEquals("wrong current stage outcome", currentStageOutcome, _case.getCurrentStageOutcome());
 		if (checkHistory) {
-			assertHistoricOutcome(_case, stageNumber, aggregatedResponse);
+			assertHistoricOutcome(_case, stageNumber, currentStageOutcome);
+		}
+	}
+
+	protected void assertReviewerDecision(AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment,
+										int stageNumber, String reviewerOid, AccessCertificationResponseType currentStageOutcome, boolean checkHistory) {
+		AccessCertificationDecisionType storedDecision = getDecisionForReviewer(_case, stageNumber, reviewerOid);
+		assertNotNull("No decision for reviewer " + reviewerOid + " in stage " + stageNumber, storedDecision);
+		assertEquals("wrong response", response, storedDecision.getResponse());
+		assertEquals("wrong comment", comment, storedDecision.getComment());
+		if (response != null) {
+			assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
+		}
+		assertEquals("wrong current stage outcome", currentStageOutcome, _case.getCurrentStageOutcome());
+		if (checkHistory) {
+			assertHistoricOutcome(_case, stageNumber, currentStageOutcome);
 		}
 	}
 
@@ -378,7 +451,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		assertTrue("No outcome stored for stage #" + stageNumber + " in " + aCase, found);
 	}
 
-	protected void assertCaseOutcomes(AccessCertificationCaseType aCase, AccessCertificationResponseType... outcomes) {
+	protected void assertCaseHistoricOutcomes(AccessCertificationCaseType aCase, AccessCertificationResponseType... outcomes) {
 		for (int stage = 0; stage < outcomes.length; stage++) {
 			assertHistoricOutcome(aCase, stage+1, outcomes[stage]);
 		}
@@ -399,17 +472,26 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		return currentDecisions;
 	}
 
+	public AccessCertificationDecisionType getDecisionForReviewer(AccessCertificationCaseType _case, int stageNumber, String reviewerOid) {
+		for (AccessCertificationDecisionType decision : _case.getDecision()) {
+			if (decision.getStageNumber() == stageNumber && decision.getReviewerRef().getOid().equals(reviewerOid)) {
+				return decision;
+			}
+		}
+		return null;
+	}
+
 	protected void assertNoDecision(AccessCertificationCaseType _case, int stage, AccessCertificationResponseType aggregatedResponse, boolean checkHistory) {
 		List<AccessCertificationDecisionType> currentDecisions = getCurrentDecisions(_case, stage, true);
 		assertEquals("wrong # of decisions", 0, currentDecisions.size());
-		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentOutcome());
+		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentStageOutcome());
 		if (checkHistory) {
 			assertHistoricOutcome(_case, stage, aggregatedResponse);
 		}
 	}
 
 	protected void assertCurrentState(AccessCertificationCaseType _case, AccessCertificationResponseType aggregatedResponse, int currentResponseStage) {
-		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentOutcome());
+		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentStageOutcome());
 		assertEquals("wrong current response stage number", currentResponseStage, _case.getCurrentStageNumber());
 	}
 
@@ -426,7 +508,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		if (response != null) {
 			assertApproximateTime("timestamp", new Date(), decision.getTimestamp());
 		}
-		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentOutcome());
+		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentStageOutcome());
 	}
 
 	protected AccessCertificationCampaignType getCampaignWithCases(String campaignOid) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {
@@ -441,5 +523,66 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	}
 
 
+	protected void assertAfterStageClose(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int stageNumber) {
+        assertStateAndStage(campaign, REVIEW_STAGE_DONE, stageNumber);
+        assertDefinitionAndOwner(campaign, definition);
+        assertNull("Unexpected end time", campaign.getEnd());
+        assertEquals("wrong # of stages", stageNumber, campaign.getStage().size());
+        AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
+        assertEquals("wrong stage #", stageNumber, stage.getNumber());
+        assertApproximateTime("stage 1 start", new Date(), stage.getStart());
+        assertApproximateTime("stage 1 end", new Date(), stage.getStart());
 
+		for (AccessCertificationCaseType aCase : campaign.getCase()) {
+			if (aCase.getCurrentStageNumber() != stageNumber) {
+				continue;
+			}
+			checkCaseOutcomes(aCase, campaign, stageNumber);
+		}
+    }
+
+	private void checkCaseOutcomes(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign, int stageNumber) {
+		List<AccessCertificationResponseType> stageOutcomes = new ArrayList<>(stageNumber);
+		for (int i = 1; i <= stageNumber; i++) {
+			stageOutcomes.add(checkCaseStageOutcome(aCase, stageNumber));
+		}
+		assertEquals("Wrong # of completed stage outcomes", stageNumber, aCase.getCompletedStageOutcome().size());
+		AccessCertificationResponseType expectedOverall = computationHelper.computeOverallOutcome(aCase, campaign);
+		assertEquals("Inconsistent overall outcome", expectedOverall, aCase.getOverallOutcome());
+	}
+
+	private AccessCertificationResponseType checkCaseStageOutcome(AccessCertificationCaseType aCase, int stageNumber) {
+		return CertCampaignTypeUtil.getStageOutcome(aCase, stageNumber).getOutcome();
+	}
+
+	// completedStage - if null, checks the stage outcome in the history list
+	protected void assertCaseOutcome(List<AccessCertificationCaseType> caseList, String subjectOid, String targetOid,
+									 AccessCertificationResponseType stageOutcome, AccessCertificationResponseType overallOutcome, Integer completedStage) {
+        AccessCertificationCaseType ccase = findCase(caseList, subjectOid, targetOid);
+        assertEquals("Wrong stage outcome in " + ccase, stageOutcome, ccase.getCurrentStageOutcome());
+        assertEquals("Wrong overall outcome in " + ccase, overallOutcome, ccase.getOverallOutcome());
+
+		if (completedStage != null) {
+			assertHistoricOutcome(ccase, completedStage, stageOutcome);
+		}
+    }
+
+	protected void assertPercentComplete(String campaignOid, int expCasesComplete, int expCasesDecided, int expDecisionsDone) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+		assertPercentComplete(campaign, expCasesComplete, expCasesDecided, expDecisionsDone);
+	}
+
+	protected void assertPercentComplete(AccessCertificationCampaignType campaign, int expCasesComplete, int expCasesDecided, int expDecisionsDone) {
+		int casesCompletePercentage = Math.round(CertCampaignTypeUtil.getCasesCompletedPercentage(campaign));
+		System.out.println("Cases completed = " + casesCompletePercentage + " %");
+		assertEquals("Wrong case complete percentage", expCasesComplete, casesCompletePercentage);
+
+		int casesDecidedPercentage = Math.round(CertCampaignTypeUtil.getCasesDecidedPercentage(campaign));
+		System.out.println("Cases decided = " + casesDecidedPercentage + " %");
+		assertEquals("Wrong case complete percentage", expCasesDecided, casesDecidedPercentage);
+
+		int decisionsDonePercentage = Math.round(CertCampaignTypeUtil.getDecisionsDonePercentage(campaign));
+		System.out.println("Decisions completed = " + decisionsDonePercentage + " %");
+		assertEquals("Wrong decisions complete percentage", expDecisionsDone, decisionsDonePercentage);
+    }
 }
