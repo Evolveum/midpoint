@@ -1,7 +1,8 @@
 package com.evolveum.midpoint.web.page;
 
-import com.evolveum.midpoint.web.page.PageBase;
 import org.apache.wicket.markup.html.WebPage;
+
+import com.evolveum.midpoint.gui.api.page.PageBase;
 
 /**
  * Superclass for all pages that implement modal windows (dialogs).

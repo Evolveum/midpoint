@@ -34,9 +34,9 @@
         <number>1</number>
         <name>Role's owner review</name>
         <description>In this stage, the role's owner has to review all of its inducements.</description>
-        <days>7</days>
-        <notifyBeforeDeadline>24</notifyBeforeDeadline> <!-- hours -->
-        <notifyBeforeDeadline>6</notifyBeforeDeadline>
+        <duration>P7D</duration>
+        <notifyBeforeDeadline>PT24H</notifyBeforeDeadline> <!-- hours -->
+        <notifyBeforeDeadline>PT6H</notifyBeforeDeadline>
         <notifyOnlyWhenNoDecision>false</notifyOnlyWhenNoDecision>
         <reviewerSpecification>
             <useObjectOwner>true</useObjectOwner>
@@ -45,8 +45,8 @@
     <stageDefinition>
         <number>2</number>
         <name>Review by induced object's owner and the administrator</name>
-        <days>7</days>
-        <notifyBeforeDeadline>12</notifyBeforeDeadline>
+        <duration>P7D</duration>
+        <notifyBeforeDeadline>PT12H</notifyBeforeDeadline>
         <notifyOnlyWhenNoDecision>false</notifyOnlyWhenNoDecision>
         <reviewerSpecification>
             <useTargetOwner>true</useTargetOwner>

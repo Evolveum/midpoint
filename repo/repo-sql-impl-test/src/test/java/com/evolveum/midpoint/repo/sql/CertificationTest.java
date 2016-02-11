@@ -60,10 +60,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CAMPAIGN_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_OUTCOME;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_STAGE_NUMBER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_DECISION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_REVIEWER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_REVIEWER_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_COMMENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_STAGE_NUMBER;
@@ -140,7 +140,7 @@ public class CertificationTest extends BaseSQLRepoTest {
 
         List<ItemDelta> modifications = new ArrayList<>();
         ItemPath case1 = new ItemPath(F_CASE).subPath(new IdItemPathSegment(1L));
-        modifications.add(createModificationReplaceProperty(case1.subPath(F_CURRENT_OUTCOME), campaignDef, DELEGATE));
+        modifications.add(createModificationReplaceProperty(case1.subPath(F_CURRENT_STAGE_OUTCOME), campaignDef, DELEGATE));
         modifications.add(createModificationReplaceProperty(case1.subPath(F_CURRENT_STAGE_NUMBER), campaignDef, 300));
 
         executeAndCheckModification(modifications, result, 0);
@@ -165,7 +165,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_NAME).replace(new PolyString("Campaign 2", "campaign 2"))
                 .item(F_STATE).replace(IN_REMEDIATION)
-                .item(F_CASE, 2, F_CURRENT_OUTCOME).replace(NO_RESPONSE)
+                .item(F_CASE, 2, F_CURRENT_STAGE_OUTCOME).replace(NO_RESPONSE)
                 .item(F_CASE, 2, F_CURRENT_STAGE_NUMBER).replace(400)
                 .item(F_CASE, 1, F_DECISION, 1, F_RESPONSE).replace(NOT_DECIDED)
                 .item(F_CASE, 1, F_DECISION, 1, F_COMMENT).replace("low")
@@ -188,7 +188,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         case100.setId(100L);
         case100.setObjectRef(createObjectRef("100123", ObjectTypes.USER));
         case100.setTargetRef(createObjectRef("100456", ObjectTypes.ROLE));
-        case100.getReviewerRef().add(createObjectRef("100789", ObjectTypes.USER));
+        case100.getCurrentReviewerRef().add(createObjectRef("100789", ObjectTypes.USER));
         case100.setCurrentStageNumber(1);
 
         List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
@@ -222,7 +222,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         PrismReferenceValue reviewerToDelete = createObjectRef("100789", ObjectTypes.USER).asReferenceValue();
 
         List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
-                .item(F_CASE, 100, F_REVIEWER_REF).delete(reviewerToDelete)
+                .item(F_CASE, 100, F_CURRENT_REVIEWER_REF).delete(reviewerToDelete)
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
@@ -243,7 +243,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         case110.setId(110L);
         case110.setObjectRef(createObjectRef("x100123", ObjectTypes.USER));
         case110.setTargetRef(createObjectRef("x100456", ObjectTypes.ROLE));
-        case110.getReviewerRef().add(createObjectRef("x100789", ObjectTypes.USER));
+        case110.getCurrentReviewerRef().add(createObjectRef("x100789", ObjectTypes.USER));
         case110.setCurrentStageNumber(1);
 
         AccessCertificationCaseType case100 = new AccessCertificationCaseType();
@@ -335,7 +335,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         AccessCertificationCaseType caseNoId = new AccessCertificationCaseType(prismContext);
         caseNoId.setObjectRef(createObjectRef("aaa", ObjectTypes.USER));
         caseNoId.setTargetRef(createObjectRef("bbb", ObjectTypes.ROLE));
-        caseNoId.getReviewerRef().add(createObjectRef("ccc", ObjectTypes.USER));
+        caseNoId.getCurrentReviewerRef().add(createObjectRef("ccc", ObjectTypes.USER));
         caseNoId.setCurrentStageNumber(1);
         caseNoId.getDecision().add(dec777);
         caseNoId.getDecision().add(decNoId);

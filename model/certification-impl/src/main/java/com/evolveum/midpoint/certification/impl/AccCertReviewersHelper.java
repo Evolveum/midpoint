@@ -74,31 +74,31 @@ public class AccCertReviewersHelper {
     public void setupReviewersForCase(AccessCertificationCaseType _case, AccessCertificationCampaignType campaign,
                                       AccessCertificationReviewerSpecificationType reviewerSpec, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
-        _case.getReviewerRef().clear();
+        _case.getCurrentReviewerRef().clear();
         if (reviewerSpec == null) {
             return;     // TODO issue a warning here?
         }
 
         if (Boolean.TRUE.equals(reviewerSpec.isUseTargetOwner())) {
-            cloneAndMerge(_case.getReviewerRef(), getTargetObjectOwners(_case, task, result));
+            cloneAndMerge(_case.getCurrentReviewerRef(), getTargetObjectOwners(_case, task, result));
         }
         if (Boolean.TRUE.equals(reviewerSpec.isUseTargetApprover())) {
-            cloneAndMerge(_case.getReviewerRef(), getTargetObjectApprovers(_case, task, result));
+            cloneAndMerge(_case.getCurrentReviewerRef(), getTargetObjectApprovers(_case, task, result));
         }
         if (Boolean.TRUE.equals(reviewerSpec.isUseObjectOwner())) {
-            cloneAndMerge(_case.getReviewerRef(), getObjectOwners(_case, task, result));
+            cloneAndMerge(_case.getCurrentReviewerRef(), getObjectOwners(_case, task, result));
         }
         if (Boolean.TRUE.equals(reviewerSpec.isUseObjectApprover())) {
-            cloneAndMerge(_case.getReviewerRef(), getObjectApprovers(_case, task, result));
+            cloneAndMerge(_case.getCurrentReviewerRef(), getObjectApprovers(_case, task, result));
         }
         if (reviewerSpec.getUseObjectManager() != null) {
-            cloneAndMerge(_case.getReviewerRef(), getObjectManagers(_case, reviewerSpec.getUseObjectManager(), task, result));
+            cloneAndMerge(_case.getCurrentReviewerRef(), getObjectManagers(_case, reviewerSpec.getUseObjectManager(), task, result));
         }
         // TODO evaluate reviewer expressions
-        if (_case.getReviewerRef().isEmpty()) {
-            cloneAndMerge(_case.getReviewerRef(), reviewerSpec.getDefaultReviewerRef());
+        if (_case.getCurrentReviewerRef().isEmpty()) {
+            cloneAndMerge(_case.getCurrentReviewerRef(), reviewerSpec.getDefaultReviewerRef());
         }
-        cloneAndMerge(_case.getReviewerRef(), reviewerSpec.getAdditionalReviewerRef());
+        cloneAndMerge(_case.getCurrentReviewerRef(), reviewerSpec.getAdditionalReviewerRef());
     }
 
     private void cloneAndMerge(List<ObjectReferenceType> reviewers, Collection<ObjectReferenceType> newReviewers) {

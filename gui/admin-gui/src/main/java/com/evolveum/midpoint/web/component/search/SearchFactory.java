@@ -19,10 +19,7 @@ package com.evolveum.midpoint.web.component.search;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -47,12 +44,15 @@ public class SearchFactory {
                 new ItemPath(UserType.F_FULL_NAME),
                 new ItemPath(UserType.F_ADDITIONAL_NAME),
                 new ItemPath(UserType.F_COST_CENTER)));
+        SEARCHABLE_OBJECTS.put(RoleType.class, Arrays.asList(
+                new ItemPath(RoleType.F_NAME),
+                new ItemPath(RoleType.F_ROLE_TYPE)));
 
         //todo add other object types and properties which can be used in search
     }
 
-    public static <T extends ObjectType> Search createSearch(Class<T> type, PrismContext ctx) {
-        Map<ItemPath, ItemDefinition> availableDefs = getAvailableDefinitions(type, ctx);
+    public static <T extends ObjectType> Search createSearch(Class<T> type, PrismContext ctx, boolean useDefsFromSuperclass) {
+        Map<ItemPath, ItemDefinition> availableDefs = getAvailableDefinitions(type, ctx, useDefsFromSuperclass);
 
         Search search = new Search(type, availableDefs);
 
@@ -66,7 +66,7 @@ public class SearchFactory {
     }
 
     private static <T extends ObjectType> Map<ItemPath, ItemDefinition> getAvailableDefinitions(
-            Class<T> type, PrismContext ctx) {
+            Class<T> type, PrismContext ctx, boolean useDefsFromSuperclass) {
 
         Map<ItemPath, ItemDefinition> map = new HashMap<>();
         map.putAll(createExtensionDefinitionList(type, ctx));
@@ -76,9 +76,11 @@ public class SearchFactory {
             List<ItemPath> pathList = SEARCHABLE_OBJECTS.get(typeClass);
             if (pathList != null) {
                 map.putAll(createAvailableDefinitions(typeClass, ctx, pathList));
-
-                typeClass = (Class<T>) typeClass.getSuperclass();
             }
+            if (!useDefsFromSuperclass){
+                break;
+            }
+            typeClass = (Class<T>) typeClass.getSuperclass();
         }
 
         return map;

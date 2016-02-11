@@ -1,26 +1,43 @@
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchPanel;
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.model.LoadableModel;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -38,12 +55,32 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
 
     private static final String ID_TABLE = "table";
     private static final String ID_BUTTON_RESET = "buttonReset";
+    private static final String ID_SEARCH_FORM = "searchForm";
+    private static final String ID_SEARCH = "search";
     private static final int ITEMS_PER_PAGE = 10;
+    private static final String ID_TABLE_HEADER = "tableHeader";
     private ISortableDataProvider<F, String> provider;
+    private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
 
+    private IModel<Search> searchModel;
     public MultipleAssignmentSelector(String id, IModel<List<AssignmentEditorDto>> selectorModel, ISortableDataProvider provider) {
         super(id, selectorModel);
         this.provider = provider;
+        executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
+
+            @Override
+            protected ExecuteChangeOptionsDto load() {
+                return new ExecuteChangeOptionsDto();
+            }
+        };
+        searchModel = new LoadableModel<Search>(false) {
+
+            @Override
+            public Search load() {
+                Search search =  SearchFactory.createSearch(RoleType.class, getPageBase().getPrismContext(), false);
+                return search;
+            }
+        };
 
         initLayout();
     }
@@ -60,10 +97,16 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
         buttonReset.setBody(createStringResource("MultipleAssignmentSelector.reset"));
         add(buttonReset);
 
+        initSearchPanel();
         List<IColumn<SelectableBean<AssignmentEditorDto>, String>> columns = initColumns();
 
         BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns,
-                UserProfileStorage.TableId.TABLE_ROLES, ITEMS_PER_PAGE);
+                UserProfileStorage.TableId.TABLE_ROLES, ITEMS_PER_PAGE){
+//            @Override
+//            protected WebMarkupContainer createHeader(String headerId) {
+//                return new SearchFragment(headerId, ID_TABLE_HEADER, MultipleAssignmentSelector.this, searchModel, executeOptionsModel);
+//            }
+        };
         updateBoxedTablePanelStyles(table);
         //hide footer menu
         table.getFooterMenu().setVisible(false);
@@ -157,5 +200,68 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
             }
         }
 
+    }
+
+    private void initSearchPanel(){
+        final Form searchForm = new Form(ID_SEARCH_FORM);
+        add(searchForm);
+        searchForm.setOutputMarkupId(true);
+
+        SearchPanel search = new SearchPanel(ID_SEARCH, (IModel) searchModel) {
+
+            @Override
+            public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+                MultipleAssignmentSelector.this.searchPerformed(query, target);
+//                PageUsers page = (PageUsers) getPage();
+//                page.searchPerformed(query, target);
+            }
+        };
+        searchForm.add(search);
+
+    }
+
+    private static class SearchFragment extends Fragment {
+
+        public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
+                              IModel<Search> model, IModel<ExecuteChangeOptionsDto> executeOptionsModel) {
+            super(id, markupId, markupProvider, model);
+
+            initLayout(executeOptionsModel);
+        }
+
+        private void initLayout(IModel<ExecuteChangeOptionsDto> executeOptionsModel) {
+            final Form searchForm = new Form(ID_SEARCH_FORM);
+            add(searchForm);
+            searchForm.setOutputMarkupId(true);
+
+            SearchPanel search = new SearchPanel(ID_SEARCH, (IModel) getDefaultModel()) {
+
+                @Override
+                public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+                    Component component = this.findParent(MultipleAssignmentSelector.class);
+                    if (component != null){
+                        ((MultipleAssignmentSelector)component).searchPerformed(query, target);
+                    }
+                }
+            };
+            searchForm.add(search);
+
+        }
+    }
+
+    private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+        BoxedTablePanel panel = getTable();
+        DataTable table = panel.getDataTable();
+        BaseSortableDataProvider provider = (BaseSortableDataProvider) table.getDataProvider();
+        provider.setQuery(query);
+
+        panel.setCurrentPage(null);
+
+        target.add(panel);
+    }
+
+
+    private BoxedTablePanel getTable() {
+        return (BoxedTablePanel) get(ID_TABLE);
     }
 }

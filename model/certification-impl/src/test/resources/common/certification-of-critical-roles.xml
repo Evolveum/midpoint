@@ -17,13 +17,28 @@
 
 <!--
 
-Expected cases and reviewers:
+Expected cases, reviewers and decisions/outcomes:
 
-Case                        Stage1                      Stage2
-==================================================================
-elaine->CEO                 elaine                      elaine
-guybrush->COO               cheese                      elaine
+CEO = 00000000-d34d-b33f-f00d-000000000001
+COO = 00000000-d34d-b33f-f00d-000000000002
 
+Stage1: oneAcceptAccepts, default: accept, stop on: revoke          (manager)
+Stage2: allMustAccept, default: accept, advance on: accept          (target owner)
+Stage3: oneDenyDenies, stop on: not decided
+Stage4: allMustAccept
+
+Overall: allMustAccept
+
+owners: CEO: elaine, COO: administrator, CTO: none
+
+Case                        Stage1              Stage2                           Stage3                                            Stage4
+===============================================================================================================================================
+elaine->CEO                 none (A) -> A       elaine A -> A             | A    elaine:null,administrator:ND -> ND  [STOP] | ND
+guybrush->COO               cheese: A -> A      admin: RV -> RV   [STOP]  | RV
+administrator->COO          none (A) -> A       admin: A -> A             | A    elaine:A,administrator:null -> A           | A    cheese:A -> A | A
+administrator->CEO          none (A) -> A       elaine: A -> A            | A    elaine:NR,administrator:NR -> NR           | NR   cheese:A -> A | NR
+jack->CEO                   none (A) -> A       elaine: null -> NR [STOP] | NR
+jack->CTO                   none (A) -> A       none (A) -> A             | A    elaine:null,administrator:null -> NR       | NR   cheese:null | NR
 -->
 
 <accessCertificationDefinition
@@ -36,14 +51,6 @@ guybrush->COO               cheese                      elaine
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
     <scopeDefinition xsi:type="AccessCertificationAssignmentReviewScopeType">
         <objectType>UserType</objectType>
-        <searchFilter>
-            <q:org>
-                <q:path>parentOrgRef</q:path>
-                <q:orgRef oid="00000000-8888-6666-0000-100000000001">       <!-- Governor Office -->
-                    <q:scope>SUBTREE</q:scope>
-                </q:orgRef>
-            </q:org>
-        </searchFilter>
         <itemSelectionExpression>
             <script>
                 <code>
@@ -61,19 +68,48 @@ guybrush->COO               cheese                      elaine
     </remediationDefinition>
     <stageDefinition>
         <number>1</number>
-        <days>7</days>
+        <duration>P3D</duration>
         <reviewerSpecification>
             <useObjectManager>
                 <orgType>functional</orgType>
-                <allowSelf>true</allowSelf>
+                <allowSelf>false</allowSelf>
             </useObjectManager>
         </reviewerSpecification>
+        <outcomeStrategy>oneAcceptAccepts</outcomeStrategy>
+        <outcomeIfNoReviewers>accept</outcomeIfNoReviewers>
+        <stopReviewOn>revoke</stopReviewOn>
     </stageDefinition>
     <stageDefinition>
         <number>2</number>
-        <days>14</days>
+        <duration>P7D</duration>
+        <reviewerSpecification>
+            <useTargetOwner>true</useTargetOwner>
+        </reviewerSpecification>
+        <!-- very strict strategy: only ACCEPT is allowed to proceed -->
+        <outcomeStrategy>allMustAccept</outcomeStrategy>
+        <outcomeIfNoReviewers>accept</outcomeIfNoReviewers>
+        <advanceToNextStageOn>accept</advanceToNextStageOn>
+    </stageDefinition>
+    <stageDefinition>
+        <number>3</number>
+        <duration>P14D</duration>
         <reviewerSpecification>
             <defaultReviewerRef oid="c0c010c0-d34d-b33f-f00d-11111111111e" type="UserType" />   <!-- elaine -->
+            <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />   <!-- administrator -->
         </reviewerSpecification>
+        <outcomeStrategy>oneDenyDenies</outcomeStrategy>
+        <stopReviewOn>notDecided</stopReviewOn>
     </stageDefinition>
+    <stageDefinition>
+        <number>4</number>
+        <!-- no duration set -->
+        <reviewerSpecification>
+            <defaultReviewerRef oid="c0c010c0-d34d-b33f-f00d-111111111130" type="UserType" />   <!-- cheese -->
+        </reviewerSpecification>
+        <outcomeStrategy>allMustAccept</outcomeStrategy>
+    </stageDefinition>
+    <reviewStrategy>
+        <outcomeStrategy>allMustAccept</outcomeStrategy>
+        <advanceToNextStageOn>delegate</advanceToNextStageOn>       <!-- just to see it's not used in stage 1 and 2 -->
+    </reviewStrategy>
 </accessCertificationDefinition>

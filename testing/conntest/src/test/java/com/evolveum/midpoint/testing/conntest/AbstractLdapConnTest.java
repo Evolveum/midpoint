@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.testing.conntest;
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -138,12 +138,12 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 		
 	protected static final String ACCOUNT_IDM_DN = "uid=idm,ou=Administrators,dc=example,dc=com";
 	protected static final String ACCOUNT_0_UID = "u00000000";
-	protected static final String ACCOUNT_18_UID = "u00000018";
 	protected static final String ACCOUNT_19_UID = "u00000019";
-	protected static final String ACCOUNT_67_UID = "u00000067";
+	protected static final String ACCOUNT_20_UID = "u00000020";
 	protected static final String ACCOUNT_68_UID = "u00000068";
-	protected static final String ACCOUNT_239_UID = "u00000239";
+	protected static final String ACCOUNT_69_UID = "u00000069";
 	protected static final String ACCOUNT_240_UID = "u00000240";
+	protected static final String ACCOUNT_241_UID = "u00000241";
 
 	protected static final int NUMBER_OF_GENERATED_ACCOUNTS = 4000;
 
@@ -419,8 +419,8 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
 		SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 50, task, result);
         
-        assertAccountShadow(shadows.get(0), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_18_UID:ACCOUNT_19_UID));
-        assertAccountShadow(shadows.get(49), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_67_UID:ACCOUNT_68_UID));
+        assertAccountShadow(shadows.get(0), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_19_UID:ACCOUNT_20_UID));
+        assertAccountShadow(shadows.get(49), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_68_UID:ACCOUNT_69_UID));
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
@@ -454,8 +454,8 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
 		SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 222, task, result);
         
-        assertAccountShadow(shadows.get(0), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_18_UID:ACCOUNT_19_UID));
-        assertAccountShadow(shadows.get(221), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_239_UID:ACCOUNT_240_UID));
+        assertAccountShadow(shadows.get(0), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_19_UID:ACCOUNT_20_UID));
+        assertAccountShadow(shadows.get(221), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_240_UID:ACCOUNT_241_UID));
                 
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);

@@ -52,9 +52,9 @@
         <number>1</number>
         <name>Administrator's review</name>
         <description>In this stage, the administrator has to review all the assignments of all users.</description>
-        <days>14</days>
-        <notifyBeforeDeadline>48</notifyBeforeDeadline>
-        <notifyBeforeDeadline>12</notifyBeforeDeadline>
+        <duration>P14D</duration>
+        <notifyBeforeDeadline>PT48H</notifyBeforeDeadline>
+        <notifyBeforeDeadline>PT12H</notifyBeforeDeadline>
         <notifyOnlyWhenNoDecision>true</notifyOnlyWhenNoDecision>
         <reviewerSpecification>
             <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002"
@@ -74,12 +74,13 @@
     <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           id="1"
           xsi:type="c:AccessCertificationAssignmentCaseType">
-        <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
-        <reviewerRef oid="99999999-0000-0000-0000-000000000002" type="c:UserType"></reviewerRef>
         <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
         <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
-        <reviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</reviewRequestedTimestamp>
-        <reviewDeadline>2015-12-18T23:59:59.999+01:00</reviewDeadline>
+        <currentStageNumber>1</currentStageNumber>
+        <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+        <currentReviewerRef oid="99999999-0000-0000-0000-000000000002" type="c:UserType"></currentReviewerRef>
+        <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
+        <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
         <decision id="1">
             <stageNumber>1</stageNumber>
             <reviewerRef oid="00000000-0000-0000-0000-000000000002"
@@ -87,8 +88,7 @@
             <response>noResponse</response>
             <timestamp>2015-12-04T01:10:20.032+01:00</timestamp>
         </decision>
-        <currentOutcome>notDecided</currentOutcome>
-        <currentStageNumber>1</currentStageNumber>
+        <currentStageOutcome>notDecided</currentStageOutcome>
         <assignment id="1">
             <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
         </assignment>
@@ -97,11 +97,12 @@
     <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           id="2"
           xsi:type="c:AccessCertificationAssignmentCaseType">
-        <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
         <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
         <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
-        <reviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</reviewRequestedTimestamp>
-        <reviewDeadline>2015-12-18T23:59:59.999+01:00</reviewDeadline>
+        <currentStageNumber>1</currentStageNumber>
+        <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+        <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
+        <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
         <decision id="1">
             <stageNumber>1</stageNumber>
             <reviewerRef oid="00000000-0000-0000-0000-000000000002"
@@ -109,8 +110,7 @@
             <response>accept</response>
             <timestamp>2015-12-04T01:04:06.385+01:00</timestamp>
         </decision>
-        <currentOutcome>accept</currentOutcome>
-        <currentStageNumber>1</currentStageNumber>
+        <currentStageOutcome>accept</currentStageOutcome>
         <assignment id="2">
             <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
         </assignment>
@@ -119,18 +119,18 @@
     <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           id="3"
           xsi:type="c:AccessCertificationAssignmentCaseType">
-        <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
         <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
         <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
-        <reviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</reviewRequestedTimestamp>
-        <reviewDeadline>2015-12-18T23:59:59.999+01:00</reviewDeadline>
+        <currentStageNumber>1</currentStageNumber>
+        <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+        <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
+        <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
         <decision id="1">
             <stageNumber>1</stageNumber>
             <reviewerRef oid="00000000-0000-0000-0000-000000000002"
                          type="c:UserType"><!-- administrator --></reviewerRef>
         </decision>
-        <currentOutcome>noResponse</currentOutcome>
-        <currentStageNumber>1</currentStageNumber>
+        <currentStageOutcome>noResponse</currentStageOutcome>
         <assignment id="3">
             <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
         </assignment>
@@ -139,12 +139,13 @@
     <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           id="4"
           xsi:type="c:AccessCertificationAssignmentCaseType">
-        <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
         <objectRef oid="ee53eba7-5c16-4c16-ad15-dd6a2360ab1a" type="c:UserType"><!-- u001 --></objectRef>
         <targetRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
                    type="c:ResourceType"><!-- Localhost OpenDJ (no extension schema) --></targetRef>
-        <reviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</reviewRequestedTimestamp>
-        <reviewDeadline>2015-12-18T23:59:59.999+01:00</reviewDeadline>
+        <currentStageNumber>1</currentStageNumber>
+        <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+        <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
+        <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
         <decision id="1">
             <stageNumber>1</stageNumber>
             <reviewerRef oid="00000000-0000-0000-0000-000000000002"
@@ -152,8 +153,7 @@
             <response>revoke</response>
             <timestamp>2015-12-04T01:10:13.814+01:00</timestamp>
         </decision>
-        <currentOutcome>revoke</currentOutcome>
-        <currentStageNumber>1</currentStageNumber>
+        <currentStageOutcome>revoke</currentStageOutcome>
         <assignment id="1">
             <construction>
                 <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
@@ -183,11 +183,12 @@
     <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           id="5"
           xsi:type="c:AccessCertificationAssignmentCaseType">
-        <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
         <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
         <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
-        <reviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</reviewRequestedTimestamp>
-        <reviewDeadline>2015-12-18T23:59:59.999+01:00</reviewDeadline>
+        <currentStageNumber>1</currentStageNumber>
+        <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+        <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
+        <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
         <decision id="1">
             <stageNumber>1</stageNumber>
             <reviewerRef oid="00000000-0000-0000-0000-000000000002"
@@ -195,8 +196,7 @@
             <response>revoke</response>
             <timestamp>2015-12-04T01:10:14.614+01:00</timestamp>
         </decision>
-        <currentOutcome>revoke</currentOutcome>
-        <currentStageNumber>1</currentStageNumber>
+        <currentStageOutcome>revoke</currentStageOutcome>
         <assignment id="1">
             <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
         </assignment>
@@ -205,11 +205,12 @@
     <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           id="6"
           xsi:type="c:AccessCertificationAssignmentCaseType">
-        <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
         <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
         <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
-        <reviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</reviewRequestedTimestamp>
-        <reviewDeadline>2015-12-18T23:59:59.999+01:00</reviewDeadline>
+        <currentStageNumber>1</currentStageNumber>
+        <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+        <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
+        <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
         <decision id="1">
             <stageNumber>1</stageNumber>
             <reviewerRef oid="00000000-0000-0000-0000-000000000002"
@@ -222,8 +223,7 @@
             <reviewerRef oid="00000000-0000-0000-0000-000000000002"
                          type="c:UserType"><!-- administrator --></reviewerRef>
         </decision>
-        <currentOutcome>reduce</currentOutcome>
-        <currentStageNumber>1</currentStageNumber>
+        <currentStageOutcome>reduce</currentStageOutcome>
         <assignment id="2">
             <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
         </assignment>
@@ -231,12 +231,13 @@
     </case>
     <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:type="c:AccessCertificationAssignmentCaseType">   <!-- ID removed on purpose -->
-        <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
-        <reviewerRef oid="99999999-0000-0000-0000-000000000002" type="c:UserType"></reviewerRef>
         <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
         <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
-        <reviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</reviewRequestedTimestamp>
-        <reviewDeadline>2015-12-18T23:59:59.999+01:00</reviewDeadline>
+        <currentStageNumber>1</currentStageNumber>
+        <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+        <currentReviewerRef oid="99999999-0000-0000-0000-000000000002" type="c:UserType"></currentReviewerRef>
+        <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
+        <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
         <decision id="1">
             <stageNumber>1</stageNumber>
             <reviewerRef oid="00000000-0000-0000-0000-000000000002"
@@ -251,8 +252,7 @@
             <response>accept</response>
             <timestamp>2015-12-04T01:15:00.000+01:00</timestamp>
         </decision>
-        <currentOutcome>revoke</currentOutcome>
-        <currentStageNumber>1</currentStageNumber>
+        <currentStageOutcome>revoke</currentStageOutcome>
         <assignment id="3">
             <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
         </assignment>

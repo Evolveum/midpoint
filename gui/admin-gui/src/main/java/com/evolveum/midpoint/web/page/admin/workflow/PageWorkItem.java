@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -46,8 +46,6 @@ import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDetailedDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
@@ -130,11 +128,11 @@ public class PageWorkItem extends PageAdminWorkItems {
         this(new PageParameters(), null);
     }
 
-    public PageWorkItem(PageParameters parameters, PageTemplate previousPage) {
+    public PageWorkItem(PageParameters parameters, PageBase previousPage) {
         this(parameters, previousPage, false);
     }
 
-    public PageWorkItem(PageParameters parameters, PageTemplate previousPage, boolean reinitializePreviousPage) {
+    public PageWorkItem(PageParameters parameters, PageBase previousPage, boolean reinitializePreviousPage) {
 
         this.parameters = parameters;
         setPreviousPage(previousPage);

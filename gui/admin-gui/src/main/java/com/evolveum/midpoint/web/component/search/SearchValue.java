@@ -72,6 +72,7 @@ public class SearchValue<T extends Serializable> implements DisplayableValue<T>,
 
     public void setValue(T value) {
         this.value = value;
+        this.label = null;
 
         if (value instanceof DisplayableValue) {
             DisplayableValue dv = (DisplayableValue) value;

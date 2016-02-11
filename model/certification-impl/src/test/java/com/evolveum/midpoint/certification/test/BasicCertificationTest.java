@@ -26,21 +26,16 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -54,12 +49,12 @@ import java.util.List;
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.getOrderBy;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CREATED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.REVIEW_STAGE_DONE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_ACTIVATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_TARGET_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REVOKE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_ADMINISTRATIVE_STATUS;
 import static org.testng.AssertJUnit.assertEquals;
@@ -126,12 +121,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         campaign = getCampaignWithCases(roleInducementCampaignOid);
         display("campaign", campaign);
-        assertEquals("Unexpected certification cases", 0, campaign.getCase().size());
-        assertStateAndStage(campaign, CREATED, 0);
-        assertEquals("Unexpected # of stages", 2, campaign.getStageDefinition().size());
-        assertDefinitionAndOwner(campaign, roleInducementCertDefinition);
-        assertNull("Unexpected start time", campaign.getStart());
-        assertNull("Unexpected end time", campaign.getEnd());
+        assertAfterCampaignCreate(campaign, roleInducementCertDefinition);
     }
 
     @Test
@@ -154,18 +144,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(roleInducementCampaignOid);
         display("campaign in stage 1", campaign);
-
-        assertStateAndStage(campaign, IN_REVIEW_STAGE, 1);
-        assertDefinitionAndOwner(campaign, roleInducementCertDefinition);
-        assertApproximateTime("start time", new Date(), campaign.getStart());
-        assertNull("Unexpected end time", campaign.getEnd());
-        assertEquals("wrong # of defined stages", 2, campaign.getStageDefinition().size());
-        assertEquals("wrong # of stages", 1, campaign.getStage().size());
-        AccessCertificationStageType stage = campaign.getStage().get(0);
-        assertEquals("wrong stage #", 1, stage.getNumber());
-        assertApproximateTime("stage 1 start", new Date(), stage.getStart());
-        assertNotNull("stage 1 end", stage.getEnd());       // too lazy to compute exact datetime
-        assertEquals("Wrong number of certification cases", 5, campaign.getCase().size());
+        assertAfterCampaignStart(campaign, roleInducementCertDefinition, 5);
     }
 
     @Test
@@ -214,16 +193,8 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
         display("campaign", campaign);
-        assertEquals("Unexpected certification cases", 0, campaign.getCase().size());
-        assertStateAndStage(campaign, CREATED, 0);
-        assertDefinitionAndOwner(campaign, certificationDefinition, USER_BOB_OID);
-        assertNull("Unexpected start time", campaign.getStart());
-        assertNull("Unexpected end time", campaign.getEnd());
-    }
-
-    protected void assertStateAndStage(AccessCertificationCampaignType campaign, AccessCertificationCampaignStateType state, int stage) {
-        assertEquals("Unexpected campaign state", state, campaign.getState());
-        assertEquals("Unexpected stage number", stage, campaign.getStageNumber());
+        assertAfterCampaignCreate(campaign, certificationDefinition);
+        assertPercentComplete(campaign, 100, 100, 100);      // no cases, no problems
     }
 
     @Test
@@ -307,24 +278,19 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
 
-        assertStateAndStage(campaign, IN_REVIEW_STAGE, 1);
-        assertDefinitionAndOwner(campaign, certificationDefinition, USER_BOB_OID);
-        assertApproximateTime("start time", new Date(), campaign.getStart());
-        assertNull("Unexpected end time", campaign.getEnd());
-        assertEquals("wrong # of stages", 1, campaign.getStage().size());
-        AccessCertificationStageType stage = campaign.getStage().get(0);
-        assertEquals("wrong stage #", 1, stage.getNumber());
-        assertApproximateTime("stage 1 start", new Date(), stage.getStart());
-        assertNotNull("stage 1 end", stage.getEnd());       // too lazy to compute exact datetime
+        assertAfterCampaignStart(campaign, certificationDefinition, 7);
         checkAllCases(campaign.getCase(), campaignOid);
-    }
+        List<AccessCertificationCaseType> caseList = campaign.getCase();
+        // no responses -> NO_RESPONSE in all cases
+        assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, NO_RESPONSE, NO_RESPONSE, null);
+        assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID, NO_RESPONSE, NO_RESPONSE, null);
+        assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
+        assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ORG_EROOT_OID, NO_RESPONSE, NO_RESPONSE, null);
+        assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
+        assertCaseOutcome(caseList, USER_JACK_OID, ORG_EROOT_OID, NO_RESPONSE, NO_RESPONSE, null);
 
-//    protected void assertDefinitionAndOwner(AccessCertificationCampaignType campaign, PrismObject<? extends ObjectType> certificationDefinition) {
-//        assertEquals("Unexpected ownerRef", ObjectTypeUtil.createObjectRef(USER_ADMINISTRATOR_OID, ObjectTypes.USER), campaign.getOwnerRef());
-//        assertEquals("Unexpected definitionRef",
-//                ObjectTypeUtil.createObjectRef(CERT_DEF_USER_ASSIGNMENT_BASIC_OID, ObjectTypes.ACCESS_CERTIFICATION_DEFINITION),
-//                campaign.getDefinitionRef());
-//    }
+        assertPercentComplete(campaign, 0, 0, 0);
+    }
 
     @Test
     public void test030SearchAllCasesDenied() throws Exception {
@@ -530,10 +496,9 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         AccessCertificationDecisionType decision = new AccessCertificationDecisionType(prismContext);
-        decision.setResponse(AccessCertificationResponseType.ACCEPT);
+        decision.setResponse(ACCEPT);
         decision.setComment("no comment");
         decision.setStageNumber(0);     // will be replaced by current stage number
-        ObjectReferenceType administratorRef = ObjectTypeUtil.createObjectRef(USER_ADMINISTRATOR_OID, ObjectTypes.USER);
         long id = superuserCase.asPrismContainerValue().getId();
         certificationService.recordDecision(campaignOid, id, decision, task, result);
 
@@ -548,14 +513,10 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
         assertEquals("changed case ID", Long.valueOf(id), superuserCase.asPrismContainerValue().getId());
-        assertEquals("wrong # of decisions", 1, superuserCase.getDecision().size());
-        AccessCertificationDecisionType storedDecision = superuserCase.getDecision().get(0);
-        assertEquals("wrong response", AccessCertificationResponseType.ACCEPT, storedDecision.getResponse());
-        assertEquals("wrong comment", "no comment", storedDecision.getComment());
-        assertEquals("wrong reviewerRef", administratorRef, storedDecision.getReviewerRef());
-        assertEquals("wrong stage number", 1, storedDecision.getStageNumber());
-        assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
-        assertEquals("wrong current response", AccessCertificationResponseType.ACCEPT, superuserCase.getCurrentOutcome());
+        assertSingleDecision(superuserCase, ACCEPT, "no comment", 1, USER_ADMINISTRATOR_OID, ACCEPT, false);
+
+        AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+        assertPercentComplete(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));      // 1 reviewer per case (always administrator)
     }
 
     @Test
@@ -574,7 +535,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         AccessCertificationDecisionType decision = new AccessCertificationDecisionType(prismContext);
-        decision.setResponse(AccessCertificationResponseType.ACCEPT);
+        decision.setResponse(ACCEPT);
         decision.setComment("ok");
         decision.setStageNumber(1);
         // reviewerRef will be taken from the current user
@@ -592,14 +553,10 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         assertEquals("changed case ID", Long.valueOf(id), ceoCase.asPrismContainerValue().getId());
-        assertEquals("wrong # of decisions", 1, ceoCase.getDecision().size());
-        AccessCertificationDecisionType storedDecision = ceoCase.getDecision().get(0);
-        assertEquals("wrong response", AccessCertificationResponseType.ACCEPT, storedDecision.getResponse());
-        assertEquals("wrong comment", "ok", storedDecision.getComment());
-        assertEquals("wrong reviewerRef", ObjectTypeUtil.createObjectRef(USER_ADMINISTRATOR_OID, ObjectTypes.USER), storedDecision.getReviewerRef());
-        assertEquals("wrong stage number", 1, storedDecision.getStageNumber());
-        assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
-        assertEquals("wrong current response", AccessCertificationResponseType.ACCEPT, ceoCase.getCurrentOutcome());
+        assertSingleDecision(ceoCase, ACCEPT, "ok", 1, USER_ADMINISTRATOR_OID, ACCEPT, false);
+
+        AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+        assertPercentComplete(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)
     }
 
     @Test
@@ -618,7 +575,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         AccessCertificationDecisionType decision = new AccessCertificationDecisionType(prismContext);
-        decision.setResponse(AccessCertificationResponseType.REVOKE);
+        decision.setResponse(REVOKE);
         decision.setComment("no way");
         decision.setStageNumber(1);
         // reviewerRef will be taken from the current user
@@ -637,14 +594,10 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         display("CEO case", ceoCase.asPrismContainerValue());
         assertEquals("changed case ID", Long.valueOf(id), ceoCase.asPrismContainerValue().getId());
-        assertEquals("wrong # of decisions", 1, ceoCase.getDecision().size());
-        AccessCertificationDecisionType storedDecision = ceoCase.getDecision().get(0);
-        assertEquals("wrong response", AccessCertificationResponseType.REVOKE, storedDecision.getResponse());
-        assertEquals("wrong comment", "no way", storedDecision.getComment());
-        assertEquals("wrong reviewerRef", ObjectTypeUtil.createObjectRef(USER_ADMINISTRATOR_OID, ObjectTypes.USER), storedDecision.getReviewerRef());
-        assertEquals("wrong stage number", 1, storedDecision.getStageNumber());
-        assertApproximateTime("timestamp", new Date(), storedDecision.getTimestamp());
-        assertEquals("wrong current response", AccessCertificationResponseType.REVOKE, ceoCase.getCurrentOutcome());
+        assertSingleDecision(ceoCase, REVOKE, "no way", 1, USER_ADMINISTRATOR_OID, REVOKE, false);
+
+        AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+        assertPercentComplete(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)
     }
 
     protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid) {
@@ -718,16 +671,17 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
+        assertAfterStageClose(campaign, certificationDefinition, 1);
+        List<AccessCertificationCaseType> caseList = campaign.getCase();
+        checkAllCases(caseList, campaignOid);
+        assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, 1);
+        assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID, NO_RESPONSE, NO_RESPONSE, 1);
+        assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, 1);
+        assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ORG_EROOT_OID, NO_RESPONSE, NO_RESPONSE, 1);
+        assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, REVOKE, REVOKE, 1);
+        assertCaseOutcome(caseList, USER_JACK_OID, ORG_EROOT_OID, NO_RESPONSE, NO_RESPONSE, 1);
 
-        assertStateAndStage(campaign, REVIEW_STAGE_DONE, 1);
-        assertDefinitionAndOwner(campaign, certificationDefinition, USER_BOB_OID);
-        assertNull("Unexpected end time", campaign.getEnd());
-        assertEquals("wrong # of stages", 1, campaign.getStage().size());
-        AccessCertificationStageType stage = campaign.getStage().get(0);
-        assertEquals("wrong stage #", 1, stage.getNumber());
-        assertApproximateTime("stage 1 start", new Date(), stage.getStart());
-        //assertApproximateTime("stage 1 end", new Date(), stage.getStart());       // TODO when implemented
-        checkAllCases(campaign.getCase(), campaignOid);
+        assertPercentComplete(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)
     }
 
     @Test
@@ -783,9 +737,9 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         assertEquals("wrong campaign state", CLOSED, campaign.getState());
         assertEquals("wrong campaign stage", 2, campaign.getStageNumber());
         assertDefinitionAndOwner(campaign, certificationDefinition, USER_BOB_OID);
-        // TODO assertApproximateTime("end time", new Date(), campaign.getEnd());
+        assertApproximateTime("end time", new Date(), campaign.getEnd());
         assertEquals("wrong # of stages", 1, campaign.getStage().size());
-        //assertApproximateTime("stage 1 end", new Date(), stage.getStart());       // TODO when implemented
+        assertApproximateTime("stage 1 end", new Date(), campaign.getStage().get(0).getEnd());
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         AccessCertificationCaseType jackCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
@@ -795,6 +749,8 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         display("jack", userJack);
         assertEquals("wrong # of jack's assignments", 2, userJack.getAssignment().size());
         assertEquals("wrong target OID", ORG_EROOT_OID, userJack.getAssignment().get(0).getTargetRef().getOid());
+
+        assertPercentComplete(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)
     }
 
 

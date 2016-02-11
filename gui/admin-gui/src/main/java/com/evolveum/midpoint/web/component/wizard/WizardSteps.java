@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 package com.evolveum.midpoint.web.component.wizard;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.resource.component.WizardHelpDialog;
-import com.evolveum.midpoint.web.page.PageTemplate;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -33,7 +33,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.StringResourceModel;
 
 import java.util.List;
 
@@ -128,7 +127,7 @@ public class WizardSteps extends SimplePanel<List<WizardStepDto>> {
 
             @Override
             public String getObject() {
-            	return PageTemplate.createStringResourceStatic(getPage(), key).getString();
+            	return PageBase.createStringResourceStatic(getPage(), key).getString();
 //                return new StringResourceModel(key, getPage(), null, key).getString();
             }
         };

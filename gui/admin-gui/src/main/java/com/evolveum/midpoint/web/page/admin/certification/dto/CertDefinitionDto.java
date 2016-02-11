@@ -16,21 +16,24 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.lang3.StringUtils;
 
+import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -243,12 +246,16 @@ public class CertDefinitionDto implements Serializable {
             dto.setNumber(stageDefObj.getNumber());
             dto.setName(stageDefObj.getName());
             dto.setDescription(stageDefObj.getDescription());
-            dto.setDays(stageDefObj.getDays());
-            dto.setNotifyBeforeDeadline(convertListIntegerToString(stageDefObj.getNotifyBeforeDeadline()));
+            if (stageDefObj.getDuration() != null) {
+                dto.setDuration(stageDefObj.getDuration().toString());
+            }
+            dto.setNotifyBeforeDeadline(convertDurationListToString(stageDefObj.getNotifyBeforeDeadline()));
             dto.setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefObj.isNotifyOnlyWhenNoDecision()));
             dto.setReviewerDto(createAccessCertificationReviewerDto(stageDefObj.getReviewerSpecification()));
             dto.setOutcomeStrategy(stageDefObj.getOutcomeStrategy());
             dto.setOutcomeIfNoReviewers(stageDefObj.getOutcomeIfNoReviewers());
+            dto.setStopReviewOnRaw(new ArrayList<>(stageDefObj.getStopReviewOn()));
+            dto.setAdvanceToNextStageOnRaw(new ArrayList<>(stageDefObj.getAdvanceToNextStageOn()));
         } else {
             dto.setReviewerDto(new AccessCertificationReviewerDto());
         }
@@ -347,9 +354,11 @@ public class CertDefinitionDto implements Serializable {
             stageDefType.setNumber(stageDefDto.getNumber());
             stageDefType.setName(stageDefDto.getName());
             stageDefType.setDescription(stageDefDto.getDescription());
-            stageDefType.setDays(stageDefDto.getDays());
+            if (StringUtils.isNotBlank(stageDefDto.getDuration())) {
+                stageDefType.setDuration(XmlTypeConverter.createDuration(stageDefDto.getDuration()));
+            }
             stageDefType.getNotifyBeforeDeadline().clear();
-            stageDefType.getNotifyBeforeDeadline().addAll(convertStringToListInteger(stageDefDto.getNotifyBeforeDeadline()));
+            stageDefType.getNotifyBeforeDeadline().addAll(convertStringToDurationList(stageDefDto.getNotifyBeforeDeadline()));
             stageDefType.setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefDto.isNotifyOnlyWhenNoDecision()));
             stageDefType.setReviewerSpecification(createAccessCertificationReviewerType(stageDefDto.getReviewerDto()));
             stageDefType.setOutcomeStrategy(stageDefDto.getOutcomeStrategy());
@@ -396,24 +405,19 @@ public class CertDefinitionDto implements Serializable {
         return managerSearchDto;
     }
 
-    private String convertListIntegerToString(List<Integer> list){
-        String result = "";
-        for (Integer listItem : list){
-            result += Integer.toString(listItem);
-            if(list.indexOf(listItem) < list.size() - 1){
-                result += ", ";
-            }
-        }
+    private String convertDurationListToString(List<Duration> list){
+        String result = StringUtils.join(list, ", ");
         return result;
     }
 
-    private List<Integer> convertStringToListInteger(String object){
-        List<Integer> list = new ArrayList<>();
+    private List<Duration> convertStringToDurationList(String object){
+        List<Duration> list = new ArrayList<>();
         if (object != null) {
             String[] values = object.split(",");
             for (String value : values) {
-                if (!value.trim().equals("")) {
-                    list.add(Integer.parseInt(value.trim()));
+                value = value.trim();
+                if (!value.equals("")) {
+                    list.add(XmlTypeConverter.createDuration(value));
                 }
             }
         }
@@ -486,5 +490,16 @@ public class CertDefinitionDto implements Serializable {
 
     public void setOutcomeStrategy(AccessCertificationCaseOutcomeStrategyType outcomeStrategy) {
         this.outcomeStrategy = outcomeStrategy;
+    }
+
+    public List<AccessCertificationResponseType> getStopReviewOn() {
+        if (definition.getReviewStrategy() == null) {
+            return null;
+        }
+        AccessCertificationCaseReviewStrategyType strategy = definition.getReviewStrategy();
+        if (strategy.getStopReviewOn().isEmpty() && strategy.getAdvanceToNextStageOn().isEmpty()) {
+            return null;
+        }
+        return CertCampaignTypeUtil.getOutcomesToStopOn(strategy.getStopReviewOn(), strategy.getAdvanceToNextStageOn());
     }
 }

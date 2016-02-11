@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.page.admin.resources.content;
 
 import java.util.ArrayList;
@@ -45,6 +44,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -82,7 +82,6 @@ import com.evolveum.midpoint.web.component.dialog.UserBrowserDialog;
 import com.evolveum.midpoint.web.component.input.RefinedObjectTypeChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
@@ -489,7 +488,7 @@ public class PageContentAccounts extends PageAdminResources {
             @Override
             protected String load() {
                 String name = WebMiscUtil.getName(resourceModel.getObject());
-                return PageTemplate.createStringResourceStatic(PageContentAccounts.this, "PageContentAccounts.subTitle", name).getString();
+                return PageBase.createStringResourceStatic(PageContentAccounts.this, "PageContentAccounts.subTitle", name).getString();
 //                return new StringResourceModel("PageContentAccounts.subTitle", PageContentAccounts.this, null, null, name).getString();
             }
         };

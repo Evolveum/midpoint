@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,11 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.wicket.AttributeModifier;
@@ -140,7 +138,7 @@ public class PrismContainerPanel extends Panel {
             headerLabelModel = new IModel<String>() {
                 @Override
                 public String getObject() {
-                    String displayName = PageTemplate.createStringResourceStatic(getPage(), key).getString();
+                    String displayName = PageBase.createStringResourceStatic(getPage(), key).getString();
                     if (displayName.equals(key)){
                         displayName = (new PropertyModel<String>(model, "displayName")).getObject();
                     }

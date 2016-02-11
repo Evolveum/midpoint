@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,11 @@ package com.evolveum.midpoint.web.component;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.migrate.StringResourceModelMigration;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
-import com.evolveum.midpoint.web.page.PageTemplate;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +76,7 @@ public class GuiComponents {
                     key = b ? KEY_BOOLEAN_TRUE : KEY_BOOLEAN_FALSE;
                 }
 
-                StringResourceModel model = PageTemplate.createStringResourceStatic(null, key);
+                StringResourceModel model = PageBase.createStringResourceStatic(null, key);
 //                
                 return model.getString();
             }
@@ -96,7 +94,7 @@ public class GuiComponents {
 
             @Override
             protected CharSequence getDefaultChoice(String selectedValue) {
-            	StringResourceModel model = PageTemplate.createStringResourceStatic(null, KEY_BOOLEAN_NULL);
+            	StringResourceModel model = PageBase.createStringResourceStatic(null, KEY_BOOLEAN_NULL);
 
                 return model.getString();
             }

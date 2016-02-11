@@ -251,7 +251,7 @@ public class CertificationManagerImpl implements CertificationManager {
             } else if (!IN_REVIEW_STAGE.equals(state)) {
                 result.recordFatalError("Couldn't close review stage " + stageNumberToClose + " as it is currently not open");
             } else {
-                List<ItemDelta> deltas = updateHelper.getDeltasForStageClose(campaign, task, result);
+                List<ItemDelta> deltas = updateHelper.getDeltasForStageClose(campaign, result);
                 updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
                 updateHelper.afterStageClose(campaignOid, task, result);
             }
@@ -401,14 +401,20 @@ public class CertificationManagerImpl implements CertificationManager {
 
             int accept=0, revoke=0, revokeRemedied=0, reduce=0, reduceRemedied=0, delegate=0, noDecision=0, noResponse=0;
             for (AccessCertificationCaseType _case : campaign.getCase()) {
-                if (currentStageOnly && _case.getCurrentStageNumber() != campaign.getStageNumber()) {
-                    continue;
+                AccessCertificationResponseType outcome;
+                if (currentStageOnly) {
+                    if (_case.getCurrentStageNumber() == campaign.getStageNumber()) {
+                        outcome = _case.getCurrentStageOutcome();
+                    } else {
+                        continue;
+                    }
+                } else {
+                    outcome = _case.getOverallOutcome();
                 }
-                AccessCertificationResponseType response = _case.getCurrentOutcome();
-                if (response == null) {
-                    response = AccessCertificationResponseType.NO_RESPONSE;
+                if (outcome == null) {
+                    outcome = AccessCertificationResponseType.NO_RESPONSE;
                 }
-                switch (response) {
+                switch (outcome) {
                     case ACCEPT: accept++; break;
                     case REVOKE: revoke++;
                                  if (_case.getRemediedTimestamp() != null) {
@@ -423,7 +429,7 @@ public class CertificationManagerImpl implements CertificationManager {
                     case DELEGATE: delegate++; break;
                     case NOT_DECIDED: noDecision++; break;
                     case NO_RESPONSE: noResponse++; break;
-                    default: throw new IllegalStateException("Unexpected response: "+response);
+                    default: throw new IllegalStateException("Unexpected outcome: "+outcome);
                 }
             }
             stat.setMarkedAsAccept(accept);

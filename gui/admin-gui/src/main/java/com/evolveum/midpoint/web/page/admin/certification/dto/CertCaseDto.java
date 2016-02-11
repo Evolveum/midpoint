@@ -16,11 +16,11 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
@@ -71,7 +71,7 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
             }
         }
         List<String> names = new ArrayList<>();
-        for (ObjectReferenceType reviewerRef : _case.getReviewerRef()) {
+        for (ObjectReferenceType reviewerRef : _case.getCurrentReviewerRef()) {
             // TODO optimize - don't resolve reviewers twice
             PrismObject<UserType> reviewerObject = WebModelUtils.resolveReference(reviewerRef, page, task, result);
             if (reviewerObject != null) {
@@ -109,8 +109,8 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
         return CertCampaignTypeUtil.getReviewedTimestamp(certCase.getDecision());
     }
 
-    public AccessCertificationResponseType getCurrentResponse() {
-        return getCertCase().getCurrentOutcome();
+    public AccessCertificationResponseType getOverallOutcome() {
+        return getCertCase().getOverallOutcome();
     }
 
     public Integer getCurrentResponseStageNumber() {

@@ -22,8 +22,7 @@
         <span wicket:id="label"/>
         &nbsp;
         <span class="caret"></span>
-        &nbsp;
-        <i wicket:id="deleteButton" class="fa fa-times-circle fa-lg text-danger"/>
+        <i wicket:id="deleteButton" class="fa fa-times-circle fa-lg text-danger" style="margin-left: 10px;"/>
     </a>
 
     <div wicket:id="popover" class="popover bottom">
@@ -34,8 +33,8 @@
             </div>
 
             <p style="margin: 0px; padding-top: 7px;">
-                <a wicket:id="update" class="btn btn-sm btn-success"/>
-                <a wicket:id="close" class="btn btn-sm btn-default"/>
+                <a data-type="update" wicket:id="update" class="btn btn-sm btn-success"/>
+                <a data-type="close" wicket:id="close" class="btn btn-sm btn-default"/>
             </p>
         </div>
     </div>

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
@@ -23,7 +24,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
@@ -33,11 +33,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import static com.evolveum.midpoint.gui.api.page.PageBase.createEnumResourceKey;
+import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
+
 import java.io.Serializable;
 import java.util.List;
-
-import static com.evolveum.midpoint.web.page.PageBase.createEnumResourceKey;
-import static com.evolveum.midpoint.web.page.PageBase.createStringResourceStatic;
 
 /**
  * @author mederly
@@ -52,7 +52,7 @@ public class CertCampaignDto extends Selectable {
     public static final String F_CAMPAIGN_START = "campaignStart";
     public static final String F_CAMPAIGN_END = "campaignEnd";
     public static final String F_STAGE_START = "stageStart";
-    public static final String F_STAGE_END = "stageEnd";
+    public static final String F_STAGE_DEADLINE = "stageDeadline";
 
     private AccessCertificationCampaignType campaign;           // TODO consider replacing this by constituent primitive data items
     private String ownerName;
@@ -131,6 +131,11 @@ public class CertCampaignDto extends Selectable {
     public String getStageStart() {
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
         return stage != null ? WebMiscUtil.formatDate(stage.getStart()) : null;
+    }
+
+    public String getStageDeadline() {
+        AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
+        return stage != null ? WebMiscUtil.formatDate(stage.getDeadline()) : null;
     }
 
     public String getStageEnd() {
