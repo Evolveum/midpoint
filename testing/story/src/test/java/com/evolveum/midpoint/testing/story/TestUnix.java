@@ -709,7 +709,7 @@ public class TestUnix extends AbstractStoryTest {
         Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        PrismObject<RoleType> role = createUnixGroupRole(ROLE_VILLAINS_NAME);
+        PrismObject<RoleType> role = createUnixGroupRole(ROLE_VILLAINS_NAME, ROLE_META_UNIXGROUP_OID);
         
         // WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -855,7 +855,7 @@ public class TestUnix extends AbstractStoryTest {
         Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        PrismObject<RoleType> role = createUnixGroupRole2(ROLE_RANGERS_NAME);
+        PrismObject<RoleType> role = createUnixGroupRole(ROLE_RANGERS_NAME, ROLE_META_UNIXGROUP2_OID);
         
         // WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -884,7 +884,7 @@ public class TestUnix extends AbstractStoryTest {
         Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        PrismObject<RoleType> role = createUnixGroupRole2(ROLE_SEALS_NAME);
+        PrismObject<RoleType> role = createUnixGroupRole(ROLE_SEALS_NAME, ROLE_META_UNIXGROUP2_OID);
         
         // WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -1253,31 +1253,14 @@ public class TestUnix extends AbstractStoryTest {
 		return role;
 	}
 	
-	private PrismObject<RoleType> createUnixGroupRole(String name) throws SchemaException {
+	private PrismObject<RoleType> createUnixGroupRole(String name, String metaRoleOid) throws SchemaException {
 		PrismObject<RoleType> role = getRoleDefinition().instantiate();
 		RoleType roleType = role.asObjectable();
 		roleType.setName(new PolyStringType(name));
         
 		AssignmentType roleAssignemnt = new AssignmentType();
         ObjectReferenceType roleTargetRef = new ObjectReferenceType();
-        roleTargetRef.setOid(ROLE_META_UNIXGROUP_OID);
-        roleTargetRef.setType(RoleType.COMPLEX_TYPE);
-		roleAssignemnt.setTargetRef(roleTargetRef);
-		roleType.getAssignment().add(roleAssignemnt);
-		
-		return role;
-	}
-	
-// actually duplicate of createUnixGroupRole above, but with different meta
-// role to avoid modification of existing test...
-	private PrismObject<RoleType> createUnixGroupRole2(String name) throws SchemaException {
-		PrismObject<RoleType> role = getRoleDefinition().instantiate();
-		RoleType roleType = role.asObjectable();
-		roleType.setName(new PolyStringType(name));
-        
-		AssignmentType roleAssignemnt = new AssignmentType();
-        ObjectReferenceType roleTargetRef = new ObjectReferenceType();
-        roleTargetRef.setOid(ROLE_META_UNIXGROUP2_OID);
+        roleTargetRef.setOid(metaRoleOid);
         roleTargetRef.setType(RoleType.COMPLEX_TYPE);
 		roleAssignemnt.setTargetRef(roleTargetRef);
 		roleType.getAssignment().add(roleAssignemnt);
