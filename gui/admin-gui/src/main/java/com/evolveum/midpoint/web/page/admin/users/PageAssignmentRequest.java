@@ -1,6 +1,8 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -27,8 +29,6 @@ import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.certification.PageAdminCertification;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.ArrayList;
@@ -80,7 +80,7 @@ public class PageAssignmentRequest<F extends FocusType, O extends ObjectType> ex
 
     private List<? extends DisplayableValue<String>> getLookupDisplayableList() {
         List<DisplayableValue<String>> list = new ArrayList<>();
-        ModelInteractionService interactionService = WebMiscUtil.getPageBase(this).getModelInteractionService();
+        ModelInteractionService interactionService = WebComponentUtil.getPageBase(this).getModelInteractionService();
         OperationResult result = new OperationResult(OPERATION_LOAD_ROLE_TYPES);
 
         try {
@@ -128,7 +128,7 @@ public class PageAssignmentRequest<F extends FocusType, O extends ObjectType> ex
     private List<PrismObject<UserType>> loadUsers() {
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
         try {
-            List<PrismObject<UserType>> users = WebModelUtils.searchObjects(UserType.class, new ObjectQuery(),
+            List<PrismObject<UserType>> users = WebModelServiceUtils.searchObjects(UserType.class, new ObjectQuery(),
                     result, (PageBase)getPage());
 
             return users;

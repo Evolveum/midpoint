@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.component.input;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -29,8 +31,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
@@ -106,7 +106,7 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
 
         DropDownChoice type = new DropDownChoice<>(ID_TYPE,
                 new PropertyModel<ExpressionUtil.ExpressionEvaluatorType>(model, ExpressionTypeDto.F_TYPE),
-                WebMiscUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
+                WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
                 new EnumChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType>(this));
         type.add(new AjaxFormComponentUpdatingBehavior("change") {
 
@@ -135,7 +135,7 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
 
         DropDownChoice language = new DropDownChoice<>(ID_LANGUAGE,
                 new PropertyModel<ExpressionUtil.Language>(model, ExpressionTypeDto.F_LANGUAGE),
-                WebMiscUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
+                WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
                 new EnumChoiceRenderer<ExpressionUtil.Language>(this));
         language.add(new AjaxFormComponentUpdatingBehavior("change") {
 
@@ -166,7 +166,7 @@ public class ExpressionEditorPanel extends SimplePanel<ExpressionType>{
 
                     @Override
                     public List<ObjectReferenceType> getObject() {
-                        return WebModelUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), policyMap);
+                        return WebModelServiceUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), policyMap);
                     }
                 }, new ObjectReferenceChoiceRenderer(policyMap));
         

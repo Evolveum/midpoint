@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -43,8 +45,6 @@ import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
@@ -147,7 +147,7 @@ public class PageCertDefinition extends PageAdminCertification {
 		try {
 			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
 			PrismObject<AccessCertificationDefinitionType> definitionObject =
-					WebModelUtils.loadObject(AccessCertificationDefinitionType.class, definitionOid, options,
+					WebModelServiceUtils.loadObject(AccessCertificationDefinitionType.class, definitionOid, options,
 							PageCertDefinition.this, task, result);
 			if (definitionObject != null) {
 				definition = definitionObject.asObjectable();
@@ -160,7 +160,7 @@ public class PageCertDefinition extends PageAdminCertification {
 		}
 		result.recomputeStatus();
 
-		if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+		if (!WebComponentUtil.isSuccessOrHandledError(result)) {
 			showResult(result);
 		}
 		return definitionDto;
@@ -291,14 +291,14 @@ public class PageCertDefinition extends PageAdminCertification {
             public void setObject(AccessCertificationRemediationStyleType object) {
                 definitionModel.getObject().setRemediationStyle(object);
             }
-        }, WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationRemediationStyleType.class),
+        }, WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationRemediationStyleType.class),
                 new EnumChoiceRenderer<AccessCertificationRemediationStyleType>(this));
         mainForm.add(remediation);
 
 		DropDownChoice outcomeStrategy =
 				new DropDownChoice<>(ID_OUTCOME_STRATEGY,
 						new PropertyModel<AccessCertificationCaseOutcomeStrategyType>(definitionModel, CertDefinitionDto.F_OUTCOME_STRATEGY),
-						WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationCaseOutcomeStrategyType.class),
+						WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationCaseOutcomeStrategyType.class),
 				new EnumChoiceRenderer<AccessCertificationCaseOutcomeStrategyType>(this));
 		mainForm.add(outcomeStrategy);
 
@@ -394,7 +394,7 @@ public class PageCertDefinition extends PageAdminCertification {
 				getPrismContext().adopt(delta);
 				ModelExecuteOptions options = new ModelExecuteOptions();
 				options.setRaw(true);
-				getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, result);
+				getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task, result);
 			}
 			result.computeStatus();
 		} catch (Exception ex) {

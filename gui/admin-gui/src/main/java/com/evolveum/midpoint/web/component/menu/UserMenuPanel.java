@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.menu;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -39,7 +40,6 @@ import com.evolveum.midpoint.web.page.admin.home.component.MyPasswordQuestionsPa
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordQuestionsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
@@ -276,7 +276,7 @@ public class UserMenuPanel extends BasePanel {
         if (principal instanceof MidPointPrincipal) {
             MidPointPrincipal princ = (MidPointPrincipal) principal;
 
-            return WebMiscUtil.getOrigStringFromPoly(princ.getName());
+            return WebComponentUtil.getOrigStringFromPoly(princ.getName());
         }
 
         return principal.toString();

@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.page.admin.certification;
 
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -42,8 +44,6 @@ import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseDtoProvide
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
@@ -180,7 +180,7 @@ public class PageCertCampaign extends PageAdminCertification {
 		}
 		result.recomputeStatus();
 
-		if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+		if (!WebComponentUtil.isSuccessOrHandledError(result)) {
 			showResult(result);
 		}
 		return stat;
@@ -192,7 +192,7 @@ public class PageCertCampaign extends PageAdminCertification {
 		AccessCertificationCampaignType campaign = null;
 		try {
 			PrismObject<AccessCertificationCampaignType> campaignObject =
-					WebModelUtils.loadObject(AccessCertificationCampaignType.class, getCampaignOid(), PageCertCampaign.this, task, result);
+					WebModelServiceUtils.loadObject(AccessCertificationCampaignType.class, getCampaignOid(), PageCertCampaign.this, task, result);
 			if (campaignObject != null) {
 				campaign = campaignObject.asObjectable();
 			}
@@ -203,7 +203,7 @@ public class PageCertCampaign extends PageAdminCertification {
 		}
 		result.recomputeStatus();
 
-		if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+		if (!WebComponentUtil.isSuccessOrHandledError(result)) {
 			showResult(result);
 		}
 		return new CertCampaignDto(campaign, this, task, result);

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.InOidFilter;
@@ -35,7 +36,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelect
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.roles.component.UserOrgReferenceChoosePanel;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -167,7 +167,7 @@ public class AssociationValueChoicePanel <C extends ObjectType> extends BasePane
 
             // See analogous discussion in ChooseTypePanel
             public AssociationValueChoicePanel getRealParent() {
-                return WebMiscUtil.theSameForPage(AssociationValueChoicePanel.this, getCallingPageReference());
+                return WebComponentUtil.theSameForPage(AssociationValueChoicePanel.this, getCallingPageReference());
             }
 
             @Override
@@ -209,7 +209,7 @@ public class AssociationValueChoicePanel <C extends ObjectType> extends BasePane
 
             // See analogous discussion in ChooseTypePanel
             public AssociationValueChoicePanel getRealParent() {
-                return WebMiscUtil.theSameForPage(AssociationValueChoicePanel.this, getCallingPageReference());
+                return WebComponentUtil.theSameForPage(AssociationValueChoicePanel.this, getCallingPageReference());
             }
 
             @Override

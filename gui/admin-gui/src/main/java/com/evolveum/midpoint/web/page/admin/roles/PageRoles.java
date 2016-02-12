@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.roles;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
@@ -46,7 +47,6 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.RolesStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 import org.apache.commons.lang.StringUtils;
@@ -269,7 +269,7 @@ public class PageRoles extends PageAdminRoles {
                 Task task = createSimpleTask(OPERATION_DELETE_ROLES);
 
                 ObjectDelta delta = ObjectDelta.createDeleteDelta(RoleType.class, role.getOid(), getPrismContext());
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
             } catch (Exception ex) {
                 result.recordPartialError("Couldn't delete role.", ex);
                 LoggingUtils.logException(LOGGER, "Couldn't delete role", ex);
@@ -408,7 +408,7 @@ public class PageRoles extends PageAdminRoles {
 
             DropDownChoice requestable = new DropDownChoice(ID_SEARCH_REQUESTABLE,
                     new PropertyModel(model, RolesSearchDto.F_REQUESTABLE),
-                    WebMiscUtil.createReadonlyModelFromEnum(RolesSearchDto.Requestable.class),
+                    WebComponentUtil.createReadonlyModelFromEnum(RolesSearchDto.Requestable.class),
                     new EnumChoiceRenderer(this));
             requestable.add(new OnChangeAjaxBehavior() {
 

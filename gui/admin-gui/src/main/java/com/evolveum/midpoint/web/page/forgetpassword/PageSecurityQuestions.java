@@ -33,6 +33,8 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 
 import com.evolveum.midpoint.common.policy.ValuePolicyGenerator;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -73,8 +75,6 @@ import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordQuestionsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;
 import com.evolveum.midpoint.web.page.login.PageLogin;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsResetTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
@@ -360,13 +360,13 @@ public class PageSecurityQuestions extends PageBase {
 
 		Task task = createSimpleTask(OPERATION_LOAD_USER);
 		OperationResult result = task.getResult();
-		PrismObject<UserType> user = WebModelUtils.loadObject(UserType.class,
+		PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class,
 				getSession().getAttribute(SESSION_ATTRIBUTE_POID).toString(), 
 				PageSecurityQuestions.this, task, result);
 
 		result.computeStatus();
 
-		if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+		if (!WebComponentUtil.isSuccessOrHandledError(result)) {
 			showResult(result);
 		}
 
@@ -452,7 +452,7 @@ public class PageSecurityQuestions extends PageBase {
 	}
 
 	private void cancelPerformed(AjaxRequestTarget target) {
-        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
                 AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
             setResponsePage(PageDashboard.class);
         } else {
@@ -554,7 +554,7 @@ public class PageSecurityQuestions extends PageBase {
 
 		password.setClearValue(newPassword);
 
-		WebMiscUtil.encryptProtectedString(password, true, getMidpointApplication());
+		WebComponentUtil.encryptProtectedString(password, true, getMidpointApplication());
 		final ItemPath valuePath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
 				CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 
@@ -644,7 +644,7 @@ public class PageSecurityQuestions extends PageBase {
 
 	private PasswordAccountDto createDefaultPasswordAccountDto(PrismObject<UserType> user) {
 		return new PasswordAccountDto(user.getOid(), getString("PageForgetPassword.accountMidpoint"),
-				getString("PageForgetPassword.resourceMidpoint"), WebMiscUtil.isActivationEnabled(user), true);
+				getString("PageForgetPassword.resourceMidpoint"), WebComponentUtil.isActivationEnabled(user), true);
 	}
 
 	private PasswordAccountDto createPasswordAccountDto(PrismObject<ShadowType> account) {
@@ -654,11 +654,11 @@ public class PageSecurityQuestions extends PageBase {
 				|| resourceRef.getValue().getObject() == null) {
 			resourceName = getString("PageForgetPassword.couldntResolve");
 		} else {
-			resourceName = WebMiscUtil.getName(resourceRef.getValue().getObject());
+			resourceName = WebComponentUtil.getName(resourceRef.getValue().getObject());
 		}
 
-		return new PasswordAccountDto(account.getOid(), WebMiscUtil.getName(account), resourceName,
-				WebMiscUtil.isActivationEnabled(account));
+		return new PasswordAccountDto(account.getOid(), WebComponentUtil.getName(account), resourceName,
+				WebComponentUtil.isActivationEnabled(account));
 	}
 
 	public void sendMailToUser(final String userLogin, final String password, String newPassword,

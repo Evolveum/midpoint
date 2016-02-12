@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -38,7 +39,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.page.admin.users.component.*;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -148,7 +148,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 			@Override
 			public AssignmentTablePanel getRealParent() {
-				return WebMiscUtil.theSameForPage(AssignmentTablePanel.this, getCallingPageReference());
+				return WebComponentUtil.theSameForPage(AssignmentTablePanel.this, getCallingPageReference());
 			}
 
 			@Override
@@ -186,7 +186,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 			@Override
 			public AssignmentTablePanel getRealParent() {
-				return WebMiscUtil.theSameForPage(AssignmentTablePanel.this, getCallingPageReference());
+				return WebComponentUtil.theSameForPage(AssignmentTablePanel.this, getCallingPageReference());
 			}
 
 			@Override
@@ -515,7 +515,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 			ItemPath deltaPath = delta.getPath().rest();
 			ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
 
-			delta.setParentPath(WebMiscUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
+			delta.setParentPath(WebComponentUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
 			delta.applyDefinition(deltaDef);
 
 			userDelta.addModification(delta);

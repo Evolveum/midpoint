@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -31,7 +32,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -159,7 +159,7 @@ public class RepositoryObjectDataProvider
             subResult.recomputeStatus();
         }
 
-        return new ResourceDescription(oid, WebMiscUtil.getName(resource), type);
+        return new ResourceDescription(oid, WebComponentUtil.getName(resource), type);
     }
 
     @Override

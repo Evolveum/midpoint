@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -41,7 +42,6 @@ import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -157,7 +157,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
             PrismContext context = application.getPrismContext();
             String xml = context.serializeObjectToString(object, PrismContext.LANG_XML);
-            dto = new ObjectViewDto(object.getOid(), WebMiscUtil.getName(object), object, xml);
+            dto = new ObjectViewDto(object.getOid(), WebComponentUtil.getName(object), object, xml);
 
             result.recomputeStatus();
         } catch (Exception ex) {
@@ -173,7 +173,7 @@ public class PageDebugView extends PageAdminConfiguration {
             showResult(result);
         }
 
-        if (!WebMiscUtil.isSuccessOrHandledErrorOrWarning(result)) {
+        if (!WebComponentUtil.isSuccessOrHandledErrorOrWarning(result)) {
             showResultInSession(result);
             throw new RestartResponseException(PageDebugList.class);
         }

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
@@ -27,7 +28,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -102,7 +102,7 @@ public class CertDefinitionDto implements Serializable {
 
         if (ref != null) {
             if (ref.getTargetName() != null) {
-                dto = new ObjectViewDto(ref.getOid(), WebMiscUtil.getOrigStringFromPoly(ref.getTargetName()));
+                dto = new ObjectViewDto(ref.getOid(), WebComponentUtil.getOrigStringFromPoly(ref.getTargetName()));
                 dto.setType(UserType.class);
                 return dto;
             } else {
@@ -122,7 +122,7 @@ public class CertDefinitionDto implements Serializable {
     }
 
     public String getName() {
-        return WebMiscUtil.getName(definition);
+        return WebComponentUtil.getName(definition);
     }
 
     public String getDescription() {
@@ -476,7 +476,7 @@ public class CertDefinitionDto implements Serializable {
         if (dateGc == null) {
             return "-";
         } else {
-            return WebMiscUtil.formatDate(XmlTypeConverter.toDate(dateGc));
+            return WebComponentUtil.formatDate(XmlTypeConverter.toDate(dateGc));
         }
     }
 

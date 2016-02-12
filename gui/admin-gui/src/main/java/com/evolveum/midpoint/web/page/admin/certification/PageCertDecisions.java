@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -39,8 +41,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAc
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationConfigurationType;
@@ -248,7 +248,7 @@ public class PageCertDecisions extends PageAdminCertification {
                 CertDecisionDto dto = rowModel.getObject();
                 Date started = dto.getStageStarted();
                 if (started != null) {
-                    item.add(AttributeModifier.replace("title", WebMiscUtil.formatDate(started)));
+                    item.add(AttributeModifier.replace("title", WebComponentUtil.formatDate(started)));
                     item.add(new TooltipBehavior());
                 }
             }
@@ -262,7 +262,7 @@ public class PageCertDecisions extends PageAdminCertification {
                 super.populateItem(item, componentId, rowModel);
                 XMLGregorianCalendar deadline = rowModel.getObject().getCertCase().getCurrentReviewDeadline();
                 if (deadline != null) {
-                    item.add(AttributeModifier.replace("title", WebMiscUtil.formatDate(deadline)));
+                    item.add(AttributeModifier.replace("title", WebComponentUtil.formatDate(deadline)));
                     item.add(new TooltipBehavior());
                 }
             }
@@ -386,7 +386,7 @@ public class PageCertDecisions extends PageAdminCertification {
     //region Actions
 
     private void recordActionOnSelected(AccessCertificationResponseType response, AjaxRequestTarget target) {
-        List<CertDecisionDto> certDecisionDtoList = WebMiscUtil.getSelectedData(getDecisionsTable());
+        List<CertDecisionDto> certDecisionDtoList = WebComponentUtil.getSelectedData(getDecisionsTable());
         if (certDecisionDtoList.isEmpty()) {
             warn(getString("PageCertDecisions.message.noItemSelected"));
             target.add(getFeedbackPanel());

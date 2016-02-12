@@ -65,6 +65,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.TaskService;
@@ -88,7 +89,6 @@ import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.web.util.Utf8BundleStringResourceLoader;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 
 /**
  * @author lazyman
@@ -160,7 +160,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
                                 localeDefinition.get(key + PROP_NAME),
                                 localeDefinition.get(key + PROP_FLAG),
                                 localeDefinition.get(key + PROP_DEFAULT),
-                                WebMiscUtil.getLocaleFromString(key)
+                                WebComponentUtil.getLocaleFromString(key)
                         );
                         locales.add(descriptor);
                     }
@@ -206,7 +206,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     @Override
     public Class<? extends PageBase> getHomePage() {
-        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
                 AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
             return PageDashboard.class;
         } else {
@@ -265,7 +265,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
             public IRequestHandler onException(RequestCycle cycle, Exception ex) {
             	if (REQUEST_LOGGER.isTraceEnabled()) {
 					REQUEST_LOGGER.trace("REQUEST CYCLE: Exception: {}, handler {}", ex,
-						WebMiscUtil.debugHandler(cycle.getActiveRequestHandler()), ex);
+						WebComponentUtil.debugHandler(cycle.getActiveRequestHandler()), ex);
 				}
                 LoggingUtils.logUnexpectedException(LOGGER, "Error occurred during page rendering", ex);
                 return new RenderPageRequestHandler(new PageProvider(new PageError(ex)));
@@ -284,7 +284,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 				} else {
 					if (REQUEST_LOGGER.isTraceEnabled()) {
 						REQUEST_LOGGER.trace("REQUEST CYCLE: Scheduled request handler {}", 
-							WebMiscUtil.debugHandler(handler));
+							WebComponentUtil.debugHandler(handler));
 					}
 				}
 				super.onRequestHandlerScheduled(cycle, handler);
@@ -295,7 +295,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 			{
 				if (REQUEST_LOGGER.isTraceEnabled()) {
 					REQUEST_LOGGER.trace("REQUEST CYCLE: Resolved request handler {}", 
-						WebMiscUtil.debugHandler(handler));
+						WebComponentUtil.debugHandler(handler));
 				}
 			}
             
@@ -304,7 +304,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 			{
 				if (REQUEST_LOGGER.isTraceEnabled()) {
 					REQUEST_LOGGER.trace("REQUEST CYCLE: Begin request: '{}', handler {}", cycle.getRequest().getOriginalUrl(),
-						WebMiscUtil.debugHandler(cycle.getActiveRequestHandler()));
+						WebComponentUtil.debugHandler(cycle.getActiveRequestHandler()));
 				}
 				super.onBeginRequest(cycle);
 			}
@@ -314,7 +314,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 			{
 				if (REQUEST_LOGGER.isTraceEnabled()) {
 					REQUEST_LOGGER.trace("REQUEST CYCLE: End request: '{}', next handler: {}", cycle.getRequest().getOriginalUrl(),
-							WebMiscUtil.debugHandler(cycle.getRequestHandlerScheduledAfterCurrent()));
+							WebComponentUtil.debugHandler(cycle.getRequestHandlerScheduledAfterCurrent()));
 				}
 				super.onBeginRequest(cycle);
 			}
@@ -324,7 +324,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 			{
 				if (REQUEST_LOGGER.isTraceEnabled()) {
 					REQUEST_LOGGER.trace("REQUEST CYCLE: Detach, request: '{}', next handler: {}", cycle.getRequest().getOriginalUrl(),
-							WebMiscUtil.debugHandler(cycle.getRequestHandlerScheduledAfterCurrent()));
+							WebComponentUtil.debugHandler(cycle.getRequestHandlerScheduledAfterCurrent()));
 					
 				}
 				super.onBeginRequest(cycle);
@@ -336,7 +336,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 			{
 				if (REQUEST_LOGGER.isTraceEnabled()) {
 					REQUEST_LOGGER.trace("REQUEST CYCLE: Exception - Resolved request handler {}", 
-						WebMiscUtil.debugHandler(handler), exception);
+						WebComponentUtil.debugHandler(handler), exception);
 				}
 			}
 
@@ -345,7 +345,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 			{
 				if (REQUEST_LOGGER.isTraceEnabled()) {
 					REQUEST_LOGGER.trace("REQUEST CYCLE: Request handler executed {}", 
-						WebMiscUtil.debugHandler(handler));
+						WebComponentUtil.debugHandler(handler));
 				}
 			}
 
@@ -354,7 +354,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 			{
 				if (REQUEST_LOGGER.isTraceEnabled()) {
 					REQUEST_LOGGER.trace("REQUEST CYCLE: Url '{}' mapped, handler {}", url, 
-						WebMiscUtil.debugHandler(handler));
+						WebComponentUtil.debugHandler(handler));
 				}
 			}
             

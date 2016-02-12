@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.workflow;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -51,7 +52,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDetailedDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
@@ -221,7 +221,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         wrapper.setShowAssignments(false);
         wrapper.setReadonly(true);
         wrapper.initializeContainers(this);
-        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+        if (wrapper.getResult() != null && !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
             showResultInSession(wrapper.getResult());
         }
 
@@ -250,7 +250,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         wrapper.setShowAssignments(true);
         wrapper.setReadonly(true);
         wrapper.initializeContainers(this);
-        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+        if (wrapper.getResult() != null && !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
             showResultInSession(wrapper.getResult());
         }
 
@@ -288,7 +288,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         wrapper.setShowAssignments(true);
         wrapper.setReadonly(true);
         wrapper.initializeContainers(this);
-        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+        if (wrapper.getResult() != null && !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
             showResultInSession(wrapper.getResult());
         }
 
@@ -317,7 +317,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             wrapper.setMinimalized(false);
             wrapper.setShowInheritedObjectAttributes(false);
             wrapper.initializeContainers(this);
-            if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+            if (wrapper.getResult() != null && !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
                 showResultInSession(wrapper.getResult());
             }
 
@@ -347,7 +347,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             wrapper.setMinimalized(true);
             wrapper.setReadonly(true);
             wrapper.initializeContainers(this);
-            if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+            if (wrapper.getResult() != null && !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
                 showResultInSession(wrapper.getResult());
             }
             return wrapper;
@@ -370,7 +370,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 			wrapper.setReadonly(true);
             wrapper.initializeContainers(this);
             wrapper.setShowInheritedObjectAttributes(false);
-            if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+            if (wrapper.getResult() != null && !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
                 showResultInSession(wrapper.getResult());
             }
 
@@ -458,7 +458,7 @@ public class PageWorkItem extends PageAdminWorkItems {
                 if (dto.getProcessInstance().getStartTimestamp() == null) {
                     return "";
                 }
-                return WebMiscUtil.formatDate(XmlTypeConverter.toDate(dto.getProcessInstance().getStartTimestamp()));
+                return WebComponentUtil.formatDate(XmlTypeConverter.toDate(dto.getProcessInstance().getStartTimestamp()));
             }
 
         });
@@ -472,7 +472,7 @@ public class PageWorkItem extends PageAdminWorkItems {
                 if (dto.getWorkItem().getMetadata() == null || dto.getWorkItem().getMetadata().getCreateTimestamp() == null) {
                     return "";
                 }
-                return WebMiscUtil.formatDate(XmlTypeConverter.toDate(dto.getWorkItem().getMetadata().getCreateTimestamp()));
+                return WebComponentUtil.formatDate(XmlTypeConverter.toDate(dto.getWorkItem().getMetadata().getCreateTimestamp()));
             }
 
         });
@@ -830,12 +830,12 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     private void reviveModels() throws SchemaException {
-        WebMiscUtil.revive(requesterModel, getPrismContext());
-        WebMiscUtil.revive(objectOldModel, getPrismContext());
-        WebMiscUtil.revive(objectNewModel, getPrismContext());
-        WebMiscUtil.revive(requestSpecificModel, getPrismContext());
-        WebMiscUtil.revive(trackingDataModel, getPrismContext());
-        WebMiscUtil.revive(additionalDataModel, getPrismContext());
+        WebComponentUtil.revive(requesterModel, getPrismContext());
+        WebComponentUtil.revive(objectOldModel, getPrismContext());
+        WebComponentUtil.revive(objectNewModel, getPrismContext());
+        WebComponentUtil.revive(requestSpecificModel, getPrismContext());
+        WebComponentUtil.revive(trackingDataModel, getPrismContext());
+        WebComponentUtil.revive(additionalDataModel, getPrismContext());
     }
 
 }

@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.web.page.admin.users.dto;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
@@ -57,9 +57,9 @@ public class OrgTreeDto implements Serializable, Comparable<OrgTreeDto>, OrgDto 
 this.parent = parent;
 this.oid = org.getOid();
 //this.relation = relation;
-this.name = WebMiscUtil.getOrigStringFromPoly(org.getName());
+this.name = WebComponentUtil.getOrigStringFromPoly(org.getName());
 this.description = org.getDescription();
-this.displayName = WebMiscUtil.getOrigStringFromPoly(org.getDisplayName());
+this.displayName = WebComponentUtil.getOrigStringFromPoly(org.getDisplayName());
 this.identifier = org.getIdentifier();
 }
 

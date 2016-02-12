@@ -36,6 +36,8 @@ import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -59,8 +61,6 @@ import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceConfigurationDto;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
@@ -179,7 +179,7 @@ public class ResourceDetailsTabPanel extends Panel{
 	private List<ResourceConfigurationDto> createResourceConfigList(ResourceType resource) {
 		OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
 		Task task = parentPage.createSimpleTask(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
-		List<PrismObject<TaskType>> tasks = WebModelUtils.searchObjects(TaskType.class,
+		List<PrismObject<TaskType>> tasks = WebModelServiceUtils.searchObjects(TaskType.class,
 				ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class,
 						parentPage.getPrismContext(), resource.getOid())),
 				result, parentPage);
@@ -280,7 +280,7 @@ public class ResourceDetailsTabPanel extends Panel{
 		
 		ConnectorType connectorType = resource.getConnector();
 		description.add(StringUtils
-				.substringAfterLast(WebMiscUtil.getEffectiveName(connectorType, ConnectorType.F_CONNECTOR_TYPE), "."));
+				.substringAfterLast(WebComponentUtil.getEffectiveName(connectorType, ConnectorType.F_CONNECTOR_TYPE), "."));
 		
 		description.add(connectorType.getConnectorVersion());
 		description.add(connectorType.getConnectorBundle());

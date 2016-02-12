@@ -17,12 +17,12 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.form.DateFormGroup;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 
 import org.apache.wicket.Component;
@@ -67,13 +67,13 @@ public class AuditPopupPanel extends BasePanel<AuditReportDto> {
                 createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         add(description);
 
-        IModel choices = WebMiscUtil.createReadonlyModelFromEnum(ExportType.class);
+        IModel choices = WebComponentUtil.createReadonlyModelFromEnum(ExportType.class);
         IChoiceRenderer renderer = new EnumChoiceRenderer();
         DropDownFormGroup exportType = new DropDownFormGroup(ID_EXPORT_TYPE, new PropertyModel<ExportType>(getModel(), AuditReportDto.F_EXPORT_TYPE),
                 choices, renderer, createStringResource("AuditPopulPanel.exportType.label"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         add(exportType);
 
-        choices = WebMiscUtil.createReadonlyModelFromEnum(AuditEventType.class);
+        choices = WebComponentUtil.createReadonlyModelFromEnum(AuditEventType.class);
         DropDownFormGroup auditEventType = new DropDownFormGroup(ID_AUDITEVENTTYPE, new PropertyModel<AuditEventType>(getModel(), AuditReportDto.F_AUDITEVENTTYPE),
                 choices, renderer, createStringResource("AuditPopupPanel.auditEventType"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         add(auditEventType);

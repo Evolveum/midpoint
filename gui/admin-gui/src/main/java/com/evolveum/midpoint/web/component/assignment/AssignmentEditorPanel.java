@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -45,7 +46,6 @@ import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -398,7 +398,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         });
         body.add(activationBlock);
 
-        DropDownChoicePanel administrativeStatus = WebMiscUtil.createEnumPanel(ActivationStatusType.class, ID_ADMINISTRATIVE_STATUS,
+        DropDownChoicePanel administrativeStatus = WebComponentUtil.createEnumPanel(ActivationStatusType.class, ID_ADMINISTRATIVE_STATUS,
                 new PropertyModel<ActivationStatusType>(getModel(), AssignmentEditorDto.F_ACTIVATION + "."
                         + ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart()), this);
         activationBlock.add(administrativeStatus);
@@ -643,7 +643,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         OperationResult result = new OperationResult(OPERATION_LOAD_ATTRIBUTES);
         List<ACAttributeDto> attributes = new ArrayList<>();
         try {
-            ConstructionType construction = WebMiscUtil.getContainerValue(dto.getOldValue(),
+            ConstructionType construction = WebComponentUtil.getContainerValue(dto.getOldValue(),
                     AssignmentType.F_CONSTRUCTION, ConstructionType.class);
 
             if(construction == null){
@@ -795,7 +795,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 PrismReferenceValue refValue = targetRef.getValue();
                 if (refValue != null && refValue.getObject() != null) {
                     PrismObject object = refValue.getObject();
-                    return WebMiscUtil.getName(object);
+                    return WebComponentUtil.getName(object);
                 }
 
                 String oid = targetRef.getOid();
@@ -813,7 +813,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                     }
                     PrismObject object = model.getObject(type, oid, options, task, result);
 
-                    return WebMiscUtil.getName(object);
+                    return WebComponentUtil.getName(object);
                 } catch (Exception ex) {
                     LoggingUtils.logException(LOGGER, "Couldn't load object", ex);
                 }

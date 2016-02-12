@@ -42,6 +42,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -92,8 +94,6 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceConfigurationD
 import com.evolveum.midpoint.web.page.admin.resources.dto.TestConnectionResultDto;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
@@ -182,7 +182,7 @@ public class PageResource extends PageAdminResources {
 		OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE);
 		Collection<SelectorOptions<GetOperationOptions>> resolveConnectorOption = SelectorOptions
 				.createCollection(ResourceType.F_CONNECTOR, GetOperationOptions.createResolve());
-		PrismObject<ResourceType> resource = WebModelUtils.loadObject(ResourceType.class, resourceOid,
+		PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class, resourceOid,
 				resolveConnectorOption, this, task, result);
 
 		result.recomputeStatus();

@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPage;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -32,6 +31,7 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
@@ -141,7 +141,7 @@ public class ValueChoosePanel<T, C extends ObjectType> extends BasePanel<T> {
 
             // See analogous discussion in ChooseTypePanel
             public ValueChoosePanel getRealParent() {
-                return WebMiscUtil.theSameForPage(ValueChoosePanel.this, getCallingPageReference());
+                return WebComponentUtil.theSameForPage(ValueChoosePanel.this, getCallingPageReference());
             }
 
             @Override
@@ -177,7 +177,7 @@ public class ValueChoosePanel<T, C extends ObjectType> extends BasePanel<T> {
 
             // See analogous discussion in ChooseTypePanel
             public ValueChoosePanel getRealParent() {
-                return WebMiscUtil.theSameForPage(ValueChoosePanel.this, getCallingPageReference());
+                return WebComponentUtil.theSameForPage(ValueChoosePanel.this, getCallingPageReference());
             }
 
             @Override

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.resources.content.dto;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -41,7 +42,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -119,7 +119,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
             result.computeStatusIfUnknown();
         }
 
-        if (WebMiscUtil.showResultInPage(result)) {
+        if (WebComponentUtil.showResultInPage(result)) {
             getPage().showResultInSession(result);
             throw new RestartResponseException(PageError.class);
         }
@@ -211,7 +211,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
             throws SchemaException, SecurityViolationException, ConfigurationException {
 
         AccountContentDto dto = new AccountContentDto();
-        dto.setAccountName(WebMiscUtil.getName(object));
+        dto.setAccountName(WebComponentUtil.getName(object));
         dto.setAccountOid(object.getOid());
         ShadowType shadow = object.asObjectable();
 
@@ -225,7 +225,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
         try {
 	        PrismObject<UserType> owner = loadOwner(dto.getAccountOid(), result);
 	        if (owner != null) {
-	            dto.setOwnerName(WebMiscUtil.getName(owner));
+	            dto.setOwnerName(WebComponentUtil.getName(owner));
 	            dto.setOwnerOid(owner.getOid());
 	        }
         } catch (AuthorizationException e) {
@@ -234,7 +234,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
         	dto.setOwnerName("(unauthorized)");
         }
 
-        dto.setSituation(WebMiscUtil.getValue(object, ShadowType.F_SYNCHRONIZATION_SITUATION,
+        dto.setSituation(WebComponentUtil.getValue(object, ShadowType.F_SYNCHRONIZATION_SITUATION,
                 SynchronizationSituationType.class));
 
         dto.setKind(shadow.getKind());

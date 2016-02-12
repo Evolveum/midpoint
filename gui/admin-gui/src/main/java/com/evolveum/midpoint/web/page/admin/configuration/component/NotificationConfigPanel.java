@@ -34,6 +34,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
@@ -41,7 +42,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.MailServerConfigurationTypeDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.NotificationConfigurationDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
 
 /**
@@ -80,10 +80,10 @@ public class NotificationConfigPanel extends SimplePanel<NotificationConfigurati
 
 	@Override
 	protected void initLayout() {
-		TextField<String> defaultFromField = WebMiscUtil.createAjaxTextField(ID_DEFAULT_FROM,
+		TextField<String> defaultFromField = WebComponentUtil.createAjaxTextField(ID_DEFAULT_FROM,
 				new PropertyModel<String>(getModel(), "defaultFrom"));
 
-		CheckBox debugCheck = WebMiscUtil.createAjaxCheckBox(ID_DEBUG, new PropertyModel<Boolean>(getModel(), "debug"));
+		CheckBox debugCheck = WebComponentUtil.createAjaxCheckBox(ID_DEBUG, new PropertyModel<Boolean>(getModel(), "debug"));
 
 		DropDownChoice mailServerConfigChooser = new DropDownChoice<>(ID_MAIL_SERVER,
 				new PropertyModel<MailServerConfigurationTypeDto>(getModel(),
@@ -133,23 +133,23 @@ public class NotificationConfigPanel extends SimplePanel<NotificationConfigurati
 		});
 		add(serverConfigContainer);
 
-		TextField<String> hostField = WebMiscUtil.createAjaxTextField(ID_HOST,
+		TextField<String> hostField = WebComponentUtil.createAjaxTextField(ID_HOST,
 				new PropertyModel<String>(getModel(), "selectedServer.host"));
-		TextField<Integer> portField = WebMiscUtil.createAjaxTextField(ID_PORT,
+		TextField<Integer> portField = WebComponentUtil.createAjaxTextField(ID_PORT,
 				new PropertyModel<Integer>(getModel(), "selectedServer.port"));
-		TextField<String> userNameField = WebMiscUtil.createAjaxTextField(ID_USERNAME,
+		TextField<String> userNameField = WebComponentUtil.createAjaxTextField(ID_USERNAME,
 				new PropertyModel<String>(getModel(), "selectedServer.username"));
 		PasswordTextField passwordField = new PasswordTextField(ID_PASSWORD,
 				new PropertyModel<String>(getModel(), "selectedServer.password"));
 		passwordField.setRequired(false);
 		passwordField.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 
-		TextField<String> redirectToFileField = WebMiscUtil.createAjaxTextField(ID_REDIRECT_TO_FILE,
+		TextField<String> redirectToFileField = WebComponentUtil.createAjaxTextField(ID_REDIRECT_TO_FILE,
 				new PropertyModel<String>(getModel(), "redirectToFile"));
 
 		DropDownFormGroup transportSecurity = new DropDownFormGroup<>(ID_TRANSPORT_SECURITY,
 				new PropertyModel<MailTransportSecurityType>(getModel(), "selectedServer.mailTransportSecurityType"),
-				WebMiscUtil.createReadonlyModelFromEnum(MailTransportSecurityType.class),
+				WebComponentUtil.createReadonlyModelFromEnum(MailTransportSecurityType.class),
 				new EnumChoiceRenderer<MailTransportSecurityType>(this),
 				createStringResource("SystemConfigPanel.mail.transportSecurity"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
 		// transportSecurity.add(new EmptyOnChangeAjaxFormUpdatingBehavior());

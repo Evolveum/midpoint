@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.component.wizard.resource;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -32,8 +34,6 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.component.SchemaListPanel;
 import com.evolveum.midpoint.web.component.wizard.resource.component.XmlEditorPanel;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 
@@ -147,22 +147,22 @@ public class SchemaStep extends WizardStep {
         OperationResult result = task.getResult();
 
         try {
-            resource = WebModelUtils.loadObject(ResourceType.class, resource.getOid(), getPageBase(), task, result);
+            resource = WebModelServiceUtils.loadObject(ResourceType.class, resource.getOid(), getPageBase(), task, result);
             getPageBase().getPrismContext().adopt(resource);
 
             model.getObject().asObjectable().setSchema(resource.asObjectable().getSchema());
         } catch (SchemaException e) {
-            LOGGER.error(getString("SchemaStep.message.reload.fail", WebMiscUtil.getName(resource)));
-            result.recordFatalError(getString("SchemaStep.message.reload.fail", WebMiscUtil.getName(resource)));
+            LOGGER.error(getString("SchemaStep.message.reload.fail", WebComponentUtil.getName(resource)));
+            result.recordFatalError(getString("SchemaStep.message.reload.fail", WebComponentUtil.getName(resource)));
         }
 
         result.computeStatusIfUnknown();
         if(result.isSuccess()){
-            LOGGER.info(getString("SchemaStep.message.reload.ok", WebMiscUtil.getName(resource)));
+            LOGGER.info(getString("SchemaStep.message.reload.ok", WebComponentUtil.getName(resource)));
             result.recordSuccess();
         } else {
-            LOGGER.error(getString("SchemaStep.message.reload.fail", WebMiscUtil.getName(resource)));
-            result.recordFatalError(getString("SchemaStep.message.reload.fail", WebMiscUtil.getName(resource)));
+            LOGGER.error(getString("SchemaStep.message.reload.fail", WebComponentUtil.getName(resource)));
+            result.recordFatalError(getString("SchemaStep.message.reload.fail", WebComponentUtil.getName(resource)));
         }
 
         getPageBase().showResult(result);

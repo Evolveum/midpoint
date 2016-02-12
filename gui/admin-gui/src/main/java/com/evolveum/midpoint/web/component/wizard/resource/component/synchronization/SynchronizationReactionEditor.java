@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.synchronization;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -30,8 +32,6 @@ import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.ThreeStateBooleanPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -106,7 +106,7 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
 
         DropDownChoice situation = new DropDownChoice<>(ID_SITUATION,
                 new PropertyModel<SynchronizationSituationType>(getModel(), "situation"),
-                WebMiscUtil.createReadonlyModelFromEnum(SynchronizationSituationType.class),
+                WebComponentUtil.createReadonlyModelFromEnum(SynchronizationSituationType.class),
                 new EnumChoiceRenderer<SynchronizationSituationType>(this));
         situation.setNullValid(true);
         add(situation);
@@ -125,7 +125,7 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
 
                     @Override
                     public List<String> getObject() {
-                        return WebMiscUtil.getChannelList();
+                        return WebComponentUtil.getChannelList();
                     }
                 };
             }
@@ -150,7 +150,7 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
 
                     @Override
                     public List<ObjectReferenceType> getObject() {
-                        return WebModelUtils.createObjectReferenceList(ObjectTemplateType.class, getPageBase(), objectTemplateMap);
+                        return WebModelServiceUtils.createObjectReferenceList(ObjectTemplateType.class, getPageBase(), objectTemplateMap);
                     }
                 }, new ObjectReferenceChoiceRenderer(objectTemplateMap));
         objectTemplateRef.setNullValid(true);
@@ -261,7 +261,7 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
             ObjectReferenceType ref;
 
             for(PrismObject<ObjectTemplateType> template: templates){
-                objectTemplateMap.put(template.getOid(), WebMiscUtil.getName(template));
+                objectTemplateMap.put(template.getOid(), WebComponentUtil.getName(template));
                 ref = new ObjectReferenceType();
                 ref.setType(ObjectTemplateType.COMPLEX_TYPE);
                 ref.setOid(template.getOid());

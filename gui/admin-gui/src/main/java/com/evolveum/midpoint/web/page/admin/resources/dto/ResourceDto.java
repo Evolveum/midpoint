@@ -24,12 +24,11 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -67,7 +66,7 @@ public class ResourceDto extends Selectable implements InlineMenuable {
     
     public ResourceDto(PrismObject<ResourceType> resource) {
     	oid = resource.getOid();
-        name = WebMiscUtil.getName(resource);
+        name = WebComponentUtil.getName(resource);
 
         PrismReference ref = resource.findReference(ResourceType.F_CONNECTOR_REF);
         ConnectorType connector = null;
@@ -92,7 +91,7 @@ public class ResourceDto extends Selectable implements InlineMenuable {
         OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE_DEFINITION);
 
         oid = resource.getOid();
-        name = WebMiscUtil.getName(resource);
+        name = WebComponentUtil.getName(resource);
         bundle = connector != null ? connector.getConnectorBundle() : null;
         version = connector != null ? connector.getConnectorVersion() : null;
         type = connector != null ? connector.getConnectorType() : null;

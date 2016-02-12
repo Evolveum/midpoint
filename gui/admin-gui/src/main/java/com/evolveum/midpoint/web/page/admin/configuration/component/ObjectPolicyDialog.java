@@ -41,6 +41,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -58,7 +59,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyConfig
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyDialogDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectTemplateConfigTypeReferenceDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.PropertyConstraintTypeDto;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -368,7 +368,7 @@ public class ObjectPolicyDialog extends ModalWindow {
 					for (PrismObject<ObjectTemplateType> obj : templateList) {
 						template = obj.asObjectable();
 						list.add(new ObjectTemplateConfigTypeReferenceDto(template.getOid(),
-								WebMiscUtil.getName(template)));
+								WebComponentUtil.getName(template)));
 					}
 				}
 				return list;

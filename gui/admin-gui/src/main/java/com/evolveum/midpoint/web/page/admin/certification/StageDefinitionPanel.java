@@ -1,10 +1,10 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.certification.dto.*;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -134,14 +134,14 @@ public class StageDefinitionPanel extends SimplePanel<StageDefinitionDto> {
         DropDownChoice outcomeStrategy1 =
                 new DropDownChoice<>(ID_OUTCOME_STRATEGY,
                         new PropertyModel<AccessCertificationCaseOutcomeStrategyType>(getModel(), StageDefinitionDto.F_OUTCOME_STRATEGY),
-                        WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationCaseOutcomeStrategyType.class),
+                        WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationCaseOutcomeStrategyType.class),
                 new EnumChoiceRenderer<AccessCertificationCaseOutcomeStrategyType>(this));
         add(outcomeStrategy1);
 
         DropDownChoice<AccessCertificationResponseType> outcomeIfNoReviewers =
                 new DropDownChoice<>(ID_OUTCOME_IF_NO_REVIEWERS,
                         new PropertyModel<AccessCertificationResponseType>(getModel(), StageDefinitionDto.F_OUTCOME_IF_NO_REVIEWERS),
-                        WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationResponseType.class),
+                        WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationResponseType.class),
                 new EnumChoiceRenderer<AccessCertificationResponseType>(this));
         add(outcomeIfNoReviewers);
 

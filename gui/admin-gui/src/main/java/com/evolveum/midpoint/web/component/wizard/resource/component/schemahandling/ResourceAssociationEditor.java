@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -36,7 +37,6 @@ import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandl
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -137,7 +137,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
 
         DropDownChoice kind = new DropDownChoice<>(ID_KIND,
                 new PropertyModel<ShadowKindType>(getModel(), "kind"),
-                WebMiscUtil.createReadonlyModelFromEnum(ShadowKindType.class),
+                WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class),
                 new EnumChoiceRenderer<ShadowKindType>(this));
         kind.setNullValid(false);
         add(kind);
@@ -148,7 +148,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
 
         DropDownChoice direction = new DropDownChoice<>(ID_DIRECTION,
                 new PropertyModel<ResourceObjectAssociationDirectionType>(getModel(), "direction"),
-                WebMiscUtil.createReadonlyModelFromEnum(ResourceObjectAssociationDirectionType.class),
+                WebComponentUtil.createReadonlyModelFromEnum(ResourceObjectAssociationDirectionType.class),
                 new EnumChoiceRenderer<ResourceObjectAssociationDirectionType>(this));
         direction.setNullValid(true);
         add(direction);
@@ -219,7 +219,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
 
         DropDownChoice fetchStrategy = new DropDownChoice<>(ID_FETCH_STRATEGY,
                 new PropertyModel<AttributeFetchStrategyType>(getModel(), "fetchStrategy"),
-                WebMiscUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
+                WebComponentUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
                 new EnumChoiceRenderer<AttributeFetchStrategyType>(this));
         fetchStrategy.setNullValid(true);
         add(fetchStrategy);
@@ -230,7 +230,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
 
                     @Override
                     public List<QName> getObject() {
-                        return WebMiscUtil.getMatchingRuleList();
+                        return WebComponentUtil.getMatchingRuleList();
                     }
                 }, new QNameChoiceRenderer());
         matchingRule.setNullValid(true);

@@ -64,6 +64,7 @@ import org.apache.wicket.validation.IValidator;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -112,7 +113,6 @@ import com.evolveum.midpoint.web.session.ConfigurationStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
@@ -332,7 +332,7 @@ public class PageAccounts extends PageAdminConfiguration {
 
         DropDownChoice failedOperationType = new DropDownChoice<>(ID_SEARCH_FAILED_OPERATION_TYPE,
                 new PropertyModel<FailedOperationTypeType>(searchModel, AccountDetailsSearchDto.F_FAILED_OPERATION_TYPE),
-                WebMiscUtil.createReadonlyModelFromEnum(FailedOperationTypeType.class), new EnumChoiceRenderer<FailedOperationTypeType>(this));
+                WebComponentUtil.createReadonlyModelFromEnum(FailedOperationTypeType.class), new EnumChoiceRenderer<FailedOperationTypeType>(this));
         failedOperationType.add(new OnChangeAjaxBehavior() {
 
             @Override
@@ -346,7 +346,7 @@ public class PageAccounts extends PageAdminConfiguration {
         
         DropDownChoice kind = new DropDownChoice<>(ID_SEARCH_KIND,
                 new PropertyModel<ShadowKindType>(searchModel, AccountDetailsSearchDto.F_KIND),
-                WebMiscUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer<ShadowKindType>(this));
+                WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer<ShadowKindType>(this));
         kind.add(new OnChangeAjaxBehavior() {
 
             @Override
@@ -677,7 +677,7 @@ public class PageAccounts extends PageAdminConfiguration {
                     @Override
                     public String getObject() {
                         FocusType focus = loadShadowOwner(rowModel);
-                        return WebMiscUtil.getName(focus);
+                        return WebComponentUtil.getName(focus);
                     }
                 };
             }
@@ -732,7 +732,7 @@ public class PageAccounts extends PageAdminConfiguration {
             result.recomputeStatus();
         }
 
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             showResult(result);
         }
 
@@ -749,7 +749,7 @@ public class PageAccounts extends PageAdminConfiguration {
 
             if (objects != null) {
                 for (PrismObject<ResourceType> object : objects) {
-                    resources.add(new ResourceItemDto(object.getOid(), WebMiscUtil.getName(object)));
+                    resources.add(new ResourceItemDto(object.getOid(), WebComponentUtil.getName(object)));
                 }
             }
         } catch (Exception ex) {
@@ -763,7 +763,7 @@ public class PageAccounts extends PageAdminConfiguration {
 
         Collections.sort(resources);
 
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             showResultInSession(result);
             throw new RestartResponseException(PageDashboard.class);
         }
@@ -848,7 +848,7 @@ public class PageAccounts extends PageAdminConfiguration {
             return;
         }
 
-        String fileName = "accounts-" + WebMiscUtil.formatDate("yyyy-MM-dd-HH-mm-ss", new Date()) + ".xml";
+        String fileName = "accounts-" + WebComponentUtil.formatDate("yyyy-MM-dd-HH-mm-ss", new Date()) + ".xml";
 
         OperationResult result = new OperationResult(OPERATION_EXPORT);
         Writer writer = null;
@@ -1113,7 +1113,7 @@ public class PageAccounts extends PageAdminConfiguration {
             result.computeStatusIfUnknown();
         }
 
-        if(WebMiscUtil.showResultInPage(result)){
+        if(WebComponentUtil.showResultInPage(result)){
             showResultInSession(result);
         }
 

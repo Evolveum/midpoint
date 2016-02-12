@@ -17,10 +17,10 @@
 package com.evolveum.midpoint.web.component.util;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -97,7 +97,7 @@ public class BasePanel<T> extends Panel {
     }
     
     public PageBase getPageBase() {
-        return WebMiscUtil.getPageBase(this);
+        return WebComponentUtil.getPageBase(this);
     }
 
     protected String createComponentPath(String... components) {

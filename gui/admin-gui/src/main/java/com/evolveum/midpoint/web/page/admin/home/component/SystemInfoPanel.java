@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.web.page.admin.home.component;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.FutureUpdateBehavior;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
@@ -205,9 +205,9 @@ public class SystemInfoPanel extends SimplePanel<SystemInfoPanel.SystemInfoDto> 
                 Long[] memory = heap ? dto.heapMemory : dto.nonHeapMemory;
 
                 StringBuilder sb = new StringBuilder();
-                sb.append(WebMiscUtil.createHumanReadableByteCount(memory[0])).append(" / ");
-                sb.append(WebMiscUtil.createHumanReadableByteCount(memory[1])).append(" / ");
-                sb.append(WebMiscUtil.createHumanReadableByteCount(memory[2]));
+                sb.append(WebComponentUtil.createHumanReadableByteCount(memory[0])).append(" / ");
+                sb.append(WebComponentUtil.createHumanReadableByteCount(memory[1])).append(" / ");
+                sb.append(WebComponentUtil.createHumanReadableByteCount(memory[2]));
 
                 return sb.toString();
             }

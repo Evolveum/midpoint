@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -42,7 +43,6 @@ import com.evolveum.midpoint.web.model.LoadableModel;
 
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
@@ -121,7 +121,7 @@ public class PageResourceEdit extends PageAdminResources {
             PrismObject<ResourceType> resource = loadResource(null);
             String xml = getPrismContext().serializeObjectToString(resource, PrismContext.LANG_XML);
 
-            dto = new ObjectViewDto(resource.getOid(), WebMiscUtil.getName(resource), resource, xml);
+            dto = new ObjectViewDto(resource.getOid(), WebComponentUtil.getName(resource), resource, xml);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't load resource", ex);
             throw new RestartResponseException(PageResources.class);
@@ -224,13 +224,13 @@ public class PageResourceEdit extends PageAdminResources {
                 if (!isEditing()) {
                     //we're adding new resource
                     ObjectDelta delta = ObjectDelta.createAddDelta(newResource);
-                    getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+                    getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
                 } else {
                     //we're editing existing resource
                     PrismObject<ResourceType> oldResource = dto.getObject();
                     ObjectDelta<ResourceType> delta = oldResource.diff(newResource);
 
-                    getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta),
+                    getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta),
                             ModelExecuteOptions.createRaw(), task, result);
                 }
 
@@ -241,7 +241,7 @@ public class PageResourceEdit extends PageAdminResources {
             result.recordFatalError("Couldn't save resource.", ex);
         }
 
-        if (WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (WebComponentUtil.isSuccessOrHandledError(result)) {
             showResultInSession(result);
             setResponsePage(new PageResources(false));
         } else {

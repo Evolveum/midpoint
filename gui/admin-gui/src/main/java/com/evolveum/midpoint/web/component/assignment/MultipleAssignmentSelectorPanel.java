@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -21,7 +22,6 @@ import com.evolveum.midpoint.web.page.admin.users.component.AssignableOrgSelecti
 import com.evolveum.midpoint.web.page.admin.users.component.AssignableSelectionPage;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignableSelectionPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -104,7 +104,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
 
             @Override
             public MultipleAssignmentSelectorPanel getRealParent() {
-                return WebMiscUtil.theSameForPage(MultipleAssignmentSelectorPanel.this, getCallingPageReference());
+                return WebComponentUtil.theSameForPage(MultipleAssignmentSelectorPanel.this, getCallingPageReference());
             }
 
             @Override
@@ -130,7 +130,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
 
             @Override
             public MultipleAssignmentSelectorPanel getRealParent() {
-                return WebMiscUtil.theSameForPage(MultipleAssignmentSelectorPanel.this, getCallingPageReference());
+                return WebComponentUtil.theSameForPage(MultipleAssignmentSelectorPanel.this, getCallingPageReference());
             }
 
             @Override

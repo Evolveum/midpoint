@@ -19,6 +19,8 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -31,8 +33,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -284,7 +284,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 					return dto;
 				}
 
-				dto = new ObjectViewDto(ref.getOid(), WebMiscUtil.getOrigStringFromPoly(ref.getTargetName()));
+				dto = new ObjectViewDto(ref.getOid(), WebComponentUtil.getOrigStringFromPoly(ref.getTargetName()));
 				dto.setType(OrgType.class);
 				return dto;
 			}
@@ -304,18 +304,18 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
 		if (assignment.getTarget() != null) {
 			// object assignment
-			sb.append(WebMiscUtil.getName(assignment.getTarget()));
+			sb.append(WebComponentUtil.getName(assignment.getTarget()));
 			appendTenantAndOrgName(sb);
 		} else if (assignment.getTargetRef() != null) {
-			sb.append(WebMiscUtil.getName(assignment.getTargetRef()));
+			sb.append(WebComponentUtil.getName(assignment.getTargetRef()));
 			appendTenantAndOrgName(sb);
 		} else if (assignment.getConstruction() != null) {
 			// account assignment through account construction
 			ConstructionType construction = assignment.getConstruction();
 			if (construction.getResource() != null) {
-				sb.append(WebMiscUtil.getName(construction.getResource()));
+				sb.append(WebComponentUtil.getName(construction.getResource()));
 			} else if (construction.getResourceRef() != null) {
-				sb.append(WebMiscUtil.getName(construction.getResourceRef()));
+				sb.append(WebComponentUtil.getName(construction.getResourceRef()));
 			}
 		}
 

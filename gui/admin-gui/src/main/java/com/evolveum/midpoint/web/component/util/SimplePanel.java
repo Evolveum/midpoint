@@ -19,7 +19,7 @@ package com.evolveum.midpoint.web.component.util;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 /**
  * @author lazyman
@@ -44,7 +44,7 @@ public abstract class SimplePanel<T> extends BasePanel<T> {
 
 
     public PageBase getPageBase() {
-        return WebMiscUtil.getPageBase(this);
+        return WebComponentUtil.getPageBase(this);
     }
     
     public void setModelObject(T obj){

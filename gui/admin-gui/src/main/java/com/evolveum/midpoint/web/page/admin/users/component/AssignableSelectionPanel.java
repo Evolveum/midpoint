@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -21,7 +22,6 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -187,7 +187,7 @@ public class AssignableSelectionPanel <T extends ObjectType> extends AbstractAss
 
     private List<? extends DisplayableValue<String>> getLookupDisplayableList(){
         List<DisplayableValue<String>> list = new ArrayList<>();
-        ModelInteractionService interactionService = WebMiscUtil.getPageBase(this).getModelInteractionService();
+        ModelInteractionService interactionService = WebComponentUtil.getPageBase(this).getModelInteractionService();
         OperationResult result = new OperationResult(OPERATION_LOAD_ROLE_TYPES);
 
         try {
@@ -253,7 +253,7 @@ public class AssignableSelectionPanel <T extends ObjectType> extends AbstractAss
 	private TablePanel createTable() {
 		
 		List<IColumn> columns = createMultiSelectColumns();
-		ObjectDataProvider<SelectableBean<T>, T> provider = new ObjectDataProvider<SelectableBean<T>, T>(WebMiscUtil.getPageBase(this), getType()){
+		ObjectDataProvider<SelectableBean<T>, T> provider = new ObjectDataProvider<SelectableBean<T>, T>(WebComponentUtil.getPageBase(this), getType()){
 
 	        @Override
 	        protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
@@ -284,7 +284,7 @@ public class AssignableSelectionPanel <T extends ObjectType> extends AbstractAss
             }
 
             if(dto.getText() != null && StringUtils.isNotEmpty(dto.getText())){
-                PrismContext prismContext = WebMiscUtil.getPageBase(this).getPrismContext();
+                PrismContext prismContext = WebComponentUtil.getPageBase(this).getPrismContext();
                 PolyStringNormalizer normalizer = prismContext.getDefaultPolyStringNormalizer();
                 String normalized = normalizer.normalize(dto.getText());
 
@@ -294,7 +294,7 @@ public class AssignableSelectionPanel <T extends ObjectType> extends AbstractAss
             }
 
             if(dto.getType() != null){
-                EqualFilter typeEquals = EqualFilter.createEqual(RoleType.F_ROLE_TYPE, RoleType.class, WebMiscUtil.getPageBase(this).getPrismContext(),
+                EqualFilter typeEquals = EqualFilter.createEqual(RoleType.F_ROLE_TYPE, RoleType.class, WebComponentUtil.getPageBase(this).getPrismContext(),
                         null, dto.getType());
                 filters.add(typeEquals);
             }

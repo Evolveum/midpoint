@@ -34,6 +34,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -48,8 +50,6 @@ import com.evolveum.midpoint.web.component.wizard.WizardUtil;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -104,7 +104,7 @@ public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDe
     protected void initLayout(){
         DropDownChoice fetchStrategy = new DropDownChoice<>(ID_FETCH_STRATEGY,
                 new PropertyModel<AttributeFetchStrategyType>(getModel(), "password.fetchStrategy"),
-                WebMiscUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
+                WebComponentUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
                 new EnumChoiceRenderer<AttributeFetchStrategyType>(this));
         add(fetchStrategy);
 
@@ -170,7 +170,7 @@ public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDe
 
                     @Override
                     public List<ObjectReferenceType> getObject() {
-                    	return WebModelUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), passPolicyMap);
+                    	return WebModelServiceUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), passPolicyMap);
                        
                     }
                 }, new ObjectReferenceChoiceRenderer(passPolicyMap));
@@ -239,7 +239,7 @@ public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDe
             ObjectReferenceType ref;
 
             for(PrismObject<ValuePolicyType> policy: policies){
-                passPolicyMap.put(policy.getOid(), WebMiscUtil.getName(policy));
+                passPolicyMap.put(policy.getOid(), WebComponentUtil.getName(policy));
                 ref = new ObjectReferenceType();
                 ref.setType(ValuePolicyType.COMPLEX_TYPE);
                 ref.setOid(policy.getOid());

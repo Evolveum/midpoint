@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -32,7 +33,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDtoProvider;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 
 import org.apache.commons.lang.time.DurationFormatUtils;
@@ -184,7 +184,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
                         if (started == null) {
                             return "?";
                         } else {
-                        	return WebMiscUtil.formatDate(started);
+                        	return WebComponentUtil.formatDate(started);
                         }
                     }
                 }));
@@ -205,7 +205,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
                         if (finished == null) {
                             return getString("pageProcessInstances.notYet");
                         } else {
-                            return WebMiscUtil.formatDate(finished);
+                            return WebComponentUtil.formatDate(finished);
                         }
                     }
                 }));
@@ -285,8 +285,8 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 
     	MidPointPrincipal user = SecurityUtils.getPrincipalUser();
 
-        List<ProcessInstanceDto> processInstanceDtoList = WebMiscUtil.getSelectedData(getTable());
-        List<ProcessInstanceDto> finishedProcessInstanceDtoList = WebMiscUtil.getSelectedData(getFinishedTable());
+        List<ProcessInstanceDto> processInstanceDtoList = WebComponentUtil.getSelectedData(getTable());
+        List<ProcessInstanceDto> finishedProcessInstanceDtoList = WebComponentUtil.getSelectedData(getFinishedTable());
 
         if (!isSomeItemSelected(processInstanceDtoList, finishedProcessInstanceDtoList, target)) {
             return;
@@ -298,7 +298,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         for (ProcessInstanceDto processInstanceDto : processInstanceDtoList) {
             try {
                 workflowService.stopProcessInstance(processInstanceDto.getInstanceId(),
-                        WebMiscUtil.getOrigStringFromPoly(user.getName()), result);
+                        WebComponentUtil.getOrigStringFromPoly(user.getName()), result);
             } catch (Exception ex) {    // todo
                 result.createSubresult("stopProcessInstance").recordPartialError("Couldn't stop process instance " + processInstanceDto.getName(), ex);
             }

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.login;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -31,7 +32,6 @@ import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 
 import org.apache.wicket.markup.html.form.Form;
@@ -73,7 +73,7 @@ public class PageLogin extends PageBase {
                 RequiredTextField<String> username = (RequiredTextField) get(ID_USERNAME);
                 PasswordTextField password = (PasswordTextField) get(ID_PASSWORD);
                 if (session.authenticate(username.getModelObject(), password.getModelObject())) {
-                    if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+                    if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
                             AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
                         setResponsePage(PageDashboard.class);
                     } else {

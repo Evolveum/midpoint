@@ -16,10 +16,10 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -63,7 +63,7 @@ public class WorkItemDto extends Selectable {
 
     public String getCreated() {
         if (workItem.getMetadata() != null && workItem.getMetadata().getCreateTimestamp() != null) {
-            return WebMiscUtil.formatDate(XmlTypeConverter.toDate(workItem.getMetadata().getCreateTimestamp()));
+            return WebComponentUtil.formatDate(XmlTypeConverter.toDate(workItem.getMetadata().getCreateTimestamp()));
         } else {
             return null;
         }

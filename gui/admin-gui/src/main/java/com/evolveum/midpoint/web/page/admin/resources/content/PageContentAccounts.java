@@ -45,6 +45,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -95,7 +96,6 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.session.ResourcesStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -487,7 +487,7 @@ public class PageContentAccounts extends PageAdminResources {
 
             @Override
             protected String load() {
-                String name = WebMiscUtil.getName(resourceModel.getObject());
+                String name = WebComponentUtil.getName(resourceModel.getObject());
                 return PageBase.createStringResourceStatic(PageContentAccounts.this, "PageContentAccounts.subTitle", name).getString();
 //                return new StringResourceModel("PageContentAccounts.subTitle", PageContentAccounts.this, null, null, name).getString();
             }
@@ -708,7 +708,7 @@ public class PageContentAccounts extends PageAdminResources {
             accounts = new ArrayList<>();
             accounts.add(dto);
         } else {
-            accounts = WebMiscUtil.getSelectedData(getTable());
+            accounts = WebComponentUtil.getSelectedData(getTable());
         }
 
         return accounts;
@@ -720,7 +720,7 @@ public class PageContentAccounts extends PageAdminResources {
             accounts = new ArrayList<>();
             accounts.add(dto);
         } else {
-            accounts = WebMiscUtil.getSelectedData(getTable());
+            accounts = WebComponentUtil.getSelectedData(getTable());
             if (accounts.isEmpty()) {
                 warn(getString("pageContentAccounts.message.noAccountSelected"));
                 target.add(getFeedbackPanel());
@@ -757,7 +757,7 @@ public class PageContentAccounts extends PageAdminResources {
                 refValue.setTargetType(dto.getAccountType());
                 delta.addModification(ReferenceDelta.createModificationDelete(UserType.class,
                         UserType.F_LINK_REF, getPrismContext(), refValue));
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
             }
 
             if (user != null) {
@@ -768,7 +768,7 @@ public class PageContentAccounts extends PageAdminResources {
                 delta.addModification(ReferenceDelta.createModificationAdd(UserType.class,
                         UserType.F_LINK_REF, getPrismContext(), refValue));
 
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
 
             }
             result.recomputeStatus();
@@ -827,7 +827,7 @@ public class PageContentAccounts extends PageAdminResources {
                 Task task = createSimpleTask(OPERATION_DELETE_ACCOUNT_FROM_RESOURCE);
 
                 ObjectDelta delta = ObjectDelta.createDeleteDelta(ShadowType.class, accOid, getPrismContext());
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
 
             } catch (Exception e){
                 result.recordPartialError("Couldn't delete account from resource.", e);
@@ -869,7 +869,7 @@ public class PageContentAccounts extends PageAdminResources {
 
             try{
                 Task task = createSimpleTask(OPERATION_ADJUST_ACCOUNT_STATUS);
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
             } catch(Exception e){
                 LoggingUtils.logException(LOGGER, "Couldn't enable/disable account(s) on resource", e);
                 result.recordPartialError("Couldn't enable/disable account(s) on resource", e);
