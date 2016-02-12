@@ -42,6 +42,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -85,7 +86,6 @@ import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
 
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterDto;

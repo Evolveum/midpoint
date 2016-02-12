@@ -64,6 +64,7 @@ import org.apache.wicket.validation.IValidator;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -101,7 +102,6 @@ import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.AceEditorDialog;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AccountDetailsSearchDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;

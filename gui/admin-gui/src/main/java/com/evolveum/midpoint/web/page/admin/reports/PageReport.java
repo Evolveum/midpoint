@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -33,7 +34,6 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.message.OpResult;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromPrismObjectModel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;

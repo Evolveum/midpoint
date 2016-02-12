@@ -16,11 +16,11 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.synchronization;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.input.ExpressionEditorPanel;
 import com.evolveum.midpoint.web.component.input.SearchFilterPanel;
 import com.evolveum.midpoint.web.component.input.dto.SearchFilterTypeDto;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -37,7 +38,6 @@ import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON_COLOR_CLASS;
 import com.evolveum.midpoint.web.component.data.column.MultiButtonColumn;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseDtoProvider;

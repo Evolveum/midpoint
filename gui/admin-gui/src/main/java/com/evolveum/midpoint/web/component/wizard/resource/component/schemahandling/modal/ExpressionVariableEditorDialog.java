@@ -31,6 +31,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -47,7 +48,6 @@ import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ExpressionVariableDefinitionTypeDto;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionVariableDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;

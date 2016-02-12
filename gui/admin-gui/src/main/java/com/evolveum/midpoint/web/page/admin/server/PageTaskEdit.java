@@ -55,6 +55,7 @@ import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.util.time.Duration;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -94,7 +95,6 @@ import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.server.currentState.TaskCurrentStateDtoModel;
 import com.evolveum.midpoint.web.page.admin.server.currentState.TaskStatePanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.ScheduleValidator;

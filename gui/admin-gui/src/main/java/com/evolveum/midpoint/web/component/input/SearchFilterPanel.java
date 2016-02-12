@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.web.component.input;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.dto.SearchFilterTypeDto;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 

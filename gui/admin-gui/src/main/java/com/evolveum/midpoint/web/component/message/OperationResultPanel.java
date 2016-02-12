@@ -16,10 +16,10 @@
 
 package com.evolveum.midpoint.web.component.message;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;

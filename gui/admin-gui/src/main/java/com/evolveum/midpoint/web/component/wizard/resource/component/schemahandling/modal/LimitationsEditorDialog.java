@@ -16,13 +16,12 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.input.ThreeStateBooleanPanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.PropertyLimitationsTypeDto;
-import com.evolveum.midpoint.web.model.LoadableModel;
-
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
