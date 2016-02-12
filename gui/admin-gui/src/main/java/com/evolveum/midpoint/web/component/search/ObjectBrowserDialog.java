@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.web.component.search;
 
-import com.evolveum.midpoint.web.component.util.BasePanel;
-
 import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 
 /**
  * @author Viliam Repan (lazyman)

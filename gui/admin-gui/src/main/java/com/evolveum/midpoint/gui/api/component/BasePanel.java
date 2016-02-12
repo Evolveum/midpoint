@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.util;
+package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -29,6 +29,12 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
 /**
+ * Base class for most midPoint GUI panels. It has a constructor and
+ * utility methods for convenient handling of the model. It also has
+ * other utility methods often used in reusable components.
+ * 
+ * Almost all reusable components should extend this class.
+ * 
  * @author lazyman
  * @author semancik
  */
