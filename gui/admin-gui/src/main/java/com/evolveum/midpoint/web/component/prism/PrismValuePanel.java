@@ -216,6 +216,9 @@ public class PrismValuePanel extends Panel {
                 public boolean isEnabled() {
                     ValueWrapper wrapper = model.getObject();
                     ItemWrapper itemWrapper = wrapper.getItem();
+                    if (itemWrapper.getContainer() == null) {
+                        return true;        // TODO
+                    }
                     ObjectWrapper object = itemWrapper.getContainer().getObject();
                     ItemDefinition def = itemWrapper.getItem().getDefinition();
 
@@ -225,7 +228,7 @@ public class PrismValuePanel extends Panel {
         }
     }
 
-    private int countUsableValues(ItemWrapper property) {
+    private int countUsableValues(ItemWrapper<? extends Item, ? extends ItemDefinition> property) {
         int count = 0;
         for (ValueWrapper value : property.getValues()) {
             value.normalize(property.getItemDefinition().getPrismContext());
@@ -243,7 +246,7 @@ public class PrismValuePanel extends Panel {
         return count;
     }
 
-    private List<ValueWrapper> getUsableValues(ItemWrapper property) {
+    private List<ValueWrapper> getUsableValues(ItemWrapper<? extends Item, ? extends ItemDefinition> property) {
         List<ValueWrapper> values = new ArrayList<>();
         for (ValueWrapper value : property.getValues()) {
             value.normalize(property.getItemDefinition().getPrismContext());
@@ -256,7 +259,7 @@ public class PrismValuePanel extends Panel {
         return values;
     }
 
-    private int countNonDeletedValues(ItemWrapper property) {
+    private int countNonDeletedValues(ItemWrapper<? extends Item, ? extends ItemDefinition> property) {
         int count = 0;
         for (ValueWrapper value : property.getValues()) {
             value.normalize(property.getItemDefinition().getPrismContext());
@@ -268,7 +271,7 @@ public class PrismValuePanel extends Panel {
         return count;
     }
 
-    private boolean hasEmptyPlaceholder(ItemWrapper property) {
+    private boolean hasEmptyPlaceholder(ItemWrapper<? extends Item, ? extends ItemDefinition> property) {
         for (ValueWrapper value : property.getValues()) {
             value.normalize(property.getItemDefinition().getPrismContext());
             if (ValueStatus.ADDED.equals(value.getStatus()) && !value.hasValueChanged()) {
@@ -299,6 +302,9 @@ public class PrismValuePanel extends Panel {
             return false;
         }
 
+        if (propertyWrapper.getContainer() == null) {
+            return true;        // TODO
+        }
         return isAccessible(definition, propertyWrapper.getContainer().getObject().getStatus());
     }
 
@@ -328,12 +334,18 @@ public class PrismValuePanel extends Panel {
             return false;
         }
 
+        if (propertyWrapper.getContainer() == null) {
+            return true;            // TODO
+        }
         return isAccessible(definition, propertyWrapper.getContainer().getObject().getStatus());
     }
 
     private Panel createInputComponent(String id, IModel<String> label, Form form) {
         ValueWrapper valueWrapper = model.getObject();
-        ObjectWrapper objectWrapper = valueWrapper.getItem().getContainer().getObject();
+        ObjectWrapper objectWrapper = null;
+        if (valueWrapper.getItem().getContainer() != null) {
+            objectWrapper = valueWrapper.getItem().getContainer().getObject();
+        }
         Item property = valueWrapper.getItem().getItem();
         boolean required = property.getDefinition().getMinOccurs() > 0;
 

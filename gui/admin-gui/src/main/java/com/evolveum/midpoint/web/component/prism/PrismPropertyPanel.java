@@ -59,6 +59,8 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
     private PageBase pageBase;
 
+    private boolean labelContainerVisible = true;
+
     public PrismPropertyPanel(String id, final IModel<IW> model, Form form, PageBase pageBase) {
         super(id);
         Validate.notNull(model, "no model");
@@ -89,6 +91,11 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
     private void initLayout(final IModel<IW> model, final Form form) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         labelContainer.setOutputMarkupId(true);
+        labelContainer.add(new VisibleEnableBehaviour() {
+            @Override public boolean isVisible() {
+                return labelContainerVisible;
+            }
+        });
         add(labelContainer);
 
         final IModel<String> label = createDisplayName(model);
@@ -240,6 +247,9 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
     private boolean hasPendingModification(IModel<IW> model) {
         ItemWrapper propertyWrapper = model.getObject();
         ContainerWrapper containerWrapper = propertyWrapper.getContainer();
+        if (containerWrapper == null) {
+            return false;           // TODO - ok?
+        }
         ObjectWrapper objectWrapper = containerWrapper.getObject();
 
         PrismObject prismObject = objectWrapper.getObject();
@@ -284,5 +294,13 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
     private boolean isVisibleValue(IModel<ValueWrapper> model) {
         ValueWrapper value = model.getObject();
         return !ValueStatus.DELETED.equals(value.getStatus());
+    }
+
+    public boolean isLabelContainerVisible() {
+        return labelContainerVisible;
+    }
+
+    public void setLabelContainerVisible(boolean labelContainerVisible) {
+        this.labelContainerVisible = labelContainerVisible;
     }
 }

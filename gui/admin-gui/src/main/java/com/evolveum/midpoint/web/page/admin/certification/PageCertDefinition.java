@@ -23,13 +23,14 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -47,7 +48,6 @@ import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -133,7 +133,11 @@ public class PageCertDefinition extends PageAdminCertification {
 				if (definitionOid != null) {
 					return loadDefinition(definitionOid);
 				} else {
-					return createDefinition();
+					try {
+						return createDefinition();
+					} catch (SchemaException e) {
+						throw new SystemException(e.getMessage(), e);
+					}
 				}
 			}
 		};
@@ -152,7 +156,7 @@ public class PageCertDefinition extends PageAdminCertification {
 			if (definitionObject != null) {
 				definition = definitionObject.asObjectable();
 			}
-			definitionDto = new CertDefinitionDto(definition, this);
+			definitionDto = new CertDefinitionDto(definition, this, getPrismContext());
 			result.recordSuccessIfUnknown();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get definition", ex);
@@ -166,7 +170,7 @@ public class PageCertDefinition extends PageAdminCertification {
 		return definitionDto;
 	}
 
-	private CertDefinitionDto createDefinition() {
+	private CertDefinitionDto createDefinition() throws SchemaException {
 		AccessCertificationDefinitionType definition = getPrismContext().createObjectable(AccessCertificationDefinitionType.class);
 		definition.setHandlerUri(AccessCertificationApiConstants.DIRECT_ASSIGNMENT_HANDLER_URI);
 		AccessCertificationStageDefinitionType stage = new AccessCertificationStageDefinitionType(getPrismContext());
@@ -174,7 +178,8 @@ public class PageCertDefinition extends PageAdminCertification {
 		stage.setNumber(1);
 		stage.setReviewerSpecification(new AccessCertificationReviewerSpecificationType(getPrismContext()));
 		definition.getStageDefinition().add(stage);
-		CertDefinitionDto definitionDto = new CertDefinitionDto(definition, PageCertDefinition.this);
+		CertDefinitionDto definitionDto = new CertDefinitionDto(definition, PageCertDefinition.this,
+				getPrismContext());
 		return definitionDto;
 	}
 

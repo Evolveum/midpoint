@@ -40,8 +40,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
-import javax.xml.namespace.QName;
-
 import java.io.Serializable;
 import java.util.*;
 
@@ -380,7 +378,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 
     }
 
-    private void addItemDelta(ItemWrapper itemWrapper, ItemDelta pDelta, ItemDefinition propertyDef,
+    private void addItemDelta(ItemWrapper<? extends Item, ? extends ItemDefinition> itemWrapper, ItemDelta pDelta, ItemDefinition propertyDef,
                               ItemPath containerPath) {
         for (ValueWrapper valueWrapper : itemWrapper.getValues()) {
             valueWrapper.normalize(propertyDef.getPrismContext());
@@ -487,7 +485,8 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         }
     }
 
-    private PrismValue clone(PrismValue value) {
+    // TODO move to appropriate place!
+    public static PrismValue clone(PrismValue value) {
         if (value == null) {
             return null;
         }
@@ -571,34 +570,16 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
                 container = object;
             }
 
-            for (ItemWrapper propertyWrapper : (List<ItemWrapper>) containerWrapper.getItems()) {
-                if (!propertyWrapper.hasChanged()) {
+            for (ItemWrapper itemWrapper : (List<ItemWrapper>) containerWrapper.getItems()) {
+                if (!itemWrapper.hasChanged()) {
                     continue;
                 }
-
-                Item property = propertyWrapper.getItem().clone();
-                if (container.findProperty(property.getElementName()) != null) {
+                if (container.findItem(itemWrapper.getName()) != null) {
                     continue;
                 }
-                for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
-                    valueWrapper.normalize(object.getPrismContext());
-                    if (!valueWrapper.hasValueChanged()
-                            || ValueStatus.DELETED.equals(valueWrapper.getStatus())) {
-                        continue;
-                    }
-
-                    if (property.hasRealValue(valueWrapper.getValue())) {
-                        continue;
-                    }
-
-                    PrismValue cloned = clone(valueWrapper.getValue());
-                    if (cloned != null) {
-                        property.add(cloned);
-                    }
-                }
-
-                if (!property.isEmpty()) {
-                    container.add(property);
+                Item updatedItem = ((PropertyOrReferenceWrapper) itemWrapper).getUpdatedItem(object.getPrismContext());
+                if (!updatedItem.isEmpty()) {
+                    container.add(updatedItem);
                 }
             }
         }
