@@ -110,14 +110,14 @@ public class SimpleCampaignStageNotifier extends GeneralNotifier {
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
         if (stage != null) {
             body.append("\n\nStage start time: ").append(XmlTypeConverter.toDate(stage.getStart()));
-            body.append("\nStage end time: ").append(XmlTypeConverter.toDate(stage.getEnd()));
-            if (csEvent.isModify() && stage.getEnd() != null) {
-                long delta = XmlTypeConverter.toMillis(stage.getEnd()) - System.currentTimeMillis();
+            body.append("\nStage deadline time: ").append(XmlTypeConverter.toDate(stage.getDeadline()));
+            if (csEvent.isModify() && stage.getDeadline() != null) {
+                long delta = XmlTypeConverter.toMillis(stage.getDeadline()) - System.currentTimeMillis();
                 if (delta > 0) {
                     body.append("\n\nStage ends in ");
                     body.append(DurationFormatUtils.formatDurationWords(delta, true, true));
                 } else if (delta < 0) {
-                    body.append("\n\nStage ended ");
+                    body.append("\n\nStage should have ended ");
                     body.append(DurationFormatUtils.formatDurationWords(-delta, true, true));
                     body.append(" ago");
                 }

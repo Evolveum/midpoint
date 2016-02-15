@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.users.dto;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -24,7 +25,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
@@ -61,13 +61,13 @@ public class OrgTableDto extends Selectable implements OrgDto, InlineMenuable {
 
     public static OrgTableDto createDto(PrismObject<? extends ObjectType> object) {
         OrgTableDto dto = new OrgTableDto(object.getOid(), object.getCompileTimeClass());
-        dto.name = WebMiscUtil.getName(object);
+        dto.name = WebComponentUtil.getName(object);
         dto.description = object.getPropertyRealValue(OrgType.F_DESCRIPTION, String.class);
-        dto.displayName = WebMiscUtil.getOrigStringFromPoly(
+        dto.displayName = WebComponentUtil.getOrigStringFromPoly(
                 object.getPropertyRealValue(OrgType.F_DISPLAY_NAME, PolyString.class));
         dto.identifier = object.getPropertyRealValue(OrgType.F_IDENTIFIER, String.class);
 
-        dto.relation = WebMiscUtil.isObjectOrgManager(object) ? SchemaConstants.ORG_MANAGER : null;
+        dto.relation = WebComponentUtil.isObjectOrgManager(object) ? SchemaConstants.ORG_MANAGER : null;
         dto.object = object.asObjectable();
 
         return dto;

@@ -3298,7 +3298,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="resource" type="tns:ResourceType"/>
+    <xsd:element name="resource" type="tns:ResourceType" substitutionGroup="c:object"/>
     
     <xsd:complexType name="OperationalStateType">
         <xsd:annotation>
@@ -12390,18 +12390,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="days" type="xsd:int" minOccurs="0">
+            <xsd:element name="duration" type="xsd:duration" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How many days should the stage last?
-                        (TODO make this a bit more general by including time units)
+                        How long should the stage last? The resulting time is rounded up to 23:59:59 of the resulting day.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="notifyBeforeDeadline" type="xsd:int" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="notifyBeforeDeadline" type="xsd:duration" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How many hours before the end of stage should notifications be sent?
+                        How long before the end of stage should notifications be sent?
                         (Multiple values can be put here.)
                     </xsd:documentation>
                 </xsd:annotation>
@@ -12631,7 +12630,7 @@
                     <xsd:element name="end" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                When this campaign has to finish (or has finished).
+                                When this campaign has finished.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -12706,18 +12705,26 @@
             <xsd:element name="start" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        When this stage has to start (or has started).
+                        When this stage has started.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="deadline" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When this stage has to finish.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="end" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        When this stage has to finish (or has finished).
+                        When this stage has actually finished.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="AccessCertificationScopeType">
@@ -12874,16 +12881,6 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="reviewerRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Who are the reviewers?
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -12897,7 +12894,7 @@
             <xsd:element name="targetRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        A quite abstract parameter - describing the object of the certification case (e.g. a role, a resource, ...).
+                        Quite an abstract parameter - describing the object of the certification case (e.g. a role, a resource, ...).
                         Used for selecting relevant cases for approvals.
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -12949,7 +12946,30 @@
                 </xsd:annotation>
             </xsd:element>
             -->
-            <xsd:element name="reviewRequestedTimestamp" type="xsd:dateTime">
+            <xsd:element name="currentStageNumber" type="xsd:int" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The number of current stage in which this case is.
+                        E.g. currentOutcome relates to the currentStage.
+                        Case is "enabled" for a current campaign stage if and only if case.currentStage == campaign.stageNumber.
+
+                        When opening a campaign stage, case's currentStage either advances (if it is transferred to stage being opened)
+                        or stays at the existing value (if it is not). It then indicates the last stage this case
+                        took part of.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="currentReviewerRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Who are the reviewers? They are related to the stage mentioned in "currentStageNumber".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="currentReviewRequestedTimestamp" type="xsd:dateTime">
                 <xsd:annotation>
                     <xsd:documentation>
                         When was this certification case requested to be reviewed?
@@ -12958,7 +12978,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="reviewDeadline" type="xsd:dateTime" minOccurs="0">
+            <xsd:element name="currentReviewDeadline" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         When should this certification case be reviewed?
@@ -12974,25 +12994,12 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="currentOutcome" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="currentStageOutcome" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Currently valid outcome, relevant to the current stage. It is recomputed on each reviewer's
                         response based on defined algorithms. If the case is not transferred into the next stage,
                         the value of this item stays as it is.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="currentStageNumber" type="xsd:int" minOccurs="1" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The number of current stage in which this case is.
-                        E.g. currentOutcome relates to the currentStage.
-                        Case is "enabled" for a current campaign stage if and only if case.currentStage == campaign.stageNumber.
-
-                        When opening a campaign stage, case's currentStage either advances (if it is transferred to stage being opened)
-                        or stays at the existing value (if it is not). It then indicates the last stage this case
-                        took part of.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -13003,7 +13010,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-
+            <xsd:element name="overallOutcome" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The outcome, taking into account all closed stages plus current stage (if any).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="remediedTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

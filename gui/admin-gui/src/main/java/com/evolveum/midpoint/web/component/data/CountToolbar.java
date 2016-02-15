@@ -1,8 +1,23 @@
+/*
+ * Copyright (c) 2010-2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.component.data;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.PageTemplate;
-import com.evolveum.midpoint.web.model.LoadableModel;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -14,7 +29,6 @@ import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.repeater.data.DataViewBase;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.StringResourceModel;
 
 /**
  * @author lazyman
@@ -97,10 +111,10 @@ public class CountToolbar extends AbstractToolbar {
                 }
 
                 if (count > 0) {
-                	PageTemplate.createStringResourceStatic(CountToolbar.this, "CountToolbar.label", new Object[]{from, to, count});
+                	PageBase.createStringResourceStatic(CountToolbar.this, "CountToolbar.label", new Object[]{from, to, count});
                 }
 
-                return PageTemplate.createStringResourceStatic(CountToolbar.this, "CountToolbar.noFound").getString();
+                return PageBase.createStringResourceStatic(CountToolbar.this, "CountToolbar.noFound").getString();
             }
         };
     }

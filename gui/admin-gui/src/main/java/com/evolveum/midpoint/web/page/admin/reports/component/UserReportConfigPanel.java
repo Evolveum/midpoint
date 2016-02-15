@@ -23,12 +23,12 @@ import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.form.DateFormGroup;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
-import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.UserReportDto;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 
 /**
@@ -62,7 +62,7 @@ public class UserReportConfigPanel extends BasePanel<UserReportDto>{
                 createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         add(description);
 
-        IModel choices = WebMiscUtil.createReadonlyModelFromEnum(ExportType.class);
+        IModel choices = WebComponentUtil.createReadonlyModelFromEnum(ExportType.class);
         IChoiceRenderer renderer = new EnumChoiceRenderer();
         DropDownFormGroup exportType = new DropDownFormGroup(ID_EXPORT_TYPE, new
                 PropertyModel<ExportType>(getModel(), UserReportDto.F_EXPORT_TYPE), choices, renderer,

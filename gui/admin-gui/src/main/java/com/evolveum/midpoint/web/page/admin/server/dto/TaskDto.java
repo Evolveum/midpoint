@@ -22,6 +22,9 @@ import java.util.Date;
 import java.util.List;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.TaskService;
@@ -47,9 +50,6 @@ import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.wf.WfHistoryEventDto;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.wf.api.WfTaskExtensionItemsNames;
 import com.evolveum.midpoint.wf.processors.primary.PcpTaskExtensionItemsNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -195,7 +195,7 @@ public class TaskDto extends Selectable {
         List<QName> objectClassList = new ArrayList<>();
 
         if(resourceRef != null){
-            PrismObject<ResourceType> resource = WebModelUtils.loadObject(ResourceType.class, resourceRef.getOid(), 
+            PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class, resourceRef.getOid(), 
             		pageBase, task, result);
 
             try {
@@ -336,7 +336,7 @@ public class TaskDto extends Selectable {
                 return null;
             }
         }
-        return WebMiscUtil.getName(object);
+        return WebComponentUtil.getName(object);
     }
 
     private void fillInParentTaskAttributes(TaskType taskType, TaskService taskService, TaskDtoProviderOptions options, OperationResult thisOpResult) {
@@ -376,11 +376,11 @@ public class TaskDto extends Selectable {
                     ModelContext modelContext = modelInteractionService.unwrapModelContext((LensContextType) value, result);
                     modelOperationStatusDto = new ModelOperationStatusDto(modelContext);
                 } catch (SchemaException e) {   // todo report to result
-                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebMiscUtil.getIdentification(taskType));
+                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
                 } catch (CommunicationException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebMiscUtil.getIdentification(taskType));
+                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
                 } catch (ConfigurationException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebMiscUtil.getIdentification(taskType));
+                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
                 }
             }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,14 +33,13 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
@@ -54,7 +53,7 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
     public WizardStep(PageBase pageBase) {
         this.pageBase = pageBase;
         String key = getClass().getSimpleName() + ".title";
-        setTitleModel(PageTemplate.createStringResourceStatic(this, key));
+        setTitleModel(PageBase.createStringResourceStatic(this, key));
     }
 
     @Override
@@ -77,7 +76,7 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-    	return PageTemplate.createStringResourceStatic(this, resourceKey, objects);
+    	return PageBase.createStringResourceStatic(this, resourceKey, objects);
     }
 
     public StringResourceModel createStringResource(Enum e) {

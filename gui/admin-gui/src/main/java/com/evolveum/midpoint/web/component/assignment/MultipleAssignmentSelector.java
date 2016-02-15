@@ -1,5 +1,8 @@
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -19,8 +22,8 @@ import com.evolveum.midpoint.web.component.dialog.UserBrowserDialog;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchPanel;
-import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPanel;
@@ -72,7 +75,7 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_SEARCH = "search";
     private static final int ITEMS_PER_PAGE = 10;
-//    private static final String ID_FILTER_BY_USER_CONTAINER = "filterByUserContainer";
+    //    private static final String ID_FILTER_BY_USER_CONTAINER = "filterByUserContainer";
     private static final String DOT_CLASS = MultipleAssignmentSelector.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loaduser";
 
@@ -165,7 +168,7 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
         for (AssignmentEditorDto dto : assignmentsList){
             if (dto.getStatus().equals(UserDtoStatus.ADD)) {
                 listToBeRemoved.add(dto);
-             } else if (dto.getStatus() == UserDtoStatus.DELETE) {
+            } else if (dto.getStatus() == UserDtoStatus.DELETE) {
                 dto.setStatus(UserDtoStatus.MODIFY);
             }
         }
@@ -263,14 +266,14 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
 
     private PolyStringType getAssignmentName(String oid){
         ObjectDataProvider temporaryProvider = new ObjectDataProvider(MultipleAssignmentSelector.this, type);
-            Iterator it = temporaryProvider.internalIterator(0, temporaryProvider.size());
-            while (it.hasNext()) {
-                SelectableBean selectableBean = (SelectableBean) it.next();
-                F object = (F) selectableBean.getValue();
-                if (object.getOid().equals(oid)) {
-                    return object.getName();
-                }
+        Iterator it = temporaryProvider.internalIterator(0, temporaryProvider.size());
+        while (it.hasNext()) {
+            SelectableBean selectableBean = (SelectableBean) it.next();
+            F object = (F) selectableBean.getValue();
+            if (object.getOid().equals(oid)) {
+                return object.getName();
             }
+        }
         return new PolyStringType("");
 
     }

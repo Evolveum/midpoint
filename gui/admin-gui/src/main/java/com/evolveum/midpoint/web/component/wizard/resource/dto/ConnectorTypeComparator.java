@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
-import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 
 import java.io.Serializable;
@@ -30,6 +30,6 @@ public class ConnectorTypeComparator implements Comparator<ConnectorType>, Seria
     @Override
     public int compare(ConnectorType c1, ConnectorType c2) {
         //todo improve
-        return String.CASE_INSENSITIVE_ORDER.compare(WebMiscUtil.getName(c1), WebMiscUtil.getName(c2));
+        return String.CASE_INSENSITIVE_ORDER.compare(WebComponentUtil.getName(c1), WebComponentUtil.getName(c2));
     }
 }

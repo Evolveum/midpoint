@@ -16,10 +16,10 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import com.evolveum.midpoint.web.model.LoadableModel;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
 /**
  * @author lazyman

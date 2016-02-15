@@ -16,17 +16,17 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.handlers;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseOrDecisionDto;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationAssignmentCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -92,11 +92,11 @@ public class DirectAssignmentCertGuiHandler implements CertGuiHandler {
         }
         Task task = page.createSimpleTask("dummy");
         if (assignment.getOrgRef()  != null) {
-            String orgName = WebModelUtils.resolveReferenceName(assignment.getOrgRef(), page, task, task.getResult());
+            String orgName = WebModelServiceUtils.resolveReferenceName(assignment.getOrgRef(), page, task, task.getResult());
             infoList.add(page.createStringResource("PageCert.message.textOrg", orgName).getString());
         }
         if (assignment.getTenantRef() != null) {
-            String tenantName = WebModelUtils.resolveReferenceName(assignment.getTenantRef(), page, task, task.getResult());
+            String tenantName = WebModelServiceUtils.resolveReferenceName(assignment.getTenantRef(), page, task, task.getResult());
             infoList.add(page.createStringResource("PageCert.message.textTenant", tenantName).getString());
         }
 
@@ -111,11 +111,11 @@ public class DirectAssignmentCertGuiHandler implements CertGuiHandler {
         }
 
         if (assignment.getActivation() != null) {
-            String validFrom = WebMiscUtil.formatDate(assignment.getActivation().getValidFrom());
+            String validFrom = WebComponentUtil.formatDate(assignment.getActivation().getValidFrom());
             if (validFrom != null) {
                 infoList.add(page.createStringResource("PageCert.message.textValidFrom", validFrom).getString());
             }
-            String validTo = WebMiscUtil.formatDate(assignment.getActivation().getValidTo());
+            String validTo = WebComponentUtil.formatDate(assignment.getActivation().getValidTo());
             if (validTo != null) {
                 infoList.add(page.createStringResource("PageCert.message.textValidTo", validTo).getString());
             }

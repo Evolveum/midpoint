@@ -30,9 +30,9 @@
         <number>1</number>
         <name>Administrator's review</name>
         <description>In this stage, the administrator has to review all the assignments of all users.</description>
-        <days>14</days>
-        <notifyBeforeDeadline>48</notifyBeforeDeadline> <!-- hours -->
-        <notifyBeforeDeadline>12</notifyBeforeDeadline>
+        <duration>P14D</duration>   <!-- days -->
+        <notifyBeforeDeadline>PT48H</notifyBeforeDeadline> <!-- hours -->
+        <notifyBeforeDeadline>PT12H</notifyBeforeDeadline>
         <notifyOnlyWhenNoDecision>true</notifyOnlyWhenNoDecision>  <!-- this is the default -->
         <reviewerSpecification>
             <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />   <!-- administrator -->

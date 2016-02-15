@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.certification.api.CertificationManager;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -55,8 +57,6 @@ import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListIt
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
@@ -195,7 +195,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 					return null;
 				}
 				Task task = createSimpleTask("dummy");
-				PrismObject<AccessCertificationDefinitionType> definitionPrismObject = WebModelUtils
+				PrismObject<AccessCertificationDefinitionType> definitionPrismObject = WebModelServiceUtils
 						.loadObject(AccessCertificationDefinitionType.class,
 								definitionOid, PageCertCampaigns.this, task, task.getResult());
 				if (definitionPrismObject == null) {
@@ -313,7 +313,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 			@Override
 			public String getObject() {
 
-				final List<Selectable> selectedData = WebMiscUtil.getSelectedData(getCampaignsTable());
+				final List<Selectable> selectedData = WebComponentUtil.getSelectedData(getCampaignsTable());
 				if (selectedData.size() > 1) {
 					return createStringResource(
 							"PageCertCampaigns.message.closeCampaignConfirmMultiple", selectedData.size())
@@ -346,7 +346,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 			@Override
 			public String getObject() {
-				final List<Selectable> selectedData = WebMiscUtil.getSelectedData(getCampaignsTable());
+				final List<Selectable> selectedData = WebComponentUtil.getSelectedData(getCampaignsTable());
 				if (selectedData.size() > 1) {
 					return createStringResource(
 							"PageCertCampaigns.message.deleteCampaignConfirmMultiple", selectedData.size())
@@ -587,7 +587,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 	private boolean ensureSomethingIsSelected(AjaxRequestTarget target) {
 		if (relevantCampaign != null) {
 			return true;
-		} else if (!WebMiscUtil.getSelectedData(getTable()).isEmpty()) {
+		} else if (!WebComponentUtil.getSelectedData(getTable()).isEmpty()) {
 			return true;
 		} else {
 			warn(getString("PageCertCampaigns.message.noCampaignsSelected"));
@@ -623,17 +623,17 @@ public class PageCertCampaigns extends PageAdminCertification {
 	}
 
 	private void deleteSelectedCampaignsConfirmedPerformed(AjaxRequestTarget target) {
-		deleteCampaignsPerformed(target, (List) WebMiscUtil.getSelectedData(getCampaignsTable()));
+		deleteCampaignsPerformed(target, (List) WebComponentUtil.getSelectedData(getCampaignsTable()));
 	}
 
 	private void closeSelectedCampaignsConfirmedPerformed(AjaxRequestTarget target) {
 		actOnCampaignsPerformed(target, OPERATION_CLOSE_CAMPAIGN,
-				(List) WebMiscUtil.getSelectedData(getCampaignsTable()));
+				(List) WebComponentUtil.getSelectedData(getCampaignsTable()));
 	}
 
 	private void startSelectedCampaignsPerformed(AjaxRequestTarget target) {
 		actOnCampaignsPerformed(target, OPERATION_START_CAMPAIGN,
-				(List) WebMiscUtil.getSelectedData(getCampaignsTable()));
+				(List) WebComponentUtil.getSelectedData(getCampaignsTable()));
 	}
 
 	protected String determineAction(AccessCertificationCampaignType campaign) {
@@ -759,7 +759,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 								AccessCertificationCampaignType.class,
 								itemToDelete.getOid(), getPrismContext());
 				getModelService().executeChanges(
-						WebMiscUtil.createDeltaCollection(delta), null, task,
+						WebComponentUtil.createDeltaCollection(delta), null, task,
 						result);
 			} catch (Exception ex) {
 				result.recordPartialError("Couldn't delete campaign.", ex);

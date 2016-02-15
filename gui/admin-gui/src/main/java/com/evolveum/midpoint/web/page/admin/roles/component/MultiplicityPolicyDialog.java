@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.page.admin.roles.component;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.PageTemplate;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintEnforcementType;
 
@@ -103,7 +101,7 @@ public class MultiplicityPolicyDialog extends ModalWindow{
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-    	return PageTemplate.createStringResourceStatic(this, resourceKey, objects);
+    	return PageBase.createStringResourceStatic(this, resourceKey, objects);
 //        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 
@@ -145,7 +143,7 @@ public class MultiplicityPolicyDialog extends ModalWindow{
 
         DropDownFormGroup enforcement = new DropDownFormGroup<>(ID_ENFORCEMENT,
                 new PropertyModel<PolicyConstraintEnforcementType>(model, MultiplicityPolicyConstraintType.F_ENFORCEMENT.getLocalPart()),
-                WebMiscUtil.createReadonlyModelFromEnum(PolicyConstraintEnforcementType.class),
+                WebComponentUtil.createReadonlyModelFromEnum(PolicyConstraintEnforcementType.class),
                 new EnumChoiceRenderer<PolicyConstraintEnforcementType>(), createStringResource("multiplicityContainer.label.enforcement"),
                 ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(enforcement);

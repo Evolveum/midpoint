@@ -518,6 +518,13 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     public <T> PrismProperty<T> getExtensionProperty(QName propertyName);
 
     /**
+     * Returns specified single-valued property real value from the extension
+     * @param propertyName
+     * @return null if extension or property does not exist.
+     */
+    <T> T getExtensionPropertyRealValue(QName propertyName);
+
+    /**
      * Returns specified reference from the extension.
      * @param name
      * @return null if extension or reference does not exist.

@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2010-2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import java.util.ArrayList;
@@ -27,6 +42,9 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -68,16 +86,11 @@ import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-
-import com.evolveum.midpoint.web.page.PageTemplate;
-
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
 
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
@@ -183,7 +196,7 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
             @Override
             public void populateItem(Item item, String componentId, IModel model) {
                 String paramValue = new PropertyModel<String>(model, "name").getObject();
-                StringResourceModel paramDisplay = PageTemplate.createStringResourceStatic(RunReportPopupPanel.this, "runReportPopupContent.param.name." + paramValue, new Object[]{});
+                StringResourceModel paramDisplay = PageBase.createStringResourceStatic(RunReportPopupPanel.this, "runReportPopupContent.param.name." + paramValue, new Object[]{});
 //                StringResourceModel paramDisplay = new StringResourceModel("runReportPopupContent.param.name." + paramValue, null, paramValue, new Object[]{});
                 item.add(new Label(componentId, paramDisplay)); // use display name rather than property name
             }
@@ -236,7 +249,7 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
         InputPanel panel = null;
 
         if (type.isEnum()) {
-            panel = WebMiscUtil.createEnumPanel(type, componentId, new PropertyModel(model, expression), this);
+            panel = WebComponentUtil.createEnumPanel(type, componentId, new PropertyModel(model, expression), this);
         } else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
             panel = new DatePanel(componentId, new PropertyModel<XMLGregorianCalendar>(model, expression));
         } else if (param.getPropertyTargetType() != null) { // render autocomplete box
@@ -391,7 +404,7 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
         }
 
         for (LookupTableRowType row : rows) {
-            values.add(WebMiscUtil.getOrigStringFromPoly(row.getLabel()));
+            values.add(WebComponentUtil.getOrigStringFromPoly(row.getLabel()));
 
             if (values.size() > AUTO_COMPLETE_BOX_SIZE) {
                 break;

@@ -30,6 +30,9 @@ import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefiniti
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -88,10 +91,7 @@ import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.model.delta.ModificationsPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.DateValidator;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AssignmentCreationApprovalFormType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -431,9 +431,9 @@ public class PrismValuePanel extends Panel {
              
               
               if (ActivationType.F_ADMINISTRATIVE_STATUS.equals(definition.getName())) {
-                  return WebMiscUtil.createEnumPanel(ActivationStatusType.class, id, new PropertyModel<ActivationStatusType>(model, baseExpression), this);
+                  return WebComponentUtil.createEnumPanel(ActivationStatusType.class, id, new PropertyModel<ActivationStatusType>(model, baseExpression), this);
               } else if(ActivationType.F_LOCKOUT_STATUS.equals(definition.getName())){
-                  return WebMiscUtil.createEnumPanel(LockoutStatusType.class, id, new PropertyModel<LockoutStatusType>(model, baseExpression), this);
+                  return WebComponentUtil.createEnumPanel(LockoutStatusType.class, id, new PropertyModel<LockoutStatusType>(model, baseExpression), this);
               } else {
               	// nothing to do
               }
@@ -460,7 +460,7 @@ public class PrismValuePanel extends Panel {
 
                       Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
                               GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
-                      final PrismObject<LookupTableType> lookupTable = WebModelUtils.loadObject(LookupTableType.class,
+                      final PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
                               lookupTableUid, options, pageBase, task, result);
 
                       inputPanel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(model, baseExpression + ".orig",
@@ -543,7 +543,7 @@ public class PrismValuePanel extends Panel {
                   } 
                   
                   if (isEnum(property)) {
-                      return WebMiscUtil.createEnumPanel(definition, id, new PropertyModel<>(model, baseExpression), this);
+                      return WebComponentUtil.createEnumPanel(definition, id, new PropertyModel<>(model, baseExpression), this);
                   }
 //                  // default QName validation is a bit weird, so let's treat QNames as strings [TODO finish this - at the parsing side]
 //                  if (type == QName.class) {
@@ -560,7 +560,7 @@ public class PrismValuePanel extends Panel {
 
                       Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
                               GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
-                      final PrismObject<LookupTableType> lookupTable = WebModelUtils.loadObject(LookupTableType.class,
+                      final PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
                               lookupTableUid, options, pageBase, task, result);
 
                       panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(model, baseExpression,
@@ -676,7 +676,7 @@ public class PrismValuePanel extends Panel {
 
         if(input == null || input.isEmpty()){
             for(LookupTableRowType row: rows){
-                values.add(WebMiscUtil.getOrigStringFromPoly(row.getLabel()));
+                values.add(WebComponentUtil.getOrigStringFromPoly(row.getLabel()));
 
                 if(values.size() > 10){
                     return values;
@@ -684,8 +684,8 @@ public class PrismValuePanel extends Panel {
             }
         } else {
             for(LookupTableRowType row: rows){
-                if(WebMiscUtil.getOrigStringFromPoly(row.getLabel()).startsWith(input)){
-                    values.add(WebMiscUtil.getOrigStringFromPoly(row.getLabel()));
+                if(WebComponentUtil.getOrigStringFromPoly(row.getLabel()).startsWith(input)){
+                    values.add(WebComponentUtil.getOrigStringFromPoly(row.getLabel()));
                 }
 
                 if(values.size() > 10){

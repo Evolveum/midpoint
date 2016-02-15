@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.web.page.self.component;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -15,7 +16,6 @@ import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import org.apache.commons.lang.time.DurationFormatUtils;
@@ -51,7 +51,7 @@ public class MyRequestsPanel extends SimplePanel<List<ProcessInstanceDto>> {
     @Override
     protected void initLayout() {
         List<IColumn<ProcessInstanceDto, String>> columns = new ArrayList<IColumn<ProcessInstanceDto, String>>();
-        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_WORK_ITEMS_PROCESS_INSTANCE_URL)) {
             columns.add(new LinkColumn<ProcessInstanceDto>(createStringResource("MyRequestsPanel.name"), "name") {
 
@@ -160,7 +160,7 @@ public class MyRequestsPanel extends SimplePanel<List<ProcessInstanceDto>> {
                         if (finished == null) {
                             return getString("pageProcessInstances.notYet");
                         } else {
-                            return WebMiscUtil.formatDate(finished);
+                            return WebComponentUtil.formatDate(finished);
                         }
                     }
                 }));

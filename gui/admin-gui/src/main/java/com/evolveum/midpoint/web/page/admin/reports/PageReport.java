@@ -15,6 +15,10 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -30,9 +34,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.message.OpResult;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromPrismObjectModel;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.JasperReportConfigurationPanel;
@@ -41,8 +43,6 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.util.Base64Model;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 import org.apache.wicket.RestartResponseException;
@@ -119,7 +119,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
 
         Task task = createSimpleTask(OPERATION_LOAD_REPORT);
         OperationResult result = task.getResult();
-        PrismObject<ReportType> prismReport = WebModelUtils.loadObject(ReportType.class, reportOid.toString(), 
+        PrismObject<ReportType> prismReport = WebModelServiceUtils.loadObject(ReportType.class, reportOid.toString(), 
         		this, task, result);
         
         if (prismReport == null) {
@@ -321,7 +321,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
 				delta = ObjectDelta.createAddDelta(newReport);
 				delta.setPrismContext(getPrismContext());
 			} else {
-				PrismObject<ReportType> oldReport = WebModelUtils.loadObject(ReportType.class,
+				PrismObject<ReportType> oldReport = WebModelServiceUtils.loadObject(ReportType.class,
 						newReport.getOid(), this, task, result);
 
 				if (oldReport != null) {
@@ -330,7 +330,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
 			}
 			if (delta != null) {
                             getPrismContext().adopt(delta);
-                            getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+                            getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
 			}
         } catch (Exception e) {
             result.recordFatalError("Couldn't save report.", e);
@@ -338,7 +338,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
             result.computeStatusIfUnknown();
         }
 
-        if (WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (WebComponentUtil.isSuccessOrHandledError(result)) {
             showResultInSession(result);
             setResponsePage(PageReports.class);
         } else {

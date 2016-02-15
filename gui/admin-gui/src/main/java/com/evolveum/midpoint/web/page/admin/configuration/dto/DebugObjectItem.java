@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -93,11 +93,11 @@ public class DebugObjectItem extends Selectable implements InlineMenuable {
     }
 
     public static DebugObjectItem createDebugObjectItem(PrismObject object) {
-        DebugObjectItem item = new DebugObjectItem(object.getOid(), WebMiscUtil.getName(object),
+        DebugObjectItem item = new DebugObjectItem(object.getOid(), WebComponentUtil.getName(object),
                 (String) object.getPropertyRealValue(ObjectType.F_DESCRIPTION, String.class));
 
         if (UserType.class.isAssignableFrom(object.getCompileTimeClass())) {
-            PolyString fullName = WebMiscUtil.getValue(object, UserType.F_FULL_NAME, PolyString.class);
+            PolyString fullName = WebComponentUtil.getValue(object, UserType.F_FULL_NAME, PolyString.class);
             item.setFullName((fullName != null ? fullName.getOrig() : null));
         }
 

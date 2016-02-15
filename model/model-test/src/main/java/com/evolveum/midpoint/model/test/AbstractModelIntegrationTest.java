@@ -2160,6 +2160,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return object;
 	}
 
+	protected <O extends ObjectType> PrismObject<O> getObjectViaRepo(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getObject");
+		OperationResult result = task.getResult();
+		PrismObject<O> object = repositoryService.getObject(type, oid, null, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		return object;
+	}
+
     protected <O extends ObjectType> void addObjects(File... files) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         for (File file : files) {
             addObject(file);

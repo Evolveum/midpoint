@@ -114,9 +114,9 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_STAGE_NUMBER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_DECISION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_REVIEWER_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_REVIEW_DEADLINE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_REVIEW_REQUESTED_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_REVIEWER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_REVIEW_DEADLINE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_REVIEW_REQUESTED_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_STAGE_NUMBER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
@@ -2619,7 +2619,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         try {
             PrismContainerDefinition<AccessCertificationCaseType> caseDef =
                     prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AccessCertificationCaseType.class);
-            ObjectFilter filter = RefFilter.createReferenceEqual(new ItemPath(F_REVIEWER_REF), caseDef, "1234567890");
+            ObjectFilter filter = RefFilter.createReferenceEqual(new ItemPath(F_CURRENT_REVIEWER_REF), caseDef, "1234567890");
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
@@ -2681,7 +2681,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         try {
             PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                    .item(F_REVIEWER_REF).ref(reviewerRef)
+                    .item(F_CURRENT_REVIEWER_REF).ref(reviewerRef)
                     .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
                     .build();
 
@@ -2722,9 +2722,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
 
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                    .item(F_REVIEWER_REF).ref(reviewerRef)
+                    .item(F_CURRENT_REVIEWER_REF).ref(reviewerRef)
                     .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
-                    .asc(F_REVIEW_DEADLINE).asc(T_ID)
+                    .asc(F_CURRENT_REVIEW_DEADLINE).asc(T_ID)
                     .build();
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
@@ -2768,10 +2768,10 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                             .findComplexTypeDefinitionByCompileTimeClass(AccessCertificationCampaignType.class)
                             .findPropertyDefinition(F_STATE);
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                    .item(F_REVIEWER_REF).ref(reviewerRef)
+                    .item(F_CURRENT_REVIEWER_REF).ref(reviewerRef)
                     .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
                     .and().item(statePath, stateDef).eq(IN_REVIEW_STAGE)
-                    .desc(F_REVIEW_REQUESTED_TIMESTAMP)
+                    .desc(F_CURRENT_REVIEW_REQUESTED_TIMESTAMP)
                     .build();
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
 

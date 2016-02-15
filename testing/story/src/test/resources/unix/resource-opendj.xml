@@ -356,6 +356,10 @@
 		</configured>
     </capabilities>
 
+	<consistency>
+		<avoidDuplicateValues>true</avoidDuplicateValues>
+	</consistency>
+
     <synchronization>
     	<objectSynchronization>
     		<objectClass>ri:inetOrgPerson</objectClass>

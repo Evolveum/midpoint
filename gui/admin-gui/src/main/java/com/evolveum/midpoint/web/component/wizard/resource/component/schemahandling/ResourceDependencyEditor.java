@@ -36,6 +36,8 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -46,8 +48,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyStrictnessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
@@ -159,14 +159,14 @@ public class ResourceDependencyEditor extends SimplePanel<List<ResourceObjectTyp
 
                 DropDownChoice strictness = new DropDownChoice<>(ID_STRICTNESS,
                         new PropertyModel<ResourceObjectTypeDependencyStrictnessType>(item.getModelObject(), "strictness"),
-                        WebMiscUtil.createReadonlyModelFromEnum(ResourceObjectTypeDependencyStrictnessType.class),
+                        WebComponentUtil.createReadonlyModelFromEnum(ResourceObjectTypeDependencyStrictnessType.class),
                         new EnumChoiceRenderer<ResourceObjectTypeDependencyStrictnessType>(this));
                 strictness.add(prepareAjaxOnComponentTagUpdateBehavior());
                 dependencyBody.add(strictness);
 
                 DropDownChoice kind = new DropDownChoice<>(ID_KIND,
                         new PropertyModel<ShadowKindType>(item.getModelObject(), "kind"),
-                        WebMiscUtil.createReadonlyModelFromEnum(ShadowKindType.class),
+                        WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class),
                         new EnumChoiceRenderer<ShadowKindType>(this));
                 kind.add(prepareAjaxOnComponentTagUpdateBehavior());
                 dependencyBody.add(kind);
@@ -181,7 +181,7 @@ public class ResourceDependencyEditor extends SimplePanel<List<ResourceObjectTyp
 
                             @Override
                             public List<ObjectReferenceType> getObject() {
-                                return WebModelUtils.createObjectReferenceList(ResourceType.class, getPageBase(), resourceMap);
+                                return WebModelServiceUtils.createObjectReferenceList(ResourceType.class, getPageBase(), resourceMap);
                             }
                         }, new ObjectReferenceChoiceRenderer(resourceMap));
                         
@@ -284,7 +284,7 @@ public class ResourceDependencyEditor extends SimplePanel<List<ResourceObjectTyp
         if(resources != null){
             ObjectReferenceType ref;
             for(PrismObject<ResourceType> r: resources){
-                resourceMap.put(r.getOid(), WebMiscUtil.getName(r));
+                resourceMap.put(r.getOid(), WebComponentUtil.getName(r));
                 ref = new ObjectReferenceType();
                 ref.setType(ResourceType.COMPLEX_TYPE);
                 ref.setOid(r.getOid());

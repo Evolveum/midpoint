@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
-import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 
 import org.apache.commons.lang.StringUtils;
@@ -62,7 +62,7 @@ public class ReconciliationPopupPanel extends BasePanel<ReconciliationReportDto>
                 createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         add(description);
 
-        IModel choices = WebMiscUtil.createReadonlyModelFromEnum(ExportType.class);
+        IModel choices = WebComponentUtil.createReadonlyModelFromEnum(ExportType.class);
         IChoiceRenderer renderer = new EnumChoiceRenderer();
         DropDownFormGroup exportType = new DropDownFormGroup(ID_EXPORT_TYPE, new
                 PropertyModel<ExportType>(getModel(), ReconciliationReportDto.F_EXPORT_TYPE), choices, renderer,

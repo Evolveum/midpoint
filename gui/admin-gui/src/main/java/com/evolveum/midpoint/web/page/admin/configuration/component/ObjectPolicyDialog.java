@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -52,14 +55,10 @@ import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyConfigurationTypeDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyDialogDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectTemplateConfigTypeReferenceDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.PropertyConstraintTypeDto;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -137,7 +136,7 @@ public class ObjectPolicyDialog extends ModalWindow {
 	}
 
 	public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-		return PageTemplate.createStringResourceStatic(this, resourceKey, objects);
+		return PageBase.createStringResourceStatic(this, resourceKey, objects);
 		// return new StringResourceModel(resourceKey, this, null, resourceKey,
 		// objects);
 	}
@@ -369,7 +368,7 @@ public class ObjectPolicyDialog extends ModalWindow {
 					for (PrismObject<ObjectTemplateType> obj : templateList) {
 						template = obj.asObjectable();
 						list.add(new ObjectTemplateConfigTypeReferenceDto(template.getOid(),
-								WebMiscUtil.getName(template)));
+								WebComponentUtil.getName(template)));
 					}
 				}
 				return list;

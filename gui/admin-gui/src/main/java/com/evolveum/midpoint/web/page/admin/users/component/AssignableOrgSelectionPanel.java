@@ -1,5 +1,8 @@
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -12,13 +15,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
 import com.evolveum.midpoint.web.component.org.OrgTreeTablePanel;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
@@ -130,7 +130,7 @@ public class AssignableOrgSelectionPanel <T extends ObjectType> extends Abstract
     private List<PrismObject<OrgType>> loadOrgRoots() {
         OperationResult result = new OperationResult(OPERATION_LOAD_ORG_UNITS);
 
-        PageBase pageBase = WebMiscUtil.getPageBase(this);
+        PageBase pageBase = WebComponentUtil.getPageBase(this);
         Task task = pageBase.createSimpleTask(OPERATION_LOAD_ORG_UNITS);
         List<PrismObject<OrgType>> list = new ArrayList<>();
         try {
@@ -160,7 +160,7 @@ public class AssignableOrgSelectionPanel <T extends ObjectType> extends Abstract
 	                return displayName.getOrig();
 	            }
 
-                return WebMiscUtil.getName(org);
+                return WebComponentUtil.getName(org);
 	        }
 	    };
 	}

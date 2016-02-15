@@ -1,7 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.util.BasePanel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 

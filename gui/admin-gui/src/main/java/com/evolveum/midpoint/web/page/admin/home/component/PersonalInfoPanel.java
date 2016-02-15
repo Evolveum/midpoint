@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.web.page.admin.home.component;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -91,7 +91,7 @@ public class PersonalInfoPanel extends SimplePanel<PersonalInfoDto> {
             public String getObject() {
                 PersonalInfoDto dto = getModel().getObject();
 
-                return dto.getLastLoginDate() != null ? WebMiscUtil.formatDate(dto.getLastLoginDate()) :
+                return dto.getLastLoginDate() != null ? WebComponentUtil.formatDate(dto.getLastLoginDate()) :
                         PersonalInfoPanel.this.getString("PersonalInfoPanel.never");
             }
         });
@@ -115,7 +115,7 @@ public class PersonalInfoPanel extends SimplePanel<PersonalInfoDto> {
             public String getObject() {
                 PersonalInfoDto dto = getModel().getObject();
 
-                return dto.getLastFailDate() != null ? WebMiscUtil.formatDate(dto.getLastFailDate()) :
+                return dto.getLastFailDate() != null ? WebComponentUtil.formatDate(dto.getLastFailDate()) :
                         PersonalInfoPanel.this.getString("PersonalInfoPanel.never");
             }
         });
@@ -139,7 +139,7 @@ public class PersonalInfoPanel extends SimplePanel<PersonalInfoDto> {
             public String getObject() {
                 PersonalInfoDto dto = getModel().getObject();
 
-                return dto.getPasswordExp() != null ? WebMiscUtil.formatDate(dto.getPasswordExp()) :
+                return dto.getPasswordExp() != null ? WebComponentUtil.formatDate(dto.getPasswordExp()) :
                         PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
             }
         });

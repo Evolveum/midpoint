@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -25,7 +26,6 @@ import com.evolveum.midpoint.web.component.wizard.WizardUtil;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -275,7 +275,7 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
     private void prepareActivationPanelBody(String containerValue, String fetchStrategyId, String outboundId, String inboundId){
         DropDownChoice fetchStrategy = new DropDownChoice<>(fetchStrategyId,
                 new PropertyModel<AttributeFetchStrategyType>(getModel(), containerValue + ".fetchStrategy"),
-                WebMiscUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
+                WebComponentUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
                 new EnumChoiceRenderer<AttributeFetchStrategyType>(this));
         fetchStrategy.setNullValid(true);
         add(fetchStrategy);

@@ -17,6 +17,10 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -33,20 +37,17 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -54,6 +55,7 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -99,6 +101,7 @@ public class PageCertDefinition extends PageAdminCertification {
 	private static final String ID_OWNER_REF_CHOOSER = "ownerRefChooser";
 	private static final String ID_REMEDIATION = "remediation";
 	private static final String ID_OUTCOME_STRATEGY = "outcomeStrategy";
+	private static final String ID_STOP_REVIEW_ON = "stopReviewOn";
 
 	private static final String ID_BACK_BUTTON = "backButton";
 	private static final String ID_SAVE_BUTTON = "saveButton";
@@ -114,7 +117,7 @@ public class PageCertDefinition extends PageAdminCertification {
 		this(parameters, null);
 	}
 
-	public PageCertDefinition(PageParameters parameters, PageTemplate previousPage) {
+	public PageCertDefinition(PageParameters parameters, PageBase previousPage) {
 		setPreviousPage(previousPage);
 		getPageParameters().overwriteWith(parameters);
 		initModels();
@@ -144,7 +147,7 @@ public class PageCertDefinition extends PageAdminCertification {
 		try {
 			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
 			PrismObject<AccessCertificationDefinitionType> definitionObject =
-					WebModelUtils.loadObject(AccessCertificationDefinitionType.class, definitionOid, options,
+					WebModelServiceUtils.loadObject(AccessCertificationDefinitionType.class, definitionOid, options,
 							PageCertDefinition.this, task, result);
 			if (definitionObject != null) {
 				definition = definitionObject.asObjectable();
@@ -157,7 +160,7 @@ public class PageCertDefinition extends PageAdminCertification {
 		}
 		result.recomputeStatus();
 
-		if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+		if (!WebComponentUtil.isSuccessOrHandledError(result)) {
 			showResult(result);
 		}
 		return definitionDto;
@@ -288,16 +291,25 @@ public class PageCertDefinition extends PageAdminCertification {
             public void setObject(AccessCertificationRemediationStyleType object) {
                 definitionModel.getObject().setRemediationStyle(object);
             }
-        }, WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationRemediationStyleType.class),
+        }, WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationRemediationStyleType.class),
                 new EnumChoiceRenderer<AccessCertificationRemediationStyleType>(this));
         mainForm.add(remediation);
 
 		DropDownChoice outcomeStrategy =
 				new DropDownChoice<>(ID_OUTCOME_STRATEGY,
 						new PropertyModel<AccessCertificationCaseOutcomeStrategyType>(definitionModel, CertDefinitionDto.F_OUTCOME_STRATEGY),
-						WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationCaseOutcomeStrategyType.class),
+						WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationCaseOutcomeStrategyType.class),
 				new EnumChoiceRenderer<AccessCertificationCaseOutcomeStrategyType>(this));
 		mainForm.add(outcomeStrategy);
+
+		Label stopReviewOn = new Label(ID_STOP_REVIEW_ON, new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				List<AccessCertificationResponseType> stopOn = definitionModel.getObject().getStopReviewOn();
+				return CertMiscUtil.getStopReviewOnText(stopOn, PageCertDefinition.this);
+			}
+		});
+		mainForm.add(stopReviewOn);
 
 //        mainForm.add(new Label(ID_REVIEW_STAGE_CAMPAIGNS, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
 //        mainForm.add(new Label(ID_CAMPAIGNS_TOTAL, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
@@ -382,7 +394,7 @@ public class PageCertDefinition extends PageAdminCertification {
 				getPrismContext().adopt(delta);
 				ModelExecuteOptions options = new ModelExecuteOptions();
 				options.setRaw(true);
-				getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, result);
+				getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task, result);
 			}
 			result.computeStatus();
 		} catch (Exception ex) {

@@ -16,6 +16,10 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
@@ -33,10 +37,6 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
-import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -84,7 +84,7 @@ public class ConfigurationStep extends WizardStep {
                 wrapper.setMinimalized(false);
                 wrapper.setShowEmpty(true);
 
-                if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+                if (wrapper.getResult() != null && !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
                     getPageBase().showResultInSession(wrapper.getResult());
                 }
 
@@ -108,7 +108,7 @@ public class ConfigurationStep extends WizardStep {
 
             @Override
             protected void onError(final AjaxRequestTarget target, Form<?> form) {
-                WebMiscUtil.refreshFeedbacks(form, target);
+                WebComponentUtil.refreshFeedbacks(form, target);
             }
 
             @Override
@@ -168,16 +168,16 @@ public class ConfigurationStep extends WizardStep {
 
             if(isNewResource){
                 Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
-                oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), options, page, task, result);
+                oldResource = WebModelServiceUtils.loadObject(ResourceType.class, newResource.getOid(), options, page, task, result);
             } else {
-                oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), page, task, result);
+                oldResource = WebModelServiceUtils.loadObject(ResourceType.class, newResource.getOid(), page, task, result);
             }
 
             delta = DiffUtil.diff(oldResource, newResource);
 
-            WebModelUtils.save(delta, result, page);
+            WebModelServiceUtils.save(delta, result, page);
 
-            newResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), page, task, result);
+            newResource = WebModelServiceUtils.loadObject(ResourceType.class, newResource.getOid(), page, task, result);
             resourceModel.setObject(newResource);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Error occurred during resource test connection", ex);
@@ -187,7 +187,7 @@ public class ConfigurationStep extends WizardStep {
             setResult(result);
         }
 
-        if (WebMiscUtil.showResultInPage(result)) {
+        if (WebComponentUtil.showResultInPage(result)) {
             page.showResult(result);
         }
     }

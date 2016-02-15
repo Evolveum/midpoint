@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -107,11 +107,11 @@ public class ObjectPolicyDialogDto implements Serializable{
     	Task task = page.createSimpleTask(OPERATION_LOAD_OBJECT_TEMPLATE);
         OperationResult result = task.getResult();
 
-        PrismObject<ObjectTemplateType> templatePrism =  WebModelUtils.loadObject(ObjectTemplateType.class, oid, 
+        PrismObject<ObjectTemplateType> templatePrism =  WebModelServiceUtils.loadObject(ObjectTemplateType.class, oid, 
         		page, task, result);
 
         if(templatePrism != null){
-            return WebMiscUtil.getName(templatePrism);
+            return WebComponentUtil.getName(templatePrism);
         }
 
         return "";

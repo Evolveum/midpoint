@@ -15,10 +15,10 @@
  */
 package com.evolveum.midpoint.web.page.self.component;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.markup.ComponentTag;
@@ -74,7 +74,7 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
             boolean isRowAdded = false;
             for (int i = 0; i < linksListSize; i++) {
                 final RichHyperlinkType link = linksList.get(i);
-                if (WebMiscUtil.isAuthorized(link.getAuthorization())) {
+                if (WebComponentUtil.isAuthorized(link.getAuthorization())) {
                     if (currentColumn == 0) {
                         row = new WebMarkupContainer(rowView.newChildId());
                         isRowAdded = false;

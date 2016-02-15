@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.page.admin.resources.content;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-
-import com.evolveum.midpoint.web.page.PageTemplate;
-
-import com.evolveum.midpoint.web.model.LoadableModel;
-
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.StringResourceModel;
 
 /**
  * @author lazyman
@@ -66,8 +61,8 @@ public class PageContentEntitlements extends PageAdminResources {
 
 			@Override
 			protected String load() {
-				String name = WebMiscUtil.getName(resourceModel.getObject());
-				return PageTemplate.createStringResourceStatic(PageContentEntitlements.this, "page.title", name)
+				String name = WebComponentUtil.getName(resourceModel.getObject());
+				return PageBase.createStringResourceStatic(PageContentEntitlements.this, "page.title", name)
 						.getString();
 			}
 		};

@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.component.input;
 
-import com.evolveum.midpoint.web.component.util.BasePanel;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 

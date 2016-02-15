@@ -16,14 +16,14 @@
 
 package com.evolveum.midpoint.web.component.search;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.util.BasePanel;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.StringUtils;
@@ -109,6 +109,7 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
         mainButton.add(label);
 
         AjaxLink deleteButton = new AjaxLink(ID_DELETE_BUTTON) {
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 deletePerformed(target);

@@ -19,12 +19,12 @@ package com.evolveum.midpoint.certification.impl;
 import com.evolveum.midpoint.certification.impl.outcomeStrategies.ResponsesSummary;
 import com.evolveum.midpoint.certification.impl.outcomeStrategies.OutcomeStrategy;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseReviewStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseStageOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
@@ -33,15 +33,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType.ALL_MUST_ACCEPT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType.ONE_ACCEPT_ACCEPTS;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType.ONE_DENY_DENIES;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.DELEGATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 
@@ -54,7 +53,7 @@ public class AccCertResponseComputationHelper {
     private static final transient Trace LOGGER = TraceManager.getTrace(AccCertResponseComputationHelper.class);
 
     public static final AccessCertificationCaseOutcomeStrategyType DEFAULT_CASE_STAGE_OUTCOME_STRATEGY = ONE_ACCEPT_ACCEPTS;
-    public static final AccessCertificationCaseOutcomeStrategyType DEFAULT_CASE_FINAL_OUTCOME_STRATEGY = ONE_DENY_DENIES;
+    public static final AccessCertificationCaseOutcomeStrategyType DEFAULT_CASE_OVERALL_OUTCOME_STRATEGY = ALL_MUST_ACCEPT;
 
     Map<AccessCertificationCaseOutcomeStrategyType, OutcomeStrategy> outcomeStrategyMap = new HashMap<>();
 
@@ -76,8 +75,8 @@ public class AccCertResponseComputationHelper {
             return false;           // it is not enabled in the current stage at all
         }
         final AccessCertificationResponseType currentOutcome;
-        if (_case.getCurrentOutcome() != null) {
-            currentOutcome =_case.getCurrentOutcome();
+        if (_case.getCurrentStageOutcome() != null) {
+            currentOutcome =_case.getCurrentStageOutcome();
         } else {
             currentOutcome = NO_RESPONSE;
         }
@@ -88,13 +87,13 @@ public class AccCertResponseComputationHelper {
         final List<AccessCertificationResponseType> rv;
         AccessCertificationStageDefinitionType stageDefinition = CertCampaignTypeUtil.getCurrentStageDefinition(campaign);
         if (!stageDefinition.getStopReviewOn().isEmpty() || !stageDefinition.getAdvanceToNextStageOn().isEmpty()) {
-            rv = getOutcomesToStopOn(stageDefinition.getStopReviewOn(), stageDefinition.getAdvanceToNextStageOn());
+            rv = CertCampaignTypeUtil.getOutcomesToStopOn(stageDefinition.getStopReviewOn(), stageDefinition.getAdvanceToNextStageOn());
         } else {
             final AccessCertificationCaseReviewStrategyType reviewStrategy = campaign.getReviewStrategy();
             if (reviewStrategy != null && (!reviewStrategy.getStopReviewOn().isEmpty() || !reviewStrategy.getAdvanceToNextStageOn().isEmpty())) {
-                rv = getOutcomesToStopOn(reviewStrategy.getStopReviewOn(), reviewStrategy.getAdvanceToNextStageOn());
+                rv = CertCampaignTypeUtil.getOutcomesToStopOn(reviewStrategy.getStopReviewOn(), reviewStrategy.getAdvanceToNextStageOn());
             } else {
-                final OutcomeStrategy outcomeStrategy = getOutcomeStrategy(campaign);
+                final OutcomeStrategy outcomeStrategy = getOverallOutcomeStrategy(campaign);
                 rv = outcomeStrategy.getOutcomesToStopOn();
             }
         }
@@ -104,26 +103,17 @@ public class AccCertResponseComputationHelper {
         return rv;
     }
 
-    private OutcomeStrategy getOutcomeStrategy(AccessCertificationCampaignType campaign) {
+    private OutcomeStrategy getOverallOutcomeStrategy(AccessCertificationCampaignType campaign) {
         final AccessCertificationCaseOutcomeStrategyType strategyName;
         if (campaign.getReviewStrategy() != null && campaign.getReviewStrategy().getOutcomeStrategy() != null) {
             strategyName = campaign.getReviewStrategy().getOutcomeStrategy();
         } else {
-            strategyName = DEFAULT_CASE_FINAL_OUTCOME_STRATEGY;
+            strategyName = DEFAULT_CASE_OVERALL_OUTCOME_STRATEGY;
         }
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Outcome strategy for {} is {}", toShortString(campaign), strategyName);
         }
         return getOutcomeStrategy(strategyName);
-    }
-
-    private List<AccessCertificationResponseType> getOutcomesToStopOn(List<AccessCertificationResponseType> stopReviewOn, List<AccessCertificationResponseType> advanceToNextStageOn) {
-        if (!stopReviewOn.isEmpty()) {
-            return stopReviewOn;
-        }
-        List<AccessCertificationResponseType> rv = new ArrayList<>(Arrays.asList(AccessCertificationResponseType.values()));
-        rv.removeAll(advanceToNextStageOn);
-        return rv;
     }
 
     public AccessCertificationResponseType computeOutcomeForStage(AccessCertificationCaseType _case, AccessCertificationDecisionType newDecision,
@@ -153,10 +143,10 @@ public class AccCertResponseComputationHelper {
         }
         OutcomeStrategy strategyImpl = getOutcomeStrategy(outcomeStrategy);
 
-        if (_case.getReviewerRef().isEmpty()) {
+        if (_case.getCurrentReviewerRef().isEmpty()) {
             return outcomeIfNoReviewers;
         } else {
-            List<AccessCertificationResponseType> responses = extractResponses(allDecisions, _case.getReviewerRef());
+            List<AccessCertificationResponseType> responses = extractResponses(allDecisions, _case.getCurrentReviewerRef());
             ResponsesSummary summary = summarize(responses);        // TODO eventually merge extraction and summarizing
             return strategyImpl.computeOutcome(summary);
         }
@@ -206,4 +196,22 @@ public class AccCertResponseComputationHelper {
         return summary;
     }
 
+    public AccessCertificationResponseType computeOverallOutcome(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign) {
+        return computeOverallOutcome(aCase, campaign, null);
+    }
+
+    // aCase contains outcomes from stages 1..N-1. Outcome from stage N is in currentStageOutcome
+    // (alternatively: aCase has stages 1..N and currentStageOutcome is null)
+    public AccessCertificationResponseType computeOverallOutcome(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign,
+                                                                 AccessCertificationResponseType currentStageOutcome) {
+        final OutcomeStrategy strategy = getOverallOutcomeStrategy(campaign);
+        final List<AccessCertificationResponseType> stageOutcomes = new ArrayList<>();
+        for (AccessCertificationCaseStageOutcomeType stageOutcome : aCase.getCompletedStageOutcome()) {
+            stageOutcomes.add(stageOutcome.getOutcome());
+        }
+        if (currentStageOutcome != null) {
+            stageOutcomes.add(currentStageOutcome);
+        }
+        return strategy.computeOutcome(summarize(stageOutcomes));
+    }
 }

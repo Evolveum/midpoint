@@ -16,8 +16,9 @@
 
 package com.evolveum.midpoint.web.page.admin;
 
-import com.evolveum.midpoint.web.page.PageBase;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import com.evolveum.midpoint.gui.api.page.PageBase;
 
 /**
  * @author lazyman

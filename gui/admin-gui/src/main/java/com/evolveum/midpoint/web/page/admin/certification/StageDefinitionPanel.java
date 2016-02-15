@@ -1,25 +1,27 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.certification.dto.*;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.namespace.QName;
+import java.util.List;
 
 /**
  * Created by Kate Honchar.
@@ -46,6 +48,7 @@ public class StageDefinitionPanel extends SimplePanel<StageDefinitionDto> {
     private static final String ID_APPROVAL_STRATEGY_CHECKBOX = "approvalStrategyCheckbox";
     private static final String ID_OUTCOME_STRATEGY = "outcomeStrategy";
     private static final String ID_OUTCOME_IF_NO_REVIEWERS = "outcomeIfNoReviewers";
+    private static final String ID_STOP_REVIEW_ON = "stopReviewOn";
 
     public StageDefinitionPanel(String id, IModel<StageDefinitionDto> model) {
         super(id, model);
@@ -59,7 +62,7 @@ public class StageDefinitionPanel extends SimplePanel<StageDefinitionDto> {
         TextArea descriptionField = new TextArea(ID_DESCRIPTION, new PropertyModel<>(getModel(), StageDefinitionDto.F_DESCRIPTION));
         add(descriptionField);
 
-        TextField durationField = new TextField(ID_DURATION, new PropertyModel<>(getModel(), StageDefinitionDto.F_DAYS));
+        TextField durationField = new TextField(ID_DURATION, new PropertyModel<>(getModel(), StageDefinitionDto.F_DURATION));
         add(durationField);
 
         TextField notifyBeforeDeadlineField = new TextField(ID_NOTIFY_BEFORE_DEADLINE,
@@ -131,16 +134,25 @@ public class StageDefinitionPanel extends SimplePanel<StageDefinitionDto> {
         DropDownChoice outcomeStrategy1 =
                 new DropDownChoice<>(ID_OUTCOME_STRATEGY,
                         new PropertyModel<AccessCertificationCaseOutcomeStrategyType>(getModel(), StageDefinitionDto.F_OUTCOME_STRATEGY),
-                        WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationCaseOutcomeStrategyType.class),
+                        WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationCaseOutcomeStrategyType.class),
                 new EnumChoiceRenderer<AccessCertificationCaseOutcomeStrategyType>(this));
         add(outcomeStrategy1);
 
         DropDownChoice<AccessCertificationResponseType> outcomeIfNoReviewers =
                 new DropDownChoice<>(ID_OUTCOME_IF_NO_REVIEWERS,
                         new PropertyModel<AccessCertificationResponseType>(getModel(), StageDefinitionDto.F_OUTCOME_IF_NO_REVIEWERS),
-                        WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationResponseType.class),
+                        WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationResponseType.class),
                 new EnumChoiceRenderer<AccessCertificationResponseType>(this));
         add(outcomeIfNoReviewers);
+
+        Label stopReviewOn = new Label(ID_STOP_REVIEW_ON, new AbstractReadOnlyModel<String>() {
+            @Override
+            public String getObject() {
+                List<AccessCertificationResponseType> stopOn = getModelObject().getStopReviewOn();
+                return CertMiscUtil.getStopReviewOnText(stopOn, getPageBase());
+            }
+        });
+        add(stopReviewOn);
     }
 
 

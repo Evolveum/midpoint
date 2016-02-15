@@ -15,9 +15,9 @@
  */
 package com.evolveum.midpoint.prism.xnode;
 
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.util.Map;
@@ -30,7 +30,7 @@ import java.util.Map;
 
 public interface ValueParser<T> {
 
-	T parse(QName typeName) throws SchemaException;
+	T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException;
 	
 	// This has to work even without the type
 	boolean isEmpty();

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -28,7 +29,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -93,7 +93,7 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
             result.computeStatusIfUnknown();
         }
 
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             handleNotSuccessOrHandledErrorInIterator(result);
         }
 
@@ -126,7 +126,7 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
             result.computeStatusIfUnknown();
         }
 
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             getPage().showResultInSession(result);
             throw new RestartResponseException(PageError.class);
         }
