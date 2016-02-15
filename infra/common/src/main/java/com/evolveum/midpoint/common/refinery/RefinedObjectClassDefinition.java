@@ -528,7 +528,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		return resourceObjectPattern;
 	}
 
-	static RefinedObjectClassDefinition parseFromSchema(ObjectClassComplexTypeDefinition objectClassDef, ResourceType resourceType,
+	public static RefinedObjectClassDefinition parseFromSchema(ObjectClassComplexTypeDefinition objectClassDef, ResourceType resourceType,
                                                         RefinedResourceSchema rSchema,
                                                         PrismContext prismContext, String contextDescription) throws SchemaException {
 

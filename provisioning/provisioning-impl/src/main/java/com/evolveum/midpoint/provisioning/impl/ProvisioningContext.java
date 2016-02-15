@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,12 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -52,6 +54,7 @@ public class ProvisioningContext extends StateReporter {
 	private PrismObject<ShadowType> originalShadow;
 	private ResourceShadowDiscriminator shadowCoordinates;
 	private Collection<QName> additionalAuxiliaryObjectClassQNames;
+	private boolean useRefinedDefinition = true;
 	
 	private RefinedObjectClassDefinition objectClassDefinition;
 	private Task task;
@@ -101,6 +104,14 @@ public class ProvisioningContext extends StateReporter {
 		this.additionalAuxiliaryObjectClassQNames = additionalAuxiliaryObjectClassQNames;
 	}
 
+	public boolean isUseRefinedDefinition() {
+		return useRefinedDefinition;
+	}
+
+	public void setUseRefinedDefinition(boolean useRefinedDefinition) {
+		this.useRefinedDefinition = useRefinedDefinition;
+	}
+
 	public ResourceType getResource() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		if (resource == null) {
 			if (resourceOid == null) {
@@ -123,10 +134,23 @@ public class ProvisioningContext extends StateReporter {
 	
 	public RefinedObjectClassDefinition getObjectClassDefinition() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 		if (objectClassDefinition == null) {
-			if (originalShadow != null) {
-				objectClassDefinition = getRefinedSchema().determineCompositeObjectClassDefinition(originalShadow, additionalAuxiliaryObjectClassQNames);
-			} else if (shadowCoordinates != null && !shadowCoordinates.isWildcard()) {
-				objectClassDefinition = getRefinedSchema().determineCompositeObjectClassDefinition(shadowCoordinates);
+			if (useRefinedDefinition) {
+				if (originalShadow != null) {
+					objectClassDefinition = getRefinedSchema().determineCompositeObjectClassDefinition(originalShadow, additionalAuxiliaryObjectClassQNames);
+				} else if (shadowCoordinates != null && !shadowCoordinates.isWildcard()) {
+					objectClassDefinition = getRefinedSchema().determineCompositeObjectClassDefinition(shadowCoordinates);
+				}
+			} else {
+				if (shadowCoordinates.getObjectClass() == null) {
+					throw new IllegalStateException("No objectclass");
+				}
+				ObjectClassComplexTypeDefinition origObjectClassDefinition = getRefinedSchema().getOriginalResourceSchema().findObjectClassDefinition(shadowCoordinates.getObjectClass());
+				if (origObjectClassDefinition == null) {
+					throw new SchemaException("No object class definition for "+shadowCoordinates.getObjectClass()+" in original resource schema for "+getResource());
+				} else {
+					objectClassDefinition = RefinedObjectClassDefinition.parseFromSchema(origObjectClassDefinition, getResource(), getRefinedSchema(), getResource().asPrismObject().getPrismContext(),
+						"objectclass "+origObjectClassDefinition+" in "+getResource());
+				}
 			}
 		}
 		return objectClassDefinition;
