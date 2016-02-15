@@ -98,6 +98,8 @@ public class ResourceObjectReferenceResolver {
 			}
 		}
 		ProvisioningContext subctx = ctx.spawn(objectClass);
+		// Use "raw" definitions from the original schema to avoid endless loops
+		subctx.setUseRefinedDefinition(false);
 		subctx.assertDefinition();
 		
 		ObjectQuery refQuery = QueryJaxbConvertor.createObjectQuery(ShadowType.class, resourceObjectReference.getFilter(), prismContext);
