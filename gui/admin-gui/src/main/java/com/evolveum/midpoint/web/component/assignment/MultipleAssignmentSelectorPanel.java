@@ -7,7 +7,10 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.dialog.UserBrowserDialog;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -25,15 +28,16 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import javax.management.relation.Role;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -55,17 +59,22 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
     private static final String ID_TENANT_CHOOSER = "tenantRefChooser";
     private static final String ID_CONTAINER_ORG_REF = "orgRefContainer";
     private static final String ID_ORG_CHOOSER = "orgRefChooser";
+    private static final String ID_USER_CHOOSER_DIALOG = "userChooserDialog";
+    private static final String ID_FILTER_BY_USER_BUTTON = "filterByUserButton";
+    private static final String ID_LABEL = "label";
+    private static final String ID_DELETE_BUTTON = "deleteButton";
+
 
     private static final String DOT_CLASS = MultipleAssignmentSelectorPanel.class.getName();
     private Class<F> type;
-
+    private boolean showDialog = true;
     AssignableSelectionPanel.Context assignableSelectionContext;
     AbstractAssignableSelectionPanel.Context assignableOrgSelectionContext;
 
     AssignmentEditorDto tenantOrgDto = null;
 
-    ObjectDataProvider dataProvider;
-    ISortableDataProvider currentAssignmentsProvider;
+    BaseSortableDataProvider dataProvider;
+    BaseSortableDataProvider currentAssignmentsProvider;
     private static final Trace LOGGER = TraceManager.getTrace(MultipleAssignmentSelectorPanel.class);
 
     public MultipleAssignmentSelectorPanel(String id, LoadableModel<List<AssignmentEditorDto>> assignmentsModel, Class<F> type) {
@@ -80,10 +89,12 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
 
         IModel<List<AssignmentEditorDto>> availableAssignmentModel = createAvailableAssignmentModel();
         dataProvider = getAvailableAssignmentsDataProvider();
-        final MultipleAssignmentSelector availableAssignmentsPanel = new MultipleAssignmentSelector<F>(ID_AVAILABLE_ASSIGNMENTS, availableAssignmentModel, dataProvider);
+        final MultipleAssignmentSelector availableAssignmentsPanel = new MultipleAssignmentSelector<F>(ID_AVAILABLE_ASSIGNMENTS,
+                availableAssignmentModel, dataProvider, type);
         availableAssignmentsPanel.setResetButtonVisibility(false);
-        currentAssignmentsProvider = getCurrentAssignmentsDataProvider();
-        final MultipleAssignmentSelector currentAssignmentsPanel = new MultipleAssignmentSelector<F>(ID_CURRENT_ASSIGNMENTS, assignmentsModel, currentAssignmentsProvider);
+        currentAssignmentsProvider = getListDataProvider(null);
+        final MultipleAssignmentSelector currentAssignmentsPanel = new MultipleAssignmentSelector<F>(ID_CURRENT_ASSIGNMENTS,
+                assignmentsModel, currentAssignmentsProvider, type);
 
         AjaxButton add = new AjaxButton(ID_BUTTON_ADD) {
             @Override
@@ -164,6 +175,34 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
 
         WebMarkupContainer orgRefContainer = createOrgContainer();
 
+
+        AjaxLink<String> filterByUserButton = new AjaxLink<String>(ID_FILTER_BY_USER_BUTTON) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                if (showDialog) {
+                    UserBrowserDialog window = (UserBrowserDialog) MultipleAssignmentSelectorPanel.this.get(ID_USER_CHOOSER_DIALOG);
+                    window.setType(UserType.class);
+                    window.show(target);
+                }
+                showDialog = true;
+            }
+        };
+//        filterByUserButton.setBody(createStringResource("MultipleAssignmentSelector.filterByUser"));
+
+        Label label = new Label(ID_LABEL, createStringResource("MultipleAssignmentSelector.filterByUser"));
+        label.setRenderBodyOnly(true);
+        filterByUserButton.add(label);
+
+        AjaxLink deleteButton = new AjaxLink(ID_DELETE_BUTTON) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showDialog = false;
+                deleteFilterPerformed(target);
+            }
+        };
+        filterByUserButton.add(deleteButton);
+
+
         Form<?> form = new Form<Void>(ID_FORM);
         form.add(tenantRefContainer);
         form.add(orgRefContainer);
@@ -171,7 +210,10 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
         form.add(currentAssignmentsPanel);
         form.add(add);
         form.add(remove);
+        form.add(filterByUserButton);
         add(form);
+
+        initUserDialog();
     }
 
     private IModel<List<AssignmentEditorDto>> createAvailableAssignmentModel() {
@@ -259,34 +301,16 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
         };
     }
 
-    private ISortableDataProvider getCurrentAssignmentsDataProvider() {
-        final ISortableDataProvider provider = new ListDataProvider(this, new IModel<List<AssignmentEditorDto>>() {
+    private ListDataProvider getListDataProvider(final UserType user) {
+        final ListDataProvider provider = new ListDataProvider(this, new IModel<List<AssignmentEditorDto>>() {
             @Override
             public List<AssignmentEditorDto> getObject() {
-                List<AssignmentEditorDto> currentAssignments = getAssignmentsByType();
-                List<AssignmentEditorDto> displayAssignmentsList = new ArrayList<>();
-                ObjectQuery  query = ((BaseSortableDataProvider)currentAssignmentsProvider).getQuery();
-                if (query != null){
-                    ObjectDataProvider temporaryProvider = new ObjectDataProvider(MultipleAssignmentSelectorPanel.this, type);
-                    temporaryProvider.setQuery(query);
-                    for (AssignmentEditorDto dto : currentAssignments) {
-                        Iterator it = temporaryProvider.internalIterator(0, temporaryProvider.size());
-                        while (it.hasNext()) {
-                            SelectableBean selectableBean = (SelectableBean) it.next();
-                            F object = (F) selectableBean.getValue();
-                            if (object.getOid().equals(dto.getTargetRef().getOid())) {
-                                displayAssignmentsList.add(dto);
-                                break;
-                            }
-                        }
-                    }
-                    return displayAssignmentsList;
-                }
-                return currentAssignments;
+                return getAvailableAssignmentsDataList(user);
             }
 
             @Override
             public void setObject(List<AssignmentEditorDto> list) {
+//availableAssignmentsDataList = list;
             }
 
             @Override
@@ -294,10 +318,6 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
 
             }
         });
-        ISortState sort = provider.getSortState();
-        if (sort != null) {
-
-        }
         return provider;
     }
 
@@ -438,14 +458,102 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
         }
     }
 
-    private List<AssignmentEditorDto> getAssignmentsByType() {
-        List<AssignmentEditorDto> modelObj = assignmentsModel.getObject();
+    private List<AssignmentEditorDto> getAssignmentsByType(List<AssignmentEditorDto> assignmentsList) {
         List<AssignmentEditorDto> currentUsersAssignments = new ArrayList<>();
-        for (AssignmentEditorDto dto : modelObj) {
+        for (AssignmentEditorDto dto : assignmentsList) {
             if (dto.getType().equals(AssignmentEditorDtoType.getType(type)) && !dto.getStatus().equals(UserDtoStatus.DELETE)) {
                 currentUsersAssignments.add(dto);
             }
         }
         return currentUsersAssignments;
+    }
+
+    private void initUserDialog() {
+
+        UserBrowserDialog<UserType> dialog = new UserBrowserDialog<UserType>(ID_USER_CHOOSER_DIALOG, UserType.class) {
+
+            @Override
+            public void userDetailsPerformed(AjaxRequestTarget target, UserType user) {
+                super.userDetailsPerformed(target, user);
+                filterByUserPerformed(user);
+
+                replacePanel(target);
+            }
+        };
+        add(dialog);
+    }
+
+
+    private void filterByUserPerformed(UserType user){
+       dataProvider =  getListDataProvider(user);
+    }
+
+    private List<AssignmentEditorDto> getAssignmentEditorDtoList(List<AssignmentType> assignmentTypeList){
+        List<AssignmentEditorDto> assignmentEditorDtoList = new ArrayList<>();
+        for (AssignmentType assignmentType : assignmentTypeList){
+            AssignmentEditorDto assignmentEditorDto = new AssignmentEditorDto(UserDtoStatus.MODIFY, assignmentType, getPageBase());
+            assignmentEditorDtoList.add(assignmentEditorDto);
+        }
+        return assignmentEditorDtoList;
+    }
+
+    private List<AssignmentEditorDto> applyQueryToListProvider(ObjectQuery query, List<AssignmentEditorDto> providerList){
+        ObjectDataProvider temporaryProvider = new ObjectDataProvider(MultipleAssignmentSelectorPanel.this, type);
+        List<AssignmentEditorDto> displayAssignmentsList = new ArrayList<>();
+        temporaryProvider.setQuery(query);
+        for (AssignmentEditorDto dto : providerList) {
+            Iterator it = temporaryProvider.internalIterator(0, temporaryProvider.size());
+            while (it.hasNext()) {
+                SelectableBean selectableBean = (SelectableBean) it.next();
+                F object = (F) selectableBean.getValue();
+                if (object.getOid().equals(dto.getTargetRef().getOid())) {
+                    displayAssignmentsList.add(dto);
+                    break;
+                }
+            }
+        }
+        return displayAssignmentsList;
+    }
+
+    private List<AssignmentEditorDto> getAvailableAssignmentsDataList(UserType user){
+        ObjectQuery query = null;
+        List<AssignmentEditorDto> currentAssignments;
+        if (user == null) {
+            currentAssignments = getAssignmentsByType(assignmentsModel.getObject());
+            if (currentAssignmentsProvider != null) {
+                query = currentAssignmentsProvider.getQuery();
+            }
+        } else {
+            List<AssignmentEditorDto> assignmentsList = getAssignmentEditorDtoList(user.getAssignment());
+            currentAssignments = getAssignmentsByType(assignmentsList);
+            if (type.equals(RoleType.class)){
+                for (AssignmentEditorDto dto : currentAssignments){
+                    dto.setTenantRef(null);
+                    dto.setOrgRef(null);
+                }
+            }
+            query = dataProvider.getQuery();
+        }
+        if (query != null){
+            return applyQueryToListProvider(query, currentAssignments);
+        }
+        return currentAssignments;
+    }
+
+    private void deleteFilterPerformed(AjaxRequestTarget target){
+        ObjectQuery query = dataProvider.getQuery();
+        dataProvider = getAvailableAssignmentsDataProvider();
+        dataProvider.setQuery(query);
+        replacePanel(target);
+    }
+
+    private  void replacePanel(AjaxRequestTarget target){
+        BoxedTablePanel table = ((MultipleAssignmentSelector) MultipleAssignmentSelectorPanel.this.get(ID_FORM).get(ID_AVAILABLE_ASSIGNMENTS)).getTable();
+        Form  form = (Form)MultipleAssignmentSelectorPanel.this.get(ID_FORM);
+        if (table != null) {
+            form.replace(new MultipleAssignmentSelector<F>(ID_AVAILABLE_ASSIGNMENTS,
+                    createAvailableAssignmentModel(), dataProvider, type));
+        }
+        target.add(form);
     }
 }

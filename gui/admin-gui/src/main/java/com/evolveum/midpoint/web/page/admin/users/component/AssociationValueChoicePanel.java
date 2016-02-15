@@ -302,10 +302,6 @@ public class AssociationValueChoicePanel <C extends ObjectType> extends BasePane
     public void editValuePerformed(AjaxRequestTarget target) {
         ModalWindow window = (ModalWindow) get(MODAL_ID_OBJECT_SELECTION_POPUP);
         window.show(target);
-//        ObjectSelectionPanel dialog = (ObjectSelectionPanel) window.get(createComponentPath(window.getContentId(), ObjectSelectionPage.ID_OBJECT_SELECTION_PANEL));
-//        if (dialog != null) {
-//            dialog.updateTablePerformed(target, createChooseQuery(values));
-//        }
     }
 
     protected void choosePerformed(AjaxRequestTarget target, C object) {

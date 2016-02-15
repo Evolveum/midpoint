@@ -53,7 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class ValueChoosePanel<T, C extends ObjectType> extends BasePanel<T> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MultiValueChoosePanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ValueChoosePanel.class);
 
     private static final String ID_LABEL = "label";
 
