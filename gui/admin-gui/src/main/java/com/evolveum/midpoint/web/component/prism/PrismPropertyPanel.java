@@ -212,7 +212,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
             @Override
             public String getObject() {
                 if (getIndexOfValue(value.getObject()) > 0) {
-                    return "col-md-offset-4 prism-value";
+                    return "col-md-offset-2 prism-value";
                 }
 
                 return null;
