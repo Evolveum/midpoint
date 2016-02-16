@@ -370,10 +370,14 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     }
     
     public boolean add(V newValue) throws SchemaException {
+    	return add(newValue, true);
+    }
+    
+    public boolean add(V newValue, boolean checkUniqueness) throws SchemaException {
     	newValue.setParent(this);
-    	if (containsEquivalentValue(newValue)) {
+    	if (checkUniqueness && containsEquivalentValue(newValue)) {
     		return false;
-    	}	
+    	}
     	if (getDefinition() != null) {
     		newValue.applyDefinition(getDefinition(), false);
     	}

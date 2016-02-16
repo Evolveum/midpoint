@@ -163,7 +163,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     }
 
     @Override
-    public boolean add(PrismContainerValue newValue) throws SchemaException {
+    public boolean add(PrismContainerValue newValue, boolean checkUniqueness) throws SchemaException {
         // when a context-less item is added to a contextful container, it is automatically adopted
         if (newValue.getPrismContext() == null && this.prismContext != null) {
             prismContext.adopt(newValue);
@@ -175,7 +175,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
                 }
             }
         }
-        return super.add(newValue);
+        return super.add(newValue, checkUniqueness);
     }
     
 	@Override
@@ -237,7 +237,11 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     public PrismContainerValue<C> createNewValue() {
     	PrismContainerValue<C> pValue = new PrismContainerValue<C>(prismContext);
     	try {
-			add(pValue);
+    		// No need to check uniqueness, we know that this value is new and therefore
+    		// it will change anyway and therefore the check is pointless.
+    		// However, the check is expensive (especially if there are many values).
+    		// So we are happy to avoid it.
+			add(pValue, false);
 		} catch (SchemaException e) {
 			// This should not happen
 			throw new SystemException("Internal Error: "+e.getMessage(),e);
