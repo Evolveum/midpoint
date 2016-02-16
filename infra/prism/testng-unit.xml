@@ -40,6 +40,7 @@
 			<class name="com.evolveum.midpoint.prism.TestDelta"/>
 			<class name="com.evolveum.midpoint.prism.TestPath"/>
 			<class name="com.evolveum.midpoint.prism.TestFind"/>
+			<class name="com.evolveum.midpoint.prism.TestPerformance"/>
 			<class name="com.evolveum.midpoint.prism.crypto.TestProtector"/>
 			<class name="com.evolveum.midpoint.prism.match.TestMatchingRule"/>
 			<class name="com.evolveum.midpoint.prism.parser.TestDomParser"/>

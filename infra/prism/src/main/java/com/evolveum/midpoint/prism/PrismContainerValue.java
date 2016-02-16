@@ -345,6 +345,10 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		return names;
 	}
     
+	public <IV extends PrismValue,ID extends ItemDefinition> boolean add(Item<IV,ID> item) throws SchemaException {
+		return add(item, true);
+	}
+	
     /**
      * Adds an item to a property container.
      *
@@ -352,11 +356,11 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
      * @throws SchemaException 
      * @throws IllegalArgumentException an attempt to add value that already exists
      */
-    public <IV extends PrismValue,ID extends ItemDefinition> boolean add(Item<IV,ID> item) throws SchemaException {
+    public <IV extends PrismValue,ID extends ItemDefinition> boolean add(Item<IV,ID> item, boolean checkUniquness) throws SchemaException {
     	if (item.getElementName() == null) {
     		throw new IllegalArgumentException("Cannot add item without a name to value of container "+getParent());
     	}
-        if (findItem(item.getElementName(), Item.class) != null) {
+        if (checkUniquness && findItem(item.getElementName(), Item.class) != null) {
             throw new IllegalArgumentException("Item " + item.getElementName() + " is already present in " + this.getClass().getSimpleName());
         }
         item.setParent(this);
@@ -847,7 +851,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         } else {
         	property = propertyDefinition.instantiate();
         }
-        add(property);
+        add(property, false);
         return property;
     }
     
