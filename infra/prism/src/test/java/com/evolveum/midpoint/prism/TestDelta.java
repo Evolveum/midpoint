@@ -1363,7 +1363,88 @@ public class TestDelta {
 				IdItemPathSegment.WILDCARD), false, 2);
     }
 	
+	
+	@Test
+    public void testPropertyDeltaNarrow01() throws Exception {
+		System.out.println("\n\n===[ testPropertyDeltaNarrow01 ]===\n");
+		
+		// GIVEN
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
+		PropertyDelta<String> delta = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		delta.addValueToAdd(new PrismPropertyValue<String>("blabla"));
+		delta.addValueToAdd(new PrismPropertyValue<String>("bubu"));
+		
+		PrismObject<UserType> user = createUserNoAssignment();
+		
+		// WHEN
+		PropertyDelta<String> narrowedDelta = delta.narrow(user);
+		
+		// THEN
+		System.out.println("Narrowed delta:");
+		System.out.println(narrowedDelta.debugDump());
+
+		PrismAsserts.assertNoReplace(narrowedDelta);
+		PrismAsserts.assertAdd(narrowedDelta, "blabla", "bubu");
+		PrismAsserts.assertNoDelete(narrowedDelta);
+	}
+	
+	@Test
+    public void testPropertyDeltaNarrow02() throws Exception {
+		System.out.println("\n\n===[ testPropertyDeltaNarrow02 ]===\n");
+		
+		// GIVEN
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+
+		PropertyDelta<String> delta = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		delta.addValueToAdd(new PrismPropertyValue<String>("blabla"));
+		delta.addValueToAdd(new PrismPropertyValue<String>("bubu"));
+		
+		PrismObject<UserType> user = createUserNoAssignment();
+		user.setPropertyRealValue(UserType.F_DESCRIPTION, "bubu");
+		
+		// WHEN
+		PropertyDelta<String> narrowedDelta = delta.narrow(user);
+		
+		// THEN
+		System.out.println("Narrowed delta:");
+		System.out.println(narrowedDelta.debugDump());
+
+		PrismAsserts.assertNoReplace(narrowedDelta);
+		PrismAsserts.assertAdd(narrowedDelta, "blabla");
+		PrismAsserts.assertNoDelete(narrowedDelta);
+	}
+
+	@Test
+    public void testPropertyDeltaNarrow03() throws Exception {
+		System.out.println("\n\n===[ testPropertyDeltaNarrow03 ]===\n");
+		
+		// GIVEN
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+
+		PropertyDelta<String> delta = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		delta.addValueToAdd(new PrismPropertyValue<String>("bubu"));
+		
+		PrismObject<UserType> user = createUserNoAssignment();
+		user.setPropertyRealValue(UserType.F_DESCRIPTION, "bubu");
+		
+		// WHEN
+		PropertyDelta<String> narrowedDelta = delta.narrow(user);
+		
+		// THEN
+		System.out.println("Narrowed delta:");
+		System.out.println(narrowedDelta.debugDump());
+
+		PrismAsserts.assertNoReplace(narrowedDelta);
+		PrismAsserts.assertNoAdd(narrowedDelta);
+		PrismAsserts.assertNoDelete(narrowedDelta);
+		assertTrue("Delta not empty", narrowedDelta.isEmpty());
+	}
+
+	
 	private PrismObject<UserType> createUser() throws SchemaException {
 
 		PrismObject<UserType> user = createUserNoAssignment();
