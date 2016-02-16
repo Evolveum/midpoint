@@ -817,6 +817,9 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
     					iterator.remove();
     				}
     			}
+    			if (clone.valuesToDelete.isEmpty()) {
+    				clone.valuesToDelete = null;
+    			}
     		}
     		if (clone.valuesToAdd != null) {
     			Iterator<V> iterator = clone.valuesToAdd.iterator();
@@ -825,6 +828,9 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
     				if (currentItem.contains(valueToDelete, true, comparator)) {
     					iterator.remove();
     				}
+    			}
+    			if (clone.valuesToAdd.isEmpty()) {
+    				clone.valuesToAdd = null;
     			}
     		}
     		return clone;
