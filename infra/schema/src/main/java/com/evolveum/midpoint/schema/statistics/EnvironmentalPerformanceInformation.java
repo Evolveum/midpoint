@@ -66,17 +66,17 @@ public class EnvironmentalPerformanceInformation {
     }
 
     public synchronized EnvironmentalPerformanceInformationType getDeltaValue() {
-        EnvironmentalPerformanceInformationType rv = toOperationalInformationType();
+        EnvironmentalPerformanceInformationType rv = toEnvironmentalPerformanceInformationType();
         return rv;
     }
 
     public synchronized EnvironmentalPerformanceInformationType getAggregatedValue() {
-        EnvironmentalPerformanceInformationType delta = toOperationalInformationType();
+        EnvironmentalPerformanceInformationType delta = toEnvironmentalPerformanceInformationType();
         EnvironmentalPerformanceInformationType rv = aggregate(startValue, delta);
         return rv;
     }
 
-    private EnvironmentalPerformanceInformationType toOperationalInformationType() {
+    private EnvironmentalPerformanceInformationType toEnvironmentalPerformanceInformationType() {
         EnvironmentalPerformanceInformationType rv = new EnvironmentalPerformanceInformationType();
         rv.setProvisioningStatistics(toProvisioningStatisticsType());
         rv.setMappingsStatistics(toMappingsStatisticsType());
@@ -284,7 +284,7 @@ public class EnvironmentalPerformanceInformation {
             return;
         }
         if (rv.getNotificationsStatistics() == null) {
-            rv.setNotificationsStatistics(delta);
+            rv.setNotificationsStatistics(delta.clone());
             return;
         }
 
@@ -326,7 +326,7 @@ public class EnvironmentalPerformanceInformation {
             return;
         }
         if (rv.getMappingsStatistics() == null) {
-            rv.setMappingsStatistics(delta);
+            rv.setMappingsStatistics(delta.clone());
             return;
         }
 
@@ -365,7 +365,7 @@ public class EnvironmentalPerformanceInformation {
             return;
         }
         if (rv.getProvisioningStatistics() == null) {
-            rv.setProvisioningStatistics(delta);
+            rv.setProvisioningStatistics(delta.clone());
             return;
         }
 

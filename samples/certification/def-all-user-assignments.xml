@@ -17,11 +17,13 @@
 
 <accessCertificationDefinition
         xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <name>All user assignments</name>
     <description>Certifies all users' assignments. Everything is certified by the administrator.</description>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
+    <scopeDefinition xsi:type="AccessCertificationAssignmentReviewScopeType">
+        <objectType>UserType</objectType>
+    </scopeDefinition>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"><!-- administrator --></ownerRef>
     <remediationDefinition>
         <style>automated</style>
@@ -30,8 +32,8 @@
         <number>1</number>
         <name>Administrator's review</name>
         <description>In this stage, the administrator has to review all the assignments of all users.</description>
-        <duration>P14D</duration>   <!-- days -->
-        <notifyBeforeDeadline>PT48H</notifyBeforeDeadline> <!-- hours -->
+        <duration>P14D</duration>   <!-- 14 days -->
+        <notifyBeforeDeadline>PT48H</notifyBeforeDeadline> <!-- 48 hours -->
         <notifyBeforeDeadline>PT12H</notifyBeforeDeadline>
         <notifyOnlyWhenNoDecision>true</notifyOnlyWhenNoDecision>  <!-- this is the default -->
         <reviewerSpecification>
