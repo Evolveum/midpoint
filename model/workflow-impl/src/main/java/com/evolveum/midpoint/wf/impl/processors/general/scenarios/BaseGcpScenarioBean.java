@@ -37,7 +37,7 @@ import com.evolveum.midpoint.wf.impl.processors.general.GcpExternalizationHelper
 import com.evolveum.midpoint.wf.impl.processors.general.GcpProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.util.JaxbValueContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorScenarioType;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
 

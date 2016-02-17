@@ -53,14 +53,7 @@ import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.wf.processors.primary.PcpTaskExtensionItemsNames;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTreeDeltasType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UriStackEntry;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -144,8 +137,8 @@ public class WfTaskUtil {
         wfRootTaskOidPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFROOT_TASK_OID_PROPERTY_NAME);
         wfApprovedByReferenceDefinition = prismContext.getSchemaRegistry().findReferenceDefinitionByElementName(PcpTaskExtensionItemsNames.WFAPPROVED_BY_REFERENCE_NAME);
 
-        Validate.notNull(wfModelContextContainerDefinition, SchemaConstants.MODEL_CONTEXT_NAME + " definition was not found");
-        Validate.notNull(wfSkipModelContextProcessingPropertyDefinition, SchemaConstants.SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY + " definition was not found");
+        //Validate.notNull(wfModelContextContainerDefinition, SchemaConstants.MODEL_CONTEXT_NAME + " definition was not found");
+        //Validate.notNull(wfSkipModelContextProcessingPropertyDefinition, SchemaConstants.SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY + " definition was not found");
         Validate.notNull(wfStatusPropertyDefinition, WfTaskExtensionItemsNames.WFSTATUS_PROPERTY_NAME + " definition was not found");
         Validate.notNull(wfLastDetailsPropertyDefinition, WfTaskExtensionItemsNames.WFLAST_DETAILS_PROPERTY_NAME + " definition was not found");
         Validate.notNull(wfLastVariablesPropertyDefinition, WfTaskExtensionItemsNames.WFLAST_VARIABLES_PROPERTY_NAME + " definition was not found");

@@ -28,6 +28,9 @@
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-3.xsd" />
 
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/common-model-context-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-model-context-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-model-context-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-model-context-3.xsd" />
+
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" uri="../../../target/midpoint-schema/xml/ns/public/connector/icf-1/resource-schema-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" uri="../../../target/midpoint-schema/xml/ns/public/connector/icf-1/resource-schema-3.xsd" />
 

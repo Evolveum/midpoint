@@ -86,9 +86,9 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	private javax.xml.validation.SchemaFactory schemaFactory;
 	private javax.xml.validation.Schema javaxSchema;
 	private EntityResolver builtinSchemaResolver;	
-	private List<SchemaDescription> schemaDescriptions;
-	private Map<String,SchemaDescription> parsedSchemas;
-	private Map<QName,ComplexTypeDefinition> extensionSchemas;
+	final private List<SchemaDescription> schemaDescriptions = new ArrayList<>();
+	final private Map<String,SchemaDescription> parsedSchemas = new HashMap<>();
+	final private Map<QName,ComplexTypeDefinition> extensionSchemas = new HashMap<>();
 	private boolean initialized = false;
 	private DynamicNamespacePrefixMapper namespacePrefixMapper;
 	private String defaultNamespace;
@@ -100,9 +100,6 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	public SchemaRegistry() {
 		super();
         this.catalogResource = RUNTIME_CATALOG_RESOURCE;
-		this.schemaDescriptions = new ArrayList<SchemaDescription>();
-		this.parsedSchemas = new HashMap<String, SchemaDescription>();
-		this.extensionSchemas = new HashMap<QName, ComplexTypeDefinition>();
 	}
 
 	public DynamicNamespacePrefixMapper getNamespacePrefixMapper() {
@@ -333,7 +330,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		} catch (SAXException ex) {
 			if (ex instanceof SAXParseException) {
 				SAXParseException sex = (SAXParseException)ex;
-				throw new SchemaException("Error parsing schema "+sex.getSystemId()+" line "+sex.getLineNumber()+": "+sex.getMessage());
+				throw new SchemaException("Error parsing schema "+sex.getSystemId()+" line "+sex.getLineNumber()+": "+sex.getMessage(), sex);
 			}
 			throw ex;
 		}
@@ -366,6 +363,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		
 		Element domElement = schemaDescription.getDomElement();
 		boolean isRuntime = schemaDescription.getCompileTimeClassesPackage() == null;
+		System.out.println("Parsing schema " + schemaDescription.getNamespace());
 		PrismSchema schema = PrismSchema.parse(domElement, this, isRuntime, schemaDescription.getSourceDescription(), getPrismContext());
 		if (StringUtils.isEmpty(namespace)) {
 			namespace = schema.getNamespace();
@@ -495,6 +493,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	 */
 	@Override
 	public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
+		LOGGER.trace("Resolving entity with publicID: {}, systemID: {}", publicId, systemId);
 		// Prefer built-in resolution over the pre-parsed one. This is less efficient, but if the order is swapped
 		// the parsers complaints about re-definition of the elements
 //		InputSource inputSource = resolveResourceUsingBuiltinResolver(null, null, publicId, systemId, null);
@@ -504,10 +503,10 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 //			inputSource = resolveResourceFromRegisteredSchemas(null, publicId, publicId, systemId, null);
 		}
 		if (inputSource == null) {
-			LOGGER.error("Unable to resolve resource with publicID: {}, systemID: {}",new Object[]{publicId, systemId});
+			LOGGER.error("Unable to resolve entity with publicID: {}, systemID: {}",new Object[]{publicId, systemId});
 			return null;
 		}
-		LOGGER.trace("Resolved resource with publicID: {}, systemID: {} : {}",new Object[]{publicId, systemId, inputSource});
+		LOGGER.trace("Resolved entity with publicID: {}, systemID: {} : {}", publicId, systemId, inputSource);
 		return inputSource;
 	}
 
@@ -518,10 +517,11 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	@Override
 	public LSInput resolveResource(String type, String namespaceURI, String publicId, String systemId,
 			String baseURI) {
+		LOGGER.trace("Resolving resource of type {}, namespaceURI: {}, publicID: {}, systemID: {}, base URI: {}", type, namespaceURI, publicId, systemId, baseURI);
 		// Prefer built-in resolution over the pre-parsed one. This is less efficient, but if the order is swapped
 		// the parsers complaints about re-definition of the elements
 //		InputSource inputSource = resolveResourceUsingBuiltinResolver(type,namespaceURI,publicId,systemId,baseURI);
-		 InputSource inputSource = resolveResourceFromRegisteredSchemas(type, namespaceURI, publicId, systemId, baseURI);
+		InputSource inputSource = resolveResourceFromRegisteredSchemas(type, namespaceURI, publicId, systemId, baseURI);
 		if (inputSource == null) {
 			inputSource = resolveResourceUsingBuiltinResolver(type, namespaceURI, publicId, systemId, baseURI);
 //			inputSource = resolveResourceFromRegisteredSchemas(type,namespaceURI,publicId,systemId,baseURI);
@@ -533,16 +533,18 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		LOGGER.trace("Resolved resource of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {} : {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI, inputSource});
 		return new Input(publicId, systemId, inputSource.getByteStream());
 	}
-		
+
+	// schema fragments (e.g. common-model-context-3) will not be found by this method
 	private InputSource resolveResourceFromRegisteredSchemas(String type, String namespaceURI,
 			String publicId, String systemId, String baseURI) {
-		InputSource source = resolveResourceFromRegisteredSchemasByNamespace(namespaceURI);
+		InputSource source = null;
 		if (source == null) {
 			source = resolveResourceFromRegisteredSchemasByNamespace(publicId);
 		}
 		if (source == null) {
 			source = resolveResourceFromRegisteredSchemasByNamespace(systemId);
 		}
+		LOGGER.trace("Result of registered schema resolve for publicId: {}, systemId: {}: {}", publicId, systemId, source);
 		return source;
 	}
 		
@@ -572,15 +574,19 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 				String baseURI) {
 		InputSource inputSource = null;
 		try {
-			if (namespaceURI != null) {
+			// we first try to use schemaLocation (publicId, systemId) because in case of schema fragments, e.g. common-model-context-3
+			// the use of namespaceURI (.../common-3) is misleading: it would return common-3.xsd instead of the correct fragment
+			if (inputSource == null) {
+				inputSource = builtinSchemaResolver.resolveEntity(publicId, systemId);
+				LOGGER.trace("Result of using builtin resolver by publicId + systemId: {}", inputSource);
+			}
+			// in other cases we can go with namespaceURI as well (when exactly?)
+			if (inputSource == null && namespaceURI != null) {
+				// TODO clarify this original comment:
 				// The systemId will be populated by schema location, not namespace URI.
 				// As we use catalog resolver as the default one, we need to pass it the namespaceURI in place of systemId
 				inputSource = builtinSchemaResolver.resolveEntity(publicId, namespaceURI);
-			}
-            // however, there are cases where systemId differs from namespaceURI (e.g. when namespace ends with '#')
-            // so, give systemId a try...
-            if (inputSource == null) {
-				inputSource = builtinSchemaResolver.resolveEntity(publicId, systemId);
+				LOGGER.trace("Result of using builtin resolver by publicId + namespaceURI: {}", inputSource);
 			}
 		} catch (SAXException e) {
 			LOGGER.error("XML parser error resolving reference of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}: {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI, e.getMessage(), e});
@@ -590,7 +596,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 			LOGGER.error("IO error resolving reference of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}: {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI, e.getMessage(), e});
 			// TODO: better error handling
 			return null;
-		}		
+		}
 		return inputSource;
 	}
 

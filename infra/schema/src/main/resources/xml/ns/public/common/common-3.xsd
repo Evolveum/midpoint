@@ -95,6 +95,8 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
+
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-model-context-3"/>
     
 <!--      <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" -->
 <!--     			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"> -->
@@ -1410,6 +1412,13 @@
                             <xsd:documentation>
                                 What is to be done when the thread allocated to this task stops
                                 (e.g. via node shutdown or node crash).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="modelOperationContext" type="tns:LensContextType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
