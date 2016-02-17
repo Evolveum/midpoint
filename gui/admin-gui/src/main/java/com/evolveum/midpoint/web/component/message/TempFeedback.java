@@ -45,7 +45,7 @@ public class TempFeedback extends Panel implements IFeedback {
         };
         add(ul);
 
-        FeedbackListView li = new FeedbackListView("li", this, true);
+        FeedbackListView li = new FeedbackListView("li", this);
         ul.add(li);
     }
 

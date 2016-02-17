@@ -22,6 +22,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.prism.Objectable;
@@ -49,7 +50,7 @@ import com.evolveum.midpoint.web.component.menu.SideBarMenuPanel;
 import com.evolveum.midpoint.web.component.menu.UserMenuPanel;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.message.MainFeedback;
-import com.evolveum.midpoint.web.component.message.OpResult;
+import com.evolveum.midpoint.web.component.message.MidpointFeedbackPanel;
 import com.evolveum.midpoint.web.component.message.TempFeedback;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.BreadcrumbItem;
@@ -103,6 +104,7 @@ import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -116,6 +118,7 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
@@ -458,11 +461,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         feedbackContainer.setOutputMarkupId(true);
         add(feedbackContainer);
 
-        MainFeedback feedback = new MainFeedback(ID_FEEDBACK);
+//        MainFeedback feedback = new MainFeedback(ID_FEEDBACK);
+        MidpointFeedbackPanel feedback = new MidpointFeedbackPanel(ID_FEEDBACK);
         feedbackContainer.add(feedback);
 
-        TempFeedback tempFeedback = new TempFeedback(ID_TEMP_FEEDBACK);
-        feedbackContainer.add(tempFeedback);
+//        TempFeedback tempFeedback = new TempFeedback(ID_TEMP_FEEDBACK);
+//        feedbackContainer.add(tempFeedback);
+//        
+        
 
 //        FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK_LIST);
 //        feedbackList.setOutputMarkupId(true);
@@ -573,6 +579,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return session.getSessionStorage();
     }
 
+    
     protected IModel<String> createPageSubTitleModel() {
         String key = getClass().getSimpleName() + ".subTitle";
         return new StringResourceModel(key, this).setDefaultValue("");
@@ -592,9 +599,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     			.setDefaultValue(resourceKey)
     			.setParameters(objects);
     }
-    	
     
-
+    
     public StringResourceModel createStringResource(Enum e) {
         String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
         return createStringResource(resourceKey);
@@ -621,14 +627,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
     }
     
-    public void showResultInSession(OperationResult result, String errorMessageKey) {
-    	showResult(result, errorMessageKey, true, true);
-    }
-    
-    public void showResultInSession(OperationResult result, String errorMessageKey, boolean showSuccess) {
-    	showResult(result, errorMessageKey, true, showSuccess);
-    }
-    
+//    public void showResultInSession(OperationResult result, String errorMessageKey) {
+//    	showResult(result, errorMessageKey, true, true);
+//    }
+//    
+//    public void showResultInSession(OperationResult result, String errorMessageKey, boolean showSuccess) {
+//    	showResult(result, errorMessageKey, true, showSuccess);
+//    }
+//    
     public void showResult(OperationResult result, String errorMessageKey, boolean showSuccess) {
     	showResult(result, errorMessageKey, false, showSuccess);
     }

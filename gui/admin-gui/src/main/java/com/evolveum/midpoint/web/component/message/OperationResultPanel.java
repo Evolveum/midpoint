@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.web.component.message;
 
+import com.evolveum.midpoint.gui.api.component.result.Context;
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
+import com.evolveum.midpoint.gui.api.component.result.Param;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;

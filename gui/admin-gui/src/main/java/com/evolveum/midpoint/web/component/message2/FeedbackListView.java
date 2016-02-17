@@ -17,11 +17,18 @@
 package com.evolveum.midpoint.web.component.message2;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessagesModel;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
+import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
 
 /**
  * @author lazyman
@@ -38,7 +45,9 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
         final FeedbackMessage message = item.getModelObject();
         message.markRendered();
 
-        Panel panel = new FeedbackAlertMessage("message", item.getModel());
+        OperationResultPanel panel = new OperationResultPanel("message", new PropertyModel<OpResult>(item.getModel(), "message"), false);
+        panel.setOutputMarkupId(true);
         item.add(panel);
+        
     }
 }

@@ -30,12 +30,12 @@ import org.apache.wicket.model.IModel;
  * @author lazyman
  */
 public class FeedbackListView extends ListView<FeedbackMessage> {
-	private boolean isTempPanel;
+//	private boolean isTempPanel;
 
-    public FeedbackListView(String id, Component component, boolean isTempPanel) {
+    public FeedbackListView(String id, Component component) {
         super(id);
         setDefaultModel(new FeedbackMessagesModel(component));
-        this.isTempPanel = isTempPanel;
+//        this.isTempPanel = isTempPanel;
     }
 
     @Override
@@ -43,11 +43,11 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
         FeedbackMessage message = item.getModelObject();
         message.markRendered();
         Panel panel = null;
-        if(isTempPanel){
-        	panel = new TempMessagePanel("message", item.getModel());
-        } else {
+//        if(isTempPanel){
+//        	panel = new TempMessagePanel("message", item.getModel());
+//        } else {
         	panel = new FeedbackMessagePanel("message", item.getModel());
-        }
+//        }
         
         panel.add(new AttributeAppender("class", createModel(item.getModel()), " "));
 

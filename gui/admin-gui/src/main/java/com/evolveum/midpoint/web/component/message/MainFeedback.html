@@ -15,12 +15,22 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
-<wicket:panel>
-    <ul wicket:id="ul" class="messagesTop">
-        <li wicket:id="li">
-            <div wicket:id="message"/>
-        </li>
-    </ul>
-</wicket:panel>
+	<wicket:panel>
+
+		<ul wicket:id="ul" class="alert alert-danger alert-dismissible">
+			<div wicket:id="close" class="close" data-dismiss="alert"
+				aria-hidden="true">×</div>
+			
+				<li wicket:id="li">
+					<div wicket:id="message" />
+				</li>
+			</ul>
+
+		<!--     <ul wicket:id="ul" class="messagesTop"> -->
+		<!--         <li wicket:id="li"> -->
+		<!--             <div wicket:id="message"/> -->
+		<!--         </li> -->
+		<!--     </ul> -->
+	</wicket:panel>
 </body>
 </html>

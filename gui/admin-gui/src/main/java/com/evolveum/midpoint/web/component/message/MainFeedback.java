@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.component.message;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessagesModel;
 import org.apache.wicket.feedback.IFeedback;
@@ -43,7 +45,7 @@ public class MainFeedback extends Panel implements IFeedback {
     }
 
     private void initLayout() {
-        WebMarkupContainer ul = new WebMarkupContainer("ul") {
+        final WebMarkupContainer ul = new WebMarkupContainer("ul") {
 
             @Override
             public boolean isVisible() {
@@ -52,8 +54,19 @@ public class MainFeedback extends Panel implements IFeedback {
         };
         add(ul);
 
-        FeedbackListView li = new FeedbackListView("li", this, false);
+        FeedbackListView li = new FeedbackListView("li", this);
         ul.add(li);
+        
+        AjaxLink close = new AjaxLink("close") {
+        	
+        	@Override
+        	public void onClick(AjaxRequestTarget target) {
+        		ul.setVisible(false);
+//        		target.add(ul);
+        	}
+		};
+		
+		add(close);
     }
 
     public boolean hasMessages() {

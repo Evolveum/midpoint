@@ -183,6 +183,72 @@ th.cog, td.cog {
     border-radius: 0;
 }
 
+.feedback-message.box {
+	box-shadow: 0 0px 0px rgba(0, 0, 0, 0.1);
+	word-break: inherit;
+}
+
+.feedback-message.box-body {
+	padding-top : 5px;
+	padding-left : 10px;
+	padding-right : 0px;
+	padding-bottom : 0px;
+}
+
+.feedback-message.box.box-solid.box-danger {
+	border-left: 3px solid #dd4b39;
+	border-right : 0px;
+	border-top : 0px;
+	border-bottom : 0px;
+}
+
+
+.feedback-message.box.box-solid.box-success {
+	border-left: 3px solid #00a65a;
+	border-right : 0px;
+	border-top : 0px;
+	border-bottom : 0px;
+}
+
+.feedback-message.box.box-solid.box-info {
+	border-left: 3px solid #00c0ef;
+	border-right : 0px;
+	border-top : 0px;
+	border-bottom : 0px;
+}
+
+.feedback-message.box.box-solid.box-warning {
+	border-left: 3px solid #f39c12;
+	border-right : 0px;
+	border-top : 0px;
+	border-bottom : 0px;
+}
+
+.feedback-message.dl-horizontal {
+	
+	& dt {
+		width: 100px;
+	}
+}
+
+
+.feedback-message.dl-horizontal {
+	
+	& dd {
+		margin-left: 130px;
+		word-break: break-word;
+	}
+}
+
+.feedback-message .icon {
+	margin-right: 10px;
+}
+
+.feedback-message {
+	& .box-header .box-title {
+		font-size: 14px;
+	}
+}
 .summary-panel-identifier {
 	white-space: pre-wrap;
 	color: #808080;
@@ -232,6 +298,8 @@ th.cog, td.cog {
 	vertical-align: middle;
 	display: inline !important;
 }
+
+
 
 // top navigation bar: page title
 
