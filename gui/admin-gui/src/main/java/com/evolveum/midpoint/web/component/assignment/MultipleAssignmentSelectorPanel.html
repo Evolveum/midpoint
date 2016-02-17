@@ -21,35 +21,33 @@
 <wicket:panel>
     <div wicket:id="assignablePopup" />
     <div wicket:id="assignableOrgPopup" />
-    <div wicket:id="userChooserDialog"/>
 
     <form wicket:id="form">
         <div class="row">
             <div class="col-md-10">
                 <div class="col-md-4">
-      <div>              <wicket:message key="MultipleAssignmentSelectorPanel.availableRoles"/>
-      </div><div>
-                    <a wicket:id="filterByUserButton" class="btn btn-sm btn-default">
-                        <span wicket:id="label"/>
-                        <i wicket:id="deleteButton" class="fa fa-times-circle fa-lg text-danger"/>
-                    </a>
-
-</div>
+                    <label class="control-label">
+                        <wicket:message key="MultipleAssignmentSelectorPanel.availableRoles"/>
+                    </label>
                     <!--<a class="btn btn-sm btn-default" wicket:id="filterByUserButton"/>-->
                     <div wicket:id="availableAssignments"/>
                 </div>
                 <div class="col-md-4" style="margin-top: 60px;">
                     <div wicket:id="tenantRefContainer" class="form-group">
                         <div class="col-md-4">
-                            <wicket:message key="AssignmentEditorPanel.tenantRef" />
+                            <label>
+                                <wicket:message key="AssignmentEditorPanel.tenantRef" />
+                            </label>
                         </div>
-                        <div class="col-md-4" wicket:id="tenantRefChooser"/>
+                        <div class="col-md-8" wicket:id="tenantRefChooser"/>
                     </div>
                     <div wicket:id="orgRefContainer" class="form-group">
                         <div class="col-md-4">
-                            <wicket:message key="AssignmentEditorPanel.orgRef" />
+                            <label>
+                                <wicket:message key="AssignmentEditorPanel.orgRef" />
+                            </label>
                         </div>
-                        <div class="col-md-4" wicket:id="orgRefChooser"/>
+                        <div class="col-md-8" wicket:id="orgRefChooser"/>
                     </div>
                     <!--<div class="form-group">-->
                     <div class="centre">
@@ -63,7 +61,9 @@
                             <!--</div>-->
                 </div>
                 <div class="col-md-4">
-                    <wicket:message key="MultipleAssignmentSelectorPanel.currentRoles"/>
+                    <label class="control-label">
+                        <wicket:message key="MultipleAssignmentSelectorPanel.currentRoles"/>
+                    </label>
                     <div wicket:id="currentAssignments"/>
                 </div>
             </div>
