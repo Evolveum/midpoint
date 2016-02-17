@@ -445,6 +445,8 @@ public class TestExpressionFunctions {
 		BasicExpressionFunctions basic = createBasicFunctions();
 		
 		assertEquals("cn=foo,o=bar", basic.composeDn("cn","foo","o","bar"));
+		assertEquals("cn=foo,o=bar", basic.composeDn("cn",PrismTestUtil.createPolyString("foo"),"o","bar"));
+		assertEquals("cn=foo,o=bar", basic.composeDn("cn",PrismTestUtil.createPolyStringType("foo"),"o","bar"));
 		assertEquals("cn=foo,o=bar", basic.composeDn("cn","foo",new Rdn("o","bar")));
 		assertEquals("cn=foo,ou=baz,o=bar", basic.composeDn(new Rdn("cn","foo"),"ou","baz",new Rdn("o","bar")));
 		assertEquals("cn=foo,ou=baz,o=bar", basic.composeDn(new Rdn("cn","foo"),"ou","baz","o","bar"));
@@ -467,6 +469,8 @@ public class TestExpressionFunctions {
 		assertEquals("cn=foo,ou=baz,o=bar", basic.composeDnWithSuffix(new Rdn("cn","foo"),"ou=baz,o=bar"));
 		assertEquals("cn=foo,ou=baz,o=bar", basic.composeDnWithSuffix(new Rdn("cn","foo"),new LdapName("ou=baz,o=bar")));
 		assertEquals("cn=foo,ou=baz,o=bar", basic.composeDnWithSuffix("cn","foo","ou=baz,o=bar"));
+		assertEquals("cn=foo,ou=baz,o=bar", basic.composeDnWithSuffix("cn",PrismTestUtil.createPolyString("foo"),"ou=baz,o=bar"));
+		assertEquals("cn=foo,ou=baz,o=bar", basic.composeDnWithSuffix("cn",PrismTestUtil.createPolyStringType("foo"),"ou=baz,o=bar"));
 		assertEquals("cn=foo,ou=baz,o=bar", basic.composeDnWithSuffix("cn","foo",new LdapName("ou=baz,o=bar")));
 		assertEquals("cn=foo,ou=baz\\,baz,o=bar", basic.composeDnWithSuffix("cn","foo","ou=baz\\,baz,o=bar"));
 		assertEquals("cn=foo,ou=baz\\,baz,o=bar", basic.composeDnWithSuffix("cn","foo",new LdapName("ou=baz\\,baz,o=bar")));

@@ -688,11 +688,15 @@ public class BasicExpressionFunctions {
     	LinkedList<Rdn> rdns = new LinkedList<>();
     	String attrName = null;
     	for (Object component: components) {
-    		if (attrName != null && !(component instanceof String)) {
+    		if (attrName != null && !(component instanceof String || component instanceof PolyString || component instanceof PolyStringType)) {
     			throw new InvalidNameException("Invalid input to composeDn() function: expected string after '"+attrName+"' argument, but got "+component.getClass());
     		}
     		if (component instanceof Rdn) {
     			rdns.addFirst((Rdn)component);
+    		} else if (component instanceof PolyString) {
+    			component = ((PolyString)component).toString();
+    		} else if (component instanceof PolyStringType) {
+    			component = ((PolyStringType)component).toString();
     		}
     		if (component instanceof String) {
     			if (attrName == null) {
@@ -701,7 +705,8 @@ public class BasicExpressionFunctions {
 					rdns.addFirst(new Rdn(attrName, (String)component));
     				attrName = null;
     			}
-    		} if (component instanceof LdapName) {
+    		} 
+    		if (component instanceof LdapName) {
     			rdns.addAll(0,((LdapName)component).getRdns());
     		}
     	}
