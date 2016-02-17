@@ -299,7 +299,7 @@ public class PageResource extends PageAdminResources {
 		}
 		
 		parentResult.computeStatus();
-		showResultInSession(parentResult, "pageResource.refreshSchema.failed");
+		showResult(parentResult, "pageResource.refreshSchema.failed");
 		target.add(getFeedbackPanel());
 	}
 
@@ -366,7 +366,7 @@ public class PageResource extends PageAdminResources {
 			target.add(component);
 		}
 
-		showResultInSession(result, "Test connection failed", false);
+		showResult(result, "Test connection failed", false);
 
 	}
 

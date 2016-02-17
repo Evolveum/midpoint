@@ -59,13 +59,13 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(OperationResultPanel.class);
 
-	public OperationResultPanel(String id, IModel<OpResult> model, boolean children) {
+	public OperationResultPanel(String id, IModel<OpResult> model) {
 		super(id, model);
 
 		initLayout();
 	}
 
-	protected void initLayout() {
+	public void initLayout() {
 
 		WebMarkupContainer detailsBox = new WebMarkupContainer("detailsBox");
 		detailsBox.setOutputMarkupId(true);
@@ -121,7 +121,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				OpResult result = OperationResultPanel.this.getModel().getObject();
+				OpResult result = OperationResultPanel.this.getModelObject();
 				result.setShowMore(!result.isShowMore());
 				target.add(OperationResultPanel.this);
 			}
@@ -136,7 +136,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				showHideAll(true, OperationResultPanel.this.getModel().getObject(), target);
+				showHideAll(true, OperationResultPanel.this.getModelObject(), target);
 			}
 		};
 
@@ -153,6 +153,19 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		};
 
 		box.add(hideAll);
+		
+		AjaxLink close = new AjaxLink("close") {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				close(target);
+				
+			}
+		};
+
+		box.add(close);
 
 		DownloadLink downloadXml = new DownloadLink("downloadXml", new AbstractReadOnlyModel<File>() {
 
@@ -177,6 +190,13 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		box.add(downloadXml);
 	}
 
+	public void close(AjaxRequestTarget target){
+		this.setVisible(false);
+		target.add(this);
+	}
+	
+	
+	
 	private Label createMessage() {
 		Label message = null;
 		if (StringUtils.isNotBlank(getModelObject().getMessage())) {
@@ -322,7 +342,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 
 			@Override
 			protected void populateItem(final ListItem<OpResult> item) {
-				Panel subresult = new OperationResultPanel("subresult", item.getModel(), true);
+				Panel subresult = new OperationResultPanel("subresult", item.getModel());
 				subresult.setOutputMarkupId(true);
 				item.add(subresult);
 			}
