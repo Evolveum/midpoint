@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,14 @@ import java.text.Normalizer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
+import javax.naming.InvalidNameException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
@@ -653,6 +656,105 @@ public class BasicExpressionFunctions {
 		} catch (EncryptionException e) {
 			throw new SystemException(e.getMessage(), e);
 		}
+    }
+    
+    /**
+     * Creates a valid LDAP distinguished name from the wide range of components. The method
+     * can be invoked in many ways, e.g.:
+     * 
+     * composeDn("cn","foo","o","bar")
+	 * composeDn("cn","foo",new Rdn("o","bar"))
+     * composeDn(new Rdn("cn","foo"),"ou","baz",new Rdn("o","bar"))
+     * composeDn(new Rdn("cn","foo"),"ou","baz","o","bar")
+	 * composeDn(new Rdn("cn","foo"),new LdapName("ou=baz,o=bar"))
+     * composeDn("cn","foo",new LdapName("ou=baz,o=bar"))
+     * 
+     * Note: the DN is not normalized. The case of the attribute names and white spaces are
+     * preserved.
+     */
+    public static String composeDn(Object... components) throws InvalidNameException {
+    	if (components == null) {
+    		return null;
+    	}
+    	if (components.length == 0) {
+    		return null;
+    	}
+    	if (components.length == 1 && components[0] == null) {
+    		return null;
+    	}
+    	if (components.length == 1 && (components[0] instanceof String) && StringUtils.isBlank((String)(components[0]))) {
+    		return null;
+    	}
+    	LinkedList<Rdn> rdns = new LinkedList<>();
+    	String attrName = null;
+    	for (Object component: components) {
+    		if (attrName != null && !(component instanceof String)) {
+    			throw new InvalidNameException("Invalid input to composeDn() function: expected string after '"+attrName+"' argument, but got "+component.getClass());
+    		}
+    		if (component instanceof Rdn) {
+    			rdns.addFirst((Rdn)component);
+    		}
+    		if (component instanceof String) {
+    			if (attrName == null) {
+    				attrName = (String)component;
+    			} else {
+					rdns.addFirst(new Rdn(attrName, (String)component));
+    				attrName = null;
+    			}
+    		} if (component instanceof LdapName) {
+    			rdns.addAll(0,((LdapName)component).getRdns());
+    		}
+    	}
+    	LdapName dn = new LdapName(rdns);
+    	return dn.toString();
+    }
+    
+    /**
+     * Creates a valid LDAP distinguished name from the wide range of components assuming that
+     * the last component is a suffix. The method can be invoked in many ways, e.g.:
+     * 
+     * composeDn("cn","foo","o=bar")
+     * composeDn(new Rdn("cn","foo"),"ou=baz,o=bar")
+	 * composeDn(new Rdn("cn","foo"),new LdapName("ou=baz,o=bar"))
+     * composeDn("cn","foo",new LdapName("ou=baz,o=bar"))
+     * 
+     * The last element is a complete suffix represented either as String or LdapName.
+     * 
+     * Note: the DN is not normalized. The case of the attribute names and white spaces are
+     * preserved.
+     */
+    public static String composeDnWithSuffix(Object... components) throws InvalidNameException {
+    	if (components == null) {
+    		return null;
+    	}
+    	if (components.length == 0) {
+    		return null;
+    	}
+    	if (components.length == 1) {
+    		if (components[0] == null) {
+    			return null;
+    		}
+    		if ((components[0] instanceof String)) {
+    			if (StringUtils.isBlank((String)(components[0]))) {
+    				return null;
+    			} else {
+    				return (new LdapName((String)(components[0]))).toString();
+    			}
+    		} else if ((components[0] instanceof LdapName)) {
+    			return ((LdapName)(components[0])).toString();
+    		} else {
+    			throw new InvalidNameException("Invalid input to composeDn() function: expected suffix (last element) to be String or LdapName, but it was "+components[0].getClass());
+    		}
+    	}
+    	Object suffix = components[components.length - 1];
+    	if (suffix instanceof String) {
+    		suffix = new LdapName((String)suffix);
+    	}
+    	if (!(suffix instanceof LdapName)) {
+    		throw new InvalidNameException("Invalid input to composeDn() function: expected suffix (last element) to be String or LdapName, but it was "+suffix.getClass());
+    	}
+    	components[components.length - 1] = suffix;
+    	return composeDn(components);
     }
 	
 }
