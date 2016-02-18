@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.message;
+package com.evolveum.midpoint.gui.api.component.result;
 
 import java.io.Serializable;
 
 /**
  * @author
  */
-public class Context implements Serializable {
+public class Param implements Serializable {
 
     private String name;
     private String value;
 
-    public Context(String name, String value) {
+    public Param(String name, String value) {
         this.name = name;
         this.value = value;
     }

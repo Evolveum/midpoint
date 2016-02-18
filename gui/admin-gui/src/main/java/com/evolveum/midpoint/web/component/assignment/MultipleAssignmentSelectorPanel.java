@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2010-2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -45,6 +61,9 @@ import java.util.List;
 
 /**
  * Created by Honchar.
+ * Panel contains available list of focus type items and
+ * the list of assigned items of the same type with the
+ * possibility of editing the list of assignments.
  */
 public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePanel<List<AssignmentEditorDto>> {
     private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
@@ -59,15 +78,10 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
     private static final String ID_TENANT_CHOOSER = "tenantRefChooser";
     private static final String ID_CONTAINER_ORG_REF = "orgRefContainer";
     private static final String ID_ORG_CHOOSER = "orgRefChooser";
-    private static final String ID_USER_CHOOSER_DIALOG = "userChooserDialog";
-    private static final String ID_FILTER_BY_USER_BUTTON = "filterByUserButton";
-    private static final String ID_LABEL = "label";
-    private static final String ID_DELETE_BUTTON = "deleteButton";
 
 
     private static final String DOT_CLASS = MultipleAssignmentSelectorPanel.class.getName();
     private Class<F> type;
-    private boolean showDialog = true;
     AssignableSelectionPanel.Context assignableSelectionContext;
     AbstractAssignableSelectionPanel.Context assignableOrgSelectionContext;
 
@@ -95,6 +109,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
         currentAssignmentsProvider = getListDataProvider(null);
         final MultipleAssignmentSelector currentAssignmentsPanel = new MultipleAssignmentSelector<F>(ID_CURRENT_ASSIGNMENTS,
                 assignmentsModel, currentAssignmentsProvider, type);
+        currentAssignmentsPanel.setFilterButtonVisibility(false);
 
         AjaxButton add = new AjaxButton(ID_BUTTON_ADD) {
             @Override
@@ -176,31 +191,6 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
         WebMarkupContainer orgRefContainer = createOrgContainer();
 
 
-        AjaxLink<String> filterByUserButton = new AjaxLink<String>(ID_FILTER_BY_USER_BUTTON) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                if (showDialog) {
-                    UserBrowserDialog window = (UserBrowserDialog) MultipleAssignmentSelectorPanel.this.get(ID_USER_CHOOSER_DIALOG);
-                    window.setType(UserType.class);
-                    window.show(target);
-                }
-                showDialog = true;
-            }
-        };
-//        filterByUserButton.setBody(createStringResource("MultipleAssignmentSelector.filterByUser"));
-
-        Label label = new Label(ID_LABEL, createStringResource("MultipleAssignmentSelector.filterByUser"));
-        label.setRenderBodyOnly(true);
-        filterByUserButton.add(label);
-
-        AjaxLink deleteButton = new AjaxLink(ID_DELETE_BUTTON) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                showDialog = false;
-                deleteFilterPerformed(target);
-            }
-        };
-        filterByUserButton.add(deleteButton);
 
 
         Form<?> form = new Form<Void>(ID_FORM);
@@ -210,10 +200,8 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
         form.add(currentAssignmentsPanel);
         form.add(add);
         form.add(remove);
-        form.add(filterByUserButton);
         add(form);
 
-        initUserDialog();
     }
 
     private IModel<List<AssignmentEditorDto>> createAvailableAssignmentModel() {
@@ -291,7 +279,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
 
 
 
-    private ObjectDataProvider getAvailableAssignmentsDataProvider() {
+    public ObjectDataProvider getAvailableAssignmentsDataProvider() {
         return new ObjectDataProvider<AssignmentEditorDto, F>(this, type) {
 
             @Override
@@ -301,7 +289,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
         };
     }
 
-    private ListDataProvider getListDataProvider(final UserType user) {
+    public ListDataProvider getListDataProvider(final UserType user) {
         final ListDataProvider provider = new ListDataProvider(this, new IModel<List<AssignmentEditorDto>>() {
             @Override
             public List<AssignmentEditorDto> getObject() {
@@ -310,7 +298,6 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
 
             @Override
             public void setObject(List<AssignmentEditorDto> list) {
-//availableAssignmentsDataList = list;
             }
 
             @Override
@@ -468,35 +455,6 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
         return currentUsersAssignments;
     }
 
-    private void initUserDialog() {
-
-        UserBrowserDialog<UserType> dialog = new UserBrowserDialog<UserType>(ID_USER_CHOOSER_DIALOG, UserType.class) {
-
-            @Override
-            public void userDetailsPerformed(AjaxRequestTarget target, UserType user) {
-                super.userDetailsPerformed(target, user);
-                filterByUserPerformed(user);
-
-                replacePanel(target);
-            }
-        };
-        add(dialog);
-    }
-
-
-    private void filterByUserPerformed(UserType user){
-       dataProvider =  getListDataProvider(user);
-    }
-
-    private List<AssignmentEditorDto> getAssignmentEditorDtoList(List<AssignmentType> assignmentTypeList){
-        List<AssignmentEditorDto> assignmentEditorDtoList = new ArrayList<>();
-        for (AssignmentType assignmentType : assignmentTypeList){
-            AssignmentEditorDto assignmentEditorDto = new AssignmentEditorDto(UserDtoStatus.MODIFY, assignmentType, getPageBase());
-            assignmentEditorDtoList.add(assignmentEditorDto);
-        }
-        return assignmentEditorDtoList;
-    }
-
     private List<AssignmentEditorDto> applyQueryToListProvider(ObjectQuery query, List<AssignmentEditorDto> providerList){
         ObjectDataProvider temporaryProvider = new ObjectDataProvider(MultipleAssignmentSelectorPanel.this, type);
         List<AssignmentEditorDto> displayAssignmentsList = new ArrayList<>();
@@ -540,20 +498,13 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
         return currentAssignments;
     }
 
-    private void deleteFilterPerformed(AjaxRequestTarget target){
-        ObjectQuery query = dataProvider.getQuery();
-        dataProvider = getAvailableAssignmentsDataProvider();
-        dataProvider.setQuery(query);
-        replacePanel(target);
-    }
 
-    private  void replacePanel(AjaxRequestTarget target){
-        BoxedTablePanel table = ((MultipleAssignmentSelector) MultipleAssignmentSelectorPanel.this.get(ID_FORM).get(ID_AVAILABLE_ASSIGNMENTS)).getTable();
-        Form  form = (Form)MultipleAssignmentSelectorPanel.this.get(ID_FORM);
-        if (table != null) {
-            form.replace(new MultipleAssignmentSelector<F>(ID_AVAILABLE_ASSIGNMENTS,
-                    createAvailableAssignmentModel(), dataProvider, type));
+    private List<AssignmentEditorDto> getAssignmentEditorDtoList(List<AssignmentType> assignmentTypeList){
+        List<AssignmentEditorDto> assignmentEditorDtoList = new ArrayList<>();
+        for (AssignmentType assignmentType : assignmentTypeList){
+            AssignmentEditorDto assignmentEditorDto = new AssignmentEditorDto(UserDtoStatus.MODIFY, assignmentType, getPageBase());
+            assignmentEditorDtoList.add(assignmentEditorDto);
         }
-        target.add(form);
+        return assignmentEditorDtoList;
     }
 }

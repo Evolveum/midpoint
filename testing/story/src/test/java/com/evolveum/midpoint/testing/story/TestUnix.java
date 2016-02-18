@@ -965,10 +965,40 @@ public class TestUnix extends AbstractStoryTest {
         Entry groupSeals = openDJController.fetchEntry(groupSealsDn);
         openDJController.assertAttribute(groupSeals, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
 	}
+
+	@Test
+    public void test256UnAssignUserRangerSealsKeepRangers() throws Exception {
+		final String TEST_NAME = "test256UnAssignUserRangerSealsKeepRangers";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_RANGER_USERNAME);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        unassignRole(userBefore.getOid(), roleSealsOid);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME);
+        assertNotNull("No user after", userAfter);
+        display("User after", userAfter);
+        assertUserPosix(userAfter, USER_RANGER_USERNAME, USER_RANGER_FIST_NAME, USER_RANGER_LAST_NAME, USER_RANGER_UID_NUMBER);
+        
+        String accountOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+        display("Shadow (model)", shadow);
+        assertBasicAccount(shadow);
+	}
+	
 	
 	@Test
-    public void test256DeleteUserRangerUnix() throws Exception {
-		final String TEST_NAME = "test256DeleteUserRangerUnix";
+    public void test260DeleteUserRangerUnix() throws Exception {
+		final String TEST_NAME = "test260DeleteUserRangerUnix";
         TestUtil.displayTestTile(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();

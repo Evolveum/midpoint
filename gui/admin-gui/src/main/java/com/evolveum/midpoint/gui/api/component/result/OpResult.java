@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.message;
+package com.evolveum.midpoint.gui.api.component.result;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -39,7 +41,7 @@ import java.util.Map;
 /**
  * @author lazyman
  */
-public class OpResult implements Serializable {
+public class OpResult implements Serializable, Visitable {
 
     private OperationResultStatus status;
     private String operation;
@@ -51,6 +53,9 @@ public class OpResult implements Serializable {
     private List<OpResult> subresults;
     private int count;
     private String xml;
+    
+    private boolean showMore;
+    private boolean showError;
 
     public static OpResult getOpResult(PageBase page, OperationResult result){
         OpResult opResult = new OpResult();
@@ -114,6 +119,22 @@ public class OpResult implements Serializable {
         return opResult;
     }
 
+    public boolean isShowMore() {
+		return showMore;
+	}
+    
+    public void setShowMore(boolean showMore) {
+		this.showMore = showMore;
+	}
+    
+    public boolean isShowError() {
+		return showError;
+	}
+    
+    public void setShowError(boolean showError) {
+		this.showError = showError;
+	}
+    
     public List<OpResult> getSubresults() {
         if (subresults == null) {
             subresults = new ArrayList<OpResult>();
@@ -162,4 +183,15 @@ public class OpResult implements Serializable {
     public String getXml() {
     	return xml;
     }
+
+	@Override
+	public void accept(Visitor visitor) {
+		
+		visitor.visit(this);
+		
+		for (OpResult result : this.getSubresults()){
+			result.accept(visitor);
+		}
+		
+	}
 }

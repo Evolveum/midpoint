@@ -232,6 +232,11 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	}
 	
 	@Override
+	protected boolean isGroupMemberMandatory() {
+		return false;
+	}
+	
+	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
@@ -313,7 +318,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
         ResourceAttributeDefinition<Long> nTSecurityDescriptorDef = accountObjectClassDefinition.findAttributeDefinition("nTSecurityDescriptor");
         PrismAsserts.assertDefinition(nTSecurityDescriptorDef, new QName(MidPointConstants.NS_RI, "nTSecurityDescriptor"),
-        		DOMUtil.XSD_BASE64BINARY, 1, 1);
+        		DOMUtil.XSD_BASE64BINARY, 0, 1);
         assertTrue("nTSecurityDescriptor read", nTSecurityDescriptorDef.canRead());
         assertTrue("nTSecurityDescriptor modify", nTSecurityDescriptorDef.canModify());
         assertTrue("nTSecurityDescriptor add", nTSecurityDescriptorDef.canAdd());
@@ -705,7 +710,9 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         String accountBarbossaIcfUid = (String) identifiers.iterator().next().getRealValue();
         assertNotNull("No identifier in "+shadow, accountBarbossaIcfUid);
         
-        assertEquals("Wrong ICFS UID", MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes()), accountBarbossaIcfUid);
+        assertEquals("Wrong ICFS UID", 
+        		formatGuidToDashedNotation(MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
+        		accountBarbossaIcfUid);
         
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);
         
@@ -1259,7 +1266,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		ResourceAttribute<String> primaryIdAttr = ShadowUtil.getAttribute(shadow, getPrimaryIdentifierAttributeQName());
 		assertNotNull("No primary identifier ("+getPrimaryIdentifierAttributeQName()+" in "+shadow, primaryIdAttr);
 		String primaryId = primaryIdAttr.getRealValue();
-		assertTrue("Unexpected chars in primary ID: '"+primaryId+"'", primaryId.matches("[a-z0-9]+"));
+		assertTrue("Unexpected chars in primary ID: '"+primaryId+"'", primaryId.matches("[a-z0-9\\-]+"));
 	}
 
 	@Override
@@ -1362,6 +1369,33 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	public <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrQname, T... expectedValues) {
 		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
 		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);
+	}
+	
+	/**
+	 * Returns dashed GUID notation formatted from simple hex-encoded binary.
+	 * 
+	 * E.g. "2f01c06bb1d0414e9a69dd3841a13506" -> "6bc0012f-d0b1-4e41-9a69-dd3841a13506"
+	 */
+	public String formatGuidToDashedNotation(String hexValue) {
+		if (hexValue == null) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append(hexValue.substring(6, 8));
+		sb.append(hexValue.substring(4, 6));
+		sb.append(hexValue.substring(2, 4));
+		sb.append(hexValue.substring(0, 2));
+		sb.append('-');
+		sb.append(hexValue.substring(10, 12));
+		sb.append(hexValue.substring(8, 10));
+		sb.append('-');
+		sb.append(hexValue.substring(14, 16));
+		sb.append(hexValue.substring(12, 14));
+		sb.append('-');
+		sb.append(hexValue.substring(16, 20));
+		sb.append('-');
+		sb.append(hexValue.substring(20, 32));
+		return sb.toString();
 	}
 	
 }
