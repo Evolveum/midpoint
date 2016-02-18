@@ -78,13 +78,11 @@ public class PageSelfDashboard extends PageSelf {
     private static final int MAX_WORK_ITEMS = 1000;
     private static final int MAX_REQUESTS = 1000;
     private final Model<PrismObject<UserType>> principalModel = new Model<PrismObject<UserType>>();
-    private IModel<List<RichHyperlinkType>> linksPanelModel = null;
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     private static final String TASK_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
 
     public PageSelfDashboard() {
         principalModel.setObject(loadUser());
-        createLinksPanelModel();
         initLayout();
     }
 
@@ -97,7 +95,22 @@ public class PageSelfDashboard extends PageSelf {
                 AuthorizationConstants.AUTZ_UI_TASKS_URL)) {
             dashboardSearchPanel.setVisible(false);
         }
-        LinksPanel linksPanel = new LinksPanel(ID_LINKS_PANEL, linksPanelModel, linksPanelModel.getObject());
+        LinksPanel linksPanel = new LinksPanel(ID_LINKS_PANEL, new IModel<List<RichHyperlinkType>>() {
+            @Override
+            public List<RichHyperlinkType> getObject() {
+                return loadLinksList();
+            }
+
+            @Override
+            public void setObject(List<RichHyperlinkType> richHyperlinkTypes) {
+
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        });
         add(linksPanel);
 
         AsyncDashboardPanel<Object, List<WorkItemDto>> workItemsPanel =
@@ -302,22 +315,4 @@ public class PageSelfDashboard extends PageSelf {
         return list;
     }
 
-    private void createLinksPanelModel() {
-        linksPanelModel = new IModel<List<RichHyperlinkType>>() {
-            @Override
-            public List<RichHyperlinkType> getObject() {
-                return loadLinksList();
-            }
-
-            @Override
-            public void setObject(List<RichHyperlinkType> richHyperlinkTypes) {
-
-            }
-
-            @Override
-            public void detach() {
-
-            }
-        };
-    }
 }
