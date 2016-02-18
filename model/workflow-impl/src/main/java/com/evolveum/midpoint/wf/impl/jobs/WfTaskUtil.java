@@ -102,11 +102,6 @@ public class WfTaskUtil {
 
     public static final String WAIT_FOR_TASKS_HANDLER_URI = "<<< marker for calling pushWaitForTasksHandlerUri >>>";
 
-    // wfModelContext - records current model context (i.e. context of current model operation)
-
-    private PrismContainerDefinition wfModelContextContainerDefinition;
-    private PrismPropertyDefinition wfSkipModelContextProcessingPropertyDefinition;
-
     // workflow-related extension properties
     private PrismPropertyDefinition wfStatusPropertyDefinition;
     private PrismPropertyDefinition wfLastDetailsPropertyDefinition;
@@ -123,8 +118,6 @@ public class WfTaskUtil {
     @PostConstruct
     public void init() {
 
-        wfModelContextContainerDefinition = prismContext.getSchemaRegistry().findContainerDefinitionByElementName(SchemaConstants.MODEL_CONTEXT_NAME);
-        wfSkipModelContextProcessingPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY);
         wfStatusPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFSTATUS_PROPERTY_NAME);
         wfLastDetailsPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFLAST_DETAILS_PROPERTY_NAME);
         wfLastVariablesPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFLAST_VARIABLES_PROPERTY_NAME);
@@ -137,8 +130,6 @@ public class WfTaskUtil {
         wfRootTaskOidPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFROOT_TASK_OID_PROPERTY_NAME);
         wfApprovedByReferenceDefinition = prismContext.getSchemaRegistry().findReferenceDefinitionByElementName(PcpTaskExtensionItemsNames.WFAPPROVED_BY_REFERENCE_NAME);
 
-        //Validate.notNull(wfModelContextContainerDefinition, SchemaConstants.MODEL_CONTEXT_NAME + " definition was not found");
-        //Validate.notNull(wfSkipModelContextProcessingPropertyDefinition, SchemaConstants.SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY + " definition was not found");
         Validate.notNull(wfStatusPropertyDefinition, WfTaskExtensionItemsNames.WFSTATUS_PROPERTY_NAME + " definition was not found");
         Validate.notNull(wfLastDetailsPropertyDefinition, WfTaskExtensionItemsNames.WFLAST_DETAILS_PROPERTY_NAME + " definition was not found");
         Validate.notNull(wfLastVariablesPropertyDefinition, WfTaskExtensionItemsNames.WFLAST_VARIABLES_PROPERTY_NAME + " definition was not found");
@@ -307,13 +298,17 @@ public class WfTaskUtil {
     }
 
     public void storeModelContext(Task task, ModelContext context) throws SchemaException {
-        Validate.notNull(context, "model context cannot be null");
-        PrismContainer<LensContextType> modelContext = ((LensContext) context).toPrismContainer();
+        //Validate.notNull(context, "model context cannot be null");
+        PrismContainer<LensContextType> modelContext = context != null ? ((LensContext) context).toPrismContainer() : null;
         storeModelContext(task, modelContext);
     }
 
     public void storeModelContext(Task task, PrismContainer<LensContextType> context) throws SchemaException {
-        task.setExtensionContainer(context);
+        LensContextType lct = null;
+        if (context != null && !context.isEmpty()) {
+            lct = context.getValue().asContainerable();
+        }
+        task.setModelOperationContext(lct);
     }
 
     public void storeResultingDeltas(ObjectTreeDeltas deltas, Task task) throws SchemaException {
@@ -391,8 +386,8 @@ public class WfTaskUtil {
         return getExtensionValue(String.class, task, WfTaskExtensionItemsNames.WFROOT_TASK_OID_PROPERTY_NAME);
     }
 
-    public void setSkipModelContextProcessingProperty(Task task, boolean value, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        setExtensionProperty(task, wfSkipModelContextProcessingPropertyDefinition, value, result);
+    public void setSkipModelContextProcessingProperty(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        task.setModelOperationContext(null);
     }
 
     public void setLastDetails(Task task, String status) throws SchemaException {
@@ -449,14 +444,6 @@ public class WfTaskUtil {
             retval.add(referenceType);
         }
         return retval;
-    }
-
-    public PrismContainerDefinition getWfModelContextContainerDefinition() {
-        return wfModelContextContainerDefinition;
-    }
-
-    public PrismPropertyDefinition getWfSkipModelContextProcessingPropertyDefinition() {
-        return wfSkipModelContextProcessingPropertyDefinition;
     }
 
     public PrismPropertyDefinition getWfStatusPropertyDefinition() {

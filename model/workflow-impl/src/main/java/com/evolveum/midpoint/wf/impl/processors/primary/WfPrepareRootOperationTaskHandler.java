@@ -140,7 +140,7 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
 
 
             if (!rootContext.hasAnyPrimaryChange()) {
-                rootJob.setSkipModelContextProcessingProperty(true, result);
+                rootJob.setSkipModelContextProcessingProperty(result);
                 changed = true;     // regardless of whether rootContext was changed or not
             }
 

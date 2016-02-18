@@ -112,10 +112,10 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
 
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("There's no primary delta in focus context; task = " + task + ", model context = " + modelContext.debugDump());
-                    LOGGER.trace("We'll set skip model context processing property.");
+                    LOGGER.trace("We'll delete model operation context.");
                 }
 
-                job.setSkipModelContextProcessingProperty(true, result);
+                job.setSkipModelContextProcessingProperty(result);
 
             } else {
 

@@ -50,8 +50,8 @@
                         <!--schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3"/>-->
             <!--<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/audit-3"-->
                         <!--schemaLocation="../common/audit-3.xsd"/>-->
-            <!--<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/gui/admin-1"-->
-                        <!--schemaLocation="../gui/admin-1.xsd"/>-->
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/gui/admin-1"
+                        schemaLocation="../gui/admin-1.xsd"/>
         </xsd:schema>
     </types>
 

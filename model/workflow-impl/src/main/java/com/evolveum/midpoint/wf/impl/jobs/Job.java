@@ -147,8 +147,8 @@ public class Job {
         return getWfTaskUtil().retrieveResultingDeltas(task);
     }
 
-    public void setSkipModelContextProcessingProperty(boolean value, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        getWfTaskUtil().setSkipModelContextProcessingProperty(task, value, result);
+    public void setSkipModelContextProcessingProperty(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        getWfTaskUtil().setSkipModelContextProcessingProperty(task, result);
     }
 
     public void storeModelContext(ModelContext modelContext) throws SchemaException {
