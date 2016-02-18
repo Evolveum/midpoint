@@ -168,7 +168,17 @@
                             <wsdlRoot>${project.directory}/target/midpoint-schema</wsdlRoot>
                             <wsdlOptions>
                                 <wsdlOption>
-                                    <wsdl>target/midpoint-schema/xml/ns/public/webservice/services.wsdl</wsdl>
+                                    <wsdl>target/midpoint-schema/xml/ns/private/webservice/modelService.wsdl</wsdl>
+                                    <catalog>${basedir}/src/compile/resources/jax-ws-catalog.xml</catalog>
+                                    <extraargs>
+                                        <extraarg>-impl</extraarg>
+                                        <extraarg>-verbose</extraarg>
+                                        <extraarg>-validate</extraarg>
+                                        <extraarg>-xjc-Xts</extraarg>
+                                    </extraargs>
+                                </wsdlOption>
+                                <wsdlOption>
+                                    <wsdl>target/midpoint-schema/xml/ns/private/webservice/reportService.wsdl</wsdl>
                                     <catalog>${basedir}/src/compile/resources/jax-ws-catalog.xml</catalog>
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
