@@ -228,7 +228,7 @@
                                     <!-- Besides generating stub for SOAP web services, this fake WSDL includes all the XSD files
                                          we need to compile. This is the only way I found to generate equals and hashCode methods with CXF.
                                          If you find anything better please correct it. -->
-                                    <wsdl>src/main/resources/xml/ns/private/fake/fakeWrapper.wsdl</wsdl>
+                                    <wsdl>src/main/resources/xml/ns/public/webservice/services.wsdl</wsdl>
                                     <catalog>${basedir}/src/main/resources/META-INF/catalog-compile-time.xml</catalog>
                                     <extraargs>
                                         <extraarg>-impl</extraarg>

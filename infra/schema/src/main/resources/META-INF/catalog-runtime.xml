@@ -22,6 +22,8 @@ The runtime structure differs from the one in compile time: Prism schemas are no
 
 BEWARE: This file is pointed to directly from within SchemaRegistry class. So be careful when renaming/deleting it.
 
+This file is used typically when parsing prism schemas from within midPoint
+e.g. on midPoint initialization or when generating schemadocs during maven build.
 -->
 
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">

@@ -70,6 +70,10 @@ Notes:
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" uri="../xml/ns/public/model/scripting/scripting-3.xsd" />
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3" uri="../xml/ns/public/model/scripting/extension-3.xsd" />
 
+    <!-- workflow (temporary!) -->
+    <public publicId="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-3" uri="../xml/ns/public/model/workflow/common-forms-3.xsd" />
+    <public publicId="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-3" uri="../xml/ns/public/model/workflow/process-instance-state-3.xsd" />
+
     <!-- Experimental XSD schema file locations -->
     <public publicId="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd" uri="../xml/ns/experimental/unix-resource-1.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd" uri="../xml/ns/experimental/unix-resource-1.xsd" />
@@ -77,7 +81,7 @@ Notes:
     <system systemId="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" uri="../xml/ns/experimental/ldap-resource-1.xsd" />
     <public publicId="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" uri="../xml/ns/experimental/ldap-resource-1.xsd" />
 
-    <!-- Bundled standard schemas -->
+    <!-- Bundled standard schemas (duplicated in prism catalog files) -->
     <public publicId="datatypes" uri="../xml/ns/standard/datatypes.dtd" />
     <public publicId="-//W3C//DTD XMLSchema 200102//EN" uri="../xml/ns/standard/XMLSchema.dtd" />
     <public publicId="-//W3C//DTD XMLSCHEMA 200102//EN" uri="../xml/ns/standard/XMLSchema.dtd" />

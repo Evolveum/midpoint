@@ -56,7 +56,7 @@ public class ArtifactItem {
     /**
      * @parameter
      */
-    private String catalog = "META-INF/catalog.xml";
+    private String catalog;				// intentionally no default
 
     private Artifact artifact;
     
