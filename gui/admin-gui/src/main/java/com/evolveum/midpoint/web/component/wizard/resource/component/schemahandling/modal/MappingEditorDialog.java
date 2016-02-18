@@ -37,7 +37,10 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -56,11 +59,8 @@ import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -210,7 +210,7 @@ public class MappingEditorDialog extends ModalWindow {
 
 		DropDownFormGroup strength = new DropDownFormGroup<>(ID_STRENGTH,
 				new PropertyModel<MappingStrengthType>(model, MappingTypeDto.F_MAPPING + ".strength"),
-				WebMiscUtil.createReadonlyModelFromEnum(MappingStrengthType.class),
+				WebComponentUtil.createReadonlyModelFromEnum(MappingStrengthType.class),
 				new EnumChoiceRenderer<MappingStrengthType>(this),
 				createStringResource("MappingEditorDialog.label.strength"),
 				"SchemaHandlingStep.mapping.tooltip.strength", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false);
@@ -230,7 +230,7 @@ public class MappingEditorDialog extends ModalWindow {
 
 					@Override
 					public List<String> getObject() {
-						return WebMiscUtil.getChannelList();
+						return WebComponentUtil.getChannelList();
 					}
 				};
 			}
@@ -257,7 +257,7 @@ public class MappingEditorDialog extends ModalWindow {
 
 					@Override
 					public List<String> getObject() {
-						return WebMiscUtil.getChannelList();
+						return WebComponentUtil.getChannelList();
 					}
 				};
 			}
@@ -289,7 +289,7 @@ public class MappingEditorDialog extends ModalWindow {
 		DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType> expressionType = new DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType>(
 				ID_EXPRESSION_TYPE,
 				new PropertyModel<ExpressionUtil.ExpressionEvaluatorType>(model, MappingTypeDto.F_EXPRESSION_TYPE),
-				WebMiscUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
+				WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
 				new EnumChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType>(this),
 				createStringResource("MappingEditorDialog.label.expressionType"),
 				"SchemaHandlingStep.mapping.tooltip.expressionType", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false) {
@@ -315,7 +315,7 @@ public class MappingEditorDialog extends ModalWindow {
 
 		DropDownFormGroup expressionLanguage = new DropDownFormGroup<>(ID_EXPRESSION_LANG,
 				new PropertyModel<ExpressionUtil.Language>(model, MappingTypeDto.F_EXPRESSION_LANG),
-				WebMiscUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
+				WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
 				new EnumChoiceRenderer<ExpressionUtil.Language>(this),
 				createStringResource("MappingEditorDialog.label.language"),
 				"SchemaHandlingStep.mapping.tooltip.expressionLanguage", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false);
@@ -346,7 +346,7 @@ public class MappingEditorDialog extends ModalWindow {
 
 					@Override
 					public List<ObjectReferenceType> getObject() {
-						return WebModelUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), policyMap);
+						return WebModelServiceUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), policyMap);
 					}
 				}, new ObjectReferenceChoiceRenderer(policyMap),
 				createStringResource("MappingEditorDialog.label.passPolicyRef"),
@@ -389,7 +389,7 @@ public class MappingEditorDialog extends ModalWindow {
 		DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType> conditionType = new DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType>(
 				ID_CONDITION_TYPE,
 				new PropertyModel<ExpressionUtil.ExpressionEvaluatorType>(model, MappingTypeDto.F_CONDITION_TYPE),
-				WebMiscUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
+				WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
 				new EnumChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType>(this),
 				createStringResource("MappingEditorDialog.label.conditionType"),
 				"SchemaHandlingStep.mapping.tooltip.conditionType", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false) {
@@ -415,7 +415,7 @@ public class MappingEditorDialog extends ModalWindow {
 
 		DropDownFormGroup conditionLanguage = new DropDownFormGroup<>(ID_CONDITION_LANG,
 				new PropertyModel<ExpressionUtil.Language>(model, MappingTypeDto.F_CONDITION_LANG),
-				WebMiscUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
+				WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
 				new EnumChoiceRenderer<ExpressionUtil.Language>(this),
 				createStringResource("MappingEditorDialog.label.language"),
 				"SchemaHandlingStep.mapping.tooltip.conditionLanguage", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false);
@@ -445,7 +445,7 @@ public class MappingEditorDialog extends ModalWindow {
 
 					@Override
 					public List<ObjectReferenceType> getObject() {
-						return WebModelUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), policyMap);
+						return WebModelServiceUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), policyMap);
 					}
 				}, new ObjectReferenceChoiceRenderer(policyMap), createStringResource("MappingEditorDialog.label.passPolicyRef"),
 				"SchemaHandlingStep.mapping.tooltip.conditionValuePolicyRef", true, ID_LABEL_SIZE, ID_INPUT_SIZE,
@@ -550,7 +550,7 @@ public class MappingEditorDialog extends ModalWindow {
 			ObjectReferenceType ref;
 
 			for (PrismObject<ValuePolicyType> policy : policies) {
-				policyMap.put(policy.getOid(), WebMiscUtil.getName(policy));
+				policyMap.put(policy.getOid(), WebComponentUtil.getName(policy));
 				ref = new ObjectReferenceType();
 				ref.setType(ValuePolicyType.COMPLEX_TYPE);
 				ref.setOid(policy.getOid());

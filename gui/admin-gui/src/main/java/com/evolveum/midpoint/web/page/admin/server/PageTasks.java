@@ -15,7 +15,9 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -45,7 +47,6 @@ import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
@@ -53,7 +54,6 @@ import com.evolveum.midpoint.web.session.TasksStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
@@ -774,7 +774,7 @@ public class PageTasks extends PageAdminTasks {
 
     //region Task-level actions
     private void suspendTasksPerformed(AjaxRequestTarget target) {
-        List<TaskDto> taskTypeList = WebMiscUtil.getSelectedData(getTaskTable());
+        List<TaskDto> taskTypeList = WebComponentUtil.getSelectedData(getTaskTable());
         if (!isSomeTaskSelected(taskTypeList, target)) {
             return;
         }
@@ -800,7 +800,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void resumeTasksPerformed(AjaxRequestTarget target) {
-        List<TaskDto> taskDtoList = WebMiscUtil.getSelectedData(getTaskTable());
+        List<TaskDto> taskDtoList = WebComponentUtil.getSelectedData(getTaskTable());
         if (!isSomeTaskSelected(taskDtoList, target)) {
             return;
         }
@@ -822,7 +822,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void deleteTasksPerformed(AjaxRequestTarget target) {
-        List<TaskDto> taskDtoList = WebMiscUtil.getSelectedData(getTaskTable());
+        List<TaskDto> taskDtoList = WebComponentUtil.getSelectedData(getTaskTable());
         if (!isSomeTaskSelected(taskDtoList, target)) {
             return;
         }
@@ -836,7 +836,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void scheduleTasksPerformed(AjaxRequestTarget target) {
-        List<TaskDto> taskDtoList = WebMiscUtil.getSelectedData(getTaskTable());
+        List<TaskDto> taskDtoList = WebComponentUtil.getSelectedData(getTaskTable());
         if (!isSomeTaskSelected(taskDtoList, target)) {
             return;
         }
@@ -864,7 +864,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void stopSchedulersAndTasksPerformed(AjaxRequestTarget target) {
-        List<NodeDto> nodeDtoList = WebMiscUtil.getSelectedData(getNodeTable());
+        List<NodeDto> nodeDtoList = WebComponentUtil.getSelectedData(getNodeTable());
         if (!isSomeNodeSelected(nodeDtoList, target)) {
             return;
         }
@@ -890,7 +890,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void startSchedulersPerformed(AjaxRequestTarget target) {
-        List<NodeDto> nodeDtoList = WebMiscUtil.getSelectedData(getNodeTable());
+        List<NodeDto> nodeDtoList = WebComponentUtil.getSelectedData(getNodeTable());
         if (!isSomeNodeSelected(nodeDtoList, target)) {
             return;
         }
@@ -913,7 +913,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void stopSchedulersPerformed(AjaxRequestTarget target) {
-        List<NodeDto> nodeDtoList = WebMiscUtil.getSelectedData(getNodeTable());
+        List<NodeDto> nodeDtoList = WebComponentUtil.getSelectedData(getNodeTable());
         if (!isSomeNodeSelected(nodeDtoList, target)) {
             return;
         }
@@ -935,7 +935,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void deleteNodesPerformed(AjaxRequestTarget target) {
-        List<NodeDto> nodeDtoList = WebMiscUtil.getSelectedData(getNodeTable());
+        List<NodeDto> nodeDtoList = WebComponentUtil.getSelectedData(getNodeTable());
         if (!isSomeNodeSelected(nodeDtoList, target)) {
             return;
         }
@@ -1131,7 +1131,7 @@ public class PageTasks extends PageAdminTasks {
             @Override
             public String getObject() {
                 Table table = getTaskTable();
-                List<TaskDto> selected = WebMiscUtil.getSelectedData(table);
+                List<TaskDto> selected = WebComponentUtil.getSelectedData(table);
 
                 switch (selected.size()) {
                     case 1:
@@ -1146,7 +1146,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void deleteTaskConfirmedPerformed(AjaxRequestTarget target) {
-        List<TaskDto> taskDtoList = WebMiscUtil.getSelectedData(getTaskTable());
+        List<TaskDto> taskDtoList = WebComponentUtil.getSelectedData(getTaskTable());
         if (!isSomeTaskSelected(taskDtoList, target)) {
             return;
         }

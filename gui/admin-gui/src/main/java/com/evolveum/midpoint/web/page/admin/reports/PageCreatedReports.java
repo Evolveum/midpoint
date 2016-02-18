@@ -16,7 +16,10 @@
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
@@ -40,7 +43,6 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.reports.component.DownloadButtonPanel;
@@ -50,8 +52,6 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.ReportsStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
@@ -166,14 +166,14 @@ public class PageCreatedReports extends PageAdminReports {
         ReportOutputSearchDto dto = new ReportOutputSearchDto();
         Map<String, String> reportTypeMap = dto.getReportTypeMap();
 
-        List<PrismObject<ReportType>> reportTypes = WebModelUtils.searchObjects(ReportType.class, null, null, getPageBase());
+        List<PrismObject<ReportType>> reportTypes = WebModelServiceUtils.searchObjects(ReportType.class, null, null, getPageBase());
         LOGGER.debug("Found {} report types.", reportTypes.size());
 
         for (PrismObject o : reportTypes) {
             ReportType reportType = (ReportType) o.asObjectable();
 
             if (reportType.isParent()) {
-                String name = WebMiscUtil.getName(o);
+                String name = WebComponentUtil.getName(o);
                 reportTypeMap.put(name, reportType.getOid());
             }
         }
@@ -302,7 +302,7 @@ public class PageCreatedReports extends PageAdminReports {
                             return null;
                         }
 
-                        return WebMiscUtil.formatDate(metadata.getCreateTimestamp());
+                        return WebComponentUtil.formatDate(metadata.getCreateTimestamp());
                     }
                 }));
             }
@@ -457,7 +457,7 @@ public class PageCreatedReports extends PageAdminReports {
         OperationResult result = new OperationResult(OPERATION_DELETE);
 
         for (ReportOutputType output : objects) {
-            WebModelUtils.deleteObject(ReportOutputType.class, output.getOid(), result, this);
+            WebModelServiceUtils.deleteObject(ReportOutputType.class, output.getOid(), result, this);
         }
         result.computeStatusIfUnknown();
 
@@ -532,7 +532,7 @@ public class PageCreatedReports extends PageAdminReports {
             result.computeStatusIfUnknown();
         }
 
-        if (WebMiscUtil.showResultInPage(result)) {
+        if (WebComponentUtil.showResultInPage(result)) {
             showResultInSession(result);
         }
 

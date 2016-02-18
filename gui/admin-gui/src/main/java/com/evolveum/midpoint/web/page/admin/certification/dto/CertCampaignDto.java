@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
@@ -24,8 +26,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
@@ -72,21 +72,21 @@ public class CertCampaignDto extends Selectable {
         if (ownerRef == null) {
             return null;
         }
-        PrismObject<? extends ObjectType> ownerObject = WebModelUtils.resolveReference(ownerRef, page, task, result);
+        PrismObject<? extends ObjectType> ownerObject = WebModelServiceUtils.resolveReference(ownerRef, page, task, result);
         if (ownerObject == null) {
             return null;
         }
         ObjectType owner = ownerObject.asObjectable();
         if (owner instanceof UserType) {
             UserType user = (UserType) owner;
-            return WebMiscUtil.getName(user) + " (" + WebMiscUtil.getOrigStringFromPoly(user.getFullName()) + ")";
+            return WebComponentUtil.getName(user) + " (" + WebComponentUtil.getOrigStringFromPoly(user.getFullName()) + ")";
         } else {
-            return WebMiscUtil.getName(owner);
+            return WebComponentUtil.getName(owner);
         }
     }
 
     public String getName() {
-        return WebMiscUtil.getName(campaign);
+        return WebComponentUtil.getName(campaign);
     }
 
     public String getDescription() {
@@ -121,26 +121,26 @@ public class CertCampaignDto extends Selectable {
     }
 
     public String getCampaignStart() {
-        return WebMiscUtil.formatDate(campaign.getStart());
+        return WebComponentUtil.formatDate(campaign.getStart());
     }
 
     public String getCampaignEnd() {
-        return WebMiscUtil.formatDate(campaign.getEnd());
+        return WebComponentUtil.formatDate(campaign.getEnd());
     }
 
     public String getStageStart() {
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
-        return stage != null ? WebMiscUtil.formatDate(stage.getStart()) : null;
+        return stage != null ? WebComponentUtil.formatDate(stage.getStart()) : null;
     }
 
     public String getStageDeadline() {
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
-        return stage != null ? WebMiscUtil.formatDate(stage.getDeadline()) : null;
+        return stage != null ? WebComponentUtil.formatDate(stage.getDeadline()) : null;
     }
 
     public String getStageEnd() {
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
-        return stage != null ? WebMiscUtil.formatDate(stage.getEnd()) : null;
+        return stage != null ? WebComponentUtil.formatDate(stage.getEnd()) : null;
     }
 
     public AccessCertificationCampaignStateType getState() {

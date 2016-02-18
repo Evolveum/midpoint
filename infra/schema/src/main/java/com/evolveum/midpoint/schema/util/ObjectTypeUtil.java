@@ -166,8 +166,13 @@ public class ObjectTypeUtil {
         }
 	}
 
-    
-    public static ObjectReferenceType createObjectRef(ObjectType objectType) {
+	public static ObjectReferenceType createObjectRef(PrismReferenceValue prv) {
+		ObjectReferenceType ort = new ObjectReferenceType();
+		ort.setupReferenceValue(prv);
+		return ort;
+	}
+
+	public static ObjectReferenceType createObjectRef(ObjectType objectType) {
         return createObjectRef(objectType.asPrismObject());
     }
 
@@ -359,5 +364,11 @@ public class ObjectTypeUtil {
         return (PrismObject) parent3;
     }
 
-
+	public static List<ObjectReferenceType> getAsObjectReferenceTypeList(PrismReference prismReference) throws SchemaException {
+		List<ObjectReferenceType> rv = new ArrayList<>();
+		for (PrismReferenceValue prv : prismReference.getValues()) {
+			rv.add(createObjectRef(prv.clone()));
+		}
+		return rv;
+	}
 }

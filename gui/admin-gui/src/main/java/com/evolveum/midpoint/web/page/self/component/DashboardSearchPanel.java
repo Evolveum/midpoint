@@ -1,12 +1,13 @@
 package com.evolveum.midpoint.web.page.self.component;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
+
 import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -56,15 +57,15 @@ public class DashboardSearchPanel extends SimplePanel<T> {
         searchForm.setOutputMarkupId(true);
 
         final List<String> accessibleSearchTypes = new ArrayList<>();
-        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_USERS_URL)) {
             accessibleSearchTypes.add(SEARCH_TYPES.get(USER_INDEX));
         }
-        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_RESOURCES_URL)) {
             accessibleSearchTypes.add(SEARCH_TYPES.get(RESOURCE_INDEX));
         }
-        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL,
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_TASKS_URL)) {
             accessibleSearchTypes.add(SEARCH_TYPES.get(TASK_INDEX));
         }

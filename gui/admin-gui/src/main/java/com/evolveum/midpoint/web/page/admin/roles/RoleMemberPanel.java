@@ -36,7 +36,11 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -85,10 +89,8 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.dialog.UserBrowserDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
@@ -99,8 +101,6 @@ import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.RoleMembersStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
@@ -319,7 +319,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		try {
 			query = ObjectQuery.createObjectQuery(
 					EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class, getPrismContext(), true));
-			List<PrismObject<OrgType>> orgs = WebModelUtils.searchObjects(OrgType.class, query,
+			List<PrismObject<OrgType>> orgs = WebModelServiceUtils.searchObjects(OrgType.class, query,
 					new OperationResult("Tenant search"), pageBase);
 			List<OrgType> orgTypes = new ArrayList<>();
 			for (PrismObject<OrgType> org : orgs) {
@@ -340,7 +340,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			query = ObjectQuery.createObjectQuery(OrFilter.createOr(
 					EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class, getPrismContext(), true),
 					EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class, getPrismContext(), null)));
-			List<PrismObject<OrgType>> orgs = WebModelUtils.searchObjects(OrgType.class, query,
+			List<PrismObject<OrgType>> orgs = WebModelServiceUtils.searchObjects(OrgType.class, query,
 					new OperationResult("Tenant search"), pageBase);
 			List<OrgType> orgTypes = new ArrayList<>();
 			for (PrismObject<OrgType> org : orgs) {
@@ -709,10 +709,10 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		UserType user = obj.asObjectable();
 
 		UserListItemDto dto = new UserListItemDto(user.getOid(),
-				WebMiscUtil.getOrigStringFromPoly(user.getName()),
-				WebMiscUtil.getOrigStringFromPoly(user.getGivenName()),
-				WebMiscUtil.getOrigStringFromPoly(user.getFamilyName()),
-				WebMiscUtil.getOrigStringFromPoly(user.getFullName()), user.getEmailAddress());
+				WebComponentUtil.getOrigStringFromPoly(user.getName()),
+				WebComponentUtil.getOrigStringFromPoly(user.getGivenName()),
+				WebComponentUtil.getOrigStringFromPoly(user.getFamilyName()),
+				WebComponentUtil.getOrigStringFromPoly(user.getFullName()), user.getEmailAddress());
 
 		PrismContainer<AssignmentType> assignments = obj.findContainer(FocusType.F_ASSIGNMENT);
 		StringBuilder tenantBuilder = new StringBuilder();
@@ -721,11 +721,11 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			if (assignment != null && assignment.asContainerable() != null) {
 				ObjectReferenceType ref = assignment.asContainerable().getTenantRef();
 				if (ref != null) {
-					tenantBuilder.append(WebMiscUtil.getOrigStringFromPoly(ref.getTargetName())).append("\n");
+					tenantBuilder.append(WebComponentUtil.getOrigStringFromPoly(ref.getTargetName())).append("\n");
 				}
 				ObjectReferenceType orgRef = assignment.asContainerable().getOrgRef();
 				if (orgRef != null) {
-					orgBuilder.append(WebMiscUtil.getOrigStringFromPoly(orgRef.getTargetName())).append("\n");
+					orgBuilder.append(WebComponentUtil.getOrigStringFromPoly(orgRef.getTargetName())).append("\n");
 				}
 			}
 
@@ -734,8 +734,8 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		dto.setProject(orgBuilder.toString());
 
 		dto.setCredentials(obj.findContainer(UserType.F_CREDENTIALS));
-		dto.setIcon(WebMiscUtil.createUserIcon(obj));
-		dto.setIconTitle(WebMiscUtil.createUserIconTitle(obj));
+		dto.setIcon(WebComponentUtil.createUserIcon(obj));
+		dto.setIconTitle(WebComponentUtil.createUserIconTitle(obj));
 
 		return dto;
 	}
@@ -746,7 +746,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			users = new ArrayList<UserListItemDto>();
 			users.add(selectedUser);
 		} else {
-			users = WebMiscUtil.getSelectedData(getTable());
+			users = WebComponentUtil.getSelectedData(getTable());
 			if (users.isEmpty()) {
 				warn(getString("pageUsers.message.nothingSelected"));
 				target.add(getFeedbackPanel());
@@ -832,7 +832,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		try {
 			ObjectDelta<TaskType> delta = ObjectDelta.createAddDelta(task.asPrismObject());
 			pageBase.getPrismContext().adopt(delta);
-			pageBase.getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null,
+			pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
 					operationalTask, parentResult);
 		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
 				| ExpressionEvaluationException | CommunicationException | ConfigurationException
@@ -854,7 +854,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		try {
 			ObjectDelta<TaskType> delta = ObjectDelta.createAddDelta(task.asPrismObject());
 			pageBase.getPrismContext().adopt(delta);
-			pageBase.getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null,
+			pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
 					operationalTask, parentResult);
 		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
 				| ExpressionEvaluationException | CommunicationException | ConfigurationException
@@ -938,7 +938,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
 		task.setSchedule(schedule);
 
-		task.setName(WebMiscUtil.createPolyFromOrigString(taskName));
+		task.setName(WebComponentUtil.createPolyFromOrigString(taskName));
 
 		try {
 			PrismObject<TaskType> prismTask = task.asPrismObject();

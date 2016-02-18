@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,22 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.model;
+package com.evolveum.midpoint.gui.api.model;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
+
 import org.apache.wicket.model.IModel;
 
+/**
+ * Lazy loading Wicket model. This is an IModel implementation
+ * that loads the model content only when needed. This is supposed
+ * to be used for objects that are expensive to load. So we can avoid
+ * loading the at all when a component that uses them is not visible.
+ * 
+ * @author lazyman
+ */
 public abstract class LoadableModel<T> implements IModel<T> {
 
     private T object;
@@ -107,7 +116,7 @@ public abstract class LoadableModel<T> implements IModel<T> {
 
     public void revive(PrismContext prismContext) throws SchemaException {
         if (isLoaded()) {
-            WebMiscUtil.reviveObject(object, prismContext);
+            WebComponentUtil.reviveObject(object, prismContext);
         }
     }
 

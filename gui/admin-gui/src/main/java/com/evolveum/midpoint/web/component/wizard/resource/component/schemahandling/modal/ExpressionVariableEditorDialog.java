@@ -31,7 +31,10 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -45,9 +48,6 @@ import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ExpressionVariableDefinitionTypeDto;
-import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionVariableDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -170,7 +170,7 @@ public class ExpressionVariableEditorDialog extends ModalWindow {
 
 					@Override
 					public List<ObjectReferenceType> getObject() {
-						return WebModelUtils.createObjectReferenceList(ObjectType.class, getPageBase(), objectMap);
+						return WebModelServiceUtils.createObjectReferenceList(ObjectType.class, getPageBase(), objectMap);
 					}
 				}, new ObjectReferenceChoiceRenderer(objectMap),
 				createStringResource("ExpressionVariableEditor.label.objectRef"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
@@ -231,7 +231,7 @@ public class ExpressionVariableEditorDialog extends ModalWindow {
 			ObjectReferenceType ref;
 
 			for (PrismObject<ObjectType> obj : objects) {
-				objectMap.put(obj.getOid(), WebMiscUtil.getName(obj));
+				objectMap.put(obj.getOid(), WebComponentUtil.getName(obj));
 				ref = new ObjectReferenceType();
 				ref.setOid(obj.getOid());
 				references.add(ref);

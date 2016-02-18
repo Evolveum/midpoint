@@ -15,7 +15,9 @@
  */
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -33,11 +35,9 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgUnitSearchDto;
 import com.evolveum.midpoint.web.session.UsersStorage;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 import org.apache.commons.lang.StringUtils;
@@ -252,8 +252,8 @@ public class OrgUnitBrowser extends ModalWindow {
         List<String> oids = new ArrayList<>();
         try {
             for (OrgTableDto dto : selected) {
-                PrismObject object = WebModelUtils.loadObject(dto.getType(), dto.getOid(),
-                        WebModelUtils.createOptionsForParentOrgRefs(), getPageBase(), task, result);
+                PrismObject object = WebModelServiceUtils.loadObject(dto.getType(), dto.getOid(),
+                        WebModelServiceUtils.createOptionsForParentOrgRefs(), getPageBase(), task, result);
                 PrismReference parentRef = object.findReference(OrgType.F_PARENT_ORG_REF);
                 if (parentRef != null) {
                     for (PrismReferenceValue value : parentRef.getValues()) {

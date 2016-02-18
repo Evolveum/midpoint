@@ -27,12 +27,12 @@ import javax.xml.datatype.Duration;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
@@ -180,7 +180,7 @@ public class SystemConfigurationDto implements Serializable {
 		if (StringUtils.isNotBlank(getSecurityPolicyDto().getOid())) {
 			ObjectReferenceType globalSecurityPolicyRef = ObjectTypeUtil.createObjectRef(
 					getSecurityPolicyDto().getOid(),
-					WebMiscUtil.createPolyFromOrigString(getSecurityPolicyDto().getName()),
+					WebComponentUtil.createPolyFromOrigString(getSecurityPolicyDto().getName()),
 					ObjectTypes.SECURITY_POLICY);
 			newObject.setGlobalSecurityPolicyRef(globalSecurityPolicyRef);
 		} else {
@@ -253,7 +253,7 @@ public class SystemConfigurationDto implements Serializable {
 
 		if (securityPolicy != null) {
 			securityPolicyDto = new ObjectViewDto<SecurityPolicyType>(securityPolicy.getOid(),
-					WebMiscUtil.getName(securityPolicy));
+					WebComponentUtil.getName(securityPolicy));
 		} else {
 			securityPolicyDto = new ObjectViewDto<SecurityPolicyType>();
 		}

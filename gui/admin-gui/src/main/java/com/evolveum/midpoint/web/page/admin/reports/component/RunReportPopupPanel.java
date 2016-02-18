@@ -42,7 +42,9 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -84,13 +86,11 @@ import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
 
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
@@ -249,7 +249,7 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
         InputPanel panel = null;
 
         if (type.isEnum()) {
-            panel = WebMiscUtil.createEnumPanel(type, componentId, new PropertyModel(model, expression), this);
+            panel = WebComponentUtil.createEnumPanel(type, componentId, new PropertyModel(model, expression), this);
         } else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
             panel = new DatePanel(componentId, new PropertyModel<XMLGregorianCalendar>(model, expression));
         } else if (param.getPropertyTargetType() != null) { // render autocomplete box
@@ -404,7 +404,7 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
         }
 
         for (LookupTableRowType row : rows) {
-            values.add(WebMiscUtil.getOrigStringFromPoly(row.getLabel()));
+            values.add(WebComponentUtil.getOrigStringFromPoly(row.getLabel()));
 
             if (values.size() > AUTO_COMPLETE_BOX_SIZE) {
                 break;

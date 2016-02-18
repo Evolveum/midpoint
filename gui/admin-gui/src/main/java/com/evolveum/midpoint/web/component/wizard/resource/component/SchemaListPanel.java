@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.wizard.resource.component;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -34,7 +35,6 @@ import com.evolveum.midpoint.web.component.wizard.resource.dto.AttributeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDataProvider;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDetailsDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDto;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;

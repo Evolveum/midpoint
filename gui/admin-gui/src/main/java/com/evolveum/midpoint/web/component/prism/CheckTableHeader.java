@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -29,7 +30,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -200,7 +200,7 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
             if (time == null) {
                 triggers.add(getString("CheckTableHeader.triggerUnknownTime"));
             } else {
-                triggers.add(getString("CheckTableHeader.triggerPlanned", WebMiscUtil.formatDate(time)));
+                triggers.add(getString("CheckTableHeader.triggerPlanned", WebComponentUtil.formatDate(time)));
             }
         }
 
@@ -220,12 +220,12 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
             @Override
             public boolean isVisible() {
                 OperationResult fetchResult = getModelObject().getFetchResult();
-                if (fetchResult != null && !WebMiscUtil.isSuccessOrHandledError(fetchResult)) {
+                if (fetchResult != null && !WebComponentUtil.isSuccessOrHandledError(fetchResult)) {
                     return true;
                 }
 
                 OperationResult result = getModelObject().getResult();
-                if (result != null && !WebMiscUtil.isSuccessOrHandledError(result)) {
+                if (result != null && !WebComponentUtil.isSuccessOrHandledError(result)) {
                     return true;
                 }
 
@@ -274,7 +274,7 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
 
     private void showResult(OperationResult result) {
         PageBase page = getPageBase();
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             page.showResult(result);
         }
     }

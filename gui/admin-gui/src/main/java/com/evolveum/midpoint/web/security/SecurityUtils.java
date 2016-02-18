@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.security;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -24,7 +25,6 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.menu.MainMenuItem;
 import com.evolveum.midpoint.web.component.menu.MenuItem;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -93,6 +93,6 @@ public class SecurityUtils {
             }
         }
 
-        return WebMiscUtil.isAuthorized(list.toArray(new String[list.size()]));
+        return WebComponentUtil.isAuthorized(list.toArray(new String[list.size()]));
     }
 }

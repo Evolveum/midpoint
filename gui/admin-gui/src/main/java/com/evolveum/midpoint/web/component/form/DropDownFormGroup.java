@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.component.form;
 
-import com.evolveum.midpoint.web.component.util.BasePanel;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;

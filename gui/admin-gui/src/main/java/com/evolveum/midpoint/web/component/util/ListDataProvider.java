@@ -16,8 +16,9 @@
 
 package com.evolveum.midpoint.web.component.util;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
+
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
@@ -51,7 +52,7 @@ public class ListDataProvider<T extends Serializable> extends BaseSortableDataPr
                     throw new ArrayIndexOutOfBoundsException("Trying to get item on index " + i
                             + " but list size is " + list.size());
                 }
-                getAvailableData().add(list.get(WebMiscUtil.safeLongToInteger(i)));
+                getAvailableData().add(list.get(WebComponentUtil.safeLongToInteger(i)));
             }
         }
 

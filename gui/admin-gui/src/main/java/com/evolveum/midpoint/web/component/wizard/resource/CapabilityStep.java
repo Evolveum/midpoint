@@ -17,7 +17,10 @@
 package com.evolveum.midpoint.web.component.wizard.resource;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -35,10 +38,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.component.capability.*;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -392,7 +392,7 @@ public class CapabilityStep extends WizardStep {
 
             }
 
-            oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), getPageBase(), task, result);
+            oldResource = WebModelServiceUtils.loadObject(ResourceType.class, newResource.getOid(), getPageBase(), task, result);
             if(oldResource != null){
                 delta = oldResource.diff(newResource);
             }
@@ -403,7 +403,7 @@ public class CapabilityStep extends WizardStep {
                     LOGGER.trace(delta.debugDump());
                 }
 
-                Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
+                Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
                 modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_CAPABILITIES), result);
             }
 
@@ -415,7 +415,7 @@ public class CapabilityStep extends WizardStep {
             setResult(result);
         }
 
-        if(WebMiscUtil.showResultInPage(result)){
+        if(WebComponentUtil.showResultInPage(result)){
             getPageBase().showResult(result);
         }
     }

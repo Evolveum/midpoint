@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.util;
+package com.evolveum.midpoint.gui.api.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,13 +54,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
+ * Utility class that contains methods that interact with ModelService and other
+ * midPoint components.
+ * 
  * @author lazyman
  */
-public class WebModelUtils {
+public class WebModelServiceUtils {
 
-    private static final Trace LOGGER = TraceManager.getTrace(WebModelUtils.class);
+    private static final Trace LOGGER = TraceManager.getTrace(WebModelServiceUtils.class);
 
-    private static final String DOT_CLASS = WebModelUtils.class.getName() + ".";
+    private static final String DOT_CLASS = WebModelServiceUtils.class.getName() + ".";
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
@@ -72,7 +75,7 @@ public class WebModelUtils {
         if (object == null) {
             return ref.getOid();
         } else {
-            return WebMiscUtil.getName(object);
+            return WebComponentUtil.getName(object);
         }
     }
 
@@ -109,7 +112,7 @@ public class WebModelUtils {
         		List<ObjectReferenceType> references = new ArrayList<>();
                 
                 for(PrismObject<O> object: objects){
-                	referenceMap.put(object.getOid(), WebMiscUtil.getName(object));
+                	referenceMap.put(object.getOid(), WebComponentUtil.getName(object));
                     references.add(ObjectTypeUtil.createObjectRef(object));
                     
                 }
@@ -176,7 +179,7 @@ public class WebModelUtils {
             subResult.computeStatus();
         }
 
-        if (result == null && WebMiscUtil.showResultInPage(subResult)) {
+        if (result == null && WebComponentUtil.showResultInPage(subResult)) {
             page.showResultInSession(subResult);
         }
 
@@ -217,7 +220,7 @@ public class WebModelUtils {
             subResult.computeStatus();
         }
 
-        if (result == null && WebMiscUtil.showResultInPage(subResult)) {
+        if (result == null && WebComponentUtil.showResultInPage(subResult)) {
             page.showResultInSession(subResult);
         }
 
@@ -253,7 +256,7 @@ public class WebModelUtils {
             ObjectDelta delta = new ObjectDelta(type, ChangeType.DELETE, page.getPrismContext());
             delta.setOid(oid);
 
-            page.getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, subResult);
+            page.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task, subResult);
         } catch (Exception ex) {
             subResult.recordFatalError("WebModelUtils.couldntDeleteObject", ex);
             LoggingUtils.logException(LOGGER, "Couldn't delete object", ex);
@@ -261,7 +264,7 @@ public class WebModelUtils {
             subResult.computeStatus();
         }
 
-        if (result == null && WebMiscUtil.showResultInPage(subResult)) {
+        if (result == null && WebComponentUtil.showResultInPage(subResult)) {
             page.showResultInSession(subResult);
         }
 
@@ -287,7 +290,7 @@ public class WebModelUtils {
     }
 
     public static void save(ObjectDelta delta, ModelExecuteOptions options, OperationResult result, PageBase page) {
-        save(WebMiscUtil.createDeltaCollection(delta), options, result, page);
+        save(WebComponentUtil.createDeltaCollection(delta), options, result, page);
     }
 
     public static void save(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
@@ -311,7 +314,7 @@ public class WebModelUtils {
             subResult.computeStatus();
         }
 
-        if (result == null && WebMiscUtil.showResultInPage(subResult)) {
+        if (result == null && WebComponentUtil.showResultInPage(subResult)) {
             page.showResultInSession(subResult);
         }
 

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -27,7 +28,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -59,6 +59,8 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
     private PageBase pageBase;
 
+    private boolean labelContainerVisible = true;
+
     public PrismPropertyPanel(String id, final IModel<IW> model, Form form, PageBase pageBase) {
         super(id);
         Validate.notNull(model, "no model");
@@ -89,6 +91,11 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
     private void initLayout(final IModel<IW> model, final Form form) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         labelContainer.setOutputMarkupId(true);
+        labelContainer.add(new VisibleEnableBehaviour() {
+            @Override public boolean isVisible() {
+                return labelContainerVisible;
+            }
+        });
         add(labelContainer);
 
         final IModel<String> label = createDisplayName(model);
@@ -205,7 +212,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
             @Override
             public String getObject() {
                 if (getIndexOfValue(value.getObject()) > 0) {
-                    return "col-md-offset-4 prism-value";
+                    return "col-md-offset-2 prism-value";
                 }
 
                 return null;
@@ -240,6 +247,9 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
     private boolean hasPendingModification(IModel<IW> model) {
         ItemWrapper propertyWrapper = model.getObject();
         ContainerWrapper containerWrapper = propertyWrapper.getContainer();
+        if (containerWrapper == null) {
+            return false;           // TODO - ok?
+        }
         ObjectWrapper objectWrapper = containerWrapper.getObject();
 
         PrismObject prismObject = objectWrapper.getObject();
@@ -284,5 +294,13 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
     private boolean isVisibleValue(IModel<ValueWrapper> model) {
         ValueWrapper value = model.getObject();
         return !ValueStatus.DELETED.equals(value.getStatus());
+    }
+
+    public boolean isLabelContainerVisible() {
+        return labelContainerVisible;
+    }
+
+    public void setLabelContainerVisible(boolean labelContainerVisible) {
+        this.labelContainerVisible = labelContainerVisible;
     }
 }

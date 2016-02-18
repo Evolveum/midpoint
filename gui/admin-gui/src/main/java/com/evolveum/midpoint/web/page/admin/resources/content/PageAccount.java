@@ -15,7 +15,10 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources.content;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -35,15 +38,11 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
-
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -103,7 +102,7 @@ public class PageAccount extends PageAdminResources {
                 ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
         StringValue oid = parameters != null ? parameters.get(OnePageParameterEncoder.PARAMETER) : null;
-        PrismObject<ShadowType> account = WebModelUtils.loadObject(ShadowType.class, oid.toString(), options,
+        PrismObject<ShadowType> account = WebModelServiceUtils.loadObject(ShadowType.class, oid.toString(), options,
                 PageAccount.this, task, result);
 
         if (account == null) {
@@ -190,7 +189,7 @@ public class PageAccount extends PageAdminResources {
                 PrismObject<ShadowType> account = accountModel.getObject().getObject();
 
                 ResourceType resource = account.asObjectable().getResource();
-                String name = WebMiscUtil.getName(resource);
+                String name = WebComponentUtil.getName(resource);
 
                 return PageBase.createStringResourceStatic(PageAccount.this, "PageAccount.subTitle", name).getString();
 //                return new StringResourceModel("PageAccount.subTitle", PageAccount.this, null, null, name).getString();
@@ -203,7 +202,7 @@ public class PageAccount extends PageAdminResources {
 
         OperationResult result = new OperationResult(OPERATION_SAVE_ACCOUNT);
         try {
-            WebMiscUtil.revive(accountModel, getPrismContext());
+            WebComponentUtil.revive(accountModel, getPrismContext());
             ObjectWrapper wrapper = accountModel.getObject();
             ObjectDelta<ShadowType> delta = wrapper.getObjectDelta();
             if (delta == null) {
@@ -219,7 +218,7 @@ public class PageAccount extends PageAdminResources {
             if (delta.isEmpty()) {
                 return;
             }
-            WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
+            WebComponentUtil.encryptCredentials(delta, true, getMidpointApplication());
 
             Task task = createSimpleTask(OPERATION_SAVE_ACCOUNT);
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();

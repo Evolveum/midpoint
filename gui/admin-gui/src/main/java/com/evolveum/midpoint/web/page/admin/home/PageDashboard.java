@@ -29,6 +29,8 @@ import org.apache.wicket.model.PropertyModel;
 import org.springframework.security.core.Authentication;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -56,8 +58,6 @@ import com.evolveum.midpoint.web.page.admin.home.component.SystemInfoPanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
 import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -144,7 +144,7 @@ public class PageDashboard extends PageAdminHome {
 
         List<ObjectReferenceType> references = user.asObjectable().getLinkRef();
         for (ObjectReferenceType reference : references) {
-            PrismObject<ShadowType> account = WebModelUtils.loadObject(ShadowType.class, reference.getOid(),
+            PrismObject<ShadowType> account = WebModelServiceUtils.loadObject(ShadowType.class, reference.getOid(),
                     options, this, task, result);
             if (account == null) {
                 continue;
@@ -159,8 +159,8 @@ public class PageDashboard extends PageAdminHome {
             }
 
             ResourceType resource = accountType.getResource();
-            String resourceName = WebMiscUtil.getName(resource);
-            list.add(new SimpleAccountDto(WebMiscUtil.getOrigStringFromPoly(accountType.getName()), resourceName));
+            String resourceName = WebComponentUtil.getName(resource);
+            list.add(new SimpleAccountDto(WebComponentUtil.getOrigStringFromPoly(accountType.getName()), resourceName));
         }
         result.recordSuccessIfUnknown();
         result.recomputeStatus();
@@ -238,7 +238,7 @@ public class PageDashboard extends PageAdminHome {
 
                         PageBase page = (PageBase) getPage();
                         for (OperationResult res : result.getFetchResults()) {
-                            if (!WebMiscUtil.isSuccessOrHandledError(res)) {
+                            if (!WebComponentUtil.isSuccessOrHandledError(res)) {
                                 page.showResult(res);
                             }
                         }
@@ -324,8 +324,8 @@ public class PageDashboard extends PageAdminHome {
                 if (constr.getResourceRef() != null) {
                     ObjectReferenceType resourceRef = constr.getResourceRef();
 
-                    PrismObject resource = WebModelUtils.loadObject(ResourceType.class, resourceRef.getOid(), this, task, result);
-                    name = WebMiscUtil.getName(resource);
+                    PrismObject resource = WebModelServiceUtils.loadObject(ResourceType.class, resourceRef.getOid(), this, task, result);
+                    name = WebComponentUtil.getName(resource);
                 }
             }
 
@@ -336,7 +336,7 @@ public class PageDashboard extends PageAdminHome {
         PrismObject value = refValue.getObject();
         if (value == null) {
             //resolve reference
-            value = WebModelUtils.loadObject(ObjectType.class, refValue.getOid(), this, task, result);
+            value = WebModelServiceUtils.loadObject(ObjectType.class, refValue.getOid(), this, task, result);
         }
 
         if (value == null) {
@@ -344,7 +344,7 @@ public class PageDashboard extends PageAdminHome {
             return new AssignmentItemDto(null, null, null, null);
         }
 
-        String name = WebMiscUtil.getName(value);
+        String name = WebComponentUtil.getName(value);
         AssignmentEditorDtoType type = AssignmentEditorDtoType.getType(value.getCompileTimeClass());
         String relation = refValue.getRelation() != null ? refValue.getRelation().getLocalPart() : null;
         String description = null;

@@ -27,8 +27,8 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto;
 
 /**
@@ -84,7 +84,7 @@ public class StageEditorPanel extends BasePanel<StageDefinitionDto> {
         tabsList.add(new AbstractTab(tabNameModel) {
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new StageDefinitionPanel(panelId, getModel());
+                return new StageDefinitionPanel(panelId, getModel(), getPageBase());
             }
         });
         tabbedPanel.setSelectedTab(tabsList.size() - 1);

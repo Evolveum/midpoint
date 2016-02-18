@@ -15,15 +15,15 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles.component;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintEnforcementType;
 
@@ -143,7 +143,7 @@ public class MultiplicityPolicyDialog extends ModalWindow{
 
         DropDownFormGroup enforcement = new DropDownFormGroup<>(ID_ENFORCEMENT,
                 new PropertyModel<PolicyConstraintEnforcementType>(model, MultiplicityPolicyConstraintType.F_ENFORCEMENT.getLocalPart()),
-                WebMiscUtil.createReadonlyModelFromEnum(PolicyConstraintEnforcementType.class),
+                WebComponentUtil.createReadonlyModelFromEnum(PolicyConstraintEnforcementType.class),
                 new EnumChoiceRenderer<PolicyConstraintEnforcementType>(), createStringResource("multiplicityContainer.label.enforcement"),
                 ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(enforcement);

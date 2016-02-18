@@ -17,7 +17,10 @@
 package com.evolveum.midpoint.web.component.wizard.resource;
 
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -38,11 +41,8 @@ import com.evolveum.midpoint.web.component.wizard.WizardUtil;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.*;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceObjectTypeDefinitionTypeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.SchemaHandlingDto;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -309,7 +309,7 @@ public class SchemaHandlingStep extends WizardStep {
 
         DropDownChoice editorKind = new DropDownChoice<>(ID_EDITOR_KIND,
                 new PropertyModel<ShadowKindType>(model, SchemaHandlingDto.F_SELECTED + "." + ResourceObjectTypeDefinitionType.F_KIND.getLocalPart()),
-                WebMiscUtil.createReadonlyModelFromEnum(ShadowKindType.class),
+                WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class),
                 new EnumChoiceRenderer<ShadowKindType>(this));
         editor.add(editorKind);
 
@@ -485,7 +485,7 @@ public class SchemaHandlingStep extends WizardStep {
         DropDownChoice editorAssignmentPolicyRef = new DropDownChoice<>(ID_EDITOR_ASSIGNMENT_POLICY,
                 new PropertyModel<AssignmentPolicyEnforcementType>(model, SchemaHandlingDto.F_SELECTED + "." +
                         ResourceObjectTypeDefinitionType.F_ASSIGNMENT_POLICY_ENFORCEMENT.getLocalPart()),
-                WebMiscUtil.createReadonlyModelFromEnum(AssignmentPolicyEnforcementType.class),
+                WebComponentUtil.createReadonlyModelFromEnum(AssignmentPolicyEnforcementType.class),
                 new EnumChoiceRenderer<AssignmentPolicyEnforcementType>(this));
         editor.add(editorAssignmentPolicyRef);
 
@@ -736,7 +736,7 @@ public class SchemaHandlingStep extends WizardStep {
         removeEmptyContainers(newResource);
 
         try{
-            oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), getPageBase(), task, result);
+            oldResource = WebModelServiceUtils.loadObject(ResourceType.class, newResource.getOid(), getPageBase(), task, result);
             if(oldResource != null){
                 delta = oldResource.diff(newResource);
 
@@ -744,7 +744,7 @@ public class SchemaHandlingStep extends WizardStep {
                     LOGGER.trace(delta.debugDump());
                 }
 
-                Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
+                Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
                 modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_SCHEMA_HANDLING), result);
             }
 
@@ -756,7 +756,7 @@ public class SchemaHandlingStep extends WizardStep {
         }
 
         setResult(result);
-        if(WebMiscUtil.showResultInPage(result)){
+        if(WebComponentUtil.showResultInPage(result)){
             getPageBase().showResult(result);
         }
     }

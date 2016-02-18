@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
@@ -35,10 +37,8 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectSearchDto;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.StringUtils;
@@ -255,7 +255,7 @@ public class ObjectSelectionPanel extends Panel {
         ObjectDataProvider provider = (ObjectDataProvider)dataTable.getDataProvider();
         provider.setType(objectType);
 
-        target.add(this, WebMiscUtil.getPageBase(this).getFeedbackPanel(), table);
+        target.add(this, WebComponentUtil.getPageBase(this).getFeedbackPanel(), table);
     }
 
     public void updateTablePerformed(AjaxRequestTarget target, ObjectQuery query){
@@ -264,7 +264,7 @@ public class ObjectSelectionPanel extends Panel {
         ObjectDataProvider provider = (ObjectDataProvider)dataTable.getDataProvider();
         provider.setQuery(query);
 
-        target.add(this, WebMiscUtil.getPageBase(this).getFeedbackPanel(), table);
+        target.add(this, WebComponentUtil.getPageBase(this).getFeedbackPanel(), table);
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
@@ -295,7 +295,7 @@ public class ObjectSelectionPanel extends Panel {
         }
 
         try {
-            PageBase pageBase = WebMiscUtil.getPageBase(this);
+            PageBase pageBase = WebComponentUtil.getPageBase(this);
             PrismContext prismContext = pageBase.getPrismContext();
             PolyStringNormalizer normalizer = prismContext.getDefaultPolyStringNormalizer();
             String normalized = normalizer.normalize(dto.getText());

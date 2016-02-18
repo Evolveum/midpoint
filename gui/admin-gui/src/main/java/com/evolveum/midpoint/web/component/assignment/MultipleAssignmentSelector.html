@@ -18,22 +18,23 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div>
-        <div class="row form-group">
-        <!--<wicket:fragment wicket:id="tableHeader">-->
+        <div wicket:id="userChooserDialog"/>
+        <div class="form-group" wicket:id="filterButtonContainer">
+            <a wicket:id="filterByUserButton" class="btn btn-sm btn-default">
+                <span wicket:id="label"/>
+                <i wicket:id="deleteButton" class="fa fa-times-circle fa-lg text-danger"/>
+            </a>
+            </div>
+        <div class="form-group" wicket:id="resetButtonContainer">
+            <a class="btn btn-sm btn-default" wicket:id="buttonReset"/>
+            </div>
+        <div class="form-group">
             <form class="form-inline pull-left search-form" wicket:id="searchForm">
                 <div wicket:id="search"/>
             </form>
-        <!--</wicket:fragment>-->
         </div>
-        <div class="row">
+        <div class="form-group">
             <div wicket:id="table" class=""/>
-            <div>
-            <span class="col-xs-2">
-				<div class="btn-group-vertical" role="group">
-                    <a class="btn btn-default btn-small" wicket:id="buttonReset"/>
-                </div>
-			</span>
-            </div>
         </div>
     </div>
 </wicket:panel>

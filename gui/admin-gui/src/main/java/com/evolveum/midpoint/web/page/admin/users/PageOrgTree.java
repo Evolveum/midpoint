@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -29,10 +31,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.users.component.TreeTablePanel;
 import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 import org.apache.wicket.RestartResponseException;
@@ -136,7 +136,7 @@ public class PageOrgTree extends PageAdminUsers {
                     return displayName.getOrig();
                 }
 
-                return WebMiscUtil.getName(org);
+                return WebComponentUtil.getName(org);
             }
         };
     }
@@ -160,7 +160,7 @@ public class PageOrgTree extends PageAdminUsers {
             result.computeStatus();
         }
 
-        if (WebMiscUtil.showResultInPage(result)) {
+        if (WebComponentUtil.showResultInPage(result)) {
             showResult(result);
         }
 

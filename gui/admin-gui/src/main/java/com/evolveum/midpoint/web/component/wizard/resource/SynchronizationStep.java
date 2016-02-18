@@ -45,7 +45,10 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.validation.IValidator;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -69,12 +72,8 @@ import com.evolveum.midpoint.web.component.wizard.resource.component.synchroniza
 import com.evolveum.midpoint.web.component.wizard.resource.component.synchronization.SynchronizationReactionEditor;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectSynchronizationTypeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceSynchronizationDto;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -336,7 +335,7 @@ public class SynchronizationStep extends WizardStep {
 
         DropDownChoice editorKind = new DropDownChoice<>(ID_EDITOR_KIND,
                 new PropertyModel<ShadowKindType>(model, ResourceSynchronizationDto.F_SELECTED + ".kind"),
-                WebMiscUtil.createReadonlyModelFromEnum(ShadowKindType.class),
+                WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class),
                 new EnumChoiceRenderer<ShadowKindType>());
         editorKind.setNullValid(true);
         editor.add(editorKind);
@@ -392,7 +391,7 @@ public class SynchronizationStep extends WizardStep {
 
                     @Override
                     public List<QName> getObject() {
-                        return WebMiscUtil.createFocusTypeList();
+                        return WebComponentUtil.createFocusTypeList();
                     }
                 }, new QNameChoiceRenderer());
         editorFocus.setNullValid(true);
@@ -428,7 +427,7 @@ public class SynchronizationStep extends WizardStep {
 
                     @Override
                     public List<ObjectReferenceType> getObject() {
-                    	return WebModelUtils.createObjectReferenceList(ObjectTemplateType.class, getPageBase(), model.getObject().getObjectTemplateMap());
+                    	return WebModelServiceUtils.createObjectReferenceList(ObjectTemplateType.class, getPageBase(), model.getObject().getObjectTemplateMap());
                     }
                 }, new ObjectReferenceChoiceRenderer(model.getObject().getObjectTemplateMap()));
         editorObjectTemplate.setNullValid(true);
@@ -629,7 +628,7 @@ public class SynchronizationStep extends WizardStep {
 
             for(PrismObject<ObjectTemplateType> template: templates){
                 if(model.getObject() != null){
-                    model.getObject().getObjectTemplateMap().put(template.getOid(), WebMiscUtil.getName(template));
+                    model.getObject().getObjectTemplateMap().put(template.getOid(), WebComponentUtil.getName(template));
                 }
 
                 ref = new ObjectReferenceType();
@@ -750,7 +749,7 @@ public class SynchronizationStep extends WizardStep {
         prepareResourceToSave(newResource.asObjectable());
 
         try{
-            oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), getPageBase(), task, result);
+            oldResource = WebModelServiceUtils.loadObject(ResourceType.class, newResource.getOid(), getPageBase(), task, result);
             if(oldResource != null){
                 delta = oldResource.diff(newResource);
 
@@ -758,7 +757,7 @@ public class SynchronizationStep extends WizardStep {
                     LOGGER.trace(delta.debugDump());
                 }
 
-                Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
+                Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
                 modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_SYNC), result);
             }
 
@@ -770,7 +769,7 @@ public class SynchronizationStep extends WizardStep {
             setResult(result);
         }
 
-        if(WebMiscUtil.showResultInPage(result)){
+        if(WebComponentUtil.showResultInPage(result)){
             getPageBase().showResult(result);
         }
     }

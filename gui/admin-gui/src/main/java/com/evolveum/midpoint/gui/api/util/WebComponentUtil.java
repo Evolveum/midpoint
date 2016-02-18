@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.util;
+package com.evolveum.midpoint.gui.api.util;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -62,7 +63,6 @@ import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalPanel;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
@@ -112,20 +112,23 @@ import java.util.List;
 import java.util.Locale;
 
 /**
+ * Utility class containing miscellaneous methods used mostly in Wicket components.
+ * 
  * @author lazyman
  */
-public final class WebMiscUtil {
+public final class WebComponentUtil {
 
-	private static final Trace LOGGER = TraceManager.getTrace(WebMiscUtil.class);
+	private static final Trace LOGGER = TraceManager.getTrace(WebComponentUtil.class);
 	private static DatatypeFactory df = null;
 
 	public static enum Channel {
-		LIVE_SYNC("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#liveSync"), RECONCILIATION(
-				"http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#reconciliation"), DISCOVERY(
-						"http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#discovery"), IMPORT(
-								"http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import"), USER(
-										"http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#user"), WEB_SERVICE(
-												"http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#webService");
+		// TODO: move this to schema component
+		LIVE_SYNC("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#liveSync"), 
+		RECONCILIATION("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#reconciliation"), 
+		DISCOVERY("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#discovery"), 
+		IMPORT("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import"), 
+		USER("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#user"),
+		WEB_SERVICE("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#webService");
 
 		private String channel;
 
@@ -146,7 +149,7 @@ public final class WebMiscUtil {
 		}
 	}
 
-	private WebMiscUtil() {
+	private WebComponentUtil() {
 	}
 
 	public static boolean isAuthorized(String... action) {
@@ -271,7 +274,7 @@ public final class WebMiscUtil {
 			final Component component) {
 		// final Class clazz = model.getObject().getClass();
 		final Object o = model.getObject();
-		return new DropDownChoicePanel(id, model, WebMiscUtil.createReadonlyModelFromEnum(clazz),
+		return new DropDownChoicePanel(id, model, WebComponentUtil.createReadonlyModelFromEnum(clazz),
 				new IChoiceRenderer<E>() {
 
 					@Override
@@ -284,7 +287,7 @@ public final class WebMiscUtil {
 
 					@Override
 					public Object getDisplayValue(E object) {
-						return WebMiscUtil.createLocalizedModelForEnum(object, component).getObject();
+						return WebComponentUtil.createLocalizedModelForEnum(object, component).getObject();
 					}
 
 					@Override
@@ -800,7 +803,7 @@ public final class WebMiscUtil {
 			selected = new ArrayList<T>();
 			selected.add(single);
 		} else {
-			selected = WebMiscUtil.getSelectedData(table);
+			selected = WebComponentUtil.getSelectedData(table);
 			if (selected.isEmpty()) {
 				page.warn(page.getString(nothingWarnMessage));
 				target.add(page.getFeedbackPanel());

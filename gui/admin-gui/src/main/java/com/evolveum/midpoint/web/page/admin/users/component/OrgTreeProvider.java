@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -34,8 +36,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
@@ -68,7 +68,7 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
     }
 
     private PageBase getPageBase() {
-        return WebMiscUtil.getPageBase(component);
+        return WebComponentUtil.getPageBase(component);
     }
 
     private ModelService getModelService() {
@@ -86,7 +86,7 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
 
         OperationResult result = new OperationResult(LOAD_ORG_UNITS);
         try {
-            Collection<SelectorOptions<GetOperationOptions>> options = WebModelUtils.createOptionsForParentOrgRefs();
+            Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils.createOptionsForParentOrgRefs();
             Task task = getPageBase().createSimpleTask(LOAD_ORG_UNITS);
 
             List<PrismObject<OrgType>> units = getModelService().searchObjects(OrgType.class, query, options,
@@ -107,7 +107,7 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
             result.computeStatus();
         }
 
-        if (WebMiscUtil.showResultInPage(result)) {
+        if (WebComponentUtil.showResultInPage(result)) {
             getPageBase().showResultInSession(result);
             throw new RestartResponseException(PageOrgTree.class);
         }
@@ -125,9 +125,9 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
             return null;
         }
 
-        String name = WebMiscUtil.getName(unit);
+        String name = WebComponentUtil.getName(unit);
         String description = unit.getPropertyRealValue(OrgType.F_DESCRIPTION, String.class);
-        String displayName = WebMiscUtil.getOrigStringFromPoly(
+        String displayName = WebComponentUtil.getOrigStringFromPoly(
                 unit.getPropertyRealValue(OrgType.F_DISPLAY_NAME, PolyString.class));
         String identifier = unit.getPropertyRealValue(OrgType.F_IDENTIFIER, String.class);
 
@@ -143,8 +143,8 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
             result = task.getResult();
             LOGGER.debug("Getting roots for: " + rootOid.getObject());
 
-            PrismObject<OrgType> object = WebModelUtils.loadObject(OrgType.class, rootOid.getObject(),
-                    WebModelUtils.createOptionsForParentOrgRefs(), getPageBase(), task, result);
+            PrismObject<OrgType> object = WebModelServiceUtils.loadObject(OrgType.class, rootOid.getObject(),
+                    WebModelServiceUtils.createOptionsForParentOrgRefs(), getPageBase(), task, result);
             result.computeStatus();
 
             root = createDto(null, object);
@@ -154,7 +154,7 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
             }
         }
 
-        if (WebMiscUtil.showResultInPage(result)) {
+        if (WebComponentUtil.showResultInPage(result)) {
             getPageBase().showResultInSession(result);
             throw new RestartResponseException(PageUsers.class);
         }

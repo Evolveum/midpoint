@@ -51,6 +51,9 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -101,7 +104,6 @@ import com.evolveum.midpoint.web.component.dialog.DeleteAllDto;
 import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.DebugButtonPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDownloadBehaviour;
@@ -112,8 +114,6 @@ import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.session.ConfigurationStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -233,11 +233,11 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		try {
 			OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
-			List<PrismObject<ResourceType>> list = WebModelUtils.searchObjects(ResourceType.class, null,
+			List<PrismObject<ResourceType>> list = WebModelServiceUtils.searchObjects(ResourceType.class, null,
 					SelectorOptions.createCollection(GetOperationOptions.createRaw()), result, this, null);
 
 			for (PrismObject obj : list) {
-				ObjectViewDto dto = new ObjectViewDto(obj.getOid(), WebMiscUtil.getName(obj));
+				ObjectViewDto dto = new ObjectViewDto(obj.getOid(), WebComponentUtil.getName(obj));
 				objects.add(dto);
 			}
 		} catch (Exception ex) {
@@ -727,7 +727,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			return items;
 		}
 
-		items = WebMiscUtil.getSelectedData(getListTable());
+		items = WebComponentUtil.getSelectedData(getListTable());
 		if (items.isEmpty()) {
 			warn(getString("pageDebugList.message.nothingSelected"));
 			target.add(getFeedbackPanel());
@@ -789,7 +789,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
 		for (DebugObjectItem bean : items) {
-			WebModelUtils.deleteObject(dto.getType(), bean.getOid(), ModelExecuteOptions.createRaw(), result,
+			WebModelServiceUtils.deleteObject(dto.getType(), bean.getOid(), ModelExecuteOptions.createRaw(), result,
 					this);
 		}
 		result.computeStatusIfUnknown();

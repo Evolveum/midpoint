@@ -1217,8 +1217,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     public String getHandlerUriForCategory(String category) {
         for (Map.Entry<String,TaskHandler> h : handlers.entrySet()) {
             List<String> cats = h.getValue().getCategoryNames();
-            if (cats != null && cats.contains(category)) {
-                return h.getKey();
+            if (cats != null) {
+				if (cats.contains(category)) {
+					return h.getKey();
+				}
             } else {
                 String cat = h.getValue().getCategoryName(null);
                 if (category.equals(cat)) {

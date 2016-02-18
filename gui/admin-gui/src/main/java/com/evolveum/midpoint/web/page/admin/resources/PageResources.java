@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
@@ -50,7 +52,6 @@ import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.resources.component.ContentPanel;
@@ -61,7 +62,6 @@ import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon
 import com.evolveum.midpoint.web.session.ResourcesStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
@@ -470,7 +470,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private void deleteHostPerformed(AjaxRequestTarget target) {
-        List<SelectableBean<ConnectorHostType>> selected = WebMiscUtil.getSelectedData(getConnectorHostTable());
+        List<SelectableBean<ConnectorHostType>> selected = WebComponentUtil.getSelectedData(getConnectorHostTable());
         if (selected.isEmpty()) {
             warn(getString("pageResources.message.noHostSelected"));
             target.add(getFeedbackPanel());
@@ -482,7 +482,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private List<ResourceDto> isAnyResourceSelected(AjaxRequestTarget target, ResourceDto single) {
-        return WebMiscUtil.isAnythingSelected(target, single, getResourceTable(), this,
+        return WebComponentUtil.isAnythingSelected(target, single, getResourceTable(), this,
                 "pageResources.message.noResourceSelected");
     }
 
@@ -523,14 +523,14 @@ public class PageResources extends PageAdminResources {
                 if(singleDelete != null){
                     selected.add(singleDelete);
                 } else {
-                    selected = WebMiscUtil.getSelectedData(table);
+                    selected = WebComponentUtil.getSelectedData(table);
                 }
 
                 switch (selected.size()) {
                     case 1:
                         Object first = selected.get(0);
                         String name = resources ? ((ResourceDto) first).getName() :
-                                WebMiscUtil.getName(((SelectableBean<ConnectorHostType>) first).getValue());
+                                WebComponentUtil.getName(((SelectableBean<ConnectorHostType>) first).getValue());
                         return createStringResource(oneDeleteKey, name).getString();
                     default:
                         return createStringResource(moreDeleteKey, selected.size()).getString();
@@ -541,7 +541,7 @@ public class PageResources extends PageAdminResources {
 
     private void deleteHostConfirmedPerformed(AjaxRequestTarget target) {
         Table hostTable = getConnectorHostTable();
-        List<SelectableBean<ConnectorHostType>> selected = WebMiscUtil.getSelectedData(hostTable);
+        List<SelectableBean<ConnectorHostType>> selected = WebComponentUtil.getSelectedData(hostTable);
 
         OperationResult result = new OperationResult(OPERATION_DELETE_HOSTS);
         for (SelectableBean<ConnectorHostType> selectable : selected) {
@@ -550,7 +550,7 @@ public class PageResources extends PageAdminResources {
 
                 ObjectDelta<ConnectorHostType> delta = ObjectDelta.createDeleteDelta(ConnectorHostType.class,
                         selectable.getValue().getOid(), getPrismContext());
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
             } catch (Exception ex) {
                 result.recordPartialError("Couldn't delete host.", ex);
                 LoggingUtils.logException(LOGGER, "Couldn't delete host", ex);
@@ -575,7 +575,7 @@ public class PageResources extends PageAdminResources {
         if(singleDelete != null){
             selected.add(singleDelete);
         } else {
-            selected = WebMiscUtil.getSelectedData(getResourceTable());
+            selected = WebComponentUtil.getSelectedData(getResourceTable());
         }
 
         OperationResult result = new OperationResult(OPERATION_DELETE_RESOURCES);
@@ -585,7 +585,7 @@ public class PageResources extends PageAdminResources {
 
                 ObjectDelta<ResourceType> delta = ObjectDelta.createDeleteDelta(ResourceType.class, resource.getOid(),
                         getPrismContext());
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
             } catch (Exception ex) {
                 result.recordPartialError("Couldn't delete resource.", ex);
                 LoggingUtils.logException(LOGGER, "Couldn't delete resource", ex);
@@ -611,7 +611,7 @@ public class PageResources extends PageAdminResources {
         PageBase page = (PageBase) getPage();
         Task task = page.createSimpleTask(OPERATION_CONNECTOR_DISCOVERY);
         OperationResult result = task.getResult();
-        List<SelectableBean<ConnectorHostType>> selected = WebMiscUtil.getSelectedData(getConnectorHostTable());
+        List<SelectableBean<ConnectorHostType>> selected = WebComponentUtil.getSelectedData(getConnectorHostTable());
         if (selected.isEmpty()) {
             warn(getString("pageResources.message.noHostSelected"));
             return;

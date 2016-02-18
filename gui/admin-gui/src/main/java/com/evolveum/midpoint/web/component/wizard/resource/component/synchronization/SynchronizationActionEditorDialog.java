@@ -16,14 +16,13 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.synchronization;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.SynchronizationActionTypeDto;
-import com.evolveum.midpoint.web.model.LoadableModel;
-
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationActionType;
 
@@ -131,7 +130,7 @@ public class SynchronizationActionEditorDialog extends ModalWindow{
 
         DropDownFormGroup<SynchronizationActionTypeDto.HandlerUriActions> handlerUri = new DropDownFormGroup<SynchronizationActionTypeDto.HandlerUriActions>(ID_HANDLER_URI,
                 new PropertyModel<SynchronizationActionTypeDto.HandlerUriActions>(model, SynchronizationActionTypeDto.F_HANDLER_URI),
-                WebMiscUtil.createReadonlyModelFromEnum(SynchronizationActionTypeDto.HandlerUriActions.class),
+                WebComponentUtil.createReadonlyModelFromEnum(SynchronizationActionTypeDto.HandlerUriActions.class),
                 new EnumChoiceRenderer<SynchronizationActionTypeDto.HandlerUriActions>(this), createStringResource("SynchronizationActionEditorDialog.label.handlerUri"),
                 "SynchronizationStep.action.tooltip.handlerUri", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false){
 
@@ -147,7 +146,7 @@ public class SynchronizationActionEditorDialog extends ModalWindow{
         form.add(handlerUri);
 
         DropDownFormGroup<BeforeAfterType> order = new DropDownFormGroup<BeforeAfterType>(ID_ORDER, new PropertyModel<BeforeAfterType>(model, SynchronizationActionTypeDto.F_ACTION_OBJECT + ".order"),
-                WebMiscUtil.createReadonlyModelFromEnum(BeforeAfterType.class), new EnumChoiceRenderer<BeforeAfterType>(this),
+                WebComponentUtil.createReadonlyModelFromEnum(BeforeAfterType.class), new EnumChoiceRenderer<BeforeAfterType>(this),
                 createStringResource("SynchronizationActionEditorDialog.label.order"), "SynchronizationStep.action.tooltip.order", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false){
 
             @Override

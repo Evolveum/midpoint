@@ -16,7 +16,10 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -37,11 +40,8 @@ import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ConnectorHostTypeComparator;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromObjectWrapperModel;
 import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromPrismObjectModel;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -88,14 +88,14 @@ public class NameStep extends WizardStep {
 
             @Override
             protected List<PrismObject<ConnectorType>> load() {
-                return WebModelUtils.searchObjects(ConnectorType.class, null, null, getPageBase());
+                return WebModelServiceUtils.searchObjects(ConnectorType.class, null, null, getPageBase());
             }
         };
         connectorHostsModel = new LoadableModel<List<PrismObject<ConnectorHostType>>>(false) {
 
             @Override
             protected List<PrismObject<ConnectorHostType>> load() {
-                return WebModelUtils.searchObjects(ConnectorHostType.class, null, null, getPageBase());
+                return WebModelServiceUtils.searchObjects(ConnectorHostType.class, null, null, getPageBase());
             }
         };
 
@@ -246,7 +246,7 @@ public class NameStep extends WizardStep {
 
                     @Override
                     public Object getDisplayValue(PrismObject<ConnectorType> object) {
-                        return WebMiscUtil.getName(object);
+                        return WebComponentUtil.getName(object);
                     }
 
                     @Override
@@ -404,7 +404,7 @@ public class NameStep extends WizardStep {
             result.recomputeStatus();
         }
 
-        if (WebMiscUtil.showResultInPage(result)) {
+        if (WebComponentUtil.showResultInPage(result)) {
             page.showResult(result);
         }
     }
@@ -452,7 +452,7 @@ public class NameStep extends WizardStep {
 
             ObjectDelta delta;
             if (!newResource) {
-                PrismObject<ResourceType> oldResource = WebModelUtils.loadObject(ResourceType.class, resource.getOid(),
+                PrismObject<ResourceType> oldResource = WebModelServiceUtils.loadObject(ResourceType.class, resource.getOid(),
                         page, task, result);
 
                 delta = DiffUtil.diff(oldResource, resource);
@@ -460,13 +460,13 @@ public class NameStep extends WizardStep {
                 delta = ObjectDelta.createAddDelta(resource);
             }
 
-            WebModelUtils.save(delta, ModelExecuteOptions.createRaw(), result, page);
+            WebModelServiceUtils.save(delta, ModelExecuteOptions.createRaw(), result, page);
 
             if(!newResource){
-                resource = WebModelUtils.loadObject(ResourceType.class, delta.getOid(), page, task, result);
+                resource = WebModelServiceUtils.loadObject(ResourceType.class, delta.getOid(), page, task, result);
             } else {
                 Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
-                resource = WebModelUtils.loadObject(ResourceType.class, delta.getOid(), options , page, task, result);
+                resource = WebModelServiceUtils.loadObject(ResourceType.class, delta.getOid(), options , page, task, result);
             }
 
             resourceModel.setObject(resource);
@@ -479,7 +479,7 @@ public class NameStep extends WizardStep {
             setResult(result);
         }
 
-        if (WebMiscUtil.showResultInPage(result)) {
+        if (WebComponentUtil.showResultInPage(result)) {
             page.showResult(result);
         }
     }

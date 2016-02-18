@@ -32,7 +32,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -58,13 +61,10 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
@@ -138,7 +138,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 				String name = null;
 				if (getObjectWrapper() != null && getObjectWrapper().getObject() != null) {
-					name = WebMiscUtil.getName(getObjectWrapper().getObject());
+					name = WebComponentUtil.getName(getObjectWrapper().getObject());
 				}
 
 				return createStringResource(
@@ -181,8 +181,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	}
 
 	protected void reviveModels() throws SchemaException {
-		WebMiscUtil.revive(objectModel, getPrismContext());
-		WebMiscUtil.revive(parentOrgModel, getPrismContext());
+		WebComponentUtil.revive(objectModel, getPrismContext());
+		WebComponentUtil.revive(parentOrgModel, getPrismContext());
 	}
 
 	protected abstract Class<O> getCompileTimeClass();
@@ -292,7 +292,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 						GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
 
 				String focusOid = getObjectOidParameter();
-				object = WebModelUtils.loadObject(getCompileTimeClass(), focusOid, options, this, task,
+				object = WebModelServiceUtils.loadObject(getCompileTimeClass(), focusOid, options, this, task,
 						result);
 
 				LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, object);
@@ -333,7 +333,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		}
 		// ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails",
 		// null, user, status);
-		if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+		if (wrapper.getResult() != null && !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
 			showResultInSession(wrapper.getResult());
 		}
 
@@ -444,7 +444,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			case ADDING:
 				try {
 					PrismObject<O> objectToAdd = delta.getObjectToAdd();
-					WebMiscUtil.encryptCredentials(objectToAdd, true, getMidpointApplication());
+					WebComponentUtil.encryptCredentials(objectToAdd, true, getMidpointApplication());
 					prepareObjectForAdd(objectToAdd);
 					getPrismContext().adopt(objectToAdd, getCompileTimeClass());
 					if (LOGGER.isTraceEnabled()) {
@@ -455,7 +455,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 						delta.revive(getPrismContext());
 
 						Collection<SimpleValidationError> validationErrors = performCustomValidation(objectToAdd,
-								WebMiscUtil.createDeltaCollection(delta));
+								WebComponentUtil.createDeltaCollection(delta));
 						if (validationErrors != null && !validationErrors.isEmpty()) {
 							for (SimpleValidationError error : validationErrors) {
 								LOGGER.error("Validation error, attribute: '" + error.printAttribute()
@@ -468,7 +468,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 							return;
 						}
 
-						progressReporter.executeChanges(WebMiscUtil.createDeltaCollection(delta), options,
+						progressReporter.executeChanges(WebComponentUtil.createDeltaCollection(delta), options,
 								task, result, target);
 					} else {
 						result.recordSuccess();
@@ -481,7 +481,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 			case MODIFYING:
 				try {
-					WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
+					WebComponentUtil.encryptCredentials(delta, true, getMidpointApplication());
 					prepareObjectDeltaForModify(delta);
 
 					if (LOGGER.isTraceEnabled()) {

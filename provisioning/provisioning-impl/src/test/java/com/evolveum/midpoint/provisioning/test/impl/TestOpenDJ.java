@@ -2384,6 +2384,40 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertShadows(23);
 	}
 	
+	/**
+	 * List organizationUnits with intent ou-people. There are no sub-ous in People.
+	 * But the definition has objectclass organizationalUnit and it has baseContext that
+	 * is also organizationalUnit. This test therefore makes sure this will not end up
+	 * in endless loop (stack overflow).
+	 */
+	@Test
+	public void test460ListOrganizationalUnitPeopleKindIntent() throws Exception {
+		final String TEST_NAME = "test460ListOrganizationalUnitPeopleKindIntent";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
+        		ShadowKindType.GENERIC, "ou-people", prismContext);
+        display("query", query);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> objects = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		display("found objects", objects);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		// Just the ou=People itself
+		assertEquals("Wrong number of objects found", 1, objects.size());
+		
+		assertShadows(24);
+	}
+	
 	@Test
 	public void test701ConfiguredCapabilityNoRead() throws Exception{
 		final String TEST_NAME = "test701ConfiguredCapabilityNoRead";

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.component.wizard.resource.component.capability;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
@@ -24,8 +25,6 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.wizard.resource.CapabilityStep;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
-import com.evolveum.midpoint.web.model.LoadableModel;
-
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;

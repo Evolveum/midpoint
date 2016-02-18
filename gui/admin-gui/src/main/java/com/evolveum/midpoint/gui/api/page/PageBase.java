@@ -16,15 +16,82 @@
 
 package com.evolveum.midpoint.gui.api.page;
 
-import java.io.Serializable;
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.management.MBeanServer;
-import javax.management.MBeanServerFactory;
-import javax.management.ObjectName;
+import com.evolveum.midpoint.certification.api.CertificationManager;
+import com.evolveum.midpoint.common.SystemConfigurationHolder;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.common.validator.EventHandler;
+import com.evolveum.midpoint.common.validator.EventResult;
+import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.report.api.ReportManager;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
+import com.evolveum.midpoint.web.component.menu.MainMenuItem;
+import com.evolveum.midpoint.web.component.menu.MenuItem;
+import com.evolveum.midpoint.web.component.menu.SideBarMenuItem;
+import com.evolveum.midpoint.web.component.menu.SideBarMenuPanel;
+import com.evolveum.midpoint.web.component.menu.UserMenuPanel;
+import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
+import com.evolveum.midpoint.web.component.message.MainFeedback;
+import com.evolveum.midpoint.web.component.message.OpResult;
+import com.evolveum.midpoint.web.component.message.TempFeedback;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.BreadcrumbItem;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
+import com.evolveum.midpoint.web.page.admin.configuration.*;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
+import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
+import com.evolveum.midpoint.web.page.admin.reports.PageNewReport;
+import com.evolveum.midpoint.web.page.admin.reports.PageReport;
+import com.evolveum.midpoint.web.page.admin.reports.PageReports;
+import com.evolveum.midpoint.web.page.admin.resources.PageImportResource;
+import com.evolveum.midpoint.web.page.admin.resources.PageResource;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceOld;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.users.*;
+import com.evolveum.midpoint.web.page.admin.workflow.*;
+import com.evolveum.midpoint.web.page.self.PageSelfAssignments;
+import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
+import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
+import com.evolveum.midpoint.web.page.self.PageSelfProfile;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
+import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -59,99 +126,15 @@ import org.apache.wicket.util.string.StringValue;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.common.SystemConfigurationHolder;
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.common.validator.EventHandler;
-import com.evolveum.midpoint.common.validator.EventResult;
-import com.evolveum.midpoint.common.validator.Validator;
-import com.evolveum.midpoint.gui.api.component.result.OpResult;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.model.api.AccessCertificationService;
-import com.evolveum.midpoint.model.api.ModelDiagnosticService;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.ScriptingService;
-import com.evolveum.midpoint.model.api.TaskService;
-import com.evolveum.midpoint.model.api.WorkflowService;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.report.api.ReportManager;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
-import com.evolveum.midpoint.web.component.menu.MainMenuItem;
-import com.evolveum.midpoint.web.component.menu.MenuItem;
-import com.evolveum.midpoint.web.component.menu.SideBarMenuItem;
-import com.evolveum.midpoint.web.component.menu.SideBarMenuPanel;
-import com.evolveum.midpoint.web.component.menu.UserMenuPanel;
-import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
-import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.BreadcrumbItem;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
-import com.evolveum.midpoint.web.page.admin.configuration.PageAbout;
-import com.evolveum.midpoint.web.page.admin.configuration.PageAccounts;
-import com.evolveum.midpoint.web.page.admin.configuration.PageBulkAction;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
-import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
-import com.evolveum.midpoint.web.page.admin.configuration.PageInternals;
-import com.evolveum.midpoint.web.page.admin.configuration.PageRepoQuery;
-import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
-import com.evolveum.midpoint.web.page.admin.reports.PageNewReport;
-import com.evolveum.midpoint.web.page.admin.reports.PageReport;
-import com.evolveum.midpoint.web.page.admin.reports.PageReports;
-import com.evolveum.midpoint.web.page.admin.resources.PageImportResource;
-import com.evolveum.midpoint.web.page.admin.resources.PageResource;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
-import com.evolveum.midpoint.web.page.admin.resources.PageResources;
-import com.evolveum.midpoint.web.page.admin.roles.PageRole;
-import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesAll;
-import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedBy;
-import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedFor;
-import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
-import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsClaimable;
-import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
-import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
-import com.evolveum.midpoint.web.page.self.PageSelfProfile;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
-import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import java.io.Serializable;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.management.MBeanServer;
+import javax.management.MBeanServerFactory;
+import javax.management.ObjectName;
 
 /**
  * @author lazyman
@@ -475,9 +458,15 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         feedbackContainer.setOutputMarkupId(true);
         add(feedbackContainer);
 
-        FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
-        feedback.setOutputMarkupId(true);
+        MainFeedback feedback = new MainFeedback(ID_FEEDBACK);
         feedbackContainer.add(feedback);
+
+        TempFeedback tempFeedback = new TempFeedback(ID_TEMP_FEEDBACK);
+        feedbackContainer.add(tempFeedback);
+
+//        FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK_LIST);
+//        feedbackList.setOutputMarkupId(true);
+//        add(feedbackList);
 
         MainPopupDialog mainPopup = new MainPopupDialog(ID_MAIN_POPUP);
         add(mainPopup);
@@ -571,20 +560,19 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
     }
 
-//    public MainFeedback getMainFeedbackPanel() {
-//        return (MainFeedback) getFeedbackPanel().get(ID_FEEDBACK);
-//    }
-//
-//    public TempFeedback getTempFeedbackPanel() {
-//        return (TempFeedback) getFeedbackPanel().get(ID_TEMP_FEEDBACK);
-//    }
+    public MainFeedback getMainFeedbackPanel() {
+        return (MainFeedback) getFeedbackPanel().get(ID_FEEDBACK);
+    }
+
+    public TempFeedback getTempFeedbackPanel() {
+        return (TempFeedback) getFeedbackPanel().get(ID_TEMP_FEEDBACK);
+    }
 
     public SessionStorage getSessionStorage() {
         MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
         return session.getSessionStorage();
     }
 
-    
     protected IModel<String> createPageSubTitleModel() {
         String key = getClass().getSimpleName() + ".subTitle";
         return new StringResourceModel(key, this).setDefaultValue("");
@@ -604,8 +592,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     			.setDefaultValue(resourceKey)
     			.setParameters(objects);
     }
+    	
     
-    
+
     public StringResourceModel createStringResource(Enum e) {
         String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
         return createStringResource(resourceKey);
@@ -632,14 +621,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
     }
     
-//    public void showResultInSession(OperationResult result, String errorMessageKey) {
-//    	showResult(result, errorMessageKey, true, true);
-//    }
-//    
-//    public void showResultInSession(OperationResult result, String errorMessageKey, boolean showSuccess) {
-//    	showResult(result, errorMessageKey, true, showSuccess);
-//    }
-//    
+    public void showResultInSession(OperationResult result, String errorMessageKey) {
+    	showResult(result, errorMessageKey, true, true);
+    }
+    
+    public void showResultInSession(OperationResult result, String errorMessageKey, boolean showSuccess) {
+    	showResult(result, errorMessageKey, true, showSuccess);
+    }
+    
     public void showResult(OperationResult result, String errorMessageKey, boolean showSuccess) {
     	showResult(result, errorMessageKey, false, showSuccess);
     }
@@ -946,42 +935,42 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         List<MainMenuItem> items = menu.getItems();
 
         // todo fix with visible behaviour [lazyman]
-        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
                 AuthorizationConstants.AUTZ_UI_HOME_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             items.add(createHomeItems());
         }
 
-        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_URL,
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_URL,
                 AuthorizationConstants.AUTZ_UI_USERS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             items.add(createUsersItems());
         }
 
-        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ORG_STRUCT_URL,
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ORG_STRUCT_URL,
                 AuthorizationConstants.AUTZ_UI_ORG_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
                 AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             items.add(createOrganizationsMenu());
         }
 
-        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_URL,
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_URL,
                 AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             items.add(createRolesItems());
         }
 
-        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
                 AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL, 
                 AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL, AuthorizationConstants.AUTZ_UI_RESOURCE_URL, 
                 AuthorizationConstants.AUTZ_UI_RESOURCE_EDIT_URL)) {
             items.add(createResourcesItems());
         }
 
-        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_URL,
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_URL,
                 AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             if (getWorkflowManager().isEnabled()) {
                 items.add(createWorkItemsItems());
             }
         }
 
-        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CERTIFICATION_ALL_URL,
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CERTIFICATION_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_CERTIFICATION_DEFINITIONS_URL,
                 AuthorizationConstants.AUTZ_UI_CERTIFICATION_NEW_DEFINITION_URL,
                 AuthorizationConstants.AUTZ_UI_CERTIFICATION_CAMPAIGNS_URL,
@@ -991,17 +980,17 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             items.add(createCertificationItems());
         }
 
-        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_URL,
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_URL,
                 AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             items.add(createServerTasksItems());
         }
 
-        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_REPORTS_URL,
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_REPORTS_URL,
                 AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             items.add(createReportsItems());
         }
 
-        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
         		AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL, AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUGS_URL,
         		AuthorizationConstants.AUTZ_UI_CONFIGURATION_IMPORT_URL, AuthorizationConstants.AUTZ_UI_CONFIGURATION_LOGGING_URL,
         		AuthorizationConstants.AUTZ_UI_CONFIGURATION_SYSTEM_CONFIG_URL, AuthorizationConstants.AUTZ_UI_CONFIGURATION_ABOUT_URL,
@@ -1393,11 +1382,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     protected PrismObject<UserType> loadUserSelf(PageBase page) {
     	Task task = createSimpleTask(OPERATION_LOAD_USER);
         OperationResult result = task.getResult();
-        PrismObject<UserType> user = WebModelUtils.loadObject(UserType.class,
-                WebModelUtils.getLoggedInUserOid(), page, task, result);
+        PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class,
+                WebModelServiceUtils.getLoggedInUserOid(), page, task, result);
         result.computeStatus();
 
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             showResult(result);
         }
 

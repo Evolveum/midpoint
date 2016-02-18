@@ -15,8 +15,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AceEditor;
-import com.evolveum.midpoint.web.component.util.BasePanel;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;

@@ -20,6 +20,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.midpoint.common.policy.ValuePolicyGenerator;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -75,8 +77,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 @PageDescriptor(url = "/forgetpassword")
 public class PageForgetPassword extends PageBase {
 
@@ -221,7 +221,7 @@ public class PageForgetPassword extends PageBase {
 			ObjectQuery query = new ObjectQuery().createObjectQuery(AndFilter.createAnd(filters));
 
 
-			List<PrismObject<UserType>> userList= WebModelUtils.searchObjects(UserType.class, query,
+			List<PrismObject<UserType>> userList= WebModelServiceUtils.searchObjects(UserType.class, query,
 					result, this);
 
 			//	model.searchObjects(UserType.class, query, options, task, subResult);
@@ -341,7 +341,7 @@ public class PageForgetPassword extends PageBase {
 		System.out.println("Passs:"+newPassword);
 		password.setClearValue(newPassword);
 
-		WebMiscUtil.encryptProtectedString(password, true, getMidpointApplication());
+		WebComponentUtil.encryptProtectedString(password, true, getMidpointApplication());
 		final ItemPath valuePath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
 				CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 		System.out.println("Reset Password4");

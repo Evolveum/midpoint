@@ -26,35 +26,44 @@
         <div class="row">
             <div class="col-md-10">
                 <div class="col-md-4">
-                    <wicket:message key="PageAssignmentRequest.availableRoles"/>
+                    <label class="control-label">
+                        <wicket:message key="MultipleAssignmentSelectorPanel.availableRoles"/>
+                    </label>
+                    <!--<a class="btn btn-sm btn-default" wicket:id="filterByUserButton"/>-->
                     <div wicket:id="availableAssignments"/>
                 </div>
                 <div class="col-md-4" style="margin-top: 60px;">
                     <div wicket:id="tenantRefContainer" class="form-group">
                         <div class="col-md-4">
-                            <wicket:message key="AssignmentEditorPanel.tenantRef" />
+                            <label>
+                                <wicket:message key="AssignmentEditorPanel.tenantRef" />
+                            </label>
                         </div>
-                        <div class="col-md-4" wicket:id="tenantRefChooser"/>
+                        <div class="col-md-8" wicket:id="tenantRefChooser"/>
                     </div>
                     <div wicket:id="orgRefContainer" class="form-group">
                         <div class="col-md-4">
-                            <wicket:message key="AssignmentEditorPanel.orgRef" />
+                            <label>
+                                <wicket:message key="AssignmentEditorPanel.orgRef" />
+                            </label>
                         </div>
-                        <div class="col-md-4" wicket:id="orgRefChooser"/>
+                        <div class="col-md-8" wicket:id="orgRefChooser"/>
                     </div>
                     <!--<div class="form-group">-->
                     <div class="centre">
-                        <button wicket:id="add" type="button" class="btn btn-default btn-small vertical-button-group"><i class="fa fa-long-arrow-right"></i></button>
+                        <button wicket:id="add" type="button" class="btn btn-default btn-sm vertical-button-group"><i class="fa fa-long-arrow-right"></i></button>
                     </div>
                         <!--</div>-->
                         <!--<div class="form-group">-->
                     <div class="centre">
-                       <button wicket:id="remove" type="button" class="btn btn-default btn-small vertical-button-group"><i class="fa fa-long-arrow-left"></i></button>
+                       <button wicket:id="remove" type="button" class="btn btn-default btn-sm vertical-button-group"><i class="fa fa-long-arrow-left"></i></button>
                     </div>
                             <!--</div>-->
                 </div>
                 <div class="col-md-4">
-                    <wicket:message key="PageAssignmentRequest.currentRoles"/>
+                    <label class="control-label">
+                        <wicket:message key="MultipleAssignmentSelectorPanel.currentRoles"/>
+                    </label>
                     <div wicket:id="currentAssignments"/>
                 </div>
             </div>

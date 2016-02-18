@@ -3298,7 +3298,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="resource" type="tns:ResourceType"/>
+    <xsd:element name="resource" type="tns:ResourceType" substitutionGroup="c:object"/>
     
     <xsd:complexType name="OperationalStateType">
         <xsd:annotation>

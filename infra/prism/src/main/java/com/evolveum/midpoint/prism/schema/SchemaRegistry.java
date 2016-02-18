@@ -951,6 +951,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		return schema.findComplexTypeDefinitionByCompileTimeClass(compileTimeClass);
 	}
 
+	public <T extends ItemDefinition> T findItemDefinitionByFullPath(Class<? extends Objectable> objectClass, Class<T> defClass, QName... itemNames)
+			throws SchemaException {
+		PrismObjectDefinition objectDefinition = findObjectDefinitionByCompileTimeClass(objectClass);
+		if (objectDefinition == null) {
+			throw new SchemaException("No object definition for " + objectClass);
+		}
+		return (T) objectDefinition.findItemDefinition(new ItemPath(itemNames), defClass);
+	}
 
 	public ItemDefinition findItemDefinitionByElementName(QName elementName) {
         if (StringUtils.isEmpty(elementName.getNamespaceURI())) {

@@ -1,10 +1,15 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
+import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.certification.dto.*;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -50,12 +55,17 @@ public class StageDefinitionPanel extends SimplePanel<StageDefinitionDto> {
     private static final String ID_OUTCOME_IF_NO_REVIEWERS = "outcomeIfNoReviewers";
     private static final String ID_STOP_REVIEW_ON = "stopReviewOn";
 
-    public StageDefinitionPanel(String id, IModel<StageDefinitionDto> model) {
+    // TODO remove pageBase from the constructor -- replace with delayed layout initialization
+    public StageDefinitionPanel(String id, IModel<StageDefinitionDto> model, PageBase pageBase) {
         super(id, model);
+        initLayoutDeferred(pageBase);
     }
 
     @Override
     protected void initLayout() {
+    }
+
+    protected void initLayoutDeferred(PageBase pageBase) {
         TextField nameField = new TextField(ID_NAME, new PropertyModel<>(getModel(), StageDefinitionDto.F_NAME));
         add(nameField);
 
@@ -123,25 +133,29 @@ public class StageDefinitionPanel extends SimplePanel<StageDefinitionDto> {
             }
         });
 
-        WebMarkupContainer defaultOwnerRefChooser = createReviewerRefChooser(ID_DEFAULT_REVIEWER_REF, StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_FIRST_DEF_REVIEWER_REF);
-        defaultOwnerRefChooser.setOutputMarkupId(true);
-        add(defaultOwnerRefChooser);
+        PrismPropertyPanel defaultOwnerRefPanel = new PrismPropertyPanel<>(ID_DEFAULT_REVIEWER_REF,
+                new PropertyModel(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_DEFAULT_REVIEWERS),
+                null, pageBase);
+        defaultOwnerRefPanel.setLabelContainerVisible(false);
+        add(defaultOwnerRefPanel);
 
-        WebMarkupContainer additionalOwnerRefChooser = createReviewerRefChooser(ID_ADDITIONAL_REVIEWER_REF, StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_FIRST_ADDITIONAL_REVIEWER_REF);
-        additionalOwnerRefChooser.setOutputMarkupId(true);
-        add(additionalOwnerRefChooser);
+        PrismPropertyPanel additionalOwnerRefPanel = new PrismPropertyPanel<>(ID_ADDITIONAL_REVIEWER_REF,
+                new PropertyModel(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_ADDITIONAL_REVIEWERS),
+                null, pageBase);
+        additionalOwnerRefPanel.setLabelContainerVisible(false);
+        add(additionalOwnerRefPanel);
 
         DropDownChoice outcomeStrategy1 =
                 new DropDownChoice<>(ID_OUTCOME_STRATEGY,
                         new PropertyModel<AccessCertificationCaseOutcomeStrategyType>(getModel(), StageDefinitionDto.F_OUTCOME_STRATEGY),
-                        WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationCaseOutcomeStrategyType.class),
+                        WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationCaseOutcomeStrategyType.class),
                 new EnumChoiceRenderer<AccessCertificationCaseOutcomeStrategyType>(this));
         add(outcomeStrategy1);
 
         DropDownChoice<AccessCertificationResponseType> outcomeIfNoReviewers =
                 new DropDownChoice<>(ID_OUTCOME_IF_NO_REVIEWERS,
                         new PropertyModel<AccessCertificationResponseType>(getModel(), StageDefinitionDto.F_OUTCOME_IF_NO_REVIEWERS),
-                        WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationResponseType.class),
+                        WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationResponseType.class),
                 new EnumChoiceRenderer<AccessCertificationResponseType>(this));
         add(outcomeIfNoReviewers);
 

@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -110,7 +110,7 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
             // wrong instance of ChooseTypePanel (the one that will not be used afterwards -
             // any changes made to its models are simply lost). So we want to get the reference to the "correct" one.
             public ChooseTypePanel getRealParent() {
-                return WebMiscUtil.theSameForPage(ChooseTypePanel.this, getCallingPageReference());
+                return WebComponentUtil.theSameForPage(ChooseTypePanel.this, getCallingPageReference());
             }
 
             @Override
@@ -161,7 +161,7 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
 
         ObjectViewDto o = getModel().getObject();
 
-        o.setName(WebMiscUtil.getName(object));
+        o.setName(WebComponentUtil.getName(object));
         o.setOid(object.getOid());
 
         if(LOGGER.isTraceEnabled()){

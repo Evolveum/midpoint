@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.web.page.self;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -39,8 +41,6 @@ import com.evolveum.midpoint.web.page.self.component.LinksPanel;
 import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.page.self.component.MyRequestsPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 import org.apache.commons.lang.Validate;
@@ -91,8 +91,7 @@ public class PageSelfDashboard extends PageSelf {
     private void initLayout(){
         DashboardSearchPanel dashboardSearchPanel = new DashboardSearchPanel(ID_SEARCH_PANEL, null);
         add(dashboardSearchPanel);
-        //TODO: visibleEnableBehavior instead of setVisible?
-        if (! WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
+        if (! WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_USERS_URL, AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_RESOURCES_URL, AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_TASKS_URL)) {
@@ -269,11 +268,11 @@ public class PageSelfDashboard extends PageSelf {
 
         Task task = createSimpleTask(OPERATION_LOAD_USER);
         OperationResult result = task.getResult();
-        PrismObject<UserType> user = WebModelUtils.loadObject(UserType.class,
+        PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class,
                 principal.getOid(), PageSelfDashboard.this, task, result);
         result.computeStatus();
 
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             showResult(result);
         }
 
