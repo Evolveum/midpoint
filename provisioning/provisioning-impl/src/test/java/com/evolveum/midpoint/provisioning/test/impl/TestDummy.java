@@ -2368,8 +2368,11 @@ public class TestDummy extends AbstractDummyTest {
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
 				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, prismContext,
 				XmlTypeConverter.createXMLGregorianCalendar(VALID_TO_MILLIS));
-		PrismObjectDefinition def = accountType.asPrismObject().getDefinition();
-		PropertyDelta validFromDelta = PropertyDelta.createModificationDeleteProperty(SchemaConstants.PATH_ACTIVATION_VALID_FROM, def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_VALID_FROM), VALID_FROM_MILLIS);
+		PrismObjectDefinition<ShadowType> def = accountType.asPrismObject().getDefinition();
+		PropertyDelta<XMLGregorianCalendar> validFromDelta = PropertyDelta.createModificationDeleteProperty(
+				SchemaConstants.PATH_ACTIVATION_VALID_FROM, 
+				def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_VALID_FROM), 
+				XmlTypeConverter.createXMLGregorianCalendar(VALID_FROM_MILLIS));
 		delta.addModification(validFromDelta);
 		delta.checkConsistence();
 
@@ -2385,8 +2388,8 @@ public class TestDummy extends AbstractDummyTest {
 		delta.checkConsistence();
 		// check if activation was changed
 		dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
-		assertNull("Wrong account validTo in account "+transformNameFromResource(ACCOUNT_WILL_USERNAME) + ": " + dummyAccount.getValidTo(), dummyAccount.getValidTo());
-		assertNull("Wrong account validFrom in account "+transformNameFromResource(ACCOUNT_WILL_USERNAME) + ": " + dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
+		assertNull("Unexpected account validTo in account "+transformNameFromResource(ACCOUNT_WILL_USERNAME) + ": " + dummyAccount.getValidTo(), dummyAccount.getValidTo());
+		assertNull("Unexpected account validFrom in account "+transformNameFromResource(ACCOUNT_WILL_USERNAME) + ": " + dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
 		assertTrue("Dummy account "+transformNameFromResource(ACCOUNT_WILL_USERNAME)+" is disabled, expected enabled", dummyAccount.isEnabled());
 		
 		syncServiceMock.assertNotifySuccessOnly();
