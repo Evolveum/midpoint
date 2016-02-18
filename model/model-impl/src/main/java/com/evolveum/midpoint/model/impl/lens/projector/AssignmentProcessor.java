@@ -1012,7 +1012,7 @@ public class AssignmentProcessor {
 	private <F extends FocusType> EvaluatedAssignmentImpl<F> evaluateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
 			boolean evaluateOld, LensContext<F> context, ObjectType source, AssignmentEvaluator<F> assignmentEvaluator, 
 			String assignmentPlacementDesc, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
-		OperationResult result = parentResult.createSubresult(AssignmentProcessor.class+".evaluateAssignment");
+		OperationResult result = parentResult.createSubresult(AssignmentProcessor.class.getSimpleName()+".evaluateAssignment");
 		result.addParam("assignmentDescription", assignmentPlacementDesc);
         try{
         	// Evaluate assignment. This follows to the assignment targets, follows to the inducements, 

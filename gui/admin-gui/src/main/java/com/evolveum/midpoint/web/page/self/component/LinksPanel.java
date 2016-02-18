@@ -90,6 +90,7 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
                         protected void onComponentTag(final ComponentTag tag) {
                             super.onComponentTag(tag);
                             String rootContext = "";
+                            //TODO: what is this for???
                             if (link.getTargetUrl() != null && !link.getTargetUrl().startsWith("http://") &&
                                     !link.getTargetUrl().startsWith("https://") &&
                                     !link.getTargetUrl().startsWith("www://") &&
