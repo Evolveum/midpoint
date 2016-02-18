@@ -79,9 +79,10 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	
 	private static final QName DEFAULT_XSD_TYPE = DOMUtil.XSD_STRING;
 
-    private static final String RUNTIME_CATALOG_RESOURCE = "META-INF/catalog-runtime.xml";
+    private static final String DEFAULT_RUNTIME_CATALOG_RESOURCE = "META-INF/catalog-runtime.xml";
 
-    private String catalogResource;
+	private File[] catalogFiles;														// overrides catalog resource name
+    private String catalogResourceName = DEFAULT_RUNTIME_CATALOG_RESOURCE;
 	
 	private javax.xml.validation.SchemaFactory schemaFactory;
 	private javax.xml.validation.Schema javaxSchema;
@@ -97,11 +98,6 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaRegistry.class);
 	
-	public SchemaRegistry() {
-		super();
-        this.catalogResource = RUNTIME_CATALOG_RESOURCE;
-	}
-
 	public DynamicNamespacePrefixMapper getNamespacePrefixMapper() {
 		return namespacePrefixMapper;
 	}
@@ -124,6 +120,22 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 
 	public void setBuiltinSchemaResolver(EntityResolver builtinSchemaResolver) {
 		this.builtinSchemaResolver = builtinSchemaResolver;
+	}
+
+	public File[] getCatalogFiles() {
+		return catalogFiles;
+	}
+
+	public void setCatalogFiles(File[] catalogFiles) {
+		this.catalogFiles = catalogFiles;
+	}
+
+	public String getCatalogResourceName() {
+		return catalogResourceName;
+	}
+
+	public void setCatalogResourceName(String catalogResourceName) {
+		this.catalogResourceName = catalogResourceName;
 	}
 
 	public String getDefaultNamespace() {
@@ -363,7 +375,9 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		
 		Element domElement = schemaDescription.getDomElement();
 		boolean isRuntime = schemaDescription.getCompileTimeClassesPackage() == null;
-		System.out.println("Parsing schema " + schemaDescription.getNamespace());
+//		System.out.println("Parsing schema " + schemaDescription.getNamespace());
+		LOGGER.trace("Parsing schema {}, namespace: {}, isRuntime: {}",
+				schemaDescription.getSourceDescription(), namespace, isRuntime);
 		PrismSchema schema = PrismSchema.parse(domElement, this, isRuntime, schemaDescription.getSourceDescription(), getPrismContext());
 		if (StringUtils.isEmpty(namespace)) {
 			namespace = schema.getNamespace();
@@ -423,18 +437,24 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		CatalogResolver catalogResolver = new CatalogResolver(catalogManager);
 		Catalog catalog = catalogResolver.getCatalog();
 
-        if (catalogResource == null) {
-            throw new IllegalStateException("Catalog is not defined");
-        }
-
-		Enumeration<URL> catalogs = Thread.currentThread().getContextClassLoader()
-				.getResources(catalogResource);
-		while (catalogs.hasMoreElements()) {
-			URL catalogURL = catalogs.nextElement();
-			catalog.parseCatalog(catalogURL);
+		if (catalogFiles != null && catalogFiles.length > 0) {
+			for (File catalogFile : catalogFiles) {
+				LOGGER.trace("Using catalog file {}", catalogFile);
+				catalog.parseCatalog(catalogFile.getPath());
+			}
+		} else if (catalogResourceName != null) {
+			LOGGER.trace("Using catalog from resource: {}", catalogResourceName);
+			Enumeration<URL> catalogs = Thread.currentThread().getContextClassLoader().getResources(catalogResourceName);
+			while (catalogs.hasMoreElements()) {
+				URL catalogResourceUrl = catalogs.nextElement();
+				LOGGER.trace("Parsing catalog from URL: {}", catalogResourceUrl);
+				catalog.parseCatalog(catalogResourceUrl);
+			}
+		} else {
+			throw new IllegalStateException("Catalog is not defined");
 		}
-		
-		builtinSchemaResolver=catalogResolver;
+
+		builtinSchemaResolver = catalogResolver;
 	}
 
 	public javax.xml.validation.Schema getJavaxSchema() {
@@ -478,7 +498,6 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		return map;
 	}
 
-	
 	private SchemaDescription lookupSchemaDescription(String namespace) {
 		for (SchemaDescription desc : schemaDescriptions) {
 			if (namespace.equals(desc.getNamespace())) {
@@ -488,63 +507,73 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		return null;
 	}
 
+	//region ======================================================================== Resolving entities and resources
+
+	/*
+	 *  Although not sure when resolveEntity and resolveResource is called, general schema is the following:
+	 *  1. For schemas that are imported via xsd:import, we use schemaLocation = namespaceURI, with some exceptions
+	 *      (we of course don't modify xsd:imports in standard schemas + for some historic reasons there is a difference
+	  *      for 'enc' and 'dsig' schemas: namespaceURI ends with '#', whereas schemaLocation does not)
+	  * 2. For schemas that are included via xsd:include (currently: fragments of common-3 schema), we use
+	  *    namespaceURI of the owning schema (e.g. .../common-3), whereas schemaLocation is URI derived from the
+	  *    namespace by including the fragment name (e.g. .../common-notifications-3).
+	  *
+	  * XSD parsers (the ones used by xjc and runtime parsing) seem to do the following:
+	  * 1. When encountering xsd:import, they look by publicId = namespaceURI, systemId = schemaLocation OR
+	  *    sometimes with publicId = null, systemId = schemaLocation (why?)
+	  * 2. When encountering xsd:include, they look by publicId = null, systemId = schemaLocation
+	  * 3. When encountering XML entity declaration that specifies publicId and systemId, look by them.
+	  *
+      * See the respective methods.
+	  *
+	 */
+
 	/* (non-Javadoc)
 	 * @see org.xml.sax.EntityResolver#resolveEntity(java.lang.String, java.lang.String)
 	 */
 	@Override
 	public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
-		LOGGER.trace("Resolving entity with publicID: {}, systemID: {}", publicId, systemId);
-		// Prefer built-in resolution over the pre-parsed one. This is less efficient, but if the order is swapped
-		// the parsers complaints about re-definition of the elements
-//		InputSource inputSource = resolveResourceUsingBuiltinResolver(null, null, publicId, systemId, null);
-		InputSource inputSource = resolveResourceFromRegisteredSchemas(null, publicId, publicId, systemId, null);
+		LOGGER.trace("--- Resolving entity with publicID: {}, systemID: {}", publicId, systemId);
+		InputSource inputSource = resolveResourceFromRegisteredSchemas(publicId, systemId);
 		if (inputSource == null) {
 			inputSource = resolveResourceUsingBuiltinResolver(null, null, publicId, systemId, null);
-//			inputSource = resolveResourceFromRegisteredSchemas(null, publicId, publicId, systemId, null);
 		}
 		if (inputSource == null) {
 			LOGGER.error("Unable to resolve entity with publicID: {}, systemID: {}",new Object[]{publicId, systemId});
 			return null;
 		}
-		LOGGER.trace("Resolved entity with publicID: {}, systemID: {} : {}", publicId, systemId, inputSource);
+		LOGGER.trace("==> Resolved entity with publicID: {}, systemID: {} : {}", publicId, systemId, inputSource);
 		return inputSource;
 	}
 
-	
 	/* (non-Javadoc)
 	 * @see org.w3c.dom.ls.LSResourceResolver#resolveResource(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String)
 	 */
 	@Override
 	public LSInput resolveResource(String type, String namespaceURI, String publicId, String systemId,
 			String baseURI) {
-		LOGGER.trace("Resolving resource of type {}, namespaceURI: {}, publicID: {}, systemID: {}, base URI: {}", type, namespaceURI, publicId, systemId, baseURI);
-		// Prefer built-in resolution over the pre-parsed one. This is less efficient, but if the order is swapped
-		// the parsers complaints about re-definition of the elements
-//		InputSource inputSource = resolveResourceUsingBuiltinResolver(type,namespaceURI,publicId,systemId,baseURI);
-		InputSource inputSource = resolveResourceFromRegisteredSchemas(type, namespaceURI, publicId, systemId, baseURI);
+		LOGGER.trace("--- Resolving resource of type {}, namespaceURI: {}, publicID: {}, systemID: {}, base URI: {}", type, namespaceURI, publicId, systemId, baseURI);
+		InputSource inputSource = resolveResourceFromRegisteredSchemas(publicId, systemId);
 		if (inputSource == null) {
 			inputSource = resolveResourceUsingBuiltinResolver(type, namespaceURI, publicId, systemId, baseURI);
-//			inputSource = resolveResourceFromRegisteredSchemas(type,namespaceURI,publicId,systemId,baseURI);
 		}
 		if (inputSource == null) {
 			LOGGER.error("Unable to resolve resource of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI});
 			return null;
 		}
-		LOGGER.trace("Resolved resource of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {} : {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI, inputSource});
+		LOGGER.trace("==> Resolved resource of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {} : {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI, inputSource});
 		return new Input(publicId, systemId, inputSource.getByteStream());
 	}
 
-	// schema fragments (e.g. common-model-context-3) will not be found by this method
-	private InputSource resolveResourceFromRegisteredSchemas(String type, String namespaceURI,
-			String publicId, String systemId, String baseURI) {
-		InputSource source = null;
+	// schema fragments (e.g. common-model-context-3) will be obviously not found by this method
+	private InputSource resolveResourceFromRegisteredSchemas(String publicId, String systemId) {
+		InputSource source = resolveResourceFromRegisteredSchemasByNamespace(publicId);
 		if (source == null) {
-			source = resolveResourceFromRegisteredSchemasByNamespace(publicId);
-		}
-		if (source == null) {
+			// give a chance to systemId - in cases of xsd:import namespaceURI=<ns>, schemaLocation=<ns> that
+			// (for some weird reason) result in search with publicId=null, systemId=<ns>
 			source = resolveResourceFromRegisteredSchemasByNamespace(systemId);
 		}
-		LOGGER.trace("Result of registered schema resolve for publicId: {}, systemId: {}: {}", publicId, systemId, source);
+		LOGGER.trace("...... Result of registered schema resolve for publicId: {}, systemId: {}: {}", publicId, systemId, source);
 		return source;
 	}
 		
@@ -574,19 +603,18 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 				String baseURI) {
 		InputSource inputSource = null;
 		try {
-			// we first try to use schemaLocation (publicId, systemId) because in case of schema fragments, e.g. common-model-context-3
-			// the use of namespaceURI (.../common-3) is misleading: it would return common-3.xsd instead of the correct fragment
+			// we first try to use traditional pair of publicId + systemId
+			// the use of namespaceUri can be misleading in case of schema fragments:
+			// e.g. when xsd:including common-model-context-3 the publicId=null, systemId=.../common-model-context-3 but nsUri=.../common-3
 			if (inputSource == null) {
 				inputSource = builtinSchemaResolver.resolveEntity(publicId, systemId);
-				LOGGER.trace("Result of using builtin resolver by publicId + systemId: {}", inputSource);
+				LOGGER.trace("...... Result of using builtin resolver by publicId + systemId: {}", inputSource);
 			}
-			// in other cases we can go with namespaceURI as well (when exactly?)
+			// in some weird cases (e.g. when publicId=null, systemId=xml.xsd) we go with namespaceUri (e.g. http://www.w3.org/XML/1998/namespace)
+			// it's a kind of unfortunate magic here
 			if (inputSource == null && namespaceURI != null) {
-				// TODO clarify this original comment:
-				// The systemId will be populated by schema location, not namespace URI.
-				// As we use catalog resolver as the default one, we need to pass it the namespaceURI in place of systemId
-				inputSource = builtinSchemaResolver.resolveEntity(publicId, namespaceURI);
-				LOGGER.trace("Result of using builtin resolver by publicId + namespaceURI: {}", inputSource);
+				inputSource = builtinSchemaResolver.resolveEntity(namespaceURI, systemId);
+				LOGGER.trace("...... Result of using builtin resolver by namespaceURI + systemId: {}", inputSource);
 			}
 		} catch (SAXException e) {
 			LOGGER.error("XML parser error resolving reference of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}: {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI, e.getMessage(), e});
@@ -599,6 +627,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		}
 		return inputSource;
 	}
+	//endregion
 
     // TODO fix this temporary and inefficient implementation
     public QName resolveUnqualifiedTypeName(QName type) throws SchemaException {

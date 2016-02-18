@@ -27,72 +27,19 @@
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             jaxb:extensionBindingPrefixes="xjc"
             jaxb:version="2.0">
-            <!--xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"-->
-            <!--xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 http://midpoint.evolveum.com/xml/ns/public/common/common-3">-->
 
     <xsd:annotation>
         <xsd:documentation>
             TODO
-
-            Recommended namespace prefix: c
         </xsd:documentation>
     </xsd:annotation>
 
-    <xsd:import namespace="http://www.w3.org/2001/XMLSchema"
-                schemaLocation="http://www.w3.org/2001/XMLSchema">
-        <xsd:annotation>
-            <xsd:documentation>
-                Importing the schema of XSD schema definition explicitly. This causes that we can use "strict" matching
-                for the xsd:schema elements used in runtime.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:import>
+    <!-- Don't provide schemaLocation here, as it causes xjc to really contact the URIs (!) -->
+    <xsd:import namespace="http://www.w3.org/2001/XMLSchema"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
 
-    <xsd:import namespace="http://www.w3.org/2001/04/xmlenc#"
-                schemaLocation="http://www.w3.org/2001/04/xmlenc">
-        <xsd:annotation>
-            <xsd:documentation>
-                The XML Encryption schema. Used for "protected" data types (property encryption).
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:import>
-
-
-    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"
-                schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-3">
-        <xsd:annotation>
-            <xsd:documentation>
-                Common prism annotations used in various XSD schemas.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:import>
-
-    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"
-                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3">
-        <xsd:annotation>
-            <xsd:documentation>
-                Prism data types.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:import>
-
-    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
-                schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3">
-        <xsd:annotation>
-            <xsd:documentation>
-                Prism data types.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:import>
-
-    <!--<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"-->
-                <!--schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3">-->
-        <!--<xsd:annotation>-->
-            <!--<xsd:documentation>-->
-                <!--Common midPoint schema.-->
-            <!--</xsd:documentation>-->
-        <!--</xsd:annotation>-->
-    <!--</xsd:import>-->
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
 
     <xsd:complexType name="LensContextType">
         <xsd:annotation>
@@ -519,8 +466,3 @@
     </xsd:complexType>
 
 </xsd:schema>
-
-
-
-
-

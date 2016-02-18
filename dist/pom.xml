@@ -99,7 +99,7 @@
                                     <artifactId>schema</artifactId>
                                     <version>${project.version}</version>
                                     <type>jar</type>
-                                    <catalog>META-INF/jax-ws-catalog.xml</catalog>
+                                    <catalog>META-INF/catalog-runtime.xml</catalog>
                                 </artifactItem>
                             </artifactItems>
                             <includes>**/*.xsd,**/*.dtd,**/*.wsdl,META-INF/*</includes>

@@ -225,11 +225,11 @@
                             <wsdlRoot>${project.directory}/src/main/resources/xml</wsdlRoot>
                             <wsdlOptions>
                                 <wsdlOption>
-                                    <!-- Ugly hack. The fake WSDL includes all the XSD files we need to compile
-                                                  This is the only way I found to generate equals and hashCode methods with CXF.
-                                                  If you find anything better please correct it. -->
+                                    <!-- Besides generating stub for SOAP web services, this fake WSDL includes all the XSD files
+                                         we need to compile. This is the only way I found to generate equals and hashCode methods with CXF.
+                                         If you find anything better please correct it. -->
                                     <wsdl>src/main/resources/xml/ns/private/fake/fakeWrapper.wsdl</wsdl>
-                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog-compile-time.xml</catalog>
+                                    <catalog>${basedir}/src/main/resources/META-INF/catalog-compile-time.xml</catalog>
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>
@@ -250,12 +250,10 @@
                                         <extraarg>-nexclude</extraarg>
                                         <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
                                         <!-- 										<extraargs>-version</extraargs> -->
-
                                         <extraarg>-xjc-Xmidpoint</extraarg>
                                     </extraargs>
                                 </wsdlOption>
                             </wsdlOptions>
-                            <additionalJvmArgs>-Dhttp.proxyHost=localhost. -Dhttp.proxyPort=8888</additionalJvmArgs>
                         </configuration>
                         <goals>
                             <goal>wsdl2java</goal>
@@ -280,30 +278,33 @@
                     </dependency>
                 </dependencies>
             </plugin>
-               <!--<plugin>-->
-		<!--<groupId>com.evolveum.midpoint.infra</groupId>-->
-                <!--<artifactId>prism-maven-plugin</artifactId>-->
-                <!--<version>3.4-SNAPSHOT</version>-->
-                <!--<configuration>-->
-                    <!--<schemaFiles>-->
-                        <!--<schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>-->
-                        <!--<schemaFile>src/main/resources/xml/ns/public/common/common-model-context-3.xsd</schemaFile>-->
-                        <!--<schemaFile>src/main/resources/xml/ns/public/common/api-types-3.xsd</schemaFile>-->
-                        <!--<schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd</schemaFile>-->
-                        <!--<schemaFile>src/main/resources/xml/ns/public/model/scripting/scripting-3.xsd</schemaFile>-->
-                    <!--</schemaFiles>-->
-                    <!--<templateDir>src/main/schemadoc/templates</templateDir>-->
-                <!--</configuration>-->
-                <!--<executions>-->
-                  <!--<execution>-->
-                    <!--<id>schemadoc</id>-->
-                    <!--<phase>package</phase>-->
-                    <!--<goals>  -->
-                      <!--<goal>schemadoc</goal>  -->
-                    <!--</goals>-->
-                  <!--</execution>-->
-                <!--</executions>-->
-            <!--</plugin>-->
+            <plugin>
+                <groupId>com.evolveum.midpoint.infra</groupId>
+                <artifactId>prism-maven-plugin</artifactId>
+                <version>3.4-SNAPSHOT</version>
+                <configuration>
+                    <schemaFiles>
+                        <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/common/api-types-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/model/scripting/scripting-3.xsd</schemaFile>
+                    </schemaFiles>
+                    <catalogFiles>
+                        <catalogFile>src/main/resources/META-INF/catalog-compile-time.xml</catalogFile>
+                        <catalogFile>src/main/resources/META-INF/schemas-in-this-module.xml</catalogFile>   <!-- nextCatalog doesn't work for unknown reason -->
+                    </catalogFiles>
+                    <templateDir>src/main/schemadoc/templates</templateDir>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>schemadoc</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>schemadoc</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
         <resources>
             <resource>

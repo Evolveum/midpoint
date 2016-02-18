@@ -59,7 +59,6 @@
     <logger name="org.hibernate.engine.jdbc.batch.internal.BatchingBatch" level="OFF"/>
     <logger name="PROFILING" level="INFO"/>
     <logger name="com.evolveum.midpoint" level="INFO" />
-    <!--<logger name="com.evolveum.midpoint.prism.schema.SchemaRegistry" level="TRACE" />-->
     <logger name="com.evolveum.midpoint.web.util.MidPointProfilingServletFilter" level="TRACE">
         <appender-ref ref="IDM-PROFILE_LOG"/>
     </logger>
