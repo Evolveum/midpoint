@@ -992,7 +992,7 @@ public class TestUnix extends AbstractStoryTest {
         
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
-        assertBasicAccount(shadow);
+        assertPosixAccount(shadow, USER_RANGER_UID_NUMBER);
 	}
 	
 	
