@@ -34,6 +34,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
@@ -215,33 +216,40 @@ public class SchemaDistMojo extends AbstractMojo {
         	unpack(artifactItem, workDir);
         	
         	if (translateSchemaLocation) {
-	        	String catalogPath = artifactItem.getCatalog();
-	        	File catalogFile = new File(workDir, catalogPath);
-	        	if (!catalogFile.exists()) {
-	        		throw new MojoExecutionException("No catalog file "+catalogPath+" in artifact "+artifact);
-	        	}
-	        	Catalog catalog = new Catalog(catalogManager);
-	        	catalog.setupReaders();
-	        	try {
-	                // UGLY HACK. On Windows, file names like d:\abc\def\catalog.xml eventually get treated very strangely
-	                // (resulting in names like "file:<current-working-dir>d:\abc\def\catalog.xml" that are obviously wrong)
-	                // Prefixing such names with "file:/" helps.
-	                String prefix;
-	                if (catalogFile.isAbsolute() && !catalogFile.getPath().startsWith("/")) {
-	                    prefix = "/";
-	                } else {
-	                    prefix = "";
-	                }
-					String fileName = "file:" + prefix + catalogFile.getPath();
-	                getLog().debug("Calling parseCatalog with: " + fileName);
-	                catalog.parseCatalog(fileName);
-				} catch (MalformedURLException e) {
-					throw new MojoExecutionException("Error parsing catalog file "+catalogPath+" in artifact "+artifact, e);
-				} catch (IOException e) {
-					throw new MojoExecutionException("Error parsing catalog file "+catalogPath+" in artifact "+artifact, e);
+				String catalogPath = artifactItem.getCatalog();
+				if (catalogPath != null) {
+					File catalogFile = new File(workDir, catalogPath);
+					if (!catalogFile.exists()) {
+						throw new MojoExecutionException(
+								"No catalog file " + catalogPath + " in artifact " + artifact);
+					}
+					Catalog catalog = new Catalog(catalogManager);
+					catalog.setupReaders();
+					try {
+						// UGLY HACK. On Windows, file names like d:\abc\def\catalog.xml eventually get treated very strangely
+						// (resulting in names like "file:<current-working-dir>d:\abc\def\catalog.xml" that are obviously wrong)
+						// Prefixing such names with "file:/" helps.
+						String prefix;
+						if (catalogFile.isAbsolute() && !catalogFile.getPath().startsWith("/")) {
+							prefix = "/";
+						} else {
+							prefix = "";
+						}
+						String fileName = "file:" + prefix + catalogFile.getPath();
+						getLog().debug("Calling parseCatalog with: " + fileName);
+						catalog.parseCatalog(fileName);
+					} catch (MalformedURLException e) {
+						throw new MojoExecutionException(
+								"Error parsing catalog file " + catalogPath + " in artifact " + artifact, e);
+					} catch (IOException e) {
+						throw new MojoExecutionException(
+								"Error parsing catalog file " + catalogPath + " in artifact " + artifact, e);
+					}
+					artifactItem.setResolveCatalog(catalog);
 				}
-	        	artifactItem.setResolveCatalog(catalog);
-        	}
+			} else {
+				getLog().debug("Catalog search disabled for " + artifact);
+			}
         }
 
         for (ArtifactItem artifactItem: artifactItems) {
@@ -260,21 +268,21 @@ public class SchemaDistMojo extends AbstractMojo {
 				public FileVisitResult visitFile(Path filePath, BasicFileAttributes attrs) throws IOException {
 					String fileName = filePath.getFileName().toString();
 					if (fileName.endsWith(".xsd")) {
-						getLog().debug("Processing file "+filePath);
+						getLog().debug("=======================> Processing file "+filePath);
 						try {
 							processXsd(filePath, workDir, outDir);
 						} catch (MojoExecutionException | MojoFailureException e) {
 							throw new RuntimeException(e.getMessage(),e);
 						}
 					} else if (fileName.endsWith(".wsdl")) {
-						getLog().debug("Processing file "+filePath);
+						getLog().debug("=======================> Processing file "+filePath);
 						try {
 							processWsdl(filePath, workDir, outDir);
 						} catch (MojoExecutionException | MojoFailureException e) {
 							throw new RuntimeException(e.getMessage(),e);
 						}
 					} else {
-						getLog().debug("Skipping file "+filePath);
+						getLog().debug("=======================> Skipping file "+filePath);
 					}
 					return FileVisitResult.CONTINUE;
 				}
@@ -322,16 +330,35 @@ public class SchemaDistMojo extends AbstractMojo {
 
 	private void processXsdElement(Element rootElement, Path filePath, File workDir, File outDir) throws MojoExecutionException, MojoFailureException {
 		List<Element> importElements = DOMUtil.getChildElements(rootElement, DOMUtil.XSD_IMPORT_ELEMENT);
-		for(Element importElement: importElements) {
+		for (Element importElement: importElements) {
 			String namespace = DOMUtil.getAttribute(importElement, DOMUtil.XSD_ATTR_NAMESPACE);
+			if (DOMUtil.getAttribute(importElement, DOMUtil.XSD_ATTR_SCHEMA_LOCATION) == null) {
+				// target-less imports are skipped
+				continue;
+			}
+			getLog().debug("Processing import of '" + namespace + "'...");
 			String schemaLocation;
 			try {
 				schemaLocation = resolveSchemaLocation(namespace, filePath, workDir);
 			} catch (IOException e) {
-				throw new MojoExecutionException("Error resolving namespace "+namespace+" in file "+filePath+": "+ e.getMessage(), e);
+				throw new MojoExecutionException(
+						"Error resolving namespace " + namespace + " in file " + filePath + ": " + e.getMessage(), e);
 			}
-			importElement.setAttribute(DOMUtil.XSD_ATTR_SCHEMA_LOCATION.getLocalPart(),
-					schemaLocation);
+			importElement.setAttribute(DOMUtil.XSD_ATTR_SCHEMA_LOCATION.getLocalPart(), schemaLocation);
+		}
+
+		List<Element> includeElements = DOMUtil.getChildElements(rootElement, DOMUtil.XSD_INCLUDE_ELEMENT);
+		for (Element includeElement: includeElements) {
+			String schemaLocationOriginal = DOMUtil.getAttribute(includeElement, DOMUtil.XSD_ATTR_SCHEMA_LOCATION);
+			getLog().debug("Processing include of '" + schemaLocationOriginal + "'...");
+			String schemaLocationTranslated;
+			try {
+				schemaLocationTranslated = resolveSchemaLocation(schemaLocationOriginal, filePath, workDir);
+			} catch (IOException e) {
+				throw new MojoExecutionException("Error resolving schemaLocation "+schemaLocationOriginal+" in file "+filePath+": "+ e.getMessage(), e);
+			}
+			includeElement.setAttribute(DOMUtil.XSD_ATTR_SCHEMA_LOCATION.getLocalPart(),
+					schemaLocationTranslated);
 		}
 	}
 
@@ -349,7 +376,7 @@ public class SchemaDistMojo extends AbstractMojo {
 				} catch (IOException e) {
 					throw new MojoExecutionException("Error resolving namespace "+namespace+" in file "+filePath+": "+ e.getMessage(), e);
 				}
-				importElement.setAttribute(DOMUtil.WSDL_ATTR_SCHEMA_LOCATION.getLocalPart(),
+				importElement.setAttribute(DOMUtil.WSDL_ATTR_LOCATION.getLocalPart(),
 						schemaLocation);
 			}
 			
@@ -362,17 +389,20 @@ public class SchemaDistMojo extends AbstractMojo {
 		serializeXml(dom, filePath, workDir, outDir);
 	}
 
-    private String resolveSchemaLocation(String namespace, Path filePath, File workDir) throws MojoExecutionException, IOException {
-    	for(ArtifactItem artifactItem: artifactItems) {
+    private String resolveSchemaLocation(String namespaceOrLocation, Path filePath, File workDir) throws MojoExecutionException, IOException {
+    	for (ArtifactItem artifactItem: artifactItems) {
     		Catalog catalog = artifactItem.getResolveCatalog();
-            String publicId = namespace;
+			if (catalog == null) {
+				continue;
+			}
+            String publicId = namespaceOrLocation;
             if (publicId.endsWith("#")) {
                 publicId = publicId.substring(0, publicId.length()-1);
             }
     		String resolvedString = catalog.resolveEntity(filePath.toString(), publicId, publicId);
     		if (resolvedString != null) {
     			getLog().debug("-------------------");
-    			getLog().debug("Resolved namespace "+namespace+" to "+resolvedString+" using catalog "+catalog);
+    			getLog().debug("Resolved namespace/schemaLocation "+namespaceOrLocation+" to "+resolvedString+" using catalog "+catalog);
     			URL resolvedUrl = new URL(resolvedString);
     			String resolvedPathString = resolvedUrl.getPath();
     			Path resolvedPath = new File(resolvedPathString).toPath();
@@ -386,10 +416,12 @@ public class SchemaDistMojo extends AbstractMojo {
     			
     			Path relativePath = fileRelativeToWorkdir.getParent().relativize(resolvedRelativeToCatalogWorkdir);
     			getLog().debug("Rel: "+relativePath);
-    			return relativePath.toString();
+				String unixSeparators = FilenameUtils.separatorsToUnix(relativePath.toString());
+				getLog().debug("Normalized to use UNIX separators: " + unixSeparators);
+    			return unixSeparators;
     		}
     	}
-		throw new MojoExecutionException("Cannot resolve namespace "+namespace+" in file "+filePath+" using any of the catalogs");
+		throw new MojoExecutionException("Cannot resolve namespace "+namespaceOrLocation+" in file "+filePath+" using any of the catalogs");
 	}
 
 	private File initializeOutDir(File dir) throws MojoFailureException {

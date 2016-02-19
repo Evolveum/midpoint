@@ -978,8 +978,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 AuthorizationConstants.AUTZ_UI_CERTIFICATION_NEW_DEFINITION_URL,
                 AuthorizationConstants.AUTZ_UI_CERTIFICATION_CAMPAIGNS_URL,
                 AuthorizationConstants.AUTZ_UI_CERTIFICATION_DECISIONS_URL,
-                AuthorizationConstants.AUTZ_GUI_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)
-                && SystemConfigurationHolder.isExperimentalCodeEnabled()) {
+                AuthorizationConstants.AUTZ_GUI_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             items.add(createCertificationItems());
         }
 

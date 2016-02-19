@@ -103,6 +103,8 @@ public class DOMUtil {
             NS_W3C_XML_SCHEMA_PREFIX);
     public static final QName XSD_IMPORT_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "import",
 			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_INCLUDE_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "include",
+			NS_W3C_XML_SCHEMA_PREFIX);
 
 	public static final QName XSD_ATTR_TARGET_NAMESPACE = new QName(W3C_XML_SCHEMA_NS_URI, "targetNamespace",
 			NS_W3C_XML_SCHEMA_PREFIX);
@@ -155,6 +157,8 @@ public class DOMUtil {
 	public static final QName WSDL_ATTR_NAMESPACE = new QName(NS_WSDL, "namespace",
 			NS_WSDL_SCHEMA_PREFIX);
 	public static final QName WSDL_ATTR_SCHEMA_LOCATION = new QName(NS_WSDL, "schemaLocation",
+			NS_WSDL_SCHEMA_PREFIX);
+	public static final QName WSDL_ATTR_LOCATION = new QName(NS_WSDL, "location",
 			NS_WSDL_SCHEMA_PREFIX);
 	
 	private static final String RANDOM_ATTR_PREFIX_PREFIX = "qn";

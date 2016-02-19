@@ -31,11 +31,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextStatsType;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensFocusContextType;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensObjectDeltaOperationType;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensProjectionContextType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;

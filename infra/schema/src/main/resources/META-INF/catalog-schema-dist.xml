@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <!--
   ~ Copyright (c) 2010-2016 Evolveum
   ~
@@ -16,11 +17,17 @@
   -->
 
 <!--
-This one is used by JAX-WS endpoints at runtime.
-By default, it looks for a file named "jax-ws-catalog.xml".
-As I haven't found a way to configure this, I'm keeping this file as a redirection.
+
+Catalog that is used for schemadist maven task.
+Prism schemas are in the same source tree as schema ones.
+
 -->
 
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
-    <nextCatalog catalog="catalog-runtime.xml"/>
+
+    <public publicId="http://prism.evolveum.com/xml/ns/public/annotation-3" uri="../xml/ns/public/annotation-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/types-3" uri="../xml/ns/public/types-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/query-3" uri="../xml/ns/public/query-3.xsd" />
+
+    <nextCatalog catalog="schemas-in-this-module.xml"/>
 </catalog>

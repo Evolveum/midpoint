@@ -905,6 +905,10 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     public void setRequesteeTransient(PrismObject<UserType> user);
 
+	LensContextType getModelOperationContext();
+
+	void setModelOperationContext(LensContextType modelOperationContext) throws SchemaException;
+
     // ====================================================================================== Other methods
 
     /**

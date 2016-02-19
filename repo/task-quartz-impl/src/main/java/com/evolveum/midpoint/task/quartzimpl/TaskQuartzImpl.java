@@ -70,26 +70,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UriStack;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UriStackEntry;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
@@ -1951,7 +1932,43 @@ public class TaskQuartzImpl implements Task {
         requestee = user;
     }
 
-    //    @Override
+     /*
+      * Model operation context
+      */
+
+	@Override
+	public LensContextType getModelOperationContext() {
+		return taskPrism.asObjectable().getModelOperationContext();
+	}
+
+	@Override
+	public void setModelOperationContext(LensContextType value) throws SchemaException {
+		processModificationBatched(setModelOperationContextAndPrepareDelta(value));
+	}
+
+	//@Override
+	public void setModelOperationContextImmediate(LensContextType value, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
+		try {
+			processModificationNow(setModelOperationContextAndPrepareDelta(value), parentResult);
+		} catch (ObjectAlreadyExistsException ex) {
+			throw new SystemException(ex);
+		}
+	}
+
+	public void setModelOperationContextTransient(LensContextType value) {
+		taskPrism.asObjectable().setModelOperationContext(value);
+	}
+
+	private ContainerDelta<?> setModelOperationContextAndPrepareDelta(LensContextType value)
+			throws SchemaException {
+		setModelOperationContextTransient(value);
+		return isPersistent() ? ContainerDelta.createModificationReplace(TaskType.F_MODEL_OPERATION_CONTEXT,
+				taskManager.getTaskObjectDefinition(), value.asPrismContainerValue()) : null;
+	}
+
+
+	//    @Override
 //    public PrismReference getRequesteeRef() {
 //        return (PrismReference) getExtensionItem(SchemaConstants.C_TASK_REQUESTEE_REF);
 //    }

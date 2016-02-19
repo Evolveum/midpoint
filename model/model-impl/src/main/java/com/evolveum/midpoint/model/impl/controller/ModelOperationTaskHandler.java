@@ -38,7 +38,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -84,26 +84,17 @@ public class ModelOperationTaskHandler implements TaskHandler {
 		OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
 		TaskRunResult runResult = new TaskRunResult();
 
-        PrismProperty<Boolean> skipProperty = task.getExtensionProperty(SchemaConstants.SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY);
-
-        if (skipProperty != null && Boolean.TRUE.equals(skipProperty.getRealValue())) {
-
-            LOGGER.trace("Found " + skipProperty + ", skipping the model operation execution.");
-            if (result.isUnknown()) {
-                result.computeStatus();
-            }
-            runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
-
-        } else {
-
-            PrismContainer<LensContextType> contextTypeContainer = (PrismContainer) task.getExtensionItem(SchemaConstants.MODEL_CONTEXT_NAME);
-            if (contextTypeContainer == null) {
-                throw new SystemException("There's no model context container in task " + task + " (" + SchemaConstants.MODEL_CONTEXT_NAME + ")");
-            }
-
+		LensContextType contextType = task.getModelOperationContext();
+		if (contextType == null) {
+			LOGGER.trace("No model context found, skipping the model operation execution.");
+			if (result.isUnknown()) {
+				result.computeStatus();
+			}
+			runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
+		} else {
             LensContext context = null;
             try {
-                context = LensContext.fromLensContextType(contextTypeContainer.getValue().asContainerable(), prismContext, provisioningService, result);
+                context = LensContext.fromLensContextType(contextType, prismContext, provisioningService, result);
             } catch (SchemaException e) {
                 throw new SystemException("Cannot recover model context from task " + task + " due to schema exception", e);
             } catch (ObjectNotFoundException e) {

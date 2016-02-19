@@ -28,10 +28,10 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.testng.annotations.BeforeSuite;
@@ -75,7 +75,7 @@ public class TestParseModelContext {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
 		// WHEN
-        PrismContainer<LensContextType> lensContextType = prismContext.parseContainer(MODEL_CONTEXT_FILE, 
+        PrismContainer<LensContextType> lensContextType = prismContext.parseContainer(MODEL_CONTEXT_FILE,
         		LensContextType.class, PrismContext.LANG_XML);
 
         // THEN
