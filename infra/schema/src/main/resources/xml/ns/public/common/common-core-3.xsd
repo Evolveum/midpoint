@@ -4508,6 +4508,14 @@
                             <xsd:documentation>
                                 A set of intents corresponding to this association type.
                                 NOTE: All of them must point to the same resource ObjectClass!
+
+                                The association may point to many intents (many object types with different intents).
+                                This is sometimes useful, especially if there are many types of groups and each type
+                                is constructed in a slightly different way. The multi-intent associations are
+                                supported and often very useful. But there is an important hard limitation: all
+                                the object types referenced from a single association must have the same object
+                                type, attributes, matching rules, .... they must be equivalent in every aspect
+                                except for attribute mappings.
                             </xsd:documentation>
                         </xsd:annotation>
 		     		</xsd:element>

@@ -363,24 +363,20 @@ public class TaskDto extends Selectable {
     }
 
     private void fillInModelContext(TaskType taskType, ModelInteractionService modelInteractionService, OperationResult result) throws ObjectNotFoundException {
-        PrismContainer<LensContextType> modelContextContainer =
-                (PrismContainer) taskType.asPrismObject().findItem(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_CONTEXT_NAME));
-        if (modelContextContainer != null) {
-            Object value = modelContextContainer.getValue().asContainerable();
-            if (value != null) {
-                if (!(value instanceof LensContextType)) {
-                    throw new SystemException("Model context information in task " + taskType + " is of wrong type: " + value.getClass());
-                }
-                try {
-                    ModelContext modelContext = modelInteractionService.unwrapModelContext((LensContextType) value, result);
-                    modelOperationStatusDto = new ModelOperationStatusDto(modelContext);
-                } catch (SchemaException e) {   // todo report to result
-                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
-                } catch (CommunicationException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
-                } catch (ConfigurationException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
-                }
+        LensContextType value = taskType.getModelOperationContext();
+        if (value != null) {
+            if (!(value instanceof LensContextType)) {
+                throw new SystemException("Model context information in task " + taskType + " is of wrong type: " + value.getClass());
+            }
+            try {
+                ModelContext modelContext = modelInteractionService.unwrapModelContext((LensContextType) value, result);
+                modelOperationStatusDto = new ModelOperationStatusDto(modelContext);
+            } catch (SchemaException e) {   // todo report to result
+                LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
+            } catch (CommunicationException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
+            } catch (ConfigurationException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
             }
         }
     }

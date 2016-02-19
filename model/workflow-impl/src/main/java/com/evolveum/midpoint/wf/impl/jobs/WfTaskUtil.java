@@ -278,14 +278,14 @@ public class WfTaskUtil {
     }
 
     public boolean hasModelContext(Task task) {
-        PrismProperty modelContextProperty = task.getExtensionProperty(SchemaConstants.MODEL_CONTEXT_NAME);
-        return modelContextProperty != null && modelContextProperty.getRealValue() != null;
+        return task.getModelOperationContext() != null;
     }
 
     public ModelContext retrieveModelContext(Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
-        PrismContainer<LensContextType> modelContextContainer = (PrismContainer) task.getExtensionItem(SchemaConstants.MODEL_CONTEXT_NAME);
-        if (modelContextContainer == null || modelContextContainer.isEmpty()) {
-            throw new SystemException("No model context information in task " + task);
+        LensContextType modelContextType = task.getModelOperationContext();
+        if (modelContextType == null) {
+//            throw new SystemException("No model context information in task " + task);
+            return null;
         }
 //        Object value = modelContextProperty.getRealValue();
 //        if (value instanceof Element || value instanceof JAXBElement) {
@@ -294,7 +294,7 @@ public class WfTaskUtil {
 //        if (!(value instanceof LensContextType)) {
 //            throw new SystemException("Model context information in task " + task + " is of wrong type: " + modelContextProperty.getRealValue().getClass());
 //        }
-        return LensContext.fromLensContextType(modelContextContainer.getValue().asContainerable(), prismContext, provisioningService, result);
+        return LensContext.fromLensContextType(modelContextType, prismContext, provisioningService, result);
     }
 
     public void storeModelContext(Task task, ModelContext context) throws SchemaException {

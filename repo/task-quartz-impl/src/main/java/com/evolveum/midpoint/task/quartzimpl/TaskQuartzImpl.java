@@ -1942,7 +1942,7 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
-	public void setModelOperationContext(LensContextType value) {
+	public void setModelOperationContext(LensContextType value) throws SchemaException {
 		processModificationBatched(setModelOperationContextAndPrepareDelta(value));
 	}
 
@@ -1960,10 +1960,11 @@ public class TaskQuartzImpl implements Task {
 		taskPrism.asObjectable().setModelOperationContext(value);
 	}
 
-	private PropertyDelta<?> setModelOperationContextAndPrepareDelta(LensContextType value) {
+	private ContainerDelta<?> setModelOperationContextAndPrepareDelta(LensContextType value)
+			throws SchemaException {
 		setModelOperationContextTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
-				taskManager.getTaskObjectDefinition(), TaskType.F_MODEL_OPERATION_CONTEXT, value) : null;
+		return isPersistent() ? ContainerDelta.createModificationReplace(TaskType.F_MODEL_OPERATION_CONTEXT,
+				taskManager.getTaskObjectDefinition(), value.asPrismContainerValue()) : null;
 	}
 
 

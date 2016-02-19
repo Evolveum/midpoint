@@ -907,7 +907,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
 	LensContextType getModelOperationContext();
 
-	void setModelOperationContext(LensContextType modelOperationContext);
+	void setModelOperationContext(LensContextType modelOperationContext) throws SchemaException;
 
     // ====================================================================================== Other methods
 
