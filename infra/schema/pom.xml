@@ -226,7 +226,7 @@
                             <wsdlOptions>
                                 <wsdlOption>
                                     <wsdl>src/main/resources/xml/ns/private/webservice/modelService.wsdl</wsdl>
-                                    <catalog>${basedir}/src/main/resources/META-INF/catalog-compile-time.xml</catalog>
+                                    <catalog>${basedir}/src/compile/resources/jax-ws-catalog.xml</catalog>
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>
@@ -258,7 +258,7 @@
                                          It would be nice if these two web services could be in one WSDL file. Unfortunately it's not possible,
                                          as they are in different target namespaces. -->
                                     <wsdl>src/main/resources/xml/ns/private/webservice/reportService.wsdl</wsdl>
-                                    <catalog>${basedir}/src/main/resources/META-INF/catalog-compile-time.xml</catalog>
+                                    <catalog>${basedir}/src/compile/resources/jax-ws-catalog.xml</catalog>
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>
@@ -319,7 +319,7 @@
                         <schemaFile>src/main/resources/xml/ns/public/model/scripting/scripting-3.xsd</schemaFile>
                     </schemaFiles>
                     <catalogFiles>
-                        <catalogFile>src/main/resources/META-INF/catalog-compile-time.xml</catalogFile>
+                        <catalogFile>src/compile/resources/jax-ws-catalog.xml</catalogFile>
                         <catalogFile>src/main/resources/META-INF/schemas-in-this-module.xml</catalogFile>   <!-- nextCatalog doesn't work for unknown reason -->
                     </catalogFiles>
                     <templateDir>src/main/schemadoc/templates</templateDir>

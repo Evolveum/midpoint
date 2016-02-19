@@ -15,26 +15,6 @@
  */
 package com.evolveum.midpoint.prism;
 
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.ACTIVATION_TYPE_QNAME;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_BAR_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_INDEXED_STRING_TYPE_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_MULTI_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_NUM_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_SINGLE_STRING_TYPE_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.NS_FOO;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.NS_USER_EXT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_ACCOUNTREF_QNAME;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_ASSIGNMENT_1_ID;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_ASSIGNMENT_2_ID;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_ENABLED_PATH;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_ENABLED_QNAME;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_JACK_OID;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_JACK_VALID_FROM;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_QNAME;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_TYPE_QNAME;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_VALID_FROM_PATH;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.assertPathVisitor;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.assertVisitor;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -45,16 +25,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.foo.AccountConstructionType;
 
-import org.testng.AssertJUnit;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.ActivationType;
@@ -85,6 +62,8 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 public class PrismInternalTestUtil implements PrismContextFactory {
 
 	// Files
+	public static final String TEST_CATALOG_RESOURCE_NAME = "META-INF/catalog-test.xml";
+
 	public static final String COMMON_DIR_PATH = "src/test/resources/common";
 	public static final File COMMON_DIR = new File(COMMON_DIR_PATH);
 	public static File SCHEMA_DIR = new File("src/test/resources/schema");
@@ -241,6 +220,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	
 	public static PrismContext constructPrismContext(File extraSchema) throws SchemaException, FileNotFoundException {
 		SchemaRegistry schemaRegistry = new SchemaRegistry();
+		schemaRegistry.setCatalogResourceName(TEST_CATALOG_RESOURCE_NAME);
 		DynamicNamespacePrefixMapper prefixMapper = new GlobalDynamicNamespacePrefixMapper();
 		// Set default namespace?
 		schemaRegistry.setNamespacePrefixMapper(prefixMapper);

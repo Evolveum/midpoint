@@ -20,13 +20,14 @@
 
 Catalog that is used for compile-time tasks. Prism schemas are in prism module source tree.
 
+Placed in src/compile to be consistent with model-client module structure.
 -->
 
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
 
-    <public publicId="http://prism.evolveum.com/xml/ns/public/annotation-3" uri="../../../../../prism/src/main/resources/xml/ns/public/annotation-3.xsd" />
-    <public publicId="http://prism.evolveum.com/xml/ns/public/types-3" uri="../../../../../prism/src/main/resources/xml/ns/public/types-3.xsd" />
-    <public publicId="http://prism.evolveum.com/xml/ns/public/query-3" uri="../../../../../prism/src/main/resources/xml/ns/public/query-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/annotation-3" uri="../../../../prism/src/main/resources/xml/ns/public/annotation-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/types-3" uri="../../../../prism/src/main/resources/xml/ns/public/types-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/query-3" uri="../../../../prism/src/main/resources/xml/ns/public/query-3.xsd" />
 
-    <nextCatalog catalog="schemas-in-this-module.xml"/>
+    <nextCatalog catalog="../../main/resources/META-INF/schemas-in-this-module.xml"/>
 </catalog>

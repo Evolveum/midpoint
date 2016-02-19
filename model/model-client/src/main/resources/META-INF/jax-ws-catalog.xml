@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2013 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
   ~ You may obtain a copy of the License at
   ~
-  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~     http://www.apache.org/licenses/LICENSE-2.0
   ~
   ~ Unless required by applicable law or agreed to in writing, software
   ~ distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,30 +17,14 @@
 
 <!--
 
-Schemas that are provided directly by the schema module.
-========================================================
-
-Notes:
-
-1. When resolving schemas referenced by xsd:import/xsd:include ::
-   xsd:import seems to use publicId, while xsd:include uses systemId.
-   In order to make this file more readable we provide only one of this
-   pair (public/system entry) for each referenced file.
-
-   There are some weird exceptions when parsing at runtime (namely,
-   searching by publicId=null), but these are handled by resolvers in SchemaRegistry
-   class. Other strange cases related to xmlenc/xmldsig (occurring when using xjc)
-   are solved by using both public and system entries.
-
-2. If you see "White spaces are required between publicId and systemId" error message,
-   most probably a declaration is missing or has a wrong type.
-
-3. After updating this file, please make corresponding update to catalog files in
-   model-client module (and maybe prism, if applicable).
+Used at run time by SOAP clients.
 
 -->
-
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
+
+    <public publicId="http://prism.evolveum.com/xml/ns/public/annotation-3" uri="../xml/ns/public/annotation-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/types-3" uri="../xml/ns/public/types-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/query-3" uri="../xml/ns/public/query-3.xsd" />
 
     <!-- common schema and its components; as they are included, use 'system' element to declare them -->
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../xml/ns/public/common/common-3.xsd" />
@@ -74,10 +57,6 @@ Notes:
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" uri="../xml/ns/public/model/scripting/scripting-3.xsd" />
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3" uri="../xml/ns/public/model/scripting/extension-3.xsd" />
 
-    <!-- workflow (temporary!) -->
-    <public publicId="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-3" uri="../xml/ns/public/model/workflow/common-forms-3.xsd" />
-    <public publicId="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-3" uri="../xml/ns/public/model/workflow/process-instance-state-3.xsd" />
-
     <!-- Experimental XSD schema file locations -->
     <public publicId="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd" uri="../xml/ns/experimental/unix-resource-1.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd" uri="../xml/ns/experimental/unix-resource-1.xsd" />
@@ -85,16 +64,14 @@ Notes:
     <system systemId="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" uri="../xml/ns/experimental/ldap-resource-1.xsd" />
     <public publicId="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" uri="../xml/ns/experimental/ldap-resource-1.xsd" />
 
-    <!-- Bundled standard schemas (duplicated in prism catalog files) -->
+    <!-- Bundled standard schemas -->
     <public publicId="datatypes" uri="../xml/ns/standard/datatypes.dtd" />
     <public publicId="-//W3C//DTD XMLSchema 200102//EN" uri="../xml/ns/standard/XMLSchema.dtd" />
     <public publicId="-//W3C//DTD XMLSCHEMA 200102//EN" uri="../xml/ns/standard/XMLSchema.dtd" />
     <public publicId="http://www.w3.org/2001/XMLSchema" uri="../xml/ns/standard/XMLSchema.xsd" />
     <public publicId="XMLSchema.dtd" uri="../xml/ns/standard/XMLSchema.dtd" />
-    <public publicId="http://www.w3.org/2001/04/xmlenc#" uri="../xml/ns/standard/xenc-schema.xsd" />
-    <system systemId="http://www.w3.org/2001/04/xmlenc" uri="../xml/ns/standard/xenc-schema.xsd" />         <!-- for some strange reason, sometimes there is a search with publicId="...xmlenc" from xjc -->
-    <public publicId="http://www.w3.org/2000/09/xmldsig#" uri="../xml/ns/standard/xmldsig-core-schema.xsd" />
-    <system systemId="http://www.w3.org/2000/09/xmldsig" uri="../xml/ns/standard/xmldsig-core-schema.xsd" />
+    <public publicId="http://www.w3.org/2001/04/xmlenc" uri="../xml/ns/standard/xenc-schema.xsd" />
+    <public publicId="http://www.w3.org/2000/09/xmldsig" uri="../xml/ns/standard/xmldsig-core-schema.xsd" />
     <public publicId="http://www.w3.org/XML/1998/namespace" uri="../xml/ns/standard/xml.xsd" />
     <public publicId="xml.xsd" uri="../xml/ns/standard/xml.xsd" />
 
