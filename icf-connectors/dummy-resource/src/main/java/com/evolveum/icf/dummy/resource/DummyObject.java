@@ -272,6 +272,10 @@ public abstract class DummyObject implements DebugDumpable {
 			}
 			if (found) {
 				iterator.remove();
+			} else {
+				if (!resource.isTolerateDuplicateValues() && name.equals(DummyGroup.ATTR_MEMBERS_NAME)){
+					throw new SchemaViolationException("no such member: " + values);
+				}
 			}
 		}
 		
