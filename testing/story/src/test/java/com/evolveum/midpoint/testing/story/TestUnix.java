@@ -992,7 +992,16 @@ public class TestUnix extends AbstractStoryTest {
         
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
-        assertBasicAccount(shadow);
+        assertPosixAccount(shadow, USER_RANGER_UID_NUMBER);
+
+        // account should still be in the rangers group
+        Entry groupRangers = openDJController.fetchEntry(groupRangersDn);
+        openDJController.assertAttribute(groupRangers, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
+
+        // account should not be in the group anymore. memberUid should be
+        // empty...
+        Entry groupSeals = openDJController.fetchEntry(groupSealsDn);
+        openDJController.assertNoAttribute(groupSeals, "memberUid");
 	}
 	
 	
