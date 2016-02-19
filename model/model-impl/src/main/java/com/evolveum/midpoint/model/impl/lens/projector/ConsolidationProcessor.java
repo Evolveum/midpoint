@@ -477,7 +477,7 @@ public class ConsolidationProcessor {
         	forceAddUnchangedValues = true;
         }
         
-        LOGGER.trace("CONSOLIDATE {}\n({}) completeAccount={}, addUnchangedValues={}, forceAddUnchangedValues={}",
+        LOGGER.trace("CONSOLIDATE {}\n({}) completeShadow={}, addUnchangedValues={}, forceAddUnchangedValues={}",
         		new Object[]{ itemDesc, discr, completeShadow, addUnchangedValues, forceAddUnchangedValues});
         
         // Use this common utility method to do the computation. It does most of the work.
