@@ -23,7 +23,10 @@
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Thug</name>
-    <description>Almost same as Brute role, but the expressions in inducements are different</description>
+    <description>
+    	Almost same as Brute role, but the expressions in inducements are different.
+        Also, there is single inducement with two associations.
+    </description>
     <assignment>
         <construction>
             <resourceRef oid="10000000-0000-0000-0000-000000001104" type="c:ResourceType"/>
@@ -59,13 +62,6 @@
                     </expression>
                 </outbound>
             </association>
-        </construction>
-    </inducement>
-    <inducement>
-        <construction>
-            <resourceRef oid="10000000-0000-0000-0000-000000001104" type="c:ResourceType"/>
-            <kind>account</kind>
-            <intent>default</intent>
             <association>
                 <ref>riOrange:group</ref>
                 <outbound>
