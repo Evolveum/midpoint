@@ -19,7 +19,6 @@ package com.evolveum.midpoint.wf.impl.processors.primary;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -29,10 +28,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.wf.impl.jobs.Job;
 import com.evolveum.midpoint.wf.impl.jobs.JobController;
-import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -140,7 +137,7 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
 
 
             if (!rootContext.hasAnyPrimaryChange()) {
-                rootJob.setSkipModelContextProcessingProperty(result);
+                rootContext = null; // deletes the model context
                 changed = true;     // regardless of whether rootContext was changed or not
             }
 

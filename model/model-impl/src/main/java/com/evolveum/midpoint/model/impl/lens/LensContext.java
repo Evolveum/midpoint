@@ -846,6 +846,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         return sb.toString();
     }
 
+	public LensContextType toLensContextType() throws SchemaException {
+		PrismContainer<LensContextType> pc = toPrismContainer();
+		return pc.getValue().asContainerable();
+	}
+
     public PrismContainer<LensContextType> toPrismContainer() throws SchemaException {
 
         PrismContainer<LensContextType> lensContextTypeContainer = PrismContainer.newInstance(getPrismContext(), LensContextType.COMPLEX_TYPE);

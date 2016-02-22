@@ -637,7 +637,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     public LensContextType wrapModelContext(LensContext<?> lensContext) throws SchemaException {
-        return lensContext.toPrismContainer().getValue().asContainerable();
+        return lensContext.toLensContextType();
     }
     
     // Convenience functions

@@ -126,7 +126,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
                 }
                 clockwork.run(context, task, result);
 
-                task.setExtensionContainer(context.toPrismContainer());
+				task.setModelOperationContext(context.toLensContextType());
                 task.savePendingModifications(result);
 
                 if (result.isUnknown()) {

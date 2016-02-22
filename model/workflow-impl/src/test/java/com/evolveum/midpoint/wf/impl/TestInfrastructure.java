@@ -107,7 +107,7 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
         LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
         focusContext.setPrimaryDelta(userDelta);
 
-        LensContextType contextType = context.toPrismContainer().getValue().asContainerable();
+        LensContextType contextType = context.toLensContextType();
         JaxbValueContainer<LensContextType> container = new JaxbValueContainer<LensContextType>(contextType, prismContext);
         container.clearActualValue();
         System.out.println("XML value = " + container.getXmlValue());
