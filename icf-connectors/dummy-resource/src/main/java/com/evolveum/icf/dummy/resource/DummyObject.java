@@ -290,7 +290,7 @@ public abstract class DummyObject implements DebugDumpable {
 			boolean found = false;
 			for (Object currentValue : currentValues) {
 				if (resource.isCaseIgnoreValues() && currentValue instanceof String && valueToDelete instanceof String) {
-					if (!StringUtils.equalsIgnoreCase((String)currentValue, (String)valueToDelete)) {
+					if (StringUtils.equalsIgnoreCase((String)currentValue, (String)valueToDelete)) {
 						found = true;
 						break;
 					}
