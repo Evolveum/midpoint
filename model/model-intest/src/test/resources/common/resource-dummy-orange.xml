@@ -227,7 +227,9 @@
             <association>
             	<ref>ri:group</ref>
             	<kind>entitlement</kind>
+            	<tolerant>false</tolerant>
             	<intent>group</intent>
+            	<intent>group-wannabe</intent>
             	<direction>objectToSubject</direction>
             	<associationAttribute>ri:members</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
