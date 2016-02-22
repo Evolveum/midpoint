@@ -223,8 +223,14 @@ class EntitlementConverter {
 		}
 		
 		QName associationAuxiliaryObjectClass = assocDefType.getAuxiliaryObjectClass();
+		if (associationAuxiliaryObjectClass != null && associationAuxiliaryObjectClass.getNamespaceURI() != null && 
+				!associationAuxiliaryObjectClass.getNamespaceURI().equals(ResourceTypeUtil.getResourceNamespace(resourceType))) {
+			LOGGER.warn("Auxiliary object class {} in association {} does not have namespace that matches {}", 
+					associationAuxiliaryObjectClass, assocDefType.getName(), resourceType);
+		}
 		if (associationAuxiliaryObjectClass != null && !subjectCtx.getObjectClassDefinition().hasAuxiliaryObjectClass(associationAuxiliaryObjectClass)) {
-			LOGGER.trace("Ignoring association {} because subject does not have auxiliary object class {}", associationName, associationAuxiliaryObjectClass);
+			LOGGER.trace("Ignoring association {} because subject does not have auxiliary object class {}, it has {}", 
+					associationName, associationAuxiliaryObjectClass, subjectCtx.getObjectClassDefinition().getAuxiliaryObjectClassDefinitions());
 			return;
 		}
 		
@@ -397,7 +403,7 @@ class EntitlementConverter {
 	 * any more, but we still want to clean up entitlement membership based on the information from the shadow.  
 	 */
 	public <T> void collectEntitlementsAsObjectOperationDelete(ProvisioningContext subjectCtx, final Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap,
-			PrismObject<ShadowType> shadow, OperationResult parentResult) 
+			PrismObject<ShadowType> subjectShadow, OperationResult parentResult) 
 					throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
 
 		Collection<RefinedAssociationDefinition> entitlementAssociationDefs = subjectCtx.getObjectClassDefinition().getEntitlementAssociations();
@@ -406,7 +412,7 @@ class EntitlementConverter {
 			LOGGER.trace("No associations in deleted shadow");
 			return;
 		}
-		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
+		ResourceAttributeContainer subjectAttributesContainer = ShadowUtil.getAttributesContainer(subjectShadow);
 		for (final RefinedAssociationDefinition assocDefType: subjectCtx.getObjectClassDefinition().getEntitlementAssociations()) {
 			if (assocDefType.getResourceObjectAssociationType().getDirection() != ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
 				// We can ignore these. They will die together with the object. No need to explicitly delete them.
@@ -447,7 +453,7 @@ class EntitlementConverter {
 				if (valueAttrName == null) {
 					throw new SchemaException("No value attribute defined in entitlement association '"+associationName+"' in "+subjectCtx.getResource());
 				}
-				final ResourceAttribute<T> valueAttr = attributesContainer.findAttribute(valueAttrName);
+				final ResourceAttribute<T> valueAttr = subjectAttributesContainer.findAttribute(valueAttrName);
 				if (valueAttr == null || valueAttr.isEmpty()) {
 					throw new SchemaException("Value attribute "+valueAttrName+" has no value; attribute defined in entitlement association '"+associationName+"' in "+subjectCtx.getResource());
 				}

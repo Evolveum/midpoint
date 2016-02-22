@@ -86,6 +86,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -246,9 +247,12 @@ public class TestUnix extends AbstractStoryTest {
 	
 	private String roleRangersOid;
 	private String groupRangersDn;
+	private String groupRangersOid;
 
 	private String roleSealsOid;
 	private String groupSealsDn;
+	private String groupSealsOid;
+
 	
 	@Override
     protected void startResources() throws Exception {
@@ -870,9 +874,9 @@ public class TestUnix extends AbstractStoryTest {
         display("Role after", roleAfter);
         assertObject(roleAfter);
         roleRangersOid = roleAfter.getOid();
-        String ldapGroupOid = getSingleLinkOid(roleAfter);
+        groupRangersOid = getSingleLinkOid(roleAfter);
         
-        PrismObject<ShadowType> shadow = getShadowModel(ldapGroupOid);
+        PrismObject<ShadowType> shadow = getShadowModel(groupRangersOid);
         display("Shadow (model)", shadow);
         groupRangersDn = assertUnixGroup(shadow, ROLE_RANGERS_GID);
 	}
@@ -899,9 +903,9 @@ public class TestUnix extends AbstractStoryTest {
         display("Role after", roleAfter);
         assertObject(roleAfter);
         roleSealsOid = roleAfter.getOid();
-        String ldapGroupOid = getSingleLinkOid(roleAfter);
+        groupSealsOid = getSingleLinkOid(roleAfter);
         
-        PrismObject<ShadowType> shadow = getShadowModel(ldapGroupOid);
+        PrismObject<ShadowType> shadow = getShadowModel(groupSealsOid);
         display("Shadow (model)", shadow);
         groupSealsDn = assertUnixGroup(shadow, ROLE_SEALS_GID);
 	}
@@ -929,11 +933,14 @@ public class TestUnix extends AbstractStoryTest {
         assertUser(userAfter, USER_RANGER_USERNAME, USER_RANGER_FIST_NAME, USER_RANGER_LAST_NAME);
         String accountOid = getSingleLinkOid(userAfter);
         
+        TestUtil.displayThen(TEST_NAME);
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
         String accounRangerDn = assertPosixAccount(shadow, USER_RANGER_UID_NUMBER);
         Entry groupRangers = openDJController.fetchEntry(groupRangersDn);
         openDJController.assertAttribute(groupRangers, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
+        
+        assertPosixGroupAssociation(shadow, groupRangersOid);
 	}
 	
 	@Test
@@ -964,6 +971,9 @@ public class TestUnix extends AbstractStoryTest {
         String accountLArgoDn = assertPosixAccount(shadow, USER_RANGER_UID_NUMBER);
         Entry groupSeals = openDJController.fetchEntry(groupSealsDn);
         openDJController.assertAttribute(groupSeals, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
+        
+        assertPosixGroupAssociation(shadow, groupRangersOid);
+        assertPosixGroupAssociation(shadow, groupSealsOid);
 	}
 
 	@Test
@@ -1277,6 +1287,19 @@ public class TestUnix extends AbstractStoryTest {
 		openDJController.assertAttribute(entry, OPENDJ_GIDNUMBER_ATTRIBUTE_NAME, Integer.toString(expectedUid));
 		
 		return entry.getDN().toString();
+	}
+	
+	private ShadowAssociationType assertPosixGroupAssociation(PrismObject<ShadowType> accountShadow, String groupShadowOid) {
+		ShadowType accountShadowType = accountShadow.asObjectable();
+		for (ShadowAssociationType association: accountShadowType.getAssociation()) {
+			assertNotNull("Association without shadowRef in "+accountShadow+": "+association, association.getShadowRef());
+			assertNotNull("Association without shadowRef OID in "+accountShadow+": "+association, association.getShadowRef().getOid());
+			if (association.getShadowRef().getOid().equals(groupShadowOid)) {
+				return association;
+			}
+		}
+		AssertJUnit.fail("No association for "+groupShadowOid+" in "+accountShadow);
+		return null; // NOT REACHED
 	}
 	
 	private PrismObject<RoleType> createLdapGroupRole(String name) throws SchemaException {

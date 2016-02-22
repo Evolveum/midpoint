@@ -943,7 +943,7 @@ public class ResourceObjectConverter {
 		return subjectShadowAfter;
 	}
 	
-	private void executeEntitlementChangesDelete(ProvisioningContext ctx, PrismObject<ShadowType> shadow, 
+	private void executeEntitlementChangesDelete(ProvisioningContext ctx, PrismObject<ShadowType> subjectShadow, 
 			OperationProvisioningScriptsType scripts,
 			OperationResult parentResult) throws SchemaException  {
 		
@@ -952,7 +952,7 @@ public class ResourceObjectConverter {
 			Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap = new HashMap<>();
 				
 			entitlementConverter.collectEntitlementsAsObjectOperationDelete(ctx, roMap,
-					shadow, parentResult);
+					subjectShadow, parentResult);
 		
 			executeEntitlements(ctx, roMap, parentResult);
 			

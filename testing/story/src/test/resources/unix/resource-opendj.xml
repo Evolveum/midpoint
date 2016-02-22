@@ -177,7 +177,7 @@
             <association>
             	<ref>ri:unixGroup</ref>
             	<displayName>UNIX Group Membership</displayName>
-            	<auxiliaryObjectClass>posixAccount</auxiliaryObjectClass>
+            	<auxiliaryObjectClass>posixAccount</auxiliaryObjectClass> <!-- Strictly speaking should be ri:posixAccount. but it also should work without namespace prefix. -->
             	<kind>entitlement</kind>
             	<intent>unixGroup</intent>
             	<direction>objectToSubject</direction>

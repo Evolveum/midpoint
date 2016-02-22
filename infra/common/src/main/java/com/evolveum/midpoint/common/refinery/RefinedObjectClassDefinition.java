@@ -275,11 +275,11 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	}
     
 	public boolean hasAuxiliaryObjectClass(QName expectedObjectClassName) {
-		if (auxiliaryObjectClassDefinitions == null) {
+		if (getAuxiliaryObjectClassDefinitions() == null) {
 			return false;
 		}
-		for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
-			if (auxiliaryObjectClassDefinition.getTypeName().equals(expectedObjectClassName)) {
+		for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: getAuxiliaryObjectClassDefinitions()) {
+			if (QNameUtil.match(auxiliaryObjectClassDefinition.getTypeName(), expectedObjectClassName)) {
 				return true;
 			}
 		}
