@@ -299,16 +299,12 @@ public class WfTaskUtil {
 
     public void storeModelContext(Task task, ModelContext context) throws SchemaException {
         //Validate.notNull(context, "model context cannot be null");
-        PrismContainer<LensContextType> modelContext = context != null ? ((LensContext) context).toPrismContainer() : null;
+        LensContextType modelContext = context != null ? ((LensContext) context).toLensContextType() : null;
         storeModelContext(task, modelContext);
     }
 
-    public void storeModelContext(Task task, PrismContainer<LensContextType> context) throws SchemaException {
-        LensContextType lct = null;
-        if (context != null && !context.isEmpty()) {
-            lct = context.getValue().asContainerable();
-        }
-        task.setModelOperationContext(lct);
+    public void storeModelContext(Task task, LensContextType context) throws SchemaException {
+        task.setModelOperationContext(context);
     }
 
     public void storeResultingDeltas(ObjectTreeDeltas deltas, Task task) throws SchemaException {
@@ -386,7 +382,7 @@ public class WfTaskUtil {
         return getExtensionValue(String.class, task, WfTaskExtensionItemsNames.WFROOT_TASK_OID_PROPERTY_NAME);
     }
 
-    public void setSkipModelContextProcessingProperty(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public void deleteModelOperationContext(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
         task.setModelOperationContext(null);
     }
 

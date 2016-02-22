@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualFilter;
@@ -86,6 +87,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_MODEL_OPERATION_CONTEXT;
 
 /**
  * Implementation of a Task.
@@ -1960,13 +1963,22 @@ public class TaskQuartzImpl implements Task {
 		taskPrism.asObjectable().setModelOperationContext(value);
 	}
 
-	private ContainerDelta<?> setModelOperationContextAndPrepareDelta(LensContextType value)
+	private ItemDelta<?, ?> setModelOperationContextAndPrepareDelta(LensContextType value)
 			throws SchemaException {
 		setModelOperationContextTransient(value);
-		return isPersistent() ? ContainerDelta.createModificationReplace(TaskType.F_MODEL_OPERATION_CONTEXT,
-				taskManager.getTaskObjectDefinition(), value.asPrismContainerValue()) : null;
+		if (!isPersistent()) {
+			return null;
+		}
+		if (value != null) {
+			return DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+					.item(F_MODEL_OPERATION_CONTEXT).replace(value.asPrismContainerValue().clone())
+					.asItemDelta();
+		} else {
+			return DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+					.item(F_MODEL_OPERATION_CONTEXT).replace()
+					.asItemDelta();
+		}
 	}
-
 
 	//    @Override
 //    public PrismReference getRequesteeRef() {

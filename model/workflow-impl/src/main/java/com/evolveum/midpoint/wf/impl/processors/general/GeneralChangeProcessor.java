@@ -201,7 +201,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
             wfTaskUtil.storeModelContext(rootTask, (ModelContext) null);
         } else {
             LOGGER.debug("Putting (changed or unchanged) value of {} into the task {}", GcpProcessVariableNames.VARIABLE_MODEL_CONTEXT, rootTask);
-            wfTaskUtil.storeModelContext(rootTask, lensContextType.asPrismContainerValue().getContainer());
+            wfTaskUtil.storeModelContext(rootTask, lensContextType);
         }
 
         rootTask.savePendingModifications(result);

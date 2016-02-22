@@ -116,7 +116,7 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
         instruction.setRequesterOidInProcess(taskFromModel.getOwner());
         instruction.setTaskName("Workflow-monitoring task");
         instruction.setProcessInterfaceBean(defaultProcessMidPointInterface);
-        LensContextType lensContextType = context.toPrismContainer().getValue().asContainerable();
+        LensContextType lensContextType = context.toLensContextType();
         instruction.addProcessVariable(GcpProcessVariableNames.VARIABLE_MODEL_CONTEXT, new JaxbValueContainer<>(lensContextType, prismContext));
         return instruction;
     }
