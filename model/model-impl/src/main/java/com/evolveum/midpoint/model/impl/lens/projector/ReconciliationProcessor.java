@@ -54,6 +54,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -633,12 +634,13 @@ public class ReconciliationProcessor {
         PrismContainerValue cValue = value.asPrismContainerValue().clone();
         cValue.setOriginType(OriginType.RECONCILIATION);
         cValue.setOriginObject(originObject);
-
+        
         if (changeType == ModificationType.ADD) {
             assocDelta.addValueToAdd(cValue);
         } else if (changeType == ModificationType.DELETE) {
             if (!isToBeDeleted(existingDelta, valueMatcher, value)){
-                assocDelta.addValueToDelete(cValue);
+                LOGGER.trace("Adding association value to delete {} ", cValue);
+            	assocDelta.addValueToDelete(cValue);
             }
         } else if (changeType == ModificationType.REPLACE) {
             assocDelta.setValueToReplace(cValue);
@@ -651,6 +653,7 @@ public class ReconciliationProcessor {
 
 
     private <T> boolean isToBeDeleted(ItemDelta existingDelta, ValueMatcher valueMatcher, T value) {
+    	LOGGER.trace("Checking existence for DELETE of value {} in existing detla: {}", value, existingDelta);
 		if (existingDelta == null) {
 			return false;
 		}
@@ -659,13 +662,23 @@ public class ReconciliationProcessor {
 			return false;
 		}
 		
+		
 		for (Object isInDeltaValue : existingDelta.getValuesToDelete()) {
 			if (isInDeltaValue instanceof PrismPropertyValue){
 				PrismPropertyValue isInRealValue = (PrismPropertyValue) isInDeltaValue;
 				if (matchValue(isInRealValue.getValue(), value, valueMatcher)) {
+					LOGGER.trace("Skipping adding value {} to delta for DELETE because it's already there");
 					return true;
 				}
-			}
+			} else if (isInDeltaValue instanceof PrismContainerValue) {
+				PrismContainerValue isInRealValue = (PrismContainerValue) isInDeltaValue;
+				if (matchValue(isInRealValue.asContainerable(), value, valueMatcher)){
+					LOGGER.trace("Skipping adding value {} to delta for DELETE because it's already there");
+					return true;
+				}
+			} //TODO: reference delta???
+
+			
 		}
 		
 		return false;
