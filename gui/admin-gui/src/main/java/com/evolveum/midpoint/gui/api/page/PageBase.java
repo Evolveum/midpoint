@@ -100,6 +100,7 @@ import com.evolveum.midpoint.web.component.menu.SideBarMenuPanel;
 import com.evolveum.midpoint.web.component.menu.UserMenuPanel;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.message.MidPointFeedbackMessage;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.BreadcrumbItem;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
@@ -361,27 +362,41 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         //this attaches jquery.js as first header item, which is used in our scripts.
         CoreLibrariesContributor.contribute(getApplication(), response);
     }
-
+    
     @Override
-    protected void onAfterRender() {
-        super.onAfterRender();
+    protected void onBeforeRender() {
+    	super.onBeforeRender();
+    	FeedbackMessages messages = getSession().getFeedbackMessages();
+    	for (FeedbackMessage message : messages){
+    		getFeedbackMessages().add(message);
+    	}
+    	
+    	getSession().getFeedbackMessages().clear();
+    }
+    
+
+//    @Override
+//    protected void onAfterRender() {
+//        super.onAfterRender();
+//        
+//   
         //we try to remove messages (and operation results) that were stored in session, but only
         //if all session messages were already rendered.
-        boolean allRendered = true;
-        FeedbackMessages messages = getSession().getFeedbackMessages();
-        Iterator<FeedbackMessage> iterator = messages.iterator();
-        while (iterator.hasNext()) {
-            FeedbackMessage message = iterator.next();
-            if (!message.isRendered()) {
-                allRendered = false;
-                break;
-            }
-        }
-
-        if (getSession().getFeedbackMessages().size() > 0 && allRendered) {
-            getSession().getFeedbackMessages().clear();
-        }
-    }
+//        boolean allRendered = true;
+//        FeedbackMessages messages = getSession().getFeedbackMessages();
+//        Iterator<FeedbackMessage> iterator = messages.iterator();
+//        while (iterator.hasNext()) {
+//            FeedbackMessage message = iterator.next();
+//            if (!message.isRendered()) {
+//                allRendered = false;
+//                break;
+//            }
+//        }
+//
+//        if (getSession().getFeedbackMessages().size() > 0 && allRendered) {
+//            getSession().getFeedbackMessages().clear();
+//        }
+//    }
 
     private void initHeaderLayout() {
         WebMarkupContainer menuToggle = new WebMarkupContainer(ID_MENU_TOGGLE);
