@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,17 +17,19 @@
   -->
 
 
-<definitions name="fake"
-    targetNamespace="http://midpoint.evolveum.com/xml/ns/private/fake/fake-1.wsdl"
+<definitions name="modeService"
+    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"
+    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/model-3"
     xmlns="http://schemas.xmlsoap.org/wsdl/"
     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:tns="http://midpoint.evolveum.com/xml/ns/private/fake/fake-1.wsdl"
     xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
-    <import namespace="http://midpoint.evolveum.com/xml/ns/private/fake/fake-1.wsdl" location="fake-1.wsdl"/>
-    <service name="fakeService">
-        <port name="fakePort" binding="tns:fakeBinding">
-            <soap:address location="http://localhost:${HttpDefaultPort}/fakeService/fakePort"/>
+
+    <import namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"
+            location="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
+    <service name="modelService">
+        <port name="modelPort" binding="tns:modelBinding">
+            <soap:address location="http://localhost:${HttpDefaultPort}/model/model-3"/>
         </port>
     </service>
 </definitions>

@@ -26,8 +26,6 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensElementContextType;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensObjectDeltaOperationType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.apache.commons.lang.StringUtils;

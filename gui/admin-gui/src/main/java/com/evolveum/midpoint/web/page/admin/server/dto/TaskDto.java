@@ -53,7 +53,6 @@ import com.evolveum.midpoint.web.component.wf.WfHistoryEventDto;
 import com.evolveum.midpoint.wf.api.WfTaskExtensionItemsNames;
 import com.evolveum.midpoint.wf.processors.primary.PcpTaskExtensionItemsNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -364,24 +363,20 @@ public class TaskDto extends Selectable {
     }
 
     private void fillInModelContext(TaskType taskType, ModelInteractionService modelInteractionService, OperationResult result) throws ObjectNotFoundException {
-        PrismContainer<LensContextType> modelContextContainer =
-                (PrismContainer) taskType.asPrismObject().findItem(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_CONTEXT_NAME));
-        if (modelContextContainer != null) {
-            Object value = modelContextContainer.getValue().asContainerable();
-            if (value != null) {
-                if (!(value instanceof LensContextType)) {
-                    throw new SystemException("Model context information in task " + taskType + " is of wrong type: " + value.getClass());
-                }
-                try {
-                    ModelContext modelContext = modelInteractionService.unwrapModelContext((LensContextType) value, result);
-                    modelOperationStatusDto = new ModelOperationStatusDto(modelContext);
-                } catch (SchemaException e) {   // todo report to result
-                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
-                } catch (CommunicationException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
-                } catch (ConfigurationException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
-                }
+        LensContextType value = taskType.getModelOperationContext();
+        if (value != null) {
+            if (!(value instanceof LensContextType)) {
+                throw new SystemException("Model context information in task " + taskType + " is of wrong type: " + value.getClass());
+            }
+            try {
+                ModelContext modelContext = modelInteractionService.unwrapModelContext((LensContextType) value, result);
+                modelOperationStatusDto = new ModelOperationStatusDto(modelContext);
+            } catch (SchemaException e) {   // todo report to result
+                LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
+            } catch (CommunicationException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
+            } catch (ConfigurationException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
             }
         }
     }

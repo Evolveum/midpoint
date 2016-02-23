@@ -23,9 +23,9 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaWaveType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaWavesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.ObjectDeltaWaveType;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.ObjectDeltaWavesType;
 
 import java.io.Serializable;
 import java.util.*;

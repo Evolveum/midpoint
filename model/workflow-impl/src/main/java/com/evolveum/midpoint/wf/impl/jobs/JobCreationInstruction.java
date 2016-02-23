@@ -32,10 +32,10 @@ import com.evolveum.midpoint.wf.impl.processes.ProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UriStackEntry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
 
@@ -63,6 +63,7 @@ public class JobCreationInstruction implements DebugDumpable {
 
     private Map<String,Serializable> processVariables = new HashMap<>();     // values of process variables
     private Map<QName,Item> taskVariables = new HashMap<>();                          // items to be put into task extension
+    private ModelContext taskModelContext;   // model context to be put into the task
     private PrismObject taskObject;          // object to be attached to the task; this object must have its definition available
     private PrismObject<UserType> taskOwner; // if null, owner from parent task will be taken (if there's no parent task, exception will be thrown)
     private PolyStringType taskName;         // name of task to be created/updated (applies only if the task has no name already) - e.g. "Approve adding role R to U"
@@ -256,6 +257,14 @@ public class JobCreationInstruction implements DebugDumpable {
     public void setTaskOwner(PrismObject<UserType> taskOwner) {
         this.taskOwner = taskOwner;
     }
+
+    public ModelContext getTaskModelContext() {
+        return taskModelContext;
+    }
+
+    public void setTaskModelContext(ModelContext taskModelContext) {
+        this.taskModelContext = taskModelContext;
+    }
     //endregion
 
     //region Setters for handlers
@@ -331,8 +340,7 @@ public class JobCreationInstruction implements DebugDumpable {
 
     public void addTaskModelContext(ModelContext modelContext) throws SchemaException {
         Validate.notNull(modelContext, "model context cannot be null");
-        PrismContainer<LensContextType> modelContextPrism = ((LensContext) modelContext).toPrismContainer();
-        taskVariables.put(modelContextPrism.getElementName(), modelContextPrism);
+        setTaskModelContext(modelContext);
     }
     //endregion
 

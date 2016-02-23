@@ -309,6 +309,10 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		return false;
 	}
 	
+	protected boolean isGroupMemberMandatory() {
+		return true;
+	}
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -659,6 +663,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	protected Entry addLdapGroup(String cn, String description, String... memberDns) throws LdapException, IOException, CursorException {
 		LdapNetworkConnection connection = ldapConnect();
 		Entry entry = createGroupEntry(cn, description, memberDns);
+		LOGGER.trace("Adding LDAP entry:\n{}", entry);
 		connection.add(entry);
 		display("Added LDAP group:"+entry);
 		ldapDisconnect(connection);
@@ -670,7 +675,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 				"objectclass", getLdapGroupObjectClass(),
 				"cn", cn,
 				"description", description);
-		if (memberDns != null && memberDns.length > 0) {
+		if (isGroupMemberMandatory() && memberDns != null && memberDns.length > 0) {
 			entry.add(getLdapGroupMemberAttribute(), memberDns);
 		}
 		return entry;

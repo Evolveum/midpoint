@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -293,15 +294,32 @@ public class ConsolidationProcessor {
         }
         
         // AUXILIARY OBJECT CLASSES
+        ItemPath auxiliaryObjectClassItemPath = new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS);
+        PrismPropertyDefinition<QName> auxiliaryObjectClassPropertyDef = projCtx.getObjectDefinition().findPropertyDefinition(auxiliaryObjectClassItemPath);
+        PropertyDelta<QName> auxiliaryObjectClassAPrioriDelta = null;
+        ObjectDelta<ShadowType> projDelta = projCtx.getDelta();
+        if (projDelta != null) {
+        	auxiliaryObjectClassAPrioriDelta = projDelta.findPropertyDelta(auxiliaryObjectClassItemPath);
+        }
         for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> entry : squeezedAuxiliaryObjectClasses.entrySet()) {
         	DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>> ivwoTriple = entry.getValue();
-        	PropertyDelta<QName> propDelta = (PropertyDelta)new PropertyDelta<>(projCtx.getObjectDefinition().findPropertyDefinition(ShadowType.F_AUXILIARY_OBJECT_CLASS), prismContext);
-        	for (ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>> ivwo: ivwoTriple.getPlusSet()) {
-        		propDelta.addValueToAdd(ivwo.getItemValue());
+        	
+        	LOGGER.trace("CONSOLIDATE auxiliary object classes\n({})",
+            		new Object[]{ discr });
+        	if (LOGGER.isTraceEnabled()) {
+        		LOGGER.trace("Auxiliary object class triple:\n{}",ivwoTriple.debugDump());
         	}
-        	for (ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>> ivwo: ivwoTriple.getMinusSet()) {
-        		propDelta.addValueToDelete(ivwo.getItemValue());
+        	
+        	ItemDelta<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>> itemDelta = LensUtil.consolidateTripleToDelta(
+        			auxiliaryObjectClassItemPath, ivwoTriple, auxiliaryObjectClassPropertyDef,
+        			auxiliaryObjectClassAPrioriDelta, projCtx.getObjectNew(), null, null, addUnchangedValues, completeAccount, false, 
+        			discr.toHumanReadableString(), false);
+        	PropertyDelta<QName> propDelta = (PropertyDelta)itemDelta;
+        	
+        	if (LOGGER.isTraceEnabled()) {
+        		LOGGER.trace("Auxiliary object class delta:\n{}",propDelta.debugDump());
         	}
+        	
         	if (!propDelta.isEmpty()) {
         		objectDelta.addModification(propDelta);
         	}
@@ -459,7 +477,7 @@ public class ConsolidationProcessor {
         	forceAddUnchangedValues = true;
         }
         
-        LOGGER.trace("CONSOLIDATE {}\n({}) completeAccount={}, addUnchangedValues={}, forceAddUnchangedValues={}",
+        LOGGER.trace("CONSOLIDATE {}\n({}) completeShadow={}, addUnchangedValues={}, forceAddUnchangedValues={}",
         		new Object[]{ itemDesc, discr, completeShadow, addUnchangedValues, forceAddUnchangedValues});
         
         // Use this common utility method to do the computation. It does most of the work.
