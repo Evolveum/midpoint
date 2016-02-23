@@ -20,11 +20,15 @@ import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 
+import com.evolveum.midpoint.web.application.DescriptorLoader;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -186,6 +190,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private static final String ID_BC_NAME = "bcName";
 	private static final String ID_MAIN_POPUP = "mainPopup";
 	private static final String ID_MAIN_POPUP_BODY = "popupBody";
+    private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
@@ -597,54 +602,54 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return createStringResource(resourceKey);
 	}
 
-	public static StringResourceModel createStringResourceStatic(Component component, String resourceKey,
-			Object... objects) {
-		return new StringResourceModel(resourceKey, component).setModel(new Model<String>())
-				.setDefaultValue(resourceKey).setParameters(objects);
-	}
+    public static StringResourceModel createStringResourceStatic(Component component, String resourceKey,
+                                                                 Object... objects) {
+        return new StringResourceModel(resourceKey, component).setModel(new Model<String>())
+                .setDefaultValue(resourceKey).setParameters(objects);
+    }
 
-	public void showResult(OperationResult result, String errorMessageKey) {
-		showResult(result, errorMessageKey, true);
-	}
-	
-	public void showResult(OperationResult result, boolean showSuccess) {
-		showResult(result, null, showSuccess);
-	}
-	
-	public void showResult(OperationResult result) {
-		showResult(result, null, true);
-	}
+    public void showResult(OperationResult result, String errorMessageKey) {
+        showResult(result, errorMessageKey, true);
+    }
 
-	public void showResult(OperationResult result, String errorMessageKey, boolean showSuccess) {
-		Validate.notNull(result, "Operation result must not be null.");
-		Validate.notNull(result.getStatus(), "Operation result status must not be null.");
+    public void showResult(OperationResult result, boolean showSuccess) {
+        showResult(result, null, showSuccess);
+    }
 
-		OpResult opResult = OpResult.getOpResult((PageBase) getPage(), result);
-		switch (opResult.getStatus()) {
-		case FATAL_ERROR:
-		case PARTIAL_ERROR:
-			getSession().error(opResult);
+    public void showResult(OperationResult result) {
+        showResult(result, null, true);
+    }
 
-			break;
-		case IN_PROGRESS:
-		case NOT_APPLICABLE:
-			getSession().info(opResult);
-			break;
-		case SUCCESS:
-			if (!showSuccess) {
-				break;
-			}
-			getSession().success(opResult);
+    public void showResult(OperationResult result, String errorMessageKey, boolean showSuccess) {
+        Validate.notNull(result, "Operation result must not be null.");
+        Validate.notNull(result.getStatus(), "Operation result status must not be null.");
 
-			break;
-		case UNKNOWN:
-		case WARNING:
-		default:
-			getSession().warn(opResult);
+        OpResult opResult = OpResult.getOpResult((PageBase) getPage(), result);
+        switch (opResult.getStatus()) {
+            case FATAL_ERROR:
+            case PARTIAL_ERROR:
+                getSession().error(opResult);
 
-		}
+                break;
+            case IN_PROGRESS:
+            case NOT_APPLICABLE:
+                getSession().info(opResult);
+                break;
+            case SUCCESS:
+                if (!showSuccess) {
+                    break;
+                }
+                getSession().success(opResult);
 
-	}
+                break;
+            case UNKNOWN:
+            case WARNING:
+            default:
+                getSession().warn(opResult);
+
+        }
+
+    }
 
 	protected String createComponentPath(String... components) {
 		return StringUtils.join(components, ":");
@@ -855,6 +860,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		menu = new SideBarMenuItem(createStringResource("PageAdmin.menu.mainNavigation"));
 		menus.add(menu);
 		List<MainMenuItem> items = menu.getItems();
+
+        menu = new SideBarMenuItem(createStringResource("PageAdmin.menu.additional"));
+        menus.add(menu);
+        createAdditionalMenu(menu);
 
 		// todo fix with visible behaviour [lazyman]
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
@@ -1188,7 +1197,43 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		menu.getItems().add(item);
 	}
 
-	private MainMenuItem createHomeItems() {
+    private void createAdditionalMenu(SideBarMenuItem menu) {
+        AdminGuiConfigurationType adminGuiConfig = loadAdminGuiConfiguration();
+        if (adminGuiConfig != null) {
+            List<RichHyperlinkType> menuList = loadAdminGuiConfiguration().getAdditionalMenuLink();
+
+            Map<String, Class> urlClassMap = DescriptorLoader.getUrlClassMap();
+            if (menuList != null && menuList.size() > 0 && urlClassMap != null && urlClassMap.size() > 0) {
+                for (RichHyperlinkType link : menuList) {
+                    if (link.getTargetUrl() != null && !link.getTargetUrl().trim().equals("")) {
+                        MainMenuItem item = new MainMenuItem(link.getIcon() == null ? "" : link.getIcon().getCssClass(),
+                                getAdditionalMenuItemNameModel(link.getLabel()),
+                                urlClassMap.get(link.getTargetUrl()));
+                        menu.getItems().add(item);
+                    }
+                }
+            }
+        }
+    }
+
+    private IModel<String> getAdditionalMenuItemNameModel(final String name){
+        return new IModel<String>() {
+            @Override
+            public String getObject() {
+                return name;
+            }
+
+            @Override
+            public void setObject(String s) {
+            }
+
+            @Override
+            public void detach() {
+            }
+        };
+    }
+
+    private MainMenuItem createHomeItems() {
 		MainMenuItem item = new MainMenuItem("fa fa-dashboard", createStringResource("PageAdmin.menu.dashboard"),
 				PageDashboard.class);
 
@@ -1336,4 +1381,25 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			}
 		};
 	}
+
+
+    public AdminGuiConfigurationType loadAdminGuiConfiguration() {
+        MidPointPrincipal user = SecurityUtils.getPrincipalUser();
+        AdminGuiConfigurationType adminGuiConfig = null;
+        if (user == null) {
+            return adminGuiConfig;
+        } else {
+            OperationResult result = new OperationResult(OPERATION_GET_SYSTEM_CONFIG);
+            Task task = createSimpleTask(OPERATION_GET_SYSTEM_CONFIG);
+            try {
+                adminGuiConfig = getModelInteractionService().getAdminGuiConfiguration(task, result);
+                LOGGER.trace("Admin GUI config: {}", adminGuiConfig);
+                result.recordSuccess();
+            } catch(Exception ex){
+                LoggingUtils.logException(LOGGER, "Couldn't load system configuration", ex);
+                result.recordFatalError("Couldn't load system configuration.", ex);
+            }
+            return adminGuiConfig;
+        }
+    }
 }
