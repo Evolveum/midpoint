@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.self;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -45,7 +46,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -79,7 +79,7 @@ public class PageSelfDashboard extends PageSelf {
     private static final int MAX_REQUESTS = 1000;
     private final Model<PrismObject<UserType>> principalModel = new Model<PrismObject<UserType>>();
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
-    private static final String TASK_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
+    private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
 
     public PageSelfDashboard() {
         principalModel.setObject(loadUser());
@@ -293,26 +293,12 @@ public class PageSelfDashboard extends PageSelf {
     }
 
     private List<RichHyperlinkType> loadLinksList() {
-        List<RichHyperlinkType> list = new ArrayList<RichHyperlinkType>();
-
         PrismObject<UserType> user = principalModel.getObject();
         if (user == null) {
-            return list;
+            return new ArrayList<RichHyperlinkType>();
+        } else {
+            return ((PageBase)getPage()).loadAdminGuiConfiguration().getUserDashboardLink();
         }
-
-        OperationResult result = new OperationResult(OPERATION_LOAD_WORK_ITEMS);
-
-        Task task = createSimpleTask(TASK_GET_SYSTEM_CONFIG);
-        try {
-            AdminGuiConfigurationType adminGuiConfig = getModelInteractionService().getAdminGuiConfiguration(task, result);
-//            LOGGER.trace("Admin GUI config: {}", adminGuiConfig);
-            list = adminGuiConfig.getUserDashboardLink();
-            result.recordSuccess();
-        } catch(Exception ex){
-            LoggingUtils.logException(LOGGER, "Couldn't load system configuration", ex);
-            result.recordFatalError("Couldn't load system configuration.", ex);
-        }
-        return list;
     }
 
 }

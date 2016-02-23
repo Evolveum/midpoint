@@ -21,18 +21,19 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.web.application.DescriptorLoader;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.Page;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.RuntimeConfigurationType;
+import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -187,6 +188,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private static final String ID_BC_NAME = "bcName";
     private static final String ID_MAIN_POPUP = "mainPopup";
     private static final String ID_MAIN_POPUP_BODY = "popupBody";
+    private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
     
@@ -937,6 +939,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         menus.add(menu);
         List<MainMenuItem> items = menu.getItems();
 
+        menu = new SideBarMenuItem(createStringResource("PageAdmin.menu.additional"));
+        menus.add(menu);
+        createAdditionalMenu(menu);
+
         // todo fix with visible behaviour [lazyman]
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
                 AuthorizationConstants.AUTZ_UI_HOME_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
@@ -1275,6 +1281,42 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         menu.getItems().add(item);
     }
 
+    private void createAdditionalMenu(SideBarMenuItem menu) {
+        AdminGuiConfigurationType adminGuiConfig = loadAdminGuiConfiguration();
+        if (adminGuiConfig != null) {
+            List<RichHyperlinkType> menuList = loadAdminGuiConfiguration().getAdditionalMenuLink();
+
+            Map<String, Class> urlClassMap = DescriptorLoader.getUrlClassMap();
+            if (menuList != null && menuList.size() > 0 && urlClassMap != null && urlClassMap.size() > 0) {
+                for (RichHyperlinkType link : menuList) {
+                    if (link.getTargetUrl() != null && !link.getTargetUrl().trim().equals("")) {
+                        MainMenuItem item = new MainMenuItem(link.getIcon() == null ? "" : link.getIcon().getCssClass(),
+                                getAdditionalMenuItemNameModel(link.getLabel()),
+                                urlClassMap.get(link.getTargetUrl()));
+                        menu.getItems().add(item);
+                    }
+                }
+            }
+        }
+    }
+
+    private IModel<String> getAdditionalMenuItemNameModel(final String name){
+        return new IModel<String>() {
+            @Override
+            public String getObject() {
+                return name;
+            }
+
+            @Override
+            public void setObject(String s) {
+            }
+
+            @Override
+            public void detach() {
+            }
+        };
+    }
+
     private MainMenuItem createHomeItems() {
         MainMenuItem item = new MainMenuItem("fa fa-dashboard",
                 createStringResource("PageAdmin.menu.dashboard"), PageDashboard.class);
@@ -1427,4 +1469,25 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
     }
+
+    public AdminGuiConfigurationType loadAdminGuiConfiguration() {
+        MidPointPrincipal user = SecurityUtils.getPrincipalUser();
+        AdminGuiConfigurationType adminGuiConfig = null;
+        if (user == null) {
+            return adminGuiConfig;
+        } else {
+            OperationResult result = new OperationResult(OPERATION_GET_SYSTEM_CONFIG);
+            Task task = createSimpleTask(OPERATION_GET_SYSTEM_CONFIG);
+            try {
+                adminGuiConfig = getModelInteractionService().getAdminGuiConfiguration(task, result);
+                LOGGER.trace("Admin GUI config: {}", adminGuiConfig);
+                result.recordSuccess();
+            } catch(Exception ex){
+                LoggingUtils.logException(LOGGER, "Couldn't load system configuration", ex);
+                result.recordFatalError("Couldn't load system configuration.", ex);
+            }
+            return adminGuiConfig;
+        }
+    }
+
 }
