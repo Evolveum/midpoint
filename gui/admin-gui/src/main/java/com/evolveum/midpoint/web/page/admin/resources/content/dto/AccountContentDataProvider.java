@@ -120,7 +120,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
         }
 
         if (WebComponentUtil.showResultInPage(result)) {
-            getPage().showResultInSession(result);
+            getPage().showResult(result);
             throw new RestartResponseException(PageError.class);
         }
 

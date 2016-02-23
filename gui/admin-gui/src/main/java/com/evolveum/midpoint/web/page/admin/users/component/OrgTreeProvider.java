@@ -108,7 +108,7 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
         }
 
         if (WebComponentUtil.showResultInPage(result)) {
-            getPageBase().showResultInSession(result);
+            getPageBase().showResult(result);
             throw new RestartResponseException(PageOrgTree.class);
         }
 
@@ -155,7 +155,7 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
         }
 
         if (WebComponentUtil.showResultInPage(result)) {
-            getPageBase().showResultInSession(result);
+            getPageBase().showResult(result);
             throw new RestartResponseException(PageUsers.class);
         }
 

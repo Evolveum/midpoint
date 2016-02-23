@@ -474,10 +474,8 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 			LoggingUtils.logException(LOGGER, "Couldn't load user PageMyQuestions", ex);
 		}
 
-		if (!result.isSuccess()) {
-			showResultInSession(result);
-		}
-
+			showResult(result, false);
+		
 		if (user == null) {
 
 			throw new RestartResponseException(PageDashboard.class);
@@ -494,10 +492,8 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 			wrapper = owf.createObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, null, null, status, false);
 		}
 		//        ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails", null, user, status);
-		if (owf.getResult() != null && !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
-			showResultInSession(wrapper.getResult());
-		}
-
+			showResult(wrapper.getResult(), false);
+		
 
 		return wrapper;
 	}

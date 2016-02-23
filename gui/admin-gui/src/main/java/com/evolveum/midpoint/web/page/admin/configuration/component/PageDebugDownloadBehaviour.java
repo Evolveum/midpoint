@@ -124,7 +124,7 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
         }
 
         if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-            page.showResultInSession(result);
+            page.showResult(result);
             page.getSession().error(page.getString("pageDebugList.message.createFileException"));
             LOGGER.debug("Removing file '{}'.", new Object[]{file.getAbsolutePath()});
             Files.remove(file);

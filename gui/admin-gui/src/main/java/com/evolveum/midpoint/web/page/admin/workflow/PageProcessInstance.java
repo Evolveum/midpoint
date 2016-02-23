@@ -116,9 +116,7 @@ public class PageProcessInstance extends PageAdminWorkItems {
             showResult(result);
             getSession().error(getString("pageProcessInstance.message.cantGetDetails"));
 
-            if (!result.isSuccess()) {
-                showResultInSession(result);
-            }
+                showResult(result, false);
             throw getRestartResponseException(PageProcessInstancesAll.class);
         }
     }

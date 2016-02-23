@@ -107,7 +107,7 @@ public class PageAccount extends PageAdminResources {
 
         if (account == null) {
             getSession().error(getString("pageAccount.message.cantEditAccount"));
-            showResultInSession(result);
+            showResult(result);
             throw new RestartResponseException(PageResources.class);
         }
 
@@ -235,7 +235,7 @@ public class PageAccount extends PageAdminResources {
             showResult(result);
             target.add(getFeedbackPanel());
         } else {
-            showResultInSession(result);
+            showResult(result);
 
             returnToAccountList();
         }

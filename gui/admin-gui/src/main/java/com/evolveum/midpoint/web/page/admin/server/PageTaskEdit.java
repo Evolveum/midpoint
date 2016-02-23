@@ -289,10 +289,8 @@ public class PageTaskEdit extends PageAdminTasks {
 
 		if (taskDto == null) {
 			getSession().error(getString("pageTaskEdit.message.cantTaskDetails"));
-			if (!result.isSuccess()) {
-				showResultInSession(result);
-			}
-            throw getRestartResponseException(PageTasks.class);
+			showResult(result, false);
+		    throw getRestartResponseException(PageTasks.class);
 		}
 		return taskDto;
 	}
@@ -1060,7 +1058,7 @@ public class PageTaskEdit extends PageAdminTasks {
 			result.recordFatalError("Couldn't save task.", ex);
 			LoggingUtils.logException(LOGGER, "Couldn't save task modifications", ex);
 		}
-		showResultInSession(result);
+		showResult(result);
 		target.add(getFeedbackPanel());
 	}
 
@@ -1229,7 +1227,7 @@ public class PageTaskEdit extends PageAdminTasks {
             result.recordFatalError("Couldn't suspend the task", e);
         }
 
-        showResultInSession(result);
+        showResult(result);
         setResponsePage(new PageTasks(false));
     }
 
@@ -1247,7 +1245,7 @@ public class PageTaskEdit extends PageAdminTasks {
             result.recordFatalError("Couldn't resume the task", e);
         }
 
-        showResultInSession(result);
+        showResult(result);
         setResponsePage(new PageTasks(false));
     }
 
@@ -1265,7 +1263,7 @@ public class PageTaskEdit extends PageAdminTasks {
             result.recordFatalError("Couldn't schedule the task", e);
         }
 
-        showResultInSession(result);
+        showResult(result);
         setResponsePage(new PageTasks(false));
     }
 

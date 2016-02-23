@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,33 +26,52 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
+import com.evolveum.midpoint.gui.api.component.result.ValidationErrorPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * @author lazyman
  */
 public class FeedbackListView extends ListView<FeedbackMessage> {
 
-    public FeedbackListView(String id, Component component) {
-        super(id);
-        setDefaultModel(new FeedbackMessagesModel(component));
-    }
+	public FeedbackListView(String id, Component component) {
+		super(id);
+		setDefaultModel(new FeedbackMessagesModel(component));
+	}
 
-    @Override
-    protected void populateItem(ListItem<FeedbackMessage> item) {
-        final FeedbackMessage message = item.getModelObject();
-//        message.markRendered();
+	@Override
+	protected void populateItem(ListItem<FeedbackMessage> item) {
+		final FeedbackMessage message = item.getModelObject();
+		// message.markRendered();
 
-        OperationResultPanel panel = new OperationResultPanel("message", new PropertyModel<OpResult>(item.getModel(), "message")){
-        	
-        	@Override
-        	public void close(AjaxRequestTarget target) {
-        		// TODO Auto-generated method stub
-        		super.close(target);
-        		message.markRendered();
-        	}
-        };
-        panel.setOutputMarkupId(true);
-        item.add(panel);
-        
-    }
+		if (message.getMessage() instanceof OpResult) {
+			OperationResultPanel panel = new OperationResultPanel("message",
+					new PropertyModel<OpResult>(item.getModel(), "message")) {
+
+				@Override
+				public void close(AjaxRequestTarget target) {
+					// TODO Auto-generated method stub
+					super.close(target);
+					message.markRendered();
+				}
+			};
+			panel.setOutputMarkupId(true);
+			item.add(panel);
+		} else if (!(message.getMessage() instanceof OpResult)) {
+
+			ValidationErrorPanel validationPanel = new ValidationErrorPanel("message", item.getModel()) {
+
+				@Override
+				public void close(AjaxRequestTarget target) {
+					// TODO Auto-generated method stub
+					super.close(target);
+					message.markRendered();
+				}
+
+			};
+			validationPanel.setOutputMarkupId(true);
+			item.add(validationPanel);
+
+		}
+	}
 }

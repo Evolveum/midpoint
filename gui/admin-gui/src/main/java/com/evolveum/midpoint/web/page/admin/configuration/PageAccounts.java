@@ -764,7 +764,7 @@ public class PageAccounts extends PageAdminConfiguration {
         Collections.sort(resources);
 
         if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-            showResultInSession(result);
+            showResult(result, false);
             throw new RestartResponseException(PageDashboard.class);
         }
 
@@ -1114,7 +1114,7 @@ public class PageAccounts extends PageAdminConfiguration {
         }
 
         if(WebComponentUtil.showResultInPage(result)){
-            showResultInSession(result);
+            showResult(result, false);
         }
 
         return owner;

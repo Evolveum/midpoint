@@ -608,7 +608,7 @@ public class PageTaskAdd extends PageAdminTasks {
             result.recordFatalError("Unable to save task.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't add new task", ex);
         }
-        showResultInSession(result);
+        showResult(result);
         target.add(getFeedbackPanel());
     }
 

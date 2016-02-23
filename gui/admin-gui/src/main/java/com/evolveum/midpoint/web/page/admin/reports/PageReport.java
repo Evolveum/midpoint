@@ -267,7 +267,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
                 } catch (Exception e){
                     LOGGER.error("Could not set object. Validation problem occured." + result.getMessage());
                     result.recordFatalError("Could not set object. Validation problem occured,", e);
-                    showResultInSession(result);
+                    showResult(result, "Could not set object. Validation problem occured.");
                 }
             }
 
@@ -331,14 +331,16 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
                             getPrismContext().adopt(delta);
                             getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
 			}
+			
         } catch (Exception e) {
             result.recordFatalError("Couldn't save report.", e);
+           
         } finally {
             result.computeStatusIfUnknown();
         }
 
         if (WebComponentUtil.isSuccessOrHandledError(result)) {
-            showResultInSession(result);
+            showResult(result);
             setResponsePage(PageReports.class);
         } else {
             showResult(result);
