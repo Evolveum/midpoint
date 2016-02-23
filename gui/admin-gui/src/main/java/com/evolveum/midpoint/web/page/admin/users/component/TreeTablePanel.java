@@ -1335,7 +1335,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
         WebModelServiceUtils.deleteObject(OrgType.class, dto.getOid(), result, page);
 
         result.computeStatusIfUnknown();
-        page.showResultInSession(result);
+        page.showResult(result);
 
         refreshTabbedPanel(target);
     }

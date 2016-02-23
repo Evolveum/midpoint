@@ -43,7 +43,6 @@ import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -51,7 +50,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
  * Utility class that contains methods that interact with ModelService and other
@@ -180,7 +178,7 @@ public class WebModelServiceUtils {
         }
 
         if (result == null && WebComponentUtil.showResultInPage(subResult)) {
-            page.showResultInSession(subResult);
+            page.showResult(subResult);
         }
 
         LOGGER.debug("Loaded with result {}", new Object[]{subResult});
@@ -221,7 +219,7 @@ public class WebModelServiceUtils {
         }
 
         if (result == null && WebComponentUtil.showResultInPage(subResult)) {
-            page.showResultInSession(subResult);
+            page.showResult(subResult);
         }
 
         LOGGER.debug("Loaded ({}) with result {}", new Object[]{objects.size(), subResult});
@@ -265,7 +263,7 @@ public class WebModelServiceUtils {
         }
 
         if (result == null && WebComponentUtil.showResultInPage(subResult)) {
-            page.showResultInSession(subResult);
+            page.showResult(subResult);
         }
 
         LOGGER.debug("Deleted with result {}", new Object[]{result});
@@ -315,7 +313,7 @@ public class WebModelServiceUtils {
         }
 
         if (result == null && WebComponentUtil.showResultInPage(subResult)) {
-            page.showResultInSession(subResult);
+            page.showResult(subResult);
         }
 
         LOGGER.debug("Saved with result {}", new Object[]{subResult});

@@ -533,7 +533,7 @@ public class PageCreatedReports extends PageAdminReports {
         }
 
         if (WebComponentUtil.showResultInPage(result)) {
-            showResultInSession(result);
+            showResult(result);
         }
 
         return input;

@@ -258,7 +258,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 						ContainerStatus.ADDING, getPageBase());
 				if (wrapper.getResult() != null
 						&& !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
-					showResultInSession(wrapper.getResult());
+					showResult(wrapper.getResult(), false);
 				}
 
 				wrapper.setShowEmpty(true);

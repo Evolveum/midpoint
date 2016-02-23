@@ -21,9 +21,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
@@ -53,11 +50,11 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -68,7 +65,6 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -304,10 +300,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			LoggingUtils.logException(LOGGER, "Couldn't load object", ex);
 		}
 
-		if (!result.isSuccess()) {
-			showResultInSession(result);
-		}
-
+			showResult(result, false);
+	
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Loaded object:\n{}", object.debugDump());
 		}
@@ -333,10 +327,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		}
 		// ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails",
 		// null, user, status);
-		if (wrapper.getResult() != null && !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
-			showResultInSession(wrapper.getResult());
-		}
-
+			showResult(wrapper.getResult(), false);
+	
 		loadParentOrgs(wrapper, task, result);
 
 		wrapper.setShowEmpty(!isEditingFocus());

@@ -165,16 +165,14 @@ public class PageDebugView extends PageAdminConfiguration {
         }
 
         if (dto == null) {
-            showResultInSession(result);
+            showResult(result);
             throw new RestartResponseException(PageDebugList.class);
         }
 
-        if (!result.isSuccess()) {
-            showResult(result);
-        }
-
+            showResult(result, false);
+      
         if (!WebComponentUtil.isSuccessOrHandledErrorOrWarning(result)) {
-            showResultInSession(result);
+            showResult(result, false);
             throw new RestartResponseException(PageDebugList.class);
         }
 
@@ -371,7 +369,7 @@ public class PageDebugView extends PageAdminConfiguration {
             showResult(result);
             target.add(getFeedbackPanel());
         } else {
-            showResultInSession(result);
+            showResult(result);
             setResponsePage(new PageDebugList(false));
         }
     }

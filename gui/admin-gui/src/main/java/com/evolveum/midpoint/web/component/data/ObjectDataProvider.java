@@ -146,7 +146,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
     }
 
     protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result){
-        getPage().showResultInSession(result);
+        getPage().showResult(result);
         throw new RestartResponseException(PageError.class);
     }
 
@@ -174,7 +174,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
         }
 
         if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-            getPage().showResultInSession(result);
+            getPage().showResult(result);
             throw new RestartResponseException(PageError.class);
         }
 

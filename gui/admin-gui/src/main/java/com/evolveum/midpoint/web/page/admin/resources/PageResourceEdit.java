@@ -241,7 +241,7 @@ public class PageResourceEdit extends PageAdminResources {
         }
 
         if (WebComponentUtil.isSuccessOrHandledError(result)) {
-            showResultInSession(result);
+            showResult(result);
             setResponsePage(new PageResources(false));
         } else {
             showResult(result);

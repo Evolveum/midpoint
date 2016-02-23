@@ -102,10 +102,11 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 		pageBase.showResult(result);
 	}
 	
-	protected void showResultInSession(OperationResult result) {
-		pageBase.showResultInSession(result);
+	protected void showResult(OperationResult result, boolean showSuccess) {
+		pageBase.showResult(result, false);
 	}
-
+	
+	
 	protected WebMarkupContainer getFeedbackPanel() {
 		return pageBase.getFeedbackPanel();
 	}

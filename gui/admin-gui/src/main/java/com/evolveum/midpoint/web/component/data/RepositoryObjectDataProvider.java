@@ -95,10 +95,8 @@ public class RepositoryObjectDataProvider
             result.computeStatusIfUnknown();
         }
 
-        if (!result.isSuccess()) {
-            getPage().showResultInSession(result);
-        }
-
+            getPage().showResult(result, false);
+      
         LOGGER.trace("end::iterator()");
         return getAvailableData().iterator();
     }
@@ -177,9 +175,7 @@ public class RepositoryObjectDataProvider
             result.computeStatusIfUnknown();
         }
 
-        if (!result.isSuccess()) {
-            getPage().showResultInSession(result);
-        }
+            getPage().showResult(result, false);
         LOGGER.trace("end::internalSize()");
         return count;
     }

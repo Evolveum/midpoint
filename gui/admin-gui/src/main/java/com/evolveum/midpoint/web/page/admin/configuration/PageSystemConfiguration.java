@@ -135,7 +135,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 		// what do you do with null? many components depends on this not to be
 		// null :)
 		if (!WebComponentUtil.isSuccessOrHandledError(result) || dto == null) {
-			showResultInSession(result);
+			showResult(result, false);
 			throw getRestartResponseException(PageError.class);
 		}
 
@@ -292,7 +292,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 			LoggingUtils.logException(LOGGER, "Couldn't save system configuration.", e);
 		}
 
-		showResultInSession(result);
+		showResult(result);
 		target.add(getFeedbackPanel());
 		resetPerformed(target);
 	}
