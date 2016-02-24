@@ -1519,10 +1519,14 @@ public abstract class ShadowCache {
 					attributesContainer.applyDefinition(objectClassDefinition.toResourceAttributeContainerDefinition());
 				}
 			} else {
-				// We need to convert <attributes> to ResourceAttributeContainer
-				ResourceAttributeContainer convertedContainer = ResourceAttributeContainer.convertFromContainer(
-						attributesContainer, objectClassDefinition);
-				shadow.getValue().replace(attributesContainer, convertedContainer);
+				try {
+					// We need to convert <attributes> to ResourceAttributeContainer
+					ResourceAttributeContainer convertedContainer = ResourceAttributeContainer.convertFromContainer(
+							attributesContainer, objectClassDefinition);
+					shadow.getValue().replace(attributesContainer, convertedContainer);
+				} catch (SchemaException e) {
+					throw new SchemaException(e.getMessage() + " in " + shadow, e);
+				}
 			}
 		}
 		
