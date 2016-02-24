@@ -242,7 +242,16 @@ public class PageTasks extends PageAdminTasks {
         mainForm.add(taskTable);
 
         List<IColumn<NodeDto, String>> nodeColumns = initNodeColumns();
-        BoxedTablePanel nodeTable = new BoxedTablePanel(ID_NODE_TABLE, new NodeDtoProvider(PageTasks.this), nodeColumns,
+        BoxedTablePanel nodeTable = new BoxedTablePanel(ID_NODE_TABLE, new NodeDtoProvider(PageTasks.this) {
+
+            @Override
+            public NodeDto createNodeDto(PrismObject<NodeType> node) {
+                NodeDto dto = super.createNodeDto(node);
+                addInlineMenuToNodeRow(dto);
+
+                return dto;
+            }
+        }, nodeColumns,
                 UserProfileStorage.TableId.PAGE_TASKS_NODES_PANEL,
                 (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_TASKS_NODES_PANEL));
         nodeTable.setOutputMarkupId(true);
@@ -333,7 +342,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private List<InlineMenuItem> createNodesInlineMenu() {
-        List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+        List<InlineMenuItem> items = new ArrayList<>();
         items.add(new InlineMenuItem(createStringResource("pageTasks.button.stopScheduler"), false,
                 new HeaderMenuAction(this) {
 
@@ -913,21 +922,19 @@ public class PageTasks extends PageAdminTasks {
 
     }
 
-    private void stopSchedulersAndTasksPerformed(AjaxRequestTarget target) {
-        List<NodeDto> nodeDtoList = WebComponentUtil.getSelectedData(getNodeTable());
-        if (!isSomeNodeSelected(nodeDtoList, target)) {
-            return;
-        }
-
+    private void stopSchedulersAndTasksPerformed(AjaxRequestTarget target, List<String> identifiers) {
         OperationResult result = new OperationResult(OPERATION_STOP_SCHEDULERS_AND_TASKS);
         try {
-            boolean suspended = getTaskService().stopSchedulersAndTasks(NodeDto.getNodeIdentifiers(nodeDtoList), WAIT_FOR_TASK_STOP, result);
+            boolean suspended = getTaskService().stopSchedulersAndTasks(identifiers, WAIT_FOR_TASK_STOP, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 if (suspended) {
-                    result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully stopped, including tasks that were running on them.");
+                    result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been " +
+                            "successfully stopped, including tasks that were running on them.");
                 } else {
-                    result.recordWarning("Selected node scheduler(s) have been successfully paused; however, some of the tasks they were executing are still running on them. Please check their completion using task list.");
+                    result.recordWarning("Selected node scheduler(s) have been successfully paused; however, " +
+                            "some of the tasks they were executing are still running on them. Please check " +
+                            "their completion using task list.");
                 }
             }
         } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | RuntimeException e) {
@@ -939,15 +946,23 @@ public class PageTasks extends PageAdminTasks {
         refreshTables(target);
     }
 
-    private void startSchedulersPerformed(AjaxRequestTarget target) {
+    private void stopSchedulersAndTasksPerformed(AjaxRequestTarget target, NodeDto dto) {
+        stopSchedulersAndTasksPerformed(target, Arrays.asList(dto.getNodeIdentifier()));
+    }
+
+    private void stopSchedulersAndTasksPerformed(AjaxRequestTarget target) {
         List<NodeDto> nodeDtoList = WebComponentUtil.getSelectedData(getNodeTable());
         if (!isSomeNodeSelected(nodeDtoList, target)) {
             return;
         }
 
+        stopSchedulersAndTasksPerformed(target, NodeDto.getNodeIdentifiers(nodeDtoList));
+    }
+
+    private void startSchedulersPerformed(AjaxRequestTarget target, List<String> identifiers) {
         OperationResult result = new OperationResult(OPERATION_START_SCHEDULERS);
         try {
-            getTaskService().startSchedulers(NodeDto.getNodeIdentifiers(nodeDtoList), result);
+            getTaskService().startSchedulers(identifiers, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully started.");
@@ -962,15 +977,23 @@ public class PageTasks extends PageAdminTasks {
         refreshTables(target);
     }
 
-    private void stopSchedulersPerformed(AjaxRequestTarget target) {
+    private void startSchedulersPerformed(AjaxRequestTarget target, NodeDto dto) {
+        startSchedulersPerformed(target, Arrays.asList(dto.getNodeIdentifier()));
+    }
+
+    private void startSchedulersPerformed(AjaxRequestTarget target) {
         List<NodeDto> nodeDtoList = WebComponentUtil.getSelectedData(getNodeTable());
         if (!isSomeNodeSelected(nodeDtoList, target)) {
             return;
         }
 
+       startSchedulersPerformed(target, NodeDto.getNodeIdentifiers(nodeDtoList));
+    }
+
+    private void stopSchedulersPerformed(AjaxRequestTarget target, List<String> identifiers) {
         OperationResult result = new OperationResult(OPERATION_STOP_SCHEDULERS);
         try {
-            getTaskService().stopSchedulers(NodeDto.getNodeIdentifiers(nodeDtoList), result);
+            getTaskService().stopSchedulers(identifiers, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully stopped.");
@@ -984,17 +1007,25 @@ public class PageTasks extends PageAdminTasks {
         refreshTables(target);
     }
 
-    private void deleteNodesPerformed(AjaxRequestTarget target) {
+    private void stopSchedulersPerformed(AjaxRequestTarget target, NodeDto dto) {
+        stopSchedulersPerformed(target, Arrays.asList(dto.getNodeIdentifier()));
+    }
+
+    private void stopSchedulersPerformed(AjaxRequestTarget target) {
         List<NodeDto> nodeDtoList = WebComponentUtil.getSelectedData(getNodeTable());
         if (!isSomeNodeSelected(nodeDtoList, target)) {
             return;
         }
 
+        stopSchedulersPerformed(target, NodeDto.getNodeIdentifiers(nodeDtoList));
+    }
+
+    private void deleteNodesPerformed(AjaxRequestTarget target, List<NodeDto> nodes) {
         OperationResult result = new OperationResult(OPERATION_DELETE_NODES);
 
         Task task = createSimpleTask(OPERATION_DELETE_NODES);
 
-        for (NodeDto nodeDto : nodeDtoList) {
+        for (NodeDto nodeDto : nodes) {
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
             deltas.add(ObjectDelta.createDeleteDelta(NodeType.class, nodeDto.getOid(), getPrismContext()));
             try {
@@ -1015,6 +1046,19 @@ public class PageTasks extends PageAdminTasks {
 
         //refresh feedback and table
         refreshTables(target);
+    }
+
+    private void deleteNodesPerformed(AjaxRequestTarget target, NodeDto dto) {
+        deleteNodesPerformed(target, Arrays.asList(dto));
+    }
+
+    private void deleteNodesPerformed(AjaxRequestTarget target) {
+        List<NodeDto> nodeDtoList = WebComponentUtil.getSelectedData(getNodeTable());
+        if (!isSomeNodeSelected(nodeDtoList, target)) {
+            return;
+        }
+
+        deleteNodesPerformed(target, nodeDtoList);
     }
     //endregion
 
@@ -1415,6 +1459,48 @@ public class PageTasks extends PageAdminTasks {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         deleteTaskPerformed(target, dto);
+                    }
+                }));
+    }
+
+    private void addInlineMenuToNodeRow(final NodeDto dto) {
+        List<InlineMenuItem> items = dto.getMenuItems();
+        if (!items.isEmpty()) {
+            //menu already added
+            return;
+        }
+
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.stopScheduler"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        stopSchedulersPerformed(target, dto);
+                    }
+                }));
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.stopSchedulerAndTasks"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        stopSchedulersAndTasksPerformed(target, dto);
+                    }
+                }));
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.startScheduler"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        startSchedulersPerformed(target, dto);
+                    }
+                }));
+        items.add(new InlineMenuItem());
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteNode"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        deleteNodesPerformed(target, dto);
                     }
                 }));
     }
