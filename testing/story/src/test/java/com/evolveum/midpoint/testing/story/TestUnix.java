@@ -318,6 +318,8 @@ public class TestUnix extends AbstractStoryTest {
         resourceOpenDj = getObject(ResourceType.class, RESOURCE_OPENDJ_OID);
         resourceOpenDjType = resourceOpenDj.asObjectable();
         
+        IntegrationTestTools.displayXml("Initialized resource", resourceOpenDj);
+        
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceOpenDj, prismContext);
         display("OpenDJ schema (resource)", resourceSchema);
         
