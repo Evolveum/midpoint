@@ -190,8 +190,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-                adminGuiConfigPanel = new AdminGuiConfigPanel(panelId,
-						new PropertyModel<List<RichHyperlinkType>>(model, "userDashboardLink"));
+                adminGuiConfigPanel = new AdminGuiConfigPanel(panelId, model);
 				return adminGuiConfigPanel;
 			}
 		});
@@ -350,9 +349,13 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 		if (adminGuiConfigPanel == null) {
 			return;
 		}
-		List<RichHyperlinkType> linksList = adminGuiConfigPanel.getModel().getObject();
+		SystemConfigurationDto linksList = adminGuiConfigPanel.getModel().getObject();
+        //update userDashboardLink list
         systemConfig.getAdminGuiConfiguration().getUserDashboardLink().clear();
-        systemConfig.getAdminGuiConfiguration().getUserDashboardLink().addAll(linksList);
+        systemConfig.getAdminGuiConfiguration().getUserDashboardLink().addAll(linksList.getUserDashboardLink());
+        //update additionalMenu list
+        systemConfig.getAdminGuiConfiguration().getAdditionalMenuLink().clear();
+        systemConfig.getAdminGuiConfiguration().getAdditionalMenuLink().addAll(linksList.getAdditionalMenuLink());
 	}
 
 

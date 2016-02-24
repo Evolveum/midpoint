@@ -18,24 +18,20 @@ package com.evolveum.midpoint.web.page.admin.configuration.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextFormGroup;
-import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.page.admin.certification.dto.AccessCertificationReviewerDto;
-import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -45,7 +41,7 @@ import java.util.List;
 /**
  * Created by Honchar.
  */
-public class DashboardLinkDialog extends ModalWindow {
+public class RichHyperlinkConfigDialog extends ModalWindow {
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_LABEL = "label";
@@ -60,15 +56,14 @@ public class DashboardLinkDialog extends ModalWindow {
     private static final String ID_INPUT_SIZE = "col-md-8";
     private static final String ID_MULTIPLE_INPUT_SIZE = "col-md-6";
 
-    private static final String MULTIPLICITY_UNBOUNDED = "unbounded";
-
     private boolean initialized;
-    private boolean unbounded = false;
+    private boolean isMenuItem;
     private IModel<RichHyperlinkType> model;
 
-    public DashboardLinkDialog(String id, final RichHyperlinkType link){
+    public RichHyperlinkConfigDialog(String id, final RichHyperlinkType link, boolean isMenuItem, String titleKey){
         super(id);
 
+        this.isMenuItem = isMenuItem;
         model = new LoadableModel<RichHyperlinkType>(false) {
 
             @Override
@@ -78,10 +73,10 @@ public class DashboardLinkDialog extends ModalWindow {
         };
 
         setOutputMarkupId(true);
-        setTitle(createStringResource("DashboardLinkDialog.title"));
+        setTitle(createStringResource(titleKey));
         showUnloadConfirmation(false);
         setCssClassName(ModalWindow.CSS_CLASS_GRAY);
-        setCookieName(DashboardLinkDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
+        setCookieName(RichHyperlinkConfigDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
         setInitialWidth(625);
         setInitialHeight(400);
         setWidthUnit("px");
@@ -105,7 +100,7 @@ public class DashboardLinkDialog extends ModalWindow {
 
     public void updateModel(AjaxRequestTarget target, RichHyperlinkType link){
         if(link == null){
-            warn("DashboardLinkDialog.message.badUpdate");
+            warn("RichHyperlinkConfigDialog.message.badUpdate");
             target.add(getPageBase().getFeedbackPanel());
         }
 
@@ -136,32 +131,35 @@ public class DashboardLinkDialog extends ModalWindow {
 
         TextFormGroup name = new TextFormGroup(ID_LABEL,
                 new PropertyModel<String>(model, RichHyperlinkType.F_LABEL.getLocalPart()),
-                createStringResource("DashboardLinkDialog.label"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+                createStringResource("RichHyperlinkConfigDialog.label"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         form.add(name);
 
         TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
                 new PropertyModel<String>(model, RichHyperlinkType.F_DESCRIPTION.getLocalPart()),
-                createStringResource("DashboardLinkDialog.description"), ID_LABEL_SIZE, ID_INPUT_SIZE);
+                createStringResource("RichHyperlinkConfigDialog.description"), ID_LABEL_SIZE, ID_INPUT_SIZE);
+        description.setVisible(!isMenuItem);
         form.add(description);
 
         TextFormGroup targetUrl = new TextFormGroup(ID_TARGET_URL,
                 new PropertyModel<String>(model, RichHyperlinkType.F_TARGET_URL.getLocalPart()),
-                createStringResource("DashboardLinkDialog.targetUrl"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+                createStringResource("RichHyperlinkConfigDialog.targetUrl"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(targetUrl);
 
         TextFormGroup color = new TextFormGroup(ID_COLOR,
                 new PropertyModel<String>(model, RichHyperlinkType.F_COLOR.getLocalPart()),
-                createStringResource("DashboardLinkDialog.color"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+                createStringResource("RichHyperlinkConfigDialog.color"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        color.setVisible(!isMenuItem);
         form.add(color);
 
         MultiValueTextFormGroup authorizations = new MultiValueTextFormGroup(ID_AUTHORIZATION,
                 new PropertyModel<List<String>>(model, RichHyperlinkType.F_AUTHORIZATION.getLocalPart()),
-                createStringResource("DashboardLinkDialog.authorization"), ID_LABEL_SIZE, ID_MULTIPLE_INPUT_SIZE, false);
+                createStringResource("RichHyperlinkConfigDialog.authorization"), ID_LABEL_SIZE, ID_MULTIPLE_INPUT_SIZE, false);
+        authorizations.setVisible(!isMenuItem);
         form.add(authorizations);
 
         TextFormGroup icon = new TextFormGroup(ID_ICON,
-                new PropertyModel<String>(model, RichHyperlinkType.F_ICON.getLocalPart() + "." + IconType.F_IMAGE_URL.getLocalPart()),
-                createStringResource("DashboardLinkDialog.icon"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+                new PropertyModel<String>(model, RichHyperlinkType.F_ICON.getLocalPart() + "." + IconType.F_CSS_CLASS.getLocalPart()),
+                createStringResource("RichHyperlinkConfigDialog.icon"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(icon);
 
         initButtons(form);

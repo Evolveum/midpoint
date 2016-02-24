@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.configuration.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -30,25 +31,26 @@ import java.util.List;
 /**
  * Created by Honchar.
  */
-public class AdminGuiConfigPanel extends BasePanel<List<RichHyperlinkType>> {
+public class AdminGuiConfigPanel extends BasePanel<SystemConfigurationDto> {
 
     private static final String ID_DASHBOARD_LINK_EDITOR = "dashboardLinkEditor";
     private static final String ID_ADDITIONAL_MENU_ITEM_EDITOR = "additionalMenuItemEditor";
     private static final String LABEL_SIZE = "col-md-4";
     private static final String INPUT_SIZE = "col-md-6";
 
-    public AdminGuiConfigPanel(String id, IModel<List<RichHyperlinkType>> model) {
+    public AdminGuiConfigPanel(String id, IModel<SystemConfigurationDto> model) {
         super(id, model);
         initLayout();
     }
 
     private void initLayout(){
         GenericMultiValueLabelEditPanel dashboardLinkEditor = new GenericMultiValueLabelEditPanel<RichHyperlinkType>(ID_DASHBOARD_LINK_EDITOR,
-                getModel(), createStringResource("AdminGuiConfigPanel.dashboardLinksConfig"), LABEL_SIZE, INPUT_SIZE){
+                new PropertyModel<List<RichHyperlinkType>>(getModel(), "userDashboardLink"),
+                createStringResource("AdminGuiConfigPanel.dashboardLinksConfig"), LABEL_SIZE, INPUT_SIZE){
 
             @Override
             protected void initDialog() {
-                ModalWindow dialog = new DashboardLinkDialog(ID_MODAL_EDITOR, null){
+                ModalWindow dialog = new RichHyperlinkConfigDialog(ID_MODAL_EDITOR, null, false, "AdminGuiConfigPanel.dashboardLinkDialogTitle.title"){
 
                     @Override
                     protected void savePerformed(AjaxRequestTarget target) {
@@ -66,7 +68,7 @@ public class AdminGuiConfigPanel extends BasePanel<List<RichHyperlinkType>> {
 
             @Override
             protected void editValuePerformed(AjaxRequestTarget target, IModel<RichHyperlinkType> rowModel) {
-                DashboardLinkDialog window = (DashboardLinkDialog) get(ID_MODAL_EDITOR);
+                RichHyperlinkConfigDialog window = (RichHyperlinkConfigDialog) get(ID_MODAL_EDITOR);
                 window.updateModel(target, rowModel.getObject());
                 window.show(target);
             }
@@ -81,47 +83,54 @@ public class AdminGuiConfigPanel extends BasePanel<List<RichHyperlinkType>> {
         dashboardLinkEditor.setOutputMarkupId(true);
         add(dashboardLinkEditor);
 
-//        GenericMultiValueLabelEditPanel additionalMenuItemEditor = new GenericMultiValueLabelEditPanel<RichHyperlinkType>(ID_ADDITIONAL_MENU_ITEM_EDITOR,
-//                getModel(), createStringResource("AdminGuiConfigPanel.dashboardLinksConfig"), LABEL_SIZE, INPUT_SIZE){
-//
-//            @Override
-//            protected void initDialog() {
-//                ModalWindow dialog = new DashboardLinkDialog(ID_MODAL_EDITOR, null){
-//
-//                    @Override
-//                    protected void savePerformed(AjaxRequestTarget target) {
-//                        closeModalWindow(target);
-//                        target.add(getDashboardLinkEditorContainer());
-//                    }
-//                };
-//                add(dialog);
-//            }
-//
-//            @Override
-//            protected IModel<String> createTextModel(final IModel<RichHyperlinkType> model) {
-//                return new PropertyModel<String>(model, "label");
-//            }
-//
-//            @Override
-//            protected void editValuePerformed(AjaxRequestTarget target, IModel<RichHyperlinkType> rowModel) {
-//                DashboardLinkDialog window = (DashboardLinkDialog) get(ID_MODAL_EDITOR);
-//                window.updateModel(target, rowModel.getObject());
-//                window.show(target);
-//            }
-//
-//            @Override
-//            protected RichHyperlinkType createNewEmptyItem() {
-//                RichHyperlinkType link = new RichHyperlinkType();
-//                link.getAuthorization().add("");
-//                return link;
-//            }
-//        };
-//        dashboardLinkEditor.setOutputMarkupId(true);
-//        add(dashboardLinkEditor);
+        GenericMultiValueLabelEditPanel additionalMenuItemEditor = new GenericMultiValueLabelEditPanel<RichHyperlinkType>(ID_ADDITIONAL_MENU_ITEM_EDITOR,
+                new PropertyModel<List<RichHyperlinkType>>(getModel(), "additionalMenuLink"),
+                createStringResource("AdminGuiConfigPanel.additionalMenuItemConfig"), LABEL_SIZE, INPUT_SIZE){
+
+            @Override
+            protected void initDialog() {
+                ModalWindow dialog = new RichHyperlinkConfigDialog(ID_MODAL_EDITOR, null, true, "AdminGuiConfigPanel.additionalMenuItemDialog.title"){
+
+                    @Override
+                    protected void savePerformed(AjaxRequestTarget target) {
+                        closeModalWindow(target);
+                        target.add(getAdditionalMenuItemContainer());
+                    }
+                };
+                add(dialog);
+            }
+
+            @Override
+            protected IModel<String> createTextModel(final IModel<RichHyperlinkType> model) {
+                return new PropertyModel<String>(model, "label");
+            }
+
+            @Override
+            protected void editValuePerformed(AjaxRequestTarget target, IModel<RichHyperlinkType> rowModel) {
+                RichHyperlinkConfigDialog window = (RichHyperlinkConfigDialog) get(ID_MODAL_EDITOR);
+                window.updateModel(target, rowModel.getObject());
+                window.show(target);
+            }
+
+            @Override
+            protected RichHyperlinkType createNewEmptyItem() {
+                RichHyperlinkType link = new RichHyperlinkType();
+                link.getAuthorization().add("");
+                return link;
+            }
+        };
+        additionalMenuItemEditor.setOutputMarkupId(true);
+        add(additionalMenuItemEditor);
 
     }
 
     private WebMarkupContainer getDashboardLinkEditorContainer(){
         return (WebMarkupContainer) get(ID_DASHBOARD_LINK_EDITOR);
     }
+
+    private WebMarkupContainer getAdditionalMenuItemContainer(){
+        return (WebMarkupContainer) get(ID_ADDITIONAL_MENU_ITEM_EDITOR);
+    }
+
+//    private IModel
 }
