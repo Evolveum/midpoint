@@ -16,18 +16,25 @@
 
 package com.evolveum.midpoint.web.session;
 
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.page.BreadcrumbItem;
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.Page;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * @author lazyman
  */
 public class SessionStorage implements Serializable {
+
+    private List<Breadcrumb> breadcrumbs;
 
     /**
      * place to store "previous page" for back button
@@ -147,5 +154,29 @@ public class SessionStorage implements Serializable {
         if(clearPaging){
             pageStorageMap.clear();
         }
+    }
+
+    public List<Breadcrumb> getBreadcrumbs() {
+        if (breadcrumbs == null) {
+            breadcrumbs = new ArrayList<>();
+        }
+        return breadcrumbs;
+    }
+
+    public void pushBreadcrumb(Breadcrumb breadcrumb) {
+        Validate.notNull(breadcrumb, "Breadcrumb must not be null");
+        getBreadcrumbs().add(breadcrumb);
+    }
+
+    public Breadcrumb popBreadcrumb() {
+        if (getBreadcrumbs().isEmpty()) {
+            return null;
+        }
+
+        return getBreadcrumbs().remove(getBreadcrumbs().size() - 1);
+    }
+
+    public void clearBreadcrumbs() {
+        getBreadcrumbs().clear();
     }
 }
