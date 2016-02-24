@@ -1508,7 +1508,8 @@ public abstract class ShadowCache {
 
 	private RefinedObjectClassDefinition applyAttributesDefinition(ProvisioningContext ctx, PrismObject<ShadowType> shadow)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
-		RefinedObjectClassDefinition objectClassDefinition =  ctx.getObjectClassDefinition();
+		ProvisioningContext subctx = ctx.spawn(shadow);
+		RefinedObjectClassDefinition objectClassDefinition =  subctx.getObjectClassDefinition();
 
 		PrismContainer<ShadowAttributesType> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
 		if (attributesContainer != null) {

@@ -249,7 +249,8 @@ class EntitlementConverter {
 		}
 		ResourceAttribute<T> valueAttr = attributesContainer.findAttribute(valueAttrName);
 		if (valueAttr == null || valueAttr.isEmpty()) {
-			throw new SchemaException("Value attribute "+valueAttrName+" has no value; attribute defined in entitlement association '"+associationName+"' in "+resourceType);
+			LOGGER.trace("Ignoring association {} because subject does not have any value in attribute {}", associationName, valueAttrName);
+			return;
 		}
 		if (valueAttr.size() > 1) {
 			throw new SchemaException("Value attribute "+valueAttrName+" has no more than one value; attribute defined in entitlement association '"+associationName+"' in "+resourceType);
@@ -455,6 +456,9 @@ class EntitlementConverter {
 				}
 				final ResourceAttribute<T> valueAttr = subjectAttributesContainer.findAttribute(valueAttrName);
 				if (valueAttr == null || valueAttr.isEmpty()) {
+					// We really want to throw the exception here. We cannot ignore this. If we ignore it then there may be
+					// entitlement membership value left undeleted and this situation will go undetected.
+					// Although we cannot really remedy the situation now, we at least throw an error so the problem is detected.
 					throw new SchemaException("Value attribute "+valueAttrName+" has no value; attribute defined in entitlement association '"+associationName+"' in "+subjectCtx.getResource());
 				}
 				if (valueAttr.size() > 1) {
