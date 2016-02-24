@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -63,6 +63,18 @@
 		</icfc:resultsHandlerConfiguration>
 		
     </connectorConfiguration>
+    
+    <schema>
+		<generationConstraints>
+		    <generateObjectClass>ri:inetOrgPerson</generateObjectClass>
+		    <generateObjectClass>ri:groupOfUniqueNames</generateObjectClass>
+		    <generateObjectClass>ri:groupOfNames</generateObjectClass>
+		    <generateObjectClass>ri:organizationalUnit</generateObjectClass>
+		    <generateObjectClass>ri:domain</generateObjectClass>
+		    <generateObjectClass>ri:posixAccount</generateObjectClass>
+		    <generateObjectClass>ri:posixGroup</generateObjectClass>
+		</generationConstraints>
+	</schema>
 
     <schemaHandling>
 

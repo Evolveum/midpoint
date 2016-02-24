@@ -3376,8 +3376,30 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+<!--         <xsd:element name="objectClass" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0"
+                         maxOccurs="unbounded">
+        	<xsd:annotation>
+        		<xsd:documentation>
+        			The objectClass part of schema handling definition provides a mechanism to redefine schema
+        			objectclasses. The objectclasses are tough of as being fairly abstract. This definition
+        			may define default values to este for each instance of this object class. It may define
+        			default mapping. But these definitions should be directly used in constructions in roles
+        			and assignments. The objectType definitions below are supposed to be used for that purpose.
+        		</xsd:documentation>
+        	</xsd:annotation>
+        </xsd:element>  -->
         <xsd:element name="objectType" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0"
-                         maxOccurs="unbounded"/>
+                         maxOccurs="unbounded">
+        	<xsd:annotation>
+        		<xsd:documentation>
+        			The objectType part of schema handling definition provides a mechanism to define
+        			concrete types of objects that this resource supports. There should be definitions
+        			of account types, entitletement types, etc.
+        			There are the definitions that should be used in constrcutions in roles, orgs,
+        			assignments, etc.
+        		</xsd:documentation>
+        	</xsd:annotation>
+        </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="schemaHandling" type="tns:SchemaHandlingType"/>
