@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2015 Evolveum
+ * Copyright (c) 2014-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,7 @@ import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -85,6 +86,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgRelationObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SpecialObjectSpecificationType;
@@ -391,6 +393,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		SearchFilterType specFilterType = objectSpecType.getFilter();
 		ObjectReferenceType specOrgRef = objectSpecType.getOrgRef();
+		OrgRelationObjectSpecificationType specOrgRelation = objectSpecType.getOrgRelation();
 		QName specTypeQName = objectSpecType.getType();     // now it does not matter if it's unqualified
 		PrismObjectDefinition<O> objectDefinition = object.getDefinition();
 		
@@ -404,7 +407,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		// Special
 		List<SpecialObjectSpecificationType> specSpecial = objectSpecType.getSpecial();
 		if (specSpecial != null && !specSpecial.isEmpty()) {
-			if (specFilterType != null || specOrgRef != null) {
+			if (specFilterType != null || specOrgRef != null || specOrgRelation != null) {
 				throw new SchemaException("Both filter/org and special "+desc+" specification specified in "+autzHumanReadableDesc);
 			}
 			for (SpecialObjectSpecificationType special: specSpecial) {
@@ -451,17 +454,30 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			
 		// Org	
 		if (specOrgRef != null) {
-			
-			List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
-			List<String> objParentOrgOids = new ArrayList<>(objParentOrgRefs.size());
-			for (ObjectReferenceType objParentOrgRef: objParentOrgRefs) {
-				objParentOrgOids.add(objParentOrgRef.getOid());
+			if (!isSubordinate(object, specOrgRef.getOid())) {
+				LOGGER.trace("  org {} not applicable for {}, object OID {} (org={})",
+						new Object[]{autzHumanReadableDesc, desc, object.getOid(), specOrgRef.getOid()});
+				return false;
+			}			
+		}
+		
+		// orgRelation
+		if (specOrgRelation != null) {
+			QName subjectRelation = specOrgRelation.getSubjectRelation();
+			boolean match = false;
+			for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
+				if (QNameUtil.match(subjectRelation, subjectParentOrgRef.getRelation())) {
+					if (isSubordinate(object, subjectParentOrgRef.getOid())) {
+						LOGGER.trace("  org {} applicable for {}, object OID {} because subject org {} matches",
+								new Object[]{autzHumanReadableDesc, desc, object.getOid(), subjectParentOrgRef.getOid()});
+						match = true;
+						break;
+					}
+				}
 			}
-			
-			boolean anySubordinate = repositoryService.isAnySubordinate(specOrgRef.getOid(), objParentOrgOids);
-			if (!anySubordinate) {
-				LOGGER.trace("  org {} not applicable for {}, object OID {} (autz={} parentRefs={})",
-						new Object[]{autzHumanReadableDesc, desc, object.getOid(), specOrgRef.getOid(), objParentOrgOids});
+			if (!match) {
+				LOGGER.trace("  org {} not applicable for {}, object OID {} because none of the subject orgs matches",
+						new Object[]{autzHumanReadableDesc, desc, object.getOid()});
 				return false;
 			}			
 		}
@@ -500,6 +516,15 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 		LOGGER.trace("  {} applicable for {} (filter)", autzHumanReadableDesc, desc);
 		return true;
+	}
+	
+	private <O extends ObjectType> boolean isSubordinate(PrismObject<O> object, String orgOid) throws SchemaException {
+		List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
+		List<String> objParentOrgOids = new ArrayList<>(objParentOrgRefs.size());
+		for (ObjectReferenceType objParentOrgRef: objParentOrgRefs) {
+			objParentOrgOids.add(objParentOrgRef.getOid());
+		}
+		return repositoryService.isAnySubordinate(orgOid, objParentOrgOids);
 	}
 	
 	private <O extends ObjectType, T extends ObjectType> boolean isApplicableItem(Authorization autz,
@@ -861,6 +886,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							TypeFilter objSpecTypeFilter = null;
 							SearchFilterType specFilterType = objectSpecType.getFilter();
 							ObjectReferenceType specOrgRef = objectSpecType.getOrgRef();
+							OrgRelationObjectSpecificationType specOrgRelation = objectSpecType.getOrgRelation();
 							QName specTypeQName = objectSpecType.getType();
 							PrismObjectDefinition<T> objectDefinition = null;
 							
@@ -895,7 +921,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							// Special
 							List<SpecialObjectSpecificationType> specSpecial = objectSpecType.getSpecial();
 							if (specSpecial != null && !specSpecial.isEmpty()) {
-								if (specFilterType != null || specOrgRef != null) {
+								if (specFilterType != null || specOrgRef != null || specOrgRelation != null) {
 									throw new SchemaException("Both filter/org and special object specification specified in authorization");
 								}
 								ObjectFilter specialFilter = null;
@@ -936,6 +962,22 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								LOGGER.trace("  applying org filter "+orgFilter);
 							} else {
 								LOGGER.trace("  org empty");
+							}
+							
+							// orgRelation
+							if (specOrgRelation != null) {
+								ObjectFilter objSpecOrgRelationFilter = null;
+								for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
+									OrgFilter orgFilter = OrgFilter.createOrg(subjectParentOrgRef.getOid());
+									objSpecOrgRelationFilter = ObjectQueryUtil.filterAnd(objSpecOrgRelationFilter, orgFilter);
+								}
+								if (objSpecOrgRelationFilter == null) {
+									objSpecOrgRelationFilter = NoneFilter.createNone();
+								}
+								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecOrgRelationFilter);
+								LOGGER.trace("  applying orgRelation filter "+objSpecOrgRelationFilter);
+							} else {
+								LOGGER.trace("  orgRelation empty");
 							}
 							
 							if (objSpecTypeFilter != null) {

@@ -7269,6 +7269,19 @@
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+			<xsd:element name="orgRelation" type="tns:OrgRelationObjectSpecificationType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                        	Definition of object with respect to subject membership in organizational hierarchy.
+                        	Used to specify authorizations for all objects that belong to an org where the subject a manager, etc.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+            		</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         	<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
         		<xsd:annotation>
         			<xsd:documentation>
@@ -7313,6 +7326,39 @@
         	</xsd:extension>
         </xsd:complexContent>
 	</xsd:complexType>
+	
+	<xsd:complexType name="OrgRelationObjectSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of object with respect to subject membership in organizational hierarchy.
+                Used to specify authorizations for all objects that belong to an org where the subject a manager, etc.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="subjectRelation" minOccurs="0" type="xsd:QName">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Specifies the relation that the subject needs to have to the org for this condition to
+        				trigger. This is usually null (memeber) realtion or manager relation.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="oneLevel" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				If set to true, only the objects directly below the selected org will match (depth = 1).
+        				If set to false all the objects that are any depth below the selected org will
+        				match (unlimited depth).
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+	</xsd:complexType>
+	
 
 	<xsd:simpleType name="SpecialObjectSpecificationType">
         <xsd:annotation>
