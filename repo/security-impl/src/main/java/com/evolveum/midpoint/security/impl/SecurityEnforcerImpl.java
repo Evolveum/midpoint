@@ -63,6 +63,7 @@ import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -466,7 +467,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			QName subjectRelation = specOrgRelation.getSubjectRelation();
 			boolean match = false;
 			for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
-				if (QNameUtil.match(subjectRelation, subjectParentOrgRef.getRelation())) {
+				if (MiscSchemaUtil.compareRelation(subjectRelation, subjectParentOrgRef.getRelation())) {
 					if (isSubordinate(object, subjectParentOrgRef.getOid())) {
 						LOGGER.trace("  org {} applicable for {}, object OID {} because subject org {} matches",
 								new Object[]{autzHumanReadableDesc, desc, object.getOid(), subjectParentOrgRef.getOid()});
@@ -967,9 +968,12 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							// orgRelation
 							if (specOrgRelation != null) {
 								ObjectFilter objSpecOrgRelationFilter = null;
+								QName subjectRelation = specOrgRelation.getSubjectRelation();
 								for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
-									OrgFilter orgFilter = OrgFilter.createOrg(subjectParentOrgRef.getOid());
-									objSpecOrgRelationFilter = ObjectQueryUtil.filterAnd(objSpecOrgRelationFilter, orgFilter);
+									if (MiscSchemaUtil.compareRelation(subjectRelation, subjectParentOrgRef.getRelation())) {
+										OrgFilter orgFilter = OrgFilter.createOrg(subjectParentOrgRef.getOid());
+										objSpecOrgRelationFilter = ObjectQueryUtil.filterAnd(objSpecOrgRelationFilter, orgFilter);
+									}
 								}
 								if (objSpecOrgRelationFilter == null) {
 									objSpecOrgRelationFilter = NoneFilter.createNone();
