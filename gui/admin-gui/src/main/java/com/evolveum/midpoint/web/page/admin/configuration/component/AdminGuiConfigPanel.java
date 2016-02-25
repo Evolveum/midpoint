@@ -46,7 +46,7 @@ public class AdminGuiConfigPanel extends BasePanel<SystemConfigurationDto> {
     private void initLayout(){
         GenericMultiValueLabelEditPanel dashboardLinkEditor = new GenericMultiValueLabelEditPanel<RichHyperlinkType>(ID_DASHBOARD_LINK_EDITOR,
                 new PropertyModel<List<RichHyperlinkType>>(getModel(), "userDashboardLink"),
-                createStringResource("AdminGuiConfigPanel.dashboardLinksConfig"), LABEL_SIZE, INPUT_SIZE){
+                createStringResource("AdminGuiConfigPanel.dashboardLinksConfig"), LABEL_SIZE, INPUT_SIZE, true){
 
             @Override
             protected void initDialog() {
@@ -85,7 +85,7 @@ public class AdminGuiConfigPanel extends BasePanel<SystemConfigurationDto> {
 
         GenericMultiValueLabelEditPanel additionalMenuItemEditor = new GenericMultiValueLabelEditPanel<RichHyperlinkType>(ID_ADDITIONAL_MENU_ITEM_EDITOR,
                 new PropertyModel<List<RichHyperlinkType>>(getModel(), "additionalMenuLink"),
-                createStringResource("AdminGuiConfigPanel.additionalMenuItemConfig"), LABEL_SIZE, INPUT_SIZE){
+                createStringResource("AdminGuiConfigPanel.additionalMenuItemConfig"), LABEL_SIZE, INPUT_SIZE, true){
 
             @Override
             protected void initDialog() {

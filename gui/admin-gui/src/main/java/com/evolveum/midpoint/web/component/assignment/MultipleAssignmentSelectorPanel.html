@@ -19,8 +19,8 @@
       xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div wicket:id="assignablePopup" />
-    <div wicket:id="assignableOrgPopup" />
+    <!--<div wicket:id="assignablePopup" />-->
+    <!--<div wicket:id="assignableOrgPopup" />-->
 
     <form wicket:id="form">
         <div class="row">
@@ -29,27 +29,11 @@
                     <label class="control-label">
                         <wicket:message key="MultipleAssignmentSelectorPanel.availableRoles"/>
                     </label>
-                    <!--<a class="btn btn-sm btn-default" wicket:id="filterByUserButton"/>-->
                     <div wicket:id="availableAssignments"/>
                 </div>
                 <div class="col-md-4" style="margin-top: 60px;">
-                    <div wicket:id="tenantRefContainer" class="form-group">
-                        <div class="col-md-4">
-                            <label>
-                                <wicket:message key="AssignmentEditorPanel.tenantRef" />
-                            </label>
-                        </div>
-                        <div class="col-md-8" wicket:id="tenantRefChooser"/>
-                    </div>
-                    <div wicket:id="orgRefContainer" class="form-group">
-                        <div class="col-md-4">
-                            <label>
-                                <wicket:message key="AssignmentEditorPanel.orgRef" />
-                            </label>
-                        </div>
-                        <div class="col-md-8" wicket:id="orgRefChooser"/>
-                    </div>
-                    <!--<div class="form-group">-->
+                    <div class="form-group" wicket:id="tenantEditor"></div>
+                    <div class="form-group" wicket:id="orgEditor"></div>
                     <div class="centre">
                         <button wicket:id="add" type="button" class="btn btn-default btn-sm vertical-button-group"><i class="fa fa-long-arrow-right"></i></button>
                     </div>
