@@ -120,6 +120,7 @@ public class TestUnix extends AbstractStoryTest {
 	protected static final QName OPENDJ_ASSOCIATION_UNIX_GROUP_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "unixGroup");
 	protected static final String OPENDJ_UIDNUMBER_ATTRIBUTE_NAME = "uidNumber";
 	protected static final String OPENDJ_GIDNUMBER_ATTRIBUTE_NAME = "gidNumber";
+	protected static final String OPENDJ_UID_ATTRIBUTE_NAME = "uid";
 	
 	public static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
 	public static final String ROLE_BASIC_OID = "10000000-0000-0000-0000-000000000601";
@@ -794,7 +795,8 @@ public class TestUnix extends AbstractStoryTest {
         display("Shadow (model)", shadow);
         String accountLArgoDn = assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
         Entry groupVillains = openDJController.fetchEntry(groupVillainsDn);
-        openDJController.assertAttribute(groupVillains, "memberUid", Integer.toString(USER_LARGO_UID_NUMBER));
+        openDJController.assertAttribute(groupVillains, "memberUid", USER_LARGO_USERNAME);
+        //openDJController.assertAttribute(groupVillains, "memberUid", Integer.toString(USER_LARGO_UID_NUMBER));
 	}
 	
 /* *************************************************************************** */
@@ -939,16 +941,19 @@ public class TestUnix extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
-        String accounRangerDn = assertPosixAccount(shadow, USER_RANGER_UID_NUMBER);
+        String accountRangerDn = assertPosixAccount(shadow, USER_RANGER_UID_NUMBER);
         Entry groupRangers = openDJController.fetchEntry(groupRangersDn);
-        openDJController.assertAttribute(groupRangers, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
+        //openDJController.assertAttribute(groupRangers, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
+        openDJController.assertAttribute(groupRangers, "memberUid", USER_RANGER_USERNAME);
         
         assertPosixGroupAssociation(shadow, groupRangersOid);
         
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Shadow (repo)", repoShadow);
-        PrismProperty<Integer> uidNumberRepoAttr = repoShadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_UIDNUMBER_ATTRIBUTE_NAME)));
-		PrismAsserts.assertPropertyValue(uidNumberRepoAttr, USER_RANGER_UID_NUMBER);
+        //PrismProperty<Integer> uidNumberRepoAttr = repoShadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_UIDNUMBER_ATTRIBUTE_NAME)));
+	//PrismAsserts.assertPropertyValue(uidNumberRepoAttr, USER_RANGER_UID_NUMBER);
+        PrismProperty<String> uidRepoAttr = repoShadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_UID_ATTRIBUTE_NAME)));
+	PrismAsserts.assertPropertyValue(uidRepoAttr, USER_RANGER_USERNAME);
 	}
 	
 	@Test
@@ -978,7 +983,8 @@ public class TestUnix extends AbstractStoryTest {
         display("Shadow (model)", shadow);
         String accountLArgoDn = assertPosixAccount(shadow, USER_RANGER_UID_NUMBER);
         Entry groupSeals = openDJController.fetchEntry(groupSealsDn);
-        openDJController.assertAttribute(groupSeals, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
+        //openDJController.assertAttribute(groupSeals, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
+        openDJController.assertAttribute(groupSeals, "memberUid", USER_RANGER_USERNAME);
         
         assertPosixGroupAssociation(shadow, groupRangersOid);
         assertPosixGroupAssociation(shadow, groupSealsOid);
@@ -1014,7 +1020,8 @@ public class TestUnix extends AbstractStoryTest {
 
         // account should still be in the rangers group
         Entry groupRangers = openDJController.fetchEntry(groupRangersDn);
-        openDJController.assertAttribute(groupRangers, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
+        //openDJController.assertAttribute(groupRangers, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
+        openDJController.assertAttribute(groupRangers, "memberUid", USER_RANGER_USERNAME);
 
         // account should not be in the group anymore. memberUid should be
         // empty...

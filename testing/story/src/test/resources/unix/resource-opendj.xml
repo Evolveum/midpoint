@@ -194,7 +194,8 @@
             	<intent>unixGroup</intent>
             	<direction>objectToSubject</direction>
             	<associationAttribute>ri:memberUid</associationAttribute>
-            	<valueAttribute>ri:uidNumber</valueAttribute>
+            	<valueAttribute>ri:uid</valueAttribute>
+<!--                    <valueAttribute>ri:uidNumber</valueAttribute>-->
             	<explicitReferentialIntegrity>true</explicitReferentialIntegrity>
             </association>
 
