@@ -16,15 +16,11 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.ctc.wstx.util.StringUtil;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
@@ -33,8 +29,6 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.component.*;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
@@ -48,9 +42,7 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -72,7 +64,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
     private static final String ID_ORG_EDITOR = "orgEditor";
 
     private static final String LABEL_SIZE = "col-md-4";
-    private static final String INPUT_SIZE = "col-md-6";
+    private static final String INPUT_SIZE = "col-md-10";
 
 
     private static final String DOT_CLASS = MultipleAssignmentSelectorPanel.class.getName();
@@ -154,7 +146,8 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
         List<AssignmentEditorDto> fromProviderList = from.getProvider().getAvailableData();
         List<AssignmentEditorDto> listToBeAdded = new ArrayList<>();
         List<AssignmentEditorDto> assignmentsList = assignmentsModel.getObject();
-        if (tenantEditorObject != null  && StringUtils.isNotEmpty(tenantEditorObject.get(0).getOid())) {
+        if (tenantEditorObject != null  && StringUtils.isNotEmpty(tenantEditorObject.get(0).getOid()) ||
+                orgEditorObject != null && StringUtils.isNotEmpty(orgEditorObject.get(0).getOid())) {
             setTenantAndOrgToAssignmentsList(fromProviderList);
         }
         for (AssignmentEditorDto dto : fromProviderList) {
@@ -162,12 +155,15 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
                 boolean toBeAdded = true;
                 for (AssignmentEditorDto assignmentDto : assignmentsList) {
                     if (assignmentDto.getTargetRef().getOid().equals(dto.getTargetRef().getOid())) {
-                        if (assignmentDto.getStatus().equals(UserDtoStatus.DELETE)) {
-                            assignmentDto.setStatus(UserDtoStatus.MODIFY);
+                        if (areEqualReferenceObjects(assignmentDto.getTenantRef(), dto.getTenantRef()) &&
+                                areEqualReferenceObjects(assignmentDto.getOrgRef(), dto.getOrgRef())){
+                            if (assignmentDto.getStatus().equals(UserDtoStatus.DELETE)) {
+                                assignmentDto.setStatus(UserDtoStatus.MODIFY);
+                            }
+                            assignmentDto.setTenantRef(dto.getTenantRef());
+                            assignmentDto.setOrgRef(dto.getOrgRef());
+                            toBeAdded = false;
                         }
-                        assignmentDto.setTenantRef(dto.getTenantRef());
-                        assignmentDto.setOrgRef(dto.getOrgRef());
-                        toBeAdded = false;
                     }
                 }
                 if (toBeAdded) {
@@ -518,5 +514,10 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
 
     private WebMarkupContainer getOrgUnitEditorContainer (){
         return (WebMarkupContainer) get(ID_FORM).get(ID_ORG_EDITOR);
+    }
+
+    private boolean areEqualReferenceObjects(ObjectViewDto<OrgType> objRef1, ObjectViewDto<OrgType> objRef2){
+        return (objRef1 == null && objRef2 == null) ||
+                (objRef1 != null && objRef2 != null && objRef1.getOid().equals(objRef2.getOid()));
     }
 }
