@@ -46,6 +46,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
 import com.evolveum.midpoint.web.component.util.Selectable;
@@ -64,7 +66,7 @@ import javax.xml.namespace.QName;
 /**
  * @author lazyman
  */
-public class TaskDto extends Selectable {
+public class TaskDto extends Selectable implements InlineMenuable {
 
     public static final String CLASS_DOT = TaskDto.class.getName() + ".";
     public static final String OPERATION_NEW = CLASS_DOT + "new";
@@ -92,6 +94,8 @@ public class TaskDto extends Selectable {
     public static final String F_OBJECT_CLASS = "objectClass";
     public static final String F_WORKER_THREADS = "workerThreads";
     public static final String F_RESOURCE_REFERENCE = "resourceRef";
+
+    private List<InlineMenuItem> menuItems;
 
     private List<String> handlerUriList;
     private String parentTaskName;
@@ -176,6 +180,14 @@ public class TaskDto extends Selectable {
             addChildTaskDto(new TaskDto(child, modelService, taskService, modelInteractionService, taskManager,
                     options, parentResult, pageBase));
         }
+    }
+
+    @Override
+    public List<InlineMenuItem> getMenuItems() {
+        if (menuItems == null) {
+            menuItems = new ArrayList<>();
+        }
+        return menuItems;
     }
 
     private void fillInResourceReference(TaskType task, TaskManager manager, OperationResult result, ModelService service, PageBase pageBase){
@@ -754,7 +766,7 @@ public class TaskDto extends Selectable {
     //endregion
 
     public static List<String> getOids(List<TaskDto> taskDtoList) {
-        List<String> retval = new ArrayList<String>();
+        List<String> retval = new ArrayList<>();
         for (TaskDto taskDto : taskDtoList) {
             retval.add(taskDto.getOid());
         }

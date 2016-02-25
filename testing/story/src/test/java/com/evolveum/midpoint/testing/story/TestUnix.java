@@ -54,6 +54,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -317,6 +318,8 @@ public class TestUnix extends AbstractStoryTest {
 
         resourceOpenDj = getObject(ResourceType.class, RESOURCE_OPENDJ_OID);
         resourceOpenDjType = resourceOpenDj.asObjectable();
+        
+        IntegrationTestTools.displayXml("Initialized resource", resourceOpenDj);
         
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceOpenDj, prismContext);
         display("OpenDJ schema (resource)", resourceSchema);
@@ -941,6 +944,11 @@ public class TestUnix extends AbstractStoryTest {
         openDJController.assertAttribute(groupRangers, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
         
         assertPosixGroupAssociation(shadow, groupRangersOid);
+        
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        display("Shadow (repo)", repoShadow);
+        PrismProperty<Integer> uidNumberRepoAttr = repoShadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_UIDNUMBER_ATTRIBUTE_NAME)));
+		PrismAsserts.assertPropertyValue(uidNumberRepoAttr, USER_RANGER_UID_NUMBER);
 	}
 	
 	@Test
