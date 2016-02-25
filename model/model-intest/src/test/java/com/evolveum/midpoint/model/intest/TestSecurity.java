@@ -1150,10 +1150,52 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
                 
         assertGlobalStateUntouched();
 	}
+	
+	@Test
+    public void test241AutzJackManagerFullControlMemberMinistryOfRum() throws Exception {
+		final String TEST_NAME = "test241AutzJackManagerFullControlMemberMinistryOfRum";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        
+        assignRole(USER_JACK_OID, ROLE_MANAGER_FULL_CONTROL_OID);
+        assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, null);
+        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        String accountOid = getSingleLinkOid(user);
+        
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assertReadDeny(0);
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        assertGetDeny(UserType.class, userRumRogersOid);
+        assertModifyDeny(UserType.class, userRumRogersOid, UserType.F_TITLE, PrismTestUtil.createPolyString("drunk"));
+        assertAddDeny(USER_MANCOMB_FILE);
+        
+        assertVisibleUsers(0);
+        
+        assertDeleteDeny(UserType.class, USER_ESTEVAN_OID);
+        
+        assertGetDeny(ShadowType.class, accountOid);
+        assertGetDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
+        
+        assertSearch(ShadowType.class, ObjectQuery.createObjectQuery(
+        		ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID, 
+        				new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext)), 0);
+                
+        assertGlobalStateUntouched();
+	}
 
 	@Test
-    public void test241AutzJackManagerFullControlManagerMinistryOfRum() throws Exception {
-		final String TEST_NAME = "test241AutzJackManagerFullControlManagerMinistryOfRum";
+    public void test242AutzJackManagerFullControlManagerMinistryOfRum() throws Exception {
+		final String TEST_NAME = "test242AutzJackManagerFullControlManagerMinistryOfRum";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
@@ -2033,6 +2075,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result, PrismTestUtil.createPolyString("Wannabe"));
         
         unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER, task, result);
+        unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result);
 	}
 	
 	private void cleanupAdd(File userLargoFile, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {

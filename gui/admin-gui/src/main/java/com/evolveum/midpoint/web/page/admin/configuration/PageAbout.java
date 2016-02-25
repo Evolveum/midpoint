@@ -66,6 +66,7 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String OPERATION_GET_REPO_DIAG = DOT_CLASS + "getRepoDiag";
     private static final String OPERATION_GET_PROVISIONING_DIAG = DOT_CLASS + "getProvisioningDiag";
 
+    private static final String ID_BUILD = "build";
     private static final String ID_REVISION = "revision";
     private static final String ID_PROPERTY = "property";
     private static final String ID_VALUE = "value";
@@ -116,6 +117,10 @@ public class PageAbout extends PageAdminConfiguration {
         Label revision = new Label(ID_REVISION, createStringResource("PageAbout.midPointRevision"));
         revision.setRenderBodyOnly(true);
         add(revision);
+
+        Label build = new Label(ID_BUILD, createStringResource("PageAbout.build"));
+        build.setRenderBodyOnly(true);
+        add(build);
 
         ListView<SystemItem> listSystemItems = new ListView<SystemItem>(ID_LIST_SYSTEM_ITEMS, getItems()) {
 
