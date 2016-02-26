@@ -37,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -62,6 +63,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
     private static final String ID_CURRENT_ASSIGNMENTS = "currentAssignments";
     private static final String ID_TENANT_EDITOR = "tenantEditor";
     private static final String ID_ORG_EDITOR = "orgEditor";
+    private static final String ID_BUTTON_RESET = "buttonReset";
 
     private static final String LABEL_SIZE = "col-md-4";
     private static final String INPUT_SIZE = "col-md-10";
@@ -69,8 +71,6 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
 
     private static final String DOT_CLASS = MultipleAssignmentSelectorPanel.class.getName();
     private Class<F> type;
-
-    AssignmentEditorDto tenantOrgDto = null;
 
     private BaseSortableDataProvider dataProvider;
     private BaseSortableDataProvider currentAssignmentsProvider;
@@ -94,7 +94,6 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
         dataProvider = getAvailableAssignmentsDataProvider();
         final MultipleAssignmentSelector availableAssignmentsPanel = new MultipleAssignmentSelector<F>(ID_AVAILABLE_ASSIGNMENTS,
                 availableAssignmentModel, dataProvider, type);
-        availableAssignmentsPanel.setResetButtonVisibility(false);
         currentAssignmentsProvider = getListDataProvider(null);
         final MultipleAssignmentSelector currentAssignmentsPanel = new MultipleAssignmentSelector<F>(ID_CURRENT_ASSIGNMENTS,
                 assignmentsModel, currentAssignmentsProvider, type);
@@ -114,11 +113,21 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
             }
         };
 
+        AjaxLink<String> buttonReset = new AjaxLink<String>(ID_BUTTON_RESET) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                reset(currentAssignmentsPanel);
+                target.add(currentAssignmentsPanel);
+            }
+        };
+        buttonReset.setBody(createStringResource("MultipleAssignmentSelector.reset"));
+
         Form<?> form = new Form<Void>(ID_FORM);
         form.add(createTenantContainer());
         form.add(createOrgContainer());
         form.add(availableAssignmentsPanel);
         form.add(currentAssignmentsPanel);
+        form.add(buttonReset);
         form.add(add);
         form.add(remove);
         add(form);
@@ -518,6 +527,22 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
 
     private boolean areEqualReferenceObjects(ObjectViewDto<OrgType> objRef1, ObjectViewDto<OrgType> objRef2){
         return (objRef1 == null && objRef2 == null) ||
-                (objRef1 != null && objRef2 != null && objRef1.getOid().equals(objRef2.getOid()));
+                (objRef1 != null && objRef2 != null && objRef1.getOid() == null && objRef2.getOid() == null) ||
+                (objRef1 != null && objRef2 != null && objRef1.getOid() != null &&
+                        objRef2.getOid() != null && objRef1.getOid().equals(objRef2.getOid()));
     }
+
+    private void reset(MultipleAssignmentSelector panel) {
+        List<AssignmentEditorDto> assignmentsList = (List<AssignmentEditorDto>)panel.getModel().getObject();
+        List<AssignmentEditorDto> listToBeRemoved = new ArrayList<>();
+        for (AssignmentEditorDto dto : assignmentsList){
+            if (dto.getStatus().equals(UserDtoStatus.ADD)) {
+                listToBeRemoved.add(dto);
+            } else if (dto.getStatus() == UserDtoStatus.DELETE) {
+                dto.setStatus(UserDtoStatus.MODIFY);
+            }
+        }
+        assignmentsList.removeAll(listToBeRemoved);
+    }
+
 }

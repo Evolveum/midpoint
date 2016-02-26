@@ -42,11 +42,14 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.feedback.FeedbackMessage;
+import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -69,9 +72,7 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
 
     private static final String ID_USER_CHOOSER_DIALOG = "userChooserDialog";
     private static final String ID_TABLE = "table";
-    private static final String ID_BUTTON_RESET = "buttonReset";
     private static final String ID_FILTER_BUTTON_CONTAINER = "filterButtonContainer";
-    private static final String ID_RESET_BUTTON_CONTAINER = "resetButtonContainer";
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_SEARCH = "search";
     private static final int ITEMS_PER_PAGE = 10;
@@ -105,17 +106,6 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
 
     private void initLayout() {
         setOutputMarkupId(true);
-        WebMarkupContainer resetButtonContainer = new WebMarkupContainer(ID_RESET_BUTTON_CONTAINER);
-        AjaxLink<String> buttonReset = new AjaxLink<String>(ID_BUTTON_RESET) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                reset();
-                target.add(MultipleAssignmentSelector.this);
-            }
-        };
-        buttonReset.setBody(createStringResource("MultipleAssignmentSelector.reset"));
-        resetButtonContainer.add(buttonReset);
-        add(resetButtonContainer);
 
         WebMarkupContainer filterButtonContainer = new WebMarkupContainer(ID_FILTER_BUTTON_CONTAINER);
         AjaxLink<String> filterByUserButton = new AjaxLink<String>(ID_FILTER_BY_USER_BUTTON) {
@@ -191,24 +181,6 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
         return button;
     }
 
-    private void reset() {
-        List<AssignmentEditorDto> assignmentsList = getModel().getObject();
-        List<AssignmentEditorDto> listToBeRemoved = new ArrayList<>();
-        for (AssignmentEditorDto dto : assignmentsList){
-            if (dto.getStatus().equals(UserDtoStatus.ADD)) {
-                listToBeRemoved.add(dto);
-            } else if (dto.getStatus() == UserDtoStatus.DELETE) {
-                dto.setStatus(UserDtoStatus.MODIFY);
-            }
-        }
-        assignmentsList.removeAll(listToBeRemoved);
-    }
-
-
-    public  void setResetButtonVisibility(boolean isVisible){
-        get(ID_RESET_BUTTON_CONTAINER).setVisible(isVisible);
-    }
-
     private List<IColumn<SelectableBean<AssignmentEditorDto>, String>> initColumns() {
         List<IColumn<SelectableBean<AssignmentEditorDto>, String>> columns = new ArrayList<>();
         columns.add(new AbstractColumn<SelectableBean<AssignmentEditorDto>, String>(new Model()) {
@@ -224,6 +196,7 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
     private void updateBoxedTablePanelStyles(BoxedTablePanel panel) {
         panel.getDataTable().add(new AttributeModifier("class", ""));
         panel.getDataTable().add(new AttributeAppender("style", "width: 100%;"));
+        panel.getDataTableContainer().add(new AttributeAppender("style", "min-height: 415px;"));
         panel.getFooterPaging().getParent().add(new AttributeModifier("class", "col-md-10"));
     }
 
@@ -279,6 +252,21 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
 
         BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, tableProvider, columns,
                 UserProfileStorage.TableId.TABLE_ROLES, ITEMS_PER_PAGE){
+            @Override
+            protected void onBeforeRender() {
+                super.onBeforeRender();
+                long itemCount = this.getDataTable().getItemCount();
+                if (itemCount == 0 || itemCount % ITEMS_PER_PAGE > 0){
+                    long pageCount = this.getDataTable().getPageCount();
+                    this.getDataTable().setCurrentPage(pageCount);
+                    BaseSortableDataProvider provider = (BaseSortableDataProvider)this.getDataTable().getDataProvider();
+                    List list = provider.getAvailableData();
+                    IModel model = this.getDataTable().getDefaultModel();
+                    if (list != null && model != null) {
+                        list.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, new AssignmentType(), getPageBase()));
+                    }
+                }
+            }
         };
         updateBoxedTablePanelStyles(table);
         //hide footer menu
@@ -343,7 +331,7 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
     }
 
     public void setFilterButtonVisibility(boolean isVisible){
-        get(ID_FILTER_BUTTON_CONTAINER).setVisible(isVisible);
+        get(ID_FILTER_BUTTON_CONTAINER).get(ID_FILTER_BY_USER_BUTTON).setVisible(isVisible);
     }
 
     private IModel<String> createLabelModel(){
