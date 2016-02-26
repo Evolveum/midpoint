@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.objectdetails.FocusDetailsTabPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -121,7 +122,7 @@ public class PrismContainerPanel extends Panel {
                 ContainerWrapper containerWrapper = model.getObject();
                 ObjectWrapper objectWrapper = containerWrapper.getObject();
                 objectWrapper.setShowEmpty(showEmptyFields);
-                target.add(PrismContainerPanel.this);
+                target.add(PrismContainerPanel.this.findParent(PrismObjectPanel.class));
             }
         };
         header.add(showEmptyFieldsButton);
