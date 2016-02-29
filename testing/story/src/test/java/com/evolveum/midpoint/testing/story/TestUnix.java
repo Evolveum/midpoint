@@ -55,6 +55,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -161,6 +162,7 @@ public class TestUnix extends AbstractStoryTest {
 	private static final int USER_WALLY_UID_NUMBER = 1004;
 
 	private static final String USER_RANGER_USERNAME = "ranger";
+	private static final String USER_RANGER_USERNAME_RENAMED = "usranger";
 	private static final String USER_RANGER_FIST_NAME = "Super";
 	private static final String USER_RANGER_LAST_NAME = "Ranger";
 	private static final int USER_RANGER_UID_NUMBER = 1003;
@@ -1029,15 +1031,54 @@ public class TestUnix extends AbstractStoryTest {
         openDJController.assertNoAttribute(groupSeals, "memberUid");
 	}
 	
-	
 	@Test
-    public void test260DeleteUserRangerUnix() throws Exception {
-		final String TEST_NAME = "test260DeleteUserRangerUnix";
+    public void test257RenameUserAndAccountsCheckGroupmembership() throws Exception {
+		final String TEST_NAME = "test257RenameUserAndAccountsCheckGroupmembership";
         TestUtil.displayTestTile(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_RANGER_USERNAME);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(userBefore.getOid(), UserType.F_NAME, task, result, new PolyString("usranger", "usranger"));
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME_RENAMED);
+        assertNotNull("User not renamed", userAfter);
+        display("User after rename", userAfter);
+        assertUserPosix(userAfter, USER_RANGER_USERNAME_RENAMED, USER_RANGER_FIST_NAME, USER_RANGER_LAST_NAME, USER_RANGER_UID_NUMBER);
+        
+        String accountOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+        display("Shadow (model)", shadow);
+        assertPosixAccount(shadow, USER_RANGER_UID_NUMBER);
+
+        // account should still be in the rangers group, but renamed from
+        // ranger to usranger
+        PrismObject<ShadowType> shadowGroup = getShadowModel(groupRangersOid);
+        display("Shadow rangers group (model)", shadowGroup);
+        Entry groupRangers = openDJController.fetchEntry(groupRangersDn);
+        assertUnixGroup(shadowGroup, ROLE_RANGERS_GID);
+
+        openDJController.assertAttribute(groupRangers, "memberUid", USER_RANGER_USERNAME_RENAMED);
+
+	}
+	
+	
+	@Test
+    public void test260DeleteUserUsrangerUnix() throws Exception {
+		final String TEST_NAME = "test260DeleteUserUsrangerUnix";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_RANGER_USERNAME_RENAMED);
         
         // WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -1047,9 +1088,9 @@ public class TestUnix extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME);
+        PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME_RENAMED);
         display("User after", userAfter);
-        assertNull("User ranger sneaked in", userAfter);
+        assertNull("User usranger sneaked in", userAfter);
         
         assertNoObject(ShadowType.class, accountRangerOid, task, result);
         
