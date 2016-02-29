@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -267,11 +268,25 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     }
 
 	@Override
-	public <F extends FocusType> PrismObject<F> resolveOwner(PrismObject<ShadowType> shadow) {
-		if (shadow == null || shadow.getOid() == null) {
+	public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) {
+		if (object == null || object.getOid() == null) {
 			return null;
 		}
-		PrismObject<F> owner = repositoryService.searchShadowOwner(shadow.getOid(), null, new OperationResult(UserProfileServiceImpl.class+".resolveOwner"));
+		PrismObject<F> owner = null;
+		if (object.canRepresent(ShadowType.class)) {
+			owner = repositoryService.searchShadowOwner(object.getOid(), null, new OperationResult(UserProfileServiceImpl.class+".resolveOwner"));
+		} else if (object.canRepresent(AbstractRoleType.class)) {
+			ObjectReferenceType ownerRef = ((AbstractRoleType)(object.asObjectable())).getOwnerRef();
+			if (ownerRef != null && ownerRef.getOid() != null && ownerRef.getType() != null) {
+				OperationResult result = new OperationResult(UserProfileService.class.getName() + ".resolveOwner");
+				try {
+					owner = (PrismObject<F>) repositoryService.getObject(ObjectTypes.getObjectTypeFromTypeQName(ownerRef.getType()).getClassDefinition(),
+							ownerRef.getOid(), null, result);
+				} catch (ObjectNotFoundException | SchemaException e) {
+					LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
+				}
+			}
+		}
 		if (owner == null) {
 			return null;
 		}
