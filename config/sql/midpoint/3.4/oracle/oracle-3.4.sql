@@ -2,9 +2,12 @@
 -- replace ");" with ") INITRANS 30;"
 
 CREATE TABLE m_abstract_role (
-  approvalProcess VARCHAR2(255 CHAR),
-  requestable     NUMBER(1, 0),
-  oid             VARCHAR2(36 CHAR) NOT NULL,
+  approvalProcess    VARCHAR2(255 CHAR),
+  ownerRef_relation  VARCHAR2(157 CHAR),
+  ownerRef_targetOid VARCHAR2(36 CHAR),
+  ownerRef_type      NUMBER(10, 0),
+  requestable        NUMBER(1, 0),
+  oid                VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;
 

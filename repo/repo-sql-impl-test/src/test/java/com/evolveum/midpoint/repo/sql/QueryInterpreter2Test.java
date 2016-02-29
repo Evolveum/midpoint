@@ -2355,6 +2355,38 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
+    @Test
+    public void test605QueryObjectypeByTypeAndReference() throws Exception {
+        Session session = open();
+        try {
+            PrismObjectDefinition<RoleType> roleDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
+            ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                    .id("c0c010c0-d34d-b33f-f00d-111111111111")
+                    .or().type(RoleType.class)
+                        .item(roleDef, RoleType.F_OWNER_REF).ref("c0c010c0-d34d-b33f-f00d-111111111111")
+                    .build();
+            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String expected = "select o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount, o.booleansCount\n"
+                    + "from\n"
+                    + "  RObject o\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    o.oid in :oid or\n"
+                    + "    (\n"
+                    + "      o.objectTypeClass = :objectTypeClass and\n"
+                    + "      (\n"
+                    + "        o.ownerRef.targetOid = :targetOid and\n"
+                    + "        o.ownerRef.relation = :relation\n"
+                    + "      )\n"
+                    + "    )\n"
+                    + "  )\n";
+
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
     @Test(expectedExceptions = QueryException.class)
     public void test610QueryGenericClob() throws Exception {
         Session session = open();
