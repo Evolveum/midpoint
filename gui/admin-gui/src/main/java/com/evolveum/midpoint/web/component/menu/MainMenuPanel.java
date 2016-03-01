@@ -183,6 +183,7 @@ public class MainMenuPanel extends SimplePanel<MainMenuItem> {
 
         MainMenuItem mainMenuItem = getModelObject();
         Breadcrumb bc = new Breadcrumb(mainMenuItem.getName());
+        bc.setIcon(new Model<>(mainMenuItem.getIconClass()));
         storage.pushBreadcrumb(bc);
 
         setResponsePage(menu.getPage(), menu.getParams());

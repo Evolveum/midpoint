@@ -19,6 +19,7 @@ package com.evolveum.midpoint.gui.api.page;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -446,7 +447,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-                        dto.redirect(PageBase.this);
+						redirectBackToBreadcrumb(dto);
 					}
 				};
 				item.add(bcLink);
@@ -609,6 +610,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return session.getSessionStorage();
 	}
 
+	/**
+	 * use only {@link PageBase#createPageTitleModel()}
+	 * @return
+     */
+	//todo remove [lazyman]
+	@Deprecated
 	protected IModel<String> createPageSubTitleModel() {
 		String key = getClass().getSimpleName() + ".subTitle";
 		return new StringResourceModel(key, this).setDefaultValue("");
@@ -1414,4 +1421,36 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             return adminGuiConfig;
         }
     }
+
+	public void redirectBack() {
+		List<Breadcrumb> breadcrumbs = getSessionStorage().getBreadcrumbs();
+		if (breadcrumbs.size() < 2) {
+			return;
+		}
+
+		Breadcrumb breadcrumb = breadcrumbs.get(breadcrumbs.size() - 2);
+		redirectBackToBreadcrumb(breadcrumb);
+	}
+
+	public void redirectBackToBreadcrumb(Breadcrumb breadcrumb) {
+		Validate.notNull(breadcrumb, "Breadcrumb must not be null");
+
+		boolean found = false;
+
+		//we remove all breadcrumbs that are after "breadcrumb"
+		List<Breadcrumb> breadcrumbs = getSessionStorage().getBreadcrumbs();
+		Iterator<Breadcrumb> iterator = breadcrumbs.iterator();
+		while (iterator.hasNext()) {
+			Breadcrumb b = iterator.next();
+			if (b.equals(breadcrumb)) {
+				found = true;
+			}
+
+			if (found) {
+				iterator.remove();
+			}
+		}
+
+		breadcrumb.redirect(this);
+	}
 }

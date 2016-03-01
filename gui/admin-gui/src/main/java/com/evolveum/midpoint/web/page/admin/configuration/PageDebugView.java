@@ -270,16 +270,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                //target.appendJavaScript("history.go(-1)");
-                //todo wtf????
-                Page requestPage = (Page)getSession().getAttribute("requestPage");
-
-                if(requestPage != null){
-                	setResponsePage(requestPage);
-                	getSession().setAttribute("requestPage", null);
-                } else {
-                	setResponsePage(new PageDebugList(false));
-                }
+                redirectBack();
             }
         };
         mainForm.add(backButton);

@@ -179,6 +179,14 @@ public class SessionStorage implements Serializable {
         return getBreadcrumbs().remove(getBreadcrumbs().size() - 1);
     }
 
+    public Breadcrumb peekBreadcrumb() {
+        if (getBreadcrumbs().isEmpty()) {
+            return null;
+        }
+
+        return getBreadcrumbs().get(getBreadcrumbs().size() - 1);
+    }
+
     public void clearBreadcrumbs() {
         getBreadcrumbs().clear();
     }
