@@ -17,17 +17,13 @@
 package com.evolveum.midpoint.web.session;
 
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.page.BreadcrumbItem;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Page;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -158,13 +154,20 @@ public class SessionStorage implements Serializable {
 
     public List<Breadcrumb> getBreadcrumbs() {
         if (breadcrumbs == null) {
-            breadcrumbs = new ArrayList<>();
+            breadcrumbs = new Stack<>();
         }
         return breadcrumbs;
     }
 
     public void pushBreadcrumb(Breadcrumb breadcrumb) {
         Validate.notNull(breadcrumb, "Breadcrumb must not be null");
+
+        Breadcrumb last = getBreadcrumbs().isEmpty() ?
+                null : getBreadcrumbs().get(getBreadcrumbs().size() - 1);
+        if (last != null && last.equals(breadcrumb)) {
+            return;
+        }
+
         getBreadcrumbs().add(breadcrumb);
     }
 

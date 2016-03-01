@@ -185,16 +185,6 @@ public class MainMenuPanel extends SimplePanel<MainMenuItem> {
         Breadcrumb bc = new Breadcrumb(mainMenuItem.getName());
         storage.pushBreadcrumb(bc);
 
-        bc = new BreadcrumbPageClass(new AbstractReadOnlyModel() {
-
-            @Override
-            public String getObject() {
-                System.out.println(getPageBase().getClass());
-                return getPageBase().getPageTitleModel().getObject();
-            }
-        }, (Class) menu.getPage(), menu.getParams());
-        storage.pushBreadcrumb(bc);
-
-        bc.redirect(this);
+        setResponsePage(menu.getPage(), menu.getParams());
     }
 }

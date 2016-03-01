@@ -52,6 +52,7 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
@@ -95,6 +96,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
 import com.evolveum.midpoint.web.component.menu.MainMenuItem;
 import com.evolveum.midpoint.web.component.menu.MenuItem;
@@ -255,6 +258,21 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		initLayout();
 	}
 
+	@Override
+	protected void onConfigure() {
+		super.onConfigure();
+
+		BreadcrumbPageClass bc = new BreadcrumbPageClass(new AbstractReadOnlyModel() {
+
+			@Override
+			public String getObject() {
+				return getPageTitleModel().getObject();
+			}
+		}, this.getClass(), getPageParameters());
+
+		getSessionStorage().pushBreadcrumb(bc);
+	}
+
 	public PageBase() {
 		this(null);
 	}
@@ -411,21 +429,34 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		pageTitle.add(pageTitleReal);
 		pageTitle.add(new Label(ID_PAGE_SUBTITLE, createPageSubTitleModel()));
 
-		ListView breadcrumbs = new ListView<BreadcrumbItem>(ID_BREADCRUMB,
-				new Model((Serializable) createBreadcrumbs())) {
+		ListView breadcrumbs = new ListView<Breadcrumb>(ID_BREADCRUMB,
+				new AbstractReadOnlyModel<List<Breadcrumb>>() {
 
-			@Override
-			protected void populateItem(ListItem<BreadcrumbItem> item) {
-				final BreadcrumbItem dto = item.getModelObject();
+					@Override
+					public List<Breadcrumb> getObject() {
+						return getSessionStorage().getBreadcrumbs();
+					}
+				}) {
+
+            @Override
+            protected void populateItem(ListItem<Breadcrumb> item) {
+                final Breadcrumb dto = item.getModelObject();
 
 				AjaxLink bcLink = new AjaxLink(ID_BC_LINK) {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						navigateTo(target, dto);
+                        dto.redirect(PageBase.this);
 					}
 				};
 				item.add(bcLink);
+                bcLink.add(new VisibleEnableBehaviour() {
+
+                    @Override
+                    public boolean isEnabled() {
+                        return dto.isLink();
+                    }
+                });
 
 				WebMarkupContainer bcIcon = new WebMarkupContainer(ID_BC_ICON);
 				bcIcon.add(new VisibleEnableBehaviour() {
@@ -438,11 +469,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				bcIcon.add(AttributeModifier.replace("class", dto.getIcon()));
 				bcLink.add(bcIcon);
 
-				Label bcName = new Label(ID_BC_NAME, dto.getName());
+                Label bcName = new Label(ID_BC_NAME, dto.getLabel());
 				bcLink.add(bcName);
 			}
 		};
-		pageTitleContainer.add(breadcrumbs);
+        add(breadcrumbs);
 	}
 
 	private void initLayout() {
@@ -587,6 +618,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		String key = getClass().getSimpleName() + ".title";
 		return createStringResource(key);
 	}
+
+    public IModel<String> getPageTitleModel() {
+        return (IModel) get(ID_TITLE).getDefaultModel();
+    }
 
 	public String getString(String resourceKey, Object... objects) {
 		return createStringResource(resourceKey, objects).getString();
@@ -791,29 +826,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			LOGGER.trace("...going to default back page {}", defaultBackPageClass);
 			return new RestartResponseException(defaultBackPageClass);
 		}
-	}
-
-	private void navigateTo(AjaxRequestTarget target, BreadcrumbItem dto) {
-		if (dto.getPageParameters() == null) {
-			setResponsePage(dto.getPage());
-		}
-
-		try {
-			Class clazz = dto.getPage();
-			Constructor constr = clazz.getConstructor(PageParameters.class);
-			WebPage page = (WebPage) constr.newInstance(dto.getPageParameters());
-
-			setResponsePage(page);
-		} catch (Exception ex) {
-			LOGGER.debug("Couldn't navigate to breadcrumb item " + dto, ex);
-			error(getString("PageTemplate.couldntNavigateBreadcrumb", ex.getMessage()));
-			target.add(getFeedbackPanel());
-		}
-	}
-
-	public List<BreadcrumbItem> createBreadcrumbs() {
-		// todo implement breadcrumb algorithm [lazyman]
-		return new ArrayList<>();
 	}
 
 	protected <P extends Object> void validateObject(String xmlObject, final Holder<P> objectHolder,
