@@ -254,6 +254,12 @@ public abstract class DummyObject implements DebugDumpable {
 		checkSchema(name, valuesToCheck, "remove");
 		
 		Iterator<Object> iterator = currentValues.iterator();
+		boolean foundMember = false;
+		
+		if (name.equals(DummyGroup.ATTR_MEMBERS_NAME) && !resource.isTolerateDuplicateValues()){
+			checkIfExist(values, currentValues);
+		}
+		
 		while(iterator.hasNext()) {
 			Object currentValue = iterator.next();
 			boolean found = false;
@@ -273,9 +279,33 @@ public abstract class DummyObject implements DebugDumpable {
 			if (found) {
 				iterator.remove();
 			}
+				
 		}
 		
 		recordModify();
+	}
+	
+	private void checkIfExist(Collection<Object> valuesToDelete, Set<Object> currentValues) throws SchemaViolationException{
+		for (Object valueToDelete : valuesToDelete) {
+			boolean found = false;
+			for (Object currentValue : currentValues) {
+				if (resource.isCaseIgnoreValues() && currentValue instanceof String && valueToDelete instanceof String) {
+					if (StringUtils.equalsIgnoreCase((String)currentValue, (String)valueToDelete)) {
+						found = true;
+						break;
+					}
+				} else {
+					if (currentValue.equals(valueToDelete)) {
+						found = true;
+						break;
+					}
+				}
+			}
+			
+			if (!found){
+				throw new SchemaViolationException("no such member: " + valueToDelete + " in " + currentValues);
+			}
+		}
 	}
 
 	private void checkModifyBreak() throws ConnectException, FileNotFoundException {

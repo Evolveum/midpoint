@@ -46,6 +46,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
 import com.evolveum.midpoint.web.component.util.Selectable;
@@ -53,7 +55,6 @@ import com.evolveum.midpoint.web.component.wf.WfHistoryEventDto;
 import com.evolveum.midpoint.wf.api.WfTaskExtensionItemsNames;
 import com.evolveum.midpoint.wf.processors.primary.PcpTaskExtensionItemsNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -65,7 +66,7 @@ import javax.xml.namespace.QName;
 /**
  * @author lazyman
  */
-public class TaskDto extends Selectable {
+public class TaskDto extends Selectable implements InlineMenuable {
 
     public static final String CLASS_DOT = TaskDto.class.getName() + ".";
     public static final String OPERATION_NEW = CLASS_DOT + "new";
@@ -93,6 +94,8 @@ public class TaskDto extends Selectable {
     public static final String F_OBJECT_CLASS = "objectClass";
     public static final String F_WORKER_THREADS = "workerThreads";
     public static final String F_RESOURCE_REFERENCE = "resourceRef";
+
+    private List<InlineMenuItem> menuItems;
 
     private List<String> handlerUriList;
     private String parentTaskName;
@@ -177,6 +180,14 @@ public class TaskDto extends Selectable {
             addChildTaskDto(new TaskDto(child, modelService, taskService, modelInteractionService, taskManager,
                     options, parentResult, pageBase));
         }
+    }
+
+    @Override
+    public List<InlineMenuItem> getMenuItems() {
+        if (menuItems == null) {
+            menuItems = new ArrayList<>();
+        }
+        return menuItems;
     }
 
     private void fillInResourceReference(TaskType task, TaskManager manager, OperationResult result, ModelService service, PageBase pageBase){
@@ -364,24 +375,20 @@ public class TaskDto extends Selectable {
     }
 
     private void fillInModelContext(TaskType taskType, ModelInteractionService modelInteractionService, OperationResult result) throws ObjectNotFoundException {
-        PrismContainer<LensContextType> modelContextContainer =
-                (PrismContainer) taskType.asPrismObject().findItem(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_CONTEXT_NAME));
-        if (modelContextContainer != null) {
-            Object value = modelContextContainer.getValue().asContainerable();
-            if (value != null) {
-                if (!(value instanceof LensContextType)) {
-                    throw new SystemException("Model context information in task " + taskType + " is of wrong type: " + value.getClass());
-                }
-                try {
-                    ModelContext modelContext = modelInteractionService.unwrapModelContext((LensContextType) value, result);
-                    modelOperationStatusDto = new ModelOperationStatusDto(modelContext);
-                } catch (SchemaException e) {   // todo report to result
-                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
-                } catch (CommunicationException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
-                } catch (ConfigurationException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
-                }
+        LensContextType value = taskType.getModelOperationContext();
+        if (value != null) {
+            if (!(value instanceof LensContextType)) {
+                throw new SystemException("Model context information in task " + taskType + " is of wrong type: " + value.getClass());
+            }
+            try {
+                ModelContext modelContext = modelInteractionService.unwrapModelContext((LensContextType) value, result);
+                modelOperationStatusDto = new ModelOperationStatusDto(modelContext);
+            } catch (SchemaException e) {   // todo report to result
+                LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
+            } catch (CommunicationException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
+            } catch (ConfigurationException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
             }
         }
     }
@@ -759,7 +766,7 @@ public class TaskDto extends Selectable {
     //endregion
 
     public static List<String> getOids(List<TaskDto> taskDtoList) {
-        List<String> retval = new ArrayList<String>();
+        List<String> retval = new ArrayList<>();
         for (TaskDto taskDto : taskDtoList) {
             retval.add(taskDto.getOid());
         }

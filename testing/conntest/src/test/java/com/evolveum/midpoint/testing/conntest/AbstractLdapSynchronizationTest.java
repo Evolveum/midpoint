@@ -521,7 +521,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        addLdapGroup(GROUP_FOOLS_CN, GROUP_FOOLS_DESCRIPTION, toAccountDn("nobody"));
+        addLdapGroup(GROUP_FOOLS_CN, GROUP_FOOLS_DESCRIPTION, toGroupDn("nobody"));
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
         
         // THEN

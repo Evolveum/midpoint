@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2015 Evolveum
+ * Copyright (c) 2014-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
@@ -60,10 +61,13 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -79,13 +83,17 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgRelationObjectSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SpecialObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -391,6 +399,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		SearchFilterType specFilterType = objectSpecType.getFilter();
 		ObjectReferenceType specOrgRef = objectSpecType.getOrgRef();
+		OrgRelationObjectSpecificationType specOrgRelation = objectSpecType.getOrgRelation();
 		QName specTypeQName = objectSpecType.getType();     // now it does not matter if it's unqualified
 		PrismObjectDefinition<O> objectDefinition = object.getDefinition();
 		
@@ -404,7 +413,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		// Special
 		List<SpecialObjectSpecificationType> specSpecial = objectSpecType.getSpecial();
 		if (specSpecial != null && !specSpecial.isEmpty()) {
-			if (specFilterType != null || specOrgRef != null) {
+			if (specFilterType != null || specOrgRef != null || specOrgRelation != null) {
 				throw new SchemaException("Both filter/org and special "+desc+" specification specified in "+autzHumanReadableDesc);
 			}
 			for (SpecialObjectSpecificationType special: specSpecial) {
@@ -451,17 +460,30 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			
 		// Org	
 		if (specOrgRef != null) {
-			
-			List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
-			List<String> objParentOrgOids = new ArrayList<>(objParentOrgRefs.size());
-			for (ObjectReferenceType objParentOrgRef: objParentOrgRefs) {
-				objParentOrgOids.add(objParentOrgRef.getOid());
+			if (!isSubordinate(object, specOrgRef.getOid())) {
+				LOGGER.trace("  org {} not applicable for {}, object OID {} (org={})",
+						new Object[]{autzHumanReadableDesc, desc, object.getOid(), specOrgRef.getOid()});
+				return false;
+			}			
+		}
+		
+		// orgRelation
+		if (specOrgRelation != null) {
+			QName subjectRelation = specOrgRelation.getSubjectRelation();
+			boolean match = false;
+			for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
+				if (MiscSchemaUtil.compareRelation(subjectRelation, subjectParentOrgRef.getRelation())) {
+					if (isSubordinate(object, subjectParentOrgRef.getOid())) {
+						LOGGER.trace("  org {} applicable for {}, object OID {} because subject org {} matches",
+								new Object[]{autzHumanReadableDesc, desc, object.getOid(), subjectParentOrgRef.getOid()});
+						match = true;
+						break;
+					}
+				}
 			}
-			
-			boolean anySubordinate = repositoryService.isAnySubordinate(specOrgRef.getOid(), objParentOrgOids);
-			if (!anySubordinate) {
-				LOGGER.trace("  org {} not applicable for {}, object OID {} (autz={} parentRefs={})",
-						new Object[]{autzHumanReadableDesc, desc, object.getOid(), specOrgRef.getOid(), objParentOrgOids});
+			if (!match) {
+				LOGGER.trace("  org {} not applicable for {}, object OID {} because none of the subject orgs matches",
+						new Object[]{autzHumanReadableDesc, desc, object.getOid()});
 				return false;
 			}			
 		}
@@ -470,11 +492,6 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			// Owner
 			ObjectSpecificationType ownerSpec = ((OwnedObjectSpecificationType)objectSpecType).getOwner();
 			if (ownerSpec != null) {
-				if (!object.canRepresent(ShadowType.class)) {
-					LOGGER.trace("  {}: owner object spec not applicable for {}, object OID {} because it is not a shadow",
-							new Object[]{autzHumanReadableDesc, desc, object.getOid()});
-					return false;
-				}
 				if (ownerResolver == null) {
 					ownerResolver = userProfileService;
 					if (ownerResolver == null) {
@@ -500,6 +517,15 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 		LOGGER.trace("  {} applicable for {} (filter)", autzHumanReadableDesc, desc);
 		return true;
+	}
+	
+	private <O extends ObjectType> boolean isSubordinate(PrismObject<O> object, String orgOid) throws SchemaException {
+		List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
+		List<String> objParentOrgOids = new ArrayList<>(objParentOrgRefs.size());
+		for (ObjectReferenceType objParentOrgRef: objParentOrgRefs) {
+			objParentOrgOids.add(objParentOrgRef.getOid());
+		}
+		return repositoryService.isAnySubordinate(orgOid, objParentOrgOids);
 	}
 	
 	private <O extends ObjectType, T extends ObjectType> boolean isApplicableItem(Authorization autz,
@@ -792,9 +818,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		ObjectFilter finalFilter;
 		if (phase != null) {
-			finalFilter = preProcessObjectFilterInternal(principal, operationUrl, phase, true, objectType, object, origFilter);
+			finalFilter = preProcessObjectFilterInternal(principal, operationUrl, phase, 
+					true, objectType, object, origFilter);
 		} else {
-			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrl, null, false, objectType, object, origFilter);
+			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrl, null, 
+					false, objectType, object, origFilter);
 			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.REQUEST, 
 					false, objectType, object, origFilter);
 			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.EXECUTION,
@@ -861,6 +889,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							TypeFilter objSpecTypeFilter = null;
 							SearchFilterType specFilterType = objectSpecType.getFilter();
 							ObjectReferenceType specOrgRef = objectSpecType.getOrgRef();
+							OrgRelationObjectSpecificationType specOrgRelation = objectSpecType.getOrgRelation();
 							QName specTypeQName = objectSpecType.getType();
 							PrismObjectDefinition<T> objectDefinition = null;
 							
@@ -886,8 +915,25 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							
 							// Owner
 							if (objectSpecType.getOwner() != null) {
-								LOGGER.trace("  Authorization not applicable for object because it has owner specification (this is not applicable for search)");
-								continue;
+								if (AbstractRoleType.class.isAssignableFrom(objectType)) {
+									if (objectDefinition == null) {
+										objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
+									}
+									ItemPath ownerRefPath = new ItemPath(AbstractRoleType.F_OWNER_REF);
+									PrismReferenceDefinition ownerRefDef = objectDefinition.findReferenceDefinition(ownerRefPath);
+									ObjectFilter objSpecOwnerFilter = RefFilter.createReferenceEqual(ownerRefPath, ownerRefDef, principal.getUser().getOid());
+									for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
+										if (MiscSchemaUtil.compareRelation(null, subjectParentOrgRef.getRelation())) {
+											objSpecOwnerFilter = ObjectQueryUtil.filterOr(objSpecOwnerFilter,
+													RefFilter.createReferenceEqual(ownerRefPath, ownerRefDef, subjectParentOrgRef.getOid()));
+										}
+									}
+									objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecOwnerFilter);
+									LOGGER.trace("  applying owner filter {}", objSpecOwnerFilter);
+								} else {
+									LOGGER.trace("  Authorization not applicable for object because it has owner specification (this is not applicable for search)");
+									continue;
+								}								
 							}
 							
 							applicable = true;
@@ -895,7 +941,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							// Special
 							List<SpecialObjectSpecificationType> specSpecial = objectSpecType.getSpecial();
 							if (specSpecial != null && !specSpecial.isEmpty()) {
-								if (specFilterType != null || specOrgRef != null) {
+								if (specFilterType != null || specOrgRef != null || specOrgRelation != null) {
 									throw new SchemaException("Both filter/org and special object specification specified in authorization");
 								}
 								ObjectFilter specialFilter = null;
@@ -923,7 +969,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									ObjectQueryUtil.assertNotRaw(specFilter, "Filter in authorization object has undefined items. Maybe a 'type' specification is missing in the authorization?");
 									ObjectQueryUtil.assertPropertyOnly(specFilter, "Filter in authorization object is not property-only filter");
 								}
-								LOGGER.trace("  applying property filter "+specFilter);
+								LOGGER.trace("  applying property filter {}", specFilter);
 								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, specFilter);
 							} else {
 								LOGGER.trace("  filter empty");
@@ -933,9 +979,28 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							if (specOrgRef != null) {
 								OrgFilter orgFilter = OrgFilter.createOrg(specOrgRef.getOid());
 								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, orgFilter);
-								LOGGER.trace("  applying org filter "+orgFilter);
+								LOGGER.trace("  applying org filter {}", orgFilter);
 							} else {
 								LOGGER.trace("  org empty");
+							}
+							
+							// orgRelation
+							if (specOrgRelation != null) {
+								ObjectFilter objSpecOrgRelationFilter = null;
+								QName subjectRelation = specOrgRelation.getSubjectRelation();
+								for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
+									if (MiscSchemaUtil.compareRelation(subjectRelation, subjectParentOrgRef.getRelation())) {
+										OrgFilter orgFilter = OrgFilter.createOrg(subjectParentOrgRef.getOid());
+										objSpecOrgRelationFilter = ObjectQueryUtil.filterAnd(objSpecOrgRelationFilter, orgFilter);
+									}
+								}
+								if (objSpecOrgRelationFilter == null) {
+									objSpecOrgRelationFilter = NoneFilter.createNone();
+								}
+								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecOrgRelationFilter);
+								LOGGER.trace("  applying orgRelation filter {}", objSpecOrgRelationFilter);
+							} else {
+								LOGGER.trace("  orgRelation empty");
 							}
 							
 							if (objSpecTypeFilter != null) {

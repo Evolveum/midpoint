@@ -362,7 +362,7 @@ public class PageSelfCredentials extends PageSelf {
             showResult(result);
             target.add(getFeedbackPanel());
         } else {
-            showResultInSession(result);
+            showResult(result);
             if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
                     AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
                 setResponsePage(PageDashboard.class);

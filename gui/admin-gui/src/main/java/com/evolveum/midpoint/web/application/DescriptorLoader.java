@@ -48,6 +48,12 @@ public final class DescriptorLoader {
         return actions;
     }
 
+    private static Map<String, Class> urlClassMap = new HashMap<>();
+
+    public static Map<String, Class> getUrlClassMap() {
+        return urlClassMap;
+    }
+
     public void loadData(MidPointApplication application) {
         LOGGER.debug("Loading data from descriptor files.");
 
@@ -145,6 +151,7 @@ public final class DescriptorLoader {
                     clazz.getName(), url, encoder.getClass().getSimpleName()});
 
             application.mount(new MountedMapper(url, clazz, encoder));
+            urlClassMap.put(url, clazz);
         }
     }
 }

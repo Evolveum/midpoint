@@ -37,7 +37,7 @@ import com.evolveum.midpoint.wf.impl.processors.general.GcpExternalizationHelper
 import com.evolveum.midpoint.wf.impl.processors.general.GcpProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.util.JaxbValueContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorScenarioType;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
 
@@ -116,7 +116,7 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
         instruction.setRequesterOidInProcess(taskFromModel.getOwner());
         instruction.setTaskName("Workflow-monitoring task");
         instruction.setProcessInterfaceBean(defaultProcessMidPointInterface);
-        LensContextType lensContextType = context.toPrismContainer().getValue().asContainerable();
+        LensContextType lensContextType = context.toLensContextType();
         instruction.addProcessVariable(GcpProcessVariableNames.VARIABLE_MODEL_CONTEXT, new JaxbValueContainer<>(lensContextType, prismContext));
         return instruction;
     }

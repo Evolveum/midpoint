@@ -410,7 +410,7 @@ public class PageCertDefinition extends PageAdminCertification {
 			showResult(result);
 			target.add(getFeedbackPanel());
 		} else {
-			showResultInSession(result);
+			showResult(result);
 			setResponsePage(PageCertDefinitions.class);
 		}
 	}

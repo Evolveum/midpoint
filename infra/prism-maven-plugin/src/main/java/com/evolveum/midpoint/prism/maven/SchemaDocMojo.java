@@ -16,11 +16,15 @@
 
 package com.evolveum.midpoint.prism.maven;
 
-import java.io.*;
-
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -33,12 +37,7 @@ import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import java.io.*;
 
 /**
  * @goal schemadoc
@@ -64,6 +63,11 @@ public class SchemaDocMojo extends AbstractMojo {
 	 * @parameter
 	 */
 	private File[] schemaFiles;
+
+	/**
+	 * @parameter
+     */
+    private File[] catalogFiles;
 
     /**
      * @parameter default-value="${project.build.directory}" required=true
@@ -245,6 +249,16 @@ public class SchemaDocMojo extends AbstractMojo {
                     throw new MojoFailureException("Schema file "+schemaFile+" does not exist");
                 }
                 schemaRegistry.registerPrismSchemaFile(schemaFile);
+            }
+
+            if (catalogFiles != null && catalogFiles.length > 0) {
+                for (File catalogFile : catalogFiles) {
+                    getLog().info("SchemaDoc: using catalog file: " + catalogFile);
+                    if (!catalogFile.exists()) {
+                        throw new IOException("Catalog file '" + catalogFile + "' does not exist.");
+                    }
+                }
+                schemaRegistry.setCatalogFiles(catalogFiles);
             }
 
             PrismContext context = PrismContext.create(schemaRegistry);

@@ -705,10 +705,8 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
         dto.setAttributes(attributes);
 
-        if (!result.isSuccess() && !result.isHandledError()) {
-            getPageBase().showResultInSession(result);
-        }
-
+            getPageBase().showResult(result, false);
+        
         return dto.getAttributes();
     }
 

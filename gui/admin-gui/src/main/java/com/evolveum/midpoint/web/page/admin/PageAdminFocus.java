@@ -44,7 +44,6 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
@@ -56,7 +55,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -101,7 +99,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -191,7 +188,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		boolean userAdded = getDelta() != null && getDelta().isAdd() && StringUtils.isNotEmpty(getDelta().getOid());
 		if (!isKeepDisplayingResults() && getProgressReporter().isAllSuccess()
 				&& (userAdded || !result.isFatalError())) { // TODO
-			showResultInSession(result);
+			showResult(result);
 			// todo refactor this...what is this for? why it's using some
 			// "shadow" param from result???
 			PrismObject<F> focus = getObjectWrapper().getObject();
@@ -201,10 +198,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				if (o != null && o instanceof ShadowType) {
 					ShadowType accountType = (ShadowType) o;
 					OperationResultType fetchResult = accountType.getFetchResult();
-					if (fetchResult != null
-							&& !OperationResultStatusType.SUCCESS.equals(fetchResult.getStatus())) {
-						showResultInSession(OperationResult.createOperationResult(fetchResult));
-					}
+						showResult(OperationResult.createOperationResult(fetchResult), false);
+					
 				}
 			}
 			goBackPage();

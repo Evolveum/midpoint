@@ -45,6 +45,7 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 	private static final String ID_HEADER = "header";
 	private static final String ID_FOOTER = "footer";
 	private static final String ID_TABLE = "table";
+	private static final String ID_TABLE_CONTAINER = "tableContainer";
 
 	private static final String ID_PAGING_FOOTER = "pagingFooter";
 	private static final String ID_PAGING = "paging";
@@ -73,9 +74,13 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 	}
 
 	private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider, int pageSize) {
+        WebMarkupContainer tableContainer = new WebMarkupContainer(ID_TABLE_CONTAINER);
+        tableContainer.setOutputMarkupId(true);
+
 		DataTable<T, String> table = new SelectableDataTable<>(ID_TABLE, columns, provider, pageSize);
 		table.setOutputMarkupId(true);
-		add(table);
+        tableContainer.add(table);
+		add(tableContainer);
 
 		TableHeadersToolbar headersTop = new TableHeadersToolbar(table, provider);
 		headersTop.setOutputMarkupId(true);
@@ -87,7 +92,11 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 
 	@Override
 	public DataTable getDataTable() {
-		return (DataTable) get(ID_TABLE);
+		return (DataTable) get(ID_TABLE_CONTAINER).get(ID_TABLE);
+	}
+
+	public WebMarkupContainer getDataTableContainer() {
+		return (WebMarkupContainer) get(ID_TABLE_CONTAINER);
 	}
 
 	@Override

@@ -35,8 +35,8 @@ import com.evolveum.midpoint.wf.impl.processors.general.scenarios.GcpScenarioBea
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorScenarioType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
@@ -198,10 +198,10 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
         if (lensContextType == null) {
             LOGGER.debug(GcpProcessVariableNames.VARIABLE_MODEL_CONTEXT + " not present in process, this means we should stop processing. Task = {}", rootTask);
-            wfTaskUtil.setSkipModelContextProcessingProperty(rootTask, true, result);
+            wfTaskUtil.storeModelContext(rootTask, (ModelContext) null);
         } else {
             LOGGER.debug("Putting (changed or unchanged) value of {} into the task {}", GcpProcessVariableNames.VARIABLE_MODEL_CONTEXT, rootTask);
-            wfTaskUtil.storeModelContext(rootTask, lensContextType.asPrismContainerValue().getContainer());
+            wfTaskUtil.storeModelContext(rootTask, lensContextType);
         }
 
         rootTask.savePendingModifications(result);

@@ -217,8 +217,8 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 
 	protected abstract void reviveCustomModels() throws SchemaException;
 
-	private void showResultInSession(OperationResult result) {
-		page.showResultInSession(result);
+	private void showResult(OperationResult result) {
+		page.showResult(result);
 	}
 
 	private PrismContext getPrismContext() {
@@ -229,8 +229,8 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 		return page.getPageParameters();
 	}
 
-	private void showResult(OperationResult result) {
-		page.showResult(result);
+	private void showResult(OperationResult result, boolean showSuccess) {
+		page.showResult(result, showSuccess);
 	}
 
 	private WebMarkupContainer getFeedbackPanel() {
@@ -646,11 +646,8 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 				ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(
 						WebComponentUtil.getOrigStringFromPoly(resource.getName()), null, shadow.asPrismObject(),
 						ContainerStatus.ADDING, page);
-				if (wrapper.getResult() != null
-						&& !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
-					showResultInSession(wrapper.getResult());
-				}
-
+					showResult(wrapper.getResult(), false);
+				
 				wrapper.setShowEmpty(true);
 				wrapper.setMinimalized(false);
 				shadowModel.getObject().add(new FocusProjectionDto(wrapper, UserDtoStatus.ADD));
@@ -683,10 +680,7 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 				ObjectWrapper<OrgType> wrapper = ObjectWrapperUtil.createObjectWrapper(
 						WebComponentUtil.getOrigStringFromPoly(newOrg.getDisplayName()), null,
 						newOrg.asPrismObject(), ContainerStatus.ADDING, page);
-				if (wrapper.getResult() != null
-						&& !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
-					showResultInSession(wrapper.getResult());
-				}
+				showResult(wrapper.getResult(), false);
 
 				wrapper.setShowEmpty(false);
 				wrapper.setReadonly(true);

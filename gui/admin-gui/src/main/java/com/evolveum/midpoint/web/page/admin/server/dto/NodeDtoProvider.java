@@ -63,7 +63,7 @@ public class NodeDtoProvider extends BaseSortableDataProvider<NodeDto> {
             List<PrismObject<NodeType>> nodes = getModel().searchObjects(NodeType.class, query, null, task, result);
 
             for (PrismObject<NodeType> node : nodes) {
-                getAvailableData().add(new NodeDto(node.asObjectable()));
+                getAvailableData().add(createNodeDto(node));
             }
             result.recordSuccess();
         } catch (Exception ex) {
@@ -72,6 +72,10 @@ public class NodeDtoProvider extends BaseSortableDataProvider<NodeDto> {
         }
 
         return getAvailableData().iterator();
+    }
+
+    public NodeDto createNodeDto(PrismObject<NodeType> node) {
+        return new NodeDto(node.asObjectable());
     }
 
     @Override

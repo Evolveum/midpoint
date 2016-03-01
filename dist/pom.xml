@@ -78,6 +78,7 @@
                 <!-- Used to pull XSD files from the JAR -->
                 <groupId>com.evolveum.midpoint.tools</groupId>
                 <artifactId>schema-dist-maven-plugin</artifactId>
+                <version>3.4-SNAPSHOT</version>
                 <executions>
                     <execution>
                         <id>schemadist-prism</id>
@@ -92,14 +93,14 @@
                                     <artifactId>prism</artifactId>
                                     <version>${project.version}</version>
                                     <type>jar</type>
-                                    <catalog>META-INF/catalog-runtime.xml</catalog>
+                                    <!-- no catalog (the one in schema suffices) -->
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>com.evolveum.midpoint.infra</groupId>
                                     <artifactId>schema</artifactId>
                                     <version>${project.version}</version>
                                     <type>jar</type>
-                                    <catalog>META-INF/jax-ws-catalog.xml</catalog>
+                                    <catalog>META-INF/catalog-schema-dist.xml</catalog>
                                 </artifactItem>
                             </artifactItems>
                             <includes>**/*.xsd,**/*.dtd,**/*.wsdl,META-INF/*</includes>

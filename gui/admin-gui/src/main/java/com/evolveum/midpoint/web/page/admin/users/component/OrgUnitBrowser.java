@@ -303,7 +303,7 @@ public class OrgUnitBrowser extends ModalWindow {
 
     }
 
-    private ObjectQuery createSearchQuery(){
+    protected ObjectQuery createSearchQuery(){
         OrgUnitSearchDto dto = searchModel.getObject();
         ObjectQuery query = null;
         ObjectQuery moveQuery;

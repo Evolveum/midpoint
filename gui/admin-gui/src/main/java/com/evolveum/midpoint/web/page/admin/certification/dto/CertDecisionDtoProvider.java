@@ -102,7 +102,7 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
     }
 
     protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result){
-        getPage().showResultInSession(result);
+        getPage().showResult(result);
         throw new RestartResponseException(PageError.class);
     }
 
@@ -127,7 +127,7 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
         }
 
         if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-            getPage().showResultInSession(result);
+            getPage().showResult(result);
             throw new RestartResponseException(PageError.class);
         }
 

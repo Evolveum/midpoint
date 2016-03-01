@@ -12,9 +12,12 @@
 # remove iAncestor and iDescendant index, they are the same as FK for that fields
 
 CREATE TABLE m_abstract_role (
-  approvalProcess VARCHAR(255),
-  requestable     BIT,
-  oid             VARCHAR(36) NOT NULL,
+  approvalProcess    VARCHAR(255),
+  ownerRef_relation  VARCHAR(157),
+  ownerRef_targetOid VARCHAR(36),
+  ownerRef_type      INTEGER,
+  requestable        BIT,
+  oid                VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 )
   DEFAULT CHARACTER SET utf8

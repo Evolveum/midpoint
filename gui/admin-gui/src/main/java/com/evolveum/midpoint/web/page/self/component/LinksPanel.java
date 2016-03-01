@@ -56,7 +56,7 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
         super(id, null);
     }
 
-    public LinksPanel(String id, IModel<List<RichHyperlinkType>> model, final List<RichHyperlinkType> linksList) {
+    public LinksPanel(String id, IModel<List<RichHyperlinkType>> model) {
         super(id, model);
     }
 
@@ -103,7 +103,7 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
                                     }
                                 }
                             }
-                            tag.put("href", rootContext + link.getTargetUrl());
+                            tag.put("href", rootContext + (link.getTargetUrl() == null ? "#" : link.getTargetUrl()));
                         }
                     };
                     linkItem.add(new Label(ID_IMAGE) {

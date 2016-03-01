@@ -1,3 +1,8 @@
+ALTER TABLE m_abstract_role
+  ADD ownerRef_relation  VARCHAR(157),
+  ADD ownerRef_targetOid VARCHAR(36),
+  ADD ownerRef_type      INTEGER;
+
 ALTER TABLE m_acc_cert_campaign
 ADD endTimestamp DATETIME(6),
 ADD handlerUri VARCHAR(255),

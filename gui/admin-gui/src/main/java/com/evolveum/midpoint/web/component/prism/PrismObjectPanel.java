@@ -315,8 +315,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
     }
 
     protected void createContainerPanel(ListItem<ContainerWrapper> item, Form form){
-        PrismContainerPanel panel = new PrismContainerPanel("container", item.getModel(), true,
-                item.getModelObject().getObject().isShowEmpty(), form, pageBase);
+        PrismContainerPanel panel = new PrismContainerPanel("container", item.getModel(), true, form, pageBase);
         panel.setOutputMarkupPlaceholderTag(true);
         item.add(panel);
     }

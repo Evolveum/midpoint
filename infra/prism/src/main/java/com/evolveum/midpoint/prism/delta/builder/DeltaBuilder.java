@@ -218,6 +218,7 @@ public class DeltaBuilder implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
 
     @Override
     public S_ItemEntry replace(PrismValue... values) {
+        checkNullMisuse(values);
         currentDelta.setValuesToReplace(values);
         return this;
     }

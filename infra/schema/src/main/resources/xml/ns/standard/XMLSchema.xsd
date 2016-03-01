@@ -88,7 +88,11 @@
       towards the end of this schema document</xs:documentation>
  </xs:annotation>
 
- <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="xml.xsd">
+ <!-- Wanually fixed to work around problem in WSDL publishing:
+      Original value of schemaLocation="xml.xsd" was published "as is"
+      in the WSDL. Some clients interpreted it in a way that lead to
+      unreachable URL of "http://.../midpoint/ws/xml.xsd". -->
+ <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="http://www.w3.org/XML/1998/namespace">
    <xs:annotation>
      <xs:documentation>
        Get access to the xml: attribute groups for xml:lang

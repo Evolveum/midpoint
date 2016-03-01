@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -78,6 +79,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -700,8 +702,8 @@ public class ShadowManager {
 		// Clean all repoShadow attributes and add only those that should be
 		// there
 		repoAttributesContainer.clear();
-		Collection<ResourceAttribute<?>> identifiers = attributesContainer.getIdentifiers();
-		for (PrismProperty<?> p : identifiers) {
+		Collection<ResourceAttribute<?>> primaryIdentifiers = attributesContainer.getIdentifiers();
+		for (PrismProperty<?> p : primaryIdentifiers) {
 			repoAttributesContainer.add(p.clone());
 		}
 
@@ -710,6 +712,21 @@ public class ShadowManager {
 			repoAttributesContainer.add(p.clone());
 		}
 
+		// Also add all the attributes that act as association identifiers.
+		// We will need them when the shadow is deleted (to remove the shadow from entitlements).
+		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
+		for (RefinedAssociationDefinition associationDef: objectClassDefinition.getAssociations()) {
+			if (associationDef.getResourceObjectAssociationType().getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
+				QName valueAttributeName = associationDef.getResourceObjectAssociationType().getValueAttribute();
+				if (repoAttributesContainer.findAttribute(valueAttributeName) == null) {
+					ResourceAttribute<Object> valueAttribute = attributesContainer.findAttribute(valueAttributeName);
+					if (valueAttribute != null) {
+						repoAttributesContainer.add(valueAttribute.clone());
+					}
+				}
+			}
+		}
+		
 		ShadowType repoShadowType = repoShadow.asObjectable();
 
         setKindIfNecessary(repoShadowType, ctx.getObjectClassDefinition());

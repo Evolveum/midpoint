@@ -20,6 +20,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -225,7 +226,10 @@ public class JobController {
             wfTaskUtil.pushProcessShadowHandler(instruction.isSimple(), task, TASK_START_DELAY, result);
         }
 
-        // put task variables
+        // put model context + task variables
+        if (instruction.getTaskModelContext() != null) {
+            task.setModelOperationContext(((LensContext) instruction.getTaskModelContext()).toLensContextType());
+        }
         for (Item item : instruction.getTaskVariables().values()) {
             task.setExtensionItem(item);
         }

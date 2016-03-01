@@ -1,8 +1,6 @@
 package com.evolveum.midpoint.wf.impl.jobs;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -13,6 +11,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
+import org.apache.commons.lang3.Validate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +39,8 @@ public class Job {
     }
 
     Job(JobController jobController, Task task, String activitiId, ChangeProcessor changeProcessor) {
+        Validate.notNull(task, "Task");
+        Validate.notNull(changeProcessor, "Change processor");
         this.jobController = jobController;
         this.task = task;
         this.activitiId = activitiId;
@@ -147,8 +148,8 @@ public class Job {
         return getWfTaskUtil().retrieveResultingDeltas(task);
     }
 
-    public void setSkipModelContextProcessingProperty(boolean value, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        getWfTaskUtil().setSkipModelContextProcessingProperty(task, value, result);
+    public void deleteModelOperationContext(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        getWfTaskUtil().deleteModelOperationContext(task, result);
     }
 
     public void storeModelContext(ModelContext modelContext) throws SchemaException {

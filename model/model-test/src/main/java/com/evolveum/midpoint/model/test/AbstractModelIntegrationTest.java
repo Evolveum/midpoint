@@ -791,6 +791,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assignOrg(userOid, orgOid, null, task, result);
 	}
 	
+	protected void assignOrg(String userOid, String orgOid, QName relation) 
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
+			CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+			PolicyViolationException, SecurityViolationException {
+		Task task = createTask(AbstractIntegrationTest.class.getName()+".assignOrg");
+		OperationResult result = task.getResult();
+		assignOrg(userOid, orgOid, relation, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+	
 	protected void assignOrg(String userOid, String orgOid, QName relation, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,

@@ -221,9 +221,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         wrapper.setShowAssignments(false);
         wrapper.setReadonly(true);
         wrapper.initializeContainers(this);
-        if (wrapper.getResult() != null && !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
-            showResultInSession(wrapper.getResult());
-        }
+        showResult(wrapper.getResult(), false);
 
         return wrapper;
        
@@ -250,10 +248,8 @@ public class PageWorkItem extends PageAdminWorkItems {
         wrapper.setShowAssignments(true);
         wrapper.setReadonly(true);
         wrapper.initializeContainers(this);
-        if (wrapper.getResult() != null && !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
-            showResultInSession(wrapper.getResult());
-        }
-
+        showResult(wrapper.getResult(), false);
+       
         return wrapper;
         
     }
@@ -288,10 +284,8 @@ public class PageWorkItem extends PageAdminWorkItems {
         wrapper.setShowAssignments(true);
         wrapper.setReadonly(true);
         wrapper.initializeContainers(this);
-        if (wrapper.getResult() != null && !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
-            showResultInSession(wrapper.getResult());
-        }
-
+            showResult(wrapper.getResult(), false);
+      
         return wrapper;
     }
 
@@ -317,9 +311,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             wrapper.setMinimalized(false);
             wrapper.setShowInheritedObjectAttributes(false);
             wrapper.initializeContainers(this);
-            if (wrapper.getResult() != null && !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
-                showResultInSession(wrapper.getResult());
-            }
+            showResult(wrapper.getResult(), false);
 
         return wrapper;
         } catch (Exception ex){
@@ -347,9 +339,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             wrapper.setMinimalized(true);
             wrapper.setReadonly(true);
             wrapper.initializeContainers(this);
-            if (wrapper.getResult() != null && !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
-                showResultInSession(wrapper.getResult());
-            }
+            showResult(wrapper.getResult(), false);
             return wrapper;
         } catch (Exception ex){
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get work item.", ex);
@@ -370,9 +360,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 			wrapper.setReadonly(true);
             wrapper.initializeContainers(this);
             wrapper.setShowInheritedObjectAttributes(false);
-            if (wrapper.getResult() != null && !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
-                showResultInSession(wrapper.getResult());
-            }
+            showResult(wrapper.getResult(), false);
 
 			return wrapper;
 		} catch (Exception ex) {
@@ -400,8 +388,9 @@ public class PageWorkItem extends PageAdminWorkItems {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get work item.", ex);
         }
 
+        
+            showResult(result, false);
         if (!result.isSuccess()) {
-            showResultInSession(result);
             throw getRestartResponseException(PageWorkItems.class);
         }
 
@@ -429,12 +418,12 @@ public class PageWorkItem extends PageAdminWorkItems {
         } catch (ObjectNotFoundException ex) {
             result.recordWarning("Work item seems to be already closed.");
             LoggingUtils.logException(LOGGER, "Couldn't get process instance for work item; it might be already closed.", ex);
-            showResultInSession(result);
+            showResult(result);
             throw getRestartResponseException(PageWorkItems.class);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get process instance for work item.", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get process instance for work item.", ex);
-            showResultInSession(result);
+            showResult(result);
             throw getRestartResponseException(PageWorkItems.class);
         }
     }
@@ -774,10 +763,10 @@ public class PageWorkItem extends PageAdminWorkItems {
         result.computeStatusIfUnknown();
 
         if (!result.isSuccess()) {
-            showResult(result);
+            showResult(result, false);
             target.add(getFeedbackPanel());
         } else {
-            showResultInSession(result);
+        	showResult(result);
             goBack(PageWorkItems.class);
         }
     }
@@ -798,7 +787,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             showResult(result);
             target.add(getFeedbackPanel());
         } else {
-            showResultInSession(result);
+        	showResult(result);
             goBack(PageWorkItems.class);
         }
     }
@@ -819,7 +808,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             showResult(result);
             target.add(getFeedbackPanel());
         } else {
-            showResultInSession(result);
+        	showResult(result);
             goBack(PageWorkItems.class);
         }
     }
