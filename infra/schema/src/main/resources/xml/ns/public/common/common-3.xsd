@@ -3995,6 +3995,18 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="volatilityTrigger" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If set to true it indicates that change of this attribute may cause
+                                changes in other attributes. In that case midPoint re-reads the object
+                                after the change of this attributes.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+	                            <a:since>3.3.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="displayNameAttribute" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>

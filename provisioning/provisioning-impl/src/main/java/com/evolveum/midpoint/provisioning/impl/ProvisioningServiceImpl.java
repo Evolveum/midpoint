@@ -734,17 +734,17 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 
 		// getting object to modify
-		PrismObject<T> object = getRepoObject(type, oid, null, result);
+		PrismObject<T> repoShadow = getRepoObject(type, oid, null, result);
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("**PROVISIONING: modifyObject: object to modify:\n{}.", object.debugDump());
+			LOGGER.trace("**PROVISIONING: modifyObject: object to modify (repository):\n{}.", repoShadow.debugDump());
 		}
 
 		try {
 			
 			if (ShadowType.class.isAssignableFrom(type)) {
 				// calling shadow cache to modify object
-				oid = getShadowCache(Mode.STANDARD).modifyShadow((PrismObject<ShadowType>)object,  oid, modifications, scripts, options, task, 
+				oid = getShadowCache(Mode.STANDARD).modifyShadow((PrismObject<ShadowType>)repoShadow,  oid, modifications, scripts, options, task, 
 					result);
 			} else {
 				cacheRepositoryService.modifyObject(type, oid, modifications, result);

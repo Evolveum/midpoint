@@ -252,6 +252,10 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		return origName;
 	}
 	
+	protected String transformNameToResource(String origName) {
+		return origName;
+	}
+	
 	protected void assertShadowName(PrismObject<ShadowType> shadow, String expectedName) {
 		PrismAsserts.assertEqualsPolyString("Shadow name is wrong in "+shadow, expectedName, shadow.asObjectable().getName());
 	}

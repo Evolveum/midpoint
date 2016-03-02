@@ -599,8 +599,8 @@ class EntitlementConverter {
 		}
 	}
 	
-	private <T> PrismObject<ShadowType> collectEntitlementsAsObjectOperation(ProvisioningContext ctx, Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap,
-			Collection<PrismContainerValue<ShadowAssociationType>> set,
+	private <T> PrismObject<ShadowType> collectEntitlementsAsObjectOperation(ProvisioningContext ctx, Map<ResourceObjectDiscriminator, 
+			ResourceObjectOperations> roMap, Collection<PrismContainerValue<ShadowAssociationType>> set,
 			PrismObject<ShadowType> subjectShadowBefore, PrismObject<ShadowType> subjectShadowAfter, 
 			ModificationType modificationType, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException {
@@ -614,8 +614,8 @@ class EntitlementConverter {
 		return subjectShadowAfter;
 	}
 	
-	private <TV,TA> PrismObject<ShadowType> collectEntitlementAsObjectOperation(ProvisioningContext subjectCtx, Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap,
-			PrismContainerValue<ShadowAssociationType> associationCVal,
+	private <TV,TA> PrismObject<ShadowType> collectEntitlementAsObjectOperation(ProvisioningContext subjectCtx, Map<ResourceObjectDiscriminator, 
+			ResourceObjectOperations> roMap, PrismContainerValue<ShadowAssociationType> associationCVal,
 			PrismObject<ShadowType> subjectShadowBefore, PrismObject<ShadowType> subjectShadowAfter, 
 			ModificationType modificationType, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException {
@@ -746,12 +746,18 @@ class EntitlementConverter {
 				}
 				// TODO it seems that duplicate values are checked twice: once here and the second time in ResourceObjectConverter.executeModify
 				// TODO check that and fix if necessary
-				attributeDelta = ProvisioningUtil.narrowPropertyDelta(attributeDelta, currentObjectShadow, assocDefType.getMatchingRule(), matchingRuleRegistry);
+				PropertyDelta<TA> attributeDeltaAfterNarrow = ProvisioningUtil.narrowPropertyDelta(attributeDelta, currentObjectShadow, assocDefType.getMatchingRule(), matchingRuleRegistry);
+				if (LOGGER.isTraceEnabled() && (attributeDeltaAfterNarrow == null || attributeDeltaAfterNarrow.isEmpty())) {
+					LOGGER.trace("Not collecting entitlement object operations ({}) association {}: attribute delta is empty after narrow, orig delta: {}",
+							modificationType, associationName.getLocalPart(), attributeDelta);
+				}
+				attributeDelta = attributeDeltaAfterNarrow;
 			}
 			
 			if (attributeDelta != null && !attributeDelta.isEmpty()) {
 				PropertyModificationOperation attributeModification = new PropertyModificationOperation(attributeDelta);
 				attributeModification.setMatchingRuleQName(assocDefType.getMatchingRule());
+				LOGGER.trace("Collecting entitlement object operations ({}) association {}: {}", modificationType, associationName.getLocalPart(), attributeModification);
 				operations.getOperations().add(attributeModification);
 			}
 			

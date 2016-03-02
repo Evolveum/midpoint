@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,12 @@
  */
 package com.evolveum.midpoint.prism.path;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.apache.commons.lang.Validate;
+
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -323,7 +329,50 @@ public class ItemPath implements Serializable, Cloneable {
         return rv;
     }
 
-    public enum CompareResult {
+	public static boolean isNullOrEmpty(ItemPath itemPath) {
+		return itemPath == null || itemPath.isEmpty();
+	}
+
+	public static boolean containsSingleNameSegment(ItemPath path) {
+		return path != null && path.size() == 1 && path.first() instanceof NameItemPathSegment;
+	}
+
+	public boolean startsWith(Class<? extends ItemPathSegment> clazz) {
+		if (isEmpty()) {
+			return false;
+		} else {
+			return clazz.isAssignableFrom(first().getClass());
+		}
+	}
+
+	public boolean startsWith(ItemPath other) {
+		if (other == null) {
+			return true;
+		}
+		return other.isSubPathOrEquivalent(this);
+	}
+	
+	public boolean startsWithName(QName name) {
+		if (!isEmpty() && startsWith(NameItemPathSegment.class)) {
+			return QNameUtil.match(name, ((NameItemPathSegment) first()).getName());
+		} else {
+			return false;
+		}
+	}
+
+	public QName asSingleName() {
+		if (size() == 1 && startsWith(NameItemPathSegment.class)) {
+			return ((NameItemPathSegment) first()).getName();
+		} else {
+			return null;
+		}
+	}
+
+	public static QName asSingleName(ItemPath path) {
+		return path != null ? path.asSingleName() : null;
+	}
+
+	public enum CompareResult {
 		EQUIVALENT,
 		SUPERPATH,
 		SUBPATH,

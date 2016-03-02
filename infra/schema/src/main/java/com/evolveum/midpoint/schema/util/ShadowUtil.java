@@ -16,6 +16,10 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -26,6 +30,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefiniti
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -565,5 +570,10 @@ public class ShadowUtil {
 			PrismObject<ShadowType> shadow, ObjectClassComplexTypeDefinition objectClassDefinition) {
 		return new ResourceObjectIdentification(objectClassDefinition, 
 				ShadowUtil.getIdentifiers(shadow), ShadowUtil.getSecondaryIdentifiers(shadow));
+	}
+
+	public static boolean matchesAttribute(ItemPath path, QName attributeName) {
+		return (ShadowType.F_ATTRIBUTES.equals(ItemPath.getFirstName(path)) && 
+				QNameUtil.match(ItemPath.getFirstName(path.rest()), attributeName));
 	}
 }

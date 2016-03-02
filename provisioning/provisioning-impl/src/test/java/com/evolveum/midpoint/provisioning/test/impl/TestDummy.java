@@ -3181,7 +3181,7 @@ public class TestDummy extends AbstractDummyTest {
 		}
 		
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+		assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
@@ -3218,7 +3218,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		// Just make sure nothing has changed
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+		assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
 		
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		assertSteadyResource();
@@ -3269,7 +3269,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		// Make sure that the groups is still there and will is a member
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+		assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
@@ -3323,7 +3323,7 @@ public class TestDummy extends AbstractDummyTest {
 
         // Make sure that the groups is still there and will is a member
         DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-        assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+        assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
 
         syncServiceMock.assertNotifySuccessOnly();
         
@@ -3376,7 +3376,7 @@ public class TestDummy extends AbstractDummyTest {
         assertNotNull("Privilege object (bargain) is gone!", priv2);
 
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+		assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
 		
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		assertSteadyResource();
@@ -3445,11 +3445,11 @@ public class TestDummy extends AbstractDummyTest {
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
         
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+		assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
 		
 		String foolsIcfUid = getIcfUid(foolsShadow);
 		groupFools = getDummyGroupAssert("fools", foolsIcfUid);
-		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+		assertMember(groupFools, transformNameToResource(ACCOUNT_WILL_USERNAME));
 		
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		assertSteadyResource();
@@ -3514,11 +3514,11 @@ public class TestDummy extends AbstractDummyTest {
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
         
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+		assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
 		
 		String foolsIcfUid = getIcfUid(foolsShadow);
 		DummyGroup groupFools = getDummyGroupAssert("fools", foolsIcfUid);
-		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+		assertMember(groupFools, transformNameToResource(ACCOUNT_WILL_USERNAME));
 		
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		assertSteadyResource();
