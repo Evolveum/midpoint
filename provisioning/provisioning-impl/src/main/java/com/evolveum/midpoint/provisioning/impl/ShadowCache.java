@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.prism.Containerable;
@@ -262,7 +263,7 @@ public abstract class ShadowCache {
 			// (we do not have raw/noFetch option)
 			InternalMonitor.recordShadowFetchOperation();
 			
-			resourceShadow = resouceObjectConverter.getResourceObject(ctx, identifiers, parentResult);
+			resourceShadow = resouceObjectConverter.getResourceObject(ctx, identifiers, true, parentResult);
 			
 			
 			resourceManager.modifyResourceAvailabilityStatus(resource.asPrismObject(), AvailabilityStatusType.UP, parentResult);
@@ -393,20 +394,16 @@ public abstract class ShadowCache {
 	
 	public abstract Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException;
 	
-	public String modifyShadow(PrismObject<ShadowType> shadow, String oid,
+	public String modifyShadow(PrismObject<ShadowType> repoShadow, String oid,
 				Collection<? extends ItemDelta> modifications, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
 				throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
 				ConfigurationException, SecurityViolationException {
 
-		Validate.notNull(shadow, "Object to modify must not be null.");
+		Validate.notNull(repoShadow, "Object to modify must not be null.");
 		Validate.notNull(oid, "OID must not be null.");
 		Validate.notNull(modifications, "Object modification must not be null.");
 
 		InternalMonitor.recordShadowChangeOperation();
-		
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Modifying resource shadow:\n{}", shadow.debugDump());
-		}
 		
 		Collection<QName> additionalAuxiliaryObjectClassQNames = new ArrayList<>();
 		ItemPath auxPath = new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS);
@@ -419,30 +416,32 @@ public abstract class ShadowCache {
 			}
 		}
 		
-		ProvisioningContext ctx = ctxFactory.create(shadow, additionalAuxiliaryObjectClassQNames, task, parentResult);
-		Collection<PropertyModificationOperation> sideEffectChanges;
+		ProvisioningContext ctx = ctxFactory.create(repoShadow, additionalAuxiliaryObjectClassQNames, task, parentResult);
+		
+		Collection<PropertyDelta<PrismPropertyValue>> sideEffectChanges;
 		try {
 			ctx.assertDefinition();
+			RefinedObjectClassDefinition rOCDef = ctx.getObjectClassDefinition();
 						
-			applyAttributesDefinition(ctx, shadow);
+			applyAttributesDefinition(ctx, repoShadow);
 			
-			accessChecker.checkModify(ctx.getResource(), shadow, modifications, ctx.getObjectClassDefinition(), parentResult);
+			accessChecker.checkModify(ctx.getResource(), repoShadow, modifications, ctx.getObjectClassDefinition(), parentResult);
 	
 			preprocessEntitlements(ctx, modifications, "delta for shadow "+oid, parentResult);
 	
-			modifications = beforeModifyOnResource(shadow, options, modifications);
+			modifications = beforeModifyOnResource(repoShadow, options, modifications);
 	
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Applying change: {}", DebugUtil.debugDump(modifications));
 			}
 	
-			sideEffectChanges = resouceObjectConverter.modifyResourceObject(ctx, shadow, scripts, modifications,
+			sideEffectChanges = resouceObjectConverter.modifyResourceObject(ctx, repoShadow, scripts, modifications,
 					parentResult);
 		} catch (Exception ex) {
 			LOGGER.debug("Provisioning exception: {}:{}, attempting to handle it",
 					new Object[] { ex.getClass(), ex.getMessage(), ex });
 			try {
-				shadow = handleError(ctx, ex, shadow, FailedOperation.MODIFY, modifications,
+				repoShadow = handleError(ctx, ex, repoShadow, FailedOperation.MODIFY, modifications,
 						ProvisioningOperationOptions.isCompletePostponed(options), parentResult);
 				parentResult.computeStatus();
 			} catch (ObjectAlreadyExistsException e) {
@@ -452,36 +451,21 @@ public abstract class ShadowCache {
 				throw new SystemException(e);
 			}
 
-			return shadow.getOid();
-		}
-
-		Collection<PropertyDelta<PrismPropertyValue>> sideEffectDeltas = convertToPropertyDelta(sideEffectChanges);
-		if (!sideEffectDeltas.isEmpty()) {
-			PrismUtil.setDeltaOldValue(shadow, sideEffectDeltas);
-			ItemDelta.addAll(modifications, (Collection) sideEffectDeltas);
+			return repoShadow.getOid();
 		}
 		
-		afterModifyOnResource(ctx, shadow, modifications, parentResult);
-
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModifyDelta(shadow.getOid(), modifications, shadow.getCompileTimeClass(), prismContext);
-		ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, shadow,
+		if (sideEffectChanges != null) {
+			ItemDelta.addAll(modifications, sideEffectChanges);
+		}
+		
+		afterModifyOnResource(ctx, repoShadow, modifications, parentResult);
+		
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModifyDelta(repoShadow.getOid(), modifications, repoShadow.getCompileTimeClass(), prismContext);
+		ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, repoShadow,
 				delta, parentResult);
 		operationListener.notifySuccess(operationDescription, task, parentResult);
 		parentResult.recordSuccess();
 		return oid;
-	}
-
-
-	private Collection<PropertyDelta<PrismPropertyValue>> convertToPropertyDelta(
-			Collection<PropertyModificationOperation> sideEffectChanges) {
-		Collection<PropertyDelta<PrismPropertyValue>> sideEffectDelta = new ArrayList<PropertyDelta<PrismPropertyValue>>();
-		if (sideEffectChanges != null) {
-			for (PropertyModificationOperation mod : sideEffectChanges){
-				sideEffectDelta.add(mod.getPropertyDelta());
-			}
-		}
-		
-		return sideEffectDelta;
 	}
 
 	public void deleteShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, OperationProvisioningScriptsType scripts,

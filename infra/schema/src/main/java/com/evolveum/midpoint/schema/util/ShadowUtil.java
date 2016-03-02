@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -593,5 +594,10 @@ public class ShadowUtil {
 			PrismObject<ShadowType> shadow, ObjectClassComplexTypeDefinition objectClassDefinition) {
 		return new ResourceObjectIdentification(objectClassDefinition, 
 				ShadowUtil.getIdentifiers(shadow), ShadowUtil.getSecondaryIdentifiers(shadow));
+	}
+
+	public static boolean matchesAttribute(ItemPath path, QName attributeName) {
+		return (ShadowType.F_ATTRIBUTES.equals(ItemPath.getFirstName(path)) && 
+				QNameUtil.match(ItemPath.getFirstName(path.rest()), attributeName));
 	}
 }
