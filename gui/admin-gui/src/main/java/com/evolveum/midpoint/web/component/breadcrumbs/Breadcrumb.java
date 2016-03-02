@@ -70,11 +70,8 @@ public class Breadcrumb implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Breadcrumb that = (Breadcrumb) o;
-
-        if (label != null ? !label.equals(that.label) : that.label != null) return false;
-        return icon != null ? icon.equals(that.icon) : that.icon == null;
-
+        //we don't compare label/icon models, we would need to compare models values
+        return true;
     }
 
     @Override
