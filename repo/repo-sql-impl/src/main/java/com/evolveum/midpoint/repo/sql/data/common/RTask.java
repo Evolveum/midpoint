@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.*;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -64,7 +65,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
     private RTaskBinding binding;
 
     private REmbeddedReference objectRef;
-    private REmbeddedReference ownerRef;
+    private REmbeddedReference ownerRefTask;
     private String parent;
 
     private String canRunOnNode;
@@ -107,9 +108,15 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         return objectRef;
     }
 
+    @JaxbName(localPart = "ownerRef")
     @Embedded
-    public REmbeddedReference getOwnerRef() {
-        return ownerRef;
+    @AttributeOverrides({
+            @AttributeOverride(name = "relation", column = @Column(name = "ownerRef_relation", length = RUtil.COLUMN_LENGTH_QNAME)),
+            @AttributeOverride(name = "targetOid", column = @Column(name = "ownerRef_targetOid", length = RUtil.COLUMN_LENGTH_OID)),
+            @AttributeOverride(name = "type", column = @Column(name = "ownerRef_type"))
+    })
+    public REmbeddedReference getOwnerRefTask() {
+        return ownerRefTask;
     }
 
     @Index(name = "iParent")
@@ -155,8 +162,8 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         this.objectRef = objectRef;
     }
 
-    public void setOwnerRef(REmbeddedReference ownerRef) {
-        this.ownerRef = ownerRef;
+    public void setOwnerRefTask(REmbeddedReference ownerRefTask) {
+        this.ownerRefTask = ownerRefTask;
     }
 
     public void setParent(String parent) {
@@ -269,7 +276,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
             return false;
         if (node != null ? !node.equals(rTask.node) : rTask.node != null) return false;
         if (objectRef != null ? !objectRef.equals(rTask.objectRef) : rTask.objectRef != null) return false;
-        if (ownerRef != null ? !ownerRef.equals(rTask.ownerRef) : rTask.ownerRef != null) return false;
+        if (ownerRefTask != null ? !ownerRefTask.equals(rTask.ownerRefTask) : rTask.ownerRefTask != null) return false;
         if (recurrence != rTask.recurrence) return false;
         if (taskIdentifier != null ? !taskIdentifier.equals(rTask.taskIdentifier) : rTask.taskIdentifier != null)
             return false;
@@ -331,7 +338,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         repo.setParent(jaxb.getParent());
 
         repo.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getObjectRef(), prismContext));
-        repo.setOwnerRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), prismContext));
+        repo.setOwnerRefTask(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), prismContext));
         repo.setWaitingReason(RUtil.getRepoEnumValue(jaxb.getWaitingReason(), RTaskWaitingReason.class));
         repo.setDependent(RUtil.listToSet(jaxb.getDependent()));
 

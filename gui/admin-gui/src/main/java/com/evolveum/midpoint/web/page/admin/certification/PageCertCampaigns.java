@@ -185,23 +185,26 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 	// region Layout
 
+
 	@Override
-	protected IModel<String> createPageSubTitleModel() {
+	protected IModel<String> createPageTitleModel() {
 		return new AbstractReadOnlyModel<String>() {
+
 			@Override
 			public String getObject() {
 				String definitionOid = getDefinitionOid();
 				if (definitionOid == null) {
-					return null;
+					return createStringResource("PageCertCampaigns.title", "").getString();
 				}
+
 				Task task = createSimpleTask("dummy");
 				PrismObject<AccessCertificationDefinitionType> definitionPrismObject = WebModelServiceUtils
 						.loadObject(AccessCertificationDefinitionType.class,
 								definitionOid, PageCertCampaigns.this, task, task.getResult());
-				if (definitionPrismObject == null) {
-					return null;
-				}
-				return definitionPrismObject.asObjectable().getName().getOrig();
+
+				String name = definitionPrismObject == null ? "" : WebComponentUtil.getName(definitionPrismObject);
+
+				return createStringResource("PageCertCampaigns.title", name).getString();
 			}
 		};
 	}
