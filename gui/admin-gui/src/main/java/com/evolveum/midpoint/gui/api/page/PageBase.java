@@ -248,6 +248,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 												// reinitialize all the chain of
 												// previous pages?
 
+	private boolean initialized = false;
+
 	public PageBase(PageParameters parameters) {
 		super(parameters);
 
@@ -263,6 +265,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	protected void onConfigure() {
 		super.onConfigure();
 
+		if (initialized) {
+			return;
+		}
+
+		createBreadcrumb();
+	}
+
+	protected void createBreadcrumb() {
 		BreadcrumbPageClass bc = new BreadcrumbPageClass(new AbstractReadOnlyModel() {
 
 			@Override
