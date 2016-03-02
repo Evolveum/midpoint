@@ -1,7 +1,10 @@
 CREATE TABLE m_abstract_role (
-  approvalProcess VARCHAR(255),
-  requestable     BOOLEAN,
-  oid             VARCHAR(36) NOT NULL,
+  approvalProcess    VARCHAR(255),
+  ownerRef_relation  VARCHAR(157),
+  ownerRef_targetOid VARCHAR(36),
+  ownerRef_type      INTEGER,
+  requestable        BOOLEAN,
+  oid                VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
 

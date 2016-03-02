@@ -31,6 +31,7 @@ import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.projector.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
@@ -136,6 +137,9 @@ public class ChangeExecutor {
     
     @Autowired(required = true)
     private Clock clock;
+    
+    @Autowired(required = true)
+	private ModelObjectResolver objectResolver;
     
     private PrismObjectDefinition<UserType> userDefinition = null;
     private PrismObjectDefinition<ShadowType> shadowDefinition = null;
@@ -944,26 +948,8 @@ public class ChangeExecutor {
 		LOGGER.debug("\n{}", sb);
 	}
 
-	private <F extends ObjectType> OwnerResolver createOwnerResolver(final LensContext<F> context) {
-		return new OwnerResolver() {
-			@Override
-			public <F extends FocusType> PrismObject<F> resolveOwner(PrismObject<ShadowType> shadow) {
-				LensFocusContext<F> focusContext = (LensFocusContext<F>) context.getFocusContext();
-				if (focusContext == null) {
-					return null;
-				} else if (focusContext.getObjectNew() != null) {
-					// If we create both owner and shadow in the same operation (see e.g. MID-2027), we have to provide object new
-					// Moreover, if the authorization would be based on a property that is being changed along with the
-					// the change being authorized, we would like to use changed version.
-					return focusContext.getObjectNew();
-				} else if (focusContext.getObjectCurrent() != null) {
-					// This could be useful if the owner is being deleted.
-					return focusContext.getObjectCurrent();
-				} else {
-					return null;
-				}
-			}
-		};
+	private <F extends ObjectType> OwnerResolver createOwnerResolver(final LensContext<F> context, Task task, OperationResult result) {
+		return new LensOwnerResolver<>(context, objectResolver, task, result);
 	}
 			
     private <T extends ObjectType, F extends ObjectType> void executeAddition(ObjectDelta<T> change, 
@@ -981,7 +967,7 @@ public class ChangeExecutor {
             change.getModifications().clear();
         }
 
-        OwnerResolver ownerResolver = createOwnerResolver(context);
+        OwnerResolver ownerResolver = createOwnerResolver(context, task, result);
 		try {
 			securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), AuthorizationPhaseType.EXECUTION,
         			objectToAdd, null, null, ownerResolver, result);
@@ -1045,7 +1031,7 @@ public class ChangeExecutor {
         Class<T> objectTypeClass = change.getObjectTypeClass();
         
         PrismObject<T> objectOld = objectContext.getObjectOld();
-        OwnerResolver ownerResolver = createOwnerResolver(context);
+        OwnerResolver ownerResolver = createOwnerResolver(context, task, result);
 		try {
 			securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), AuthorizationPhaseType.EXECUTION,
 					objectOld, null, null, ownerResolver, result);
@@ -1098,7 +1084,7 @@ public class ChangeExecutor {
         Class<T> objectTypeClass = change.getObjectTypeClass();
         
         PrismObject<T> objectNew = objectContext.getObjectNew();
-        OwnerResolver ownerResolver = createOwnerResolver(context);
+        OwnerResolver ownerResolver = createOwnerResolver(context, task, result);
 		try {
 			securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.EXECUTION,
 					objectNew, change, null, ownerResolver, result);
