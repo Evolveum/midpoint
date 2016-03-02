@@ -116,21 +116,6 @@ public class PageResourceWizard extends PageAdminResources {
     }
 
     @Override
-    protected IModel<String> createPageSubTitleModel() {
-        return new LoadableModel<String>(false) {
-
-            @Override
-            protected String load() {
-                if (!isResourceOidAvailable()) {
-                    return null;
-                }
-
-                return WebComponentUtil.getName(model.getObject());
-            }
-        };
-    }
-
-    @Override
     protected IModel<String> createPageTitleModel() {
         return new LoadableModel<String>(false) {
 
@@ -140,7 +125,8 @@ public class PageResourceWizard extends PageAdminResources {
                     return PageResourceWizard.super.createPageTitleModel().getObject();
                 }
 
-                return new StringResourceModel("page.title.editResource", PageResourceWizard.this, null).getString();
+                String name = WebComponentUtil.getName(model.getObject());
+                return createStringResource("PageResourceWizard.title.edit", name).getString();
             }
         };
     }

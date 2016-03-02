@@ -112,24 +112,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			@Override
 			protected String load() {
 				if (!isEditingFocus()) {
-					return createStringResource("pageAdminObjectDetails.title.newObject").getObject();
-				}
-
-				return createStringResource("pageAdminObjectDetails.title.editObject").getObject();
-			}
-		};
-	}
-
-	@Override
-	protected IModel<String> createPageSubTitleModel() {
-		return new LoadableModel<String>() {
-
-			@Override
-			protected String load() {
-				if (!isEditingFocus()) {
-					return createStringResource(
-							"pageAdminObjectDetails.subTitle.new" + getCompileTimeClass().getSimpleName())
-									.getObject();
+					String key = "PageAdminObjectDetails.title.new" + getCompileTimeClass().getSimpleName();
+					return createStringResource(key).getObject();
 				}
 
 				String name = null;
@@ -137,9 +121,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 					name = WebComponentUtil.getName(getObjectWrapper().getObject());
 				}
 
-				return createStringResource(
-						"pageAdminObjectDetails.subTitle.edit" + getCompileTimeClass().getSimpleName(), name)
-								.getObject();
+				String key = "PageAdminObjectDetails.title.edit" + getCompileTimeClass().getSimpleName();
+				return createStringResource(key, name).getObject();
 			}
 		};
 	}

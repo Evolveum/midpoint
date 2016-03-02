@@ -316,8 +316,46 @@ th.cog, td.cog {
 	font-size: 22px;
 }
 
-.breadcrumb {
-	float: right;
-	background-color: transparent;
-	padding-left: 10px;
+.navbar-custom-menu > .breadcrumb {
+  float: left;
+  background: transparent;
+  margin-top: 10px;
+  margin-bottom: 0;
+  margin-right: 20px;
+  font-size: 12px;
+  padding: 7px 5px;
+
+  //.border-radius(2px);
+
+  > li > a {
+    color: #444;
+    text-decoration: none;
+    display: inline-block;
+
+    > .fa, > .glyphicon, > .ion {
+      margin-right: 5px;
+    }
+  }
+
+  > li + li:before {
+    content: '>\00a0';
+    padding: 0 0 0 5px;
+  }
+
+  //@media (max-width: @screen-sm-max) {
+  //  > .breadcrumb {
+  //    position: relative;
+  //    margin-top: 5px;
+  //    top: 0;
+  //    right: 0;
+  //    float: none;
+  //    background: @gray;
+  //    padding-left: 10px;
+  //
+  //    li:before {
+  //      color: darken(@gray, 20%);
+  //    }
+  //  }
+  //}
 }
+

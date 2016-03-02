@@ -1,8 +1,9 @@
 package com.evolveum.midpoint.testing.selenide.tests;
 
 import com.codeborne.selenide.SelenideElement;
-import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.ITestContext;
 import org.testng.annotations.BeforeClass;
 
@@ -80,7 +81,7 @@ public class AbstractSelenideTest{
     //Assign role link text
     public static final String ASSIGN_ROLE_LINKTEXT = "Assign Role";
 
-    Logger LOGGER = Logger.getLogger(AbstractSelenideTest.class);
+    Logger LOGGER = LoggerFactory.getLogger(AbstractSelenideTest.class);
 
     private static final String PARAM_SITE_URL = "site.url";
     public String siteUrl;
