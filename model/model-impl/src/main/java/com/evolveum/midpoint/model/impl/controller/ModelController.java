@@ -786,8 +786,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 switch (searchProvider) {
                     case REPOSITORY: list = cacheRepositoryService.searchObjects(type, query, options, result); break;
                     case PROVISIONING: list = provisioning.searchObjects(type, query, options, task, result); break;
-                    case TASK_MANAGER: list = taskManager.searchObjects(type, query, options, result); break;
-                    case WORKFLOW: throw new UnsupportedOperationException();
+                    case TASK_MANAGER:
+						list = taskManager.searchObjects(type, query, options, result);
+						if (workflowManager != null && TaskType.class.isAssignableFrom(type)) {
+							workflowManager.augmentTaskObjectList(list, options, task, result);
+						}
+						break;
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);
                 }
 				result.computeStatus();
@@ -981,8 +985,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 switch (searchProvider) {
                     case REPOSITORY: metadata = cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, options, false, result); break;		// TODO move strictSequential flag to model API in some form
                     case PROVISIONING: metadata = provisioning.searchObjectsIterative(type, query, options, internalHandler, task, result); break;
-                    case TASK_MANAGER: throw new UnsupportedOperationException("searchIterative in task manager is currently not supported");
-                    case WORKFLOW: throw new UnsupportedOperationException("searchIterative in task manager is currently not supported");
+                    case TASK_MANAGER: throw new UnsupportedOperationException("searchObjectsIterative in task manager is currently not supported");
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);
                 }
 				result.computeStatusIfUnknown();
@@ -1024,7 +1027,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             case REPOSITORY: message = "Couldn't search objects in repository"; break;
             case PROVISIONING: message = "Couldn't search objects in provisioning"; break;
             case TASK_MANAGER: message = "Couldn't search objects in task manager"; break;
-            case WORKFLOW: message = "Couldn't search objects in workflow module"; break;
             default: message = "Couldn't search objects"; break;    // should not occur
         }
 		LoggingUtils.logException(LOGGER, message, e);

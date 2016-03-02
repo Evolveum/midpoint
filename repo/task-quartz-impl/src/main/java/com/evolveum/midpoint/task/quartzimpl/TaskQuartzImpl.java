@@ -89,6 +89,7 @@ import java.util.Set;
 import java.util.concurrent.Future;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_MODEL_OPERATION_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 
 /**
  * Implementation of a Task.
@@ -1978,6 +1979,52 @@ public class TaskQuartzImpl implements Task {
 					.item(F_MODEL_OPERATION_CONTEXT).replace()
 					.asItemDelta();
 		}
+	}
+	
+	/*
+	 *  Workflow context
+	 */
+
+	public void setWorkflowContext(WfContextType value) throws SchemaException {
+		processModificationBatched(setWorkflowContextAndPrepareDelta(value));
+	}
+
+	//@Override
+	public void setWorkflowContextImmediate(WfContextType value, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
+		try {
+			processModificationNow(setWorkflowContextAndPrepareDelta(value), parentResult);
+		} catch (ObjectAlreadyExistsException ex) {
+			throw new SystemException(ex);
+		}
+	}
+
+	public void setWorkflowContextTransient(WfContextType value) {
+		taskPrism.asObjectable().setWorkflowContext(value);
+	}
+
+	private ItemDelta<?, ?> setWorkflowContextAndPrepareDelta(WfContextType value) throws SchemaException {
+		setWorkflowContextTransient(value);
+		if (!isPersistent()) {
+			return null;
+		}
+		if (value != null) {
+			return DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+					.item(F_WORKFLOW_CONTEXT).replace(value.asPrismContainerValue().clone())
+					.asItemDelta();
+		} else {
+			return DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+					.item(F_WORKFLOW_CONTEXT).replace()
+					.asItemDelta();
+		}
+	}
+
+	@Override
+	public void initializeWorkflowContextImmediate(String processInstanceId, OperationResult result)
+			throws SchemaException, ObjectNotFoundException {
+		WfContextType wfContextType = new WfContextType(getPrismContext());
+		wfContextType.setProcessInstanceId(processInstanceId);
+		setWorkflowContextImmediate(wfContextType, result);
 	}
 
 	//    @Override

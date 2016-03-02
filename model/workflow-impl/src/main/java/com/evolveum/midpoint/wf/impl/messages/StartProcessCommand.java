@@ -26,6 +26,7 @@ public class StartProcessCommand extends MidPointToActivitiMessage {
 
     private Map<String,Object> variables;
     private String processName;
+    private String processInstanceName;
     private String processOwner;
     private String taskOid;
     private boolean sendStartConfirmation;
@@ -36,6 +37,14 @@ public class StartProcessCommand extends MidPointToActivitiMessage {
 
     public void setProcessName(String processName) {
         this.processName = processName;
+    }
+
+    public String getProcessInstanceName() {
+        return processInstanceName;
+    }
+
+    public void setProcessInstanceName(String processInstanceName) {
+        this.processInstanceName = processInstanceName;
     }
 
     public boolean isSendStartConfirmation() {
@@ -83,6 +92,6 @@ public class StartProcessCommand extends MidPointToActivitiMessage {
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + "[process=" + processName + ", task=" + taskOid + ", variables=" + variables + ", sendStartConfirmation=" + sendStartConfirmation + "]";
+        return this.getClass().getSimpleName() + "[process=" + processName + "/" + processInstanceName + ", task=" + taskOid + ", variables=" + variables + ", sendStartConfirmation=" + sendStartConfirmation + "]";
     }
 }

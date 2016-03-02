@@ -26,6 +26,7 @@ import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.processes.BaseProcessMidPointInterface;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemApprovalProcessStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ItemApprovalProcessState;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ItemApprovalRequestType;
@@ -58,6 +59,7 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
         instruction.setProcessInterfaceBean(this);
     }
 
+    @Deprecated
     @Override
     public ProcessSpecificState externalizeProcessInstanceState(Map<String, Object> variables) {
         PrismContainerDefinition<ItemApprovalProcessState> extDefinition = prismContext.getSchemaRegistry().findContainerDefinitionByType(ItemApprovalProcessState.COMPLEX_TYPE);
@@ -84,6 +86,33 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
         }
 
         extState.asPrismContainerValue().setConcreteType(ItemApprovalProcessState.COMPLEX_TYPE);
+        return extState;
+    }
+
+    @Override
+    public ItemApprovalProcessStateType externalizeProcessSpecificState(Map<String, Object> variables) {
+        ItemApprovalProcessStateType extState = new ItemApprovalProcessStateType(prismContext);
+        com.evolveum.midpoint.xml.ns._public.common.common_3.ItemApprovalRequestType extRequestType = new com.evolveum.midpoint.xml.ns._public
+                .common.common_3.ItemApprovalRequestType(prismContext);
+
+        ApprovalRequest<?> intApprovalRequest = (ApprovalRequest) variables.get(ProcessVariableNames.APPROVAL_REQUEST);
+        intApprovalRequest.setPrismContext(prismContext);
+
+        ApprovalSchemaType approvalSchemaType = new ApprovalSchemaType(prismContext);
+        intApprovalRequest.getApprovalSchema().toApprovalSchemaType(approvalSchemaType);
+        extRequestType.setApprovalSchema(approvalSchemaType);
+
+        extRequestType.setItemToApprove(intApprovalRequest.getItemToApprove());
+        extState.setApprovalRequest(extRequestType);
+
+        List<Decision> intDecisions = (List<Decision>) variables.get(ProcessVariableNames.ALL_DECISIONS);
+        if (intDecisions != null) {
+            for (Decision intDecision : intDecisions) {
+                extState.getDecisions().add(intDecision.toDecisionType());
+            }
+        }
+
+        extState.asPrismContainerValue().setConcreteType(ItemApprovalProcessStateType.COMPLEX_TYPE);
         return extState;
     }
 

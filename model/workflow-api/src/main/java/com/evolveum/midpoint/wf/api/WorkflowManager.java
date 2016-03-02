@@ -18,11 +18,15 @@ package com.evolveum.midpoint.wf.api;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
@@ -146,4 +150,10 @@ public interface WorkflowManager {
     boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem);
 
     boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem);
+
+    <T extends ObjectType> void augmentTaskObject(PrismObject<T> object, Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task, OperationResult result);
+
+    <T extends ObjectType> void augmentTaskObjectList(SearchResultList<PrismObject<T>> list,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result);
 }

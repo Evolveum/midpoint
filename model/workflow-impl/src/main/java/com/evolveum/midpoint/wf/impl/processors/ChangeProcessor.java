@@ -33,6 +33,7 @@ import com.evolveum.midpoint.wf.impl.jobs.Job;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessorSpecificStateType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 
@@ -104,6 +105,14 @@ public interface ChangeProcessor {
      * @return external representation in the form of PrismObject
      */
     PrismObject<? extends ProcessInstanceState> externalizeProcessInstanceState(Map<String, Object> variables) throws JAXBException, SchemaException;
+
+	/**
+	 * TODO
+     * @param variables
+     * @return
+     * @throws SchemaException
+     */
+    WfProcessorSpecificStateType externalizeProcessorSpecificState(Map<String, Object> variables) throws SchemaException;
 
     /**
      * Prepares a displayable work item contents. For example, in case of primary change processor,

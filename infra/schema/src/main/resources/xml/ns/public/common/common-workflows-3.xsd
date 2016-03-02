@@ -60,8 +60,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!-- This will be enabled in a future version of midPoint (for the time being it is quite complicated to deliver this
-                 information to all the places where we need it - existing "static" configuration is much simpler to manage)
             <xsd:element name="processCheckInterval" minOccurs="0" type="xsd:int" default="10">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -77,7 +75,7 @@
                         assigned to other users.
                     </xsd:documentation>
                 </xsd:annotation>
-            </xsd:element> -->
+            </xsd:element>
             <xsd:element name="primaryChangeProcessor" minOccurs="0" type="tns:PrimaryChangeProcessorConfigurationType" />
             <xsd:element name="generalChangeProcessor" minOccurs="0" type="tns:GeneralChangeProcessorConfigurationType" />
         </xsd:sequence>
@@ -138,7 +136,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="activationCondition" minOccurs="0" type="tns:ExpressionType">
+            <xsd:element name="activationCondition" minOccurs="0" type="c:ExpressionType">
                 <xsd:annotation>
                     <xsd:documentation>
                         A condition controlling whether this scenario applies, i.e. whether a defined approval process should be started.
@@ -689,6 +687,95 @@
     </xsd:complexType>
     <xsd:element name="wfProcessInstance" type="tns:WfProcessInstanceType" />
 
+    <xsd:complexType name="WfContextType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Workflow context of the operation that is to be executed.
+                Points to a process instance in a workflow engine, and to an externalized view
+                of its state.
+
+                Beware, some attributes like process state or work items may not be always present.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="processInstanceId" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Internal identifier of a process instance, assigned by the underlying workflow engine
+                        (currently Activiti).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="processInstanceName" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the process instance. It is defined by the code that starts
+                        the process instance and should describe the purpose of the process
+                        instance as precisely as possible. An example: "Approving adding Webmaster to JoeDoe".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="startTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Time when this process instance started.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Time when this process instance finished (if it did).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="state" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Value of process variable "wfState" that should describe current state of
+                        the process instance (e.g. "Request was approved by Engineering, passed now to
+                        the Management Group").
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="approved" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        True if the result is APPROVED. False if REJECTED. Null if the result is not yet
+                        known or if it something other than APPROVED or REJECTED ("answer" property
+                        has to be set in such case).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="answer" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Value of process variable "wfAnswer" that should describe overall outcome
+                        of the process instance.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="processorSpecificState" type="tns:WfProcessorSpecificStateType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        State that is specific to a given change processor.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="processSpecificState" type="tns:WfProcessSpecificStateType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        State that is specific to a given BPMN process.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="wfContextType" type="tns:WfContextType" />
+
     <xsd:complexType name="DecisionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -699,16 +786,6 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="approver" type="c:UserType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Information on a user who has made this decision.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReference>tns:approverRef</a:objectReference>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="approverRef" type="c:ObjectReferenceType">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -716,14 +793,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="approverName" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The name of a user who has made this decision. Used as an optimization to avoid retrieving and storing whole UserType.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
             <xsd:element name="approved" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -744,5 +813,105 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="decisionType" type="tns:DecisionType" />
+
+    <xsd:complexType name="WfProcessorSpecificStateType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+            <xsd:documentation>
+                Describes states that are specific to a given change processor.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:complexType>
+    <xsd:element name="wfProcessorSpecificStateType" type="tns:WfProcessorSpecificStateType" />
+
+    <xsd:complexType name="WfPrimaryChangeProcessorStateType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:WfProcessorSpecificStateType">
+                <xsd:sequence>
+                    <xsd:element name="changeAspect" type="xsd:string"/>
+                    <xsd:element name="deltas" type="tns:ObjectTreeDeltasType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="wfPrimaryChangeProcessorStateType" type="tns:WfPrimaryChangeProcessorStateType" />
+
+    <xsd:complexType name="WfGeneralChangeProcessorStateType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:WfProcessorSpecificStateType">
+                <xsd:sequence>
+                    <xsd:element name="scenario" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="wfGeneralChangeProcessorStateType" type="tns:WfGeneralChangeProcessorStateType" />
+
+    <xsd:complexType name="WfProcessSpecificStateType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+            <xsd:documentation>
+                Describe states that are specific to a given BPMN process.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:complexType>
+    <xsd:element name="wfProcessSpecificStateType" type="tns:WfProcessSpecificStateType" />
+
+    <xsd:complexType name="ItemApprovalProcessStateType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:WfProcessSpecificStateType">
+                <xsd:sequence>
+                    <xsd:element name="approvalRequest" type="tns:ItemApprovalRequestType"/>
+                    <xsd:element name="decisions" type="c:DecisionType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="itemApprovalProcessStateType" type="tns:ItemApprovalProcessStateType" />
+
+    <xsd:complexType name="ItemApprovalRequestType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="itemToApprove" type="xsd:anyType"/>          <!-- Containerable -->
+            <xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="itemApprovalRequestType" type="tns:ItemApprovalRequestType" />
+
 
 </xsd:schema>

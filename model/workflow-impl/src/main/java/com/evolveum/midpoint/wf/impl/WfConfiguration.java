@@ -276,7 +276,7 @@ public class WfConfiguration implements BeanFactoryAware {
 
     public ChangeProcessor findChangeProcessor(String processorClassName) {
         for (ChangeProcessor cp : changeProcessors) {
-            if (processorClassName.equals(cp.getClass().getName())) {
+            if (cp.getClass().getName().equals(processorClassName)) {
                 return cp;
             }
         }

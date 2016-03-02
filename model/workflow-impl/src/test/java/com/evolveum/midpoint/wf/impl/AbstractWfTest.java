@@ -309,9 +309,9 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
         abstract boolean checkObjectOnSubtasks();
         boolean approvedAutomatically() { return false; }
         LensContext createModelContext(OperationResult result) throws Exception { return null; }
-        void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception { }
+        void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception { }
         void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception { }
-        void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception { }
+        void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception { }
         boolean decideOnApproval(String executionId) throws Exception { return true; }
         String getObjectOid(Task task, OperationResult result) throws SchemaException { return null; };
         boolean removeAssignmentsBeforeTest() { return true; }
@@ -400,21 +400,9 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
             List<Task> subtasks = rootTask.listSubtasks(result);
             assertEquals("Incorrect number of subtasks", testDetails.subtaskCount(), subtasks.size());
 
-            Task task0 = null;
+            Task task0 = extractTask0(subtasks, testDetails);
 
-            for (Task subtask : subtasks) {
-                if (!WfProcessInstanceShadowTaskHandler.HANDLER_URI.equals(subtask.getHandlerUri())) {
-                    assertNull("More than one non-wf-monitoring subtask", task0);
-                    task0 = subtask;
-                }
-            }
-
-            if (testDetails.immediate()) {
-                assertNotNull("Subtask for immediate execution was not found", task0);
-                subtasks.remove(task0);
-            }
-
-            testDetails.assertsAfterClockworkRun(rootTask, result);
+            testDetails.assertsAfterClockworkRun(rootTask, subtasks, result);
 
             // ZZZ TEMPORARY
 //            checkDummyTransportMessages("simpleWorkflowNotifier-Processes", workflowSubtaskCount);
@@ -461,8 +449,11 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
         }
 
         waitForTaskClose(rootTask, 60000);
+
+        List<Task> subtasks = rootTask.listSubtasks(result);
+        extractTask0(subtasks, testDetails);
         //TestUtil.assertSuccess(rootTask.getResult());
-        testDetails.assertsRootTaskFinishes(rootTask, result);
+        testDetails.assertsRootTaskFinishes(rootTask, subtasks, result);
 
         if (oid == null) {
             oid = testDetails.getObjectOid(rootTask, result);
@@ -484,6 +475,23 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
 
         display("Output context", context);
 	}
+
+    private Task extractTask0(List<Task> subtasks, TestDetails testDetails) {
+        Task task0 = null;
+
+        for (Task subtask : subtasks) {
+			if (subtask.getTaskPrismObject().asObjectable().getWorkflowContext() == null) {
+				assertNull("More than one non-wf-monitoring subtask", task0);
+				task0 = subtask;
+			}
+		}
+
+        if (testDetails.immediate()) {
+			assertNotNull("Subtask for immediate execution was not found", task0);
+			subtasks.remove(task0);
+		}
+        return task0;
+    }
 
     protected void assertObjectInTaskTree(Task rootTask, String oid, boolean checkObjectOnSubtasks, OperationResult result) throws SchemaException {
         assertObjectInTask(rootTask, oid);

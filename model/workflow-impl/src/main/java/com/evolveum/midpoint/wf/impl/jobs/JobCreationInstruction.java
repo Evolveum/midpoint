@@ -60,6 +60,7 @@ public class JobCreationInstruction implements DebugDumpable {
     private ChangeProcessor changeProcessor;
 
     private String processDefinitionKey;     // name of wf process to be started (e.g. ItemApproval)
+    private String processInstanceName;
 
     private Map<String,Serializable> processVariables = new HashMap<>();     // values of process variables
     private Map<QName,Item> taskVariables = new HashMap<>();                          // items to be put into task extension
@@ -160,6 +161,10 @@ public class JobCreationInstruction implements DebugDumpable {
 
     public String getProcessDefinitionKey() {
         return processDefinitionKey;
+    }
+
+    public String getProcessInstanceName() {
+        return processInstanceName;
     }
 
     public Map<String,Object> getProcessVariables() {
@@ -364,6 +369,7 @@ public class JobCreationInstruction implements DebugDumpable {
     }
 
     public void setProcessInstanceName(String name) {
+        processInstanceName = name;
         addProcessVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME, name);
     }
 

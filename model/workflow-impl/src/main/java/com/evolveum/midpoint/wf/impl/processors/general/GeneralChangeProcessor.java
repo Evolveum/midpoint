@@ -33,10 +33,7 @@ import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHel
 import com.evolveum.midpoint.wf.impl.processors.general.scenarios.DefaultGcpScenarioBean;
 import com.evolveum.midpoint.wf.impl.processors.general.scenarios.GcpScenarioBean;
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorScenarioType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
@@ -221,6 +218,12 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         ProcessSpecificState processSpecificState = getScenarioBean(variables).externalizeInstanceState(variables);
         state.asObjectable().setProcessSpecificState(processSpecificState);
         return state;
+    }
+
+    @Override
+    public WfProcessorSpecificStateType externalizeProcessorSpecificState(Map<String, Object> variables)
+            throws SchemaException {
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 
     @Override

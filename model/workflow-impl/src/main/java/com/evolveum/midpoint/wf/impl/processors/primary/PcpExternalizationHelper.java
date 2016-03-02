@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.GeneralChangeApprovalWorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
@@ -57,6 +58,7 @@ public class PcpExternalizationHelper {
     @Autowired
     private MiscDataUtil miscDataUtil;
 
+    @Deprecated
     public PrimaryChangeProcessorState externalizeState(Map<String, Object> variables) throws JAXBException, SchemaException {
         PrismContainerDefinition<PrimaryChangeProcessorState> extDefinition = prismContext.getSchemaRegistry().findContainerDefinitionByType(PrimaryChangeProcessorState.COMPLEX_TYPE);
         PrismContainer<PrimaryChangeProcessorState> extStateContainer = extDefinition.instantiate();
@@ -71,6 +73,16 @@ public class PcpExternalizationHelper {
         }
         //state.setFocusDelta(miscDataUtil.getFocusPrimaryObjectDeltaType(variables, true));
         state.asPrismContainerValue().setConcreteType(PrimaryChangeProcessorState.COMPLEX_TYPE);
+        return state;
+    }
+
+    public WfPrimaryChangeProcessorStateType externalizeStateNew(Map<String, Object> variables) throws SchemaException {
+        WfPrimaryChangeProcessorStateType state = new WfPrimaryChangeProcessorStateType(prismContext);
+
+        state.setChangeAspect((String) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_ASPECT));
+        state.setDeltas(miscDataUtil.getObjectTreeDeltaType(variables, true));
+
+        state.asPrismContainerValue().setConcreteType(WfPrimaryChangeProcessorStateType.COMPLEX_TYPE);
         return state;
     }
 

@@ -19,6 +19,8 @@ package com.evolveum.midpoint.wf.impl.jobs;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -135,7 +137,7 @@ public class WfProcessInstanceShadowTaskHandler implements TaskHandler {
 
         try {
             activitiInterface.midpoint2activiti(qpc, task, result);
-        } catch (RuntimeException e) {
+        } catch (RuntimeException|ObjectNotFoundException|SchemaException e) {
             LoggingUtils.logException(LOGGER,
                     "Couldn't send a request to query a process instance to workflow management system", e);
             result.recordPartialError("Couldn't send a request to query a process instance to workflow management system", e);

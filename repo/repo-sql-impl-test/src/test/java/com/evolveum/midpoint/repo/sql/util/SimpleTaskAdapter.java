@@ -777,4 +777,8 @@ public class SimpleTaskAdapter implements Task {
     public void storeOperationStats() {
 
     }
+
+    @Override
+    public void initializeWorkflowContextImmediate(String processInstanceId, OperationResult result) throws SchemaException {
+    }
 }

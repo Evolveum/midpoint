@@ -88,15 +88,11 @@ public enum ObjectTypes {
 
     SEQUENCE(SequenceType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SEQUENCE, SequenceType.class, ObjectManager.MODEL, "sequences"),
 
-    // as for now, this has to remain disabled (they could be used e.g. in audit logs, when the repo will support them)
-    //WORK_ITEM(WorkItemType.COMPLEX_TYPE, SchemaConstants.C_WORK_ITEM, WorkItemType.class, ObjectManager.WORKFLOW, "workItems"),
-    //WF_PROCESS_INSTANCE(WfProcessInstanceType.COMPLEX_TYPE, SchemaConstants.C_WF_PROCESS_INSTANCE, WfProcessInstanceType.class, ObjectManager.WORKFLOW, "wfProcessInstances"),
-
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
     
     public static enum ObjectManager {
-        PROVISIONING, TASK_MANAGER, WORKFLOW, MODEL, REPOSITORY;
+        PROVISIONING, TASK_MANAGER, MODEL, REPOSITORY;
     }
 
     private QName type;
@@ -120,10 +116,6 @@ public enum ObjectTypes {
 
     public boolean isManagedByTaskManager() {
         return objectManager == ObjectManager.TASK_MANAGER;
-    }
-
-    public boolean isManagedByWorkflow() {
-        return objectManager == ObjectManager.WORKFLOW;
     }
 
     public String getValue() {

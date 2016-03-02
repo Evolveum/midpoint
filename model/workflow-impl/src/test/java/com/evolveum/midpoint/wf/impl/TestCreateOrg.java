@@ -34,6 +34,7 @@ import org.testng.annotations.Test;
 import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -88,14 +89,14 @@ public class TestCreateOrg extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
                 ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertTrue("Primary focus delta is not empty", taskModelContext.getFocusContext().getPrimaryDelta().isEmpty());
                 assertNoObject(OrgType.class, ORG_TEST1_OID, rootTask, result);
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 //checkDummyTransportMessages("simpleUserNotifier", 1);
                 //checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
                 assertNoObject(OrgType.class, ORG_TEST1_OID, task, result);
@@ -128,14 +129,14 @@ public class TestCreateOrg extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
                 ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertTrue("Primary focus delta is not empty", taskModelContext.getFocusContext().getPrimaryDelta().isEmpty());
                 assertNoObject(OrgType.class, ORG_TEST1_OID, rootTask, result);
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 //checkDummyTransportMessages("simpleUserNotifier", 1);
                 //checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
                 checkApproversForCreate(OrgType.class, ORG_TEST1_OID, Arrays.asList(USER_ADMINISTRATOR_OID), result);

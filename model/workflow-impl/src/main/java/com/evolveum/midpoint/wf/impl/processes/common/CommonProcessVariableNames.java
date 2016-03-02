@@ -22,6 +22,7 @@ package com.evolveum.midpoint.wf.impl.processes.common;
 public class CommonProcessVariableNames {
 
     // Process instance name, e.g. "Approving adding Webmaster to JoeDoe". [String]
+    @Deprecated
     public static final String VARIABLE_PROCESS_INSTANCE_NAME = "processInstanceName";
 
     // When the process instance was started. [java.util.Date]

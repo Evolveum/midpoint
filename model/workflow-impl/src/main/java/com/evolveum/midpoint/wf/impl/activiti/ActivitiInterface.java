@@ -19,6 +19,8 @@ package com.evolveum.midpoint.wf.impl.activiti;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -49,6 +51,7 @@ import org.activiti.engine.history.HistoricFormProperty;
 import org.activiti.engine.history.HistoricVariableUpdate;
 import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
 import org.activiti.engine.runtime.ProcessInstance;
+import org.activiti.engine.runtime.ProcessInstanceBuilder;
 import org.activiti.engine.task.IdentityLink;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -87,7 +90,8 @@ public class ActivitiInterface {
      * is written in such a way that this should not pose a problem.
      */
 
-    public void midpoint2activiti(MidPointToActivitiMessage cmd, Task task, OperationResult result) {
+    public void midpoint2activiti(MidPointToActivitiMessage cmd, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace(" *** A command from midPoint has arrived; class = " + cmd.getClass().getName() + " ***");
@@ -174,9 +178,15 @@ public class ActivitiInterface {
             if (owner != null) {
                 activitiEngine.getIdentityService().setAuthenticatedUserId(owner);
             }
-            //String businessKey = (String) map.get(WfConstants.VARIABLE_MIDPOINT_OBJECT_OID);
-            //ProcessInstance pi = rs.startProcessInstanceByKey(spic.getProcessDefinitionKey(), businessKey, map);
-            ProcessInstance pi = rs.startProcessInstanceByKey(spic.getProcessName(), map);
+            ProcessInstanceBuilder builder = rs.createProcessInstanceBuilder()
+                    .processDefinitionKey(spic.getProcessName())
+                    .processInstanceName(spic.getProcessInstanceName());
+            for (Map.Entry<String, Object> varEntry : map.entrySet()) {
+                builder.addVariable(varEntry.getKey(), varEntry.getValue());
+            }
+            ProcessInstance pi = builder.start();
+
+            task.initializeWorkflowContextImmediate(pi.getProcessInstanceId(), result);
 
             // let us send a reply back (useful for listener-free processes)
 

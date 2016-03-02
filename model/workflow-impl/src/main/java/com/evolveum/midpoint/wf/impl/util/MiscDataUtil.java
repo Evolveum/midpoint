@@ -178,7 +178,7 @@ public class MiscDataUtil {
         return deltas != null ? deltas.getFocusPrimaryDelta() : null;
     }
 
-    public ObjectTreeDeltasType getObjectTreeDeltaType(Map<String, Object> variables, boolean mayBeNull) throws JAXBException, SchemaException {
+    public ObjectTreeDeltasType getObjectTreeDeltaType(Map<String, Object> variables, boolean mayBeNull) throws SchemaException {
         StringHolder deltasXml = (StringHolder) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TREE_DELTAS);
         if (deltasXml == null) {
             if (mayBeNull) {

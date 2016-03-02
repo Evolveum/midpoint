@@ -50,18 +50,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.common.WorkflowResult;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -75,10 +65,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -115,7 +102,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
     /**
      * The simplest case: user modification with one security-sensitive role.
      */
-	@Test(enabled = true)
+	@Test
     public void test010UserModifyAddRole() throws Exception {
         TestUtil.displayTestTile(this, "test010UserModifyAddRole");
         login(userAdministrator);
@@ -144,18 +131,20 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> subtasks, OperationResult result) throws Exception {
                 ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 assertNotAssignedRole(USER_JACK_OID, ROLE_R1_OID, rootTask, result);
+                assertWfContextAfterClockworkRun(rootTask, subtasks, result, "Adding Role1 to jack");
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
-                assertAssignedRole(USER_JACK_OID, ROLE_R1_OID, task, result);
+            void assertsRootTaskFinishes(Task rootTask, List<Task> subtasks, OperationResult result) throws Exception {
+                assertAssignedRole(USER_JACK_OID, ROLE_R1_OID, rootTask, result);
                 checkDummyTransportMessages("simpleUserNotifier", 1);
                 checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
                 checkUserApprovers(USER_JACK_OID, Arrays.asList(R1BOSS_OID), result);
+                assertWfContextAfterRootTaskFinishes(rootTask, subtasks, result, "Adding Role1 to jack");
             }
 
             @Override
@@ -164,6 +153,52 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
         });
 	}
+
+    protected void assertWfContextAfterClockworkRun(Task rootTask, List<Task> subtasks, OperationResult result, String... processNames) throws Exception {
+        Task opTask = taskManager.createTaskInstance();
+        TaskType rootTaskType = modelService.getObject(TaskType.class, rootTask.getOid(), null, opTask, result).asObjectable();
+        assertNull("Unexpected workflow context in root task: " + rootTaskType, rootTaskType.getWorkflowContext());
+
+        assertEquals("Wrong # of wf subtasks w.r.t processNames (" + Arrays.asList(processNames) + ")", processNames.length, subtasks.size());
+        int i = 0;
+        for (Task subtask : subtasks) {
+            TaskType subtaskType = modelService.getObject(TaskType.class, subtask.getOid(), null, opTask, result).asObjectable();
+            display("Subtask #"+(i+1)+": ", subtaskType);
+            assertNull("Unexpected fetch result in wf subtask: " + subtask, subtaskType.getFetchResult());
+            WfContextType wfc = subtaskType.getWorkflowContext();
+            assertNotNull("Missing workflow context in wf subtask: " + subtask, wfc);
+            assertNotNull("No process ID in wf subtask: " + subtask, wfc.getProcessInstanceId());
+            assertEquals("Wrong process ID name in subtask: " + subtask, processNames[i++], wfc.getProcessInstanceName());
+            assertNotNull("Missing process start time in subtask: " + subtask, wfc.getStartTimestamp());
+            assertNull("Unexpected process end time in subtask: " + subtask, wfc.getEndTimestamp());
+            assertEquals("Wrong 'approved' state", null, wfc.isApproved());
+            assertEquals("Wrong answer", null, wfc.getAnswer());
+            assertEquals("Wrong state", null, wfc.getState());
+        }
+    }
+
+    protected void assertWfContextAfterRootTaskFinishes(Task rootTask, List<Task> subtasks, OperationResult result, String... processNames) throws Exception {
+        Task opTask = taskManager.createTaskInstance();
+        TaskType rootTaskType = modelService.getObject(TaskType.class, rootTask.getOid(), null, opTask, result).asObjectable();
+        assertNull("Unexpected workflow context in root task: " + rootTaskType, rootTaskType.getWorkflowContext());
+
+        assertEquals("Wrong # of wf subtasks w.r.t processNames (" + Arrays.asList(processNames) + ")", processNames.length, subtasks.size());
+        int i = 0;
+        for (Task subtask : subtasks) {
+            TaskType subtaskType = modelService.getObject(TaskType.class, subtask.getOid(), null, opTask, result).asObjectable();
+            display("Subtask #"+(i+1)+": ", subtaskType);
+            assertNull("Unexpected fetch result in wf subtask: " + subtask, subtaskType.getFetchResult());
+            WfContextType wfc = subtaskType.getWorkflowContext();
+            assertNotNull("Missing workflow context in wf subtask: " + subtask, wfc);
+            assertNotNull("No process ID in wf subtask: " + subtask, wfc.getProcessInstanceId());
+            assertEquals("Wrong process ID name in subtask: " + subtask, processNames[i++], wfc.getProcessInstanceName());
+            assertNotNull("Missing process start time in subtask: " + subtask, wfc.getStartTimestamp());
+            assertNotNull("Missing process end time in subtask: " + subtask, wfc.getEndTimestamp());
+            assertEquals("Wrong 'approved' state", Boolean.TRUE, wfc.isApproved());
+            assertEquals("Wrong answer", ApprovalUtils.DECISION_APPROVED, wfc.getAnswer());
+            assertEquals("Wrong state", "Final decision is APPROVED", wfc.getState());
+        }
+    }
 
     /**
      * User modification with one security-sensitive role and other (unrelated) change - e.g. change of the given name.
@@ -189,7 +224,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
                 ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There is wrong number of modifications left in primary focus delta", 1, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 ItemDelta givenNameDelta = (ItemDelta) taskModelContext.getFocusContext().getPrimaryDelta().getModifications().iterator().next();
@@ -203,7 +238,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
                 assertNotAssignedRole(jack, ROLE_R2_OID);
                 assertEquals("Wrong given name after change", "JACK", jack.asObjectable().getGivenName().getOrig());
@@ -240,7 +275,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
                 assertFalse("There is model context in the root task (it should not be there)", wfTaskUtil.hasModelContext(rootTask));
             }
 
@@ -252,7 +287,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
                 assertAssignedRole(jack, ROLE_R3_OID);
 
@@ -289,7 +324,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
                 ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There is wrong number of modifications left in primary focus delta", 2, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 Iterator<? extends ItemDelta> it = taskModelContext.getFocusContext().getPrimaryDelta().getModifications().iterator();
@@ -308,7 +343,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUserFromRepo(USER_JACK_OID, result);
                 assertNotAssignedRole(jack, ROLE_R1_OID);
                 assertNotAssignedRole(jack, ROLE_R2_OID);
@@ -349,7 +384,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
                 assertFalse("There is model context in the root task (it should not be there)", wfTaskUtil.hasModelContext(rootTask));
             }
 
@@ -365,7 +400,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUserFromRepo(USER_JACK_OID, result);
                 assertNotAssignedRole(jack, ROLE_R1_OID);
                 assertNotAssignedRole(jack, ROLE_R2_OID);
@@ -404,7 +439,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
                 ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 PrismObject<UserType> objectToAdd = taskModelContext.getFocusContext().getPrimaryDelta().getObjectToAdd();
                 assertNotNull("There is no object to add left in primary focus delta", objectToAdd);
@@ -415,7 +450,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 PrismObject<UserType> bill = findUserInRepo("bill", result);
                 assertAssignedRole(bill, ROLE_R1_OID);
                 assertNotAssignedRole(bill, ROLE_R2_OID);
@@ -463,7 +498,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
                 assertFalse("There is model context in the root task (it should not be there)", wfTaskUtil.hasModelContext(rootTask));
             }
 
@@ -479,7 +514,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 PrismObject<UserType> bill = findUserInRepo("bill", result);
                 assertAssignedRole(bill, ROLE_R1_OID);
                 assertNotAssignedRole(bill, ROLE_R2_OID);
@@ -528,13 +563,13 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
                 ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUser(USER_JACK_OID);
                 ProtectedStringType afterTestPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
                 LOGGER.trace("password after test = " + afterTestPasswordValue);
@@ -577,13 +612,13 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
                 ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUser(USER_JACK_OID);
                 ProtectedStringType afterTestPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
                 LOGGER.trace("password after test = " + afterTestPasswordValue);
@@ -626,13 +661,13 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
                 ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUser(USER_JACK_OID);
                 ProtectedStringType afterTestPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
                 LOGGER.trace("password after test = " + afterTestPasswordValue);
@@ -680,12 +715,12 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
                 // todo perhaps the role should be assigned even at this point?
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
                 assertAssignedRole(jack, ROLE_R10_OID);
 
@@ -741,7 +776,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
                 ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 UserType jack = getUser(USER_JACK_OID).asObjectable();
@@ -749,7 +784,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 UserType jack = getUser(USER_JACK_OID).asObjectable();
                 checkAssignmentValidity(jack, validFrom, validTo);
 
@@ -843,14 +878,14 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
                 ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 assertNotAssignedResource(USER_JACK_OID, RESOURCE_DUMMY_OID, rootTask, result);
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 assertAssignedResource(USER_JACK_OID, RESOURCE_DUMMY_OID, task, result);
                 checkDummyTransportMessages("simpleUserNotifier", 1);
                 //checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
@@ -892,7 +927,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
                 ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 UserType jack = getUser(USER_JACK_OID).asObjectable();
@@ -900,7 +935,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 assertAssignedResource(USER_JACK_OID, RESOURCE_DUMMY_OID, task, result);
                 UserType jack = getUser(USER_JACK_OID).asObjectable();
                 checkAssignmentValidity(jack, validFrom, validTo);
@@ -950,7 +985,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
                 ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 UserType jack = getUser(USER_JACK_OID).asObjectable();
@@ -958,7 +993,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 assertAssignedResource(USER_JACK_OID, RESOURCE_DUMMY_OID, task, result);
                 UserType jack = getUser(USER_JACK_OID).asObjectable();
                 checkAssignmentConstruction(jack, "drink", "water");

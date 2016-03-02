@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.impl.processes;
 
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificStateType;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
 
 import java.util.List;
@@ -33,6 +34,8 @@ public interface ProcessMidPointInterface {
     String getState(Map<String, Object> variables);
 
     ProcessSpecificState externalizeProcessInstanceState(Map<String, Object> variables);
+
+    WfProcessSpecificStateType externalizeProcessSpecificState(Map<String, Object> variables);
 
     String getBeanName();
 

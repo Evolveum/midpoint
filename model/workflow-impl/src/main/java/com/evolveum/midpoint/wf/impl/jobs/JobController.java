@@ -286,6 +286,7 @@ public class JobController {
         StartProcessCommand spc = new StartProcessCommand();
         spc.setTaskOid(task.getOid());
         spc.setProcessName(instruction.getProcessDefinitionKey());
+        spc.setProcessInstanceName(instruction.getProcessInstanceName());
         spc.setSendStartConfirmation(instruction.isSendStartConfirmation());
         spc.setVariablesFrom(instruction.getProcessVariables());
         spc.setProcessOwner(task.getOwner().getOid());
@@ -294,7 +295,7 @@ public class JobController {
             activitiInterface.midpoint2activiti(spc, task, result);
             auditProcessStart(spc, job, result);
             notifyProcessStart(spc, job, result);
-        } catch (JAXBException|SchemaException|RuntimeException e) {
+        } catch (JAXBException|SchemaException|RuntimeException|ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER,
                     "Couldn't send a request to start a process instance to workflow management system", e);
             recordProcessInstanceState(job, "Workflow process instance creation could not be requested: " + e, null, result);

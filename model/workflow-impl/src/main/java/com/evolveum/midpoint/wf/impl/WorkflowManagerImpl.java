@@ -18,6 +18,9 @@ package com.evolveum.midpoint.wf.impl;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -36,6 +39,7 @@ import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
@@ -43,6 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -165,6 +170,23 @@ public class WorkflowManagerImpl implements WorkflowManager {
     @Override
     public void deleteProcessInstance(String instanceId, OperationResult parentResult) {
         processInstanceManager.deleteProcessInstance(instanceId, parentResult);
+    }
+
+    /*
+     * Tasks
+     * =====
+     */
+
+    @Override
+    public <T extends ObjectType> void augmentTaskObject(PrismObject<T> object,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) {
+        processInstanceProvider.augmentTaskObject(object, options, task, result);
+    }
+
+    @Override
+    public <T extends ObjectType> void augmentTaskObjectList(SearchResultList<PrismObject<T>> list,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) {
+        processInstanceProvider.augmentTaskObjectList(list, options, task, result);
     }
 
     /*
