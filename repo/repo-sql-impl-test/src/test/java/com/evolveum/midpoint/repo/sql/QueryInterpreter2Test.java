@@ -64,28 +64,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
@@ -2371,10 +2350,17 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
             PrismObjectDefinition<AccessCertificationCampaignType> campaignDef =
                     prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccessCertificationCampaignType.class);
+            PrismObjectDefinition<AccessCertificationDefinitionType> definitionDef =
+                    prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccessCertificationDefinitionType.class);
+            PrismObjectDefinition<TaskType> taskDef =
+                    prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
+
             ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
                     .id("c0c010c0-d34d-b33f-f00d-111111111111")
-                    .or().type(RoleType.class).item(roleDef, RoleType.F_OWNER_REF).ref("c0c010c0-d34d-b33f-f00d-111111111111")
-                    .or().type(AccessCertificationCampaignType.class).item(campaignDef, AccessCertificationCampaignType.F_OWNER_REF).ref("c0c010c0-d34d-b33f-f00d-111111111111")
+                    .or().type(RoleType.class).item(roleDef, RoleType.F_OWNER_REF).ref("role-owner-oid")
+                    .or().type(AccessCertificationCampaignType.class).item(campaignDef, AccessCertificationCampaignType.F_OWNER_REF).ref("campaign-owner-oid")
+                    .or().type(AccessCertificationDefinitionType.class).item(definitionDef, AccessCertificationDefinitionType.F_OWNER_REF).ref("definition-owner-oid")
+                    .or().type(TaskType.class).item(taskDef, AccessCertificationDefinitionType.F_OWNER_REF).ref("task-owner-oid")
                     .build();
             String real = getInterpretedQuery2(session, ObjectType.class, query);
             String expected = "select\n"
@@ -2402,6 +2388,20 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     + "      (\n"
                     + "        o.ownerRefCampaign.targetOid = :targetOid2 and\n"
                     + "        o.ownerRefCampaign.relation = :relation2\n"
+                    + "      )\n"
+                    + "    ) or\n"
+                    + "    (\n"
+                    + "      o.objectTypeClass = :objectTypeClass3 and\n"
+                    + "      (\n"
+                    + "        o.ownerRefDefinition.targetOid = :targetOid3 and\n"
+                    + "        o.ownerRefDefinition.relation = :relation3\n"
+                    + "      )\n"
+                    + "    ) or\n"
+                    + "    (\n"
+                    + "      o.objectTypeClass = :objectTypeClass4 and\n"
+                    + "      (\n"
+                    + "        o.ownerRefTask.targetOid = :targetOid4 and\n"
+                    + "        o.ownerRefTask.relation = :relation4\n"
                     + "      )\n"
                     + "    )\n"
                     + "  )\n";

@@ -8308,7 +8308,7 @@
         </xsd:complexContent>
     </xsd:complexType>
     
-    <xsd:element name="valuePolicy" type="tns:ValuePolicyType"/>
+    <xsd:element name="valuePolicy" type="tns:ValuePolicyType" substitutionGroup="c:object"/>
 
     <xsd:complexType name="PasswordLifeTimeType">
         <xsd:sequence>
@@ -9535,7 +9535,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="securityPolicy" type="tns:SecurityPolicyType"/>
+    <xsd:element name="securityPolicy" type="tns:SecurityPolicyType" substitutionGroup="c:object"/>
     
     <xsd:complexType name="AuthenticationPolicyType">
 		<xsd:annotation>
@@ -10670,7 +10670,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="report" type="tns:ReportType"/>
+    <xsd:element name="report" type="tns:ReportType" substitutionGroup="c:object"/>
 
     <xsd:complexType name="ReportConfigurationType">
         <xsd:annotation>
