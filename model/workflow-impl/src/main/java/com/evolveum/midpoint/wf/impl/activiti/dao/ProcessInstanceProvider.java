@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.impl.activiti.dao;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -61,6 +62,9 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
 import java.util.*;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
 
 /**
  * @author mederly
@@ -222,7 +226,7 @@ public class ProcessInstanceProvider {
         if (historicProcessInstance == null) {
             throw new ObjectNotFoundException("Process instance " + instanceId + " couldn't be found.");
         } else {
-            return activitiToMidpointWfContextHistory(historicProcessInstance, result);
+            return activitiToMidpointWfContextHistory(historicProcessInstance, getWorkItems, result);
         }
     }
 
@@ -349,7 +353,7 @@ public class ProcessInstanceProvider {
         }
     }
 
-    private WfContextType activitiToMidpointWfContextHistory(HistoricProcessInstance instance, OperationResult result)
+    private WfContextType activitiToMidpointWfContextHistory(HistoricProcessInstance instance, boolean getWorkItems, OperationResult result)
             throws WorkflowException, SchemaException {
 
         WfContextType wfc = new WfContextType();
@@ -377,7 +381,13 @@ public class ProcessInstanceProvider {
         wfc.setProcessorSpecificState(cp.externalizeProcessorSpecificState(vars));
         wfc.setProcessSpecificState(pmi.externalizeProcessSpecificState(vars));
 
-        //wfc.setState(cp.externalizeProcessInstanceState(vars).asObjectable());
+        if (getWorkItems) {
+            TaskService ts = activitiEngine.getTaskService();
+            List<Task> tasks = ts.createTaskQuery()
+                    .processInstanceId(instance.getId())
+                    .list();
+            wfc.getWorkItem().addAll(workItemProvider.tasksToWorkItemsNew(tasks, vars, false, true, true, result));     // "no" to task forms, "yes" to assignee and candidate details
+        }
 
         return wfc;
     }
@@ -405,7 +415,8 @@ public class ProcessInstanceProvider {
             if (instanceId == null) {
                 throw new SchemaException("No process instance ID in workflow context");
             }
-            WfContextType wfContextType = getWfContextType(instanceId, false, result);
+            boolean retrieveWorkItems = SelectorOptions.hasToLoadPath(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM), options);
+            WfContextType wfContextType = getWfContextType(instanceId, retrieveWorkItems, result);
             taskType.setWorkflowContext(wfContextType);
         } catch (RuntimeException|SchemaException|ObjectNotFoundException|WorkflowException e) {
             result.recordFatalError(e.getMessage(), e);

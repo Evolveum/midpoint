@@ -21,9 +21,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -36,16 +38,13 @@ import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.wf.impl.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngineDataHelper;
+import com.evolveum.midpoint.wf.impl.jobs.WfUtil;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TrackingDataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.activiti.engine.ActivitiException;
@@ -218,6 +217,19 @@ public class WorkItemProvider {
         return retval;
     }
 
+    List<WorkItemNewType> tasksToWorkItemsNew(List<Task> tasks, Map<String, Object> processVariables, boolean getTaskDetails, boolean getAssigneeDetails,
+            boolean getCandidateDetails, OperationResult result) {
+        List<WorkItemNewType> retval = new ArrayList<>();
+        for (Task task : tasks) {
+            try {
+                retval.add(taskToWorkItemNew(task, processVariables, getTaskDetails, getAssigneeDetails, getCandidateDetails, result));
+            } catch (WorkflowException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't get information on activiti task {}", e, task.getId());
+            }
+        }
+        return retval;
+    }
+
     // should not throw ActivitiException
 
     /**
@@ -289,6 +301,15 @@ public class WorkItemProvider {
             variables = task.getVariables();
             candidateUsers = task.getCandidateUsers();
             candidateGroups = task.getCandidateGroups();
+        }
+
+        public TaskExtract(Task task, Map<String, Object> processVariables) {
+            this(task);
+            for (Map.Entry<String, Object> variable: processVariables.entrySet()) {
+                if (!variables.containsKey(variable.getKey())) {
+                    variables.put(variable.getKey(), variable.getValue());
+                }
+            }
         }
 
         String getId() {
@@ -378,6 +399,24 @@ public class WorkItemProvider {
         return wi;
     }
 
+    private WorkItemNewType taskToWorkItemNew(Task task, Map<String, Object> processVariables, boolean getTaskDetails, boolean getAssigneeDetails,
+            boolean getCandidateDetails, OperationResult parentResult) throws WorkflowException {
+        OperationResult result = parentResult.createSubresult(OPERATION_ACTIVITI_TASK_TO_WORK_ITEM);
+        result.addParam("task id", task.getId());
+        result.addParam("getTaskDetails", getTaskDetails);
+        result.addParam("getAssigneeDetails", getAssigneeDetails);
+
+        try {
+            TaskExtract taskExtract = new TaskExtract(task, processVariables);
+            WorkItemNewType wi = taskExtractToWorkItemNew(taskExtract, getAssigneeDetails, getCandidateDetails, result);
+            return wi;
+        } catch (RuntimeException|WorkflowException e) {
+            throw e;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
     // this method should reside outside activiti-related packages
     // we'll deal with it when we implement support for multiple wf providers
     public WorkItemType taskEventToWorkItem(TaskEvent taskEvent, boolean getAssigneeDetails, boolean getCandidateDetails, OperationResult parentResult) throws WorkflowException {
@@ -433,6 +472,36 @@ public class WorkItemProvider {
                     wi.getCandidateRoles().add(obj.asObjectable());
                 }
             }
+        }
+        return wi;
+    }
+
+    private WorkItemNewType taskExtractToWorkItemNew(TaskExtract task, boolean getAssigneeDetails, boolean getCandidateDetails, OperationResult result) throws WorkflowException {
+        WorkItemNewType wi = new WorkItemNewType(prismContext);
+        try {
+            final Map<String, Object> variables = task.getVariables();
+
+            wi.setWorkItemId(task.getId());
+            wi.setName(task.getName());
+            wi.setWorkItemCreatedTimestamp(XmlTypeConverter.createXMLGregorianCalendar(task.getCreateTime()));
+            wi.setProcessStartedTimestamp(XmlTypeConverter.createXMLGregorianCalendar((Date) variables.get(CommonProcessVariableNames.VARIABLE_START_TIME)));
+            String taskOid = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID);
+            if (taskOid != null) {
+                wi.setTaskRef(ObjectTypeUtil.createObjectRef(taskOid, ObjectTypes.TASK));
+            }
+            if (task.getAssignee() != null) {
+                wi.setAssigneeRef(MiscSchemaUtil.createObjectReference(task.getAssignee(), SchemaConstants.C_USER_TYPE));
+            }
+            for (String candidateUser : task.getCandidateUsers()) {
+                wi.getCandidateUsersRef().add(MiscSchemaUtil.createObjectReference(candidateUser, SchemaConstants.C_USER_TYPE));
+            }
+            for (String candidateGroup : task.getCandidateGroups()) {
+                wi.getCandidateRolesRef().add(miscDataUtil.groupIdToObjectReference(candidateGroup));
+            }
+            wi.setObjectRef(WfUtil.toObjectReferenceType((LightweightObjectRef) variables.get(CommonProcessVariableNames.VARIABLE_OBJECT_REF)));
+            wi.setTargetRef(WfUtil.toObjectReferenceType((LightweightObjectRef) variables.get(CommonProcessVariableNames.VARIABLE_TARGET_REF)));
+        } catch (ActivitiException e) {     // not sure if any of the above methods can throw this exception, but for safety we catch it here
+            throw new WorkflowException("Couldn't get information on activiti task " + task.getId(), e);
         }
         return wi;
     }

@@ -33,6 +33,9 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -67,7 +70,10 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -155,14 +161,18 @@ public class TestUserChangeApproval extends AbstractWfTest {
 	}
 
     protected void assertWfContextAfterClockworkRun(Task rootTask, List<Task> subtasks, OperationResult result, String... processNames) throws Exception {
+
+        final Collection<SelectorOptions<GetOperationOptions>> options =
+                SelectorOptions.createCollection(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
+
         Task opTask = taskManager.createTaskInstance();
-        TaskType rootTaskType = modelService.getObject(TaskType.class, rootTask.getOid(), null, opTask, result).asObjectable();
+        TaskType rootTaskType = modelService.getObject(TaskType.class, rootTask.getOid(), options, opTask, result).asObjectable();
         assertNull("Unexpected workflow context in root task: " + rootTaskType, rootTaskType.getWorkflowContext());
 
         assertEquals("Wrong # of wf subtasks w.r.t processNames (" + Arrays.asList(processNames) + ")", processNames.length, subtasks.size());
         int i = 0;
         for (Task subtask : subtasks) {
-            TaskType subtaskType = modelService.getObject(TaskType.class, subtask.getOid(), null, opTask, result).asObjectable();
+            TaskType subtaskType = modelService.getObject(TaskType.class, subtask.getOid(), options, opTask, result).asObjectable();
             display("Subtask #"+(i+1)+": ", subtaskType);
             assertNull("Unexpected fetch result in wf subtask: " + subtask, subtaskType.getFetchResult());
             WfContextType wfc = subtaskType.getWorkflowContext();
@@ -178,14 +188,18 @@ public class TestUserChangeApproval extends AbstractWfTest {
     }
 
     protected void assertWfContextAfterRootTaskFinishes(Task rootTask, List<Task> subtasks, OperationResult result, String... processNames) throws Exception {
+
+        final Collection<SelectorOptions<GetOperationOptions>> options =
+                SelectorOptions.createCollection(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
+
         Task opTask = taskManager.createTaskInstance();
-        TaskType rootTaskType = modelService.getObject(TaskType.class, rootTask.getOid(), null, opTask, result).asObjectable();
+        TaskType rootTaskType = modelService.getObject(TaskType.class, rootTask.getOid(), options, opTask, result).asObjectable();
         assertNull("Unexpected workflow context in root task: " + rootTaskType, rootTaskType.getWorkflowContext());
 
         assertEquals("Wrong # of wf subtasks w.r.t processNames (" + Arrays.asList(processNames) + ")", processNames.length, subtasks.size());
         int i = 0;
         for (Task subtask : subtasks) {
-            TaskType subtaskType = modelService.getObject(TaskType.class, subtask.getOid(), null, opTask, result).asObjectable();
+            TaskType subtaskType = modelService.getObject(TaskType.class, subtask.getOid(), options, opTask, result).asObjectable();
             display("Subtask #"+(i+1)+": ", subtaskType);
             assertNull("Unexpected fetch result in wf subtask: " + subtask, subtaskType.getFetchResult());
             WfContextType wfc = subtaskType.getWorkflowContext();

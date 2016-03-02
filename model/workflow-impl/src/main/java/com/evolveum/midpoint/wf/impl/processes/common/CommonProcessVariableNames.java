@@ -66,4 +66,12 @@ public class CommonProcessVariableNames {
 
     // Name of process interface bean (ProcessMidPointInterface implementation) that is related to this process [String]
     public static final String VARIABLE_MIDPOINT_PROCESS_INTERFACE_BEAN_NAME = "midPointProcessInterfaceBeanName";
+
+    // TODO fill-in these variables!
+
+    // Object of the operation - if can be specified like this [LightweightObjectRef]
+    public static final String VARIABLE_OBJECT_REF = "objectRef";
+
+    // Target of the operation - if any [LightweightObjectRef]
+    public static final String VARIABLE_TARGET_REF = "targetRef";
 }
