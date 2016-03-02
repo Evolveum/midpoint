@@ -300,7 +300,18 @@ public class CompositeRefinedObjectClassDefinition extends RefinedObjectClassDef
 		Collection<? extends RefinedAttributeDefinition<?>> defs = new ArrayList<>();
 		defs.addAll((Collection)structuralObjectClassDefinition.getAttributeDefinitions());
 		for(RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
-			defs.addAll((Collection)auxiliaryObjectClassDefinition.getAttributeDefinitions());
+			for (RefinedAttributeDefinition auxRAttrDef: auxiliaryObjectClassDefinition.getAttributeDefinitions()) {
+				boolean add = true;
+				for (RefinedAttributeDefinition def: defs) {
+					if (def.getName().equals(auxRAttrDef.getName())) {
+						add = false;
+						break;
+					}
+				}
+				if (add) {
+					((Collection)defs).add(auxRAttrDef);
+				}
+			}
 		}
 		return defs;
 	}

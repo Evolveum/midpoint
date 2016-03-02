@@ -500,7 +500,8 @@ public class PrismValuePanel extends Panel {
                 	  
                 	  @Override
                 	public InputStream getStream() {
-                		return new ByteArrayInputStream((byte[]) ((PrismPropertyValue) model.getObject().getValue()).getValue());
+                          Object object  = ((PrismPropertyValue) model.getObject().getValue()).getValue();
+                		return object != null ? new ByteArrayInputStream((byte[]) object) : new ByteArrayInputStream(new byte[0]);
 //                		return super.getStream();
                 	}
                 	  

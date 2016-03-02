@@ -68,6 +68,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -768,6 +769,44 @@ public class ShadowManager {
 
 		return repoShadow;
 	}
+	
+	public Collection<ItemDelta> updateShadow(ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow, 
+			Collection<? extends ItemDelta> aprioriDeltas, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, resourceShadow.getOid(), null, result);
+		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
+		Collection<ItemDelta> repoShadowChanges = new ArrayList<ItemDelta>();
+		for (RefinedAttributeDefinition attrDef: objectClassDefinition.getAttributeDefinitions()) {
+			if (ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, attrDef.getName())) {
+				ResourceAttribute<Object> resourceAttr = ShadowUtil.getAttribute(resourceShadow, attrDef.getName());
+				PrismProperty<Object> repoAttr = repoShadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()));
+				PropertyDelta attrDelta;
+				if (repoAttr == null && repoAttr == null) {
+					continue;
+				}
+				if (repoAttr == null) {
+					attrDelta = attrDef.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()));
+					attrDelta.setValuesToReplace(PrismValue.cloneCollection(resourceAttr.getValues()));
+				} else {
+					attrDelta = repoAttr.diff(resourceAttr);
+				}
+				if (attrDelta != null && !attrDelta.isEmpty()) {
+					normalizeDelta(attrDelta, attrDef);
+					repoShadowChanges.add(attrDelta);
+				}
+			}
+		}
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Updating repo shadow {}:\n{}", resourceShadow.getOid(), DebugUtil.debugDump(repoShadowChanges));
+		}
+		try {
+			repositoryService.modifyObject(ShadowType.class, resourceShadow.getOid(), repoShadowChanges, result);
+		} catch (ObjectAlreadyExistsException e) {
+			// We are not renaming the object here. This should not happen.
+			throw new SystemException(e.getMessage(), e);
+		}
+		return repoShadowChanges;
+	}	
+
 
 	public void setKindIfNecessary(ShadowType repoShadowType, RefinedObjectClassDefinition objectClassDefinition) {
         if (repoShadowType.getKind() == null && objectClassDefinition != null) {
@@ -879,6 +918,6 @@ public class ShadowManager {
 		refinedAttributeDefinition = refinedObjectClassDefinition.findAttributeDefinition(attributeA.getElementName());
 		Collection<T> valuesB = getNormalizedAttributeValues(attributeB, refinedAttributeDefinition);
 		return MiscUtil.unorderedCollectionEquals(valuesA, valuesB);
-	}	
+	}
 
 }
