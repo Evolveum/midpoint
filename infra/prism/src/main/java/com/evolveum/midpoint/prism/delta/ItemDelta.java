@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -1481,6 +1482,40 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		return result;
 	}
 
+	/**
+	 * Deltas are equivalent if they have the same result when
+	 * applied to an object. I.e. meta-data and other "decorations"
+	 * such as old values are not considered in this comparison.
+	 */
+	public boolean equivalent(ItemDelta other) {
+		if (elementName == null) {
+			if (other.elementName != null)
+				return false;
+		} else if (!QNameUtil.match(elementName, elementName))
+			return false;
+		if (parentPath == null) {
+			if (other.parentPath != null)
+				return false;
+		} else if (!parentPath.equivalent(other.parentPath))
+			return false;
+		if (!equivalentSetRealValue(this.valuesToAdd, other.valuesToAdd))
+			return false;
+		if (!equivalentSetRealValue(this.valuesToDelete, other.valuesToDelete))
+			return false;
+		if (!equivalentSetRealValue(this.valuesToReplace, other.valuesToReplace))
+			return false;
+		return true;
+	}
+	
+	public static boolean hasEquivalent(Collection<? extends ItemDelta> col, ItemDelta delta) {
+		for (ItemDelta colItem: col) {
+			if (colItem.equivalent(delta)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -1505,18 +1540,18 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 				return false;
 		} else if (!parentPath.equivalent(other.parentPath))                    // or "equals" ?
 			return false;
-		if (!equalsSetRealValue(this.valuesToAdd, other.valuesToAdd))
+		if (!equivalentSetRealValue(this.valuesToAdd, other.valuesToAdd))
 			return false;
-		if (!equalsSetRealValue(this.valuesToDelete, other.valuesToDelete))
+		if (!equivalentSetRealValue(this.valuesToDelete, other.valuesToDelete))
 			return false;
-		if (!equalsSetRealValue(this.valuesToReplace, other.valuesToReplace))
+		if (!equivalentSetRealValue(this.valuesToReplace, other.valuesToReplace))
 			return false;
-		if (!equalsSetRealValue(this.estimatedOldValues, other.estimatedOldValues))
+		if (!equivalentSetRealValue(this.estimatedOldValues, other.estimatedOldValues))
 			return false;
 		return true;
 	}
 
-	private boolean equalsSetRealValue(Collection<V> thisValue, Collection<V> otherValues) {
+	private boolean equivalentSetRealValue(Collection<V> thisValue, Collection<V> otherValues) {
 		Comparator<?> comparator = new Comparator<Object>() {
 			@Override
 			public int compare(Object o1, Object o2) {

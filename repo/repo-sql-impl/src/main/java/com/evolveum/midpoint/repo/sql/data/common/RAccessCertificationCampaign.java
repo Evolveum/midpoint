@@ -82,11 +82,10 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
     @JaxbName(localPart = "ownerRef")
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "relation", column = @Column(name = "ownerRef_relation")),
-            @AttributeOverride(name = "targetOid", column = @Column(name = "ownerRef_targetOid")),
+            @AttributeOverride(name = "relation", column = @Column(name = "ownerRef_relation", length = RUtil.COLUMN_LENGTH_QNAME)),
+            @AttributeOverride(name = "targetOid", column = @Column(name = "ownerRef_targetOid", length = RUtil.COLUMN_LENGTH_OID)),
             @AttributeOverride(name = "type", column = @Column(name = "ownerRef_type"))
     })
-
     public REmbeddedReference getOwnerRefCampaign() {       // name changed because of collision with RAbstractRole.ownerRef
         return ownerRefCampaign;
     }
