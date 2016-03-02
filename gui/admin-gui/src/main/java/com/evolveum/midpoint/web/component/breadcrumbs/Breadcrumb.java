@@ -20,6 +20,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -62,5 +63,22 @@ public class Breadcrumb implements Serializable {
     }
 
     public void redirect(Component component) {
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Breadcrumb that = (Breadcrumb) o;
+
+        if (label != null ? !label.equals(that.label) : that.label != null) return false;
+        return icon != null ? icon.equals(that.icon) : that.icon == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(new Object[]{label, icon});
     }
 }

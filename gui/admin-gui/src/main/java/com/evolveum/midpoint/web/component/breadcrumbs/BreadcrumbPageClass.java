@@ -22,6 +22,8 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import java.util.Arrays;
+
 /**
  * @author Viliam Repan (lazyman)
  */
@@ -71,5 +73,23 @@ public class BreadcrumbPageClass extends Breadcrumb {
     @Override
     public boolean isLink() {
         return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        BreadcrumbPageClass that = (BreadcrumbPageClass) o;
+
+        if (page != null ? !page.equals(that.page) : that.page != null) return false;
+        return parameters != null ? parameters.equals(that.parameters) : that.parameters == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(new Object[]{page, parameters});
     }
 }
