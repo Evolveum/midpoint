@@ -268,6 +268,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		if (initialized) {
 			return;
 		}
+		initialized = true;
 
 		createBreadcrumb();
 	}
