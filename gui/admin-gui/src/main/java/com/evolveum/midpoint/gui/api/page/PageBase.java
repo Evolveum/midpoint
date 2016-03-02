@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.gui.api.page;
 
 import java.io.Serializable;
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -173,7 +172,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private static final String ID_PAGE_TITLE_CONTAINER = "pageTitleContainer";
 	private static final String ID_PAGE_TITLE_REAL = "pageTitleReal";
 	private static final String ID_PAGE_TITLE = "pageTitle";
-	private static final String ID_PAGE_SUBTITLE = "pageSubtitle";
 	private static final String ID_DEBUG_PANEL = "debugPanel";
 	private static final String ID_VERSION = "version";
 	public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
@@ -439,7 +437,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		Label pageTitleReal = new Label(ID_PAGE_TITLE_REAL, createPageTitleModel());
 		pageTitleReal.setRenderBodyOnly(true);
 		pageTitle.add(pageTitleReal);
-		pageTitle.add(new Label(ID_PAGE_SUBTITLE, createPageSubTitleModel()));
 
 		ListView breadcrumbs = new ListView<Breadcrumb>(ID_BREADCRUMB,
 				new AbstractReadOnlyModel<List<Breadcrumb>>() {
@@ -619,17 +616,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	public SessionStorage getSessionStorage() {
 		MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
 		return session.getSessionStorage();
-	}
-
-	/**
-	 * use only {@link PageBase#createPageTitleModel()}
-	 * @return
-     */
-	//todo remove [lazyman]
-	@Deprecated
-	protected IModel<String> createPageSubTitleModel() {
-		String key = getClass().getSimpleName() + ".subTitle";
-		return new StringResourceModel(key, this).setDefaultValue("");
 	}
 
 	protected IModel<String> createPageTitleModel() {
