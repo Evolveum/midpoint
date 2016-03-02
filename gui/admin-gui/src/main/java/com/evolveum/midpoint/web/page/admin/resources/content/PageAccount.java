@@ -181,18 +181,18 @@ public class PageAccount extends PageAdminResources {
     }
 
     @Override
-    protected IModel<String> createPageSubTitleModel() {
+    protected IModel<String> createPageTitleModel() {
         return new LoadableModel<String>(false) {
 
             @Override
             protected String load() {
                 PrismObject<ShadowType> account = accountModel.getObject().getObject();
+                String accName = WebComponentUtil.getName(account);
 
                 ResourceType resource = account.asObjectable().getResource();
                 String name = WebComponentUtil.getName(resource);
 
-                return PageBase.createStringResourceStatic(PageAccount.this, "PageAccount.subTitle", name).getString();
-//                return new StringResourceModel("PageAccount.subTitle", PageAccount.this, null, null, name).getString();
+                return createStringResourceStatic(PageAccount.this, "PageAccount.title", accName, name).getString();
             }
         };
     }
