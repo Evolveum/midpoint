@@ -103,12 +103,12 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     @Override
-    protected IModel<String> createPageSubTitleModel() {
+    protected IModel<String> createPageTitleModel() {
         return new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
-                return createStringResource("PageDebugView.subTitle", model.getObject().getName()).getString();
+                return createStringResource("PageDebugView.title", model.getObject().getName()).getString();
             }
         };
     }
