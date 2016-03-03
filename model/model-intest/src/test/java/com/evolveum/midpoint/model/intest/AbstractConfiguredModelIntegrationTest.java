@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -368,6 +368,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     protected static final String DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME = "sea";
     
     protected static final String INTENT_TEST = "test";
+    protected static final String INTENT_DUMMY_GROUP = "group";
+    protected static final String INTENT_DUMMY_PRIVILEGE = "privilege";
 	
 	// Authorizations
 	

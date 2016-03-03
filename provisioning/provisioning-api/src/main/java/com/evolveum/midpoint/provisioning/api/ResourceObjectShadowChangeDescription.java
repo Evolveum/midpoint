@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,20 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
     private PrismObject<? extends ShadowType> oldShadow;
     private String sourceChannel;
     private PrismObject<ResourceType> resource;
+    
+    /**
+     * If set to true then this change is not related to the primary goal of
+     * the running task. E.g. it may be a change in entitlement that is discovered
+     * when reading an account. Or it may be ordinary creation of a new shadow during
+     * search.
+     * 
+     * On the other hand, related change is a change in the object that is being processed.
+     * E.g. discovering that the object is missing, or a conflicting object already exists.
+     * 
+     * It is expected that reactions to the unrelated changes will be lighter, faster,
+     * with lower overhead and without abmition to provide full synchronization.
+     */
+    private boolean unrelatedChange = false;
 
     public ObjectDelta<? extends ShadowType> getObjectDelta() {
         return objectDelta;
@@ -86,7 +100,15 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
         this.resource = resource;
     }
     
-    public void checkConsistence() {
+    public boolean isUnrelatedChange() {
+		return unrelatedChange;
+	}
+
+	public void setUnrelatedChange(boolean unrelatedChange) {
+		this.unrelatedChange = unrelatedChange;
+	}
+
+	public void checkConsistence() {
     	if (resource == null) {
     		throw new IllegalArgumentException("No resource in "+this.getClass().getSimpleName());
     	}
@@ -129,7 +151,7 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
 	public String toString() {
 		return "ResourceObjectShadowChangeDescription(objectDelta=" + objectDelta + ", currentShadow="
 				+ SchemaDebugUtil.prettyPrint(currentShadow) + ", oldShadow=" + SchemaDebugUtil.prettyPrint(oldShadow) + ", sourceChannel=" + sourceChannel
-				+ ", resource=" + resource + ")";
+				+ ", resource=" + resource + (unrelatedChange ? " UNRELATED" : "") +")";
 	}
     
 	/* (non-Javadoc)
@@ -188,6 +210,10 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
 			sb.append("\n");
 			sb.append(currentShadow.debugDump(indent+2));
 		}
+		
+		sb.append("\n");
+		SchemaDebugUtil.indentDebugDump(sb, indent+1);
+		sb.append("unrelatedChange: ").append(unrelatedChange);
 
 		return sb.toString();
 	}

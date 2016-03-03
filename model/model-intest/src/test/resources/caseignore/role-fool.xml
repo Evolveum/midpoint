@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2014-2016 Evolveum
+  ~ Copyright (c) 2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,13 +13,14 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="0a736ff6-9ca8-11e4-b820-001e8c717e5b"
+<role oid="97c24f16-e082-11e5-be34-13ace5aaad31"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-    <name>Joker</name>
+    <name>Fool</name>
         <inducement>
     	<construction>
     		<!-- Resource Upcase -->
@@ -29,7 +30,7 @@
                 <ref>ri:title</ref>
                 <outbound>
                 	<expression>
-						<value>JoKeR</value>
+						<value>FOOL!</value>
 					</expression>
 				</outbound>
             </attribute>
@@ -38,10 +39,15 @@
             	<outbound>
             		<strength>strong</strength>
                 	<expression>
-						<value>
-							<!-- group joker -->
-							<shadowRef oid="bc2a1d98-9ca4-11e4-a600-001e8c717e5b" type="ShadowType"/>
-						</value>
+						<associationTargetSearch>
+							<filter>
+								<q:equal>
+									<q:path>attributes/icfs:name</q:path>
+									<q:value>FOOLS</q:value>
+								</q:equal>
+							</filter>
+							<searchStrategy>onResourceIfNeeded</searchStrategy>
+						</associationTargetSearch>
 					</expression>
 				</outbound>
             </association>
