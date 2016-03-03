@@ -47,8 +47,7 @@ import org.apache.wicket.model.Model;
 public class PageLogin extends PageBase {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageLogin.class);
-	
-    PageBase page = getPageBase();
+
     private static final String ID_LOGIN_FORM = "loginForm";
 
     private static final String ID_USERNAME = "username";
@@ -104,7 +103,8 @@ public class PageLogin extends PageBase {
         add(form);
     }
 
-    public PageBase getPageBase() {
-        return (PageBase) getPage();
+    @Override
+    protected void createBreadcrumb() {
+        //don't create breadcrumb for login page
     }
 }

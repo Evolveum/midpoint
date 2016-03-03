@@ -464,7 +464,6 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
      * {@inheritDoc}
      */
     public Uid addAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToAdd, OperationOptions options) {
-        log.info("addAttributeValues::begin");
         validate(objectClass);
 
         try {
@@ -501,6 +500,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			        	String name = attr.getName();
 			        	try {
 							account.addAttributeValues(name, attr.getValue());
+							log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
+									name, attr.getValue(), account, account.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
 							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -544,6 +545,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			        	}
 			        	try {
 							group.addAttributeValues(name, values);
+							log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
+									name, attr.getValue(), group, group.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
 							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -579,6 +582,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			        	String name = attr.getName();
 			        	try {
 							priv.addAttributeValues(name, attr.getValue());
+							log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
+									name, attr.getValue(), priv, priv.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
 							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -600,7 +605,6 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			throw new ConnectorIOException(e.getMessage(), e);
 		}
         
-        log.info("addAttributeValues::end");
         return uid;
     }
 
@@ -608,7 +612,6 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
      * {@inheritDoc}
      */
     public Uid removeAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToRemove, OperationOptions options) {
-        log.info("removeAttributeValues::begin");
         validate(objectClass);
 
         try {
@@ -639,6 +642,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			        	String name = attr.getName();
 			        	try {
 							account.removeAttributeValues(name, attr.getValue());
+							log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
+									name, attr.getValue(), account, account.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
 							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -679,6 +684,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			        	}
 			        	try {
 							group.removeAttributeValues(name, values);
+							log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
+									name, attr.getValue(), group, group.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
 							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -711,6 +718,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			        	String name = attr.getName();
 			        	try {
 							priv.removeAttributeValues(name, attr.getValue());
+							log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
+									name, attr.getValue(), priv, priv.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
 							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -732,7 +741,6 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			throw new ConnectorIOException(e.getMessage(), e);
 		}
 
-        log.info("removeAttributeValues::end");
         return uid;
     }
     
