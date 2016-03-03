@@ -629,9 +629,10 @@ public class ChangeExecutor {
 
 		try {
             Utils.setRequestee(task, focusContext);
+            ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
+            options.setDoDiscovery(false);
 			String changedOid = provisioning.modifyObject(ShadowType.class, projectionOid,
-					syncSituationDeltas, null, ProvisioningOperationOptions.createCompletePostponed(false),
-					task, result);
+					syncSituationDeltas, null, options, task, result);
 //			modifyProvisioningObject(AccountShadowType.class, accountRef, syncSituationDeltas, ProvisioningOperationOptions.createCompletePostponed(false), task, result);
 			projectionCtx.setSynchronizationSituationResolved(situation);
 			LOGGER.trace("Situation in projection {} was updated to {}.", projectionCtx, situation);
