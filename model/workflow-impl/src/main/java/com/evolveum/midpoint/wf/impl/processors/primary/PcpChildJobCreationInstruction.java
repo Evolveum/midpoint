@@ -21,14 +21,20 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.wf.impl.jobs.Job;
 import com.evolveum.midpoint.wf.impl.jobs.JobCreationInstruction;
+import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRefImpl;
 import com.evolveum.midpoint.wf.impl.processes.common.StringHolder;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
+import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -85,20 +91,6 @@ public class PcpChildJobCreationInstruction extends JobCreationInstruction {
 
     @Deprecated
     public void setDeltaProcessAndTaskVariables(ObjectDelta delta) {
-//        try {
-//            addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_DELTA, new StringHolder(DeltaConvertor.toObjectDeltaTypeXml(delta)));
-//        } catch(JAXBException e) {
-//            throw new SystemException("Couldn't store primary delta into the process variable due to JAXB exception", e);
-//        } catch (SchemaException e) {
-//            throw new SystemException("Couldn't store primary delta into the process variable due to schema exception", e);
-//        }
-//
-//        try {
-//            addTaskDeltasVariable(getChangeProcessor().getWorkflowManager().getWfTaskUtil().getWfDeltaToProcessPropertyDefinition(), delta);
-//        } catch (SchemaException e) {
-//            throw new SystemException("Couldn't store primary delta into the task variable due to schema exception", e);
-//        }
-//
         setObjectTreeDeltasProcessAndTaskVariables(new ObjectTreeDeltas(delta, getChangeProcessor().getPrismContext()));
     }
 
@@ -118,6 +110,27 @@ public class PcpChildJobCreationInstruction extends JobCreationInstruction {
         }
     }
 
+    public void setObjectRefVariable(ObjectReferenceType objectRef) {
+        if (objectRef != null) {
+            addProcessVariable(CommonProcessVariableNames.VARIABLE_OBJECT_REF, new LightweightObjectRefImpl(objectRef));
+        } else {
+            removeProcessVariable(CommonProcessVariableNames.VARIABLE_OBJECT_REF);
+        }
+    }
+
+    public void setObjectRefVariable(ModelContext<?> modelContext) {
+        ObjectType focus = MiscDataUtil.getFocusObjectNewOrOld(modelContext);
+        setObjectRefVariable(ObjectTypeUtil.createObjectRef(focus));
+    }
+
+    public void setTargetRefVariable(ObjectReferenceType value) {
+        if (value != null) {
+            addProcessVariable(CommonProcessVariableNames.VARIABLE_TARGET_REF, new LightweightObjectRefImpl(value));
+        } else {
+            removeProcessVariable(CommonProcessVariableNames.VARIABLE_TARGET_REF);
+        }
+    }
+
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
@@ -129,4 +142,5 @@ public class PcpChildJobCreationInstruction extends JobCreationInstruction {
         sb.append(super.debugDump(indent+1));
         return sb.toString();
     }
+
 }

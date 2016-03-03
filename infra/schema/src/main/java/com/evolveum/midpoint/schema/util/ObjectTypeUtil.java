@@ -173,6 +173,9 @@ public class ObjectTypeUtil {
 	}
 
 	public static ObjectReferenceType createObjectRef(ObjectType objectType) {
+		if (objectType == null) {
+			return null;
+		}
         return createObjectRef(objectType.asPrismObject());
     }
 

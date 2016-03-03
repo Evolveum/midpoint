@@ -270,13 +270,17 @@ public class MiscDataUtil {
      * Retrieves focus object name from the model context.
      */
     public static String getFocusObjectName(ModelContext<? extends ObjectType> modelContext) {
+        ObjectType object = getFocusObjectNewOrOld(modelContext);
+        return object.getName() != null ? object.getName().getOrig() : null;
+    }
+
+    public static ObjectType getFocusObjectNewOrOld(ModelContext<? extends ObjectType> modelContext) {
         ModelElementContext<? extends ObjectType> fc = modelContext.getFocusContext();
         PrismObject<? extends ObjectType> prism = fc.getObjectNew() != null ? fc.getObjectNew() : fc.getObjectOld();
         if (prism == null) {
             throw new IllegalStateException("No object (new or old) in model context");
         }
-        ObjectType object = prism.asObjectable();
-        return object.getName() != null ? object.getName().getOrig() : null;
+        return prism.asObjectable();
     }
 
     public Task getShadowTask(Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -133,7 +134,7 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
     }
 
     private List<ApprovalRequest<AssignmentType>> getApprovalRequestsFromFocusModify(PcpAspectConfigurationType config,
-                                                                                     PrismObject<? extends ObjectType> focusOld,
+                                                                                     PrismObject<?> focusOld,
                                                                                      ObjectDelta<? extends ObjectType> change, OperationResult result) {
         LOGGER.trace("Relevant assignments in focus modify delta:");
 
@@ -190,7 +191,7 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
         return approvalRequestList;
     }
 
-    private boolean existsEquivalentValue(PrismObject<? extends ObjectType> focusOld, PrismContainerValue<AssignmentType> assignmentValue) {
+    private boolean existsEquivalentValue(PrismObject<?> focusOld, PrismContainerValue<AssignmentType> assignmentValue) {
         FocusType focusType = (FocusType) focusOld.asObjectable();
         for (AssignmentType existing : focusType.getAssignment()) {
             if (existing.asPrismContainerValue().equalsRealValue(assignmentValue)) {
@@ -243,6 +244,9 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
             // prepare and set the delta that has to be approved
             ObjectDelta<? extends ObjectType> delta = assignmentToDelta(modelContext, assignmentType, assigneeOid);
             instruction.setDeltaProcessAndTaskVariables(delta);
+
+            instruction.setObjectRefVariable(modelContext);
+            instruction.setTargetRefVariable(ObjectTypeUtil.createObjectRef(target));
 
             // set the names of midPoint task and activiti process instance
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";

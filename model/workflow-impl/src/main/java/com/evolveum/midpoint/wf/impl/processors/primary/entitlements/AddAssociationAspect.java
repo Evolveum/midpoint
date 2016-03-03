@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -263,6 +264,9 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             // prepare and set the delta that has to be approved
             ObjectTreeDeltas objectTreeDeltas = associationAdditionToDelta(modelContext, associationAddition, assigneeOid);
             instruction.setObjectTreeDeltasProcessAndTaskVariables(objectTreeDeltas);
+
+            instruction.setObjectRefVariable(modelContext);
+            instruction.setTargetRefVariable(ObjectTypeUtil.createObjectRef(target));
 
             // set the names of midPoint task and activiti process instance
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";

@@ -175,7 +175,7 @@ public class JobCreationInstruction implements DebugDumpable {
         processVariables.put(name, value);
     }
 
-    private void removeProcessVariable(String name) {
+    protected void removeProcessVariable(String name) {
         processVariables.remove(name);
     }
 

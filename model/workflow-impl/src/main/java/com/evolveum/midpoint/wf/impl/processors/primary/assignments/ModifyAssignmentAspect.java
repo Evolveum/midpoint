@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -231,6 +232,9 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
             // prepare and set the delta that has to be approved
             ObjectDelta<? extends ObjectType> delta = requestToDelta(modelContext, approvalRequest, focusOid);
             instruction.setDeltaProcessAndTaskVariables(delta);
+
+            instruction.setObjectRefVariable(modelContext);
+            instruction.setTargetRefVariable(ObjectTypeUtil.createObjectRef(target));
 
             // set the names of midPoint task and activiti process instance
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";

@@ -148,6 +148,9 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
         // prepare and set the delta that has to be approved
         instruction.setDeltaProcessAndTaskVariables(itemDeltaToObjectDelta(objectOid, delta));
 
+        instruction.setObjectRefVariable(modelContext);
+        instruction.setTargetRefVariable(null);
+
         // set the names of midPoint task and activiti process instance
         instruction.setTaskName("Workflow for approving password change for " + userName);
         instruction.setProcessInstanceName("Changing password for " + userName);
