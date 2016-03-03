@@ -17,37 +17,49 @@
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author lazyman
+ * @author mederly
  */
 public class WorkItemNewDto extends Selectable {
 
     public static final String F_NAME = "name";
-    public static final String F_OWNER_OR_CANDIDATES = "ownerOrCandidates";
-    public static final String F_CANDIDATES = "candidates";
-    public static final String F_ASSIGNEE = "assignee";
     public static final String F_CREATED = "created";
+    public static final String F_PROCESS_STARTED = "processStarted";
+    public static final String F_ASSIGNEE_OR_CANDIDATES = "assigneeOrCandidates";
+    public static final String F_ASSIGNEE = "assignee";
+    public static final String F_CANDIDATES = "candidates";
 
     public static final String F_OBJECT_NAME = "objectName";
     public static final String F_TARGET_NAME = "targetName";
-    public static final String F_PROCESS_STARTED = "processStarted";
+
+    public static final String F_REQUESTED_BY = "requestedBy";
+    public static final String F_REQUESTED_BY_FULL_NAME = "requestedByFullName";
+    public static final String F_APPROVER_COMMENT = "approverComment";
+
+    // workItem may or may not contain resolved taskRef;
+    // and this task may or may not contain filled-in workflowContext -> and then requesterRef object
+    //
+    // Depending on expected use (work item list vs. work item details)
 
     protected WorkItemNewType workItem;
+    protected String approverComment;
 
     public WorkItemNewDto(WorkItemNewType workItem) {
         this.workItem = workItem;
     }
 
-    public String getName() {
-        return workItem.getName();
-    }
-
     public String getWorkItemId() {
         return workItem.getWorkItemId();
+    }
+
+    public String getName() {
+        return workItem.getName();
     }
 
     public String getCreated() {
@@ -58,7 +70,7 @@ public class WorkItemNewDto extends Selectable {
         return WebComponentUtil.formatDate(XmlTypeConverter.toDate(workItem.getProcessStartedTimestamp()));
     }
 
-    public String getOwnerOrCandidates() {
+    public String getAssigneeOrCandidates() {
         String assignee = getAssignee();
         if (assignee != null) {
             return assignee;
@@ -105,5 +117,40 @@ public class WorkItemNewDto extends Selectable {
 
     public String getTargetName() {
         return WebComponentUtil.getName(workItem.getTargetRef());
+    }
+
+    public WfContextType getWorkflowContext() {
+        TaskType task = WebComponentUtil.getObjectFromReference(workItem.getTargetRef(), TaskType.class);
+        if (task == null || task.getWorkflowContext() == null) {
+            return null;
+        } else {
+            return task.getWorkflowContext();
+        }
+    }
+
+    public String getRequestedBy() {
+        WfContextType wfContext = getWorkflowContext();
+        return wfContext != null ? WebComponentUtil.getName(wfContext.getRequesterRef()) : null;
+    }
+
+    public UserType getRequester() {
+        WfContextType wfContext = getWorkflowContext();
+        if (wfContext == null) {
+            return null;
+        }
+        return WebComponentUtil.getObjectFromReference(wfContext.getRequesterRef(), UserType.class);
+    }
+
+    public String getRequestedByFullName() {
+        UserType requester = getRequester();
+        return requester != null ? PolyString.getOrig(requester.getFullName()) : null;
+    }
+
+    public String getApproverComment() {
+        return approverComment;
+    }
+
+    public void setApproverComment(String approverComment) {
+        this.approverComment = approverComment;
     }
 }

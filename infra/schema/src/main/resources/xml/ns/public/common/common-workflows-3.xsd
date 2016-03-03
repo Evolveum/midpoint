@@ -732,6 +732,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="requesterRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        User who requested the respective operation was carried out.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="state" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1032,6 +1042,13 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
                     </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="decision" type="tns:DecisionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Approver's decision (if known).
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
 

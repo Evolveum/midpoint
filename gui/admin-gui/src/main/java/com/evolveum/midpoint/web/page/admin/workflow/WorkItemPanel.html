@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <h3><wicket:message key="workItemPanel.mainInfo"/></h3>
+    <table class="table table-condensed table-striped">
+        <tr>
+            <td><wicket:message key="workItemPanel.requestedBy" /></td>
+            <td><b><span wicket:id="requestedBy" /></b> (<span
+                    wicket:id="requestedByFullName" />)</td>
+        </tr>
+        <tr>
+            <td><wicket:message key="workItemPanel.requestedOn" /></td>
+            <td><b><span wicket:id="requestedOn" /></b></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="workItemPanel.workItemCreatedOn" /></td>
+            <td><b><span wicket:id="workItemCreatedOn" /></b></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="workItemPanel.assignee" /></td>
+            <td><b><span wicket:id="assignee" /></b></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="workItemPanel.candidates" /></td>
+            <td><b><span wicket:id="candidates" /></b></td>
+        </tr>
+    </table>
+
+    <h3><wicket:message key="workItemPanel.changeToBeApproved"/></h3>
+    <div wicket:id="deltaToBeApproved" />
+
+    <h3><wicket:message key="workItemPanel.approvalHistory"/></h3>
+    <div wicket:id="history" />
+
+    <h3><wicket:message key="workItemPanel.approverComment"/></h3>
+    <div class="col-md-6">
+        <textarea wicket:id="approverComment" class="form-control input-sm" rows="2"></textarea>
+    </div>
+
+</wicket:panel>
+</html>

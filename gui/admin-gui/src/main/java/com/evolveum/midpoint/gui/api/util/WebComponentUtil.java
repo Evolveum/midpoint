@@ -43,6 +43,7 @@ import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -991,4 +992,17 @@ public final class WebComponentUtil {
 		return new ItemPath(newPath);
 
 	}
+
+	public static <T extends ObjectType> T getObjectFromReference(ObjectReferenceType ref, Class<T> type) {
+		if (ref == null || ref.asReferenceValue().getObject() == null) {
+			return null;
+		}
+		Objectable object = ref.asReferenceValue().getObject().asObjectable();
+		if (!type.isAssignableFrom(object.getClass())) {
+			throw new IllegalStateException("Got " + object.getClass() + " when expected " + type + ": " + ObjectTypeUtil.toShortString(ref, true));
+		}
+		return (T) object;
+	}
+
+
 }

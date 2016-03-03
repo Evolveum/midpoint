@@ -95,7 +95,7 @@ public class WorkItemsPanel extends BasePanel<List<WorkItemNewDto>> {
         columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.started"), WorkItemNewDto.F_PROCESS_STARTED));
         columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.created"), WorkItemNewDto.F_CREATED));
         if (showAssigned) {
-            columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.assigned"), WorkItemNewDto.F_OWNER_OR_CANDIDATES));
+            columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.assigned"), WorkItemNewDto.F_ASSIGNEE_OR_CANDIDATES));
         }
 
         ISortableDataProvider provider = new ListDataProvider(this, getModel());

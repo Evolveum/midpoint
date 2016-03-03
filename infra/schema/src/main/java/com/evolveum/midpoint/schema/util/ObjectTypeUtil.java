@@ -142,11 +142,18 @@ public class ObjectTypeUtil {
     }
 
     public static Object toShortString(ObjectReferenceType objectRef) {
+		return toShortString(objectRef, false);
+	}
+
+	public static Object toShortString(ObjectReferenceType objectRef, boolean withName) {
         if (objectRef == null) {
             return "null";
         }
         StringBuilder sb = new StringBuilder();
         sb.append("objectRef oid=").append(objectRef.getOid());
+		if (withName && objectRef.getTargetName() != null) {
+			sb.append(" name='").append(objectRef.getTargetName()).append("'");
+		}
         if (objectRef.getType() != null) {
             sb.append(" type=").append(SchemaDebugUtil.prettyPrint(objectRef.getType()));
         }
