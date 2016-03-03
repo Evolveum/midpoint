@@ -255,7 +255,7 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     private GeneralChangeApprovalWorkItemContents getGeneralChangeApprovalWorkItemContents() {
-        ObjectType contents = workItemDtoModel.getObject().getWorkItem().getContents();
+        ObjectType contents = workItemDtoModel.getObject().getContents();
         if (contents instanceof GeneralChangeApprovalWorkItemContents) {
             return (GeneralChangeApprovalWorkItemContents) contents;
         } else {
@@ -417,7 +417,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             return new ProcessInstanceDto(processInstance, shadowTask);
         } catch (ObjectNotFoundException ex) {
             result.recordWarning("Work item seems to be already closed.");
-            LoggingUtils.logException(LOGGER, "Couldn't get process instance for work item; it might be already closed.", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get process instance for work item; it might be already closed.", ex);
             showResult(result);
             throw getRestartResponseException(PageWorkItems.class);
         } catch (Exception ex) {
@@ -776,7 +776,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         OperationResult result = new OperationResult(OPERATION_CLAIM_WORK_ITEM);
         WorkflowService workflowService = getWorkflowService();
         try {
-            workflowService.claimWorkItem(workItemDtoModel.getObject().getWorkItem().getWorkItemId(), result);
+            workflowService.claimWorkItem(workItemDtoModel.getObject().getWorkItemId(), result);
             setReinitializePreviousPages(true);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't claim work item due to an unexpected exception.", e);

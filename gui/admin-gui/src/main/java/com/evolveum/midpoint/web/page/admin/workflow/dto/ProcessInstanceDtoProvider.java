@@ -95,13 +95,13 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
                 try {
                     getAvailableData().add(new ProcessInstanceDto(item, null));
                 } catch (Exception e) {
-                    LoggingUtils.logException(LOGGER, "Unhandled exception when listing process instance ", e, item);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing process instance ", e, item);
                     result.recordPartialError("Couldn't list process instance.", e);
                 }
             }
 
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Unhandled exception when listing process instances", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing process instances", ex);
             result.recordFatalError("Couldn't list process instances.", ex);
         }
 
@@ -125,7 +125,7 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
             count = workflowService.countProcessInstancesRelatedToUser(currentUser(), requestedBy, requestedFor, finished, result);
         } catch (Exception ex) {
             String msg = "Couldn't list process instances";
-            LoggingUtils.logException(LOGGER, msg, ex);
+            LoggingUtils.logUnexpectedException(LOGGER, msg, ex);
             result.recordFatalError(msg, ex);
         }
 

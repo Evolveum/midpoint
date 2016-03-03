@@ -162,11 +162,40 @@ public class WorkItemProvider {
         return retval;
     }
 
+    public List<WorkItemNewType> listWorkItemsNewRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        OperationResult result = parentResult.createSubresult(OPERATION_LIST_WORK_ITEMS_RELATED_TO_USER);
+        result.addParam("userOid", userOid);
+        result.addParam("assigned", assigned);
+        result.addParam("first", first);
+        result.addParam("count", count);
+        List<Task> tasks;
+        try {
+            tasks = createQueryForTasksRelatedToUser(userOid, assigned, result).listPage(first, count);
+        } catch (ActivitiException e) {
+            result.recordFatalError("Couldn't list work items assigned/assignable to " + userOid, e);
+            throw new SystemException("Couldn't list work items assigned/assignable to " + userOid + " due to Activiti exception", e);
+        }
+
+        List<WorkItemNewType> retval = tasksToWorkItemsNew(tasks, null, false, false, true, result);       // there's no need to fill-in assignee details nor data forms; but candidates are necessary to fill-in
+        result.computeStatusIfUnknown();
+        return retval;
+    }
+
     private TaskQuery createQueryForTasksRelatedToUser(String oid, boolean assigned, OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (assigned) {
-            return activitiEngine.getTaskService().createTaskQuery().taskAssignee(oid).orderByTaskCreateTime().desc();
+            return activitiEngine.getTaskService().createTaskQuery()
+                    .taskAssignee(oid)
+                    .orderByTaskCreateTime().desc()
+                    .includeTaskLocalVariables()
+                    .includeProcessVariables();
+
         } else {
-            return activitiEngine.getTaskService().createTaskQuery().taskUnassigned().taskCandidateGroupIn(miscDataUtil.getGroupsForUser(oid, result)).orderByTaskCreateTime().desc();
+            return activitiEngine.getTaskService().createTaskQuery()
+                    .taskUnassigned()
+                    .taskCandidateGroupIn(miscDataUtil.getGroupsForUser(oid, result))
+                    .orderByTaskCreateTime().desc()
+                    .includeTaskLocalVariables()
+                    .includeProcessVariables();
         }
     }
 
@@ -305,9 +334,11 @@ public class WorkItemProvider {
 
         public TaskExtract(Task task, Map<String, Object> processVariables) {
             this(task);
-            for (Map.Entry<String, Object> variable: processVariables.entrySet()) {
-                if (!variables.containsKey(variable.getKey())) {
-                    variables.put(variable.getKey(), variable.getValue());
+            if (processVariables != null) {
+                for (Map.Entry<String, Object> variable: processVariables.entrySet()) {
+                    if (!variables.containsKey(variable.getKey())) {
+                        variables.put(variable.getKey(), variable.getValue());
+                    }
                 }
             }
         }

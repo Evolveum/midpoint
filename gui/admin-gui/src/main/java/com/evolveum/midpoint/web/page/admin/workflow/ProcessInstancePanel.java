@@ -119,7 +119,7 @@ public class ProcessInstancePanel extends BasePanel<ProcessInstanceDto> {
             Panel detailsPanel = panelClass.getConstructor(String.class, IModel.class).newInstance(ID_DETAILS, model);
             add(detailsPanel);
         } catch (InvocationTargetException|InstantiationException|NoSuchMethodException|IllegalAccessException|RuntimeException e) {
-            LoggingUtils.logException(LOGGER, "Details panel couldn't be shown", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Details panel couldn't be shown", e);
             Label problemLabel = new Label(ID_DETAILS, "Details cannot be shown because of the following exception: " + e.getMessage() + ". Please see the log for more details");
             add(problemLabel);
         }

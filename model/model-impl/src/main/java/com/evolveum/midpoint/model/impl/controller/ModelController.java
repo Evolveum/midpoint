@@ -1722,7 +1722,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         return getWorkflowManagerChecked().listWorkItemsRelatedToUser(userOid, assigned, first, count, parentResult);
     }
 
-    @Override
+	@Override
+	public List<WorkItemNewType> listWorkItemsNewRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+		return getWorkflowManagerChecked().listWorkItemsNewRelatedToUser(userOid, assigned, first, count, parentResult);
+	}
+
+	@Override
     public WorkItemType getWorkItemDetailsById(String workItemId, OperationResult parentResult) throws ObjectNotFoundException {
         return getWorkflowManagerChecked().getWorkItemDetailsById(workItemId, parentResult);
     }

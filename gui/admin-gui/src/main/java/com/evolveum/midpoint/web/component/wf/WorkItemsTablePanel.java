@@ -21,18 +21,22 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItem;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoNewProvider;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoProvider;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemNewDto;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -45,23 +49,30 @@ import java.util.List;
  * @author lazyman
  * @author mederly
  */
-public class WorkItemsPanel extends BasePanel<List<WorkItemNewDto>> {
+public class WorkItemsTablePanel extends BasePanel {
 
     private static final String ID_WORK_ITEMS_TABLE = "workItemsTable";
 
-    public WorkItemsPanel(String id, IModel<List<WorkItemNewDto>> model) {
-        super(id, model);
-        initLayout(true);
+    private ISortableDataProvider<WorkItemNewDto, String> provider;
+
+    public WorkItemsTablePanel(String id, ISortableDataProvider<WorkItemNewDto, String> provider,
+            UserProfileStorage.TableId tableId, long pageSize) {
+        this(id, provider, tableId, pageSize, true);
     }
 
-    public WorkItemsPanel(String id, IModel<List<WorkItemNewDto>> model, boolean showAssigned) {
-        super(id, model);
-        initLayout(showAssigned);
+    public WorkItemsTablePanel(String id, ISortableDataProvider<WorkItemNewDto, String> provider,
+            UserProfileStorage.TableId tableId, long pageSize, boolean showAssigned) {
+        super(id);
+        this.provider = provider;
+        initLayout(tableId, pageSize, showAssigned);
     }
 
     // this is called locally in order to take showAssigned into account
-    private void initLayout(boolean showAssigned) {
+    private void initLayout(UserProfileStorage.TableId tableId, long pageSize, boolean showAssigned) {
         List<IColumn<WorkItemNewDto, String>> columns = new ArrayList<>();
+
+        // TODO configurable
+        columns.add(new CheckBoxHeaderColumn<WorkItemNewDto>());
 
         // TODO clickable links and info icons
         columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.object"), WorkItemNewDto.F_OBJECT_NAME));
@@ -74,7 +85,7 @@ public class WorkItemsPanel extends BasePanel<List<WorkItemNewDto>> {
                 public void onClick(AjaxRequestTarget target, IModel<WorkItemNewDto> rowModel) {
                     PageParameters parameters = new PageParameters();
                     parameters.add(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getWorkItemId());
-                    setResponsePage(new PageWorkItem(parameters, (PageBase) WorkItemsPanel.this.getPage()));
+                    setResponsePage(new PageWorkItem(parameters, (PageBase) WorkItemsTablePanel.this.getPage()));
                 }
             });
         } else {
@@ -98,8 +109,26 @@ public class WorkItemsPanel extends BasePanel<List<WorkItemNewDto>> {
             columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.assigned"), WorkItemNewDto.F_OWNER_OR_CANDIDATES));
         }
 
-        ISortableDataProvider provider = new ListDataProvider(this, getModel());
-        TablePanel accountsTable = new TablePanel<>(ID_WORK_ITEMS_TABLE, provider, columns);
-        add(accountsTable);
+        TablePanel workItemsTable = new TablePanel<>(ID_WORK_ITEMS_TABLE, provider, columns, tableId, pageSize);
+        add(workItemsTable);
     }
+
+    private TablePanel getWorkItemTable() {
+        return (TablePanel) get(ID_WORK_ITEMS_TABLE);
+    }
+
+    public List<WorkItemNewDto> getSelectedWorkItems() {
+        DataTable table = getWorkItemTable().getDataTable();
+        WorkItemDtoNewProvider provider = (WorkItemDtoNewProvider) table.getDataProvider();
+
+        List<WorkItemNewDto> selected = new ArrayList<>();
+        for (WorkItemNewDto row : provider.getAvailableData()) {
+            if (row.isSelected()) {
+                selected.add(row);
+            }
+        }
+
+        return selected;
+    }
+
 }

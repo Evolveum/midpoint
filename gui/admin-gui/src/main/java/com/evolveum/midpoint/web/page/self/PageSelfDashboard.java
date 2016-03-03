@@ -38,6 +38,7 @@ import com.evolveum.midpoint.web.page.admin.home.component.DashboardColor;
 import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemNewDto;
 import com.evolveum.midpoint.web.page.self.component.LinksPanel;
 import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.page.self.component.MyRequestsPanel;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -133,7 +135,13 @@ public class PageSelfDashboard extends PageSelf {
 
                     @Override
                     protected Component getMainComponent(String markupId) {
-                        return new WorkItemsPanel(markupId, new PropertyModel<List<WorkItemDto>>(getModel(), CallableResult.F_VALUE), false);
+                        //return new WorkItemsPanel(markupId, new PropertyModel<List<WorkItemDto>>(getModel(), CallableResult.F_VALUE), false);
+                        return new WorkItemsPanel(markupId, new AbstractReadOnlyModel<List<WorkItemNewDto>>() {
+                            @Override
+                            public List<WorkItemNewDto> getObject() {
+                                return new ArrayList<>();
+                            }
+                        }, false);
                     }
                 };
 

@@ -28,10 +28,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.api.WorkflowException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
-
 import org.apache.wicket.Component;
 
 import java.util.Iterator;
@@ -40,10 +38,10 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
+public class WorkItemDtoNewProvider extends BaseSortableDataProvider<WorkItemNewDto> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(WorkItemDtoProvider.class);
-    private static final String DOT_CLASS = WorkItemDtoProvider.class.getName() + ".";
+    private static final transient Trace LOGGER = TraceManager.getTrace(WorkItemDtoNewProvider.class);
+    private static final String DOT_CLASS = WorkItemDtoNewProvider.class.getName() + ".";
     private static final String OPERATION_LIST_ITEMS = DOT_CLASS + "listItems";
     private static final String OPERATION_COUNT_ITEMS = DOT_CLASS + "countItems";
 
@@ -58,33 +56,25 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         return principal.getOid();
     }
 
-    public WorkItemDtoProvider(Component component, boolean assigned) {
+    public WorkItemDtoNewProvider(Component component, boolean assigned) {
         super(component);
         this.assigned = assigned;
     }
 
     @Override
-    public Iterator<? extends WorkItemDto> internalIterator(long first, long count) {
+    public Iterator<? extends WorkItemNewDto> internalIterator(long first, long count) {
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_LIST_ITEMS);
 
         try {
-//            SortParam sortParam = getSort();
-//            OrderDirectionType order;
-//            if (sortParam.isAscending()) {
-//                order = OrderDirectionType.ASCENDING;
-//            } else {
-//                order = OrderDirectionType.DESCENDING;
-//            }
-
             WorkflowService wfm = getWorkflowService();
-            List<WorkItemType> items = wfm.listWorkItemsRelatedToUser(currentUser(), assigned,
+            List<WorkItemNewType> items = wfm.listWorkItemsNewRelatedToUser(currentUser(), assigned,
                     WebComponentUtil.safeLongToInteger(first), WebComponentUtil.safeLongToInteger(count), result);
 
-            for (WorkItemType item : items) {
+            for (WorkItemNewType item : items) {
                 try {
-                    getAvailableData().add(new WorkItemDto(item));
+                    getAvailableData().add(new WorkItemNewDto(item));
                 } catch (Exception e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing work item {}", e, item);
                     result.recordFatalError("Couldn't list work item.", e);

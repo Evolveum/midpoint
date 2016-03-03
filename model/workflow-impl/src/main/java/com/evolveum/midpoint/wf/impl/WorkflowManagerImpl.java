@@ -38,10 +38,7 @@ import com.evolveum.midpoint.wf.impl.jobs.JobController;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -105,6 +102,11 @@ public class WorkflowManagerImpl implements WorkflowManager {
     @Override
     public List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         return workItemProvider.listWorkItemsRelatedToUser(userOid, assigned, first, count, parentResult);
+    }
+
+    @Override
+    public List<WorkItemNewType> listWorkItemsNewRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        return workItemProvider.listWorkItemsNewRelatedToUser(userOid, assigned, first, count, parentResult);
     }
 
     @Override

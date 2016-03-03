@@ -8,6 +8,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
 import java.util.List;
@@ -43,6 +44,7 @@ public interface WorkflowService {
      * @return list of work items
      */
     List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
+    List<WorkItemNewType> listWorkItemsNewRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Provides detailed information about a given work item (may be inefficient, so use with care).

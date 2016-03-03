@@ -20,11 +20,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.StringUtils;
@@ -42,8 +38,11 @@ public class WorkItemDto extends Selectable {
     public static final String F_ASSIGNEE = "assignee";
     public static final String F_CREATED = "created";
 
+    public static final String F_OBJECT_NAME = "objectName";
+    public static final String F_TARGET_NAME = "targetName";
+    public static final String F_PROCESS_STARTED = "processStarted";
 
-    WorkItemType workItem;
+    protected WorkItemType workItem;
 
     public WorkItemDto(WorkItemType workItem) {
         this.workItem = workItem;
@@ -53,9 +52,9 @@ public class WorkItemDto extends Selectable {
         return PolyString.getOrig(workItem.getName());
     }
 
-    public String getOwner() {
-        return workItem.getAssigneeRef() != null ? workItem.getAssigneeRef().getOid() : null;
-    }
+//    public String getOwner() {
+//        return workItem.getAssigneeRef() != null ? workItem.getAssigneeRef().getOid() : null;
+//    }
 
     public WorkItemType getWorkItem() {
         return workItem;
@@ -136,4 +135,7 @@ public class WorkItemDto extends Selectable {
         return retval.toString();
     }
 
+    public String getWorkItemId() {
+        return workItem.getWorkItemId();
+    }
 }

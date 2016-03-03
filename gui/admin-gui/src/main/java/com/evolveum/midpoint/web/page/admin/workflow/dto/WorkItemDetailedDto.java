@@ -55,14 +55,6 @@ public class WorkItemDetailedDto extends WorkItemDto {
         }
     }
 
-    public String getName() {
-        return PolyString.getOrig(workItem.getName());
-    }
-
-    public String getOwner() {
-        return workItem.getAssigneeRef() != null ? workItem.getAssigneeRef().getOid() : null;
-    }
-
     public WorkItemType getWorkItem() {
         return workItem;
     }
@@ -106,6 +98,14 @@ public class WorkItemDetailedDto extends WorkItemDto {
     public ContainerValueDto getRelatedObject() {
         if (getWic() != null && getWic().getRelatedObject() != null) {
             return new ContainerValueDto(getWic().getRelatedObject().asPrismObject());
+        } else {
+            return null;
+        }
+    }
+
+    public ObjectType getContents() {
+        if (workItem != null) {
+            return workItem.getContents();
         } else {
             return null;
         }

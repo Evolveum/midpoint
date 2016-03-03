@@ -24,6 +24,7 @@ import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.DecisionDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemNewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -258,7 +259,13 @@ public class ItemApprovalPanel extends Panel {
         workItemsPanelLabel.add(visibleIfRunning);
         add(workItemsPanelLabel);
 
-        WorkItemsPanel workItemsPanel = new WorkItemsPanel(ID_CURRENT_WORK_ITEMS, new PropertyModel<List<WorkItemDto>>(model, "workItems"));
+        //WorkItemsPanel workItemsPanel = new WorkItemsPanel(ID_CURRENT_WORK_ITEMS, new PropertyModel<List<WorkItemDto>>(model, "workItems"));
+        WorkItemsPanel workItemsPanel = new WorkItemsPanel(ID_CURRENT_WORK_ITEMS, new AbstractReadOnlyModel<List<WorkItemNewDto>>() {
+            @Override
+            public List<WorkItemNewDto> getObject() {
+                return new ArrayList<>();
+            }
+        });
         workItemsPanel.add(visibleIfRunning);
         add(workItemsPanel);
     }
