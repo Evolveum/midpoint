@@ -1,2 +1,2 @@
 language: java
-script: "travis_wait 30 mvn verify"
+script: "travis_wait 60 mvn verify"
