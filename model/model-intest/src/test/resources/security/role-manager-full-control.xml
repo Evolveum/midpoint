@@ -19,8 +19,18 @@
         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
     <name>Manager Full Control</name>    
     <authorization>
-    	<name>auth01</name>
+    	<name>autz-read</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<object>
+    		<orgRelation>
+    			<subjectRelation>org:manager</subjectRelation>
+    			<scope>allDescendants</scope>
+    			<includeReferenceOrg>true</includeReferenceOrg>
+    		</orgRelation>
+    	</object>
+    </authorization>
+    <authorization>
+    	<name>autz-write</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
@@ -31,7 +41,7 @@
     	</object>
     </authorization>
     <authorization>
-    	<name>auth02</name>
+    	<name>autz-shadow</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>

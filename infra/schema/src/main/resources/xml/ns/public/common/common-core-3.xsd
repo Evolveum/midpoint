@@ -7348,6 +7348,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:since>3.4</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -7359,18 +7360,87 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="oneLevel" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+        	<xsd:element name="scope" type="tns:OrgScopeType" minOccurs="0" maxOccurs="1" default="allDescendants">
+	        	<xsd:annotation>
+        			<xsd:documentation>
+        				Scope of application that will be used to select objects relative to the reference node.
+        				It determines which objects will be selected (those above or below the refence node, shallow or deep, etc.)
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="includeReferenceOrg" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
         		<xsd:annotation>
         			<xsd:documentation>
-        				If set to true, only the objects directly below the selected org will match (depth = 1).
-        				If set to false all the objects that are any depth below the selected org will
-        				match (unlimited depth).
+        				If set to true then the reference org (the one which the subjects belongs to) is included
+        				in the scope.
+        				If set to false then the reference org is excluded from the scope. 
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
 	</xsd:complexType>
+	
+	
+	    <xsd:simpleType name="OrgScopeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines applicability scope in the organizational structures. 
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>3.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="directDescendants">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Direct descendants of the reference node. I.e. all the nodes
+                		that are exactly one level below.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DIRECT_DESCENDANTS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="allDescendants">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		All descendants of the reference node, including descendants of descendants.
+                		I.e. all the nodes that are one or more levels below.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL_DESCENDANTS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="allAncestors">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		All ancestors of the reference node, including ancestors of ancestors.
+                		I.e. all the nodes that are on any path between the refernce node and the
+                		root node.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL_ANCESTORS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		No objects belong to the scope. Used in conjuction with
+                		includeReferenceOrg option to target only the reference node
+                		and no other node in the hierarchy.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+    	</xsd:restriction>
+    </xsd:simpleType>
 	
 
 	<xsd:simpleType name="SpecialObjectSpecificationType">
