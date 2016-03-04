@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,7 +89,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		importObjectFromFile(USER_JACK_FILENAME);
+		importObjectFromFile(USER_JACK_FILE);
 			
 		PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
 		//assert jack
@@ -101,7 +101,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		List<ConditionalSearchFilterType> filters = new ArrayList<>();
 		filters.add(filter);
 		
-		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
+		ResourceType resourceType = parseObjectType(RESOURCE_DUMMY_FILE, ResourceType.class);
 		IntegrationTestTools.display("Queries", filters);
 		
 		// WHEN
@@ -140,7 +140,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		filter = PrismTestUtil.parseAtomicValue(new File(CORRELATION_SECOND_FILTER), ConditionalSearchFilterType.COMPLEX_TYPE);
 		filters.add(filter);
 		
-		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
+		ResourceType resourceType = parseObjectType(RESOURCE_DUMMY_FILE, ResourceType.class);
 		List<PrismObject<UserType>> matchedUsers = evaluator.findFocusesByCorrelationRule(UserType.class,
 				shadow, filters, resourceType, getSystemConfiguration(), task, result);
 		
@@ -175,7 +175,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		query = PrismTestUtil.parseAtomicValue(new File(CORRELATION_WITH_CONDITION_EMPL_NUMBER), ConditionalSearchFilterType.COMPLEX_TYPE);
 		queries.add(query);
 		
-		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
+		ResourceType resourceType = parseObjectType(RESOURCE_DUMMY_FILE, ResourceType.class);
 		List<PrismObject<UserType>> matchedUsers = evaluator.findFocusesByCorrelationRule(UserType.class,
 				shadow, queries, resourceType, getSystemConfiguration(), task, result);
 		
@@ -207,7 +207,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 //		List<QueryType> queries = new ArrayList<QueryType>();
 //		queries.add(query);
 //		
-		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
+		ResourceType resourceType = parseObjectType(RESOURCE_DUMMY_FILE, ResourceType.class);
 		resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().clear();
 		resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().add(query);
 		userType.asObjectable().setName(new PolyStringType("JACK"));
@@ -252,7 +252,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 //		List<QueryType> queries = new ArrayList<QueryType>();
 //		queries.add(query);
 //		
-		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
+		ResourceType resourceType = parseObjectType(RESOURCE_DUMMY_FILE, ResourceType.class);
 		resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().clear();
 		resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().add(query);
 		
@@ -299,7 +299,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		List<ConditionalSearchFilterType> queries = new ArrayList<>();
 		queries.add(query);
 //		
-		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
+		ResourceType resourceType = parseObjectType(RESOURCE_DUMMY_FILE, ResourceType.class);
 //		resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().add(query);
 		userType.asObjectable().setName(new PolyStringType("JACK"));
 		Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(UserType.F_NAME, userType.getDefinition(), new PolyString("JACK", "jack"));

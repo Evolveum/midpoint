@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -475,11 +475,11 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 	        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 	        OperationResult result = task.getResult();
 
-	        repoAddObjectFromFile(USER_LARGO_FILENAME, UserType.class, result);
+	        repoAddObjectFromFile(USER_LARGO_FILE, UserType.class, result);
 	        
 	        LensContext<UserType> context = createUserAccountContext();
 	        fillContextWithUser(context, USER_LARGO_OID, result);
-	        fillContextWithAccountFromFile(context, ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME, result);
+	        fillContextWithAccountFromFile(context, ACCOUNT_SHADOW_ELAINE_DUMMY_FILE, result);
 	        context.recompute();
 	        
 	        ProjectionPolicyType accountSynchronizationSettings = new ProjectionPolicyType();

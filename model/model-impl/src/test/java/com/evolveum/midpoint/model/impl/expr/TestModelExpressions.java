@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,13 +66,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * 
  * @author lazyman
  * @author mederly
+ * @author semancik
  * 
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestModelExpressions extends AbstractModelIntegrationTest {
+public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
-	private static final String TEST_DIR = "src/test/resources/expr";
+	private static final File TEST_DIR = new File("src/test/resources/expr");
 
 	private static final QName PROPERTY_NAME = new QName(SchemaConstants.NS_C, "foo");
 	
@@ -94,7 +95,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
     @Autowired(required = true)
     private TaskManager taskManager;
 
-    private static final String TEST_EXPRESSIONS_OBJECTS = "./src/test/resources/expr/orgstruct.xml";
+    private static final File TEST_EXPRESSIONS_OBJECTS_FILE = new File(TEST_DIR, "orgstruct.xml");
 
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -106,12 +107,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
-		modelService.postInit(initResult);
-		
-		// Administrator
-		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(AbstractInternalModelIntegrationTest.USER_ADMINISTRATOR_FILE, UserType.class, initResult);
-		repoAddObjectFromFile(AbstractInternalModelIntegrationTest.ROLE_SUPERUSER_FILE, RoleType.class, initResult);
-		login(userAdministrator);
+		importObjectFromFile(TEST_EXPRESSIONS_OBJECTS_FILE);
 	}
 
 	@Test
@@ -144,14 +140,6 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
 		return expressionType;
 	}
 
-    private boolean imported = false;
-    private void importIfNeeded() throws Exception {
-        if (!imported) {
-            importObjectFromFile(TEST_EXPRESSIONS_OBJECTS);
-            imported = true;
-        }
-    }
-
     @Test
     public void testGetUserByOid() throws Exception {
         final String TEST_NAME = "testGetUserByOid";
@@ -160,12 +148,11 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
         // GIVEN
         OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
 
-        importIfNeeded();
-
         PrismObject<UserType> chef = repositoryService.getObject(UserType.class, CHEF_OID, null, result);
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + TEST_NAME + ".xml");
-        ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
+        ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
         ExpressionVariables variables = new ExpressionVariables();
         variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "user"), chef);
 
@@ -187,8 +174,6 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
         // GIVEN
         OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
 
-        importIfNeeded();
-
         PrismObject<UserType> chef = repositoryService.getObject(UserType.class, CHEF_OID, null, result);
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + TEST_NAME + ".xml");
@@ -202,13 +187,12 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
 
         // THEN
         display("Script output", scriptOutputs);
-        assertEquals("Unexpected number of script outputs", 4, scriptOutputs.size());
+        assertEquals("Unexpected number of script outputs", 3, scriptOutputs.size());
         Set<String> oids = new HashSet<String>();
         oids.add(scriptOutputs.get(0).getValue());
         oids.add(scriptOutputs.get(1).getValue());
         oids.add(scriptOutputs.get(2).getValue());
-        oids.add(scriptOutputs.get(3).getValue());
-        Set<String> expectedOids = new HashSet<String>(Arrays.asList(new String[] { CHEESE_OID, CHEESE_JR_OID, ELAINE_OID, LECHUCK_OID }));
+        Set<String> expectedOids = new HashSet<String>(Arrays.asList(new String[] { CHEESE_OID, CHEESE_JR_OID, LECHUCK_OID }));
         assertEquals("Unexpected script output", expectedOids, oids);
     }
 
@@ -219,8 +203,6 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
 
         // GIVEN
         OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
-
-        importIfNeeded();
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + TEST_NAME + ".xml");
         ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
