@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ public class MatchingRuleRegistryFactory {
 		registry.registerMatchingRule(new PolyStringNormMatchingRule());
 		registry.registerMatchingRule(new ExchangeEmailAddressesMatchingRule());
 		registry.registerMatchingRule(new DistinguishedNameMatchingRule());
+		registry.registerMatchingRule(new XmlMatchingRule());
 		
 		return registry;
 	}
