@@ -702,8 +702,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-	public <T extends ObjectType> T getObject(Class<T> type,
-			String oid, Collection<SelectorOptions<GetOperationOptions>> options)
+	public <T extends ObjectType> T getObject(Class<T> type, String oid, 
+			Collection<SelectorOptions<GetOperationOptions>> options)
 			throws ObjectNotFoundException, SchemaException,
 			CommunicationException, ConfigurationException,
 			SecurityViolationException {
@@ -711,8 +711,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	}
 
 	@Override
-	public <T extends ObjectType> T getObject(Class<T> type,
-			String oid) throws ObjectNotFoundException, SchemaException,
+	public <T extends ObjectType> T getObject(Class<T> type, String oid) throws ObjectNotFoundException, SchemaException,
 			CommunicationException, ConfigurationException, SecurityViolationException {
 		PrismObject<T> prismObject = modelService.getObject(type, oid, null, getCurrentTask(), getCurrentResult());
 		return prismObject.asObjectable();
