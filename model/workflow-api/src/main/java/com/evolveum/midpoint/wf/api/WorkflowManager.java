@@ -16,8 +16,10 @@
 
 package com.evolveum.midpoint.wf.api;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -52,6 +54,7 @@ public interface WorkflowManager {
      * @return number of relevant work items
      * @throws WorkflowException
      */
+    @Deprecated // use countContainers
     int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 
     /**
@@ -65,7 +68,9 @@ public interface WorkflowManager {
      * @return list of work items
      * @throws WorkflowException
      */
+    @Deprecated // use searchContainers
     List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
+    @Deprecated // use searchContainers
     List<WorkItemNewType> listWorkItemsNewRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 
     /**
@@ -77,8 +82,13 @@ public interface WorkflowManager {
      * @throws ObjectNotFoundException
      * @throws WorkflowException
      */
+    @Deprecated // use searchContainers
     WorkItemType getWorkItemDetailsById(String taskId, OperationResult parentResult) throws ObjectNotFoundException;
+    @Deprecated // use searchContainers
     WorkItemNewType getWorkItemNewById(String taskId, OperationResult parentResult) throws ObjectNotFoundException;
+
+    <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result);
+    <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result);
 
     /*
      * Process instances
@@ -155,4 +165,5 @@ public interface WorkflowManager {
 
     <T extends ObjectType> void augmentTaskObjectList(SearchResultList<PrismObject<T>> list,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result);
+
 }

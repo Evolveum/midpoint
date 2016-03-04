@@ -854,17 +854,31 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			ModelUtils.validatePaging(query.getPaging());
 		}
 
-		if (!AccessCertificationCaseType.class.equals(type)) {
-			throw new UnsupportedOperationException("searchContainers method is currently supported only for AccessCertificationCaseType class");
+		final boolean isCase = AccessCertificationCaseType.class.equals(type);
+		final boolean isWorkItem = WorkItemNewType.class.equals(type);
+
+		if (!isCase && !isWorkItem) {
+			throw new UnsupportedOperationException("searchContainers method is currently supported only for AccessCertificationCaseType and WorkItemType classes");
 		}
 
-		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
-		OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS);
+		final OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS);
 		result.addParams(new String[] { "type", "query", "paging" },
 				type, query, (query != null ? query.getPaging() : "undefined"));
 
-		query = preProcessSubobjectQuerySecurity(AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query);
+
+		final ObjectTypes.ObjectManager manager;
+		if (isCase) {
+			query = preProcessSubobjectQuerySecurity(AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query);
+			manager = ObjectTypes.ObjectManager.REPOSITORY;
+		} else if (isWorkItem) {
+			query = preProcessWorkItemSecurity(query);
+			manager = ObjectTypes.ObjectManager.WORKFLOW;
+		} else {
+			throw new IllegalStateException();
+		}
+
 		if (isFilterNone(query, result)) {
 			return new SearchResultList(new ArrayList<>());
 		}
@@ -879,7 +893,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				if (GetOperationOptions.isRaw(rootOptions)) {       // MID-2218
 					QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
 				}
-				list = cacheRepositoryService.searchContainers(type, query, options, result);
+				switch (manager) {
+					case REPOSITORY: list = cacheRepositoryService.searchContainers(type, query, options, result); break;
+					case WORKFLOW: list = workflowManager.searchContainers(type, query, options, result); break;
+					default: throw new IllegalStateException();
+				}
 				result.computeStatus();
 				result.cleanupResult();
 			} catch (SchemaException|RuntimeException e) {
@@ -902,10 +920,26 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			RepositoryCache.exit();
 		}
 
-		list = schemaTransformer.applySchemasAndSecurityToContainers(list, AccessCertificationCampaignType.class,
-				AccessCertificationCampaignType.F_CASE, rootOptions, null, task, result);
+		if (isCase) {
+			list = schemaTransformer.applySchemasAndSecurityToContainers(list, AccessCertificationCampaignType.class,
+					AccessCertificationCampaignType.F_CASE, rootOptions, null, task, result);
+		} else if (isWorkItem) {
+			// TODO implement security post processing for WorkItems
+		} else {
+			throw new IllegalStateException();
+		}
 
 		return list;
+	}
+
+	private ObjectQuery preProcessWorkItemSecurity(ObjectQuery query) {
+		/*
+		 * TODO implement something like:
+		 * - if <authorized to see all WIs> then no change
+		 * - if <authorized to see own WIs> then add "assignee == <user>" or "assignable == <user>" (TODO)
+		 * - else <none>
+		 */
+		return query;
 	}
 
 	protected boolean isFilterNone(ObjectQuery query, OperationResult result) {

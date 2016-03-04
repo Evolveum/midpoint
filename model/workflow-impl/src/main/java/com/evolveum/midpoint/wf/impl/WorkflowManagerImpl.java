@@ -16,8 +16,10 @@
 
 package com.evolveum.midpoint.wf.impl;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -117,6 +119,22 @@ public class WorkflowManagerImpl implements WorkflowManager {
     @Override
     public WorkItemNewType getWorkItemNewById(String taskId, OperationResult parentResult) throws ObjectNotFoundException {
         return workItemProvider.getWorkItemNewById(taskId, parentResult);
+    }
+
+    @Override
+    public <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
+        if (!WorkItemNewType.class.equals(type)) {
+            throw new UnsupportedOperationException("countContainers is available only for work items");
+        }
+        return workItemProvider.countWorkItems(query, options, result);
+    }
+
+    @Override
+    public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
+        if (!WorkItemNewType.class.equals(type)) {
+            throw new UnsupportedOperationException("searchContainers is available only for work items");
+        }
+        return workItemProvider.searchWorkItems(query, options, result);
     }
 
     @Override

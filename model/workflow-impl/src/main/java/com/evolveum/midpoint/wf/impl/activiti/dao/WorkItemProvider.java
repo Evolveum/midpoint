@@ -16,11 +16,16 @@
 
 package com.evolveum.midpoint.wf.impl.activiti.dao;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -60,11 +65,7 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Used to retrieve (and provide) data about work items.
@@ -277,6 +278,14 @@ public class WorkItemProvider {
             }
         }
         return retval;
+    }
+
+    public <T extends Containerable> Integer countWorkItems(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
+        return null;
+    }
+
+    public <T extends Containerable> SearchResultList<T> searchWorkItems(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
+        listWorkItemsNewRelatedToUser()
     }
 
     // should not throw ActivitiException

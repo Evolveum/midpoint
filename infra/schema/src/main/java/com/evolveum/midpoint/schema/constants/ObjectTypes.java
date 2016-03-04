@@ -92,7 +92,7 @@ public enum ObjectTypes {
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
     
     public static enum ObjectManager {
-        PROVISIONING, TASK_MANAGER, MODEL, REPOSITORY;
+        PROVISIONING, TASK_MANAGER, MODEL, WORKFLOW, REPOSITORY;
     }
 
     private QName type;
