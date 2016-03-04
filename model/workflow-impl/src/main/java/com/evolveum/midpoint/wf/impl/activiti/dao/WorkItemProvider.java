@@ -219,6 +219,26 @@ public class WorkItemProvider {
         return retval;
     }
 
+    public WorkItemNewType getWorkItemNewById(String taskId, OperationResult parentResult) throws ObjectNotFoundException {
+        OperationResult result = parentResult.createSubresult(OPERATION_GET_WORK_ITEM_DETAILS_BY_TASK_ID);
+        result.addParam("taskId", taskId);
+        Task task;
+        try {
+            task = activitiEngineDataHelper.getTaskById(taskId, result);
+        } catch (ActivitiException e) {
+            result.recordFatalError("Couldn't get work item with id " + taskId, e);
+            throw new SystemException("Couldn't get work item with id " + taskId, e);
+        }
+        WorkItemNewType retval;
+        try {
+            retval = taskToWorkItemNew(task, null, true, true, true, result);
+        } catch (WorkflowException e) {
+            throw new SystemException(e);
+        }
+        result.computeStatusIfUnknown();
+        return retval;
+    }
+
     /*
      * ========================= PART 2 - activiti to midpoint converters =========================
      *

@@ -112,8 +112,10 @@ public class ActivitiEngineDataHelper {
 
     public Task getTaskById(String taskId, OperationResult result) throws ObjectNotFoundException {
         TaskService taskService = activitiEngine.getTaskService();
-        TaskQuery tq = taskService.createTaskQuery();
-        tq.taskId(taskId);
+        TaskQuery tq = taskService.createTaskQuery()
+                .taskId(taskId)
+                .includeProcessVariables()
+                .includeTaskLocalVariables();
         Task task = tq.singleResult();
         if (task == null) {
             result.recordFatalError("Task with ID " + taskId + " does not exist.");

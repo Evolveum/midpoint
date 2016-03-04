@@ -1732,6 +1732,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         return getWorkflowManagerChecked().getWorkItemDetailsById(workItemId, parentResult);
     }
 
+	@Override
+	public WorkItemNewType getWorkItemNewById(String workItemId, OperationResult parentResult) throws ObjectNotFoundException {
+		return getWorkflowManagerChecked().getWorkItemNewById(workItemId, parentResult);
+	}
+
     @Override
     public int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult) {
         return getWorkflowManagerChecked().countProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished, parentResult);

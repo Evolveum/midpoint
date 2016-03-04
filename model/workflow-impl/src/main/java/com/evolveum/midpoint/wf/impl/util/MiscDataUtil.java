@@ -46,14 +46,7 @@ import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames
 import com.evolveum.midpoint.wf.impl.processes.common.StringHolder;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpProcessVariableNames;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTreeDeltasType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.activiti.engine.ActivitiException;
@@ -292,7 +285,7 @@ public class MiscDataUtil {
         }
     }
 
-    public boolean isAuthorizedToSubmit(WorkItemType workItem) {
+    public boolean isAuthorizedToSubmit(WorkItemNewType workItem) {
         return isAuthorizedToSubmit(workItem.getWorkItemId(),
                 workItem.getAssigneeRef() != null ? workItem.getAssigneeRef().getOid() : null);
     }
@@ -349,7 +342,7 @@ public class MiscDataUtil {
         return false;
     }
 
-    public boolean isAuthorizedToClaim(WorkItemType workItem) {
+    public boolean isAuthorizedToClaim(WorkItemNewType workItem) {
         return isAuthorizedToClaim(workItem.getWorkItemId());
     }
 

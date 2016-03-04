@@ -153,4 +153,8 @@ public class WorkItemNewDto extends Selectable {
     public void setApproverComment(String approverComment) {
         this.approverComment = approverComment;
     }
+
+    public WorkItemNewType getWorkItem() {
+        return workItem;
+    }
 }

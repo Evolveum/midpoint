@@ -115,6 +115,11 @@ public class WorkflowManagerImpl implements WorkflowManager {
     }
 
     @Override
+    public WorkItemNewType getWorkItemNewById(String taskId, OperationResult parentResult) throws ObjectNotFoundException {
+        return workItemProvider.getWorkItemNewById(taskId, parentResult);
+    }
+
+    @Override
     public void approveOrRejectWorkItem(String taskId, boolean decision, OperationResult parentResult) {
         workItemManager.completeWorkItemWithDetails(taskId, null, ApprovalUtils.approvalStringValue(decision), parentResult);
     }
@@ -226,12 +231,12 @@ public class WorkflowManagerImpl implements WorkflowManager {
     }
 
     @Override
-    public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem) {
+    public boolean isCurrentUserAuthorizedToSubmit(WorkItemNewType workItem) {
         return miscDataUtil.isAuthorizedToSubmit(workItem);
     }
 
     @Override
-    public boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem) {
+    public boolean isCurrentUserAuthorizedToClaim(WorkItemNewType workItem) {
         return miscDataUtil.isAuthorizedToClaim(workItem);
     }
 }

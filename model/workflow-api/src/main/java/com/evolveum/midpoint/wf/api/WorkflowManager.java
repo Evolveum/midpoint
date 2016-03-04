@@ -78,6 +78,7 @@ public interface WorkflowManager {
      * @throws WorkflowException
      */
     WorkItemType getWorkItemDetailsById(String taskId, OperationResult parentResult) throws ObjectNotFoundException;
+    WorkItemNewType getWorkItemNewById(String taskId, OperationResult parentResult) throws ObjectNotFoundException;
 
     /*
      * Process instances
@@ -145,9 +146,9 @@ public interface WorkflowManager {
 
     List<? extends ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException;
 
-    boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem);
+    boolean isCurrentUserAuthorizedToSubmit(WorkItemNewType workItem);
 
-    boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem);
+    boolean isCurrentUserAuthorizedToClaim(WorkItemNewType workItem);
 
     <T extends ObjectType> void augmentTaskObject(PrismObject<T> object, Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult result);

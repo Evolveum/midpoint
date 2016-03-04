@@ -56,6 +56,7 @@ public interface WorkflowService {
      * @throws WorkflowException
      */
     WorkItemType getWorkItemDetailsById(String workItemId, OperationResult parentResult) throws ObjectNotFoundException;
+    WorkItemNewType getWorkItemNewById(String workItemId, OperationResult parentResult) throws ObjectNotFoundException;
 
     /*
      * Process instances
