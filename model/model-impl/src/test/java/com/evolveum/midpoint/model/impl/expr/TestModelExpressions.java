@@ -184,9 +184,13 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         final String TEST_NAME = "testGetLinkedShadowName";
         TestUtil.displayTestTile(this, TEST_NAME);
         
+        rememberShadowFetchOperationCount();
+        
         ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
         
         assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        
+        assertShadowFetchOperationCountIncrement(1);
     }
 
     @Test
@@ -194,9 +198,13 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         final String TEST_NAME = "testGetLinkedShadowKindIntentUsername";
         TestUtil.displayTestTile(this, TEST_NAME);
         
+        rememberShadowFetchOperationCount();
+        
         ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
         
         assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        
+        assertShadowFetchOperationCountIncrement(1);
     }
     
     @Test
@@ -204,9 +212,55 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         final String TEST_NAME = "testGetLinkedShadowKindIntentFullname";
         TestUtil.displayTestTile(this, TEST_NAME);
         
+        rememberShadowFetchOperationCount();
+        
         ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
         
         assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME);
+        
+        assertShadowFetchOperationCountIncrement(1);
+    }
+    
+    @Test
+    public void testGetLinkedShadowNameRepo() throws Exception {
+        final String TEST_NAME = "testGetLinkedShadowNameRepo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        rememberShadowFetchOperationCount();
+        
+        ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
+        
+        assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        
+        assertShadowFetchOperationCountIncrement(0);
+    }
+
+    @Test
+    public void testGetLinkedShadowKindIntentUsernameRepo() throws Exception {
+        final String TEST_NAME = "testGetLinkedShadowKindIntentUsernameRepo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        rememberShadowFetchOperationCount();
+        
+        ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
+        
+        assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        
+        assertShadowFetchOperationCountIncrement(0);
+    }
+    
+    @Test
+    public void testGetLinkedShadowKindIntentFullnameRepo() throws Exception {
+        final String TEST_NAME = "testGetLinkedShadowKindIntentFullnameRepo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        rememberShadowFetchOperationCount();
+        
+        ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
+        
+        assertExecuteScriptExpressionString(TEST_NAME, variables, null);
+        
+        assertShadowFetchOperationCountIncrement(0);
     }
 
     
@@ -235,6 +289,10 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         display("Script output", scriptOutputs);
         result.computeStatus();
         TestUtil.assertSuccess(result);
+        
+        if (scriptOutputs.size() == 0) {
+        	return null;
+        }
         
         assertEquals("Unexpected number of script outputs", 1, scriptOutputs.size());
         return scriptOutputs.get(0).getValue();

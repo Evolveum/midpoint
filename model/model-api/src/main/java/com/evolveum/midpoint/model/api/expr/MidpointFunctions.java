@@ -989,9 +989,15 @@ public interface MidpointFunctions {
 
     ShadowType getLinkedShadow(FocusType focus, String resourceOid)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
     
+    ShadowType getLinkedShadow(FocusType focus, String resourceOid, boolean repositoryObjectOnly)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+    
     ShadowType getLinkedShadow(FocusType focus, ResourceType resource)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+    
+    ShadowType getLinkedShadow(FocusType focus, ResourceType resource, boolean repositoryObjectOnly)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
 
     ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+    
+    ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent, boolean repositoryObjectOnly) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
     
     /**
      * Returns aggregated delta that is to be executed on a given resource.
