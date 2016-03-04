@@ -17,23 +17,34 @@
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.*;
+import static com.evolveum.midpoint.prism.query.OrderDirection.DESCENDING;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType.F_WORK_ITEM_CREATED_TIMESTAMP;
 
 /**
  * @author lazyman
@@ -47,7 +58,7 @@ public class WorkItemDtoNewProvider extends BaseSortableDataProvider<WorkItemNew
 
     boolean assigned;
 
-    public static String currentUser() {
+    public String currentUser() {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         if (principal == null) {
             return "Unknown";
@@ -65,12 +76,12 @@ public class WorkItemDtoNewProvider extends BaseSortableDataProvider<WorkItemNew
     public Iterator<? extends WorkItemNewDto> internalIterator(long first, long count) {
         getAvailableData().clear();
 
+        Task task = getTaskManager().createTaskInstance();
         OperationResult result = new OperationResult(OPERATION_LIST_ITEMS);
 
         try {
-            WorkflowService wfm = getWorkflowService();
-            List<WorkItemNewType> items = wfm.listWorkItemsNewRelatedToUser(currentUser(), assigned,
-                    WebComponentUtil.safeLongToInteger(first), WebComponentUtil.safeLongToInteger(count), result);
+            ObjectQuery query = createQuery(first, count);
+            List<WorkItemNewType> items = getModel().searchContainers(WorkItemNewType.class, query, null, task, result);
 
             for (WorkItemNewType item : items) {
                 try {
@@ -81,7 +92,7 @@ public class WorkItemDtoNewProvider extends BaseSortableDataProvider<WorkItemNew
                 }
             }
 
-        } catch (Exception ex) {
+        } catch (SchemaException|ObjectNotFoundException|SecurityViolationException|ConfigurationException|RuntimeException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing work items", ex);
             result.recordFatalError("Couldn't list work items.", ex);
         }
@@ -93,14 +104,31 @@ public class WorkItemDtoNewProvider extends BaseSortableDataProvider<WorkItemNew
         return getAvailableData().iterator();
     }
 
+    private ObjectQuery createQuery(long first, long count) throws SchemaException {
+        ObjectQuery query = createQuery();
+        query.setPaging(ObjectPaging.createPaging(safeLongToInteger(first), safeLongToInteger(count), F_WORK_ITEM_CREATED_TIMESTAMP, DESCENDING));
+        return query;
+    }
+
+    private ObjectQuery createQuery() throws SchemaException {
+        if (assigned) {
+            return QueryBuilder.queryFor(WorkItemNewType.class, getPrismContext())
+                    .item(WorkItemNewType.F_ASSIGNEE_REF).ref(currentUser())
+                    .build();
+        } else {
+            throw new UnsupportedOperationException("search by more than one ref is not supported");
+        }
+    }
+
     @Override
     protected int internalSize() {
         int count = 0;
+        Task task = getTaskManager().createTaskInstance();
         OperationResult result = new OperationResult(OPERATION_COUNT_ITEMS);
-        WorkflowService workflowService = getWorkflowService();
         try {
-            count = workflowService.countWorkItemsRelatedToUser(currentUser(), assigned, result);
-        } catch (SchemaException|ObjectNotFoundException e) {
+            ObjectQuery query = createQuery();
+            count = getModel().countContainers(WorkItemNewType.class, query, null, task, result);
+        } catch (SchemaException|RuntimeException e) {
             throw new SystemException("Couldn't count work items: " + e.getMessage(), e);
         }
 
@@ -114,4 +142,32 @@ public class WorkItemDtoNewProvider extends BaseSortableDataProvider<WorkItemNew
 
         return count;
     }
+
+    // TODO - fix this temporary implementation (perhaps by storing 'groups' in user context on logon)
+    public List<String> getGroupsForUser(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        List<String> retval = new ArrayList<>();
+        UserType userType = getRepositoryService().getObject(UserType.class, oid, null, result).asObjectable();
+        for (AssignmentType assignmentType : userType.getAssignment()) {
+            ObjectReferenceType ref = assignmentType.getTargetRef();
+            if (ref != null) {
+                String groupName = objectReferenceToGroupName(ref);
+                if (groupName != null) {        // if the reference represents a group name (i.e. it is not e.g. an account ref)
+                    retval.add(groupName);
+                }
+            }
+        }
+        return retval;
+    }
+
+    private String objectReferenceToGroupName(ObjectReferenceType ref) {
+        if (RoleType.COMPLEX_TYPE.equals(ref.getType())) {
+            return "role:" + ref.getOid();
+        } else if (OrgType.COMPLEX_TYPE.equals(ref.getType())) {
+            return "org:" + ref.getOid();
+        } else {
+            return null;
+        }
+    }
+
+
 }

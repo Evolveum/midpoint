@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.velocity.runtime.resource.loader.StringResourceLoader;
@@ -189,6 +190,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient PrismContext prismContext;
     @Autowired
     transient TaskManager taskManager;
+	@Autowired
+	transient private RepositoryService repositoryService;			// temporary
     @Autowired
     transient private WorkflowService workflowService;
     @Autowired
@@ -412,6 +415,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     public TaskManager getTaskManager() {
         return taskManager;
     }
+
+	public RepositoryService getRepositoryService() {
+		return repositoryService;
+	}
 
     public TaskService getTaskService() {
         return taskService;

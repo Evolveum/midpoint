@@ -386,7 +386,7 @@ public class ProcessInstanceProvider {
             List<Task> tasks = ts.createTaskQuery()
                     .processInstanceId(instance.getId())
                     .list();
-            wfc.getWorkItem().addAll(workItemProvider.tasksToWorkItemsNew(tasks, vars, false, true, true, result));     // "no" to task forms, "yes" to assignee and candidate details
+            wfc.getWorkItem().addAll(workItemProvider.tasksToWorkItemsNew(tasks, vars, true, true, result));     // "no" to task forms, "yes" to assignee and candidate details
         }
 
         return wfc;

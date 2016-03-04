@@ -16,10 +16,11 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import java.util.List;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableBoolean;
 
@@ -390,59 +391,73 @@ public class ObjectQueryUtil {
 		}
  	}
 
-	@SuppressWarnings("rawtypes")
+	public static <T> T getValueFromQuery(ObjectQuery query, QName propertyName) throws SchemaException {
+		if (query != null) {
+			return getValueFromFilter(query.getFilter(), propertyName);
+		} else {
+			return null;
+		}
+	}
+
+	public static <T> Collection<T> getValuesFromQuery(ObjectQuery query, QName propertyName) throws SchemaException {
+		if (query != null) {
+			return getValuesFromFilter(query.getFilter(), propertyName);
+		} else {
+			return null;
+		}
+	}
+
+	public static <T> T getValueFromFilter(ObjectFilter filter, QName propertyName) throws SchemaException {
+		Collection<PrismPropertyValue<T>> values = getValuesFromFilter(filter, propertyName);
+		if (values == null) {
+			return null;
+		} else if (values.size() > 1) {
+			throw new SchemaException("More than one " + propertyName + " defined in the search query.");
+		} else if (values.size() < 1) {
+			throw new SchemaException("Search query does not have specified " + propertyName + ".");
+		} else {
+			return values.iterator().next().getValue();
+		}
+	}
+
+	public static <T> Collection<T> getValuesFromFilter(ObjectFilter filter, QName propertyName) throws SchemaException {
+		ItemPath propertyPath = new ItemPath(propertyName);
+		if (filter instanceof EqualFilter && propertyPath.equivalent(((EqualFilter) filter).getFullPath())) {
+			return ((EqualFilter) filter).getValues();
+		} else if (filter instanceof AndFilter) {
+			return getValuesFromFilter(((NaryLogicalFilter) filter).getConditions(), propertyName);
+		} else if (filter instanceof TypeFilter) {
+			return getValuesFromFilter(((TypeFilter) filter).getFilter(), propertyName);
+		} else {
+			return null;
+		}
+	}
+
 	public static <T> T getValueFromFilter(List<? extends ObjectFilter> conditions, QName propertyName)
 			throws SchemaException {
-		ItemPath propertyPath = new ItemPath(propertyName);
 		for (ObjectFilter f : conditions) {
-			if (f instanceof EqualFilter && propertyPath.equivalent(((EqualFilter) f).getFullPath())) {
-				List<? extends PrismValue> values = ((EqualFilter) f).getValues();
-				if (values.size() > 1) {
-					throw new SchemaException("More than one " + propertyName
-							+ " defined in the search query.");
-				}
-				if (values.size() < 1) {
-					throw new SchemaException("Search query does not have specified " + propertyName + ".");
-				}
-
-				return (T) ((PrismPropertyValue) values.get(0)).getValue();
-			}
-			if (NaryLogicalFilter.class.isAssignableFrom(f.getClass())) {
-				T value = getValueFromFilter(((NaryLogicalFilter) f).getConditions(), propertyName);
-				if (value != null) {
-					return value;
-				}
+			T value = getValueFromFilter(f, propertyName);
+			if (value != null) {
+				return value;
 			}
 		}
-
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
-	public static String getResourceOidFromFilter(List<? extends ObjectFilter> conditions)
+	public static <T> Collection<T> getValuesFromFilter(List<? extends ObjectFilter> conditions, QName propertyName)
 			throws SchemaException {
-
 		for (ObjectFilter f : conditions) {
-			if (f instanceof RefFilter
-					&& ShadowType.F_RESOURCE_REF.equals(((RefFilter) f).getDefinition().getName())) {
-				List<PrismReferenceValue> values = (List<PrismReferenceValue>) ((RefFilter) f).getValues();
-				if (values.size() > 1) {
-					throw new SchemaException(
-							"More than one resource references defined in the search query.");
-				}
-				if (values.size() < 1) {
-					throw new SchemaException("Search query does not have specified resource reference.");
-				}
-				return values.get(0).getOid();
-			}
-			if (NaryLogicalFilter.class.isAssignableFrom(f.getClass())) {
-				String resourceOid = getResourceOidFromFilter(((NaryLogicalFilter) f).getConditions());
-				if (resourceOid != null) {
-					return resourceOid;
-				}
+			Collection<T> values = getValuesFromFilter(f, propertyName);
+			if (values != null) {
+				return values;
 			}
 		}
 		return null;
+	}
+
+	public static String getResourceOidFromFilter(List<? extends ObjectFilter> conditions) throws SchemaException {
+		PrismReferenceValue referenceValue = getValueFromFilter(conditions, ShadowType.F_RESOURCE_REF);
+		return referenceValue != null ? referenceValue.getOid() : null;
 	}
 
 	public static ResourceShadowDiscriminator getCoordinates(ObjectFilter filter) throws SchemaException {
@@ -469,5 +484,97 @@ public class ObjectQueryUtil {
         ResourceShadowDiscriminator coordinates = new ResourceShadowDiscriminator(resourceOid, kind, intent, false);
         coordinates.setObjectClass(objectClass);
         return coordinates;
+	}
+
+	public static FilterComponents factorOutQuery(ObjectQuery query, QName... names) {
+		return factorOutQuery(query, ItemPath.asPathArray(names));
+	}
+
+	public static FilterComponents factorOutQuery(ObjectQuery query, ItemPath... paths) {
+		return factorOutFilter(query != null ? query.getFilter() : null, paths);
+	}
+
+	public static FilterComponents factorOutFilter(ObjectFilter filter, ItemPath... paths) {
+		FilterComponents components = new FilterComponents();
+		factorOutFilter(components, simplify(filter), Arrays.asList(paths));
+		return components;
+	}
+
+	private static void factorOutFilter(FilterComponents filterComponents, ObjectFilter filter, List<ItemPath> paths) {
+		if (filter instanceof EqualFilter) {
+			EqualFilter equalFilter = (EqualFilter) filter;
+			if (ItemPath.containsEquivalent(paths, equalFilter.getPath())) {
+				filterComponents.addToKnown(equalFilter.getPath(), equalFilter.getValues());
+			} else {
+				filterComponents.addToRemainder(equalFilter);
+			}
+		} else if (filter instanceof RefFilter) {
+			RefFilter refFilter = (RefFilter) filter;
+			if (ItemPath.containsEquivalent(paths, refFilter.getPath())) {
+				filterComponents.addToKnown(refFilter.getPath(), refFilter.getValues());
+			} else {
+				filterComponents.addToRemainder(refFilter);
+			}
+		} else if (filter instanceof AndFilter) {
+			for (ObjectFilter condition : ((AndFilter) filter).getConditions()) {
+				factorOutFilter(filterComponents, condition, paths);
+			}
+		} else if (filter instanceof TypeFilter) {
+			factorOutFilter(filterComponents, ((TypeFilter) filter).getFilter(), paths);
+		} else if (filter != null) {
+			filterComponents.addToRemainder(filter);
+		} else {
+			// nothing to do with a null filter
+		}
+	}
+
+	public static class FilterComponents {
+		private Map<ItemPath,Collection<? extends PrismValue>> knownComponents = new HashMap<>();
+		private List<ObjectFilter> remainderClauses = new ArrayList<>();
+
+		public Map<ItemPath, Collection<? extends PrismValue>> getKnownComponents() {
+			return knownComponents;
+		}
+
+		public ObjectFilter getRemainder() {
+			if (remainderClauses.size() == 0) {
+				return null;
+			} else if (remainderClauses.size() == 1) {
+				return remainderClauses.get(0);
+			} else {
+				return AndFilter.createAnd(remainderClauses);
+			}
+		}
+
+		public void addToKnown(ItemPath path, List values) {
+			Map.Entry<ItemPath, Collection<? extends PrismValue>> entry = getKnownComponent(path);
+			if (entry != null) {
+				entry.setValue(CollectionUtils.intersection(entry.getValue(), values));
+			} else {
+				knownComponents.put(path, values);
+			}
+		}
+
+		public Map.Entry<ItemPath, Collection<? extends PrismValue>> getKnownComponent(ItemPath path) {
+			for (Map.Entry<ItemPath, Collection<? extends PrismValue>> entry : knownComponents.entrySet()) {
+				if (path.equivalent(entry.getKey())) {
+					return entry;
+				}
+			}
+			return null;
+		}
+
+		public void addToRemainder(ObjectFilter filter) {
+			remainderClauses.add(filter);
+		}
+
+		public boolean hasRemainder() {
+			return !remainderClauses.isEmpty();
+		}
+
+		public List<ObjectFilter> getRemainderClauses() {
+			return remainderClauses;
+		}
+
 	}
 }

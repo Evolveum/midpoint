@@ -381,4 +381,12 @@ public class ObjectTypeUtil {
 		}
 		return rv;
 	}
+
+	public static List<String> referenceValueListToOidList(Collection<PrismReferenceValue> referenceValues) {
+		List<String> oids = new ArrayList<>(referenceValues.size());
+		for (PrismReferenceValue referenceValue : referenceValues) {
+			oids.add(referenceValue.getOid());
+		}
+		return oids;
+	}
 }

@@ -16,10 +16,9 @@
 
 package com.evolveum.midpoint.wf.impl.activiti.dao;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -67,6 +66,10 @@ import javax.xml.bind.JAXBException;
 
 import java.util.*;
 
+import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.*;
+import static org.apache.commons.collections.CollectionUtils.*;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 /**
  * Used to retrieve (and provide) data about work items.
  *
@@ -102,6 +105,8 @@ public class WorkItemProvider {
 
     private static final String OPERATION_COUNT_WORK_ITEMS_RELATED_TO_USER = DOT_INTERFACE + "countWorkItemsRelatedToUser";
     private static final String OPERATION_LIST_WORK_ITEMS_RELATED_TO_USER = DOT_INTERFACE  + "listWorkItemsRelatedToUser";
+    private static final String OPERATION_SEARCH_WORK_ITEMS = DOT_INTERFACE  + "searchWorkItem";
+    private static final String OPERATION_COUNT_WORK_ITEMS = DOT_INTERFACE  + "countWorkItem";
     private static final String OPERATION_ACTIVITI_TASK_TO_WORK_ITEM = DOT_CLASS + "activitiTaskToWorkItem";
     private static final String OPERATION_ACTIVITI_DELEGATE_TASK_TO_WORK_ITEM = DOT_CLASS + "activitiDelegateTaskToWorkItem";
     private static final String OPERATION_GET_WORK_ITEM_DETAILS_BY_TASK_ID = DOT_CLASS + "getWorkItemDetailsById";
@@ -144,6 +149,7 @@ public class WorkItemProvider {
      * @return list of work items
      * @throws WorkflowException
      */
+    @Deprecated
     public List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(OPERATION_LIST_WORK_ITEMS_RELATED_TO_USER);
         result.addParam("userOid", userOid);
@@ -163,6 +169,7 @@ public class WorkItemProvider {
         return retval;
     }
 
+    @Deprecated
     public List<WorkItemNewType> listWorkItemsNewRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(OPERATION_LIST_WORK_ITEMS_RELATED_TO_USER);
         result.addParam("userOid", userOid);
@@ -177,7 +184,7 @@ public class WorkItemProvider {
             throw new SystemException("Couldn't list work items assigned/assignable to " + userOid + " due to Activiti exception", e);
         }
 
-        List<WorkItemNewType> retval = tasksToWorkItemsNew(tasks, null, false, false, true, result);       // there's no need to fill-in assignee details nor data forms; but candidates are necessary to fill-in
+        List<WorkItemNewType> retval = tasksToWorkItemsNew(tasks, null, false, true, result);       // there's no need to fill-in assignee details nor data forms; but candidates are necessary to fill-in
         result.computeStatusIfUnknown();
         return retval;
     }
@@ -200,6 +207,63 @@ public class WorkItemProvider {
         }
     }
 
+    // primitive 'query interpreter'
+    private TaskQuery createTaskQuery(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+        FilterComponents components = factorOutQuery(query, WorkItemNewType.F_ASSIGNEE_REF, WorkItemNewType.F_CANDIDATE_ROLES_REF);
+        if (components.hasRemainder()) {
+            throw new SchemaException("Unsupported clause(s) in search filter: " + components.getRemainderClauses());
+        }
+
+        final ItemPath ASSIGNEE_PATH = new ItemPath(WorkItemNewType.F_ASSIGNEE_REF);
+        final ItemPath CANDIDATE_ROLES_PATH = new ItemPath(WorkItemNewType.F_CANDIDATE_ROLES_REF);
+        final ItemPath CREATED_PATH = new ItemPath(WorkItemNewType.F_WORK_ITEM_CREATED_TIMESTAMP);
+
+        final Map.Entry<ItemPath, Collection<? extends PrismValue>> assigneeFilter = components.getKnownComponent(ASSIGNEE_PATH);
+        final Map.Entry<ItemPath, Collection<? extends PrismValue>> candidateRolesFilter = components.getKnownComponent(CANDIDATE_ROLES_PATH);
+
+        TaskQuery taskQuery = activitiEngine.getTaskService().createTaskQuery();
+
+        if (assigneeFilter != null) {
+            if (isNotEmpty(assigneeFilter.getValue())) {
+                if (assigneeFilter.getValue().size() > 1) {
+                    throw new SchemaException("Filter with more than one assignee is not supported: " + assigneeFilter.getValue());
+                }
+                taskQuery = taskQuery.taskAssignee(((PrismReferenceValue) assigneeFilter.getValue().iterator().next()).getOid());
+            } else {
+                taskQuery = taskQuery.taskUnassigned();
+            }
+        }
+
+        if (candidateRolesFilter != null) {
+            taskQuery = taskQuery.taskCandidateGroupIn(ObjectTypeUtil.referenceValueListToOidList((Collection<PrismReferenceValue>) candidateRolesFilter.getValue()));
+        }
+
+        if (query != null && query.getPaging() != null) {
+            ObjectPaging paging = query.getPaging();
+            if (paging.getOrderingInstructions().size() > 1) {
+                throw new UnsupportedOperationException("Ordering by more than one property is not supported: " + paging.getOrderingInstructions());
+            } else if (paging.getOrderingInstructions().size() == 1) {
+                ItemPath orderBy = paging.getOrderBy();
+                if (CREATED_PATH.equivalent(orderBy)) {
+                    taskQuery = taskQuery.orderByTaskCreateTime();
+                } else {
+                    throw new UnsupportedOperationException("Ordering by " + orderBy + " is not currently supported");
+                }
+
+                switch (paging.getDirection()) {
+                    case DESCENDING: taskQuery = taskQuery.desc(); break;
+                    case ASCENDING:
+                        default: taskQuery = taskQuery.asc(); break;
+                }
+            }
+        }
+
+        return taskQuery
+                .includeTaskLocalVariables()
+                .includeProcessVariables();
+    }
+
+    @Deprecated
     public WorkItemType getWorkItemDetailsById(String taskId, OperationResult parentResult) throws ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(OPERATION_GET_WORK_ITEM_DETAILS_BY_TASK_ID);
         result.addParam("taskId", taskId);
@@ -220,6 +284,7 @@ public class WorkItemProvider {
         return retval;
     }
 
+    @Deprecated
     public WorkItemNewType getWorkItemNewById(String taskId, OperationResult parentResult) throws ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(OPERATION_GET_WORK_ITEM_DETAILS_BY_TASK_ID);
         result.addParam("taskId", taskId);
@@ -232,7 +297,7 @@ public class WorkItemProvider {
         }
         WorkItemNewType retval;
         try {
-            retval = taskToWorkItemNew(task, null, true, true, true, result);
+            retval = taskToWorkItemNew(task, null, true, true, result);
         } catch (WorkflowException e) {
             throw new SystemException(e);
         }
@@ -267,12 +332,12 @@ public class WorkItemProvider {
         return retval;
     }
 
-    List<WorkItemNewType> tasksToWorkItemsNew(List<Task> tasks, Map<String, Object> processVariables, boolean getTaskDetails, boolean getAssigneeDetails,
-            boolean getCandidateDetails, OperationResult result) {
-        List<WorkItemNewType> retval = new ArrayList<>();
+    SearchResultList<WorkItemNewType> tasksToWorkItemsNew(List<Task> tasks, Map<String, Object> processVariables,
+            boolean getAssigneeDetails, boolean getCandidateDetails, OperationResult result) {
+        SearchResultList<WorkItemNewType> retval = new SearchResultList<>(new ArrayList<WorkItemNewType>());
         for (Task task : tasks) {
             try {
-                retval.add(taskToWorkItemNew(task, processVariables, getTaskDetails, getAssigneeDetails, getCandidateDetails, result));
+                retval.add(taskToWorkItemNew(task, processVariables, getAssigneeDetails, getCandidateDetails, result));
             } catch (WorkflowException e) {
                 LoggingUtils.logException(LOGGER, "Couldn't get information on activiti task {}", e, task.getId());
             }
@@ -280,12 +345,46 @@ public class WorkItemProvider {
         return retval;
     }
 
-    public <T extends Containerable> Integer countWorkItems(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
-        return null;
+    public <T extends Containerable> Integer countWorkItems(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
+        OperationResult result = parentResult.createSubresult(OPERATION_COUNT_WORK_ITEMS);
+        result.addParam("query", query);
+        result.addCollectionOfSerializablesAsParam("options", options);
+        try {
+            TaskQuery taskQuery = createTaskQuery(query, options, result);
+            int count = (int) taskQuery.count();
+            result.computeStatusIfUnknown();
+            return count;
+        } catch (ActivitiException e) {
+            result.recordFatalError("Couldn't count work items", e);
+            throw new SystemException("Couldn't count work items due to Activiti exception", e);
+        }
     }
 
-    public <T extends Containerable> SearchResultList<T> searchWorkItems(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
-        listWorkItemsNewRelatedToUser()
+    public <T extends Containerable> SearchResultList<T> searchWorkItems(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+            throws SchemaException {
+        OperationResult result = parentResult.createSubresult(OPERATION_SEARCH_WORK_ITEMS);
+        result.addParam("query", query);
+        result.addCollectionOfSerializablesAsParam("options", options);
+        List<Task> tasks;
+        try {
+            TaskQuery taskQuery = createTaskQuery(query, options, result);
+            Integer offset = query.getOffset();
+            Integer maxSize = query.getMaxSize();
+            if (offset == null && maxSize == null) {
+                tasks = taskQuery.list();
+            } else {
+                tasks = taskQuery.listPage(defaultIfNull(offset, 0), defaultIfNull(maxSize, Integer.MAX_VALUE));
+            }
+        } catch (ActivitiException e) {
+            result.recordFatalError("Couldn't list work items", e);
+            throw new SystemException("Couldn't list work items due to Activiti exception", e);
+        }
+
+        // there's no need to fill-in assignee details ; but candidates are necessary to fill-in
+        // TODO implement based on options (resolve names)
+        SearchResultList<WorkItemNewType> retval = tasksToWorkItemsNew(tasks, null, false, true, result);
+        result.computeStatusIfUnknown();
+        return (SearchResultList<T>) retval;
     }
 
     // should not throw ActivitiException
@@ -459,11 +558,10 @@ public class WorkItemProvider {
         return wi;
     }
 
-    private WorkItemNewType taskToWorkItemNew(Task task, Map<String, Object> processVariables, boolean getTaskDetails, boolean getAssigneeDetails,
+    private WorkItemNewType taskToWorkItemNew(Task task, Map<String, Object> processVariables, boolean getAssigneeDetails,
             boolean getCandidateDetails, OperationResult parentResult) throws WorkflowException {
         OperationResult result = parentResult.createSubresult(OPERATION_ACTIVITI_TASK_TO_WORK_ITEM);
         result.addParam("task id", task.getId());
-        result.addParam("getTaskDetails", getTaskDetails);
         result.addParam("getAssigneeDetails", getAssigneeDetails);
 
         try {

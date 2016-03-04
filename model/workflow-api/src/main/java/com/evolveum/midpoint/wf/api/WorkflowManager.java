@@ -87,8 +87,10 @@ public interface WorkflowManager {
     @Deprecated // use searchContainers
     WorkItemNewType getWorkItemNewById(String taskId, OperationResult parentResult) throws ObjectNotFoundException;
 
-    <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result);
-    <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result);
+    <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+            throws SchemaException;
+    <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+            throws SchemaException;
 
     /*
      * Process instances

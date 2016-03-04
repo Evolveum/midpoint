@@ -122,7 +122,8 @@ public class WorkflowManagerImpl implements WorkflowManager {
     }
 
     @Override
-    public <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
+    public <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+            throws SchemaException {
         if (!WorkItemNewType.class.equals(type)) {
             throw new UnsupportedOperationException("countContainers is available only for work items");
         }
@@ -130,7 +131,8 @@ public class WorkflowManagerImpl implements WorkflowManager {
     }
 
     @Override
-    public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
+    public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+            throws SchemaException {
         if (!WorkItemNewType.class.equals(type)) {
             throw new UnsupportedOperationException("searchContainers is available only for work items");
         }

@@ -386,6 +386,7 @@ public class MiscDataUtil {
     }
 
     // TODO: currently we check only the direct assignments, we need to implement more complex mechanism
+    @Deprecated
     public List<String> getGroupsForUser(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
         List<String> retval = new ArrayList<>();
         UserType userType = repositoryService.getObject(UserType.class, oid, null, result).asObjectable();

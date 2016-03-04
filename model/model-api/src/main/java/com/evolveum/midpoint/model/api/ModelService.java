@@ -87,6 +87,7 @@ public interface ModelService {
 	static final String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
 	static final String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
 	static final String SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + "searchContainers";
+	static final String COUNT_CONTAINERS = CLASS_NAME_WITH_DOT + "countContainers";
 	static final String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
 	static final String EXECUTE_CHANGES = CLASS_NAME_WITH_DOT + "executeChanges";
 	static final String EXECUTE_CHANGE = CLASS_NAME_WITH_DOT + "executeChange";
@@ -436,6 +437,10 @@ public interface ModelService {
 			Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
 			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+
+	<T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+			Task task, OperationResult parentResult)
+			throws SchemaException;
 
 	/**
 	 * <p>

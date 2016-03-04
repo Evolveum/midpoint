@@ -901,7 +901,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				result.computeStatus();
 				result.cleanupResult();
 			} catch (SchemaException|RuntimeException e) {
-				processSearchException(e, rootOptions, ObjectTypes.ObjectManager.REPOSITORY, result);
+				processSearchException(e, rootOptions, manager, result);
 				throw e;
 			} finally {
 				QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
@@ -931,6 +931,68 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 		return list;
 	}
+
+	@Override
+	public <T extends Containerable> Integer countContainers(
+			Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+			Task task, OperationResult parentResult) throws SchemaException {
+
+		Validate.notNull(type, "Container value type must not be null.");
+		Validate.notNull(parentResult, "Result type must not be null.");
+
+		final boolean isWorkItem = WorkItemNewType.class.equals(type);
+
+		if (!isWorkItem) {
+			throw new UnsupportedOperationException("countContainers method is currently supported only for WorkItemType classes");
+		}
+
+		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+
+		final OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS);
+		result.addParams(new String[] { "type", "query"}, type, query);
+
+
+		final ObjectTypes.ObjectManager manager;
+		if (isWorkItem) {
+			query = preProcessWorkItemSecurity(query);
+			manager = ObjectTypes.ObjectManager.WORKFLOW;
+		} else {
+			throw new IllegalStateException();
+		}
+
+		if (isFilterNone(query, result)) {
+			return 0;
+		}
+
+		Integer count;
+		try {
+			RepositoryCache.enter();
+
+			logQuery(query);
+
+			try {
+				switch (manager) {
+					//case REPOSITORY: list = cacheRepositoryService.searchContainers(type, query, options, result); break;
+					case WORKFLOW: count = workflowManager.countContainers(type, query, options, result); break;
+					default: throw new IllegalStateException();
+				}
+				result.computeStatus();
+				result.cleanupResult();
+			} catch (SchemaException|RuntimeException e) {
+				processSearchException(e, rootOptions, manager, result);
+				throw e;
+			} finally {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace(result.dump(false));
+				}
+			}
+		} finally {
+			RepositoryCache.exit();
+		}
+
+		return count;
+	}
+
 
 	private ObjectQuery preProcessWorkItemSecurity(ObjectQuery query) {
 		/*
@@ -1061,6 +1123,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             case REPOSITORY: message = "Couldn't search objects in repository"; break;
             case PROVISIONING: message = "Couldn't search objects in provisioning"; break;
             case TASK_MANAGER: message = "Couldn't search objects in task manager"; break;
+			case WORKFLOW: message = "Couldn't search objects in workflow engine"; break;
             default: message = "Couldn't search objects"; break;    // should not occur
         }
 		LoggingUtils.logException(LOGGER, message, e);
@@ -1756,6 +1819,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         return getWorkflowManagerChecked().listWorkItemsRelatedToUser(userOid, assigned, first, count, parentResult);
     }
 
+	@Deprecated
 	@Override
 	public List<WorkItemNewType> listWorkItemsNewRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 		return getWorkflowManagerChecked().listWorkItemsNewRelatedToUser(userOid, assigned, first, count, parentResult);

@@ -186,4 +186,26 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 			setFilter(AndFilter.createAnd(objectFilter, filter));
 		}
 	}
+
+	// use when offset/maxSize is expected
+	public Integer getOffset() {
+		if (paging == null) {
+			return null;
+		}
+		if (paging.getCookie() != null) {
+			throw new UnsupportedOperationException("Paging cookie is not supported here.");
+		}
+		return paging.getOffset();
+	}
+
+	// use when offset/maxSize is expected
+	public Integer getMaxSize() {
+		if (paging == null) {
+			return null;
+		}
+		if (paging.getCookie() != null) {
+			throw new UnsupportedOperationException("Paging cookie is not supported here.");
+		}
+		return paging.getMaxSize();
+	}
 }
