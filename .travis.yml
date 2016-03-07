@@ -1,2 +1,2 @@
 language: java
-script: "travis_wait 40 mvn clean install verify"
+script: "travis_wait 70 mvn clean install"
