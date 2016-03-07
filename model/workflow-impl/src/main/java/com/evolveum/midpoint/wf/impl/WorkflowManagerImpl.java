@@ -97,26 +97,6 @@ public class WorkflowManagerImpl implements WorkflowManager {
      */
 
     @Override
-    public int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-        return workItemProvider.countWorkItemsRelatedToUser(userOid, assigned, parentResult);
-    }
-
-    @Override
-    public List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-        return workItemProvider.listWorkItemsRelatedToUser(userOid, assigned, first, count, parentResult);
-    }
-
-    @Override
-    public List<WorkItemNewType> listWorkItemsNewRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-        return workItemProvider.listWorkItemsNewRelatedToUser(userOid, assigned, first, count, parentResult);
-    }
-
-    @Override
-    public WorkItemType getWorkItemDetailsById(String taskId, OperationResult parentResult) throws ObjectNotFoundException {
-        return workItemProvider.getWorkItemDetailsById(taskId, parentResult);
-    }
-
-    @Override
     public <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws SchemaException {
         if (!WorkItemNewType.class.equals(type)) {
@@ -162,11 +142,6 @@ public class WorkflowManagerImpl implements WorkflowManager {
     @Override
     public List<WfProcessInstanceType> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult) {
         return processInstanceProvider.listProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished, first, count, parentResult);
-    }
-
-    @Override
-    public WfProcessInstanceType getProcessInstanceByWorkItemId(String taskId, OperationResult parentResult) throws ObjectNotFoundException {
-        return processInstanceProvider.getProcessInstanceByTaskId(taskId, parentResult);
     }
 
     @Override

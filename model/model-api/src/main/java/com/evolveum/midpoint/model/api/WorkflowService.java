@@ -16,45 +16,6 @@ import java.util.List;
 public interface WorkflowService {
 
     /*
-     * Work items
-     * ==========
-     */
-
-    /**
-     * Counts Work Items related to a user.
-     *
-     * @param userOid OID of the user
-     * @param assigned whether to count assigned (true) or assignable (false) work items
-     * @param parentResult
-     * @return number of relevant work items
-     */
-    int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
-
-    /**
-     * Lists work items related to a user.
-     *
-     * @param userOid OID of the user
-     * @param assigned whether to count assigned (true) or assignable (false) work items
-     * @param first
-     * @param count
-     * @param parentResult
-     * @return list of work items
-     */
-    List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
-    List<WorkItemNewType> listWorkItemsNewRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
-
-    /**
-     * Provides detailed information about a given work item (may be inefficient, so use with care).
-     *
-     * @param taskId
-     * @param parentResult
-     * @return
-     * @throws com.evolveum.midpoint.util.exception.ObjectNotFoundException
-     * @throws WorkflowException
-     */
-    WorkItemType getWorkItemDetailsById(String workItemId, OperationResult parentResult) throws ObjectNotFoundException;
-
-    /*
      * Process instances
      * =================
      */
@@ -62,8 +23,6 @@ public interface WorkflowService {
     int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult);
 
     List<WfProcessInstanceType> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult);
-
-    WfProcessInstanceType getProcessInstanceByWorkItemId(String workItemId, OperationResult parentResult) throws ObjectNotFoundException;
 
     /**
      * Returns information about a process instance. WorkItems attribute is filled-in only upon request! (see getWorkItems parameter)

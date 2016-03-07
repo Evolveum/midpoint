@@ -20,20 +20,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wf.DecisionsPanel;
-import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.DecisionDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemNewDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ItemApprovalProcessState;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ItemApprovalRequestType;
-
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -41,8 +32,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import java.util.ArrayList;
@@ -255,18 +244,18 @@ public class ItemApprovalPanel extends Panel {
             }
         };
 
-        Label workItemsPanelLabel = new Label(ID_CURRENT_WORK_ITEMS_LABEL, new ResourceModel("ItemApprovalPanel.currentWorkItems"));
-        workItemsPanelLabel.add(visibleIfRunning);
-        add(workItemsPanelLabel);
+//        Label workItemsPanelLabel = new Label(ID_CURRENT_WORK_ITEMS_LABEL, new ResourceModel("ItemApprovalPanel.currentWorkItems"));
+//        workItemsPanelLabel.add(visibleIfRunning);
+//        add(workItemsPanelLabel);
 
         //WorkItemsPanel workItemsPanel = new WorkItemsPanel(ID_CURRENT_WORK_ITEMS, new PropertyModel<List<WorkItemDto>>(model, "workItems"));
-        WorkItemsPanel workItemsPanel = new WorkItemsPanel(ID_CURRENT_WORK_ITEMS, new AbstractReadOnlyModel<List<WorkItemNewDto>>() {
-            @Override
-            public List<WorkItemNewDto> getObject() {
-                return new ArrayList<>();
-            }
-        });
-        workItemsPanel.add(visibleIfRunning);
-        add(workItemsPanel);
+//        WorkItemsPanel workItemsPanel = new WorkItemsPanel(ID_CURRENT_WORK_ITEMS, new AbstractReadOnlyModel<List<WorkItemNewDto>>() {
+//            @Override
+//            public List<WorkItemNewDto> getObject() {
+//                return new ArrayList<>();
+//            }
+//        });
+//        workItemsPanel.add(visibleIfRunning);
+//        add(workItemsPanel);
     }
 }

@@ -76,7 +76,7 @@ public class PageWorkItems extends PageAdminWorkItems {
         add(mainForm);
 
         WorkItemsTablePanel panel = new WorkItemsTablePanel(ID_WORK_ITEMS_PANEL, new WorkItemDtoNewProvider(PageWorkItems.this, assigned),
-                UserProfileStorage.TableId.PAGE_WORK_ITEMS, getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEMS));
+                UserProfileStorage.TableId.PAGE_WORK_ITEMS, getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEMS), true);
 
         panel.setOutputMarkupId(true);
         mainForm.add(panel);
@@ -137,16 +137,9 @@ public class PageWorkItems extends PageAdminWorkItems {
         return false;
     }
 
-    private void itemDetailsPerformed(AjaxRequestTarget target, String taskid) {
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, taskid);
-        setResponsePage(new PageWorkItem(parameters, this));
-    }
-
     private WorkItemsTablePanel getWorkItemsPanel() {
         return (WorkItemsTablePanel) get(ID_WORK_ITEMS_PANEL);
     }
-
 
     private void approveOrRejectWorkItemsPerformed(AjaxRequestTarget target, boolean approve) {
         List<WorkItemNewDto> WorkItemNewDtoList = getWorkItemsPanel().getSelectedWorkItems();
@@ -175,7 +168,6 @@ public class PageWorkItems extends PageAdminWorkItems {
 
         showResult(mainResult);
 
-        //refresh feedback and table
         target.add(getFeedbackPanel());
         target.add(getWorkItemsPanel());
     }
@@ -207,7 +199,6 @@ public class PageWorkItems extends PageAdminWorkItems {
 
         showResult(mainResult);
 
-        //refresh feedback and table
         target.add(getFeedbackPanel());
         target.add(getWorkItemsPanel());
     }
@@ -239,7 +230,6 @@ public class PageWorkItems extends PageAdminWorkItems {
 
         showResult(mainResult);
 
-        //refresh feedback and table
         target.add(getFeedbackPanel());
         target.add(getWorkItemsPanel());
     }

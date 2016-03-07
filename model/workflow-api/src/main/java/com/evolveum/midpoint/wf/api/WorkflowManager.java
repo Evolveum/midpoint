@@ -45,48 +45,9 @@ public interface WorkflowManager {
      * ==========
      */
 
-    /**
-     * Counts Work Items related to a user.
-     *
-     * @param userOid OID of the user
-     * @param assigned whether to count assigned (true) or assignable (false) work items
-     * @param parentResult
-     * @return number of relevant work items
-     * @throws WorkflowException
-     */
-    @Deprecated // use countContainers
-    int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
-
-    /**
-     * Lists work items related to a user.
-     *
-     * @param userOid OID of the user
-     * @param assigned whether to count assigned (true) or assignable (false) work items
-     * @param first
-     * @param count
-     * @param parentResult
-     * @return list of work items
-     * @throws WorkflowException
-     */
-    @Deprecated // use searchContainers
-    List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
-    @Deprecated // use searchContainers
-    List<WorkItemNewType> listWorkItemsNewRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
-
-    /**
-     * Provides detailed information about a given work item (may be inefficient, so use with care).
-     *
-     * @param taskId
-     * @param parentResult
-     * @return
-     * @throws ObjectNotFoundException
-     * @throws WorkflowException
-     */
-    @Deprecated // use searchContainers
-    WorkItemType getWorkItemDetailsById(String taskId, OperationResult parentResult) throws ObjectNotFoundException;
-
     <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws SchemaException;
+
     <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws SchemaException;
 
@@ -98,8 +59,6 @@ public interface WorkflowManager {
     int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult);
 
     List<WfProcessInstanceType> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult);
-
-    WfProcessInstanceType getProcessInstanceByWorkItemId(String taskId, OperationResult parentResult) throws ObjectNotFoundException;
 
     /**
      * Returns information about a process instance. WorkItems attribute is filled-in only upon request! (see getWorkItems parameter)

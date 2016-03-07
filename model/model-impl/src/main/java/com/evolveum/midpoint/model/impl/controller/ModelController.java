@@ -1809,27 +1809,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     //region Workflow-related operations
     @Override
-    public int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-        return getWorkflowManagerChecked().countWorkItemsRelatedToUser(userOid, assigned, parentResult);
-    }
-
-    @Override
-    public List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-        return getWorkflowManagerChecked().listWorkItemsRelatedToUser(userOid, assigned, first, count, parentResult);
-    }
-
-	@Deprecated
-	@Override
-	public List<WorkItemNewType> listWorkItemsNewRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-		return getWorkflowManagerChecked().listWorkItemsNewRelatedToUser(userOid, assigned, first, count, parentResult);
-	}
-
-	@Override
-    public WorkItemType getWorkItemDetailsById(String workItemId, OperationResult parentResult) throws ObjectNotFoundException {
-        return getWorkflowManagerChecked().getWorkItemDetailsById(workItemId, parentResult);
-    }
-
-    @Override
     public int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult) {
         return getWorkflowManagerChecked().countProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished, parentResult);
     }
@@ -1837,11 +1816,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Override
     public List<WfProcessInstanceType> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult) {
         return getWorkflowManagerChecked().listProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished, first, count, parentResult);
-    }
-
-    @Override
-    public WfProcessInstanceType getProcessInstanceByWorkItemId(String workItemId, OperationResult parentResult) throws ObjectNotFoundException {
-        return getWorkflowManagerChecked().getProcessInstanceByWorkItemId(workItemId, parentResult);
     }
 
     @Override

@@ -51,11 +51,6 @@ public class WorkItemsTablePanel extends BasePanel {
     private ISortableDataProvider<WorkItemNewDto, String> provider;
 
     public WorkItemsTablePanel(String id, ISortableDataProvider<WorkItemNewDto, String> provider,
-            UserProfileStorage.TableId tableId, long pageSize) {
-        this(id, provider, tableId, pageSize, true);
-    }
-
-    public WorkItemsTablePanel(String id, ISortableDataProvider<WorkItemNewDto, String> provider,
             UserProfileStorage.TableId tableId, long pageSize, boolean showAssigned) {
         super(id);
         this.provider = provider;

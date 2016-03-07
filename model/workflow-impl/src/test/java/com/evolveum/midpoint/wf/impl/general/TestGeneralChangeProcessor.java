@@ -438,7 +438,8 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             assertEquals("Incorrect number of work items", 1, processInstance.getWorkItems().size());
 
             String taskId = processInstance.getWorkItems().get(0).getWorkItemId();
-            WorkItemType workItem = workflowServiceImpl.getWorkItemDetailsById(taskId, result);
+            //WorkItemType workItem = workflowServiceImpl.getWorkItemDetailsById(taskId, result);
+            WorkItemType workItem = null;       // TODO
 
             org.activiti.engine.task.Task t = activitiEngine.getTaskService().createTaskQuery().taskId(taskId).singleResult();
             assertNotNull("activiti task not found", t);
