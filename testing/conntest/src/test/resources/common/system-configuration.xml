@@ -44,6 +44,10 @@
 	        <package>com.evolveum.midpoint.model</package>
       	</classLogger>
         <classLogger>
+	        <level>TRACE</level>
+	        <package>com.evolveum.midpoint.model.impl.sync.SynchronizationService</package>
+      	</classLogger>
+        <classLogger>
 	        <level>INFO</level>
 	        <package>org.identityconnectors</package>
       	</classLogger>
@@ -68,7 +72,7 @@
 	        <package>com.evolveum.midpoint.model.impl.lens.Clockwork</package>
       	</classLogger>
         <classLogger>
-	        <level>DEBUG</level>
+	        <level>TRACE</level>
 	        <package>com.evolveum.midpoint.provisioning</package>
       	</classLogger>
       	<classLogger>
