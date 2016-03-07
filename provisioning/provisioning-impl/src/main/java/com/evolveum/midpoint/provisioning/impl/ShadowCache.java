@@ -1161,8 +1161,10 @@ public abstract class ShadowCache {
 		}
 	}
 	
-	@SuppressWarnings("rawtypes") boolean processSynchronization(ProvisioningContext ctx, Change<ShadowType> change, OperationResult result) throws SchemaException, ObjectNotFoundException,
+	@SuppressWarnings("rawtypes") 
+	boolean processSynchronization(ProvisioningContext ctx, Change<ShadowType> change, OperationResult result) throws SchemaException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException {
+		
 			ResourceObjectShadowChangeDescription shadowChangeDescription = createResourceShadowChangeDescription(
 					change, ctx.getResource(), ctx.getChannel());
 
@@ -1362,7 +1364,7 @@ public abstract class ShadowCache {
 
 	}
 
-
+	// TODO: better move this to shadowManager?
 	private void forceRenameIfNeeded(ProvisioningContext ctx, ShadowType currentShadowType, ShadowType oldShadowType, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, CommunicationException {
 		Collection<ResourceAttribute<?>> oldSecondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(oldShadowType);
 		if (oldSecondaryIdentifiers.isEmpty()){
@@ -1382,11 +1384,10 @@ public abstract class ShadowCache {
 			Collection newValue = newSecondaryIdentifier.getRealValues();
 			
 			if (!shadowManager.compareAttribute(ctx.getObjectClassDefinition(), newSecondaryIdentifier, oldSecondaryIdentifier)){
-				PropertyDelta<?> shadowNameDelta = PropertyDelta.createDelta(new ItemPath(ShadowType.F_ATTRIBUTES, oldSecondaryIdentifier.getElementName()), oldShadowType.asPrismObject().getDefinition());
-				shadowNameDelta.addValuesToDelete(PrismPropertyValue.cloneCollection((Collection)oldSecondaryIdentifier.getValues()));
-				shadowManager.normalizeAttributes(currentShadowType.asPrismObject(), ctx.getObjectClassDefinition());
-				shadowNameDelta.addValuesToAdd(PrismPropertyValue.cloneCollection((Collection)newSecondaryIdentifier.getValues()));
-				renameDeltas.add(shadowNameDelta);
+				PropertyDelta<?> propertyDelta = PropertyDelta.createDelta(new ItemPath(ShadowType.F_ATTRIBUTES, oldSecondaryIdentifier.getElementName()), oldShadowType.asPrismObject().getDefinition());
+				propertyDelta.addValuesToDelete(PrismPropertyValue.cloneCollection((Collection)oldSecondaryIdentifier.getValues()));
+				propertyDelta.addValuesToAdd(PrismPropertyValue.cloneCollection((Collection)newSecondaryIdentifier.getValues()));
+				renameDeltas.add(propertyDelta);
 			}
 
 		}
@@ -1406,6 +1407,7 @@ public abstract class ShadowCache {
 			}
 		}
 		if (!renameDeltas.isEmpty()){
+			shadowManager.normalizeDeltas((Collection)renameDeltas, ctx.getObjectClassDefinition());
 			ConstraintsChecker.onShadowModifyOperation(renameDeltas);
 			repositoryService.modifyObject(ShadowType.class, oldShadowType.getOid(), renameDeltas, parentResult);
 			oldShadowType.setName(new PolyStringType(currentShadowName));

@@ -671,8 +671,10 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertEquals(ACCOUNT1_OID, addedObjectOid);
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
+		// WHEN
 		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT1_OID, null, task, result).asObjectable();
 
+		// THEN
 		assertNotNull(shadow);
 
 		display(SchemaDebugUtil.prettyPrint(shadow));
@@ -709,7 +711,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         // must be all lowercase
         assertEquals("Wrong secondary identifier (repo)", "uid=jbond,ou=people,dc=example,dc=com", idSecondaryVal);
 
-        assertShadows(2);
+        assertShadows(2);        
 	}
 
 	/**
@@ -839,7 +841,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
 				null, task, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=will123,ou=People,dc=example,dc=com", provisioningAccountType.getName());
-		assertAttribute(provisioningAccountType, getSecondaryIdentifierQName(), "uid=will123,ou=people,dc=example,dc=com");
+		assertAttribute(provisioningAccountType, getSecondaryIdentifierQName(), "uid=will123,ou=People,dc=example,dc=com");
 		
 		repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
 				null, result).asObjectable();
