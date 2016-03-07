@@ -38,8 +38,8 @@ public class WorkItemNewDto extends Selectable {
     public static final String F_OBJECT_NAME = "objectName";
     public static final String F_TARGET_NAME = "targetName";
 
-    public static final String F_REQUESTED_BY = "requestedBy";
-    public static final String F_REQUESTED_BY_FULL_NAME = "requestedByFullName";
+    public static final String F_REQUESTER_NAME = "requesterName";
+    public static final String F_REQUESTER_FULL_NAME = "requesterFullName";
     public static final String F_APPROVER_COMMENT = "approverComment";
 
     public static final String F_WORKFLOW_CONTEXT = "workflowContext";          // use with care
@@ -122,7 +122,7 @@ public class WorkItemNewDto extends Selectable {
     }
 
     public WfContextType getWorkflowContext() {
-        TaskType task = WebComponentUtil.getObjectFromReference(workItem.getTargetRef(), TaskType.class);
+        TaskType task = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
         if (task == null || task.getWorkflowContext() == null) {
             return null;
         } else {
@@ -130,22 +130,22 @@ public class WorkItemNewDto extends Selectable {
         }
     }
 
-    public String getRequestedBy() {
-        WfContextType wfContext = getWorkflowContext();
-        return wfContext != null ? WebComponentUtil.getName(wfContext.getRequesterRef()) : null;
+    public String getRequesterName() {
+		WfContextType workflowContext = getWorkflowContext();
+		return workflowContext != null ? WebComponentUtil.getName(workflowContext.getRequesterRef()) : null;
     }
 
-    public UserType getRequester() {
+	public String getRequesterFullName() {
+		UserType requester = getRequester();
+		return requester != null ? PolyString.getOrig(requester.getFullName()) : null;
+	}
+
+	public UserType getRequester() {
         WfContextType wfContext = getWorkflowContext();
         if (wfContext == null) {
             return null;
         }
         return WebComponentUtil.getObjectFromReference(wfContext.getRequesterRef(), UserType.class);
-    }
-
-    public String getRequestedByFullName() {
-        UserType requester = getRequester();
-        return requester != null ? PolyString.getOrig(requester.getFullName()) : null;
     }
 
     public String getApproverComment() {

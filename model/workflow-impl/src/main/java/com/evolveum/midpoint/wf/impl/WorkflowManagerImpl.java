@@ -117,11 +117,6 @@ public class WorkflowManagerImpl implements WorkflowManager {
     }
 
     @Override
-    public WorkItemNewType getWorkItemNewById(String taskId, OperationResult parentResult) throws ObjectNotFoundException {
-        return workItemProvider.getWorkItemNewById(taskId, parentResult);
-    }
-
-    @Override
     public <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws SchemaException {
         if (!WorkItemNewType.class.equals(type)) {
@@ -233,6 +228,10 @@ public class WorkflowManagerImpl implements WorkflowManager {
 
     public WfTaskUtil getWfTaskUtil() {
         return wfTaskUtil;
+    }
+
+    public MiscDataUtil getMiscDataUtil() {
+        return miscDataUtil;
     }
 
     @Override

@@ -122,8 +122,8 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
             ObjectDelta<? extends ObjectType> delta = assignmentToDelta(modelContext);
             instruction.setDeltaProcessAndTaskVariables(delta);
 
-            instruction.setObjectRefVariable(modelContext);
-            instruction.setTargetRefVariable(null);
+            instruction.setObjectRefVariable(modelContext, result);
+            instruction.setTargetRefVariable(null, result);
 
             // set the names of midPoint task and activiti process instance
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";

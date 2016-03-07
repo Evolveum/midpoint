@@ -408,9 +408,11 @@ public final class WebComponentUtil {
 		if (ref == null) {
 			return null;
 		}
-
 		if (ref.getTargetName() != null) {
 			return getOrigStringFromPoly(ref.getTargetName());
+		}
+		if (ref.asReferenceValue().getObject() != null) {
+			return getName(ref.asReferenceValue().getObject());
 		}
 		return ref.getOid();
 	}

@@ -245,8 +245,8 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
             ObjectDelta<? extends ObjectType> delta = assignmentToDelta(modelContext, assignmentType, assigneeOid);
             instruction.setDeltaProcessAndTaskVariables(delta);
 
-            instruction.setObjectRefVariable(modelContext);
-            instruction.setTargetRefVariable(ObjectTypeUtil.createObjectRef(target));
+            instruction.setObjectRefVariable(modelContext, result);
+            instruction.setTargetRefVariable(ObjectTypeUtil.createObjectRef(target), result);
 
             // set the names of midPoint task and activiti process instance
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";

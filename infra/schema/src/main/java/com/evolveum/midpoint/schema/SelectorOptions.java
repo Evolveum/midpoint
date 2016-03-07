@@ -93,7 +93,7 @@ public class SelectorOptions<T> implements Serializable {
 		}
 		return optionsCollection;
 	}
-    //endregion
+	//endregion
 
     //region Simple getters
     public ObjectSelector getSelector() {
@@ -274,5 +274,6 @@ public class SelectorOptions<T> implements Serializable {
 	public String toString() {
 		return "ObjectOperationOptions(" + selector + ": " + options + ")";
 	}
-    //endregion
+
+	//endregion
 }

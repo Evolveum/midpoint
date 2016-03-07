@@ -389,4 +389,14 @@ public class ObjectTypeUtil {
 		}
 		return oids;
 	}
+
+	public static Objectable getObjectFromReference(ObjectReferenceType ref) {
+		if (ref == null) {
+			return null;
+		}
+		if (ref.asReferenceValue().getObject() == null) {
+			return null;
+		}
+		return ref.asReferenceValue().getObject().asObjectable();
+	}
 }

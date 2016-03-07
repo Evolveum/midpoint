@@ -233,8 +233,8 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
             ObjectDelta<? extends ObjectType> delta = requestToDelta(modelContext, approvalRequest, focusOid);
             instruction.setDeltaProcessAndTaskVariables(delta);
 
-            instruction.setObjectRefVariable(modelContext);
-            instruction.setTargetRefVariable(ObjectTypeUtil.createObjectRef(target));
+            instruction.setObjectRefVariable(modelContext, result);
+            instruction.setTargetRefVariable(ObjectTypeUtil.createObjectRef(target), result);
 
             // set the names of midPoint task and activiti process instance
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";

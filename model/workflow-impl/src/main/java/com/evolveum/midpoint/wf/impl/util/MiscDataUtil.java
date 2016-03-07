@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -402,7 +403,7 @@ public class MiscDataUtil {
         return retval;
     }
 
-    public PrismObject resolveObjectReferenceType(ObjectReferenceType ref, OperationResult result) {
+    public PrismObject resolveObjectReference(ObjectReferenceType ref, OperationResult result) {
         try {
             return repositoryService.getObject((Class) prismContext.getSchemaRegistry().getCompileTimeClass(ref.getType()), ref.getOid(), null, result);
         } catch (ObjectNotFoundException e) {
@@ -414,6 +415,24 @@ public class MiscDataUtil {
             LoggingUtils.logException(LOGGER, "Couldn't get reference {} details due to schema exception", e, ref);
             return null;
         }
+    }
+
+    public ObjectReferenceType resolveObjectReferenceName(ObjectReferenceType ref, OperationResult result) {
+        if (ref == null || ref.getTargetName() != null) {
+            return ref;
+        }
+        PrismObject<?> object;
+        if (ref.asReferenceValue().getObject() != null) {
+            object = ref.asReferenceValue().getObject();
+        } else {
+            object = resolveObjectReference(ref, result);
+            if (object == null) {
+                return ref;
+            }
+        }
+        ref = ref.clone();
+        ref.setTargetName(PolyString.toPolyStringType(object.getName()));
+        return ref;
     }
 
     public ObjectReferenceType groupIdToObjectReference(String groupId) {

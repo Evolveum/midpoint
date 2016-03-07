@@ -38,8 +38,7 @@ import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -73,11 +72,6 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.util.Utils;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -148,7 +142,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	public static final String CREATE_ACCOUNT = CLASS_NAME_WITH_DOT + "createAccount";
 	public static final String UPDATE_ACCOUNT = CLASS_NAME_WITH_DOT + "updateAccount";
 	public static final String PROCESS_USER_TEMPLATE = CLASS_NAME_WITH_DOT + "processUserTemplate";
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ModelController.class);
 
 	@Autowired
@@ -187,37 +181,37 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     @Autowired
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
-	
+
 	@Autowired
 	private ChangeExecutor changeExecutor;
 
 	@Autowired
 	SystemConfigurationHandler systemConfigurationHandler;
-	
+
 	@Autowired
 	private AuditService auditService;
-	
+
 	@Autowired
 	private SecurityEnforcer securityEnforcer;
-	
+
 	@Autowired
 	private UserProfileService userProfileService;
-	
+
 	@Autowired
 	Projector projector;
-	
+
 	@Autowired
 	Protector protector;
-	
+
 	@Autowired
 	ModelDiagController modelDiagController;
-	
+
 	@Autowired
 	ContextFactory contextFactory;
-	
+
 	@Autowired
 	private SchemaTransformer schemaTransformer;
-	
+
 	public ModelObjectResolver getObjectResolver() {
 		return objectResolver;
 	}
@@ -253,8 +247,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         result.addParam("class", clazz);
 
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-				
-		try {	
+
+		try {
             if (GetOperationOptions.isRaw(rootOptions)) {       // MID-2218
                 QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
             }
@@ -262,9 +256,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			ref.setOid(oid);
 			ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
             Utils.clearRequestee(task);
-            
+
             object = objectResolver.getObject(clazz, oid, options, task, result).asPrismObject();
-            
+
             schemaTransformer.applySchemasAndSecurity(object, rootOptions, null, task, result);
 			resolve(object, options, task, result);
 
@@ -294,21 +288,28 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
 			RepositoryCache.exit();
 		}
-		
+
 		result.cleanupResult();
-		
+
 		return object;
 	}
 
 	protected void resolve(PrismObject<?> object, Collection<SelectorOptions<GetOperationOptions>> options,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
-		if (object == null || options == null) {
+		if (object == null) {
 			return;
 		}
+		resolve(object.asObjectable(), options, task, result);
+	}
 
+	protected void resolve(Containerable containerable, Collection<SelectorOptions<GetOperationOptions>> options,
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
+		if (containerable == null || options == null) {
+			return;
+		}
 		for (SelectorOptions<GetOperationOptions> option: options) {
-			try{
-			resolve(object, option, task, result);
+			try {
+				resolve(containerable, option, task, result);
 			} catch(ObjectNotFoundException ex){
 				result.recordFatalError(ex.getMessage(), ex);
 				return;
@@ -316,7 +317,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		}
 	}
 
-    private void resolve(PrismObject<?> object, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
+    private void resolve(Containerable object, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
 		if (!GetOperationOptions.isResolve(option.getOptions())) {
 			return;
 		}
@@ -329,30 +330,41 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		resolve(object, path, option, task, result);
 	}
 		
-	private <O extends ObjectType> void resolve(PrismObject<?> object, ItemPath path, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
+	private <O extends ObjectType> void resolve(Containerable containerable, ItemPath path, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
 		if (path == null || path.isEmpty()) {
 			return;
 		}
 		ItemPathSegment first = path.first();
 		ItemPath rest = path.rest();
 		QName refName = ItemPath.getName(first);
-		PrismReference reference = object.findReferenceByCompositeObjectElementName(refName);
+		PrismContainerValue containerValue = containerable.asPrismContainerValue();
+
+		PrismReference reference = containerValue.findReferenceByCompositeObjectElementName(refName);
 		if (reference == null) {
-			// alternatively look up by reference name (e.g. linkRef)
-			reference = object.findReference(refName);
-			if (reference == null) {
-				return;//throw new SchemaException("Cannot resolve: No reference "+refName+" in "+object);
-			}
+			reference = containerValue.findReference(refName);	// alternatively look up by reference name (e.g. linkRef)
 		}
-		for (PrismReferenceValue refVal: reference.getValues()) {
-			PrismObject<O> refObject = refVal.getObject();
-			if (refObject == null) {
-				refObject = objectResolver.resolve(refVal, object.toString(), option.getOptions(), task, result);
-				schemaTransformer.applySchemasAndSecurity(refObject, option.getOptions(), null, task, result);
-				refVal.setObject(refObject);
+		if (reference == null) {
+			if (rest.isEmpty()) {
+				return;
 			}
-			if (!rest.isEmpty()) {
-				resolve(refObject, rest, option, task, result);
+			PrismContainer<?> childContainer = containerValue.findContainer(refName);	// it may be e.g. taskRef -> workflowContext -> requesterRef
+			if (childContainer == null) {
+				return;
+			}
+			for (PrismContainerValue pcv : childContainer.getValues()) {
+				resolve(pcv.asContainerable(), rest, option, task, result);
+			}
+		} else {
+			for (PrismReferenceValue refVal : reference.getValues()) {
+				PrismObject<O> refObject = refVal.getObject();
+				if (refObject == null) {
+					refObject = objectResolver.resolve(refVal, containerable.toString(), option.getOptions(), task, result);
+					schemaTransformer.applySchemasAndSecurity(refObject, option.getOptions(), null, task, result);
+					refVal.setObject(refObject);
+				}
+				if (!rest.isEmpty()) {
+					resolve(refObject.asObjectable(), rest, option, task, result);
+				}
 			}
 		}
 	}
@@ -788,7 +800,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                     case PROVISIONING: list = provisioning.searchObjects(type, query, options, task, result); break;
                     case TASK_MANAGER:
 						list = taskManager.searchObjects(type, query, options, result);
-						if (workflowManager != null && TaskType.class.isAssignableFrom(type)) {
+						if (workflowManager != null && TaskType.class.isAssignableFrom(type) && !GetOperationOptions.isRaw(rootOptions) && !GetOperationOptions.isNoFetch(rootOptions)) {
 							workflowManager.augmentTaskObjectList(list, options, task, result);
 						}
 						break;
@@ -796,22 +808,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 }
 				result.computeStatus();
 				result.cleanupResult();
-			} catch (CommunicationException e) {
-				processSearchException(e, rootOptions, searchProvider, result);
-				throw e;
-			} catch (ConfigurationException e) {
-				processSearchException(e, rootOptions, searchProvider, result);
-				throw e;
-			} catch (ObjectNotFoundException e) {
-				processSearchException(e, rootOptions, searchProvider, result);
-				throw e;
-			} catch (SchemaException e) {
-				processSearchException(e, rootOptions, searchProvider, result);
-				throw e;
-			} catch (SecurityViolationException e) {
-				processSearchException(e, rootOptions, searchProvider, result);
-				throw e;
-			} catch (RuntimeException e) {
+			} catch (CommunicationException | ConfigurationException | SchemaException | SecurityViolationException | RuntimeException | ObjectNotFoundException e) {
 				processSearchException(e, rootOptions, searchProvider, result);
 				throw e;
 			} finally {
@@ -914,8 +911,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				list = new SearchResultList(new ArrayList<>());
 			}
 
-			// TODO implement read hook, if necessary
-			// TODO implement resolve option, if necessary
+			for (T object : list) {
+				// TODO implement read hook, if necessary
+				resolve(object, options, task, result);
+			}
 		} finally {
 			RepositoryCache.exit();
 		}
@@ -1829,11 +1828,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     public WorkItemType getWorkItemDetailsById(String workItemId, OperationResult parentResult) throws ObjectNotFoundException {
         return getWorkflowManagerChecked().getWorkItemDetailsById(workItemId, parentResult);
     }
-
-	@Override
-	public WorkItemNewType getWorkItemNewById(String workItemId, OperationResult parentResult) throws ObjectNotFoundException {
-		return getWorkflowManagerChecked().getWorkItemNewById(workItemId, parentResult);
-	}
 
     @Override
     public int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult) {

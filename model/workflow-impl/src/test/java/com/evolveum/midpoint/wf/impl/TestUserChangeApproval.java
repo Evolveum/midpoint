@@ -34,20 +34,14 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.common.WorkflowResult;
@@ -71,15 +65,13 @@ import java.io.File;
 import java.util.*;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
+import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType.*;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author mederly
@@ -174,17 +166,58 @@ public class TestUserChangeApproval extends AbstractWfTest {
         for (Task subtask : subtasks) {
             TaskType subtaskType = modelService.getObject(TaskType.class, subtask.getOid(), options, opTask, result).asObjectable();
             display("Subtask #"+(i+1)+": ", subtaskType);
-            assertNull("Unexpected fetch result in wf subtask: " + subtask, subtaskType.getFetchResult());
-            WfContextType wfc = subtaskType.getWorkflowContext();
-            assertNotNull("Missing workflow context in wf subtask: " + subtask, wfc);
-            assertNotNull("No process ID in wf subtask: " + subtask, wfc.getProcessInstanceId());
-            assertEquals("Wrong process ID name in subtask: " + subtask, processNames[i++], wfc.getProcessInstanceName());
-            assertNotNull("Missing process start time in subtask: " + subtask, wfc.getStartTimestamp());
-            assertNull("Unexpected process end time in subtask: " + subtask, wfc.getEndTimestamp());
-            assertEquals("Wrong 'approved' state", null, wfc.isApproved());
-            assertEquals("Wrong answer", null, wfc.getAnswer());
-            assertEquals("Wrong state", null, wfc.getState());
+            checkTask(subtaskType, subtask.toString(), processNames[i++]);
+            assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, false);
         }
+
+        final Collection<SelectorOptions<GetOperationOptions>> options1 = resolveItemsNamed(
+                F_OBJECT_REF,
+                F_TARGET_REF,
+                F_ASSIGNEE_REF,
+                new ItemPath(F_TASK_REF, F_WORKFLOW_CONTEXT, F_REQUESTER_REF));
+
+        List<WorkItemNewType> workItems = modelService.searchContainers(WorkItemNewType.class, null, options1, opTask, result);
+        assertEquals("Wrong # of work items", processNames.length, workItems.size());
+        i = 0;
+        for (WorkItemNewType workItem : workItems) {
+            display("Work item #"+(i+1)+": ", workItem);
+            display("Task ref", workItem.getTaskRef() != null ? workItem.getTaskRef().asReferenceValue().debugDump(0, true) : null);
+            assertRef("object reference", workItem.getObjectRef(), USER_JACK_OID, true, true);
+            assertRef("target reference", workItem.getTargetRef(), ROLE_R1_OID, true, true);
+            assertRef("assignee reference", workItem.getAssigneeRef(), R1BOSS_OID, false, true);     // name is not known, as it is not stored in activiti (only OID is)
+            assertRef("task reference", workItem.getTaskRef(), null, false, true);
+            final TaskType subtaskType = (TaskType) ObjectTypeUtil.getObjectFromReference(workItem.getTaskRef());
+            checkTask(subtaskType, "task in workItem", processNames[i++]);
+            assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, true);
+        }
+    }
+
+    private void assertRef(String what, ObjectReferenceType ref, String oid, boolean targetName, boolean fullObject) {
+        assertNotNull(what + " is null", ref);
+        assertNotNull(what + " contains no OID", ref.getOid());
+        if (oid != null) {
+            assertEquals(what + " contains wrong OID", oid, ref.getOid());
+        }
+        if (targetName) {
+            assertNotNull(what + " contains no target name", ref.getTargetName());
+        }
+        if (fullObject) {
+            assertNotNull(what + " contains no object", ref.asReferenceValue().getObject());
+        }
+    }
+
+
+    private void checkTask(TaskType subtaskType, String subtaskName, String processName) {
+        assertNull("Unexpected fetch result in wf subtask: " + subtaskName, subtaskType.getFetchResult());
+        WfContextType wfc = subtaskType.getWorkflowContext();
+        assertNotNull("Missing workflow context in wf subtask: " + subtaskName, wfc);
+        assertNotNull("No process ID in wf subtask: " + subtaskName, wfc.getProcessInstanceId());
+        assertEquals("Wrong process ID name in subtask: " + subtaskName, processName, wfc.getProcessInstanceName());
+        assertNotNull("Missing process start time in subtask: " + subtaskName, wfc.getStartTimestamp());
+        assertNull("Unexpected process end time in subtask: " + subtaskName, wfc.getEndTimestamp());
+        assertEquals("Wrong 'approved' state", null, wfc.isApproved());
+        assertEquals("Wrong answer", null, wfc.getAnswer());
+        assertEquals("Wrong state", null, wfc.getState());
     }
 
     protected void assertWfContextAfterRootTaskFinishes(Task rootTask, List<Task> subtasks, OperationResult result, String... processNames) throws Exception {

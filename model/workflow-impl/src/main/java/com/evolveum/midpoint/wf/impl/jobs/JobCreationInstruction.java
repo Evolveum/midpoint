@@ -17,9 +17,7 @@
 package com.evolveum.midpoint.wf.impl.jobs;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -30,9 +28,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.processes.ProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
-import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRefImpl;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UriStackEntry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -41,13 +38,10 @@ import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
+import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames.*;
 
 /**
  * A generic instruction to start a workflow process and/or a task (using umbrella term "a job").
@@ -351,30 +345,31 @@ public class JobCreationInstruction implements DebugDumpable {
 
     //region Setters for process variables
     public void initializeCommonProcessVariables() {
-        addProcessVariable(CommonProcessVariableNames.VARIABLE_UTIL, new ActivitiUtil());
-        addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR, changeProcessor.getClass().getName());
-        addProcessVariable(CommonProcessVariableNames.VARIABLE_START_TIME, new Date());
+        addProcessVariable(VARIABLE_UTIL, new ActivitiUtil());
+        addProcessVariable(VARIABLE_MIDPOINT_CHANGE_PROCESSOR, changeProcessor.getClass().getName());
+        addProcessVariable(VARIABLE_START_TIME, new Date());
     }
 
-    public void setRequesterOidInProcess(PrismObject<UserType> requester) {
-        addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID, requester.getOid());
+    public void setRequesterOidAndRefInProcess(PrismObject<UserType> requester) {
+        addProcessVariable(VARIABLE_MIDPOINT_REQUESTER_OID, requester.getOid());
+        addProcessVariable(VARIABLE_REQUESTER_REF, new LightweightObjectRefImpl(createObjectRef(requester)));
     }
 
     public void setObjectOidInProcess(String objectOid) {
         if (objectOid != null) {
-            addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID, objectOid);
+            addProcessVariable(VARIABLE_MIDPOINT_OBJECT_OID, objectOid);
         } else {
-            removeProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID);
+            removeProcessVariable(VARIABLE_MIDPOINT_OBJECT_OID);
         }
     }
 
     public void setProcessInstanceName(String name) {
         processInstanceName = name;
-        addProcessVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME, name);
+        addProcessVariable(VARIABLE_PROCESS_INSTANCE_NAME, name);
     }
 
     public void setProcessInterfaceBean(ProcessMidPointInterface processInterfaceBean) {
-        addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_INTERFACE_BEAN_NAME, processInterfaceBean.getBeanName());
+        addProcessVariable(VARIABLE_MIDPOINT_PROCESS_INTERFACE_BEAN_NAME, processInterfaceBean.getBeanName());
     }
     //endregion
 

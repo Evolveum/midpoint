@@ -151,6 +151,7 @@ public class ModelObjectResolver implements ObjectResolver {
 		try {
 			PrismObject<T> object = null;
             ObjectTypes.ObjectManager manager = ObjectTypes.getObjectManagerForClass(clazz);
+			final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
             switch (manager) {
                 case PROVISIONING:
                     object = provisioning.getObject(clazz, oid, options, task, result);
@@ -165,7 +166,7 @@ public class ModelObjectResolver implements ObjectResolver {
                         throw new SystemException("Got null result from taskManager.getObject while looking for "+clazz.getSimpleName()
                                 +" with OID "+oid+"; using task manager implementation "+taskManager.getClass().getName());
                     }
-					if (workflowManager != null && TaskType.class.isAssignableFrom(clazz)) {
+					if (workflowManager != null && TaskType.class.isAssignableFrom(clazz) && !GetOperationOptions.isRaw(rootOptions) && !GetOperationOptions.isNoFetch(rootOptions)) {
 						workflowManager.augmentTaskObject(object, options, task, result);
 					}
                     break;

@@ -19,12 +19,15 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -38,13 +41,13 @@ import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.*;
 import static com.evolveum.midpoint.prism.query.OrderDirection.DESCENDING;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType.F_WORK_ITEM_CREATED_TIMESTAMP;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createResolve;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType.F_TARGET_REF;
 
 /**
  * @author lazyman
@@ -81,7 +84,10 @@ public class WorkItemDtoNewProvider extends BaseSortableDataProvider<WorkItemNew
 
         try {
             ObjectQuery query = createQuery(first, count);
-            List<WorkItemNewType> items = getModel().searchContainers(WorkItemNewType.class, query, null, task, result);
+            Collection<SelectorOptions<GetOperationOptions>> options =
+                    Arrays.asList(
+                            SelectorOptions.create(new ItemPath(F_ASSIGNEE_REF), createResolve()));
+            List<WorkItemNewType> items = getModel().searchContainers(WorkItemNewType.class, query, options, task, result);
 
             for (WorkItemNewType item : items) {
                 try {

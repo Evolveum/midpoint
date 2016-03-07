@@ -67,6 +67,9 @@ import javax.xml.bind.JAXBException;
 import java.util.*;
 
 import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType.F_ASSIGNEE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType.F_CANDIDATE_ROLES_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType.F_WORK_ITEM_ID;
 import static org.apache.commons.collections.CollectionUtils.*;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -209,21 +212,27 @@ public class WorkItemProvider {
 
     // primitive 'query interpreter'
     private TaskQuery createTaskQuery(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
-        FilterComponents components = factorOutQuery(query, WorkItemNewType.F_ASSIGNEE_REF, WorkItemNewType.F_CANDIDATE_ROLES_REF);
+        FilterComponents components = factorOutQuery(query, F_ASSIGNEE_REF, F_CANDIDATE_ROLES_REF, F_WORK_ITEM_ID);
         if (components.hasRemainder()) {
             throw new SchemaException("Unsupported clause(s) in search filter: " + components.getRemainderClauses());
         }
 
-        final ItemPath ASSIGNEE_PATH = new ItemPath(WorkItemNewType.F_ASSIGNEE_REF);
-        final ItemPath CANDIDATE_ROLES_PATH = new ItemPath(WorkItemNewType.F_CANDIDATE_ROLES_REF);
+        final ItemPath WORK_ITEM_ID_PATH = new ItemPath(F_WORK_ITEM_ID);
+        final ItemPath ASSIGNEE_PATH = new ItemPath(F_ASSIGNEE_REF);
+        final ItemPath CANDIDATE_ROLES_PATH = new ItemPath(F_CANDIDATE_ROLES_REF);
         final ItemPath CREATED_PATH = new ItemPath(WorkItemNewType.F_WORK_ITEM_CREATED_TIMESTAMP);
 
+        final Map.Entry<ItemPath, Collection<? extends PrismValue>> workItemIdFilter = components.getKnownComponent(WORK_ITEM_ID_PATH);
         final Map.Entry<ItemPath, Collection<? extends PrismValue>> assigneeFilter = components.getKnownComponent(ASSIGNEE_PATH);
         final Map.Entry<ItemPath, Collection<? extends PrismValue>> candidateRolesFilter = components.getKnownComponent(CANDIDATE_ROLES_PATH);
 
         TaskQuery taskQuery = activitiEngine.getTaskService().createTaskQuery();
 
-        if (assigneeFilter != null) {
+		if (workItemIdFilter != null) {
+			taskQuery = taskQuery.taskId(((PrismPropertyValue<String>) workItemIdFilter.getValue().iterator().next()).getValue());
+		}
+
+		if (assigneeFilter != null) {
             if (isNotEmpty(assigneeFilter.getValue())) {
                 if (assigneeFilter.getValue().size() > 1) {
                     throw new SchemaException("Filter with more than one assignee is not supported: " + assigneeFilter.getValue());
@@ -277,27 +286,6 @@ public class WorkItemProvider {
         WorkItemType retval;
         try {
             retval = taskToWorkItem(task, true, true, true, result);
-        } catch (WorkflowException e) {
-            throw new SystemException(e);
-        }
-        result.computeStatusIfUnknown();
-        return retval;
-    }
-
-    @Deprecated
-    public WorkItemNewType getWorkItemNewById(String taskId, OperationResult parentResult) throws ObjectNotFoundException {
-        OperationResult result = parentResult.createSubresult(OPERATION_GET_WORK_ITEM_DETAILS_BY_TASK_ID);
-        result.addParam("taskId", taskId);
-        Task task;
-        try {
-            task = activitiEngineDataHelper.getTaskById(taskId, result);
-        } catch (ActivitiException e) {
-            result.recordFatalError("Couldn't get work item with id " + taskId, e);
-            throw new SystemException("Couldn't get work item with id " + taskId, e);
-        }
-        WorkItemNewType retval;
-        try {
-            retval = taskToWorkItemNew(task, null, true, true, result);
         } catch (WorkflowException e) {
             throw new SystemException(e);
         }
@@ -368,16 +356,19 @@ public class WorkItemProvider {
         List<Task> tasks;
         try {
             TaskQuery taskQuery = createTaskQuery(query, options, result);
-            Integer offset = query.getOffset();
-            Integer maxSize = query.getMaxSize();
+            Integer offset = query != null ? query.getOffset() : null;
+            Integer maxSize = query != null ? query.getMaxSize() : null;
             if (offset == null && maxSize == null) {
                 tasks = taskQuery.list();
             } else {
                 tasks = taskQuery.listPage(defaultIfNull(offset, 0), defaultIfNull(maxSize, Integer.MAX_VALUE));
             }
-        } catch (ActivitiException e) {
-            result.recordFatalError("Couldn't list work items", e);
-            throw new SystemException("Couldn't list work items due to Activiti exception", e);
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't list work items: " + e.getMessage(), e);
+            throw new SystemException("Couldn't list work items due to an exception", e);
+        } catch (SchemaException e) {
+            result.recordFatalError("Couldn't list work items: " + e.getMessage(), e);
+            throw e;
         }
 
         // there's no need to fill-in assignee details ; but candidates are necessary to fill-in
@@ -625,7 +616,7 @@ public class WorkItemProvider {
                 }
             }
             for (ObjectReferenceType ort : wi.getCandidateRolesRef()) {
-                PrismObject<AbstractRoleType> obj = miscDataUtil.resolveObjectReferenceType(ort, result);
+                PrismObject<AbstractRoleType> obj = miscDataUtil.resolveObjectReference(ort, result);
                 if (obj != null) {
                     wi.getCandidateRoles().add(obj.asObjectable());
                 }

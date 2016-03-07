@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -74,7 +75,7 @@ public class PcpChildJobCreationInstruction extends JobCreationInstruction {
 
     public void prepareCommonAttributes(PrimaryChangeAspect aspect, ModelContext<?> modelContext, String objectOid, PrismObject<UserType> requester) throws SchemaException {
 
-        setRequesterOidInProcess(requester);
+        setRequesterOidAndRefInProcess(requester);
         setObjectOidInProcess(objectOid);
 
         setExecuteApprovedChangeImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
@@ -110,22 +111,24 @@ public class PcpChildJobCreationInstruction extends JobCreationInstruction {
         }
     }
 
-    public void setObjectRefVariable(ObjectReferenceType objectRef) {
-        if (objectRef != null) {
-            addProcessVariable(CommonProcessVariableNames.VARIABLE_OBJECT_REF, new LightweightObjectRefImpl(objectRef));
+    public void setObjectRefVariable(ObjectReferenceType ref, OperationResult result) {
+        if (ref != null) {
+            ref = getChangeProcessor().getWorkflowManager().getMiscDataUtil().resolveObjectReferenceName(ref, result);
+            addProcessVariable(CommonProcessVariableNames.VARIABLE_OBJECT_REF, new LightweightObjectRefImpl(ref));
         } else {
             removeProcessVariable(CommonProcessVariableNames.VARIABLE_OBJECT_REF);
         }
     }
 
-    public void setObjectRefVariable(ModelContext<?> modelContext) {
+    public void setObjectRefVariable(ModelContext<?> modelContext, OperationResult result) {
         ObjectType focus = MiscDataUtil.getFocusObjectNewOrOld(modelContext);
-        setObjectRefVariable(ObjectTypeUtil.createObjectRef(focus));
+        setObjectRefVariable(ObjectTypeUtil.createObjectRef(focus), result);
     }
 
-    public void setTargetRefVariable(ObjectReferenceType value) {
-        if (value != null) {
-            addProcessVariable(CommonProcessVariableNames.VARIABLE_TARGET_REF, new LightweightObjectRefImpl(value));
+    public void setTargetRefVariable(ObjectReferenceType ref, OperationResult result) {
+        if (ref != null) {
+            ref = getChangeProcessor().getWorkflowManager().getMiscDataUtil().resolveObjectReferenceName(ref, result);
+            addProcessVariable(CommonProcessVariableNames.VARIABLE_TARGET_REF, new LightweightObjectRefImpl(ref));
         } else {
             removeProcessVariable(CommonProcessVariableNames.VARIABLE_TARGET_REF);
         }

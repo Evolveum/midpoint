@@ -113,7 +113,7 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
         if (scenarioType.getBeanName() != null) {
             instruction.addProcessVariable(GcpProcessVariableNames.VARIABLE_MIDPOINT_SCENARIO_BEAN_NAME, scenarioType.getBeanName());
         }
-        instruction.setRequesterOidInProcess(taskFromModel.getOwner());
+        instruction.setRequesterOidAndRefInProcess(taskFromModel.getOwner());
         instruction.setTaskName("Workflow-monitoring task");
         instruction.setProcessInterfaceBean(defaultProcessMidPointInterface);
         LensContextType lensContextType = context.toLensContextType();

@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.model.delta.DeltaPanel;
 import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalHistoryPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemNewDto;
 import org.apache.wicket.markup.html.basic.Label;
@@ -49,8 +48,8 @@ public class WorkItemPanel extends BasePanel<WorkItemNewDto> {
     }
 
     protected void initLayout() {
-        add(new Label(ID_REQUESTED_BY, new PropertyModel(getModel(), WorkItemNewDto.F_REQUESTED_BY)));
-        add(new Label(ID_REQUESTED_BY_FULL_NAME, new PropertyModel(getModel(), WorkItemNewDto.F_REQUESTED_BY_FULL_NAME)));
+        add(new Label(ID_REQUESTED_BY, new PropertyModel(getModel(), WorkItemNewDto.F_REQUESTER_NAME)));
+        add(new Label(ID_REQUESTED_BY_FULL_NAME, new PropertyModel(getModel(), WorkItemNewDto.F_REQUESTER_FULL_NAME)));
         add(new Label(ID_REQUESTED_ON, new PropertyModel(getModel(), WorkItemNewDto.F_PROCESS_STARTED)));
         add(new Label(ID_WORK_ITEM_CREATED_ON, new PropertyModel(getModel(), WorkItemNewDto.F_CREATED)));
         add(new Label(ID_ASSIGNEE, new PropertyModel(getModel(), WorkItemNewDto.F_ASSIGNEE)));

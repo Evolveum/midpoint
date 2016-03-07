@@ -40,6 +40,7 @@ import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.impl.processes.ProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -63,6 +64,7 @@ import org.springframework.stereotype.Component;
 import javax.xml.bind.JAXBException;
 import java.util.*;
 
+import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames.VARIABLE_REQUESTER_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
 
@@ -373,6 +375,11 @@ public class ProcessInstanceProvider {
         wfc.setAnswer(pmi.getAnswer(vars));
         wfc.setApproved(ApprovalUtils.approvalBooleanValue(wfc.getAnswer()));
         wfc.setState(pmi.getState(vars));
+
+        LightweightObjectRef requesterRef = (LightweightObjectRef) vars.get(VARIABLE_REQUESTER_REF);
+        if (requesterRef != null) {
+            wfc.setRequesterRef(requesterRef.toObjectReferenceType());
+        }
 
         ChangeProcessor cp = wfConfiguration.findChangeProcessor((String) vars.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR));
         if (cp == null) {

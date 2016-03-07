@@ -34,9 +34,14 @@ public class CommonProcessVariableNames {
     // Java class name of the change processor (the same as wf:changeProcessor task property) [String]
     public static final String VARIABLE_MIDPOINT_CHANGE_PROCESSOR = "midPointChangeProcessor";
 
-    // OID of the user who requested the particular operation (e.g. adding of a role to another user).
+    // OID of the user who requested the particular operation.
     // Used e.g. for searching for process instances requested by particular user. [String]
-    public static final String VARIABLE_MIDPOINT_REQUESTER_OID = "midPointRequesterOid";
+    public static final String VARIABLE_MIDPOINT_REQUESTER_OID = "requesterOid";
+
+    // Requester - OID + name + perhaps additional information [LightweightObjectRef]
+    // Pure OID is kept in order to allow searching.
+    public static final String VARIABLE_REQUESTER_REF = "requesterRef";
+
 
     // OID of the object (typically, a user) that is being changed within the operation. [String]
     // In some cases (e.g. for PrimaryChangeProcessor) the OID is determined clearly.
@@ -67,11 +72,10 @@ public class CommonProcessVariableNames {
     // Name of process interface bean (ProcessMidPointInterface implementation) that is related to this process [String]
     public static final String VARIABLE_MIDPOINT_PROCESS_INTERFACE_BEAN_NAME = "midPointProcessInterfaceBeanName";
 
-    // TODO fill-in these variables!
-
     // Object of the operation - if can be specified like this [LightweightObjectRef]
     public static final String VARIABLE_OBJECT_REF = "objectRef";
 
     // Target of the operation - if any [LightweightObjectRef]
     public static final String VARIABLE_TARGET_REF = "targetRef";
+
 }

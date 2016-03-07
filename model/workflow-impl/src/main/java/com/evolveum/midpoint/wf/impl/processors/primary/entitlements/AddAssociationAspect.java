@@ -265,8 +265,8 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             ObjectTreeDeltas objectTreeDeltas = associationAdditionToDelta(modelContext, associationAddition, assigneeOid);
             instruction.setObjectTreeDeltasProcessAndTaskVariables(objectTreeDeltas);
 
-            instruction.setObjectRefVariable(modelContext);
-            instruction.setTargetRefVariable(ObjectTypeUtil.createObjectRef(target));
+            instruction.setObjectRefVariable(modelContext, result);
+            instruction.setTargetRefVariable(ObjectTypeUtil.createObjectRef(target), result);
 
             // set the names of midPoint task and activiti process instance
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";

@@ -21,8 +21,13 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -46,6 +51,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDetailedDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
@@ -67,6 +73,16 @@ import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.createResolve;
+import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType.*;
 
 /**
  * @author mederly
@@ -134,13 +150,24 @@ public class PageWorkItem extends PageAdminWorkItems {
         if (workItemDtoModel.isLoaded()) {
             return workItemDtoModel.getObject();
         }
-        OperationResult result = new OperationResult(OPERATION_LOAD_WORK_ITEM);
+        Task task = createSimpleTask(OPERATION_LOAD_WORK_ITEM);
+        OperationResult result = task.getResult();
         WorkItemNewDto workItemDto = null;
-        WorkItemNewType workItem;
         try {
-            WorkflowService wfm = getWorkflowService();
-            workItem = wfm.getWorkItemNewById(parameters.get(OnePageParameterEncoder.PARAMETER).toString(), result);
-            workItemDto = new WorkItemNewDto(workItem);
+            String id = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
+            final ObjectQuery query = QueryBuilder.queryFor(WorkItemNewType.class, getPrismContext())
+                    .item(F_WORK_ITEM_ID).eq(id)
+                    .build();
+			final Collection<SelectorOptions<GetOperationOptions>> options = resolveItemsNamed(
+					F_ASSIGNEE_REF,
+					new ItemPath(F_TASK_REF, F_WORKFLOW_CONTEXT, F_REQUESTER_REF));
+			List<WorkItemNewType> workItems = getModelService().searchContainers(WorkItemNewType.class, query, options, task, result);
+            if (workItems.size() > 1) {
+                throw new SystemException("More than one work item with ID of " + id);
+            } else if (workItems.size() == 0) {
+                throw new SystemException("No work item with ID of " + id);
+            }
+            workItemDto = new WorkItemNewDto(workItems.get(0));
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get work item.", ex);
@@ -148,7 +175,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         }
         showResult(result, false);
         if (!result.isSuccess()) {
-            throw getRestartResponseException(PageWorkItems.class);
+            throw getRestartResponseException(PageDashboard.class);
         }
         return workItemDto;
     }

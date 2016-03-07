@@ -84,8 +84,6 @@ public interface WorkflowManager {
      */
     @Deprecated // use searchContainers
     WorkItemType getWorkItemDetailsById(String taskId, OperationResult parentResult) throws ObjectNotFoundException;
-    @Deprecated // use searchContainers
-    WorkItemNewType getWorkItemNewById(String taskId, OperationResult parentResult) throws ObjectNotFoundException;
 
     <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws SchemaException;
