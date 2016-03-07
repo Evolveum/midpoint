@@ -56,7 +56,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
-import com.evolveum.midpoint.wf.impl.jobs.WfProcessInstanceShadowTaskHandler;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.WorkflowResult;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
@@ -443,7 +442,7 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
 
                 boolean approve = testDetails.decideOnApproval(executionId);
 
-                workflowServiceImpl.approveOrRejectWorkItem(taskId, approve, result);
+                workflowServiceImpl.approveOrRejectWorkItem(taskId, approve, null, result);
                 login(userAdministrator);
             }
         }

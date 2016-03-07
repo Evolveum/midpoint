@@ -1850,18 +1850,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public void approveOrRejectWorkItem(String workItemId, boolean decision, OperationResult parentResult) {
-        getWorkflowManagerChecked().approveOrRejectWorkItem(workItemId, decision, parentResult);
-    }
-
-    @Override
-    public void approveOrRejectWorkItemWithDetails(String workItemId, PrismObject specific, boolean decision, OperationResult result) {
-        getWorkflowManagerChecked().approveOrRejectWorkItemWithDetails(workItemId, specific, decision, result);
-    }
-
-    @Override
-    public void completeWorkItemWithDetails(String workItemId, PrismObject specific, String decision, OperationResult parentResult) {
-        getWorkflowManagerChecked().completeWorkItemWithDetails(workItemId, specific, decision, parentResult);
+    public void approveOrRejectWorkItem(String workItemId, boolean decision, String comment, OperationResult parentResult) {
+        getWorkflowManagerChecked().approveOrRejectWorkItem(workItemId, decision, comment, parentResult);
     }
 
     @Override

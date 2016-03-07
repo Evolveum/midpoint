@@ -121,16 +121,12 @@ public interface WorkflowManager {
 
     /**
      * Approves or rejects a work item (without supplying any further information).
-     *
-     * @param taskId identifier of activiti task backing the work item
+     *  @param taskId identifier of activiti task backing the work item
      * @param decision true = approve, false = reject
+     * @param comment
      * @param parentResult
      */
-    void approveOrRejectWorkItem(String taskId, boolean decision, OperationResult parentResult);
-
-    void approveOrRejectWorkItemWithDetails(String taskId, PrismObject specific, boolean decision, OperationResult result);
-
-    void completeWorkItemWithDetails(String taskId, PrismObject specific, String decision, OperationResult parentResult);
+    void approveOrRejectWorkItem(String taskId, boolean decision, String comment, OperationResult parentResult);
 
     void claimWorkItem(String workItemId, OperationResult result);
 

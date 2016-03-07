@@ -190,7 +190,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
                 }
 
                 login(getUser(USER_ADMINISTRATOR_OID));
-                workflowServiceImpl.completeWorkItemWithDetails(taskId, qFormObject, "approve", result);
+//                workflowServiceImpl.completeWorkItemWithDetails(taskId, qFormObject, "approve", result);
             }
 
             @Override
@@ -243,7 +243,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
                 questionFormPrism.addReplaceExisting(rejectAll);
 
                 login(getUser(USER_ADMINISTRATOR_OID));
-                workflowServiceImpl.completeWorkItemWithDetails(taskId, questionFormPrism, "rejectAll", result);
+//                workflowServiceImpl.completeWorkItemWithDetails(taskId, questionFormPrism, "rejectAll", result);
             }
 
             @Override
@@ -343,7 +343,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
                 questionFormPrism.addReplaceExisting(approve);
 
                 login(getUser(USER_ADMINISTRATOR_OID));
-                workflowServiceImpl.completeWorkItemWithDetails(taskId, questionFormPrism, "approve", result);
+//                workflowServiceImpl.completeWorkItemWithDetails(taskId, questionFormPrism, "approve", result);
             }
 
             @Override

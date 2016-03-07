@@ -79,7 +79,7 @@ public class WorkItemManager {
     // exactly one of choiceDecision and approvalDecision must be set
     //
     // todo error reporting
-    public void completeWorkItemWithDetails(String taskId, PrismObject specific, String decision, OperationResult parentResult) {
+    public void completeWorkItemWithDetails(String taskId, String comment, String decision, OperationResult parentResult) {
 
         MidPointPrincipal principal;
 		try {
@@ -91,14 +91,14 @@ public class WorkItemManager {
 
         OperationResult result = parentResult.createSubresult(OPERATION_COMPLETE_WORK_ITEM);
         result.addParam("taskId", taskId);
+        result.addParam("comment", comment);
         result.addParam("decision", decision);
-        result.addParam("task-specific data", specific);
         result.addContext("user", principal.getUser());
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Completing work item " + taskId);
             LOGGER.trace("Decision: " + decision);
-            LOGGER.trace("WorkItem form object (task-specific) = " + (specific != null ? specific.debugDump() : "(none)"));
+            LOGGER.trace("Comment: " + comment);
             LOGGER.trace("User: " + principal.getUser());
         }
 
@@ -115,6 +115,9 @@ public class WorkItemManager {
         Map<String,String> propertiesToSubmit = new HashMap<String,String>();
 
         propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_DECISION, decision);
+        if (comment != null) {
+            propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_COMMENT, comment);
+        }
 
         // we also fill-in the corresponding 'button' property (if there's one that corresponds to the decision)
         for (FormProperty formProperty : data.getFormProperties()) {
@@ -125,38 +128,38 @@ public class WorkItemManager {
             }
         }
 
-        if (specific != null) {
-
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("# of form properties: " + data.getFormProperties().size());
-            }
-
-            for (FormProperty formProperty : data.getFormProperties()) {
-
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Processing property " + formProperty.getId() + ":" + formProperty.getName());
-                }
-
-                if (formProperty.isWritable()) {
-
-                    Object value;
-
-                    if (!CommonProcessVariableNames.FORM_FIELD_DECISION.equals(formProperty.getId()) &&
-                            !formProperty.getId().startsWith(CommonProcessVariableNames.FORM_BUTTON_PREFIX)) {
-
-                        // todo strip [flags] section
-                        QName propertyName = new QName(SchemaConstants.NS_WFCF, formProperty.getId());
-                        value = specific.getPropertyRealValue(propertyName, Object.class);
-
-                        if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("Writable property " + formProperty.getId() + " has a value of " + value);
-                        }
-
-                        propertiesToSubmit.put(formProperty.getId(), value == null ? "" : value.toString());
-                    }
-                }
-            }
-        }
+//        if (specific != null) {
+//
+//            if (LOGGER.isTraceEnabled()) {
+//                LOGGER.trace("# of form properties: " + data.getFormProperties().size());
+//            }
+//
+//            for (FormProperty formProperty : data.getFormProperties()) {
+//
+//                if (LOGGER.isTraceEnabled()) {
+//                    LOGGER.trace("Processing property " + formProperty.getId() + ":" + formProperty.getName());
+//                }
+//
+//                if (formProperty.isWritable()) {
+//
+//                    Object value;
+//
+//                    if (!CommonProcessVariableNames.FORM_FIELD_DECISION.equals(formProperty.getId()) &&
+//                            !formProperty.getId().startsWith(CommonProcessVariableNames.FORM_BUTTON_PREFIX)) {
+//
+//                        // todo strip [flags] section
+//                        QName propertyName = new QName(SchemaConstants.NS_WFCF, formProperty.getId());
+//                        value = specific.getPropertyRealValue(propertyName, Object.class);
+//
+//                        if (LOGGER.isTraceEnabled()) {
+//                            LOGGER.trace("Writable property " + formProperty.getId() + " has a value of " + value);
+//                        }
+//
+//                        propertiesToSubmit.put(formProperty.getId(), value == null ? "" : value.toString());
+//                    }
+//                }
+//            }
+//        }
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Submitting " + propertiesToSubmit.size() + " properties");

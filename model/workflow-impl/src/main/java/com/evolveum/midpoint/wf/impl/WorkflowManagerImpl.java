@@ -135,18 +135,8 @@ public class WorkflowManagerImpl implements WorkflowManager {
     }
 
     @Override
-    public void approveOrRejectWorkItem(String taskId, boolean decision, OperationResult parentResult) {
-        workItemManager.completeWorkItemWithDetails(taskId, null, ApprovalUtils.approvalStringValue(decision), parentResult);
-    }
-
-    @Override
-    public void approveOrRejectWorkItemWithDetails(String taskId, PrismObject specific, boolean decision, OperationResult parentResult) {
-        workItemManager.completeWorkItemWithDetails(taskId, specific, ApprovalUtils.approvalStringValue(decision), parentResult);
-    }
-
-    @Override
-    public void completeWorkItemWithDetails(String taskId, PrismObject specific, String decision, OperationResult parentResult) {
-        workItemManager.completeWorkItemWithDetails(taskId, specific, decision, parentResult);
+    public void approveOrRejectWorkItem(String taskId, boolean decision, String comment, OperationResult parentResult) {
+        workItemManager.completeWorkItemWithDetails(taskId, comment, ApprovalUtils.approvalStringValue(decision), parentResult);
     }
 
     @Override
