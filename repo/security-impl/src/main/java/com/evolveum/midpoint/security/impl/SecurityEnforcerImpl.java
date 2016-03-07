@@ -23,6 +23,7 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import org.aopalliance.intercept.MethodInvocation;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -91,6 +92,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgRelationObjectSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgScopeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -460,7 +462,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			
 		// Org	
 		if (specOrgRef != null) {
-			if (!isSubordinate(object, specOrgRef.getOid())) {
+			if (!isDescendant(object, specOrgRef.getOid())) {
 				LOGGER.trace("  org {} not applicable for {}, object OID {} (org={})",
 						new Object[]{autzHumanReadableDesc, desc, object.getOid(), specOrgRef.getOid()});
 				return false;
@@ -469,16 +471,13 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		
 		// orgRelation
 		if (specOrgRelation != null) {
-			QName subjectRelation = specOrgRelation.getSubjectRelation();
 			boolean match = false;
 			for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
-				if (MiscSchemaUtil.compareRelation(subjectRelation, subjectParentOrgRef.getRelation())) {
-					if (isSubordinate(object, subjectParentOrgRef.getOid())) {
-						LOGGER.trace("  org {} applicable for {}, object OID {} because subject org {} matches",
-								new Object[]{autzHumanReadableDesc, desc, object.getOid(), subjectParentOrgRef.getOid()});
-						match = true;
-						break;
-					}
+				if (matchesOrgRelation(object, subjectParentOrgRef, specOrgRelation, autzHumanReadableDesc, desc)) {
+					LOGGER.trace("  org {} applicable for {}, object OID {} because subject org {} matches",
+							new Object[]{autzHumanReadableDesc, desc, object.getOid(), subjectParentOrgRef.getOid()});
+					match = true;
+					break;
 				}
 			}
 			if (!match) {
@@ -519,13 +518,52 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return true;
 	}
 	
-	private <O extends ObjectType> boolean isSubordinate(PrismObject<O> object, String orgOid) throws SchemaException {
+	private <O extends ObjectType> boolean matchesOrgRelation(PrismObject<O> object, ObjectReferenceType subjectParentOrgRef,
+			OrgRelationObjectSpecificationType specOrgRelation, String autzHumanReadableDesc, String desc) throws SchemaException {
+		if (!MiscSchemaUtil.compareRelation(specOrgRelation.getSubjectRelation(), subjectParentOrgRef.getRelation())) {
+			return false;
+		}
+		if (BooleanUtils.isTrue(specOrgRelation.isIncludeReferenceOrg()) && subjectParentOrgRef.getOid().equals(object.getOid())) {
+			return true;
+		}
+		if (specOrgRelation.getScope() == null) {
+			return isDescendant(object, subjectParentOrgRef.getOid());
+		}
+		switch (specOrgRelation.getScope()) {
+			case ALL_DESCENDANTS:
+				return isDescendant(object, subjectParentOrgRef.getOid());
+			case DIRECT_DESCENDANTS:
+				return hasParentOrgRef(object, subjectParentOrgRef.getOid());
+			case ALL_ANCESTORS:
+				return isAncestor(object, subjectParentOrgRef.getOid());
+			default:
+				throw new UnsupportedOperationException("Unknown orgRelation scope "+specOrgRelation.getScope());
+		}
+	}
+
+	private <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid) throws SchemaException {
 		List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
 		List<String> objParentOrgOids = new ArrayList<>(objParentOrgRefs.size());
 		for (ObjectReferenceType objParentOrgRef: objParentOrgRefs) {
 			objParentOrgOids.add(objParentOrgRef.getOid());
 		}
 		return repositoryService.isAnySubordinate(orgOid, objParentOrgOids);
+	}
+
+	private <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) throws SchemaException {
+		Collection<String> oidList = new ArrayList<>(1);
+		oidList.add(oid);
+		return repositoryService.isAnySubordinate(object.getOid(), oidList);
+	}
+	
+	private <O extends ObjectType> boolean hasParentOrgRef(PrismObject<O> object, String oid) {
+		List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
+		for (ObjectReferenceType objParentOrgRef: objParentOrgRefs) {
+			if (oid.equals(objParentOrgRef.getOid())) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	private <O extends ObjectType, T extends ObjectType> boolean isApplicableItem(Authorization autz,
@@ -990,8 +1028,23 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								QName subjectRelation = specOrgRelation.getSubjectRelation();
 								for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
 									if (MiscSchemaUtil.compareRelation(subjectRelation, subjectParentOrgRef.getRelation())) {
-										OrgFilter orgFilter = OrgFilter.createOrg(subjectParentOrgRef.getOid());
-										objSpecOrgRelationFilter = ObjectQueryUtil.filterAnd(objSpecOrgRelationFilter, orgFilter);
+										OrgFilter orgFilter = null;
+										if (specOrgRelation.getScope() == null || specOrgRelation.getScope() == OrgScopeType.ALL_DESCENDANTS) {
+											orgFilter = OrgFilter.createOrg(subjectParentOrgRef.getOid(), OrgFilter.Scope.SUBTREE);
+										} else if (specOrgRelation.getScope() == OrgScopeType.DIRECT_DESCENDANTS) {
+											orgFilter = OrgFilter.createOrg(subjectParentOrgRef.getOid(), OrgFilter.Scope.ONE_LEVEL);
+										} else if (specOrgRelation.getScope() == OrgScopeType.ALL_ANCESTORS) {
+											throw new UnsupportedOperationException("orgRelation scope "+specOrgRelation.getScope()+" is not supported yet");
+										} else {
+											throw new UnsupportedOperationException("Unknown orgRelation scope "+specOrgRelation.getScope());
+										}
+										if (BooleanUtils.isTrue(specOrgRelation.isIncludeReferenceOrg())) {
+											InOidFilter oidFilter = InOidFilter.createInOid(subjectParentOrgRef.getOid());
+											objSpecOrgRelationFilter = ObjectQueryUtil.filterAnd(objSpecOrgRelationFilter, 
+													ObjectQueryUtil.filterOr(orgFilter, oidFilter));
+										} else {
+											objSpecOrgRelationFilter = ObjectQueryUtil.filterAnd(objSpecOrgRelationFilter, orgFilter);
+										}
 									}
 								}
 								if (objSpecOrgRelationFilter == null) {

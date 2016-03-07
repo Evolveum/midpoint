@@ -1129,6 +1129,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         assertVisibleUsers(0);
         
+        assertGetDeny(OrgType.class, ORG_MINISTRY_OF_RUM_OID);
+        assertSearch(OrgType.class, null, 0);
+        
+        assertModifyDeny(OrgType.class, ORG_MINISTRY_OF_RUM_OID, OrgType.F_DESCRIPTION, "blababla");
+        assertModifyDeny(OrgType.class, ORG_SCUMM_BAR_OID, OrgType.F_DESCRIPTION, "Hosting the worst scumm of the World.");
+        
         assertDeleteDeny(UserType.class, USER_ESTEVAN_OID);
         
         assertGetDeny(ShadowType.class, accountOid);
@@ -1170,6 +1176,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAddDeny(USER_MANCOMB_FILE);
         
         assertVisibleUsers(0);
+        
+        assertGetDeny(OrgType.class, ORG_MINISTRY_OF_RUM_OID);
+        assertSearch(OrgType.class, null, 0);
+        
+        assertModifyDeny(OrgType.class, ORG_MINISTRY_OF_RUM_OID, OrgType.F_DESCRIPTION, "blababla");
+        assertModifyDeny(OrgType.class, ORG_SCUMM_BAR_OID, OrgType.F_DESCRIPTION, "Hosting the worst scumm of the World.");
         
         assertDeleteDeny(UserType.class, USER_ESTEVAN_OID);
         
@@ -1236,6 +1248,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGetDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
         
         assertVisibleUsers(4);
+        
+        assertGetAllow(OrgType.class, ORG_MINISTRY_OF_RUM_OID);
+        assertSearch(OrgType.class, null, 2);
+        
+        assertModifyDeny(OrgType.class, ORG_MINISTRY_OF_RUM_OID, OrgType.F_DESCRIPTION, "blababla");
+        assertModifyAllow(OrgType.class, ORG_SCUMM_BAR_OID, OrgType.F_DESCRIPTION, "Hosting the worst scumm of the World.");
         
         assignAccount(USER_ESTEVAN_OID, RESOURCE_DUMMY_OID, null);
         

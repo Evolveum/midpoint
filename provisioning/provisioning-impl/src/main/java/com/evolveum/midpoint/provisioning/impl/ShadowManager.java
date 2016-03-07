@@ -33,6 +33,10 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -807,6 +811,78 @@ public class ShadowManager {
 		return repoShadowChanges;
 	}	
 
+	/**
+	 * Re-reads the shadow, re-evaluates the identifiers and stored values, updates them if necessary. Returns
+	 * fixed shadow. 
+	 */
+	public PrismObject<ShadowType> fixShadow(ProvisioningContext ctx, PrismObject<ShadowType> origRepoShadow,
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException, CommunicationException {
+		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, origRepoShadow.getOid(), null, parentResult);
+		ProvisioningContext shadowCtx = ctx.spawn(repoShadow);
+		RefinedObjectClassDefinition ocDef = shadowCtx.getObjectClassDefinition();
+		PrismContainer<Containerable> attributesContainer = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);
+		if (attributesContainer != null) {
+			ObjectDelta<ShadowType> shadowDelta = repoShadow.createModifyDelta();
+			for (Item<?, ?> item: attributesContainer.getValue().getItems()) {
+				if (item instanceof PrismProperty<?>) {
+					PrismProperty<?> attrProperty = (PrismProperty<?>)item;
+					RefinedAttributeDefinition<Object> attrDef = ocDef.findAttributeDefinition(attrProperty.getElementName());
+					if (attrDef == null) {
+						// No definition for this property, it should not be in the shadow
+						shadowDelta.addModificationDeleteProperty(attrProperty.getPath(), attrProperty.getRealValues());
+					} else {
+						MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(attrDef.getMatchingRuleQName(), attrDef.getTypeName());
+						List<PrismPropertyValue> valuesToAdd = null;
+						List<PrismPropertyValue> valuesToDelete = null;
+						for (PrismPropertyValue attrVal: attrProperty.getValues()) {
+							Object currentRealValue = attrVal.getValue();
+							Object normalizedRealValue = matchingRule.normalize(currentRealValue);
+							if (!normalizedRealValue.equals(currentRealValue)) {
+								if (attrDef.isSingleValue()) {
+									shadowDelta.addModificationReplaceProperty(attrProperty.getPath(), normalizedRealValue);
+									break;
+								} else {
+									if (valuesToAdd == null) {
+										valuesToAdd = new ArrayList<>();
+									}
+									valuesToAdd.add(new PrismPropertyValue(normalizedRealValue));
+									if (valuesToDelete == null) {
+										valuesToDelete = new ArrayList<>();
+									}
+									valuesToDelete.add(new PrismPropertyValue(currentRealValue));
+								}
+							}
+						}
+						PropertyDelta attrDelta = attrProperty.createDelta(attrProperty.getPath());
+						if (valuesToAdd != null) {
+							attrDelta.addValuesToAdd(valuesToAdd);
+						}
+						if (valuesToDelete != null) {
+							attrDelta.addValuesToDelete(valuesToDelete);
+						}
+						shadowDelta.addModification(attrDelta);
+					}
+				}
+			}
+			if (!shadowDelta.isEmpty()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Fixing shadow {} with delta:\n{}", origRepoShadow, shadowDelta.debugDump());
+				}
+				try {
+					repositoryService.modifyObject(ShadowType.class, origRepoShadow.getOid(), shadowDelta.getModifications(), parentResult);
+				} catch (ObjectAlreadyExistsException e) {
+					// This should not happen for shadows
+					throw new SystemException(e.getMessage(), e);
+				}
+				shadowDelta.applyTo(repoShadow);
+			} else {
+				LOGGER.trace("No need to fixing shadow {} (empty delta)", origRepoShadow);
+			}
+		} else {
+			LOGGER.trace("No need to fixing shadow {} (no atttributes)", origRepoShadow);
+		}
+		return repoShadow;
+	}
 
 	public void setKindIfNecessary(ShadowType repoShadowType, RefinedObjectClassDefinition objectClassDefinition) {
         if (repoShadowType.getKind() == null && objectClassDefinition != null) {

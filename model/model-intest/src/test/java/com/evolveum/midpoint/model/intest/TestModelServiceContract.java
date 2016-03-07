@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2788,9 +2788,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
                 
 		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
         modifyUserReplace(USER_MORGAN_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString("sirhenry"));
 		
 		// THEN
+        TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         // Strong mappings
@@ -2804,12 +2806,14 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertDummyAccountShadowRepo(accountShadow, accountOid, "sirhenry");
+        PrismObject<ShadowType> accountShadowRepo = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        display("Shadow repo", accountShadowRepo);
+        assertDummyAccountShadowRepo(accountShadowRepo, accountOid, "sirhenry");
         
         // Check account
-        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertDummyAccountShadowModel(accountModel, accountOid, "sirhenry", "Sir Henry Morgan");
+        PrismObject<ShadowType> accountShadowModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        display("Shadow model", accountShadowModel);
+        assertDummyAccountShadowModel(accountShadowModel, accountOid, "sirhenry", "Sir Henry Morgan");
         
         // Check account in dummy resource
         assertDefaultDummyAccount("sirhenry", "Sir Henry Morgan", true);
@@ -2825,7 +2829,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         ObjectDeltaOperation<ShadowType> auditShadowDelta = dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         
-        assertEquals("Unexpected number of modifications in shadow audit delta: "+auditShadowDelta.debugDump(), 4, auditShadowDelta.getObjectDelta().getModifications().size());
+        assertEquals("Unexpected number of modifications in shadow audit delta: "+auditShadowDelta.debugDump(), 3, auditShadowDelta.getObjectDelta().getModifications().size());
         
         dummyAuditService.assertOldValue(ChangeType.MODIFY, UserType.class,
         		UserType.F_NAME, PrismTestUtil.createPolyString("morgan"));
@@ -2833,8 +2837,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         		new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), "morgan");
         dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class, 
         		new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID), "morgan");
-        dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class, 
-        		new ItemPath(ShadowType.F_NAME), PrismTestUtil.createPolyString("morgan"));
+        // This is a side-effect change. It is silently done by provisioning. It is not supposed to
+        // appear in audit log.
+//        dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class, 
+//        		new ItemPath(ShadowType.F_NAME), PrismTestUtil.createPolyString("morgan"));
         
         dummyAuditService.assertTarget(USER_MORGAN_OID);
         dummyAuditService.assertExecutionSuccess();

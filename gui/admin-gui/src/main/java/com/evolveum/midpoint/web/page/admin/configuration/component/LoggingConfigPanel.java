@@ -26,6 +26,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -263,6 +264,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                     input.add(new NotNullValidator<StandardLoggerType>("logger.emptyLogger"));
                     input.add(new AttributeAppender("style", "width: 100%"));
                     input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                    addAjaxFormComponentUpdatingBehavior(input);
                     return dropDownChoicePanel;
 
                 } else if (model.getObject() instanceof ComponentLogger) {
@@ -275,11 +277,13 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                     input.add(new NotNullValidator<LoggingComponentType>("logger.emptyLogger"));
                     input.add(new AttributeAppender("style", "width: 100%"));
                     input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                    addAjaxFormComponentUpdatingBehavior(input);
                     return dropDownChoicePanel;
 
                 } else {
                     TextPanel textPanel = new TextPanel<>(componentId, new PropertyModel<String>(model, getPropertyExpression()));
                     FormComponent input = textPanel.getBaseFormComponent();
+                    addAjaxFormComponentUpdatingBehavior(input);
                     input.add(new AttributeAppender("style", "width: 100%"));
                     input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                     input.add(new NotNullValidator<StandardLoggerType>("message.emptyString"));
@@ -304,6 +308,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                 FormComponent<LoggingLevelType> input = dropDownChoicePanel.getBaseFormComponent();
                 input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                 input.add(new NotNullValidator<LoggingLevelType>("message.emptyLevel"));
+                addAjaxFormComponentUpdatingBehavior(input);
                 return dropDownChoicePanel;
             }
 
@@ -360,7 +365,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
                 FormComponent<AppenderConfigurationType> input = panel.getBaseFormComponent();
                 input.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-
+                addAjaxFormComponentUpdatingBehavior(input);
                 return panel;
             }
 
@@ -481,6 +486,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                 TextPanel<String> panel = new TextPanel<String>(componentId, new PropertyModel(model, getPropertyExpression()));
                 panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                 panel.getBaseFormComponent().add(new NotNullValidator<String>("message.emptyString"));
+                addAjaxFormComponentUpdatingBehavior(panel.getBaseFormComponent());
                 return panel;
             }
 
@@ -496,6 +502,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                 InputPanel panel = super.createInputPanel(componentId, model);
                 panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                 panel.getBaseFormComponent().add(new NotNullValidator<String>("message.emptyString"));
+                addAjaxFormComponentUpdatingBehavior(panel.getBaseFormComponent());
                 return panel;
             }
         };
@@ -520,6 +527,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                 FormComponent component = panel.getBaseFormComponent();
                 component.add(new AttributeModifier("size", 5));
                 component.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                addAjaxFormComponentUpdatingBehavior(component);
                 return panel;
             }
         };
@@ -537,6 +545,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                 component.add(new AttributeModifier("size", 5));
                 component.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                 component.add(new NotNullValidator<String>("message.emptyString"));
+                addAjaxFormComponentUpdatingBehavior(component);
                 return panel;
             }
         };
@@ -550,6 +559,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                 InputPanel panel = super.createInputPanel(componentId, model);
                 panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                 panel.getBaseFormComponent().add(new NotNullValidator<String>("message.emptyString"));
+                addAjaxFormComponentUpdatingBehavior(panel.getBaseFormComponent());
                 return panel;
             }
         };
@@ -603,6 +613,11 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
             InputPanel panel = super.createInputPanel(componentId, iModel);
             panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
             panel.getBaseFormComponent().add(new NotNullValidator<String>("message.emptyString"));
+            panel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                }
+            });
             return panel;
         }
     }
@@ -644,5 +659,12 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         AppenderConfiguration config = model.getObject();
         config.setEditing(true);
         target.add(getAppendersTable());
+    }
+
+    private void addAjaxFormComponentUpdatingBehavior(FormComponent component){
+        component.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {}
+        });
     }
 }

@@ -96,6 +96,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -456,6 +457,33 @@ public class ResourceObjectConverter {
 				return null;
 			}
 		}
+		
+		boolean hasVolatilityTriggerModification = false;
+		boolean hasResourceModification = false;
+		for (ItemDelta modification: itemDeltas) {
+			ItemPath path = modification.getPath();
+			QName firstPathName = ItemPath.getFirstName(path);
+			if (QNameUtil.match(firstPathName, ShadowType.F_ATTRIBUTES)) {
+				hasResourceModification = true;
+				QName attrName = ItemPath.getFirstName(path.rest());
+				RefinedAttributeDefinition<Object> attrDef = ctx.getObjectClassDefinition().findAttributeDefinition(attrName);
+				if (attrDef.isVolatilityTrigger()) {
+					LOGGER.trace("Will pre-read and re-read object because volatility trigger attribute {} has changed", attrName);
+					hasVolatilityTriggerModification = true;
+					break;
+				}
+			} else if (QNameUtil.match(firstPathName, ShadowType.F_ACTIVATION) || QNameUtil.match(firstPathName, ShadowType.F_CREDENTIALS) ||
+					QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION)) {
+				hasResourceModification = true;
+			}
+		}
+		
+		if (!hasResourceModification) {
+			// Quit early, so we avoid potential pre-read and other processing when there is no point of doing so.
+			// Also the read may fail which may invoke consistency mechanism which will complicate the situation.
+			LOGGER.trace("No resource modification found for {}, skipping", identifiers);
+			return null;
+		}
 
         /*
          *  State of the shadow before execution of the deltas - e.g. with original attributes, as it may be recorded in such a way in
@@ -480,20 +508,6 @@ public class ResourceObjectConverter {
 		if (identifiers.isEmpty() && repoShadow.asObjectable().getFailedOperationType()!= null){
 			throw new GenericConnectorException(
 					"Unable to modify object in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
-		}
-
-		boolean hasVolatilityTriggerModification = false;
-		for (ItemDelta modification: itemDeltas) {
-			ItemPath path = modification.getPath();
-			if (path.startsWithName(ShadowType.F_ATTRIBUTES)) {
-				QName attrName = ItemPath.getFirstName(path.rest());
-				RefinedAttributeDefinition<Object> attrDef = ctx.getObjectClassDefinition().findAttributeDefinition(attrName);
-				if (attrDef.isVolatilityTrigger()) {
-					LOGGER.trace("Will pre-read and re-read object because volatility trigger attribute {} has changed", attrName);
-					hasVolatilityTriggerModification = true;
-					break;
-				}
-			}
 		}
 		
 		if (hasVolatilityTriggerModification || ResourceTypeUtil.isAvoidDuplicateValues(ctx.getResource()) || isRename(operations)) {
@@ -528,12 +542,6 @@ public class ResourceObjectConverter {
         for (ItemDelta itemDelta : itemDeltas) {
             itemDelta.applyTo(shadowAfter);
         }
-        
-        if (isRename(operations)){
-			Collection<PropertyModificationOperation> renameOperations = distillRenameDeltas(itemDeltas, shadowAfter, objectClassDefinition);
-			LOGGER.trace("Determining rename operation {}", renameOperations);
-			sideEffectOperations.addAll(renameOperations);
-		}
         
         PrismObject<ShadowType> postReadShadow = null;
         if (hasVolatilityTriggerModification) {
@@ -928,41 +936,6 @@ public class ResourceObjectConverter {
 		return false;
 	}
 
-	private Collection<PropertyModificationOperation> distillRenameDeltas(Collection<? extends ItemDelta> modifications, 
-			PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
-				
-		PropertyDelta<String> nameDelta = (PropertyDelta<String>) ItemDelta.findItemDelta(modifications, new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), ItemDelta.class); 
-		if (nameDelta == null){
-			return null;
-		}
-				
-//				PrismProperty<String> name = nameDelta.getPropertyNewMatchingPath();
-//				String newName = name.getRealValue();
-				
-				Collection<PropertyModificationOperation> deltas = new ArrayList<PropertyModificationOperation>();
-				
-				// $shadow/attributes/icfs:name
-//				String normalizedNewName = shadowManager.getNormalizedAttributeValue(name.getValue(), objectClassDefinition.findAttributeDefinition(name.getElementName()));
-//				PropertyDelta<String> cloneNameDelta = nameDelta.clone();
-//				cloneNameDelta.clearValuesToReplace();
-//				cloneNameDelta.setValueToReplace(new PrismPropertyValue<String>(newName));
-				PropertyModificationOperation operation = new PropertyModificationOperation(nameDelta.clone());
-				// TODO matchingRuleQName handling - but it should not be necessary here
-				deltas.add(operation);
-				
-				// $shadow/name
-//				if (!newName.equals(shadow.asObjectable().getName().getOrig())){
-					
-					PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, shadow.getDefinition(), 
-							ShadowUtil.determineShadowName(shadow));
-					operation = new PropertyModificationOperation(shadowNameDelta);
-		  			// TODO matchingRuleQName handling - but it should not be necessary here
-					deltas.add(operation);
-//				}
-			
-				return deltas;
-		}
-	
 	private PrismObject<ShadowType> executeEntitlementChangesAdd(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
 		

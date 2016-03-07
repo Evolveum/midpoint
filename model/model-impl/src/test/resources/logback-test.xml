@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -34,10 +34,10 @@
 	<logger name="com.evolveum.midpoint.model.common.expression.Expression" level="TRACE" />
 	<logger name="com.evolveum.midpoint.common.monitor" level="TRACE" />
 	<logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.repo" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.repo" level="INFO" />
 	<logger name="com.evolveum.midpoint.model.sync.LiveSyncTaskHandler" level="TRACE" />
 	<logger name="com.evolveum.midpoint.test" level="TRACE" />
-	<logger name="org.hibernate.SQL" level="TRACE" />
+	<logger name="org.hibernate.SQL" level="INFO" />
 	<logger name="PROFILING" level="TRACE" />
 	<root level="INFO">
 		<appender-ref ref="X" />

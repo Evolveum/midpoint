@@ -1805,7 +1805,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     
 	protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
                                      QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
-		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule);
+		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, false);
 		IntegrationTestTools.assertProvisioningShadow(accountShadow, resourceType, RefinedAttributeDefinition.class, objectClass);
 	}
 	

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ public class ProvisioningOperationOptions implements Serializable {
 	
 	Boolean postpone;
 	
+	// TODO: align with GetOperationOptions, the option there is doNotDiscovery
 	Boolean doDiscovery;
 
 	Boolean overwrite;

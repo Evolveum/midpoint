@@ -205,9 +205,9 @@
         <!-- Synchronization section describes the synchronization policy, timing, reactions and similar synchronization settings. -->
         <synchronization>
             <objectSynchronization>
-                <enabled>true</enabled>
                 <kind>account</kind>
                 <intent>default</intent>
+                <enabled>true</enabled>
                 <correlation>
                     <q:description>Correlation rule for both internal employees and external accounts.</q:description>
                     <q:equal>
