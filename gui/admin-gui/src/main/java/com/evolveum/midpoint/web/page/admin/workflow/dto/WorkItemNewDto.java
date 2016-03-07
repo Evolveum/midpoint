@@ -42,6 +42,8 @@ public class WorkItemNewDto extends Selectable {
     public static final String F_REQUESTED_BY_FULL_NAME = "requestedByFullName";
     public static final String F_APPROVER_COMMENT = "approverComment";
 
+    public static final String F_WORKFLOW_CONTEXT = "workflowContext";          // use with care
+
     // workItem may or may not contain resolved taskRef;
     // and this task may or may not contain filled-in workflowContext -> and then requesterRef object
     //

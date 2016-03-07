@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.model.delta.DeltaPanel;
+import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalHistoryPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemNewDto;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextArea;
@@ -39,6 +40,7 @@ public class WorkItemPanel extends BasePanel<WorkItemNewDto> {
     private static final String ID_ASSIGNEE = "assignee";
     private static final String ID_CANDIDATES = "candidates";
     private static final String ID_DELTA_TO_BE_APPROVED = "deltaToBeApproved";
+    private static final String ID_HISTORY = "history";
     private static final String ID_APPROVER_COMMENT = "approverComment";
 
     public WorkItemPanel(String id, IModel<WorkItemNewDto> model) {
@@ -53,6 +55,7 @@ public class WorkItemPanel extends BasePanel<WorkItemNewDto> {
         add(new Label(ID_WORK_ITEM_CREATED_ON, new PropertyModel(getModel(), WorkItemNewDto.F_CREATED)));
         add(new Label(ID_ASSIGNEE, new PropertyModel(getModel(), WorkItemNewDto.F_ASSIGNEE)));
         add(new Label(ID_CANDIDATES, new PropertyModel(getModel(), WorkItemNewDto.F_CANDIDATES)));
+        add(new ItemApprovalHistoryPanel(ID_HISTORY, new PropertyModel(getModel(), WorkItemNewDto.F_WORKFLOW_CONTEXT)));
         //add(new DeltaPanel(ID_DELTA_TO_BE_APPROVED, deltaModel));
         add(new TextArea(ID_APPROVER_COMMENT, new PropertyModel(getModel(), WorkItemNewDto.F_APPROVER_COMMENT)));
     }

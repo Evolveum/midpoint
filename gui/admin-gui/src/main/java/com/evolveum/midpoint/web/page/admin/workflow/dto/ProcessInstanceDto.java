@@ -29,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -130,7 +131,7 @@ public class ProcessInstanceDto extends Selectable {
         return processInstanceState.getShadowTaskOid();
     }
 
-    public void reviveIfNeeded(ItemApprovalPanel component) {
+    public void reviveIfNeeded(Component component) {
         WebComponentUtil.reviveIfNeeded(processInstance, component);
         WebComponentUtil.reviveIfNeeded(processInstanceState, component);
     }
