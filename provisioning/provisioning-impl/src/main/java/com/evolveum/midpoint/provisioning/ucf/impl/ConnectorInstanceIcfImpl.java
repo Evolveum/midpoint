@@ -107,6 +107,10 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.DistinguishedNameMatchingRule;
+import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
+import com.evolveum.midpoint.prism.match.UuidMatchingRule;
+import com.evolveum.midpoint.prism.match.XmlMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -219,7 +223,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private Boolean legacySchema = null;
 	private boolean supportsReturnDefaultAttributes = false;
 
-	public ConnectorInstanceIcfImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
+	ConnectorInstanceIcfImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
 			String schemaNamespace, PrismSchema connectorSchema, Protector protector,
 			PrismContext prismContext) {
 		this.cinfo = connectorInfo;
@@ -467,6 +471,27 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// We consider arrays to be multi-valued
 		// ... unless it is byte[] or char[]
 		return type.isArray() && !type.equals(byte[].class) && !type.equals(char[].class);
+	}
+	
+	private QName icfAttributeInfoToMatchingRule(AttributeInfo attributeInfo) {
+		String icfSubtype = attributeInfo.getSubtype();
+		if (icfSubtype == null) {
+			return null;
+		}
+		if (AttributeInfo.Subtypes.STRING_CASE_IGNORE.toString().equals(icfSubtype)) {
+			return StringIgnoreCaseMatchingRule.NAME;
+		}
+		if (AttributeInfo.Subtypes.STRING_LDAP_DN.toString().equals(icfSubtype)) {
+			return DistinguishedNameMatchingRule.NAME;
+		}
+		if (AttributeInfo.Subtypes.STRING_XML.toString().equals(icfSubtype)) {
+			return XmlMatchingRule.NAME;
+		}
+		if (AttributeInfo.Subtypes.STRING_UUID.toString().equals(icfSubtype)) {
+			return UuidMatchingRule.NAME;
+		}
+		LOGGER.debug("Unknown subtype {} defined for attribute {}, ignoring (no matching rule definition)", icfSubtype, attributeInfo.getName());
+		return null;
 	}
 
 	@Override
@@ -748,6 +773,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				ResourceAttributeDefinition attrDef = new ResourceAttributeDefinition(
 						attrXsdName, attrXsdType, prismContext);
 
+				attrDef.setMatchingRuleQName(icfAttributeInfoToMatchingRule(attributeInfo));
 				
 				if (Name.NAME.equals(icfName)) {
 					nameDefinition = attrDef;

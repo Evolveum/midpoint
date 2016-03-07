@@ -72,6 +72,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -186,13 +187,13 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	private Set<ConnectorType> localConnectorTypes = null;
 	
 	@Autowired(required = true)
-	MidpointConfiguration midpointConfiguration;
+	private MidpointConfiguration midpointConfiguration;
 
 	@Autowired(required = true)
-	Protector protector;
+	private Protector protector;
 	
 	@Autowired(required = true)
-	PrismContext prismContext;
+	private PrismContext prismContext;
 
 	public ConnectorFactoryIcfImpl() {
 	}
