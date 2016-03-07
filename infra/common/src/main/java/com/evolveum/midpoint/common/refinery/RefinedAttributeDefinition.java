@@ -360,9 +360,12 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
             }
         }
 
+        rAttrDef.matchingRuleQName = schemaAttrDef.getMatchingRuleQName();
         if (schemaHandlingAttrDefType != null) {
             rAttrDef.fetchStrategy = schemaHandlingAttrDefType.getFetchStrategy();
-            rAttrDef.matchingRuleQName = schemaHandlingAttrDefType.getMatchingRule();
+            if (schemaHandlingAttrDefType.getMatchingRule() != null) {
+            	rAttrDef.matchingRuleQName = schemaHandlingAttrDefType.getMatchingRule();
+            }
         }
 
         PropertyLimitations schemaLimitations = getOrCreateLimitations(rAttrDef.limitationsMap, LayerType.SCHEMA);
