@@ -9,7 +9,7 @@
    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
       <mext:kind>entitlement</mext:kind>
       <mext:intent>roles</mext:intent>
-      <mext:objectclass>ri:CustomAGR_DEFINEObjectClass</mext:objectclass>
+      <mext:objectclass>ri:CustomACTIVITYGROUPObjectClass</mext:objectclass>
    </extension>
    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></ownerRef>
    <executionStatus>runnable</executionStatus>
