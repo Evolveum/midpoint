@@ -781,4 +781,7 @@ public class SimpleTaskAdapter implements Task {
     @Override
     public void initializeWorkflowContextImmediate(String processInstanceId, OperationResult result) throws SchemaException {
     }
+
+    @Override public void addModification(ItemDelta<?, ?> delta) throws SchemaException {
+    }
 }

@@ -406,10 +406,10 @@ public class TaskDto extends Selectable implements InlineMenuable {
         PrismProperty<Boolean> finished = getExtensionProperty(taskType, WfTaskExtensionItemsNames.WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME);
         workflowProcessInstanceFinished = finished != null && Boolean.TRUE.equals(finished.getRealValue());
 
-        PrismProperty<String> lastDetails = getExtensionProperty(taskType, WfTaskExtensionItemsNames.WFLAST_DETAILS_PROPERTY_NAME);
-        if (lastDetails != null) {
-            workflowLastDetails = lastDetails.getRealValue();
-        }
+//        PrismProperty<String> lastDetails = getExtensionProperty(taskType, WfTaskExtensionItemsNames.WFLAST_DETAILS_PROPERTY_NAME);
+//        if (lastDetails != null) {
+//            workflowLastDetails = lastDetails.getRealValue();
+//        }
 
         workflowDeltasIn = retrieveDeltasToProcess(taskType);
         workflowDeltasOut = retrieveResultingDeltas(taskType);

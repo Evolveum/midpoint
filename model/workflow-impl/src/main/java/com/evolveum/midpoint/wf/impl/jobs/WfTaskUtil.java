@@ -18,32 +18,15 @@ package com.evolveum.midpoint.wf.impl.jobs;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -54,9 +37,7 @@ import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.wf.processors.primary.PcpTaskExtensionItemsNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -65,13 +46,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Handles low-level task operations, e.g. handling wf* properties in task extension.
@@ -103,9 +78,6 @@ public class WfTaskUtil {
     public static final String WAIT_FOR_TASKS_HANDLER_URI = "<<< marker for calling pushWaitForTasksHandlerUri >>>";
 
     // workflow-related extension properties
-    private PrismPropertyDefinition wfStatusPropertyDefinition;
-    private PrismPropertyDefinition wfLastDetailsPropertyDefinition;
-    private PrismPropertyDefinition wfLastVariablesPropertyDefinition;
     private PrismPropertyDefinition wfPrimaryChangeAspectPropertyDefinition;
     private PrismPropertyDefinition wfChangeProcessorPropertyDefinition;
     private PrismPropertyDefinition wfProcessIdPropertyDefinition;
@@ -118,9 +90,6 @@ public class WfTaskUtil {
     @PostConstruct
     public void init() {
 
-        wfStatusPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFSTATUS_PROPERTY_NAME);
-        wfLastDetailsPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFLAST_DETAILS_PROPERTY_NAME);
-        wfLastVariablesPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFLAST_VARIABLES_PROPERTY_NAME);
 		wfPrimaryChangeAspectPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(PcpTaskExtensionItemsNames.WFPRIMARY_CHANGE_ASPECT_NAME);
         wfChangeProcessorPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFCHANGE_PROCESSOR_PROPERTY_NAME);
 		wfProcessIdPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFPROCESSID_PROPERTY_NAME);
@@ -130,9 +99,6 @@ public class WfTaskUtil {
         wfRootTaskOidPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFROOT_TASK_OID_PROPERTY_NAME);
         wfApprovedByReferenceDefinition = prismContext.getSchemaRegistry().findReferenceDefinitionByElementName(PcpTaskExtensionItemsNames.WFAPPROVED_BY_REFERENCE_NAME);
 
-        Validate.notNull(wfStatusPropertyDefinition, WfTaskExtensionItemsNames.WFSTATUS_PROPERTY_NAME + " definition was not found");
-        Validate.notNull(wfLastDetailsPropertyDefinition, WfTaskExtensionItemsNames.WFLAST_DETAILS_PROPERTY_NAME + " definition was not found");
-        Validate.notNull(wfLastVariablesPropertyDefinition, WfTaskExtensionItemsNames.WFLAST_VARIABLES_PROPERTY_NAME + " definition was not found");
         Validate.notNull(wfPrimaryChangeAspectPropertyDefinition, PcpTaskExtensionItemsNames.WFPRIMARY_CHANGE_ASPECT_NAME + " definition was not found");
         Validate.notNull(wfChangeProcessorPropertyDefinition, WfTaskExtensionItemsNames.WFCHANGE_PROCESSOR_PROPERTY_NAME + " definition was not found");
         Validate.notNull(wfProcessIdPropertyDefinition, WfTaskExtensionItemsNames.WFPROCESSID_PROPERTY_NAME + " definition was not found");
@@ -142,28 +108,12 @@ public class WfTaskUtil {
         Validate.notNull(wfRootTaskOidPropertyDefinition, WfTaskExtensionItemsNames.WFROOT_TASK_OID_PROPERTY_NAME + " definition was not found");
         Validate.notNull(wfApprovedByReferenceDefinition, PcpTaskExtensionItemsNames.WFAPPROVED_BY_REFERENCE_NAME + " definition was not found");
 
-        if (wfLastVariablesPropertyDefinition.isIndexed() != Boolean.FALSE) {
-            throw new SystemException("lastVariables property isIndexed attribute is incorrect (should be FALSE, it is " + wfLastVariablesPropertyDefinition.isIndexed() + ")");
-        }
-        if (wfLastDetailsPropertyDefinition.isIndexed() != Boolean.FALSE) {
-            throw new SystemException("lastDetails property isIndexed attribute is incorrect (should be FALSE, it is " + wfLastDetailsPropertyDefinition.isIndexed() + ")");
-        }
-
     }
 
 	void setWfProcessIdImmediate(Task task, String pid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 		String oid = task.getOid();
 		Validate.notEmpty(oid, "Task oid must not be null or empty (task must be persistent).");
 		setExtensionPropertyImmediate(task, wfProcessIdPropertyDefinition, pid, parentResult);
-	}
-
-	String getLastVariables(Task task) {
-		PrismProperty<?> p = task.getExtensionProperty(WfTaskExtensionItemsNames.WFLAST_VARIABLES_PROPERTY_NAME);
-		if (p == null) {
-			return null;
-        } else {
-			return p.getValue(String.class).getValue();
-        }
 	}
 
     String getLastDetails(Task task) {
@@ -343,23 +293,6 @@ public class WfTaskUtil {
     }
 
 
-    public void setWfLastVariables(Task task, String value) throws SchemaException {
-        PrismProperty wfLastVariablesProperty = wfLastVariablesPropertyDefinition.instantiate();
-        wfLastVariablesProperty.setValue(new PrismPropertyValue<String>(value));
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("WfLastVariable INDEXED = " + wfLastVariablesProperty.getDefinition().isIndexed());
-        }
-        task.setExtensionProperty(wfLastVariablesProperty);
-
-    }
-
-    public void addWfStatus(Task task, String value) throws SchemaException {
-        PrismProperty wfStatusProperty = wfStatusPropertyDefinition.instantiate();
-        PrismPropertyValue<String> newValue = new PrismPropertyValue<String>(value);
-        wfStatusProperty.addValue(newValue);
-        task.addExtensionProperty(wfStatusProperty);
-    }
-
     private<T> T getExtensionValue(Class<T> clazz, Task task, QName propertyName) {
         PrismProperty<String> property = task.getExtensionProperty(propertyName);
         return property != null ? property.getRealValue(clazz) : null;
@@ -384,13 +317,6 @@ public class WfTaskUtil {
 
     public void deleteModelOperationContext(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
         task.setModelOperationContext(null);
-    }
-
-    public void setLastDetails(Task task, String status) throws SchemaException {
-        PrismProperty wfLastDetailsProperty = wfLastDetailsPropertyDefinition.instantiate();
-        PrismPropertyValue<String> newValue = new PrismPropertyValue<String>(status);
-        wfLastDetailsProperty.setValue(newValue);
-        task.setExtensionProperty(wfLastDetailsProperty);
     }
 
     public void addApprovedBy(Task task, ObjectReferenceType referenceType) throws SchemaException {
@@ -440,18 +366,6 @@ public class WfTaskUtil {
             retval.add(referenceType);
         }
         return retval;
-    }
-
-    public PrismPropertyDefinition getWfStatusPropertyDefinition() {
-        return wfStatusPropertyDefinition;
-    }
-
-    public PrismPropertyDefinition getWfLastDetailsPropertyDefinition() {
-        return wfLastDetailsPropertyDefinition;
-    }
-
-    public PrismPropertyDefinition getWfLastVariablesPropertyDefinition() {
-        return wfLastVariablesPropertyDefinition;
     }
 
     public PrismPropertyDefinition getWfPrimaryChangeAspectPropertyDefinition() {

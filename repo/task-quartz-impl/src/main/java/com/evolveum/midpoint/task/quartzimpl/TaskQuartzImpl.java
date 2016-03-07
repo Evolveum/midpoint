@@ -298,6 +298,12 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
+	public void addModification(ItemDelta<?,?> delta) throws SchemaException {
+		addPendingModification(delta);
+		delta.applyTo(taskPrism);
+	}
+
+	@Override
 	public void savePendingModifications(OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		if (pendingModifications != null) {

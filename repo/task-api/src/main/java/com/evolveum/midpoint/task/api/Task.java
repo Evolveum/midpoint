@@ -934,7 +934,14 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	 */
 	public void refresh(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
-    /**
+	/**
+	 * Changes in-memory representation immediately and schedules a corresponding batched modification.
+	 * @param delta
+	 * @throws SchemaException
+	 */
+	void addModification(ItemDelta<?, ?> delta) throws SchemaException;
+
+	/**
      * Saves modifications done against the in-memory version of the task into the repository.
      */
 	void savePendingModifications(OperationResult parentResult) throws ObjectNotFoundException,

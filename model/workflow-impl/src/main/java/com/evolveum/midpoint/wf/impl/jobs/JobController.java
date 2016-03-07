@@ -22,7 +22,10 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -53,6 +56,8 @@ import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 import org.apache.commons.lang.Validate;
@@ -67,6 +72,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_STATE;
 
 /**
  * Manages everything related to a activiti process instance, including the task that monitors that process instance.
@@ -114,6 +122,9 @@ public class JobController {
 
     @Autowired
     private WorkItemProvider workItemProvider;
+
+    @Autowired
+    private PrismContext prismContext;
     //endregion
 
     //region Job creation & re-creation
@@ -410,20 +421,24 @@ public class JobController {
         LOGGER.trace("recordProcessInstanceState starting.");
         Task task = job.getTask();
         try {
-            task.setDescription(stateDescription);
-            if (event != null) {
-                wfTaskUtil.setWfLastVariables(task, dumpVariables(event));
-            }
-            if (USE_WFSTATUS) {
-                wfTaskUtil.addWfStatus(task, prepareValueForWfStatusProperty(stateDescription));
-            }
-            wfTaskUtil.setLastDetails(task, stateDescription);
+            task.addModification(taskDelta().item(F_WORKFLOW_CONTEXT, F_STATE).replace(stateDescription).asItemDelta());
+//            if (event != null) {
+//                wfTaskUtil.setWfLastVariables(task, dumpVariables(event));
+//            }
+//            if (USE_WFSTATUS) {
+//                wfTaskUtil.addWfStatus(task, prepareValueForWfStatusProperty(stateDescription));
+//            }
+//            wfTaskUtil.setLastDetails(task, stateDescription);
             task.savePendingModifications(parentResult);
         } catch (Exception ex) {            // todo
             LoggingUtils.logException(LOGGER, "Couldn't record information from WfMS into task {}", ex, task);
             parentResult.recordFatalError("Couldn't record information from WfMS into task " + task, ex);
         }
         LOGGER.trace("recordProcessInstanceState ending.");
+    }
+
+    private S_ItemEntry taskDelta() throws SchemaException {
+        return DeltaBuilder.deltaFor(TaskType.class, prismContext);
     }
 
     private String prepareValueForWfStatusProperty(String stateDescription) {

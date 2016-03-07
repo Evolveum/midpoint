@@ -20,21 +20,33 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Date;
+
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.formatDate;
+import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.*;
 
 /**
  * @author mederly
  */
 public class ProcessInstanceDto extends Selectable {
 
-    public static final String F_SHADOW_TASK = "shadowTask";
+	public static final String F_OBJECT_NAME = "objectName";
+	public static final String F_TARGET_NAME = "targetName";
+    public static final String F_SHADOW_TASK = "shadowTask";		// DELETE THIS!
     public static final String F_NAME = "name";
     public static final String F_START_FORMATTED = "startFormatted";
+    public static final String F_END_FORMATTED = "endFormatted";
+    public static final String F_STATE = "state";
+    public static final String F_ANSWER = "answer";
 
     private TaskType task;
 
@@ -48,14 +60,38 @@ public class ProcessInstanceDto extends Selectable {
         return task.getWorkflowContext().getStartTimestamp();
     }
 
+    public XMLGregorianCalendar getEndTimestamp() {
+        return task.getWorkflowContext().getEndTimestamp();
+    }
+
     public String getStartFormatted() {
-        Date started = XmlTypeConverter.toDate(getStartTimestamp());
-        return WebComponentUtil.formatDate(started);
+        Date started = toDate(getStartTimestamp());
+        return formatDate(started);
+    }
+
+    public String getEndFormatted() {
+        return formatDate(toDate(getEndTimestamp()));
     }
 
     public String getName() {
         return PolyString.getOrig(task.getName());
     }
+
+    public String getAnswer() {
+        return task.getWorkflowContext().getAnswer();
+    }
+
+	public String getObjectName() {
+		return WebComponentUtil.getName(task.getWorkflowContext().getObjectRef());
+	}
+
+	public String getTargetName() {
+		return WebComponentUtil.getName(task.getWorkflowContext().getTargetRef());
+	}
+
+	public String getState() {
+		return task.getWorkflowContext().getState();
+	}
 
 //    public List<WorkItemDto> getWorkItems() {
 //        List<WorkItemDto> retval = new ArrayList<WorkItemDto>();

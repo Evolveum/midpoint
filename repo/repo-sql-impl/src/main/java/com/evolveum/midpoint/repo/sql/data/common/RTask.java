@@ -77,7 +77,9 @@ public class RTask extends RObject<TaskType> implements OperationResult {
 
     // workflow-related information (note: objectRef is already present in task information)
     private String wfProcessInstanceId;
-    private REmbeddedReference requesterRef;
+    private REmbeddedReference wfRequesterRef;
+    private REmbeddedReference wfObjectRef;
+    private REmbeddedReference wfTargetRef;
     private XMLGregorianCalendar wfStartTimestamp;
     private XMLGregorianCalendar wfEndTimestamp;
 
@@ -161,8 +163,20 @@ public class RTask extends RObject<TaskType> implements OperationResult {
 
     @JaxbPath(itemPath = { @JaxbName(localPart = "workflowContext"), @JaxbName(localPart = "requesterRef") })
     @Embedded
-    public REmbeddedReference getRequesterRef() {
-        return requesterRef;
+    public REmbeddedReference getWfRequesterRef() {
+        return wfRequesterRef;
+    }
+
+    @JaxbPath(itemPath = { @JaxbName(localPart = "workflowContext"), @JaxbName(localPart = "objectRef") })
+    @Embedded
+    public REmbeddedReference getWfObjectRef() {
+        return wfObjectRef;
+    }
+
+    @JaxbPath(itemPath = { @JaxbName(localPart = "workflowContext"), @JaxbName(localPart = "targetRef") })
+    @Embedded
+    public REmbeddedReference getWfTargetRef() {
+        return wfTargetRef;
     }
 
     @JaxbPath(itemPath = { @JaxbName(localPart = "workflowContext"), @JaxbName(localPart = "startTimestamp") })
@@ -207,8 +221,16 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         this.wfProcessInstanceId = wfProcessInstanceId;
     }
 
-    public void setRequesterRef(REmbeddedReference requesterRef) {
-        this.requesterRef = requesterRef;
+    public void setWfRequesterRef(REmbeddedReference wfRequesterRef) {
+        this.wfRequesterRef = wfRequesterRef;
+    }
+
+    public void setWfObjectRef(REmbeddedReference wfObjectRef) {
+        this.wfObjectRef = wfObjectRef;
+    }
+
+    public void setWfTargetRef(REmbeddedReference wfTargetRef) {
+        this.wfTargetRef = wfTargetRef;
     }
 
     public void setWfStartTimestamp(XMLGregorianCalendar wfStartTimestamp) {
@@ -334,7 +356,9 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         if (waitingReason != null ? !waitingReason.equals(rTask.waitingReason) : rTask.waitingReason != null)
             return false;
         if (status != rTask.status) return false;
-        if (requesterRef != null ? !requesterRef.equals(rTask.requesterRef) : rTask.requesterRef != null) return false;
+        if (wfRequesterRef != null ? !wfRequesterRef.equals(rTask.wfRequesterRef) : rTask.wfRequesterRef != null) return false;
+        if (wfObjectRef != null ? !wfObjectRef.equals(rTask.wfObjectRef) : rTask.wfObjectRef != null) return false;
+        if (wfTargetRef != null ? !wfTargetRef.equals(rTask.wfTargetRef) : rTask.wfTargetRef != null) return false;
         if (wfProcessInstanceId != null ? !wfProcessInstanceId.equals(rTask.wfProcessInstanceId) : rTask.wfProcessInstanceId != null) return false;
         if (wfStartTimestamp != null ? !wfStartTimestamp.equals(rTask.wfStartTimestamp) : rTask.wfStartTimestamp != null) return false;
         if (wfEndTimestamp != null ? !wfEndTimestamp.equals(rTask.wfEndTimestamp) : rTask.wfEndTimestamp != null) return false;
@@ -394,7 +418,9 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         WfContextType wfc = jaxb.getWorkflowContext();
         if (wfc != null) {
             repo.setWfProcessInstanceId(wfc.getProcessInstanceId());
-            repo.setRequesterRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getRequesterRef(), prismContext));
+            repo.setWfRequesterRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getRequesterRef(), prismContext));
+            repo.setWfObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getObjectRef(), prismContext));
+            repo.setWfTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getTargetRef(), prismContext));
             repo.setWfStartTimestamp(wfc.getStartTimestamp());
             repo.setWfEndTimestamp(wfc.getEndTimestamp());
         }

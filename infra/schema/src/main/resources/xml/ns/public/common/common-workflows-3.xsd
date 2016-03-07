@@ -742,6 +742,21 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="objectRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object whose modification is to be approved. (Normally the same as task.objectRef but there can be differences
+                        in cases when the object is only to be created.) TODO - think this through.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Target of assignment/association/etc that is to be approved.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="state" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>

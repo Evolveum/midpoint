@@ -46,9 +46,6 @@ public class WfTaskExtensionItemsNames {
     // turned off in WfTaskUtil class.
     public static final QName WFSTATUS_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "status");
 
-    // A dump of recent process instance variables (for diagnostic purposes).
-    public static final QName WFLAST_VARIABLES_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "lastVariables");
-
     // String representation of recent process instance information (for diagnostic purposes).
     public static final QName WFLAST_DETAILS_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "lastDetails");
 

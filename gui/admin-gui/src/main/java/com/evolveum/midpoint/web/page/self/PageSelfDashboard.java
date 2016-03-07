@@ -22,13 +22,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -46,10 +43,12 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemNewDto;
 import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.page.self.component.LinksPanel;
-import com.evolveum.midpoint.web.page.self.component.MyRequestsPanel;
+import com.evolveum.midpoint.web.page.admin.workflow.WorkflowRequestsPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -61,10 +60,8 @@ import org.springframework.security.core.Authentication;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OBJECT_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESS_INSTANCE_ID;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType.F_WORK_ITEM_CREATED_TIMESTAMP;
 
 /**
@@ -174,14 +171,15 @@ public class PageSelfDashboard extends PageSelf {
 
                             @Override
                             public CallableResult<List<ProcessInstanceDto>> callWithContextPrepared() throws Exception {
-                                return loadMyRequests();
+                                return loadMyRequests(prismContext);
                             }
                         };
                     }
 
                     @Override
                     protected Component getMainComponent(String markupId) {
-                        return new MyRequestsPanel(markupId, new PropertyModel<List<ProcessInstanceDto>>(getModel(), CallableResult.F_VALUE));
+						ISortableDataProvider provider = new ListDataProvider(this, new PropertyModel<List<ProcessInstanceDto>>(getModel(), CallableResult.F_VALUE));
+                        return new WorkflowRequestsPanel(markupId, provider, null, 10);
                     }
                 };
 
@@ -237,7 +235,7 @@ public class PageSelfDashboard extends PageSelf {
         return callableResult;
     }
 
-    private CallableResult<List<ProcessInstanceDto>> loadMyRequests() {
+    private CallableResult<List<ProcessInstanceDto>> loadMyRequests(PrismContext prismContext) {
 
         LOGGER.debug("Loading requests.");
 
@@ -259,9 +257,10 @@ public class PageSelfDashboard extends PageSelf {
         callableResult.setResult(result);
 
         try {
-            ObjectQuery query = QueryBuilder.queryFor(TaskType.class, getPrismContext())
+            ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
                     .item(F_WORKFLOW_CONTEXT, F_REQUESTER_REF).ref(user.getOid())
                     .and().not().item(F_WORKFLOW_CONTEXT, F_PROCESS_INSTANCE_ID).isNull()
+					.desc(F_WORKFLOW_CONTEXT, F_START_TIMESTAMP)
                     .build();
 
             List<PrismObject<TaskType>> tasks = getModelService().searchObjects(TaskType.class, query, null, opTask, result);

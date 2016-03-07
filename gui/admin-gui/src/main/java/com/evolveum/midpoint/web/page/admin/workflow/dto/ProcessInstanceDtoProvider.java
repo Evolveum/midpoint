@@ -46,6 +46,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OB
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESS_INSTANCE_ID;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_START_TIMESTAMP;
 
 /**
  * @author lazyman
@@ -64,8 +65,7 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
      * - false = we are interested in process instances REQUESTED FOR a user (e.g. the user is to be granted a role)
      */
 
-    boolean requestedBy;
-    private boolean finished;
+    private boolean requestedBy;
     private boolean requestedFor;
 
     public static String currentUser() {
@@ -77,12 +77,10 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
         return principal.getOid();
     }
 
-    public ProcessInstanceDtoProvider(Component component, boolean requestedBy, boolean requestedFor, boolean finished) {
+    public ProcessInstanceDtoProvider(Component component, boolean requestedBy, boolean requestedFor) {
         super(component);
-        LOGGER.trace("requestedBy = " + requestedBy + ", requestedFor = " + requestedFor + ", finished = " + finished);
         this.requestedBy = requestedBy;
         this.requestedFor = requestedFor;
-        this.finished = finished;
     }
 
     @Override
@@ -141,6 +139,7 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
         }
         return q
                 .not().item(F_WORKFLOW_CONTEXT, F_PROCESS_INSTANCE_ID).isNull()
+                .desc(F_WORKFLOW_CONTEXT, F_START_TIMESTAMP)
                 .build();
     }
 
