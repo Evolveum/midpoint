@@ -24,14 +24,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wf.processes.EmptyProcessDetailsPanel;
-import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalPanel;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceNewDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ItemApprovalProcessState;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -43,13 +41,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ProcessInstancePanel extends BasePanel<ProcessInstanceDto> {
+public class ProcessInstancePanel extends BasePanel<ProcessInstanceNewDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProcessInstancePanel.class);
 
     private static final String ID_DETAILS = "details";
     private static final String ID_TASK = "task";
     private static final String ID_TASK_COMMENT = "taskComment";
+    public static final String ID_NAME = "name";
+    public static final String ID_PID = "pid";
+    public static final String ID_STARTED = "started";
+    public static final String ID_FINISHED = "finished";
 
     private static Map<Class<? extends ProcessSpecificState>,Class<? extends Panel>> panelsForProcesses = null;
 
@@ -62,28 +64,28 @@ public class ProcessInstancePanel extends BasePanel<ProcessInstanceDto> {
 
     // TODO it would be nicer if individual panels could register themselves
     static {
-        registerProcessInstancePanel(ItemApprovalProcessState.class, ItemApprovalPanel.class);
+//        registerProcessInstancePanel(ItemApprovalProcessState.class, ItemApprovalPanel.class);
         registerProcessInstancePanel(ProcessSpecificState.class, EmptyProcessDetailsPanel.class);
     }
 
-    public ProcessInstancePanel(String id, IModel<ProcessInstanceDto> model) {
+    public ProcessInstancePanel(String id, IModel<ProcessInstanceNewDto> model) {
         super(id, model);
         initLayoutLocal();
     }
 
     private void initLayoutLocal() {
-        final IModel<ProcessInstanceDto> model = getModel();
+        final IModel<ProcessInstanceNewDto> model = getModel();
 
-        Label name = new Label("name", new PropertyModel(model, "name"));
+        Label name = new Label(ID_NAME, new PropertyModel(model, "name"));
         add(name);
 
-        Label pid = new Label("pid", new PropertyModel(model, "instanceId"));
+        Label pid = new Label(ID_PID, new PropertyModel(model, "instanceId"));
         add(pid);
 
-        Label started = new Label("started", new PropertyModel(model, "startedTime"));
+        Label started = new Label(ID_STARTED, new PropertyModel(model, "startedTime"));
         add(started);
 
-        Label finished = new Label("finished", new PropertyModel(model, "finishedTime"));
+        Label finished = new Label(ID_FINISHED, new PropertyModel(model, "finishedTime"));
         add(finished);
 
         // todo disable clicking behaviour if task does not exist
@@ -126,7 +128,7 @@ public class ProcessInstancePanel extends BasePanel<ProcessInstanceDto> {
     }
 
     private Class<? extends Panel> getDetailsPanelClassName() {
-        ProcessInstanceDto processInstanceDto = getModel().getObject();
+        ProcessInstanceNewDto processInstanceDto = getModel().getObject();
         ProcessSpecificState processSpecificState = ((ProcessInstanceState) processInstanceDto.getProcessInstance().getState()).getProcessSpecificState();
         if (processSpecificState != null) {
             Class<? extends ProcessSpecificState> dataClass = processSpecificState.getClass();

@@ -15,33 +15,6 @@ import java.util.List;
  */
 public interface WorkflowService {
 
-    /*
-     * Process instances
-     * =================
-     */
-
-    int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult);
-
-    List<WfProcessInstanceType> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult);
-
-    /**
-     * Returns information about a process instance. WorkItems attribute is filled-in only upon request! (see getWorkItems parameter)
-     *
-     * @param instanceId
-     * @param historic
-     * @param getWorkItems
-     * @param parentResult
-     * @return
-     * @throws ObjectNotFoundException
-     * @throws WorkflowException
-     */
-    public WfProcessInstanceType getProcessInstanceById(String instanceId, boolean historic, boolean getWorkItems, OperationResult parentResult) throws ObjectNotFoundException;
-
-    /*
-     * CHANGING THINGS
-     * ===============
-     */
-
     /**
      * Approves or rejects a work item (without supplying any further information).
      *  @param taskId identifier of activiti task backing the work item

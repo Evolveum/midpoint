@@ -145,11 +145,6 @@ public class WorkflowManagerImpl implements WorkflowManager {
     }
 
     @Override
-    public WfProcessInstanceType getProcessInstanceById(String instanceId, boolean historic, boolean getWorkItems, OperationResult parentResult) throws ObjectNotFoundException {
-        return processInstanceProvider.getProcessInstanceByInstanceId(instanceId, historic, getWorkItems, parentResult);
-    }
-
-    @Override
     public void stopProcessInstance(String instanceId, String username, OperationResult parentResult) {
         processInstanceManager.stopProcessInstance(instanceId, username, parentResult);
     }

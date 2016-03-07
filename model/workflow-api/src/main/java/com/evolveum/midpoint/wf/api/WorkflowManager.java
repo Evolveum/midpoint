@@ -60,19 +60,6 @@ public interface WorkflowManager {
 
     List<WfProcessInstanceType> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult);
 
-    /**
-     * Returns information about a process instance. WorkItems attribute is filled-in only upon request! (see getWorkItems parameter)
-     *
-     * @param instanceId
-     * @param historic
-     * @param getWorkItems
-     * @param parentResult
-     * @return
-     * @throws ObjectNotFoundException
-     * @throws WorkflowException
-     */
-    public WfProcessInstanceType getProcessInstanceById(String instanceId, boolean historic, boolean getWorkItems, OperationResult parentResult) throws ObjectNotFoundException;
-
     /*
      * CHANGING THINGS
      * ===============

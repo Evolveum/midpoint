@@ -12,6 +12,7 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceState;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
@@ -58,7 +59,7 @@ public class MyRequestsPanel extends SimplePanel<List<ProcessInstanceDto>> {
                 @Override
                 public void onClick(AjaxRequestTarget target, IModel<ProcessInstanceDto> rowModel) {
                     ProcessInstanceDto piDto = rowModel.getObject();
-                    itemDetailsPerformed(target, false, piDto.getProcessInstance().getProcessInstanceId());
+                    itemDetailsPerformed(target, piDto.getTaskOid());
                 }
             });
         } else {
@@ -77,105 +78,104 @@ public class MyRequestsPanel extends SimplePanel<List<ProcessInstanceDto>> {
                 }
             });
         }
-        columns.add(new IconColumn<ProcessInstanceDto>(createStringResource("pageProcessInstances.item.result")) {
-
-            @Override
-            protected IModel<String> createIconModel(final IModel<ProcessInstanceDto> rowModel) {
-                return new AbstractReadOnlyModel<String>() {
-
-                    @Override
-                    public String getObject() {
-                        ProcessInstanceDto dto = rowModel.getObject();
-                        Boolean result = ApprovalUtils.approvalBooleanValue(dto.getAnswer());
-                        if (result == null) {
-                            return OperationResultStatusIcon
-                                    .parseOperationalResultStatus(OperationResultStatusType.IN_PROGRESS).getIcon();
-                        } else {
-                            return result ?
-                                    OperationResultStatusIcon
-                                            .parseOperationalResultStatus(OperationResultStatusType.SUCCESS).getIcon()
-                                    : OperationResultStatusIcon
-                                    .parseOperationalResultStatus(OperationResultStatusType.FATAL_ERROR).getIcon();
-                        }
-                    }
-                };
-            }
-
-            @Override
-            protected IModel<String> createTitleModel(final IModel<ProcessInstanceDto> rowModel) {
-                return new AbstractReadOnlyModel<String>() {
-
-                    @Override
-                    public String getObject() {
-                        ProcessInstanceDto dto = rowModel.getObject();
-                        Boolean result = ApprovalUtils.approvalBooleanValue(dto.getAnswer());
-                        if (result == null) {
-                            return MyRequestsPanel.this.getString(OperationResultStatus.class.getSimpleName() + "." +
-                                    OperationResultStatus.IN_PROGRESS);
-                        } else {
-                            return result ?
-                                    createStringResource("MyRequestsPanel.approved").getString()
-                                    : createStringResource("MyRequestsPanel.rejected").getString();
-                        }
-
-                    }
-                };
-            }
-
-        });
-
-        columns.add(new AbstractColumn<ProcessInstanceDto, String>(createStringResource("MyRequestsPanel.started")) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<ProcessInstanceDto>> item, String componentId,
-                                     final IModel<ProcessInstanceDto> rowModel) {
-                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
-
-                    @Override
-                    public Object getObject() {
-                        ProcessInstanceDto pi = rowModel.getObject();
-                        Date started = XmlTypeConverter.toDate(pi.getProcessInstance().getStartTimestamp());
-                        if (started == null) {
-                            return "?";
-                        } else {
-                            // todo i18n
-                            return DurationFormatUtils.formatDurationWords(System.currentTimeMillis() - started.getTime(), true, true) + " ago";
-                        }
-                    }
-                }));
-            }
-        });
-
-        columns.add(new AbstractColumn<ProcessInstanceDto, String>(createStringResource("pageProcessInstances.item.finished")) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<ProcessInstanceDto>> item, String componentId,
-                                     final IModel<ProcessInstanceDto> rowModel) {
-                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
-
-                    @Override
-                    public Object getObject() {
-                        ProcessInstanceDto pi = rowModel.getObject();
-                        Date finished = XmlTypeConverter.toDate(pi.getProcessInstance().getEndTimestamp());
-                        if (finished == null) {
-                            return getString("pageProcessInstances.notYet");
-                        } else {
-                            return WebComponentUtil.formatDate(finished);
-                        }
-                    }
-                }));
-            }
-        });
+//        columns.add(new IconColumn<ProcessInstanceDto>(createStringResource("pageProcessInstances.item.result")) {
+//
+//            @Override
+//            protected IModel<String> createIconModel(final IModel<ProcessInstanceDto> rowModel) {
+//                return new AbstractReadOnlyModel<String>() {
+//
+//                    @Override
+//                    public String getObject() {
+//                        ProcessInstanceDto dto = rowModel.getObject();
+//                        Boolean result = ApprovalUtils.approvalBooleanValue(dto.getAnswer());
+//                        if (result == null) {
+//                            return OperationResultStatusIcon
+//                                    .parseOperationalResultStatus(OperationResultStatusType.IN_PROGRESS).getIcon();
+//                        } else {
+//                            return result ?
+//                                    OperationResultStatusIcon
+//                                            .parseOperationalResultStatus(OperationResultStatusType.SUCCESS).getIcon()
+//                                    : OperationResultStatusIcon
+//                                    .parseOperationalResultStatus(OperationResultStatusType.FATAL_ERROR).getIcon();
+//                        }
+//                    }
+//                };
+//            }
+//
+//            @Override
+//            protected IModel<String> createTitleModel(final IModel<ProcessInstanceDto> rowModel) {
+//                return new AbstractReadOnlyModel<String>() {
+//
+//                    @Override
+//                    public String getObject() {
+//                        ProcessInstanceDto dto = rowModel.getObject();
+//                        Boolean result = ApprovalUtils.approvalBooleanValue(dto.getAnswer());
+//                        if (result == null) {
+//                            return MyRequestsPanel.this.getString(OperationResultStatus.class.getSimpleName() + "." +
+//                                    OperationResultStatus.IN_PROGRESS);
+//                        } else {
+//                            return result ?
+//                                    createStringResource("MyRequestsPanel.approved").getString()
+//                                    : createStringResource("MyRequestsPanel.rejected").getString();
+//                        }
+//
+//                    }
+//                };
+//            }
+//
+//        });
+//
+//        columns.add(new AbstractColumn<ProcessInstanceDto, String>(createStringResource("MyRequestsPanel.started")) {
+//
+//            @Override
+//            public void populateItem(Item<ICellPopulator<ProcessInstanceDto>> item, String componentId,
+//                                     final IModel<ProcessInstanceDto> rowModel) {
+//                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+//
+//                    @Override
+//                    public Object getObject() {
+//                        ProcessInstanceDto pi = rowModel.getObject();
+//                        Date started = XmlTypeConverter.toDate(pi.getProcessInstance().getStartTimestamp());
+//                        if (started == null) {
+//                            return "?";
+//                        } else {
+//                            // todo i18n
+//                            return DurationFormatUtils.formatDurationWords(System.currentTimeMillis() - started.getTime(), true, true) + " ago";
+//                        }
+//                    }
+//                }));
+//            }
+//        });
+//
+//        columns.add(new AbstractColumn<ProcessInstanceDto, String>(createStringResource("pageProcessInstances.item.finished")) {
+//
+//            @Override
+//            public void populateItem(Item<ICellPopulator<ProcessInstanceDto>> item, String componentId,
+//                                     final IModel<ProcessInstanceDto> rowModel) {
+//                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+//
+//                    @Override
+//                    public Object getObject() {
+//                        ProcessInstanceDto pi = rowModel.getObject();
+//                        Date finished = XmlTypeConverter.toDate(pi.getProcessInstance().getEndTimestamp());
+//                        if (finished == null) {
+//                            return getString("pageProcessInstances.notYet");
+//                        } else {
+//                            return WebComponentUtil.formatDate(finished);
+//                        }
+//                    }
+//                }));
+//            }
+//        });
 
         ISortableDataProvider provider = new ListDataProvider(this, getModel());
         TablePanel accountsTable = new TablePanel<ProcessInstanceDto>(ID_REQUESTS_TABLE, provider, columns);
         add(accountsTable);
     }
 
-    private void itemDetailsPerformed(AjaxRequestTarget target, boolean finished, String pid) {
+    private void itemDetailsPerformed(AjaxRequestTarget target, String pid) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, pid);
-        parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_FINISHED, finished);
-        setResponsePage(new PageProcessInstance(parameters, this.getPageBase()));
+        setResponsePage(new PageTaskEdit(parameters, this.getPageBase()));
     }
 }

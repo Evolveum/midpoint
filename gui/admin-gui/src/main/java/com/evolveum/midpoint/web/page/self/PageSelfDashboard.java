@@ -22,11 +22,13 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -46,10 +48,7 @@ import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.page.self.component.LinksPanel;
 import com.evolveum.midpoint.web.page.self.component.MyRequestsPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -62,6 +61,10 @@ import org.springframework.security.core.Authentication;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OBJECT_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESS_INSTANCE_ID;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType.F_WORK_ITEM_CREATED_TIMESTAMP;
 
 /**
@@ -251,31 +254,19 @@ public class PageSelfDashboard extends PageSelf {
             return callableResult;
         }
 
-        OperationResult result = new OperationResult(OPERATION_LOAD_REQUESTS);
+        Task opTask = createSimpleTask(OPERATION_LOAD_REQUESTS);
+        OperationResult result = opTask.getResult();
         callableResult.setResult(result);
 
         try {
-            List<WfProcessInstanceType> processInstanceTypes = getWorkflowService().listProcessInstancesRelatedToUser(user.getOid(),
-             true, false, false, 0, MAX_REQUESTS, result);
-            List<WfProcessInstanceType> processInstanceTypesFinished = getWorkflowService().listProcessInstancesRelatedToUser(user.getOid(),
-             true, false, true, 0, MAX_REQUESTS, result);
-            if (processInstanceTypes != null && processInstanceTypesFinished != null){
-                processInstanceTypes.addAll(processInstanceTypesFinished);
-            }
-            for (WfProcessInstanceType processInstanceType : processInstanceTypes) {
-                ProcessInstanceState processInstanceState = (ProcessInstanceState) processInstanceType.getState();
-                Task shadowTask = null;
-                if (processInstanceState != null) {
-                    String shadowTaskOid = processInstanceState.getShadowTaskOid();
-                    try {
-                        shadowTask = getTaskManager().getTask(shadowTaskOid, result);
-                    } catch (ObjectNotFoundException e) {
-                        // task is already deleted, no problem here
-                        result.muteLastSubresultError();
-                    }
-                }
+            ObjectQuery query = QueryBuilder.queryFor(TaskType.class, getPrismContext())
+                    .item(F_WORKFLOW_CONTEXT, F_REQUESTER_REF).ref(user.getOid())
+                    .and().not().item(F_WORKFLOW_CONTEXT, F_PROCESS_INSTANCE_ID).isNull()
+                    .build();
 
-                list.add(new ProcessInstanceDto(processInstanceType, shadowTask));
+            List<PrismObject<TaskType>> tasks = getModelService().searchObjects(TaskType.class, query, null, opTask, result);
+            for (PrismObject<TaskType> task : tasks) {
+                list.add(new ProcessInstanceDto(task.asObjectable()));
             }
         } catch (Exception e) {
             result.recordFatalError("Couldn't get list of work items.", e);
@@ -288,6 +279,7 @@ public class PageSelfDashboard extends PageSelf {
 
         return callableResult;
     }
+
 
     private PrismObject<UserType> loadUser() {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();

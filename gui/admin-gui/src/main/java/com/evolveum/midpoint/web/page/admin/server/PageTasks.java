@@ -613,7 +613,6 @@ public class PageTasks extends PageAdminTasks {
                     if (task.getWorkflowProcessInstanceId() != null) {
                         PageParameters parameters = new PageParameters();
                         parameters.add(OnePageParameterEncoder.PARAMETER, task.getWorkflowProcessInstanceId());
-                        parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_FINISHED, task.isWorkflowProcessInstanceFinished());
                         component.setResponsePage(new PageProcessInstance(parameters, (PageBase) component.getPage()));
                     }
                 }

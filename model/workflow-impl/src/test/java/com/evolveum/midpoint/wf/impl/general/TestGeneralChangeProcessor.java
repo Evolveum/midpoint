@@ -231,7 +231,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
                 PrismObject<? extends QuestionFormType> questionFormPrism = workItemContents.asObjectable().getQuestionForm().asPrismObject();
 
-                WfProcessInstanceType instance = workflowServiceImpl.getProcessInstanceById(workItem.getProcessInstanceId(), false, true, result);
+                WfProcessInstanceType instance = null; //workflowServiceImpl.getProcessInstanceById(workItem.getProcessInstanceId(), false, true, result);
                 PrismProperty<ObjectDeltaType> dummyResourceDelta = ((ProcessInstanceState) instance.getState()).getProcessSpecificState().asPrismContainerValue().findProperty(ApprovingDummyResourceChangesScenarioBean.DUMMY_RESOURCE_DELTA_QNAME);
                 ObjectDeltaType deltaType = dummyResourceDelta.getRealValue();
                 display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
@@ -331,7 +331,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
                 PrismObject<? extends QuestionFormType> questionFormPrism = workItemContents.asObjectable().getQuestionForm().asPrismObject();
 
-                WfProcessInstanceType instance = workflowServiceImpl.getProcessInstanceById(workItem.getProcessInstanceId(), false, true, result);
+                WfProcessInstanceType instance = null; //workflowServiceImpl.getProcessInstanceById(workItem.getProcessInstanceId(), false, true, result);
                 PrismProperty<ObjectDeltaType> dummyResourceDelta = ((ProcessInstanceState) instance.getState()).getProcessSpecificState().asPrismContainerValue().findProperty(ApprovingDummyResourceChangesScenarioBean.DUMMY_RESOURCE_DELTA_QNAME);
                 ObjectDeltaType deltaType = dummyResourceDelta.getRealValue();
                 display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
@@ -433,7 +433,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             String pid = wfTaskUtil.getProcessId(subtask);
             assertNotNull("Workflow process instance id not present in subtask " + subtask, pid);
 
-            WfProcessInstanceType processInstance = workflowServiceImpl.getProcessInstanceById(pid, false, true, result);
+            WfProcessInstanceType processInstance = null; //workflowServiceImpl.getProcessInstanceById(pid, false, true, result);
             assertNotNull("Process instance information cannot be retrieved", processInstance);
             assertEquals("Incorrect number of work items", 1, processInstance.getWorkItems().size());
 

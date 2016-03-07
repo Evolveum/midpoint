@@ -427,22 +427,22 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
                 String pid = wfTaskUtil.getProcessId(subtask);
                 assertNotNull("Workflow process instance id not present in subtask " + subtask, pid);
 
-                WfProcessInstanceType processInstance = workflowServiceImpl.getProcessInstanceById(pid, false, true, result);
-                assertNotNull("Process instance information cannot be retrieved", processInstance);
-                assertEquals("Incorrect number of work items", 1, processInstance.getWorkItems().size());
+//                WfProcessInstanceType processInstance = workflowServiceImpl.getProcessInstanceById(pid, false, true, result);
+//                assertNotNull("Process instance information cannot be retrieved", processInstance);
+//                assertEquals("Incorrect number of work items", 1, processInstance.getWorkItems().size());
 
-                String taskId = processInstance.getWorkItems().get(0).getWorkItemId();
+                //String taskId = processInstance.getWorkItems().get(0).getWorkItemId();
                 //WorkItemDetailed workItemDetailed = wfDataAccessor.getWorkItemDetailsById(taskId, result);
 
-                org.activiti.engine.task.Task t = activitiEngine.getTaskService().createTaskQuery().taskId(taskId).singleResult();
+                org.activiti.engine.task.Task t = activitiEngine.getTaskService().createTaskQuery().processInstanceId(pid).singleResult();
                 assertNotNull("activiti task not found", t);
 
                 String executionId = t.getExecutionId();
-                LOGGER.trace("Task id = " + taskId + ", execution id = " + executionId);
+                LOGGER.trace("Execution id = {}", executionId);
 
                 boolean approve = testDetails.decideOnApproval(executionId);
 
-                workflowServiceImpl.approveOrRejectWorkItem(taskId, approve, null, result);
+                workflowServiceImpl.approveOrRejectWorkItem(t.getId(), approve, null, result);
                 login(userAdministrator);
             }
         }

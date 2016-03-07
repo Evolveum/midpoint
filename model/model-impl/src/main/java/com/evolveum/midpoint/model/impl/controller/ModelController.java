@@ -1809,21 +1809,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     //region Workflow-related operations
     @Override
-    public int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult) {
-        return getWorkflowManagerChecked().countProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished, parentResult);
-    }
-
-    @Override
-    public List<WfProcessInstanceType> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult) {
-        return getWorkflowManagerChecked().listProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished, first, count, parentResult);
-    }
-
-    @Override
-    public WfProcessInstanceType getProcessInstanceById(String instanceId, boolean historic, boolean getWorkItems, OperationResult parentResult) throws ObjectNotFoundException {
-        return getWorkflowManagerChecked().getProcessInstanceById(instanceId, historic, getWorkItems, parentResult);
-    }
-
-    @Override
     public void approveOrRejectWorkItem(String workItemId, boolean decision, String comment, OperationResult parentResult) {
         getWorkflowManagerChecked().approveOrRejectWorkItem(workItemId, decision, comment, parentResult);
     }

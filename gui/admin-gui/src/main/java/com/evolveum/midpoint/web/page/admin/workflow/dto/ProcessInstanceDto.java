@@ -19,20 +19,13 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalPanel;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Date;
 
 /**
  * @author mederly
@@ -40,99 +33,74 @@ import java.util.List;
 public class ProcessInstanceDto extends Selectable {
 
     public static final String F_SHADOW_TASK = "shadowTask";
-    public static final String F_SHADOW_TASK_EXISTING = "shadowTaskExisting";
+    public static final String F_NAME = "name";
+    public static final String F_START_FORMATTED = "startFormatted";
 
-    WfProcessInstanceType processInstance;
-    ProcessInstanceState processInstanceState;
+    private TaskType task;
 
-    private String shadowTaskName;
-    private boolean shadowTaskExisting;
-
-    public ProcessInstanceDto(WfProcessInstanceType processInstance, Task shadowTask) {
-        Validate.notNull(processInstance);
-        this.processInstance = processInstance;
-        this.processInstanceState = (ProcessInstanceState) processInstance.getState();
-        if (shadowTask != null) {
-            shadowTaskName = PolyString.getOrig(shadowTask.getName());
-            shadowTaskExisting = true;
-        } else {
-            shadowTaskExisting = false;
-        }
+    public ProcessInstanceDto(TaskType task) {
+        Validate.notNull(task, "Task is null");
+        Validate.notNull(task.getWorkflowContext(), "Task has no workflow context");
+        this.task = task;
     }
 
-    public String getStartedTime() {
-        return processInstance.getStartTimestamp() == null ? "-" : WebComponentUtil.formatDate(XmlTypeConverter.toDate(processInstance.getStartTimestamp()));
+    public XMLGregorianCalendar getStartTimestamp() {
+        return task.getWorkflowContext().getStartTimestamp();
     }
 
-    public String getFinishedTime() {
-        return processInstance.getEndTimestamp() == null ? "-" : WebComponentUtil.formatDate(XmlTypeConverter.toDate(processInstance.getEndTimestamp()));
+    public String getStartFormatted() {
+        Date started = XmlTypeConverter.toDate(getStartTimestamp());
+        return WebComponentUtil.formatDate(started);
     }
 
     public String getName() {
-        return PolyString.getOrig(processInstance.getName());
+        return PolyString.getOrig(task.getName());
     }
 
-    public String getInstanceId() {
-        return processInstance.getProcessInstanceId();
-    }
+//    public List<WorkItemDto> getWorkItems() {
+//        List<WorkItemDto> retval = new ArrayList<WorkItemDto>();
+//        if (processInstance.getWorkItems() != null) {
+//            for (WorkItemType workItem : processInstance.getWorkItems()) {
+//                retval.add(new WorkItemDto(workItem));
+//            }
+//        }
+//        return retval;
+//    }
 
-    public WfProcessInstanceType getProcessInstance() {
-        return processInstance;
-    }
+//    public String getAnswer() {
+//        if (processInstanceState == null) {
+//            return null;
+//        }
+//        return processInstanceState.getAnswer();
+//    }
 
-    public List<WorkItemDto> getWorkItems() {
-        List<WorkItemDto> retval = new ArrayList<WorkItemDto>();
-        if (processInstance.getWorkItems() != null) {
-            for (WorkItemType workItem : processInstance.getWorkItems()) {
-                retval.add(new WorkItemDto(workItem));
-            }
-        }
-        return retval;
-    }
-
-    public String getAnswer() {
-        if (processInstanceState == null) {
-            return null;
-        }
-        return processInstanceState.getAnswer();
-    }
-
-    public boolean isAnswered() {
-        return getAnswer() != null;
-    }
+//    public boolean isAnswered() {
+//        return getAnswer() != null;
+//    }
 
     // null if not answered or answer is not true/false
-    public Boolean getAnswerAsBoolean() {
-        return ApprovalUtils.approvalBooleanValue(getAnswer());
-    }
+//    public Boolean getAnswerAsBoolean() {
+//        return ApprovalUtils.approvalBooleanValue(getAnswer());
+//    }
 
-    public boolean isFinished() {
-        return processInstance.isFinished();
-    }
+//    public boolean isFinished() {
+//        return processInstance.isFinished();
+//    }
 
-    public boolean isShadowTaskExisting() {
-        return shadowTaskExisting;
-    }
+//    public ProcessInstanceState getInstanceState() {
+//        return (ProcessInstanceState) processInstance.getState();
+//    }
 
-    public String getShadowTask() {
-        String oid = processInstanceState.getShadowTaskOid();
-        if (shadowTaskName != null) {
-            return shadowTaskName + " (" + oid + ")";
-        } else {
-            return oid;
-        }
-    }
-
-    public ProcessInstanceState getInstanceState() {
-        return (ProcessInstanceState) processInstance.getState();
-    }
-
-    public String getShadowTaskOid() {
-        return processInstanceState.getShadowTaskOid();
-    }
+//    public String getShadowTaskOid() {
+//        return processInstanceState.getShadowTaskOid();
+//    }
 
     public void reviveIfNeeded(Component component) {
-        WebComponentUtil.reviveIfNeeded(processInstance, component);
-        WebComponentUtil.reviveIfNeeded(processInstanceState, component);
+//        WebComponentUtil.reviveIfNeeded(processInstance, component);
+//        WebComponentUtil.reviveIfNeeded(processInstanceState, component);
+    }
+
+    public String getTaskOid() {
+        return task.getOid();
     }
 }
