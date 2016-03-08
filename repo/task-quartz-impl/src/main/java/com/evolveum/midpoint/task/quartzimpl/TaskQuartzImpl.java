@@ -304,6 +304,13 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
+	public void addModificationImmediate(ItemDelta<?, ?> delta, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+		addPendingModification(delta);
+		delta.applyTo(taskPrism);
+		savePendingModifications(parentResult);
+	}
+
+	@Override
 	public void savePendingModifications(OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		if (pendingModifications != null) {
@@ -2023,6 +2030,11 @@ public class TaskQuartzImpl implements Task {
 					.item(F_WORKFLOW_CONTEXT).replace()
 					.asItemDelta();
 		}
+	}
+
+	@Override
+	public WfContextType getWorkflowContext() {
+		return taskPrism.asObjectable().getWorkflowContext();
 	}
 
 	@Override

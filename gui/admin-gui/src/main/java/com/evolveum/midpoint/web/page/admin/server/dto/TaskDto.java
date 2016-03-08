@@ -394,17 +394,17 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     private void fillInWorkflowAttributes(TaskType taskType) throws SchemaException {
-        // todo do this through WfTaskUtil
-        PrismProperty<String> wfProcessInstanceId = getExtensionProperty(taskType, WfTaskExtensionItemsNames.WFPROCESSID_PROPERTY_NAME);
-        if (wfProcessInstanceId != null) {
+        workflowProcessInstanceId =
+                taskType.getWorkflowContext() != null ? taskType.getWorkflowContext().getProcessInstanceId() : null;
+        if (workflowProcessInstanceId != null) {
             workflowShadowTask = true;
-            workflowProcessInstanceId = wfProcessInstanceId.getRealValue();
         } else {
             workflowShadowTask = false;
         }
 
-        PrismProperty<Boolean> finished = getExtensionProperty(taskType, WfTaskExtensionItemsNames.WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME);
-        workflowProcessInstanceFinished = finished != null && Boolean.TRUE.equals(finished.getRealValue());
+        workflowProcessInstanceFinished =
+                taskType.getWorkflowContext() != null ?
+                        taskType.getWorkflowContext().getEndTimestamp() != null : false;
 
 //        PrismProperty<String> lastDetails = getExtensionProperty(taskType, WfTaskExtensionItemsNames.WFLAST_DETAILS_PROPERTY_NAME);
 //        if (lastDetails != null) {
@@ -445,13 +445,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
     private List<WfHistoryEventDto> prepareWorkflowHistory(TaskType taskType) {
         List<WfHistoryEventDto> retval = new ArrayList<WfHistoryEventDto>();
-        PrismProperty<String> wfStatus = getExtensionProperty(taskType, WfTaskExtensionItemsNames.WFSTATUS_PROPERTY_NAME);
-        if (wfStatus != null) {
-            for (String entry : wfStatus.getRealValues()) {
-                retval.add(new WfHistoryEventDto(entry));
-            }
-            Collections.sort(retval);
-        }
+        // TODO remove whole method
         return retval;
     }
     //endregion

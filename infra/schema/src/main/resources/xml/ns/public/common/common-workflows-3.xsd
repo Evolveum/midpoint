@@ -757,6 +757,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="rootTaskRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This property is put into model task (i.e. not wf root task). It points to the
+                        wf root task - that's important e.g. in cases when wf root task is not a subtask
+                        of the model task.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>c:TaskType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="state" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -775,11 +787,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="answer" type="xsd:string">
+            <xsd:element name="answer" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Value of process variable "wfAnswer" that should describe overall outcome
                         of the process instance.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="changeProcessor" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Contains name of class that manages this particular model operation ("change", thus "change processor").
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

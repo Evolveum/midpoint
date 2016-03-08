@@ -389,7 +389,7 @@ public class JobController {
         LOGGER.trace("Calling onProcessEnd on {}", job.getChangeProcessor());
         job.getChangeProcessor().onProcessEnd(event, job, result);
 
-        job.setProcessInstanceFinishedImmediate(true, result);
+        job.setProcessInstanceFinishedImmediate(result);
 
         auditProcessEnd(event, job, result);
         notifyProcessEnd(event, job, result);

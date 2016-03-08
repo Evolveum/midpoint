@@ -93,13 +93,13 @@ public class Job {
         task.startWaitingForTasksImmediate(result);
     }
 
-    public void setWfProcessIdImmediate(String pid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public void setWfProcessIdImmediate(String pid, OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         activitiId = pid;
         jobController.getWfTaskUtil().setWfProcessIdImmediate(task, pid, result);
     }
 
-    public void setProcessInstanceFinishedImmediate(boolean value, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        jobController.getWfTaskUtil().setProcessInstanceFinishedImmediate(task, value, result);
+    public void setProcessInstanceFinishedImmediate(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        jobController.getWfTaskUtil().setProcessInstanceFinishedImmediate(task, result);
     }
 
     public TaskExecutionStatus getTaskExecutionStatus() {

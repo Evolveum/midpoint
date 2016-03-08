@@ -941,7 +941,15 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	 */
 	void addModification(ItemDelta<?, ?> delta) throws SchemaException;
 
-	/**
+    /**
+     * Changes in-memory and in-repo representations immediately.
+     * @param delta
+     * @param parentResult
+     * @throws SchemaException
+     */
+    void addModificationImmediate(ItemDelta<?, ?> delta, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
+
+    /**
      * Saves modifications done against the in-memory version of the task into the repository.
      */
 	void savePendingModifications(OperationResult parentResult) throws ObjectNotFoundException,
@@ -975,4 +983,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     void startCollectingOperationStatsFromStoredValues(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics);
 
     void storeOperationStats();
+
+    WfContextType getWorkflowContext();
 }
