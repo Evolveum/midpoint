@@ -82,14 +82,7 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
 
         OperationResult result = task.getResult().createSubresult(WfPropagateTaskObjectReferenceTaskHandler.class + ".run");
 
-        WfTask wfTask;
-        try {
-            wfTask = wfTaskController.recreateJob(task);
-        } catch (SchemaException e) {
-            return reportException("Couldn't create a job from task " + task, task, result, e);
-        } catch (ObjectNotFoundException e) {
-            return reportException("Couldn't create a job from task " + task, task, result, e);
-        }
+        WfTask wfTask = wfTaskController.recreateWfTask(task);
 
         LOGGER.trace("WfPropagateTaskObjectReferenceTaskHandler starting... job = {}", wfTask);
 

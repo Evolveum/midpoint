@@ -36,6 +36,8 @@ import org.apache.commons.lang.Validate;
 import java.util.Date;
 import java.util.List;
 
+import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getActivitiInterface;
+
 /**
  * @author mederly
  */
@@ -115,7 +117,7 @@ public class RecordIndividualDecision implements JavaDelegate {
         }
         execution.setVariable(BaseProcessMidPointInterface.VARIABLE_WF_STATE, "User " + decision.getApproverName() + " decided to " + (decision.isApproved() ? "approve" : "refuse") + " the request.");
 
-        SpringApplicationContextHolder.getActivitiInterface().notifyMidpointAboutProcessEvent(execution);
+        getActivitiInterface().notifyMidpointAboutProcessEvent(execution);
     }
 
 }

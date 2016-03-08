@@ -62,9 +62,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
     public void execute(DelegateExecution execution) {
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Executing the delegate; execution = " + execution);
-        }
+        LOGGER.trace("Executing the delegate; execution = {}", execution);
 
         OperationResult result = new OperationResult("dummy");
         Task task = null;
@@ -120,7 +118,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         }
 
         execution.setVariableLocal(ProcessVariableNames.DECISIONS_IN_LEVEL, decisionList);
-        execution.setVariableLocal(ProcessVariableNames.APPROVERS_IN_LEVEL, new ArrayList<LightweightObjectRef>(approverRefs));
+        execution.setVariableLocal(ProcessVariableNames.APPROVERS_IN_LEVEL, new ArrayList<>(approverRefs));
         execution.setVariableLocal(ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP, stop);
     }
 

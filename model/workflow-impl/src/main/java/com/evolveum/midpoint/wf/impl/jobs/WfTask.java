@@ -1,6 +1,8 @@
 package com.evolveum.midpoint.wf.impl.jobs;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -11,10 +13,15 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang3.Validate;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.evolveum.midpoint.task.api.TaskExecutionStatus.WAITING;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_STATE;
 
 /**
  * A class that describes wf-enabled tasks (plus tasks that do not carry wf process, like "task0" executing changes that do not need approvals)
@@ -91,9 +98,9 @@ public class WfTask {
         task.startWaitingForTasksImmediate(result);
     }
 
-    public void setWfProcessIdImmediate(String pid, OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        activitiId = pid;
-        wfTaskController.getWfTaskUtil().setWfProcessIdImmediate(task, pid, result);
+    public void setWfProcessId(String pid) throws SchemaException {
+		activitiId = pid;
+        wfTaskController.getWfTaskUtil().setWfProcessId(task, pid);
     }
 
     public void setProcessInstanceFinishedImmediate(OperationResult result)
@@ -106,9 +113,9 @@ public class WfTask {
     }
 
     public void removeCurrentTaskHandlerAndUnpause(OperationResult result) throws SchemaException, ObjectNotFoundException {
-        boolean wasWaiting = getTaskExecutionStatus() == TaskExecutionStatus.WAITING;
+        boolean wasWaiting = getTaskExecutionStatus() == WAITING;
         task.finishHandler(result);
-        boolean isWaiting = getTaskExecutionStatus() == TaskExecutionStatus.WAITING;
+        boolean isWaiting = getTaskExecutionStatus() == WAITING;
         if (wasWaiting && isWaiting) {  // if the task was not closed ... (i.e. if there are other handler(s) on the stack)
             wfTaskController.unpauseTask(this, result);
         }
@@ -138,7 +145,7 @@ public class WfTask {
     public List<WfTask> listChildren(OperationResult result) throws SchemaException {
         List<WfTask> wfTasks = new ArrayList<WfTask>();
         for (Task subtask : task.listSubtasks(result)) {
-            wfTasks.add(wfTaskController.recreateChildJob(subtask, this));
+            wfTasks.add(wfTaskController.recreateChildWfTask(subtask, this));
         }
         return wfTasks;
     }
@@ -158,13 +165,29 @@ public class WfTask {
     public List<WfTask> listDependents(OperationResult result) throws SchemaException, ObjectNotFoundException {
         List<WfTask> wfTasks = new ArrayList<WfTask>();
         for (Task subtask : task.listDependents(result)) {
-            wfTasks.add(wfTaskController.recreateJob(subtask));
+            wfTasks.add(wfTaskController.recreateWfTask(subtask));
         }
         return wfTasks;
     }
 
     public WfTask getParentJob(OperationResult result) throws SchemaException, ObjectNotFoundException {
         Task parentTask = task.getParentTask(result);
-        return wfTaskController.recreateJob(parentTask);
+        return wfTaskController.recreateWfTask(parentTask);
     }
+
+    public String getRequesterOid() {
+        if (task.getWorkflowContext() == null || task.getWorkflowContext().getRequesterRef() == null) {
+            return null;
+        } else {
+			return task.getWorkflowContext().getRequesterRef().getOid();
+		}
+    }
+
+	void setProcessInstanceState(String stateDescription) throws SchemaException {
+		task.addModification(DeltaBuilder.deltaFor(TaskType.class, getPrismContext()).item(F_WORKFLOW_CONTEXT, F_STATE).replace(stateDescription).asItemDelta());
+	}
+
+	private PrismContext getPrismContext() {
+		return wfTaskController.getPrismContext();
+	}
 }

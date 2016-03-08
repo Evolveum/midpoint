@@ -75,7 +75,7 @@ public class BaseAuditHelper {
         auditEventRecord.setEventType(AuditEventType.WORKFLOW_PROCESS_INSTANCE);
         auditEventRecord.setEventStage(stage);
 
-        String requesterOid = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID);
+        String requesterOid = wfTask.getRequesterOid();
         if (requesterOid != null) {
             try {
                 auditEventRecord.setInitiator(miscDataUtil.getRequester(variables, result));

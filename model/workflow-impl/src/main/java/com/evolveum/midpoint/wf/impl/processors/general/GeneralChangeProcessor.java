@@ -156,7 +156,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
             // ========== preparing child task, starting WF process ===========
 
             WfTaskCreationInstruction instruction = scenarioBean.prepareJobCreationInstruction(scenarioType, (LensContext<?>) context, rootWfTask, taskFromModel, result);
-            wfTaskController.createJob(instruction, rootWfTask, result);
+            wfTaskController.createWfTask(instruction, rootWfTask, result);
 
             // ========== complete the action ===========
 
@@ -186,7 +186,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
         Task rootTask = task.getParentTask(result);
 
-        SerializationSafeContainer<LensContextType> contextContainer = (SerializationSafeContainer<LensContextType>) event.getVariable(GcpProcessVariableNames.VARIABLE_MODEL_CONTEXT);
+        SerializationSafeContainer<LensContextType> contextContainer = event.getVariable(GcpProcessVariableNames.VARIABLE_MODEL_CONTEXT, SerializationSafeContainer.class);
         LensContextType lensContextType = null;
         if (contextContainer != null) {
             contextContainer.setPrismContext(prismContext);
@@ -213,7 +213,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     }
 
     @Override
-    public PrismObject<? extends ProcessInstanceState> externalizeProcessInstanceState(Map<String, Object> variables) throws JAXBException, SchemaException {
+    public PrismObject<? extends ProcessInstanceState> externalizeProcessInstanceState(Map<String, Object> variables) throws SchemaException {
         PrismObject<ProcessInstanceState> state = baseExternalizationHelper.externalizeState(variables);
         ProcessSpecificState processSpecificState = getScenarioBean(variables).externalizeInstanceState(variables);
         state.asObjectable().setProcessSpecificState(processSpecificState);

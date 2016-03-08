@@ -249,7 +249,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             // start the jobs
             List<WfTask> wfTasks = new ArrayList<>(instructions.size());
             for (WfTaskCreationInstruction instruction : instructions) {
-                WfTask wfTask = wfTaskController.createJob(instruction, rootWfTask.getTask(), result);
+                WfTask wfTask = wfTaskController.createWfTask(instruction, rootWfTask.getTask(), result);
                 wfTasks.add(wfTask);
             }
 
@@ -301,7 +301,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             }
             instruction0.setCreateTaskAsSuspended(true);   // task0 should execute only after all subtasks are created, because when it finishes, it
             // writes some information to all dependent tasks (i.e. they must exist at that time)
-            return wfTaskController.createJob(instruction0, rootWfTask, result);
+            return wfTaskController.createWfTask(instruction0, rootWfTask, result);
         } else {
             return null;
         }
@@ -387,7 +387,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     //endregion
 
     @Override
-    public PrismObject<? extends ProcessInstanceState> externalizeProcessInstanceState(Map<String, Object> variables) throws JAXBException, SchemaException {
+    public PrismObject<? extends ProcessInstanceState> externalizeProcessInstanceState(Map<String, Object> variables) throws SchemaException {
 
         PrismObject<ProcessInstanceState> processInstanceStatePrismObject = baseExternalizationHelper.externalizeState(variables);
         processInstanceStatePrismObject.asObjectable().setProcessorSpecificState(pcpExternalizationHelper.externalizeState(variables));

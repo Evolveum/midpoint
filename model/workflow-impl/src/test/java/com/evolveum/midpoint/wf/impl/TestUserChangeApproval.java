@@ -159,7 +159,8 @@ public class TestUserChangeApproval extends AbstractWfTest {
 
         Task opTask = taskManager.createTaskInstance();
         TaskType rootTaskType = modelService.getObject(TaskType.class, rootTask.getOid(), options, opTask, result).asObjectable();
-        assertNull("Unexpected workflow context in root task: " + rootTaskType, rootTaskType.getWorkflowContext());
+        display("rootTask", rootTaskType);
+        assertTrue("unexpected process instance id in root task", rootTaskType.getWorkflowContext() == null || rootTaskType.getWorkflowContext().getProcessInstanceId() == null);
 
         assertEquals("Wrong # of wf subtasks w.r.t processNames (" + Arrays.asList(processNames) + ")", processNames.length, subtasks.size());
         int i = 0;
@@ -227,7 +228,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
 
         Task opTask = taskManager.createTaskInstance();
         TaskType rootTaskType = modelService.getObject(TaskType.class, rootTask.getOid(), options, opTask, result).asObjectable();
-        assertNull("Unexpected workflow context in root task: " + rootTaskType, rootTaskType.getWorkflowContext());
+        assertTrue("unexpected process instance id in root task", rootTaskType.getWorkflowContext() == null || rootTaskType.getWorkflowContext().getProcessInstanceId() == null);
 
         assertEquals("Wrong # of wf subtasks w.r.t processNames (" + Arrays.asList(processNames) + ")", processNames.length, subtasks.size());
         int i = 0;

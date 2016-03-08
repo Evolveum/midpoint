@@ -94,7 +94,7 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
 
         try {
 
-            WfTask wfTask = wfTaskController.recreateJob(task);
+            WfTask wfTask = wfTaskController.recreateWfTask(task);
 
             OperationResult result = task.getResult();
 
@@ -187,7 +187,7 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
         }
 
         Task task0 = prerequisites.get(0);
-        WfTask wfTask0 = wfTaskController.recreateJob(task0);
+        WfTask wfTask0 = wfTaskController.recreateWfTask(task0);
         Validate.isTrue(task0.isClosed(), "Task0 should be already closed; it is " + task0.getExecutionStatus());
 
         LensContext context0 = (LensContext) wfTask0.retrieveModelContext(result);

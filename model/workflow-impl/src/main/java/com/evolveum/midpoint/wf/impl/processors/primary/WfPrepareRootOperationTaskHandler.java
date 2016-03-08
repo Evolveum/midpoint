@@ -78,7 +78,7 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
 
             OperationResult result = task.getResult();
 
-            WfTask rootWfTask = wfTaskController.recreateRootJob(task);
+            WfTask rootWfTask = wfTaskController.recreateRootWfTask(task);
             List<WfTask> children = rootWfTask.listChildren(result);
 
             LensContext rootContext = (LensContext) rootWfTask.retrieveModelContext(result);

@@ -105,7 +105,7 @@ public interface ChangeProcessor {
      * @param variables internal process state represented by a map
      * @return external representation in the form of PrismObject
      */
-    PrismObject<? extends ProcessInstanceState> externalizeProcessInstanceState(Map<String, Object> variables) throws JAXBException, SchemaException;
+    PrismObject<? extends ProcessInstanceState> externalizeProcessInstanceState(Map<String, Object> variables) throws SchemaException;
 
 	/**
 	 * TODO

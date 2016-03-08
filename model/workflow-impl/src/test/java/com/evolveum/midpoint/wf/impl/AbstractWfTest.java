@@ -479,7 +479,7 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
         Task task0 = null;
 
         for (Task subtask : subtasks) {
-			if (subtask.getTaskPrismObject().asObjectable().getWorkflowContext() == null) {
+			if (subtask.getTaskPrismObject().asObjectable().getWorkflowContext() == null || subtask.getTaskPrismObject().asObjectable().getWorkflowContext().getProcessInstanceId() == null) {
 				assertNull("More than one non-wf-monitoring subtask", task0);
 				task0 = subtask;
 			}

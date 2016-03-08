@@ -104,13 +104,12 @@ public class WfTaskUtil {
 
     }
 
-	void setWfProcessIdImmediate(Task task, String pid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+	void setWfProcessId(Task task, String pid) throws SchemaException {
         Validate.notEmpty(task.getOid(), "Task oid must not be null or empty (task must be persistent).");
         task.addModification(
                 DeltaBuilder.deltaFor(TaskType.class, prismContext)
                         .item(F_WORKFLOW_CONTEXT, F_PROCESS_INSTANCE_ID).replace(pid)
                         .asItemDelta());
-		task.savePendingModifications(parentResult);
 	}
 
     public void setPrimaryChangeAspect(Task task, PrimaryChangeAspect aspect) throws SchemaException {

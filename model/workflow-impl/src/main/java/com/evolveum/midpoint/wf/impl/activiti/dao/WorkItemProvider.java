@@ -668,14 +668,6 @@ public class WorkItemProvider {
         return wfConfiguration.findChangeProcessor(cpClassName);
     }
 
-    private ChangeProcessor getChangeProcessor(Map<String, Object> variables, String context) {
-        String cpClassName = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR);
-        if (cpClassName == null) {
-            throw new IllegalStateException("No change processor in " + context);
-        }
-        return wfConfiguration.findChangeProcessor(cpClassName);
-    }
-
     private PrismObject<? extends TrackingDataType> getTrackingData(TaskExtract task, Map<String, Object> variables, OperationResult result) throws ObjectNotFoundException, SchemaException {
         ProcessInstanceQuery piq = activitiEngine.getRuntimeService().createProcessInstanceQuery();
         piq.processInstanceId(task.getProcessInstanceId());

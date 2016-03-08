@@ -59,7 +59,7 @@ public class PcpExternalizationHelper {
     private MiscDataUtil miscDataUtil;
 
     @Deprecated
-    public PrimaryChangeProcessorState externalizeState(Map<String, Object> variables) throws JAXBException, SchemaException {
+    public PrimaryChangeProcessorState externalizeState(Map<String, Object> variables) throws SchemaException {
         PrismContainerDefinition<PrimaryChangeProcessorState> extDefinition = prismContext.getSchemaRegistry().findContainerDefinitionByType(PrimaryChangeProcessorState.COMPLEX_TYPE);
         PrismContainer<PrimaryChangeProcessorState> extStateContainer = extDefinition.instantiate();
         PrimaryChangeProcessorState state = extStateContainer.createNewValue().asContainerable();

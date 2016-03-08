@@ -119,10 +119,10 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
     @Override
     public List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event) {
         List<ObjectReferenceType> retval = new ArrayList<ObjectReferenceType>();
-        if (!ApprovalUtils.isApproved(event.getAnswer())) {
+        if (!ApprovalUtils.isApproved(getAnswer(event.getVariables()))) {
             return retval;
         }
-        List<Decision> allDecisions = (List<Decision>) event.getVariable(ProcessVariableNames.ALL_DECISIONS);
+        List<Decision> allDecisions = event.getVariable(ProcessVariableNames.ALL_DECISIONS, List.class);
         for (Decision decision : allDecisions) {
             if (decision.isApproved()) {
                 retval.add(MiscSchemaUtil.createObjectReference(decision.getApproverOid(), SchemaConstants.C_USER_TYPE));
