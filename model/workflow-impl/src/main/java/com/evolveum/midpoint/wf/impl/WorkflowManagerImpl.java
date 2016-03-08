@@ -134,16 +134,6 @@ public class WorkflowManagerImpl implements WorkflowManager {
      */
 
     @Override
-    public int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult) {
-        return processInstanceProvider.countProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished, parentResult);
-    }
-
-    @Override
-    public List<WfProcessInstanceType> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult) {
-        return processInstanceProvider.listProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished, first, count, parentResult);
-    }
-
-    @Override
     public void stopProcessInstance(String instanceId, String username, OperationResult parentResult) {
         processInstanceManager.stopProcessInstance(instanceId, username, parentResult);
     }

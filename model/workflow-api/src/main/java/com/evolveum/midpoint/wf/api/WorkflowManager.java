@@ -52,15 +52,6 @@ public interface WorkflowManager {
             throws SchemaException;
 
     /*
-     * Process instances
-     * =================
-     */
-
-    int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult);
-
-    List<WfProcessInstanceType> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult);
-
-    /*
      * CHANGING THINGS
      * ===============
      */
