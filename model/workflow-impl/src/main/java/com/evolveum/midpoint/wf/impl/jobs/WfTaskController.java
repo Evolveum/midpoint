@@ -353,7 +353,7 @@ public class WfTaskController {
     }
 
     private ChangeProcessor getChangeProcessor(Map<String,Object> variables) {
-        String cpName = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR);
+        String cpName = (String) variables.get(CommonProcessVariableNames.VARIABLE_CHANGE_PROCESSOR);
         Validate.notNull(cpName, "Change processor is not defined among process instance variables");
         return wfConfiguration.findChangeProcessor(cpName);
     }

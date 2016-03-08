@@ -87,7 +87,7 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
 
     @Override
     public ProcessSpecificState externalizeInstanceState(Map<String, Object> variables) throws SchemaException {
-        if (variables.containsKey(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_INTERFACE_BEAN_NAME)) {
+        if (variables.containsKey(CommonProcessVariableNames.VARIABLE_PROCESS_INTERFACE_BEAN_NAME)) {
             return processInterfaceFinder.getProcessInterface(variables).externalizeProcessInstanceState(variables);
         } else {
             return null;

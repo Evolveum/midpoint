@@ -346,21 +346,12 @@ public class WfTaskCreationInstruction implements DebugDumpable {
     //region Setters for process variables
     public void initializeCommonProcessVariables() {
         addProcessVariable(VARIABLE_UTIL, new ActivitiUtil());
-        addProcessVariable(VARIABLE_MIDPOINT_CHANGE_PROCESSOR, changeProcessor.getClass().getName());
+        addProcessVariable(VARIABLE_CHANGE_PROCESSOR, changeProcessor.getClass().getName());
         addProcessVariable(VARIABLE_START_TIME, new Date());
     }
 
     public void setRequesterOidAndRefInProcess(PrismObject<UserType> requester) {
-        addProcessVariable(VARIABLE_MIDPOINT_REQUESTER_OID, requester.getOid());
         addProcessVariable(VARIABLE_REQUESTER_REF, new LightweightObjectRefImpl(createObjectRef(requester)));
-    }
-
-    public void setObjectOidInProcess(String objectOid) {
-        if (objectOid != null) {
-            addProcessVariable(VARIABLE_MIDPOINT_OBJECT_OID, objectOid);
-        } else {
-            removeProcessVariable(VARIABLE_MIDPOINT_OBJECT_OID);
-        }
     }
 
     public void setProcessInstanceName(String name) {
@@ -369,7 +360,7 @@ public class WfTaskCreationInstruction implements DebugDumpable {
     }
 
     public void setProcessInterfaceBean(ProcessMidPointInterface processInterfaceBean) {
-        addProcessVariable(VARIABLE_MIDPOINT_PROCESS_INTERFACE_BEAN_NAME, processInterfaceBean.getBeanName());
+        addProcessVariable(VARIABLE_PROCESS_INTERFACE_BEAN_NAME, processInterfaceBean.getBeanName());
     }
     //endregion
 

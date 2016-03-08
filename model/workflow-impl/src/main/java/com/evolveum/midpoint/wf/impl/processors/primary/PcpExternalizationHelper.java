@@ -91,31 +91,7 @@ public class PcpExternalizationHelper {
         PrismObject<? extends GeneralChangeApprovalWorkItemContents> wicPrism = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(GeneralChangeApprovalWorkItemContents.class).instantiate();
         GeneralChangeApprovalWorkItemContents wic = wicPrism.asObjectable();
 
-        PrismObject<? extends ObjectType> objectBefore = pcpRepoAccessHelper.getObjectBefore(processInstanceVariables, prismContext, result);
-        if (objectBefore != null) {
-            wic.setObjectOld(objectBefore.asObjectable());
-            if (objectBefore.getOid() != null) {
-                wic.setObjectOldRef(MiscSchemaUtil.createObjectReference(objectBefore.getOid(), SchemaConstants.C_OBJECT_TYPE));     // todo ...or will we determine real object type?
-            }
-        }
-
         wic.setObjectDelta(miscDataUtil.getFocusPrimaryObjectDeltaType(processInstanceVariables, true));
-
-        PrismObject<? extends ObjectType> objectAfter = pcpRepoAccessHelper.getObjectAfter(processInstanceVariables, wic.getObjectDelta(), objectBefore, prismContext, result);
-        if (objectAfter != null) {
-            wic.setObjectNew(objectAfter.asObjectable());
-            if (objectAfter.getOid() != null) {
-                wic.setObjectNewRef(MiscSchemaUtil.createObjectReference(objectAfter.getOid(), SchemaConstants.C_OBJECT_TYPE));     // todo ...or will we determine real object type?
-            }
-        }
-
-        PrismObject<? extends ObjectType> relatedObject = getRelatedObject(task, processInstanceVariables, result);
-        if (relatedObject != null) {
-            wic.setRelatedObject(relatedObject.asObjectable());
-            if (relatedObject.getOid() != null) {
-                wic.setRelatedObjectRef(MiscSchemaUtil.createObjectReference(relatedObject.getOid(), SchemaConstants.C_OBJECT_TYPE));     // todo ...or will we determine real object type?
-            }
-        }
 
         wic.setQuestionForm(asObjectable(getQuestionForm(task, processInstanceVariables, result)));
         return wicPrism;

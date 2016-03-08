@@ -593,7 +593,7 @@ public class WorkItemProvider {
             }
             wi.setName(new PolyStringType(task.getName()));
             wi.setProcessInstanceId(task.getProcessInstanceId());
-            wi.setChangeProcessor((String) task.getVariables().get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR));
+            wi.setChangeProcessor((String) task.getVariables().get(CommonProcessVariableNames.VARIABLE_CHANGE_PROCESSOR));
             MetadataType metadataType = new MetadataType();
             metadataType.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(task.getCreateTime()));
             wi.setMetadata(metadataType);
@@ -660,7 +660,7 @@ public class WorkItemProvider {
     }
 
     private ChangeProcessor getChangeProcessor(TaskExtract task, Map<String, Object> variables) {
-        String cpClassName = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR);
+        String cpClassName = (String) variables.get(CommonProcessVariableNames.VARIABLE_CHANGE_PROCESSOR);
         if (cpClassName == null) {
             throw new IllegalStateException("Change processor is unknown for task: " + task);
         }

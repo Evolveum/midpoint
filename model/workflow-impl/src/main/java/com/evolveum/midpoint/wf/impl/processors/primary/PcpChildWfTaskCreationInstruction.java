@@ -76,7 +76,6 @@ public class PcpChildWfTaskCreationInstruction extends WfTaskCreationInstruction
     public void prepareCommonAttributes(PrimaryChangeAspect aspect, ModelContext<?> modelContext, String objectOid, PrismObject<UserType> requester) throws SchemaException {
 
         setRequesterOidAndRefInProcess(requester);
-        setObjectOidInProcess(objectOid);
 
         setExecuteApprovedChangeImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
 

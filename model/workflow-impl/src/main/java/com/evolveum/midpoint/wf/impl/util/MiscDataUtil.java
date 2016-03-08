@@ -44,6 +44,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.processes.common.StringHolder;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpProcessVariableNames;
@@ -131,28 +132,8 @@ public class MiscDataUtil {
     }
 
     public PrismObject<UserType> getRequester(Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        String oid = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID);
-        return repositoryService.getObject(UserType.class, oid, null, result);
-    }
-
-    public PrismObject<? extends ObjectType> getObjectBefore(Map<String, Object> variables, PrismContext prismContext, OperationResult result) throws SchemaException, ObjectNotFoundException, JAXBException {
-        String objectXml = (String) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED);
-        PrismObject<? extends ObjectType> object;
-        if (objectXml != null) {
-            object = prismContext.parseObject(objectXml, PrismContext.LANG_XML);
-        } else {
-            String oid = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID);
-            if (oid == null) {
-                return null;
-            }
-            //Validate.notNull(oid, "Object OID in process variables is null");
-            object = repositoryService.getObject(ObjectType.class, oid, null, result);
-        }
-
-        if (object.asObjectable() instanceof UserType) {
-            resolveAssignmentTargetReferences((PrismObject) object, result);
-        }
-        return object;
+        LightweightObjectRef ref = (LightweightObjectRef) variables.get(CommonProcessVariableNames.VARIABLE_REQUESTER_REF);
+        return repositoryService.getObject(UserType.class, ref.getOid(), null, result);
     }
 
     public ObjectTreeDeltas getObjectTreeDeltas(Map<String, Object> variables, boolean mayBeNull) throws JAXBException, SchemaException {
@@ -183,28 +164,6 @@ public class MiscDataUtil {
         }
         return prismContext.parseAtomicValue(
                 deltasXml.getValue(), ObjectTreeDeltasType.COMPLEX_TYPE, PrismContext.LANG_XML);
-    }
-
-    public PrismObject<? extends ObjectType> getObjectAfter(Map<String, Object> variables, ObjectDeltaType deltaType, PrismObject<? extends ObjectType> objectBefore, PrismContext prismContext, OperationResult result) throws JAXBException, SchemaException {
-
-        ObjectDelta delta;
-        if (deltaType != null) {
-            delta = DeltaConvertor.createObjectDelta(deltaType, prismContext);
-        } else {
-            delta = getFocusPrimaryDelta(variables, true);
-        }
-
-        if (delta == null) {
-            return null;
-        }
-
-        PrismObject<? extends ObjectType> objectAfter = objectBefore.clone();
-        delta.applyTo(objectAfter);
-
-        if (objectAfter.asObjectable() instanceof UserType) {
-            resolveAssignmentTargetReferences((PrismObject) objectAfter, result);
-        }
-        return objectAfter;
     }
 
     public static String serializeObjectToXml(PrismObject<? extends ObjectType> object) {
@@ -404,6 +363,12 @@ public class MiscDataUtil {
     }
 
     public PrismObject resolveObjectReference(ObjectReferenceType ref, OperationResult result) {
+        if (ref == null) {
+            return null;
+        }
+		if (ref.asReferenceValue().getObject() != null) {
+			return ref.asReferenceValue().getObject();
+		}
         try {
             return repositoryService.getObject((Class) prismContext.getSchemaRegistry().getCompileTimeClass(ref.getType()), ref.getOid(), null, result);
         } catch (ObjectNotFoundException e) {

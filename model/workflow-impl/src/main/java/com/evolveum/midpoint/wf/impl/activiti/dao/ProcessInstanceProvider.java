@@ -149,7 +149,7 @@ public class ProcessInstanceProvider {
             wfc.setTargetRef(targetRef.toObjectReferenceType());
         }
 
-        ChangeProcessor cp = wfConfiguration.findChangeProcessor((String) vars.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR));
+        ChangeProcessor cp = wfConfiguration.findChangeProcessor((String) vars.get(CommonProcessVariableNames.VARIABLE_CHANGE_PROCESSOR));
         if (cp == null) {
             throw new SchemaException("No change processor information in process instance " + instance.getId());
         }

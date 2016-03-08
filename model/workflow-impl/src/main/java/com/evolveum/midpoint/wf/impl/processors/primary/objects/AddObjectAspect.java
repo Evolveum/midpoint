@@ -139,7 +139,7 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
         return instructions;
     }
 
-    private ObjectDelta<? extends ObjectType> assignmentToDelta(ModelContext<?> modelContext) {
+    private ObjectDelta<? extends ObjectType> assignmentToDelta(ModelContext<? extends ObjectType> modelContext) {
         return modelContext.getFocusContext().getPrimaryDelta();
     }
 

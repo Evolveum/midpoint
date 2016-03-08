@@ -20,6 +20,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiInterface;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskController;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpRepoAccessHelper;
@@ -90,6 +91,10 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
 
     public static PcpRepoAccessHelper getPcpRepoAccessHelper() {
         return getBean("pcpRepoAccessHelper", PcpRepoAccessHelper.class);
+    }
+
+    public static TaskManager getTaskManager() {
+        return getBean(TaskManager.class);
     }
 }
 

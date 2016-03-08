@@ -49,7 +49,7 @@ public class MidPointProcessListener implements ExecutionListener {
             getActivitiInterface().notifyMidpointAboutProcessFinishedEvent(execution);
         } catch (RuntimeException e) {
             LOGGER.trace("Got exception while processing process end event in midpoint", e);
-            if (TRUE.equals(execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_IS_PROCESS_INSTANCE_STOPPING))) {
+            if (TRUE.equals(execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_IS_STOPPING))) {
                 LOGGER.trace("... the process is ending anyway, so we just ignore this exception");
             } else {
                 throw e;

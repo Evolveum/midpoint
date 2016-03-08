@@ -36,8 +36,10 @@ import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemProvider;
 import com.evolveum.midpoint.wf.impl.jobs.WfTask;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -103,8 +105,8 @@ public class BaseAuditHelper {
         auditEventRecord.setEventStage(stage);
 
         Map<String, Object> variables = taskEvent.getVariables();
-        String requesterOid = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID);
-        if (requesterOid != null) {
+        LightweightObjectRef requesterRef = (LightweightObjectRef) variables.get(CommonProcessVariableNames.VARIABLE_REQUESTER_REF);
+        if (requesterRef != null) {
             try {
                 auditEventRecord.setInitiator(miscDataUtil.getRequester(variables, result));
             } catch (SchemaException e) {

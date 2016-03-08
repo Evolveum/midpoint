@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.impl.processes.ProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,9 +56,7 @@ public class BaseExternalizationHelper {
         extState.setProcessInstanceName((String) variables.get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME));
         extState.setStartTime(XmlTypeConverter.createXMLGregorianCalendar((Date) variables.get(CommonProcessVariableNames.VARIABLE_START_TIME)));
         extState.setShadowTaskOid((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID));
-        extState.setChangeProcessor((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR));
-        extState.setRequesterOid((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID));
-        extState.setObjectOid((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID));
+        extState.setChangeProcessor((String) variables.get(CommonProcessVariableNames.VARIABLE_CHANGE_PROCESSOR));
 
         ProcessMidPointInterface processMidPointInterface = processInterfaceFinder.getProcessInterface(variables);
         extState.setAnswer(processMidPointInterface.getAnswer(variables));

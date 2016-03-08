@@ -58,7 +58,7 @@ public class ProcessInstanceManager {
             LOGGER.trace("Stopping process instance {} on the request of {}", instanceId, username);
             String deletionMessage = "Process instance stopped on the request of " + username;
 //            rs.setVariable(instanceId, CommonProcessVariableNames.VARIABLE_WF_STATE, deletionMessage);
-            rs.setVariable(instanceId, CommonProcessVariableNames.VARIABLE_MIDPOINT_IS_PROCESS_INSTANCE_STOPPING, Boolean.TRUE);
+            rs.setVariable(instanceId, CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_IS_STOPPING, Boolean.TRUE);
             rs.deleteProcessInstance(instanceId, deletionMessage);
             result.recordSuccess();
         } catch (ActivitiException e) {
