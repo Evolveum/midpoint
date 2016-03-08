@@ -147,12 +147,12 @@ public class TestTrafo extends AbstractStoryTest {
 	protected static final String ACCOUNT_JACK_AD_DN = "CN=Sparrow Jack,OU=People,O=Trafo";
 	protected static final String ACCOUNT_JACK_AD_SAM_NAME = "jsparrow";
 	
-	protected static final String ACCOUNT_JACK_MAIL_USERNAME = "Jack Sparrow/Trafo/XX";
+	protected static final String ACCOUNT_JACK_MAIL_USERNAME = "Jack Sparrow/TRAFO/XX";
 	
 	private static final String ACCOUNT_ANGELICA_AD_DN = "CN=Sparrow Jack2,OU=People,O=Trafo";
 	protected static final String ACCOUNT_ANGELICA_AD_SAM_NAME = "jsparrow2";
 	
-	protected static final String ACCOUNT_ANGELICA_MAIL_USERNAME = "Jack Sparrow2/Trafo/XX";
+	protected static final String ACCOUNT_ANGELICA_MAIL_USERNAME = "Jack Sparrow2/TRAFO/XX";
 	
 	private static final String ACCOUNT_SMITH111_AD_DN = "CN=Smith John,OU=People,O=Trafo";
 	private static final Object ACCOUNT_SMITH111_AD_SAM_NAME = USER_SMITH111_USERNAME;

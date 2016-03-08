@@ -27,10 +27,7 @@
             <sap:password>
                 <t:clearValue>secret</t:clearValue>
             </sap:password>
-            <sap:activityGroupsWithDates>false</sap:activityGroupsWithDates>
             <sap:testBapiFunctionPermission>false</sap:testBapiFunctionPermission>
-            <!-- activity groups (SAP roles)-->
-            <sap:tables>AGR_DEFINE=MANDT:3,AGR_NAME:30:KEY,PARENT_AGR:30,CREATE_USR:12</sap:tables>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -223,7 +220,7 @@
             <kind>entitlement</kind>
             <intent>roles</intent>
             <displayName>ActivityGroups</displayName>
-            <objectClass>ri:CustomAGR_DEFINEObjectClass</objectClass>
+            <objectClass>ri:CustomACTIVITYGROUPObjectClass</objectClass>
             <attribute>
                 <c:ref>icfs:name</c:ref>
                 <limitations>
@@ -251,30 +248,15 @@
                 </limitations>
                 <!-- CASE Sensitive !!!-->
             </attribute>
+            <!--
             <attribute>
-                <c:ref>ri:AGR_NAME</c:ref>
-                <inbound>
-                    <target>
-                        <c:path>displayName</c:path>
-                    </target>
-                </inbound>
-                <inbound>
-                    <expression>
-                        <value>SAP-ActivityGroup</value>
-                    </expression>
-                    <target>
-                        <c:path>roleType</c:path>
-                    </target>
-                </inbound>
-            </attribute>
-            <attribute>
-                <c:ref>ri:CREATE_USR</c:ref>
+                <c:ref>ri:PARENT_AGR</c:ref>
                 <inbound>
                     <target>
                         <c:path>description</c:path>
                     </target>
                 </inbound>
-            </attribute>
+            </attribute>-->
         </objectType>
 
     </schemaHandling>
@@ -323,7 +305,7 @@
 
         <objectSynchronization>
             <name>role sync</name>
-            <objectClass>ri:CustomAGR_DEFINEObjectClass</objectClass>
+            <objectClass>ri:CustomACTIVITYGROUPObjectClass</objectClass>
             <kind>entitlement</kind>
             <intent>roles</intent>
             <focusType>c:RoleType</focusType>

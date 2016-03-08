@@ -400,7 +400,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         MockLensDebugListener mockListener = new MockLensDebugListener();
         clockwork.setDebugListener(mockListener);
         
-        PrismObject<ShadowType> accountShadowCalypso = repoAddObjectFromFile(ACCOUNT_SHADOW_CALYPSO_DUMMY_FILENAME, ShadowType.class, result);
+        PrismObject<ShadowType> accountShadowCalypso = repoAddObjectFromFile(ACCOUNT_SHADOW_CALYPSO_DUMMY_FILE, ShadowType.class, result);
         accountShadowCalypsoDummyOid = accountShadowCalypso.getOid();
         provisioningService.applyDefinition(accountShadowCalypso, result);
         assertNotNull("No oid in shadow", accountShadowCalypso.getOid());

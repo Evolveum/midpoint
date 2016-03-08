@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,7 +101,7 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
         OperationResult result = new OperationResult("test100SerializeContext");
 
         LensContext<UserType> context = new LensContext<UserType>(UserType.class, prismContext, provisioningService);
-        PrismObject<UserType> bill = prismContext.parseObject(new File(USER_BARBOSSA_FILENAME));
+        PrismObject<UserType> bill = prismContext.parseObject(USER_BARBOSSA_FILE);
         CryptoUtil.encryptValues(protector, bill);
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(bill);
         LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();

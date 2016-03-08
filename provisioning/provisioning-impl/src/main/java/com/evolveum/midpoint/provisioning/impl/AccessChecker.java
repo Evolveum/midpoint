@@ -142,13 +142,16 @@ public class AccessChecker {
 		
 	}
 
-	public void filterGetAttributes(ResourceAttributeContainer attributeContainer, RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) {
+	public void filterGetAttributes(ResourceAttributeContainer attributeContainer, RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws SchemaException {
 		OperationResult result = parentResult.createMinorSubresult(OPERATION_NAME);
 		
 		
 		for (ResourceAttribute<?> attribute: attributeContainer.getAttributes()) {
 			QName attrName = attribute.getElementName();
 			RefinedAttributeDefinition attrDef = objectClassDefinition.findAttributeDefinition(attrName);
+			if (attrDef == null) {
+				throw new SchemaException("Unknown attribute "+attrName+" in objectclass "+objectClassDefinition);
+			}
 			// Need to check model layer, not schema. Model means IDM logic which can be overridden in schemaHandling,
 			// schema layer is the original one. 
 			PropertyLimitations limitations = attrDef.getLimitations(LayerType.MODEL);
