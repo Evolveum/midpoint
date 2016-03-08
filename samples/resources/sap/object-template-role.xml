@@ -31,4 +31,48 @@
         </condition>
     </mapping>
 
+    <mapping>
+        <name>SAP Group metarole assignment</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>roleType</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:RoleType</targetType>
+                <oid>239990f4-ffb9-417e-8784-7dc72e645db5</oid>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <code>roleType == 'SAP-Group'</code>
+            </script>
+        </condition>
+    </mapping>
+
+    <mapping>
+        <name>SAP Group metarole assignment</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>roleType</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:RoleType</targetType>
+                <oid>1fc57929-9f8c-4cc2-9bec-0873812704cd</oid>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <code>roleType == 'SAP-Profile'</code>
+            </script>
+        </condition>
+    </mapping>
+
 </objectTemplate>
