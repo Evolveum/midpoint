@@ -26,8 +26,8 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.wf.impl.jobs.Job;
-import com.evolveum.midpoint.wf.impl.jobs.JobCreationInstruction;
+import com.evolveum.midpoint.wf.impl.jobs.WfTask;
+import com.evolveum.midpoint.wf.impl.jobs.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRefImpl;
 import com.evolveum.midpoint.wf.impl.processes.common.StringHolder;
@@ -41,26 +41,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * @author mederly
  */
-public class PcpChildJobCreationInstruction extends JobCreationInstruction {
+public class PcpChildWfTaskCreationInstruction extends WfTaskCreationInstruction {
 
     private boolean executeApprovedChangeImmediately;     // should the child job execute approved change immediately (i.e. executeModelOperationHandler must be set as well!)
 
-    protected PcpChildJobCreationInstruction(ChangeProcessor changeProcessor) {
+    protected PcpChildWfTaskCreationInstruction(ChangeProcessor changeProcessor) {
         super(changeProcessor);
     }
 
-    protected PcpChildJobCreationInstruction(Job parentJob) {
-        super(parentJob);
+    protected PcpChildWfTaskCreationInstruction(WfTask parentWfTask) {
+        super(parentWfTask);
     }
 
-    public static PcpChildJobCreationInstruction createInstruction(ChangeProcessor changeProcessor) {
-        PcpChildJobCreationInstruction pcpjci = new PcpChildJobCreationInstruction(changeProcessor);
+    public static PcpChildWfTaskCreationInstruction createInstruction(ChangeProcessor changeProcessor) {
+        PcpChildWfTaskCreationInstruction pcpjci = new PcpChildWfTaskCreationInstruction(changeProcessor);
         prepareWfProcessChildJobInternal(pcpjci);
         return pcpjci;
     }
 
-    public static PcpChildJobCreationInstruction createInstruction(Job parentJob) {
-        PcpChildJobCreationInstruction pcpjci = new PcpChildJobCreationInstruction(parentJob);
+    public static PcpChildWfTaskCreationInstruction createInstruction(WfTask parentWfTask) {
+        PcpChildWfTaskCreationInstruction pcpjci = new PcpChildWfTaskCreationInstruction(parentWfTask);
         prepareWfProcessChildJobInternal(pcpjci);
         return pcpjci;
     }

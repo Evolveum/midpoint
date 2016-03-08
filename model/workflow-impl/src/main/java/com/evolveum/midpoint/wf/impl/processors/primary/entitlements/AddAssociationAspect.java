@@ -42,7 +42,7 @@ import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
-import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildJobCreationInstruction;
+import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspectHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.assignments.AssignmentHelper;
@@ -89,7 +89,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
     //region ------------------------------------------------------------ Things that execute on request arrival
 
     @Override
-    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public List<PcpChildWfTaskCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (!isFocusRelevant(modelContext)) {
             return null;
         }
@@ -232,12 +232,12 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
         }
     }
 
-    private List<PcpChildJobCreationInstruction>
+    private List<PcpChildWfTaskCreationInstruction>
     prepareJobCreateInstructions(ModelContext<?> modelContext, Task taskFromModel,
                                  OperationResult result, List<ApprovalRequest<AssociationAdditionType>> approvalRequestList)
             throws SchemaException, ObjectNotFoundException {
 
-        List<PcpChildJobCreationInstruction> instructions = new ArrayList<>();
+        List<PcpChildWfTaskCreationInstruction> instructions = new ArrayList<>();
         String assigneeName = MiscDataUtil.getFocusObjectName(modelContext);
         String assigneeOid = primaryChangeAspectHelper.getObjectOid(modelContext);
         PrismObject<UserType> requester = primaryChangeAspectHelper.getRequester(taskFromModel, result);
@@ -255,8 +255,8 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             String targetName = target.getName() != null ? target.getName().getOrig() : "(unnamed)";
 
             // create a JobCreateInstruction for a given change processor (primaryChangeProcessor in this case)
-            PcpChildJobCreationInstruction instruction =
-                    PcpChildJobCreationInstruction.createInstruction(getChangeProcessor());
+            PcpChildWfTaskCreationInstruction instruction =
+                    PcpChildWfTaskCreationInstruction.createInstruction(getChangeProcessor());
 
             // set some common task/process attributes
             instruction.prepareCommonAttributes(this, modelContext, assigneeOid, requester);

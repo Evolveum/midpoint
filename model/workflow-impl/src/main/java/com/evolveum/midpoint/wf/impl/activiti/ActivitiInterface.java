@@ -24,7 +24,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.jobs.JobController;
+import com.evolveum.midpoint.wf.impl.jobs.WfTaskController;
 import com.evolveum.midpoint.wf.impl.messages.ActivitiToMidPointMessage;
 import com.evolveum.midpoint.wf.impl.messages.MidPointToActivitiMessage;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
@@ -76,7 +76,7 @@ public class ActivitiInterface {
     private TaskManager taskManager;
 
     @Autowired
-    private JobController jobController;
+    private WfTaskController wfTaskController;
 
     @Autowired
     private ProcessInterfaceFinder processInterfaceFinder;
@@ -229,7 +229,7 @@ public class ActivitiInterface {
         }
 
         try {
-            jobController.processWorkflowMessage(msg, task, asynchronous, result);
+            wfTaskController.processWorkflowMessage(msg, task, asynchronous, result);
         } catch (Exception e) {     // todo fix the exception processing
             String message = "Couldn't process an event coming from the workflow management system";
             LoggingUtils.logException(LOGGER, message, e);
@@ -302,7 +302,7 @@ public class ActivitiInterface {
         }
 
         try {
-            jobController.processWorkflowMessage(taskEvent, null, true, result);
+            wfTaskController.processWorkflowMessage(taskEvent, null, true, result);
         } catch (Exception e) {     // todo fix the exception processing e.g. think about situation where an event cannot be audited - should we allow to proceed?
             String message = "Couldn't process an event coming from the workflow management system";
             LoggingUtils.logException(LOGGER, message, e);

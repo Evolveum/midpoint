@@ -31,6 +31,6 @@ public interface S_ValuesEntry {
     S_ItemEntry delete(PrismValue... values);
     S_ItemEntry replace(Object... realValues);
     S_ItemEntry replace(PrismValue... values);
-    S_ItemEntry replace(Collection<PrismValue> values);     // TODO
+    S_ItemEntry replace(Collection<? extends PrismValue> values);
 
 }

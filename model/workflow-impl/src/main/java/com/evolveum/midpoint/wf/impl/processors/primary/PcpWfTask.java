@@ -1,9 +1,7 @@
 package com.evolveum.midpoint.wf.impl.processors.primary;
 
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.wf.impl.jobs.Job;
+import com.evolveum.midpoint.wf.impl.jobs.WfTask;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -15,9 +13,9 @@ import java.util.List;
  *
  * @author mederly
  */
-public class PcpJob extends Job {
+public class PcpWfTask extends WfTask {
 
-    PcpJob(Job original) {
+    PcpWfTask(WfTask original) {
         super(original);
     }
 

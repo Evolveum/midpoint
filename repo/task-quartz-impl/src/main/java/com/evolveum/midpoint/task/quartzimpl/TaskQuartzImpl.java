@@ -187,7 +187,7 @@ public class TaskQuartzImpl implements Task {
 	 */	
 	TaskQuartzImpl(TaskManagerQuartzImpl taskManager, LightweightIdentifier taskIdentifier, String operationName) {
 		this(taskManager);
-		this.repositoryService = null;
+		this.repositoryService = taskManager.getRepositoryService();
 		this.taskPrism = createPrism();
 
 		setTaskIdentifier(taskIdentifier.toString());
@@ -313,6 +313,9 @@ public class TaskQuartzImpl implements Task {
 	@Override
 	public void savePendingModifications(OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		if (isTransient()) {
+			return;
+		}
 		if (pendingModifications != null) {
 			synchronized (pendingModifications) {		// todo perhaps we should put something like this at more places here...
 				if (!pendingModifications.isEmpty()) {

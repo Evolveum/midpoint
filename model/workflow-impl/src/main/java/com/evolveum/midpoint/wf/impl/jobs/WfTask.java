@@ -17,38 +17,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A class that describes jobs related to workflow module:
- *  - typically, a workflow process instances
- *  - but sometimes also jobs without workflow -> e.g. tasks that carry out modifications that don't require approval.
+ * A class that describes wf-enabled tasks (plus tasks that do not carry wf process, like "task0" executing changes that do not need approvals)
  *
  * It points to the activiti process instance information as well as to the corresponding midPoint task.
  *
  * @author mederly
  */
-public class Job {
+public class WfTask {
 
-    private JobController jobController;
+    private WfTaskController wfTaskController;
 
     private Task task;                          // must be non-null
     private String activitiId;                  // must be non-null for Activiti-related jobs (and may be filled-in later, when activiti process is started)
     private ChangeProcessor changeProcessor;    // must be non-null
 
     //region Constructors and basic getters
-    Job(JobController jobController, Task task, ChangeProcessor changeProcessor) {
-        this(jobController, task, null, changeProcessor);
+    WfTask(WfTaskController wfTaskController, Task task, ChangeProcessor changeProcessor) {
+        this(wfTaskController, task, null, changeProcessor);
     }
 
-    Job(JobController jobController, Task task, String activitiId, ChangeProcessor changeProcessor) {
+    WfTask(WfTaskController wfTaskController, Task task, String activitiId, ChangeProcessor changeProcessor) {
         Validate.notNull(task, "Task");
         Validate.notNull(changeProcessor, "Change processor");
-        this.jobController = jobController;
+        this.wfTaskController = wfTaskController;
         this.task = task;
         this.activitiId = activitiId;
         this.changeProcessor = changeProcessor;
     }
 
-    protected Job(Job original) {
-        this.jobController = original.jobController;
+    protected WfTask(WfTask original) {
+        this.wfTaskController = original.wfTaskController;
         this.task = original.task;
         this.activitiId = original.activitiId;
         this.changeProcessor = original.changeProcessor;
@@ -70,15 +68,15 @@ public class Job {
 
     @Override
     public String toString() {
-        return "Job{" +
+        return "WfTask{" +
                 "task=" + task +
                 ", activitiId='" + activitiId + '\'' +
                 ", changeProcessor=" + changeProcessor +
                 '}';
     }
 
-    public void addDependent(Job job) {
-        jobController.addDependency(this, job);
+    public void addDependent(WfTask wfTask) {
+        wfTaskController.addDependency(this, wfTask);
     }
 
     public void commitChanges(OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
@@ -86,7 +84,7 @@ public class Job {
     }
 
     public void resumeTask(OperationResult result) throws SchemaException, ObjectNotFoundException {
-        jobController.resumeTask(this, result);
+        wfTaskController.resumeTask(this, result);
     }
 
     public void startWaitingForSubtasks(OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -95,11 +93,12 @@ public class Job {
 
     public void setWfProcessIdImmediate(String pid, OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         activitiId = pid;
-        jobController.getWfTaskUtil().setWfProcessIdImmediate(task, pid, result);
+        wfTaskController.getWfTaskUtil().setWfProcessIdImmediate(task, pid, result);
     }
 
-    public void setProcessInstanceFinishedImmediate(OperationResult result) throws SchemaException, ObjectNotFoundException {
-        jobController.getWfTaskUtil().setProcessInstanceFinishedImmediate(task, result);
+    public void setProcessInstanceFinishedImmediate(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        wfTaskController.getWfTaskUtil().setProcessInstanceFinishedImmediate(task, result);
     }
 
     public TaskExecutionStatus getTaskExecutionStatus() {
@@ -111,7 +110,7 @@ public class Job {
         task.finishHandler(result);
         boolean isWaiting = getTaskExecutionStatus() == TaskExecutionStatus.WAITING;
         if (wasWaiting && isWaiting) {  // if the task was not closed ... (i.e. if there are other handler(s) on the stack)
-            jobController.unpauseTask(this, result);
+            wfTaskController.unpauseTask(this, result);
         }
     }
 
@@ -129,19 +128,19 @@ public class Job {
     }
 
     private WfTaskUtil getWfTaskUtil() {
-        return jobController.getWfTaskUtil();
+        return wfTaskController.getWfTaskUtil();
     }
 
     public ModelContext retrieveModelContext(OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
         return getWfTaskUtil().retrieveModelContext(task, result);
     }
 
-    public List<Job> listChildren(OperationResult result) throws SchemaException {
-        List<Job> jobs = new ArrayList<Job>();
+    public List<WfTask> listChildren(OperationResult result) throws SchemaException {
+        List<WfTask> wfTasks = new ArrayList<WfTask>();
         for (Task subtask : task.listSubtasks(result)) {
-            jobs.add(jobController.recreateChildJob(subtask, this));
+            wfTasks.add(wfTaskController.recreateChildJob(subtask, this));
         }
-        return jobs;
+        return wfTasks;
     }
 
     public ObjectTreeDeltas retrieveResultingDeltas() throws SchemaException {
@@ -156,16 +155,16 @@ public class Job {
         getWfTaskUtil().storeModelContext(task, modelContext);
     }
 
-    public List<Job> listDependents(OperationResult result) throws SchemaException, ObjectNotFoundException {
-        List<Job> jobs = new ArrayList<Job>();
+    public List<WfTask> listDependents(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        List<WfTask> wfTasks = new ArrayList<WfTask>();
         for (Task subtask : task.listDependents(result)) {
-            jobs.add(jobController.recreateJob(subtask));
+            wfTasks.add(wfTaskController.recreateJob(subtask));
         }
-        return jobs;
+        return wfTasks;
     }
 
-    public Job getParentJob(OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public WfTask getParentJob(OperationResult result) throws SchemaException, ObjectNotFoundException {
         Task parentTask = task.getParentTask(result);
-        return jobController.recreateJob(parentTask);
+        return wfTaskController.recreateJob(parentTask);
     }
 }

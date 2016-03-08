@@ -31,7 +31,7 @@ import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
-import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildJobCreationInstruction;
+import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
@@ -61,7 +61,7 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
     protected abstract String getObjectLabel(T object);
 
     @Override
-    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext,
+    public List<PcpChildWfTaskCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext,
                                                                                WfConfigurationType wfConfigurationType,
                                                                                ObjectTreeDeltas objectTreeDeltas,
                                                                                Task taskFromModel, OperationResult result) throws SchemaException {
@@ -95,9 +95,9 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
         return new ApprovalRequestImpl(objectType, config, prismContext);
     }
 
-    private List<PcpChildJobCreationInstruction> prepareJobCreateInstructions(ModelContext<?> modelContext, Task taskFromModel, OperationResult result,
+    private List<PcpChildWfTaskCreationInstruction> prepareJobCreateInstructions(ModelContext<?> modelContext, Task taskFromModel, OperationResult result,
                                                                               List<ApprovalRequest<T>> approvalRequestList) throws SchemaException {
-        List<PcpChildJobCreationInstruction> instructions = new ArrayList<>();
+        List<PcpChildWfTaskCreationInstruction> instructions = new ArrayList<>();
 
         for (ApprovalRequest<T> approvalRequest : approvalRequestList) {     // there should be just one
 
@@ -112,8 +112,8 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
             PrismObject<UserType> requester = primaryChangeAspectHelper.getRequester(taskFromModel, result);
 
             // create a JobCreateInstruction for a given change processor (primaryChangeProcessor in this case)
-            PcpChildJobCreationInstruction instruction =
-                    PcpChildJobCreationInstruction.createInstruction(getChangeProcessor());
+            PcpChildWfTaskCreationInstruction instruction =
+                    PcpChildWfTaskCreationInstruction.createInstruction(getChangeProcessor());
 
             // set some common task/process attributes
             instruction.prepareCommonAttributes(this, modelContext, null, requester);       // objectOid is null (because object does not exist yet)

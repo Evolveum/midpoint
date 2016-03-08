@@ -26,8 +26,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.api.WorkflowException;
-import com.evolveum.midpoint.wf.impl.jobs.Job;
-import com.evolveum.midpoint.wf.impl.jobs.JobCreationInstruction;
+import com.evolveum.midpoint.wf.impl.jobs.WfTask;
+import com.evolveum.midpoint.wf.impl.jobs.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.processes.DefaultProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
@@ -95,8 +95,8 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
     }
 
     @Override
-    public AuditEventRecord prepareProcessInstanceAuditRecord(Map<String, Object> variables, Job job, AuditEventStage stage, OperationResult result) {
-        return baseAuditHelper.prepareProcessInstanceAuditRecord(variables, job, stage, result);
+    public AuditEventRecord prepareProcessInstanceAuditRecord(Map<String, Object> variables, WfTask wfTask, AuditEventStage stage, OperationResult result) {
+        return baseAuditHelper.prepareProcessInstanceAuditRecord(variables, wfTask, stage, result);
         // TODO what with missing data (delta, result)? We could at least attempt to determine them ...
     }
 
@@ -107,8 +107,8 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
     }
 
     @Override
-    public JobCreationInstruction prepareJobCreationInstruction(GeneralChangeProcessorScenarioType scenarioType, LensContext<?> context, Job rootJob, com.evolveum.midpoint.task.api.Task taskFromModel, OperationResult result) throws SchemaException {
-        JobCreationInstruction instruction = JobCreationInstruction.createWfProcessChildJob(rootJob);
+    public WfTaskCreationInstruction prepareJobCreationInstruction(GeneralChangeProcessorScenarioType scenarioType, LensContext<?> context, WfTask rootWfTask, com.evolveum.midpoint.task.api.Task taskFromModel, OperationResult result) throws SchemaException {
+        WfTaskCreationInstruction instruction = WfTaskCreationInstruction.createWfProcessChildJob(rootWfTask);
         instruction.setProcessDefinitionKey(scenarioType.getProcessName());
         if (scenarioType.getBeanName() != null) {
             instruction.addProcessVariable(GcpProcessVariableNames.VARIABLE_MIDPOINT_SCENARIO_BEAN_NAME, scenarioType.getBeanName());

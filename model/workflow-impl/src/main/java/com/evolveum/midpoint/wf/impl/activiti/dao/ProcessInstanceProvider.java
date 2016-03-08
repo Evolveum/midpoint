@@ -432,7 +432,7 @@ public class ProcessInstanceProvider {
             }
             String instanceId = taskType.getWorkflowContext().getProcessInstanceId();
             if (instanceId == null) {
-                throw new SchemaException("No process instance ID in workflow context");
+                return;
             }
             boolean retrieveWorkItems = SelectorOptions.hasToLoadPath(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM), options);
             WfContextType wfContextType = getWfContextType(instanceId, retrieveWorkItems, result);

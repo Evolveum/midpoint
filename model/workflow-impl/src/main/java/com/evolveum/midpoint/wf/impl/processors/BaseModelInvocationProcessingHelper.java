@@ -20,15 +20,12 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.jobs.Job;
-import com.evolveum.midpoint.wf.impl.jobs.JobController;
-import com.evolveum.midpoint.wf.impl.jobs.JobCreationInstruction;
+import com.evolveum.midpoint.wf.impl.jobs.WfTask;
+import com.evolveum.midpoint.wf.impl.jobs.WfTaskController;
+import com.evolveum.midpoint.wf.impl.jobs.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 
@@ -55,7 +52,7 @@ public class BaseModelInvocationProcessingHelper {
     private static final Trace LOGGER = TraceManager.getTrace(BaseModelInvocationProcessingHelper.class);
 
     @Autowired
-    protected JobController jobController;
+    protected WfTaskController wfTaskController;
 
     @Autowired
     private WfTaskUtil wfTaskUtil;
@@ -70,13 +67,13 @@ public class BaseModelInvocationProcessingHelper {
      * @return the job creation instruction
      * @throws SchemaException
      */
-    public JobCreationInstruction createInstructionForRoot(ChangeProcessor changeProcessor, ModelContext modelContext, Task taskFromModel, ModelContext contextForRoot) throws SchemaException {
+    public WfTaskCreationInstruction createInstructionForRoot(ChangeProcessor changeProcessor, ModelContext modelContext, Task taskFromModel, ModelContext contextForRoot) throws SchemaException {
 
-        JobCreationInstruction instruction;
+        WfTaskCreationInstruction instruction;
         if (contextForRoot != null) {
-            instruction = JobCreationInstruction.createModelOperationRootJob(changeProcessor, contextForRoot);
+            instruction = WfTaskCreationInstruction.createModelOperationRootJob(changeProcessor, contextForRoot);
         } else {
-            instruction = JobCreationInstruction.createNoModelOperationRootJob(changeProcessor);
+            instruction = WfTaskCreationInstruction.createNoModelOperationRootJob(changeProcessor);
         }
 
         instruction.setTaskName(determineRootTaskName(modelContext));
@@ -90,7 +87,7 @@ public class BaseModelInvocationProcessingHelper {
     /**
      * More specific version of the previous method, having contextForRoot equals to modelContext.
      */
-    public JobCreationInstruction createInstructionForRoot(ChangeProcessor changeProcessor, ModelContext modelContext, Task taskFromModel) throws SchemaException {
+    public WfTaskCreationInstruction createInstructionForRoot(ChangeProcessor changeProcessor, ModelContext modelContext, Task taskFromModel) throws SchemaException {
         return createInstructionForRoot(changeProcessor, modelContext, taskFromModel, modelContext);
     }
 
@@ -154,28 +151,34 @@ public class BaseModelInvocationProcessingHelper {
      * @throws SchemaException
      * @throws ObjectNotFoundException
      */
-    public Job createRootJob(JobCreationInstruction rootInstruction, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        Job rootJob = jobController.createJob(rootInstruction, determineParentTaskForRoot(taskFromModel), result);
-        wfTaskUtil.setRootTaskOidImmediate(taskFromModel, rootJob.getTask().getOid(), result);
-        return rootJob;
+    public WfTask createRootJob(WfTaskCreationInstruction rootInstruction, Task taskFromModel, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        WfTask rootWfTask = wfTaskController.createJob(rootInstruction, determineParentTaskForRoot(taskFromModel), result);
+        wfTaskUtil.setRootTaskOidImmediate(taskFromModel, rootWfTask.getTask().getOid(), result);
+        return rootWfTask;
     }
 
-    public void logJobsBeforeStart(Job rootJob, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("============ Situation just before root task starts waiting for subtasks ============");
-            LOGGER.trace("Root job = {}; task = {}", rootJob, rootJob.getTask().debugDump());
-            if (rootJob.hasModelContext()) {
-                LOGGER.trace("Context in root task = " + rootJob.retrieveModelContext(result).debugDump());
-            }
-            List<Job> children = rootJob.listChildren(result);
-            for (int i = 0; i < children.size(); i++) {
-                Job child = children.get(i);
-                LOGGER.trace("Child job #" + i + " = {}, its task = {}", child, child.getTask().debugDump());
-                if (child.hasModelContext()) {
-                    LOGGER.trace("Context in child task = " + child.retrieveModelContext(result).debugDump());
-                }
-            }
-            LOGGER.trace("Now the root task starts waiting for child tasks");
+    public void logJobsBeforeStart(WfTask rootWfTask, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+        if (!LOGGER.isTraceEnabled()) {
+            return;
         }
+
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("===[ Situation just before root task starts waiting for subtasks ]===\n");
+        sb.append("Root job = ").append(rootWfTask).append("; task = ").append(rootWfTask.getTask().debugDump()).append("\n");
+        if (rootWfTask.hasModelContext()) {
+            sb.append("Context in root task: \n").append(rootWfTask.retrieveModelContext(result).debugDump(1)).append("\n");
+        }
+        List<WfTask> children = rootWfTask.listChildren(result);
+        for (int i = 0; i < children.size(); i++) {
+            WfTask child = children.get(i);
+            sb.append("Child job #").append(i).append(" = ").append(child).append(", its task:\n").append(child.getTask().debugDump(1));
+            if (child.hasModelContext()) {
+                sb.append("Context in child task:\n").append(child.retrieveModelContext(result).debugDump(2));
+            }
+        }
+        LOGGER.trace("\n{}", sb.toString());
+        LOGGER.trace("Now the root task starts waiting for child tasks");
     }
 }

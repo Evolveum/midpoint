@@ -24,17 +24,13 @@ import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.WfTaskExtensionItemsNames;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
@@ -43,9 +39,9 @@ import com.evolveum.midpoint.wf.processors.primary.PcpTaskExtensionItemsNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -56,9 +52,7 @@ import java.util.*;
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.TASK;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_CHANGE_PROCESSOR;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_END_TIMESTAMP;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESS_INSTANCE_ID;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 
 /**
  * Handles low-level task operations, e.g. handling wf* properties in task extension.
@@ -68,7 +62,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType
  */
 
 @Component
-@DependsOn({ "prismContext" })
+//@DependsOn({ "prismContext" })
 
 public class WfTaskUtil {
 
@@ -118,55 +112,6 @@ public class WfTaskUtil {
                         .asItemDelta());
 		task.savePendingModifications(parentResult);
 	}
-
-    /**
-	 * Sets an extension property.
-	 */
-	private<T> void setExtensionPropertyImmediate(Task task, PrismPropertyDefinition propertyDef, T propertyValue, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-		if (parentResult == null)
-			parentResult = new OperationResult("setExtensionPropertyImmediate");
-		
-		PrismProperty prop = propertyDef.instantiate();
-        prop.setValue(new PrismPropertyValue<T>(propertyValue));
-
-		try {
-            task.setExtensionPropertyImmediate(prop, parentResult);
-        } catch (ObjectNotFoundException ex) {
-			parentResult.recordFatalError("Object not found", ex);
-            LoggingUtils.logException(LOGGER, "Cannot set {} for task {}", ex, propertyDef.getName(), task);
-            throw ex;
-		} catch (SchemaException ex) {
-			parentResult.recordFatalError("Schema error", ex);
-            LoggingUtils.logException(LOGGER, "Cannot set {} for task {}", ex, propertyDef.getName(), task);
-            throw ex;
-		} catch (RuntimeException ex) {
-			parentResult.recordFatalError("Internal error", ex);
-            LoggingUtils.logException(LOGGER, "Cannot set {} for task {}", ex, propertyDef.getName(), task);
-            throw ex;
-		}
-		
-	}
-
-    private<T> void setExtensionProperty(Task task, PrismPropertyDefinition propertyDef, T propertyValue, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-        if (parentResult == null)
-            parentResult = new OperationResult("setExtensionProperty");
-
-        PrismProperty prop = propertyDef.instantiate();
-        prop.setValue(new PrismPropertyValue<T>(propertyValue));
-
-        try {
-            task.setExtensionProperty(prop);
-        } catch (SchemaException ex) {
-            parentResult.recordFatalError("Schema error", ex);
-            LoggingUtils.logException(LOGGER, "Cannot set {} for task {}", ex, propertyDef.getName(), task);
-            throw ex;
-        } catch (RuntimeException ex) {
-            parentResult.recordFatalError("Internal error", ex);
-            LoggingUtils.logException(LOGGER, "Cannot set {} for task {}", ex, propertyDef.getName(), task);
-            throw ex;
-        }
-
-    }
 
     public void setPrimaryChangeAspect(Task task, PrimaryChangeAspect aspect) throws SchemaException {
         Validate.notNull(aspect, "Primary change aspect is undefined.");
@@ -299,9 +244,13 @@ public class WfTaskUtil {
     }
 
     public void setRootTaskOidImmediate(Task task, String oid, OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        Collection<PrismReferenceValue> values = new ArrayList<>();
+        if (StringUtils.isNotEmpty(oid)) {
+            values.add(createObjectRef(oid, TASK).asReferenceValue());
+        }
         task.addModificationImmediate(
                 DeltaBuilder.deltaFor(TaskType.class, prismContext)
-                        .item(F_WORKFLOW_CONTEXT, WfContextType.F_ROOT_TASK_REF).replace(createObjectRef(oid, TASK))
+                        .item(F_WORKFLOW_CONTEXT, F_ROOT_TASK_REF).replace(values)
                         .asItemDelta(),
                 result);
     }
@@ -430,7 +379,7 @@ public class WfTaskUtil {
         }
     }
 
-    void setDefaultTaskOwnerIfEmpty(Task t, OperationResult result, JobController jobController) throws SchemaException, ObjectNotFoundException {
+    void setDefaultTaskOwnerIfEmpty(Task t, OperationResult result, WfTaskController wfTaskController) throws SchemaException, ObjectNotFoundException {
         if (t.getOwner() == null) {
             t.setOwner(repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result));
         }

@@ -49,7 +49,7 @@ import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariab
  *
  * @author mederly
  */
-public class JobCreationInstruction implements DebugDumpable {
+public class WfTaskCreationInstruction implements DebugDumpable {
 
     private ChangeProcessor changeProcessor;
 
@@ -82,49 +82,49 @@ public class JobCreationInstruction implements DebugDumpable {
     private List<UriStackEntry> handlersAfterWfProcess = new ArrayList<>();
 
     //region Constructors
-    protected JobCreationInstruction(ChangeProcessor changeProcessor) {
+    protected WfTaskCreationInstruction(ChangeProcessor changeProcessor) {
         Validate.notNull(changeProcessor);
         this.changeProcessor = changeProcessor;
     }
 
-    protected JobCreationInstruction(Job parentJob) {
-        this(parentJob.getChangeProcessor());
+    protected WfTaskCreationInstruction(WfTask parentWfTask) {
+        this(parentWfTask.getChangeProcessor());
     }
 
-    public static JobCreationInstruction createModelOperationRootJob(ChangeProcessor changeProcessor, ModelContext modelContext) throws SchemaException {
-        JobCreationInstruction instruction = new JobCreationInstruction(changeProcessor);
+    public static WfTaskCreationInstruction createModelOperationRootJob(ChangeProcessor changeProcessor, ModelContext modelContext) throws SchemaException {
+        WfTaskCreationInstruction instruction = new WfTaskCreationInstruction(changeProcessor);
         instruction.setNoProcess(true);
         instruction.addTaskModelContext(modelContext);
         instruction.setExecuteModelOperationHandler(true);
         return instruction;
     }
 
-    public static JobCreationInstruction createNoModelOperationRootJob(ChangeProcessor changeProcessor) throws SchemaException {
-        JobCreationInstruction instruction = new JobCreationInstruction(changeProcessor);
+    public static WfTaskCreationInstruction createNoModelOperationRootJob(ChangeProcessor changeProcessor) throws SchemaException {
+        WfTaskCreationInstruction instruction = new WfTaskCreationInstruction(changeProcessor);
         instruction.setNoProcess(true);
         instruction.setExecuteModelOperationHandler(false);
         return instruction;
     }
 
-    public static JobCreationInstruction createWfProcessChildJob(ChangeProcessor changeProcessor) {
-        JobCreationInstruction jci = new JobCreationInstruction(changeProcessor);
+    public static WfTaskCreationInstruction createWfProcessChildJob(ChangeProcessor changeProcessor) {
+        WfTaskCreationInstruction jci = new WfTaskCreationInstruction(changeProcessor);
         prepareWfProcessChildJobInternal(jci);
         return jci;
     }
 
-    public static JobCreationInstruction createWfProcessChildJob(Job parentJob) {
-        JobCreationInstruction jci = new JobCreationInstruction(parentJob);
+    public static WfTaskCreationInstruction createWfProcessChildJob(WfTask parentWfTask) {
+        WfTaskCreationInstruction jci = new WfTaskCreationInstruction(parentWfTask);
         prepareWfProcessChildJobInternal(jci);
         return jci;
     }
 
-    protected static void prepareWfProcessChildJobInternal(JobCreationInstruction instruction) {
+    protected static void prepareWfProcessChildJobInternal(WfTaskCreationInstruction instruction) {
         instruction.setNoProcess(false);
         instruction.initializeCommonProcessVariables();
     }
 
-    public static JobCreationInstruction createModelOperationChildJob(Job parentJob, ModelContext modelContext) throws SchemaException {
-        JobCreationInstruction instruction = new JobCreationInstruction(parentJob);
+    public static WfTaskCreationInstruction createModelOperationChildJob(WfTask parentWfTask, ModelContext modelContext) throws SchemaException {
+        WfTaskCreationInstruction instruction = new WfTaskCreationInstruction(parentWfTask);
         instruction.setNoProcess(true);
         instruction.addTaskModelContext(modelContext);
         instruction.setExecuteModelOperationHandler(true);
@@ -375,7 +375,7 @@ public class JobCreationInstruction implements DebugDumpable {
 
     //region Diagnostics
     public String toString() {
-        return "JobCreationInstruction: processDefinitionKey = " + processDefinitionKey + ", simple: " + simple + ", variables: " + processVariables;
+        return "WfTaskCreationInstruction: processDefinitionKey = " + processDefinitionKey + ", simple: " + simple + ", variables: " + processVariables;
     }
 
     @Override
@@ -388,7 +388,7 @@ public class JobCreationInstruction implements DebugDumpable {
         StringBuilder sb = new StringBuilder();
 
         DebugUtil.indentDebugDump(sb, indent);
-        sb.append("JobCreationInstruction: process: " + processDefinitionKey + " (" +
+        sb.append("WfTaskCreationInstruction: process: " + processDefinitionKey + " (" +
                 (simple ? "simple" : "smart") + ", " +
                 (noProcess ? "no-process" : "with-process") +
                 "), task = " + taskName + "\n");

@@ -57,7 +57,6 @@ import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 import org.apache.commons.lang.Validate;
@@ -86,13 +85,12 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType
  * @author mederly
  */
 @Component
-public class JobController {
+public class WfTaskController {
 
-    private static final Trace LOGGER = TraceManager.getTrace(JobController.class);
+    private static final Trace LOGGER = TraceManager.getTrace(WfTaskController.class);
 
     private static final long TASK_START_DELAY = 5000L;
-    private static final boolean USE_WFSTATUS = true;
-    private static final Object DOT_CLASS = JobController.class.getName() + ".";
+    private static final Object DOT_CLASS = WfTaskController.class.getName() + ".";
 
     private Set<ProcessListener> processListeners = new HashSet<>();
     private Set<WorkItemListener> workItemListeners = new HashSet<>();
@@ -132,11 +130,11 @@ public class JobController {
      * Creates a job, just as prescribed by the job creation instruction.
      *
      * @param instruction the job creation instruction
-     * @param parentJob the job that will be the parent of newly created one; it may be null
+     * @param parentWfTask the job that will be the parent of newly created one; it may be null
      */
 
-    public Job createJob(JobCreationInstruction instruction, Job parentJob, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return createJob(instruction, parentJob.getTask(), result);
+    public WfTask createJob(WfTaskCreationInstruction instruction, WfTask parentWfTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return createJob(instruction, parentWfTask.getTask(), result);
     }
 
     /**
@@ -145,18 +143,18 @@ public class JobController {
      * @param instruction the job creation instruction
      * @param parentTask the task that will be the parent of the task of newly created job; it may be null
      */
-    public Job createJob(JobCreationInstruction instruction, Task parentTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public WfTask createJob(WfTaskCreationInstruction instruction, Task parentTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Processing start instruction: " + instruction.debugDump());
         }
 
         Task task = createTask(instruction, parentTask, result);
-        Job job = new Job(this, task, instruction.getChangeProcessor());
+        WfTask wfTask = new WfTask(this, task, instruction.getChangeProcessor());
         if (!instruction.isNoProcess()) {
-            startWorkflowProcessInstance(job, instruction, result);
+            startWorkflowProcessInstance(wfTask, instruction, result);
         }
-        return job;
+        return wfTask;
     }
 
     /**
@@ -165,32 +163,32 @@ public class JobController {
      * @param task a task from task-processInstance pair
      * @return recreated job
      */
-    public Job recreateJob(Task task) throws SchemaException, ObjectNotFoundException {
-        return new Job(this, task, wfTaskUtil.getProcessId(task), wfTaskUtil.getChangeProcessor(task));
+    public WfTask recreateJob(Task task) throws SchemaException, ObjectNotFoundException {
+        return new WfTask(this, task, wfTaskUtil.getProcessId(task), wfTaskUtil.getChangeProcessor(task));
     }
 
     /**
      * Re-creates a child job, knowing the task and the parent job.
      *
      * @param subtask a task from task-processInstance pair
-     * @param parentJob the parent job
+     * @param parentWfTask the parent job
      * @return recreated job
      */
-    public Job recreateChildJob(Task subtask, Job parentJob) {
-        return new Job(this, subtask, wfTaskUtil.getProcessId(subtask), parentJob.getChangeProcessor());
+    public WfTask recreateChildJob(Task subtask, WfTask parentWfTask) {
+        return new WfTask(this, subtask, wfTaskUtil.getProcessId(subtask), parentWfTask.getChangeProcessor());
     }
 
     /**
      * Re-creates a root job, based on existing task information. Does not try to find the wf process instance.
      */
-    public Job recreateRootJob(Task task) {
-        return new Job(this, task, wfTaskUtil.getChangeProcessor(task));
+    public WfTask recreateRootJob(Task task) {
+        return new WfTask(this, task, wfTaskUtil.getChangeProcessor(task));
     }
     //endregion
 
     //region Working with midPoint tasks
 
-    private Task createTask(JobCreationInstruction instruction, Task parentTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private Task createTask(WfTaskCreationInstruction instruction, Task parentTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         ChangeProcessor changeProcessor = instruction.getChangeProcessor();
 
@@ -262,36 +260,36 @@ public class JobController {
      * @param executesFirst
      * @param executesSecond
      */
-    public void addDependency(Job executesFirst, Job executesSecond) {
+    public void addDependency(WfTask executesFirst, WfTask executesSecond) {
         Validate.notNull(executesFirst.getTask());
         Validate.notNull(executesSecond.getTask());
         LOGGER.trace("Setting dependency of {} on 'task0' {}", executesSecond, executesFirst);
         executesFirst.getTask().addDependent(executesSecond.getTask().getTaskIdentifier());
     }
 
-    public void resumeTask(Job job, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        taskManager.resumeTask(job.getTask(), result);
+    public void resumeTask(WfTask wfTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        taskManager.resumeTask(wfTask.getTask(), result);
     }
 
-    public void unpauseTask(Job job, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        taskManager.unpauseTask(job.getTask(), result);
+    public void unpauseTask(WfTask wfTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        taskManager.unpauseTask(wfTask.getTask(), result);
     }
     //endregion
 
     //region Working with Activiti process instances
 
-    private void startWorkflowProcessInstance(Job job, JobCreationInstruction instruction, OperationResult result) {
+    private void startWorkflowProcessInstance(WfTask wfTask, WfTaskCreationInstruction instruction, OperationResult result) {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("startWorkflowProcessInstance starting; instruction = " + instruction);
         }
 
-        Task task = job.getTask();
+        Task task = wfTask.getTask();
 
         // perhaps more useful would be state 'workflow process instance creation HAS BEEN requested';
         // however, if we record process state AFTER the request is sent, it is possible
         // that the response would come even before we log the request
-        recordProcessInstanceState(job, "Workflow process instance creation is being requested.", null, result);
+        recordProcessInstanceState(wfTask, "Workflow process instance creation is being requested.", null, result);
 
         // prepare and send the start process instance command
         StartProcessCommand spc = new StartProcessCommand();
@@ -304,12 +302,12 @@ public class JobController {
 
         try {
             activitiInterface.midpoint2activiti(spc, task, result);
-            auditProcessStart(spc, job, result);
-            notifyProcessStart(spc, job, result);
+            auditProcessStart(spc, wfTask, result);
+            notifyProcessStart(spc, wfTask, result);
         } catch (JAXBException|SchemaException|RuntimeException|ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER,
                     "Couldn't send a request to start a process instance to workflow management system", e);
-            recordProcessInstanceState(job, "Workflow process instance creation could not be requested: " + e, null, result);
+            recordProcessInstanceState(wfTask, "Workflow process instance creation could not be requested: " + e, null, result);
             result.recordPartialError("Couldn't send a request to start a process instance to workflow management system: " + e.getMessage(), e);
             throw new SystemException("Workflow process instance creation could not be requested", e);
         }
@@ -369,35 +367,35 @@ public class JobController {
 
     private void processProcessEvent(ProcessEvent event, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, JAXBException {
 
-        Job job = recreateJob(task);
+        WfTask wfTask = recreateJob(task);
 
-        recordProcessInstanceState(job, getStateDescription(event), event, result);
+        recordProcessInstanceState(wfTask, getStateDescription(event), event, result);
 
         // let us record process id (if unknown or when getting "process started" event)
-        if (job.getActivitiId() == null || event instanceof ProcessStartedEvent) {
-            job.setWfProcessIdImmediate(event.getPid(), result);
+        if (wfTask.getActivitiId() == null || event instanceof ProcessStartedEvent) {
+            wfTask.setWfProcessIdImmediate(event.getPid(), result);
         }
 
         // should we finish this task?
         if (event instanceof ProcessFinishedEvent || !event.isRunning()) {
-            processFinishedEvent(event, job, result);
+            processFinishedEvent(event, wfTask, result);
         }
     }
 
-    private void processFinishedEvent(ProcessEvent event, Job job, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, JAXBException {
+    private void processFinishedEvent(ProcessEvent event, WfTask wfTask, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, JAXBException {
         LOGGER.trace("processFinishedEvent starting");
-        LOGGER.trace("Calling onProcessEnd on {}", job.getChangeProcessor());
-        job.getChangeProcessor().onProcessEnd(event, job, result);
+        LOGGER.trace("Calling onProcessEnd on {}", wfTask.getChangeProcessor());
+        wfTask.getChangeProcessor().onProcessEnd(event, wfTask, result);
 
-        job.setProcessInstanceFinishedImmediate(result);
+        wfTask.setProcessInstanceFinishedImmediate(result);
 
-        auditProcessEnd(event, job, result);
-        notifyProcessEnd(event, job, result);
+        auditProcessEnd(event, wfTask, result);
+        notifyProcessEnd(event, wfTask, result);
 
         // passive tasks can be 'let go' at this point
-        if (job.getTaskExecutionStatus() == TaskExecutionStatus.WAITING) {
-            job.computeTaskResultIfUnknown(result);
-            job.removeCurrentTaskHandlerAndUnpause(result);            // removes WfProcessInstanceShadowTaskHandler
+        if (wfTask.getTaskExecutionStatus() == TaskExecutionStatus.WAITING) {
+            wfTask.computeTaskResultIfUnknown(result);
+            wfTask.removeCurrentTaskHandlerAndUnpause(result);            // removes WfProcessInstanceShadowTaskHandler
         }
         LOGGER.trace("processFinishedEvent done");
     }
@@ -417,9 +415,9 @@ public class JobController {
         return stateDescription;
     }
 
-    private void recordProcessInstanceState(Job job, String stateDescription, ProcessEvent event, OperationResult parentResult) {
+    private void recordProcessInstanceState(WfTask wfTask, String stateDescription, ProcessEvent event, OperationResult parentResult) {
         LOGGER.trace("recordProcessInstanceState starting.");
-        Task task = job.getTask();
+        Task task = wfTask.getTask();
         try {
             task.addModification(taskDelta().item(F_WORKFLOW_CONTEXT, F_STATE).replace(stateDescription).asItemDelta());
 //            if (event != null) {
@@ -530,28 +528,28 @@ public class JobController {
     //endregion
 
     //region Auditing and notifications
-    private void auditProcessStart(StartProcessCommand spc, Job job, OperationResult result) {
-        auditProcessStartEnd(spc.getVariables(), job, AuditEventStage.REQUEST, result);
+    private void auditProcessStart(StartProcessCommand spc, WfTask wfTask, OperationResult result) {
+        auditProcessStartEnd(spc.getVariables(), wfTask, AuditEventStage.REQUEST, result);
     }
 
-    private void auditProcessEnd(ProcessEvent event, Job job, OperationResult result) {
-        auditProcessStartEnd(event.getVariables(), job, AuditEventStage.EXECUTION, result);
+    private void auditProcessEnd(ProcessEvent event, WfTask wfTask, OperationResult result) {
+        auditProcessStartEnd(event.getVariables(), wfTask, AuditEventStage.EXECUTION, result);
     }
 
-    private void auditProcessStartEnd(Map<String,Object> variables, Job job, AuditEventStage stage, OperationResult result) {
-        AuditEventRecord auditEventRecord = getChangeProcessor(variables).prepareProcessInstanceAuditRecord(variables, job, stage, result);
-        auditService.audit(auditEventRecord, job.getTask());
+    private void auditProcessStartEnd(Map<String,Object> variables, WfTask wfTask, AuditEventStage stage, OperationResult result) {
+        AuditEventRecord auditEventRecord = getChangeProcessor(variables).prepareProcessInstanceAuditRecord(variables, wfTask, stage, result);
+        auditService.audit(auditEventRecord, wfTask.getTask());
     }
 
-    private void notifyProcessStart(StartProcessCommand spc, Job job, OperationResult result) throws JAXBException, SchemaException {
-        PrismObject<? extends ProcessInstanceState> state = job.getChangeProcessor().externalizeProcessInstanceState(spc.getVariables());
+    private void notifyProcessStart(StartProcessCommand spc, WfTask wfTask, OperationResult result) throws JAXBException, SchemaException {
+        PrismObject<? extends ProcessInstanceState> state = wfTask.getChangeProcessor().externalizeProcessInstanceState(spc.getVariables());
         for (ProcessListener processListener : processListeners) {
             processListener.onProcessInstanceStart(state, result);
         }
     }
 
-    private void notifyProcessEnd(ProcessEvent event, Job job, OperationResult result) throws JAXBException, SchemaException {
-        PrismObject<? extends ProcessInstanceState> state = job.getChangeProcessor().externalizeProcessInstanceState(event.getVariables());
+    private void notifyProcessEnd(ProcessEvent event, WfTask wfTask, OperationResult result) throws JAXBException, SchemaException {
+        PrismObject<? extends ProcessInstanceState> state = wfTask.getChangeProcessor().externalizeProcessInstanceState(event.getVariables());
         for (ProcessListener processListener : processListeners) {
             processListener.onProcessInstanceEnd(state, result);
         }

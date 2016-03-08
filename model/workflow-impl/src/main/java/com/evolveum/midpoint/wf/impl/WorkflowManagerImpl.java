@@ -25,7 +25,6 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -36,7 +35,7 @@ import com.evolveum.midpoint.wf.impl.activiti.dao.ProcessInstanceManager;
 import com.evolveum.midpoint.wf.impl.activiti.dao.ProcessInstanceProvider;
 import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemManager;
 import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemProvider;
-import com.evolveum.midpoint.wf.impl.jobs.JobController;
+import com.evolveum.midpoint.wf.impl.jobs.WfTaskController;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
@@ -74,7 +73,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
     private ProcessInstanceManager processInstanceManager;
 
     @Autowired
-    private JobController jobController;
+    private WfTaskController wfTaskController;
 
     @Autowired
     private WorkItemProvider workItemProvider;
@@ -196,12 +195,12 @@ public class WorkflowManagerImpl implements WorkflowManager {
 
     @Override
     public void registerProcessListener(ProcessListener processListener) {
-        jobController.registerProcessListener(processListener);
+        wfTaskController.registerProcessListener(processListener);
     }
 
     @Override
     public void registerWorkItemListener(WorkItemListener workItemListener) {
-        jobController.registerWorkItemListener(workItemListener);
+        wfTaskController.registerWorkItemListener(workItemListener);
     }
 
     @Override

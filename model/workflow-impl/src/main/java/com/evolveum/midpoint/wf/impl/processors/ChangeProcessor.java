@@ -29,7 +29,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.impl.WorkflowManagerImpl;
-import com.evolveum.midpoint.wf.impl.jobs.Job;
+import com.evolveum.midpoint.wf.impl.jobs.WfTask;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
@@ -71,8 +71,9 @@ public interface ChangeProcessor {
      *
      * @param context Model context of the operation.
      * @param wfConfigurationType
-     *@param taskFromModel Task in context of which the operation is carried out.
-     * @param result Where to put information on operation execution.   @return non-null value if it processed the request;
+     * @param taskFromModel Task in context of which the operation is carried out.
+     * @param result Where to put information on operation execution.
+     * @return non-null value if it processed the request;
      *              BACKGROUND = the process was "caught" by the processor, and continues in background,
      *              FOREGROUND = nothing was left on background, the model operation should continue in foreground,
      *              ERROR = something wrong has happened, there's no point in continuing with this operation.
@@ -94,7 +95,7 @@ public interface ChangeProcessor {
      * @param result Here should be stored information about whether the finalization was successful or not
      * @throws SchemaException
      */
-    void onProcessEnd(ProcessEvent event, Job job, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
+    void onProcessEnd(ProcessEvent event, WfTask wfTask, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
 
     /**
      * Externalizes internal state of the process instance. Typically, uninteresting (auxiliary) data elements
@@ -134,12 +135,12 @@ public interface ChangeProcessor {
      * Prepares a process instance-related audit record.
      *
      * @param variables
-     * @param job
+     * @param wfTask
      * @param stage
      * @param result
      * @return
      */
-    AuditEventRecord prepareProcessInstanceAuditRecord(Map<String, Object> variables, Job job, AuditEventStage stage, OperationResult result);
+    AuditEventRecord prepareProcessInstanceAuditRecord(Map<String, Object> variables, WfTask wfTask, AuditEventStage stage, OperationResult result);
 
     /**
      * Prepares a work item-related audit record.

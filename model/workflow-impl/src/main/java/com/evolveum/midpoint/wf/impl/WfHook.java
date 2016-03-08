@@ -152,20 +152,16 @@ public class WfHook implements ChangeHook {
 
             for (ChangeProcessor changeProcessor : wfConfiguration.getChangeProcessors()) {
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Trying change processor: " + changeProcessor.getClass().getName());
+                    LOGGER.trace("Trying change processor: {}", changeProcessor.getClass().getName());
                 }
                 try {
                     HookOperationMode hookOperationMode = changeProcessor.processModelInvocation(context, wfConfigurationType, taskFromModel, result);
                     if (hookOperationMode != null) {
                         return hookOperationMode;
                     }
-                } catch (SchemaException e) {
-                    LoggingUtils.logException(LOGGER, "Schema exception while running change processor {}", e, changeProcessor.getClass().getName());   // todo message
-                    result.recordFatalError("Schema exception while running change processor " + changeProcessor.getClass(), e);
-                    return HookOperationMode.ERROR;
-                } catch (ObjectNotFoundException|RuntimeException e) {
-                    LoggingUtils.logException(LOGGER, "Unexpected exception while running change processor {}", e, changeProcessor.getClass().getName());   // todo message
-                    result.recordFatalError("Unexpected exception while running change processor " + changeProcessor.getClass(), e);
+                } catch (ObjectNotFoundException|SchemaException|RuntimeException e) {
+                    LoggingUtils.logException(LOGGER, "Exception while running change processor {}", e, changeProcessor.getClass().getName());   // todo message
+                    result.recordFatalError("Exception while running change processor " + changeProcessor.getClass(), e);
                     return HookOperationMode.ERROR;
                 }
             }

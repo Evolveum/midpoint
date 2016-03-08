@@ -735,7 +735,7 @@
             <xsd:element name="requesterRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        User who requested the respective operation was carried out.
+                        User who requested the respective operation was carried out. Stored in repository.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>

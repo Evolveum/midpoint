@@ -17,17 +17,16 @@
 package com.evolveum.midpoint.wf.impl.processors.primary.aspect;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.wf.impl.jobs.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
-import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildJobCreationInstruction;
-import com.evolveum.midpoint.wf.impl.processors.primary.PcpJob;
+import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
+import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
@@ -71,9 +70,9 @@ public interface PrimaryChangeAspect {
      * @param objectTreeDeltas Change to be examined and modified by implementation of this method
      * @param taskFromModel General context of the operation - the method should not modify the task.
      * @param result Operation result - the method should report any errors here (TODO what about creating subresults?)    @return list of start process instructions
-     * @see com.evolveum.midpoint.wf.impl.jobs.JobCreationInstruction
+     * @see WfTaskCreationInstruction
      */
-    List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    List<PcpChildWfTaskCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     /**
      * On process instance end, prepares deltaOut based in deltaIn and information gathered during approval process.
@@ -86,7 +85,7 @@ public interface PrimaryChangeAspect {
      * here may be more complex.
      * @throws SchemaException if there is any problem with the schema.
      */
-    ObjectTreeDeltas prepareDeltaOut(ProcessEvent event, PcpJob job, OperationResult result) throws SchemaException;
+    ObjectTreeDeltas prepareDeltaOut(ProcessEvent event, PcpWfTask job, OperationResult result) throws SchemaException;
 
     /**
      * Returns a list of users who have approved the particular request. This information is then stored in the task by the wf module,
@@ -100,7 +99,7 @@ public interface PrimaryChangeAspect {
      * @param result Operation result - the method should report any errors here.
      * @return List of references to approvers that approved this request.
      */
-    List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpJob job, OperationResult result);
+    List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpWfTask job, OperationResult result);
 
     /**
      * Returns a PrismObject containing information about a work item to be processed by the user. For example, for 'approve role addition' process

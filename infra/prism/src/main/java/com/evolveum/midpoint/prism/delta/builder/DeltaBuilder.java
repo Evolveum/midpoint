@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.builder.R_Filter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -211,7 +212,7 @@ public class DeltaBuilder implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
     }
 
     @Override
-    public S_ItemEntry replace(Collection<PrismValue> values) {
+    public S_ItemEntry replace(Collection<? extends PrismValue> values) {
         currentDelta.setValuesToReplace(values);
         return this;
     }

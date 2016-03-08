@@ -28,8 +28,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.jobs.Job;
-import com.evolveum.midpoint.wf.impl.jobs.JobController;
+import com.evolveum.midpoint.wf.impl.jobs.WfTask;
+import com.evolveum.midpoint.wf.impl.jobs.WfTaskController;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +59,7 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
     private TaskManager taskManager;
 
     @Autowired
-    private JobController jobController;
+    private WfTaskController wfTaskController;
 
     @PostConstruct
     public void init() {
@@ -78,13 +78,13 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
 
             OperationResult result = task.getResult();
 
-            Job rootJob = jobController.recreateRootJob(task);
-            List<Job> children = rootJob.listChildren(result);
+            WfTask rootWfTask = wfTaskController.recreateRootJob(task);
+            List<WfTask> children = rootWfTask.listChildren(result);
 
-            LensContext rootContext = (LensContext) rootJob.retrieveModelContext(result);
+            LensContext rootContext = (LensContext) rootWfTask.retrieveModelContext(result);
 
             boolean changed = false;
-            for (Job child : children) {
+            for (WfTask child : children) {
 
                 if (child.getTaskExecutionStatus() != TaskExecutionStatus.CLOSED) {
                     throw new IllegalStateException("Child task " + child + " is not in CLOSED state; its state is " + child.getTaskExecutionStatus());
@@ -142,8 +142,8 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
             }
 
             if (changed) {
-                rootJob.storeModelContext(rootContext);
-                rootJob.commitChanges(result);
+                rootWfTask.storeModelContext(rootContext);
+                rootWfTask.commitChanges(result);
             }
 
         } catch (SchemaException e) {

@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.wf.impl.jobs.JobCreationInstruction;
+import com.evolveum.midpoint.wf.impl.jobs.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.processes.BaseProcessMidPointInterface;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
@@ -50,7 +50,7 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
     @Autowired
     private PrismContext prismContext;
 
-    public void prepareStartInstruction(JobCreationInstruction instruction, ApprovalRequest approvalRequest, String approvalTaskName) {
+    public void prepareStartInstruction(WfTaskCreationInstruction instruction, ApprovalRequest approvalRequest, String approvalTaskName) {
         instruction.setProcessDefinitionKey(PROCESS_DEFINITION_KEY);
         instruction.setSimple(false);
         instruction.setSendStartConfirmation(true);

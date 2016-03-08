@@ -39,8 +39,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.jobs.Job;
-import com.evolveum.midpoint.wf.impl.jobs.JobController;
+import com.evolveum.midpoint.wf.impl.jobs.WfTask;
+import com.evolveum.midpoint.wf.impl.jobs.WfTaskController;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang.Validate;
@@ -75,7 +75,7 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
     private TaskManager taskManager;
 
     @Autowired
-    private JobController jobController;
+    private WfTaskController wfTaskController;
 
     @PostConstruct
     public void init() {
@@ -94,18 +94,18 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
 
         try {
 
-            Job job = jobController.recreateJob(task);
+            WfTask wfTask = wfTaskController.recreateJob(task);
 
             OperationResult result = task.getResult();
 
-            ModelContext modelContext = job.retrieveModelContext(result);
+            ModelContext modelContext = wfTask.retrieveModelContext(result);
             if (modelContext == null) {
                 throw new IllegalStateException("There's no model context in child task; task = " + task);
             }
 
             // prepare deltaOut to be used
 
-            ObjectTreeDeltas deltasOut = job.retrieveResultingDeltas();
+            ObjectTreeDeltas deltasOut = wfTask.retrieveResultingDeltas();
             if (LOGGER.isTraceEnabled()) { dumpDeltaOut(deltasOut); }
 
             if (deltasOut == null || deltasOut.isEmpty()) {
@@ -115,7 +115,7 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
                     LOGGER.trace("We'll delete model operation context.");
                 }
 
-                job.deleteModelOperationContext(result);
+                wfTask.deleteModelOperationContext(result);
 
             } else {
 
@@ -143,7 +143,7 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Resulting model context to be stored into task {}:\n{}", task, modelContext.debugDump(0));
                 }
-                job.storeModelContext(modelContext);
+                wfTask.storeModelContext(modelContext);
             }
 
             task.savePendingModifications(result);
@@ -187,10 +187,10 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
         }
 
         Task task0 = prerequisites.get(0);
-        Job job0 = jobController.recreateJob(task0);
+        WfTask wfTask0 = wfTaskController.recreateJob(task0);
         Validate.isTrue(task0.isClosed(), "Task0 should be already closed; it is " + task0.getExecutionStatus());
 
-        LensContext context0 = (LensContext) job0.retrieveModelContext(result);
+        LensContext context0 = (LensContext) wfTask0.retrieveModelContext(result);
         if (context0 == null) {
             throw new IllegalStateException("There's no model context in task0; task0 = " + task);
         }

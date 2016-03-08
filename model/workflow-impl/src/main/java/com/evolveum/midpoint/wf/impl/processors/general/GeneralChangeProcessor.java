@@ -19,9 +19,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.api.WorkflowException;
-import com.evolveum.midpoint.wf.impl.jobs.Job;
-import com.evolveum.midpoint.wf.impl.jobs.JobController;
-import com.evolveum.midpoint.wf.impl.jobs.JobCreationInstruction;
+import com.evolveum.midpoint.wf.impl.jobs.WfTask;
+import com.evolveum.midpoint.wf.impl.jobs.WfTaskController;
+import com.evolveum.midpoint.wf.impl.jobs.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
@@ -59,7 +59,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     private WfTaskUtil wfTaskUtil;
 
     @Autowired
-    private JobController jobController;
+    private WfTaskController wfTaskController;
 
     @Autowired
     private ActivitiEngine activitiEngine;
@@ -150,22 +150,22 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         try {
             // ========== preparing root task ===========
 
-            JobCreationInstruction rootInstruction = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel);
-            Job rootJob = baseModelInvocationProcessingHelper.createRootJob(rootInstruction, taskFromModel, result);
+            WfTaskCreationInstruction rootInstruction = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel);
+            WfTask rootWfTask = baseModelInvocationProcessingHelper.createRootJob(rootInstruction, taskFromModel, result);
 
             // ========== preparing child task, starting WF process ===========
 
-            JobCreationInstruction instruction = scenarioBean.prepareJobCreationInstruction(scenarioType, (LensContext<?>) context, rootJob, taskFromModel, result);
-            jobController.createJob(instruction, rootJob, result);
+            WfTaskCreationInstruction instruction = scenarioBean.prepareJobCreationInstruction(scenarioType, (LensContext<?>) context, rootWfTask, taskFromModel, result);
+            wfTaskController.createJob(instruction, rootWfTask, result);
 
             // ========== complete the action ===========
 
-            baseModelInvocationProcessingHelper.logJobsBeforeStart(rootJob, result);
-            rootJob.startWaitingForSubtasks(result);
+            baseModelInvocationProcessingHelper.logJobsBeforeStart(rootWfTask, result);
+            rootWfTask.startWaitingForSubtasks(result);
 
             return HookOperationMode.BACKGROUND;
 
-        } catch (SchemaException|ObjectNotFoundException|CommunicationException|ConfigurationException|RuntimeException e) {
+        } catch (SchemaException|ObjectNotFoundException|CommunicationException|ConfigurationException|ObjectAlreadyExistsException|RuntimeException e) {
             LoggingUtils.logException(LOGGER, "Workflow process(es) could not be started", e);
             result.recordFatalError("Workflow process(es) could not be started: " + e, e);
             return HookOperationMode.ERROR;
@@ -176,9 +176,9 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
     //region Finalizing the processing
     @Override
-    public void onProcessEnd(ProcessEvent event, Job job, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+    public void onProcessEnd(ProcessEvent event, WfTask wfTask, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 
-        Task task = job.getTask();
+        Task task = wfTask.getTask();
         // we simply put model context back into parent task
         // (or if it is null, we set the task to skip model context processing)
 
@@ -227,8 +227,8 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     }
 
     @Override
-    public AuditEventRecord prepareProcessInstanceAuditRecord(Map<String, Object> variables, Job job, AuditEventStage stage, OperationResult result) {
-        return getScenarioBean(variables).prepareProcessInstanceAuditRecord(variables, job, stage, result);
+    public AuditEventRecord prepareProcessInstanceAuditRecord(Map<String, Object> variables, WfTask wfTask, AuditEventStage stage, OperationResult result) {
+        return getScenarioBean(variables).prepareProcessInstanceAuditRecord(variables, wfTask, stage, result);
     }
 
     @Override
