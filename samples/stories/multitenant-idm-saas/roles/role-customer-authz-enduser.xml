@@ -1,0 +1,105 @@
+<role oid="408be7b4-e502-11e5-9cd2-3c970e44b9e2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <name>Customer End User Role</name>
+    <description>End user role for normal users.</description>
+<!-- ***** GUI ***** -->
+
+<!-- ***** From End User role (fragments) ***** -->
+
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</action>
+    </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <special>self</special>
+        </object>
+    </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>ShadowType</type>
+            <owner>
+                <special>self</special>
+            </owner>
+        </object>
+    </authorization>
+    <authorization>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
+    	<phase>request</phase>
+    	<object>
+    		<special>self</special>
+    	</object>
+    	<item>credentials</item>
+    </authorization>
+    <authorization>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
+    	<phase>request</phase>
+    	<object>
+    		<type>ShadowType</type>
+    		<owner>
+    			<special>self</special>
+    		</owner>
+    	</object>
+    	<item>credentials</item>
+    </authorization>
+    <authorization>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<phase>execution</phase>
+    	<object>
+    		<special>self</special>
+    	</object>
+    	<item>credentials</item>
+    </authorization>
+    <authorization>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<phase>execution</phase>
+    	<object>
+    		<type>ShadowType</type>
+    		<owner>
+    			<special>self</special>
+    		</owner>
+    	</object>
+    	<item>credentials</item>
+    </authorization>
+
+    <authorization>
+	<name>Read for all resources and roles of roleType=customer and End User</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>ResourceType</type>
+        </object>
+        <object>
+            <type>RoleType</type>
+            <filter>
+                 <q:or>
+                    <q:equal>
+                            <q:path>roleType</q:path>
+                            <q:value>customer</q:value>
+                    </q:equal>
+                    <q:equal>
+                            <q:path>name</q:path>
+                            <q:value>End user</q:value>
+                    </q:equal>
+               </q:or>
+            </filter>
+        </object>
+    </authorization>
+    <authorization><!-- XXX XXX still roles can be "assigned" in GUI (will fail in model)-->
+<!-- https://jira.evolveum.com/browse/MID-2146 -->
+	<name>Do not allow to assign anything for self</name>
+	<decision>deny</decision>
+<phase>request</phase>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
+        <object>
+            <type>RoleType</type>
+        </object>
+    </authorization>
+    <roleType>customer</roleType>
+    <requestable>false</requestable>
+</role>
