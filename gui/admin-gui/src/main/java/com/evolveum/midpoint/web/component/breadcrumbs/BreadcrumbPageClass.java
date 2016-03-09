@@ -34,6 +34,8 @@ public class BreadcrumbPageClass extends Breadcrumb {
 
     public BreadcrumbPageClass(IModel<String> label) {
         super(label);
+
+        setUseLink(true);
     }
 
     public BreadcrumbPageClass(IModel<String> label, Class<? extends WebPage> page) {
@@ -61,6 +63,10 @@ public class BreadcrumbPageClass extends Breadcrumb {
         this.parameters = parameters;
     }
 
+    public void setPage(Class<? extends WebPage> page) {
+        this.page = page;
+    }
+
     @Override
     public void redirect(Component component) {
         if (parameters == null) {
@@ -68,11 +74,6 @@ public class BreadcrumbPageClass extends Breadcrumb {
         } else {
             component.setResponsePage(page, parameters);
         }
-    }
-
-    @Override
-    public boolean isLink() {
-        return true;
     }
 
     @Override

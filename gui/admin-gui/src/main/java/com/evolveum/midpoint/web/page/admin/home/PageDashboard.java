@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -95,7 +96,15 @@ public class PageDashboard extends PageAdminHome {
         principalModel.setObject(loadUserSelf(PageDashboard.this));
         initLayout();
     }
-    
+
+    @Override
+    protected void createBreadcrumb() {
+        super.createBreadcrumb();
+
+        Breadcrumb bc = getSessionStorage().peekBreadcrumb();
+        bc.setIcon(new Model("fa fa-dashboard"));
+    }
+
     private void initLayout() {
         initPersonalInfo();
         initMyAccounts();
