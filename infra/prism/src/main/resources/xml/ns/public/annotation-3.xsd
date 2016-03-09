@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@
         <xsd:documentation>
             Common Prism annotations used in various XSD schemas.
 
-			Version: 3.2
+			Version: 3.4-SNAPSHOT
             Default prefix: a
         </xsd:documentation>
     </xsd:annotation>
@@ -255,6 +255,16 @@
         <xsd:annotation>
             <xsd:documentation>
                 Displayable label of enumeration item.
+            </xsd:documentation>
+        </xsd:annotation>    
+    </xsd:attribute>
+
+    <xsd:attribute name="matchingRule" type="xsd:QName">
+        <xsd:annotation>
+            <xsd:documentation>
+                Matching rules are algorithms that specify
+	 			how to compare, normalize and/or order the values. E.g. there are matching
+				rules for case insensitive string comparison, for LDAP DNs, etc.
             </xsd:documentation>
         </xsd:annotation>    
     </xsd:attribute>

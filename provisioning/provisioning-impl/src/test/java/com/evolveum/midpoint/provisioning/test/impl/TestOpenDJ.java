@@ -68,6 +68,9 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.DistinguishedNameMatchingRule;
+import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
+import com.evolveum.midpoint.prism.match.UuidMatchingRule;
+import com.evolveum.midpoint.prism.match.XmlMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -385,6 +388,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertTrue("No UID read", idPrimaryDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(idPrimaryDef));
 		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, idPrimaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong primary identifier matching rule", UuidMatchingRule.NAME, idPrimaryDef.getMatchingRuleQName());
+
 
 		ResourceAttributeDefinition<String> idSecondaryDef = accountDef.findAttributeDefinition(getSecondaryIdentifierQName());
 		assertEquals(1, idSecondaryDef.getMaxOccurs());
@@ -394,6 +399,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertTrue("No NAME read", idSecondaryDef.canRead());
 		assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(idSecondaryDef));
 		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Name.NAME, idSecondaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong secondary identifier matching rule", DistinguishedNameMatchingRule.NAME, idSecondaryDef.getMatchingRuleQName());
 
 		ResourceAttributeDefinition<String> cnDef = accountDef.findAttributeDefinition("cn");
 		assertNotNull("No definition for cn", cnDef);
@@ -402,6 +408,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertTrue("No cn create", cnDef.canAdd());
 		assertTrue("No cn update", cnDef.canModify());
 		assertTrue("No cn read", cnDef.canRead());
+		assertEquals("Wrong cn matching rule", StringIgnoreCaseMatchingRule.NAME, cnDef.getMatchingRuleQName());
 		
 		ResourceAttributeDefinition<String> dsDef = accountDef.findAttributeDefinition("ds-pwp-account-disabled");
 		assertNotNull("No definition for ds-pwp-account-disabled", dsDef);
@@ -412,6 +419,33 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertTrue("No ds-pwp-account-disabled update", dsDef.canModify());
 		// TODO: MID-2358
 //		assertTrue("ds-pwp-account-disabled is NOT operational", dsDef.isOperational());
+				
+		ResourceAttributeDefinition<String> memberOfDef = accountDef.findAttributeDefinition("isMemberOf");
+		assertNotNull("No definition for isMemberOf", memberOfDef);
+		assertEquals(-1, memberOfDef.getMaxOccurs());
+		assertEquals(0, memberOfDef.getMinOccurs());
+		assertFalse("isMemberOf create", memberOfDef.canAdd());
+		assertFalse("isMemberOf update", memberOfDef.canModify());
+		assertTrue("No isMemberOf read", memberOfDef.canRead());
+		assertEquals("Wrong isMemberOf matching rule", DistinguishedNameMatchingRule.NAME, memberOfDef.getMatchingRuleQName());
+
+		ResourceAttributeDefinition<String> labeledUriDef = accountDef.findAttributeDefinition("labeledURI");
+		assertNotNull("No definition for labeledUri", labeledUriDef);
+		assertEquals(-1, labeledUriDef.getMaxOccurs());
+		assertEquals(0, labeledUriDef.getMinOccurs());
+		assertTrue("No labeledUri create", labeledUriDef.canAdd());
+		assertTrue("No labeledUri update", labeledUriDef.canModify());
+		assertTrue("No labeledUri read", labeledUriDef.canRead());
+		assertEquals("Wrong labeledUri matching rule", null, labeledUriDef.getMatchingRuleQName());
+
+		ResourceAttributeDefinition<String> secretaryDef = accountDef.findAttributeDefinition("secretary");
+		assertNotNull("No definition for secretary", secretaryDef);
+		assertEquals(-1, secretaryDef.getMaxOccurs());
+		assertEquals(0, secretaryDef.getMinOccurs());
+		assertTrue("No secretary create", secretaryDef.canAdd());
+		assertTrue("No secretary update", secretaryDef.canModify());
+		assertTrue("No secretary read", secretaryDef.canRead());
+		assertEquals("Wrong secretary matching rule", DistinguishedNameMatchingRule.NAME, secretaryDef.getMatchingRuleQName());
 		
 		ResourceAttributeDefinition<String> createTimestampDef = accountDef.findAttributeDefinition("createTimestamp");
 		assertNotNull("No definition for createTimestamp", createTimestampDef);
@@ -420,6 +454,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertTrue("No createTimestamp read", createTimestampDef.canRead());
 		assertFalse("Bad createTimestamp create", createTimestampDef.canAdd());
 		assertFalse("Bad createTimestamp update", createTimestampDef.canModify());
+		assertEquals("Wrong createTimestamp matching rule", null, createTimestampDef.getMatchingRuleQName());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",
 				accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
@@ -537,6 +572,24 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertTrue("No cn update", cnDef.canModify());
 		assertTrue("No cn read", cnDef.canRead());
 		
+		ResourceAttributeDefinition<String> memberOfDef = accountDef.findAttributeDefinition("isMemberOf");
+		assertNotNull("No definition for isMemberOf", memberOfDef);
+		assertEquals(-1, memberOfDef.getMaxOccurs());
+		assertEquals(0, memberOfDef.getMinOccurs());
+		assertFalse("isMemberOf create", memberOfDef.canAdd());
+		assertFalse("isMemberOf update", memberOfDef.canModify());
+		assertTrue("No isMemberOf read", memberOfDef.canRead());
+		assertEquals("Wrong isMemberOf matching rule", DistinguishedNameMatchingRule.NAME, memberOfDef.getMatchingRuleQName());
+		
+		ResourceAttributeDefinition<String> secretaryDef = accountDef.findAttributeDefinition("secretary");
+		assertNotNull("No definition for secretary", secretaryDef);
+		assertEquals(-1, secretaryDef.getMaxOccurs());
+		assertEquals(0, secretaryDef.getMinOccurs());
+		assertTrue("No secretary create", secretaryDef.canAdd());
+		assertTrue("No secretary update", secretaryDef.canModify());
+		assertTrue("No secretary read", secretaryDef.canRead());
+		assertEquals("Wrong secretary matching rule", XmlMatchingRule.NAME, secretaryDef.getMatchingRuleQName());
+		
 		RefinedAttributeDefinition<String> dsDef = accountDef.findAttributeDefinition("ds-pwp-account-disabled");
 		assertNotNull("No definition for cn", dsDef);
 		assertEquals(1, dsDef.getMaxOccurs());
@@ -618,8 +671,10 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertEquals(ACCOUNT1_OID, addedObjectOid);
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
+		// WHEN
 		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT1_OID, null, task, result).asObjectable();
 
+		// THEN
 		assertNotNull(shadow);
 
 		display(SchemaDebugUtil.prettyPrint(shadow));
@@ -656,7 +711,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         // must be all lowercase
         assertEquals("Wrong secondary identifier (repo)", "uid=jbond,ou=people,dc=example,dc=com", idSecondaryVal);
 
-        assertShadows(2);
+        assertShadows(2);        
 	}
 
 	/**
@@ -786,7 +841,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
 				null, task, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=will123,ou=People,dc=example,dc=com", provisioningAccountType.getName());
-		assertAttribute(provisioningAccountType, getSecondaryIdentifierQName(), "uid=will123,ou=people,dc=example,dc=com");
+		assertAttribute(provisioningAccountType, getSecondaryIdentifierQName(), "uid=will123,ou=People,dc=example,dc=com");
 		
 		repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
 				null, result).asObjectable();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2065 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import static com.evolveum.midpoint.prism.PrismConstants.A_EXTENSION_REF;
 import static com.evolveum.midpoint.prism.PrismConstants.A_HELP;
 import static com.evolveum.midpoint.prism.PrismConstants.A_IGNORE;
 import static com.evolveum.midpoint.prism.PrismConstants.A_INDEXED;
+import static com.evolveum.midpoint.prism.PrismConstants.A_MATCHING_RULE;
 import static com.evolveum.midpoint.prism.PrismConstants.A_MAX_OCCURS;
 import static com.evolveum.midpoint.prism.PrismConstants.A_OBJECT;
 import static com.evolveum.midpoint.prism.PrismConstants.A_OBJECT_REFERENCE;
@@ -866,6 +867,12 @@ class DomToSchemaProcessor {
 		if (indexableElement != null) {
 			Boolean indexable = XmlTypeConverter.toJavaValue(indexableElement, Boolean.class);
 			propDef.setIndexed(indexable);
+		}
+		
+		Element matchingRuleElement = SchemaProcessorUtil.getAnnotationElement(annotation, A_MATCHING_RULE);
+		if (matchingRuleElement != null) {
+			QName matchingRule = XmlTypeConverter.toJavaValue(matchingRuleElement, QName.class);
+			propDef.setMatchingRuleQName(matchingRule);
 		}
 		
 		return propDef;

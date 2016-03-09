@@ -90,17 +90,13 @@
             <displayName>Default Account</displayName>
             <default>true</default>
             <objectClass>ri:inetOrgPerson</objectClass>
-            <attribute>
-				<ref>ri:entryUUID</ref>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
-			</attribute>
-            <attribute>
-				<ref>ri:dn</ref>
-				<matchingRule>mr:distinguishedName</matchingRule>
-			</attribute>
 			<attribute>
 				<ref>ri:isMemberOf</ref>
-				<matchingRule>mr:distinguishedName</matchingRule>
+				<fetchStrategy>explicit</fetchStrategy>
+			</attribute>
+			<attribute>
+				<ref>ri:secretary</ref>
+				<matchingRule>mr:xml</matchingRule> <!-- matching rule override. Secretary is normally distinguishedName  -->
 				<fetchStrategy>explicit</fetchStrategy>
 			</attribute>
             <association>
