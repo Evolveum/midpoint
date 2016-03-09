@@ -4,12 +4,12 @@
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      oid="9f405793-8b3a-4f9b-8812-a86316dcb7fa">
-   <name>import activity groups</name>
+      oid="83ecb3be-54f7-43e3-b5fb-2db26a75a267">
+   <name>import profiles</name>
    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
       <mext:kind>entitlement</mext:kind>
-      <mext:intent>roles</mext:intent>
-      <mext:objectclass>ri:CustomACTIVITYGROUPObjectClass</mext:objectclass>
+      <mext:intent>profiles</mext:intent>
+      <mext:objectclass>ri:CustomPROFILEObjectClass</mext:objectclass>
    </extension>
    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></ownerRef>
    <executionStatus>suspended</executionStatus>

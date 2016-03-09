@@ -64,7 +64,6 @@
             </attribute>
             <attribute>
                 <c:ref>icfs:uid</c:ref>
-                <displayName>USERNAME</displayName>
                 <limitations>
                     <access>
                         <read>true</read>
@@ -191,6 +190,30 @@
                 <valueAttribute>icfs:uid</valueAttribute>
             </association>
 
+            <association>
+                <c:ref>ri:groups</c:ref>
+                <!-- groups are case sensitive, don't use stringIgnoreCase matchingRule -->
+                <displayName>Group Membership</displayName>
+                <tolerant>true</tolerant>
+                <kind>entitlement</kind>
+                <intent>groups</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:GROUPS.USERGROUP</associationAttribute>
+                <valueAttribute>icfs:uid</valueAttribute>
+            </association>
+
+            <association>
+                <c:ref>ri:profiles</c:ref>
+                <!-- profiles are case sensitive, don't use stringIgnoreCase matchingRule -->
+                <displayName>Profile Membership</displayName>
+                <tolerant>true</tolerant>
+                <kind>entitlement</kind>
+                <intent>profiles</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:PROFILES.BAPIPROF</associationAttribute>
+                <valueAttribute>icfs:uid</valueAttribute>
+            </association>
+
             <protected>
                 <icfs:name>admin</icfs:name>
             </protected>
@@ -236,7 +259,6 @@
                         <c:path>name</c:path>
                     </target>
                 </inbound>
-                <!-- select this role in midPoint as ActivityGroup, see also object-template and metarole -->
                 <inbound>
                     <expression>
                         <value>SAP-ActivityGroup</value>
@@ -257,7 +279,6 @@
                 </limitations>
                 <!-- CASE Sensitive !!!-->
             </attribute>
-            <!--
             <attribute>
                 <c:ref>ri:PARENT_AGR</c:ref>
                 <inbound>
@@ -265,7 +286,91 @@
                         <c:path>description</c:path>
                     </target>
                 </inbound>
-            </attribute>-->
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>groups</intent>
+            <displayName>Groups</displayName>
+            <objectClass>ri:CustomGROUPObjectClass</objectClass>
+            <attribute>
+                <c:ref>icfs:name</c:ref>
+                <limitations>
+                    <access>
+                        <read>true</read>
+                        <add>false</add>
+                        <modify>false</modify>
+                    </access>
+                </limitations>
+                <!-- CASE Sensitive !!!-->
+                <inbound>
+                    <target>
+                        <c:path>name</c:path>
+                    </target>
+                </inbound>
+                <inbound>
+                    <expression>
+                        <value>SAP-Group</value>
+                    </expression>
+                    <target>
+                        <c:path>roleType</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>icfs:uid</c:ref>
+                <displayName>Entry UUID</displayName>
+                <limitations>
+                    <access>
+                        <read>true</read>
+                        <add>false</add>
+                        <modify>false</modify>
+                    </access>
+                </limitations>
+                <!-- CASE Sensitive !!!-->
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>profiles</intent>
+            <displayName>Profiles</displayName>
+            <objectClass>ri:CustomPROFILEObjectClass</objectClass>
+            <attribute>
+                <c:ref>icfs:name</c:ref>
+                <limitations>
+                    <access>
+                        <read>true</read>
+                        <add>false</add>
+                        <modify>false</modify>
+                    </access>
+                </limitations>
+                <!-- CASE Sensitive !!!-->
+                <inbound>
+                    <target>
+                        <c:path>name</c:path>
+                    </target>
+                </inbound>
+                <inbound>
+                    <expression>
+                        <value>SAP-Profile</value>
+                    </expression>
+                    <target>
+                        <c:path>roleType</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>icfs:uid</c:ref>
+                <displayName>Entry UUID</displayName>
+                <limitations>
+                    <access>
+                        <read>true</read>
+                        <add>false</add>
+                        <modify>false</modify>
+                    </access>
+                </limitations>
+                <!-- CASE Sensitive !!!-->
+            </attribute>
         </objectType>
 
     </schemaHandling>
@@ -311,12 +416,95 @@
             </reaction>
         </objectSynchronization>
 
-
         <objectSynchronization>
             <name>role sync</name>
             <objectClass>ri:CustomACTIVITYGROUPObjectClass</objectClass>
             <kind>entitlement</kind>
             <intent>roles</intent>
+            <focusType>c:RoleType</focusType>
+            <enabled>true</enabled>
+            <correlation>
+                <q:equal>
+                    <q:path>c:name</q:path>
+                    <expression>
+                        <c:path>$shadow/attributes/icfs:name</c:path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+
+        <objectSynchronization>
+            <name>group sync</name>
+            <objectClass>ri:CustomGROUPObjectClass</objectClass>
+            <kind>entitlement</kind>
+            <intent>groups</intent>
+            <focusType>c:RoleType</focusType>
+            <enabled>true</enabled>
+            <correlation>
+                <q:equal>
+                    <q:path>c:name</q:path>
+                    <expression>
+                        <c:path>$shadow/attributes/icfs:name</c:path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+
+        <objectSynchronization>
+            <name>profile sync</name>
+            <objectClass>ri:CustomPROFILEObjectClass</objectClass>
+            <kind>entitlement</kind>
+            <intent>profiles</intent>
             <focusType>c:RoleType</focusType>
             <enabled>true</enabled>
             <correlation>
