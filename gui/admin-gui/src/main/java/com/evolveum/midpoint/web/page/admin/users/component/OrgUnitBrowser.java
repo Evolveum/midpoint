@@ -68,6 +68,7 @@ public class OrgUnitBrowser extends ModalWindow {
 
     private static final String DOT_CLASS = OrgUnitBrowser.class.getName() + ".";
     private static final String OPERATION_LOAD_PARENT_ORG_REFS = DOT_CLASS + "loadParentOrgRefs";
+    private static final String OPERATION_LOAD_CHILD_ORGS = DOT_CLASS + "loadChildOrgOids";
 
     private static final String ID_BASIC_SEARCH = "basicSearch";
     private static final String ID_TABLE = "table";
@@ -272,9 +273,27 @@ public class OrgUnitBrowser extends ModalWindow {
         for(OrgTableDto dto: selected){
             oids.add(dto.getOid());
         }
+        //exclude child org units
+        oids.addAll(getChildOrgOids());
 
         ObjectFilter oidFilter = InOidFilter.createInOid(oids);
         return ObjectQuery.createObjectQuery(NotFilter.createNot(oidFilter));
+    }
+
+    private List<String> getChildOrgOids (){
+        List<String> childOrgsList = new ArrayList<>();
+        for(OrgTableDto dto: selected){
+            OperationResult result = new OperationResult(OPERATION_LOAD_CHILD_ORGS);
+            OrgFilter orgFilter = OrgFilter.createOrg(dto.getOid(), OrgFilter.Scope.SUBTREE);
+            List<PrismObject<OrgType>> list = WebModelServiceUtils.searchObjects(OrgType.class, ObjectQuery.createObjectQuery(orgFilter),
+                    result, getPageBase());
+            if (list != null && list.size() > 0){
+                for (PrismObject<OrgType> prismObject : list){
+                    childOrgsList.add(prismObject.getOid());
+                }
+            }
+        }
+        return childOrgsList;
     }
 
     private List<IColumn<OrgTableDto, String>> initColumns() {

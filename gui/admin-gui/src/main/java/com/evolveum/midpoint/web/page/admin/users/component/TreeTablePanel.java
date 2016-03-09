@@ -1024,7 +1024,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
                 model.executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
                         page.createSimpleTask(OPERATION_MOVE_OBJECT), subResult);
             } catch (Exception ex) {
-                subResult.recordFatalError("Couldn't move object " + null + " to " + null + ".", ex);
+                subResult.recordFatalError("Couldn't move object " + object.getName() + " to " + newParent.getName() + ".", ex);
                 LoggingUtils.logException(LOGGER, "Couldn't move object {} to {}", ex, object.getName());
             } finally {
                 subResult.computeStatusIfUnknown();
