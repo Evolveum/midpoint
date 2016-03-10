@@ -111,8 +111,8 @@
                </target>
            </mapping>
        </focusMappings>
-       <focusType>c:UserType</focusType>
        <order>2</order>
+       <focusType>c:UserType</focusType>
     </inducement>
 
 </role>
