@@ -228,9 +228,7 @@ public class WfTaskController {
         if (instruction.getTaskModelContext() != null) {
             task.setModelOperationContext(((LensContext) instruction.getTaskModelContext()).toLensContextType());
         }
-        for (Item item : instruction.getTaskVariables().values()) {
-            task.setExtensionItem(item);
-        }
+        instruction.tailorTask(task);
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Saving workflow monitoring/execution task: " + task.debugDump());

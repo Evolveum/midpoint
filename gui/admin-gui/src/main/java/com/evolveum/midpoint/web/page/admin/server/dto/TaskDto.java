@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -52,8 +51,6 @@ import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.wf.WfHistoryEventDto;
-import com.evolveum.midpoint.wf.api.WfTaskExtensionItemsNames;
-import com.evolveum.midpoint.wf.processors.primary.PcpTaskExtensionItemsNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -417,30 +414,33 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     private List<DeltaDto> retrieveDeltasToProcess(TaskType taskType) throws SchemaException {
-        PrismContext prismContext = taskType.asPrismObject().getPrismContext();
-        PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty = getExtensionProperty(taskType, PcpTaskExtensionItemsNames.WFDELTAS_TO_PROCESS_PROPERTY_NAME);
-        return objectTreeDeltasToDeltaDtoList(deltaTypePrismProperty, prismContext);
+        WfContextType wfc = taskType.getWorkflowContext();
+        if (wfc == null || !(wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
+            return null;
+        }
+        WfPrimaryChangeProcessorStateType pcps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
+        return objectTreeDeltasToDeltaDtoList(pcps.getDeltasToProcess(), taskType.asPrismObject().getPrismContext());
     }
 
-    private List<DeltaDto> objectTreeDeltasToDeltaDtoList(PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty, PrismContext prismContext) throws SchemaException {
+    private List<DeltaDto> objectTreeDeltasToDeltaDtoList(ObjectTreeDeltasType deltas, PrismContext prismContext) throws SchemaException {
         List<DeltaDto> retval = new ArrayList<DeltaDto>();
-        if (deltaTypePrismProperty != null) {
-            ObjectTreeDeltasType deltas = deltaTypePrismProperty.getRealValue();
-            ObjectDeltaType focusDelta = deltas.getFocusPrimaryDelta();
-            if (focusDelta != null) {
-                retval.add(new DeltaDto(DeltaConvertor.createObjectDelta(focusDelta, prismContext)));
-            }
-            for (ProjectionObjectDeltaType projectionObjectDeltaType : deltas.getProjectionPrimaryDelta()) {
-                retval.add(new DeltaDto(DeltaConvertor.createObjectDelta(projectionObjectDeltaType.getPrimaryDelta(), prismContext)));
-            }
+        ObjectDeltaType focusDelta = deltas.getFocusPrimaryDelta();
+        if (focusDelta != null) {
+            retval.add(new DeltaDto(DeltaConvertor.createObjectDelta(focusDelta, prismContext)));
+        }
+        for (ProjectionObjectDeltaType projectionObjectDeltaType : deltas.getProjectionPrimaryDelta()) {
+            retval.add(new DeltaDto(DeltaConvertor.createObjectDelta(projectionObjectDeltaType.getPrimaryDelta(), prismContext)));
         }
         return retval;
     }
 
-    public List<DeltaDto> retrieveResultingDeltas(TaskType taskType) throws SchemaException {
-        PrismContext prismContext = taskType.asPrismObject().getPrismContext();
-        PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty = getExtensionProperty(taskType, PcpTaskExtensionItemsNames.WFRESULTING_DELTAS_PROPERTY_NAME);
-        return objectTreeDeltasToDeltaDtoList(deltaTypePrismProperty, prismContext);
+    private List<DeltaDto> retrieveResultingDeltas(TaskType taskType) throws SchemaException {
+        WfContextType wfc = taskType.getWorkflowContext();
+        if (wfc == null || !(wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
+            return null;
+        }
+        WfPrimaryChangeProcessorStateType pcps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
+        return objectTreeDeltasToDeltaDtoList(pcps.getResultingDeltas(), taskType.asPrismObject().getPrismContext());
     }
 
     private List<WfHistoryEventDto> prepareWorkflowHistory(TaskType taskType) {

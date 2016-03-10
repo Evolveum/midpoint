@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskRecurrence;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -57,7 +58,6 @@ public class WfTaskCreationInstruction implements DebugDumpable {
     private String processInstanceName;
 
     private Map<String,Serializable> processVariables = new HashMap<>();     // values of process variables
-    private Map<QName,Item> taskVariables = new HashMap<>();                          // items to be put into task extension
     private ModelContext taskModelContext;   // model context to be put into the task
     private PrismObject taskObject;          // object to be attached to the task; this object must have its definition available
     private PrismObject<UserType> taskOwner; // if null, owner from parent task will be taken (if there's no parent task, exception will be thrown)
@@ -217,10 +217,6 @@ public class WfTaskCreationInstruction implements DebugDumpable {
         return handlersAfterWfProcess;
     }
 
-    public Map<QName, Item> getTaskVariables() {
-        return taskVariables;
-    }
-
     public void setExecuteModelOperationHandler(boolean executeModelOperationHandler) {
         this.executeModelOperationHandler = executeModelOperationHandler;
     }
@@ -323,20 +319,6 @@ public class WfTaskCreationInstruction implements DebugDumpable {
     //endregion
 
     //region Setters for task variables
-    public <T> void addTaskVariable(PrismPropertyDefinition<T> definition, T realValue) {
-        PrismProperty property = definition.instantiate();
-        property.setRealValue(realValue);
-        taskVariables.put(definition.getName(), property);
-    }
-
-    public <T> void addTaskVariableValues(PrismPropertyDefinition<T> definition, Collection<T> realValues) {
-        PrismProperty<T> property = definition.instantiate();
-        for (T realValue : realValues) {
-            property.addRealValue(realValue);
-        }
-        taskVariables.put(definition.getName(), property);
-    }
-
     public void addTaskModelContext(ModelContext modelContext) throws SchemaException {
         Validate.notNull(modelContext, "model context cannot be null");
         setTaskModelContext(modelContext);
@@ -405,4 +387,6 @@ public class WfTaskCreationInstruction implements DebugDumpable {
     }
     //endregion
 
+    public void tailorTask(Task task) throws SchemaException {
+    }
 }

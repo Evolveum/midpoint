@@ -80,7 +80,7 @@ public class PcpExternalizationHelper {
         WfPrimaryChangeProcessorStateType state = new WfPrimaryChangeProcessorStateType(prismContext);
 
         state.setChangeAspect((String) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_ASPECT));
-        state.setDeltas(miscDataUtil.getObjectTreeDeltaType(variables, true));
+        state.setDeltasToProcess(miscDataUtil.getObjectTreeDeltaType(variables, true));
 
         state.asPrismContainerValue().setConcreteType(WfPrimaryChangeProcessorStateType.COMPLEX_TYPE);
         return state;

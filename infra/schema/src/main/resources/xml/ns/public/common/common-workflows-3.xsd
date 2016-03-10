@@ -757,6 +757,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="approvedByRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        User(s) who approved current operation. Stored in repository.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="rootTaskRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -890,7 +900,8 @@
             <xsd:extension base="tns:WfProcessorSpecificStateType">
                 <xsd:sequence>
                     <xsd:element name="changeAspect" type="xsd:string"/>
-                    <xsd:element name="deltas" type="tns:ObjectTreeDeltasType" minOccurs="0"/>
+                    <xsd:element name="deltasToProcess" type="tns:ObjectTreeDeltasType" minOccurs="0"/>
+                    <xsd:element name="resultingDeltas" type="tns:ObjectTreeDeltasType" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

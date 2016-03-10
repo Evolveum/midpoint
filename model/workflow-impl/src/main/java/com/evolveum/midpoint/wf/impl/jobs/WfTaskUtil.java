@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -35,7 +36,6 @@ import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
-import com.evolveum.midpoint.wf.processors.primary.PcpTaskExtensionItemsNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
@@ -44,15 +44,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 import java.util.*;
 
+import static com.evolveum.midpoint.prism.util.CloneUtil.cloneListMembers;
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.TASK;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.objectReferenceListToPrismReferenceValues;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_RESULTING_DELTAS;
 
 /**
  * Handles low-level task operations, e.g. handling wf* properties in task extension.
@@ -83,27 +85,6 @@ public class WfTaskUtil {
 
     public static final String WAIT_FOR_TASKS_HANDLER_URI = "<<< marker for calling pushWaitForTasksHandlerUri >>>";
 
-    // workflow-related extension properties
-    private PrismPropertyDefinition wfPrimaryChangeAspectPropertyDefinition;
-    private PrismPropertyDefinition<ObjectTreeDeltasType> wfDeltasToProcessPropertyDefinition;
-    private PrismPropertyDefinition<ObjectTreeDeltasType> wfResultingDeltasPropertyDefinition;
-    private PrismReferenceDefinition wfApprovedByReferenceDefinition;
-
-    @PostConstruct
-    public void init() {
-
-		wfPrimaryChangeAspectPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(PcpTaskExtensionItemsNames.WFPRIMARY_CHANGE_ASPECT_NAME);
-        wfDeltasToProcessPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(PcpTaskExtensionItemsNames.WFDELTAS_TO_PROCESS_PROPERTY_NAME);
-        wfResultingDeltasPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(PcpTaskExtensionItemsNames.WFRESULTING_DELTAS_PROPERTY_NAME);
-        wfApprovedByReferenceDefinition = prismContext.getSchemaRegistry().findReferenceDefinitionByElementName(PcpTaskExtensionItemsNames.WFAPPROVED_BY_REFERENCE_NAME);
-
-        Validate.notNull(wfPrimaryChangeAspectPropertyDefinition, PcpTaskExtensionItemsNames.WFPRIMARY_CHANGE_ASPECT_NAME + " definition was not found");
-        Validate.notNull(wfDeltasToProcessPropertyDefinition, PcpTaskExtensionItemsNames.WFDELTAS_TO_PROCESS_PROPERTY_NAME + " definition was not found");
-        Validate.notNull(wfResultingDeltasPropertyDefinition, PcpTaskExtensionItemsNames.WFRESULTING_DELTAS_PROPERTY_NAME + " definition was not found");
-        Validate.notNull(wfApprovedByReferenceDefinition, PcpTaskExtensionItemsNames.WFAPPROVED_BY_REFERENCE_NAME + " definition was not found");
-
-    }
-
 	void setWfProcessId(Task task, String pid) throws SchemaException {
         Validate.notEmpty(task.getOid(), "Task oid must not be null or empty (task must be persistent).");
         task.addModification(
@@ -112,15 +93,14 @@ public class WfTaskUtil {
                         .asItemDelta());
 	}
 
-    public void setPrimaryChangeAspect(Task task, PrimaryChangeAspect aspect) throws SchemaException {
-        Validate.notNull(aspect, "Primary change aspect is undefined.");
-        PrismProperty<String> w = wfPrimaryChangeAspectPropertyDefinition.instantiate();
-        w.setRealValue(aspect.getClass().getName());
-        task.setExtensionProperty(w);
-    }
-
     public PrimaryChangeAspect getPrimaryChangeAspect(Task task, Collection<PrimaryChangeAspect> aspects) {
-        String aspectClassName = getExtensionValue(String.class, task, PcpTaskExtensionItemsNames.WFPRIMARY_CHANGE_ASPECT_NAME);
+        WfContextType wfc = getWorkflowContextChecked(task);
+        WfProcessorSpecificStateType pss = wfc.getProcessorSpecificState();
+        if (!(pss instanceof WfPrimaryChangeProcessorStateType)) {
+            throw new IllegalStateException("Expected " + WfPrimaryChangeProcessorStateType.class + " but got " + pss + " in task " + task);
+        }
+        WfPrimaryChangeProcessorStateType pcps = ((WfPrimaryChangeProcessorStateType) pss);
+        String aspectClassName = pcps.getChangeAspect();
         if (aspectClassName == null) {
             throw new IllegalStateException("No wf primary change aspect defined in task " + task);
         }
@@ -132,6 +112,16 @@ public class WfTaskUtil {
         }
 
         throw new IllegalStateException("Primary change aspect " + aspectClassName + " is not registered.");
+    }
+
+    public static WfContextType getWorkflowContextChecked(Task task) {
+        if (task == null) {
+            throw new IllegalStateException("No task");
+        } else if (task.getWorkflowContext() == null) {
+            throw new IllegalStateException("No workflow context in " + task);
+        } else {
+            return task.getWorkflowContext();
+        }
     }
 
     public void setChangeProcessor(Task task, ChangeProcessor processor) throws SchemaException {
@@ -189,28 +179,33 @@ public class WfTaskUtil {
     }
 
     public void storeResultingDeltas(ObjectTreeDeltas deltas, Task task) throws SchemaException {
-        PrismProperty<ObjectTreeDeltasType> resultingDeltas = wfResultingDeltasPropertyDefinition.instantiate();
         ObjectTreeDeltasType deltasType = ObjectTreeDeltas.toObjectTreeDeltasType(deltas);
-        resultingDeltas.setRealValue(deltasType);
-        task.setExtensionProperty(resultingDeltas);
-
+        if (task.getWorkflowContext().getProcessorSpecificState() == null) {
+            throw new IllegalStateException("No processor specific state in task " + task);
+        }
+        ItemDefinition<?> def = prismContext.getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(WfPrimaryChangeProcessorStateType.class)
+                .findPropertyDefinition(F_RESULTING_DELTAS);
+        ItemPath path = new ItemPath(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_RESULTING_DELTAS);
+        task.addModification(DeltaBuilder.deltaFor(TaskType.class, prismContext)
+                .item(path, def).replace(deltasType)
+                .asItemDelta());
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Stored deltas into task {}:\n{}", task, deltas);      // TODO debug dump
         }
     }
 
     public ObjectTreeDeltas retrieveDeltasToProcess(Task task) throws SchemaException {
-
-        PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty = task.getExtensionProperty(PcpTaskExtensionItemsNames.WFDELTAS_TO_PROCESS_PROPERTY_NAME);
+        PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty = task.getTaskPrismObject().findProperty(new ItemPath(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_DELTAS_TO_PROCESS));
         if (deltaTypePrismProperty == null) {
-            throw new SchemaException("No " + PcpTaskExtensionItemsNames.WFDELTAS_TO_PROCESS_PROPERTY_NAME + " in task extension; task = " + task);
+            throw new SchemaException("No deltas to process in task extension; task = " + task);
         }
         return ObjectTreeDeltas.fromObjectTreeDeltasType(deltaTypePrismProperty.getRealValue(), prismContext);
     }
 
     // it is possible that resulting deltas are not in the task
     public ObjectTreeDeltas retrieveResultingDeltas(Task task) throws SchemaException {
-        PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty = task.getExtensionProperty(PcpTaskExtensionItemsNames.WFRESULTING_DELTAS_PROPERTY_NAME);
+        PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty = task.getTaskPrismObject().findProperty(new ItemPath(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_RESULTING_DELTAS));
         if (deltaTypePrismProperty == null) {
             return null;
         }
@@ -221,12 +216,6 @@ public class WfTaskUtil {
         if (t.getName() == null || t.getName().toPolyString().isEmpty()) {
             t.setName(taskName);
         }
-    }
-
-
-    private<T> T getExtensionValue(Class<T> clazz, Task task, QName propertyName) {
-        PrismProperty<String> property = task.getExtensionProperty(propertyName);
-        return property != null ? property.getRealValue(clazz) : null;
     }
 
     public void setProcessInstanceFinishedImmediate(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
@@ -264,18 +253,14 @@ public class WfTaskUtil {
     }
 
     public void addApprovedBy(Task task, ObjectReferenceType referenceType) throws SchemaException {
-        PrismReference wfApprovedBy = wfApprovedByReferenceDefinition.instantiate();
-        PrismReferenceValue newValue = new PrismReferenceValue(referenceType.getOid());
-        wfApprovedBy.add(newValue);
-        task.addExtensionReference(wfApprovedBy);
+        addApprovedBy(task, Arrays.asList(referenceType));
     }
 
     public void addApprovedBy(Task task, Collection<ObjectReferenceType> referenceTypes) throws SchemaException {
-        PrismReference wfApprovedBy = wfApprovedByReferenceDefinition.instantiate();
-        for (ObjectReferenceType referenceType : referenceTypes) {
-            wfApprovedBy.add(referenceType.asReferenceValue().clone());
-        }
-        task.addExtensionReference(wfApprovedBy);
+        task.addModification(DeltaBuilder.deltaFor(TaskType.class, prismContext)
+                .item(F_WORKFLOW_CONTEXT, F_APPROVED_BY_REF).add(
+                        cloneListMembers(objectReferenceListToPrismReferenceValues(referenceTypes)))
+                .asItemDelta());
     }
 
     public void addApprovedBy(Task task, String oid) throws SchemaException {
@@ -285,7 +270,7 @@ public class WfTaskUtil {
     }
 
     public PrismReference getApprovedBy(Task task) throws SchemaException {
-        return task.getExtensionReference(PcpTaskExtensionItemsNames.WFAPPROVED_BY_REFERENCE_NAME);
+        return task.getTaskPrismObject().findReference(new ItemPath(F_WORKFLOW_CONTEXT, F_APPROVED_BY_REF));
     }
 
     public List<? extends ObjectReferenceType> getApprovedByFromTaskTree(Task task, OperationResult result) throws SchemaException {
@@ -310,22 +295,6 @@ public class WfTaskUtil {
             retval.add(referenceType);
         }
         return retval;
-    }
-
-    public PrismPropertyDefinition getWfPrimaryChangeAspectPropertyDefinition() {
-        return wfPrimaryChangeAspectPropertyDefinition;
-    }
-
-    public PrismPropertyDefinition getWfDeltasToProcessPropertyDefinition() {
-        return wfDeltasToProcessPropertyDefinition;
-    }
-
-    public PrismPropertyDefinition getWfResultingDeltasPropertyDefinition() {
-        return wfResultingDeltasPropertyDefinition;
-    }
-
-    public PrismReferenceDefinition getWfApprovedByReferenceDefinition() {
-        return wfApprovedByReferenceDefinition;
     }
 
     void setTaskOwner(Task task, PrismObject<UserType> owner) {

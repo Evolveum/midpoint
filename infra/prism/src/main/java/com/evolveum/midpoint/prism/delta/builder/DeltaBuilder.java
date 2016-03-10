@@ -42,6 +42,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -166,46 +167,77 @@ public class DeltaBuilder implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
 
     @Override
     public S_MaybeDelete add(Object... realValues) {
-        checkNullMisuse(realValues);
         for (Object v : realValues) {
-            currentDelta.addValueToAdd(toPrismValue(currentDelta, v));
+            if (v != null) {
+                currentDelta.addValueToAdd(toPrismValue(currentDelta, v));
+            }
         }
         return this;
     }
 
     @Override
     public S_MaybeDelete add(PrismValue... values) {
-        currentDelta.addValuesToAdd(values);
+        for (PrismValue v : values) {
+            if (v != null) {
+                currentDelta.addValueToAdd(v);
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public S_MaybeDelete add(Collection<? extends PrismValue> values) {
+        for (PrismValue v : values) {
+            if (v != null) {
+                currentDelta.addValueToAdd(v);
+            }
+        }
         return this;
     }
 
     @Override
     public S_ItemEntry delete(Object... realValues) {
-        checkNullMisuse(realValues);
         for (Object v : realValues) {
-            currentDelta.addValueToDelete(toPrismValue(currentDelta, v));
+            if (v != null) {
+                currentDelta.addValueToDelete(toPrismValue(currentDelta, v));
+            }
         }
         return this;
     }
 
-    protected void checkNullMisuse(Object[] realValues) {
-        if (realValues.length == 1 && realValues[0] == null) {
-            throw new IllegalArgumentException("NULL value should be represented as no value, not as 'null'");
-        }
-    }
+//    protected void checkNullMisuse(Object[] realValues) {
+//        if (realValues.length == 1 && realValues[0] == null) {
+//            throw new IllegalArgumentException("NULL value should be represented as no value, not as 'null'");
+//        }
+//    }
 
     @Override
     public S_ItemEntry delete(PrismValue... values) {
-        currentDelta.addValuesToDelete(values);
+        for (PrismValue v : values) {
+            if (v != null) {
+                currentDelta.addValueToDelete(v);
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public S_ItemEntry delete(Collection<? extends PrismValue> values) {
+        for (PrismValue v : values) {
+            if (v != null) {
+                currentDelta.addValueToDelete(v);
+            }
+        }
         return this;
     }
 
     @Override
     public S_ItemEntry replace(Object... realValues) {
-        checkNullMisuse(realValues);
         List<PrismValue> prismValues = new ArrayList<>();
         for (Object v : realValues) {
-            prismValues.add(toPrismValue(currentDelta, v));
+            if (v != null) {
+                prismValues.add(toPrismValue(currentDelta, v));
+            }
         }
         currentDelta.setValuesToReplace(prismValues);
         return this;
@@ -213,14 +245,25 @@ public class DeltaBuilder implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
 
     @Override
     public S_ItemEntry replace(Collection<? extends PrismValue> values) {
-        currentDelta.setValuesToReplace(values);
+        List<PrismValue> prismValues = new ArrayList<>();
+        for (PrismValue v : values) {
+            if (v != null) {
+                prismValues.add(v);
+            }
+        }
+        currentDelta.setValuesToReplace(prismValues);
         return this;
     }
 
     @Override
     public S_ItemEntry replace(PrismValue... values) {
-        checkNullMisuse(values);
-        currentDelta.setValuesToReplace(values);
+        List<PrismValue> prismValues = new ArrayList<>();
+        for (PrismValue v : values) {
+            if (v != null) {
+                prismValues.add(v);
+            }
+        }
+        currentDelta.setValuesToReplace(prismValues);
         return this;
     }
 

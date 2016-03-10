@@ -63,19 +63,8 @@ import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.wf.processors.primary.PcpTaskExtensionItemsNames;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTreeDeltasType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBusinessConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UriStack;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -93,6 +82,9 @@ import java.util.List;
 import java.util.Map;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESSOR_SPECIFIC_STATE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -417,7 +409,7 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
                 Task subtask = subtasks.get(i);
                 //assertEquals("Subtask #" + i + " is not recurring: " + subtask, TaskRecurrence.RECURRING, subtask.getRecurrenceStatus());
                 //assertEquals("Incorrect execution status of subtask #" + i + ": " + subtask, TaskExecutionStatus.RUNNABLE, subtask.getExecutionStatus());
-                PrismProperty<ObjectTreeDeltasType> deltas = subtask.getExtensionProperty(PcpTaskExtensionItemsNames.WFDELTAS_TO_PROCESS_PROPERTY_NAME);
+                PrismProperty<ObjectTreeDeltasType> deltas = subtask.getTaskPrismObject().findProperty(new ItemPath(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_DELTAS_TO_PROCESS));
                 assertNotNull("There are no modifications in subtask #" + i + ": " + subtask, deltas);
                 assertEquals("Incorrect number of modifications in subtask #" + i + ": " + subtask, 1, deltas.getRealValues().size());
                 // todo check correctness of the modification?

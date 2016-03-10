@@ -19,10 +19,13 @@ package com.evolveum.midpoint.wf.impl.processors.primary;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -34,15 +37,18 @@ import com.evolveum.midpoint.wf.impl.processes.common.StringHolder;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESSOR_SPECIFIC_STATE;
 
 /**
  * @author mederly
  */
 public class PcpChildWfTaskCreationInstruction extends WfTaskCreationInstruction {
 
+    private String aspectClassName;
+    private ObjectTreeDeltasType deltasToProcess;
     private boolean executeApprovedChangeImmediately;     // should the child job execute approved change immediately (i.e. executeModelOperationHandler must be set as well!)
 
     protected PcpChildWfTaskCreationInstruction(ChangeProcessor changeProcessor) {
@@ -80,7 +86,7 @@ public class PcpChildWfTaskCreationInstruction extends WfTaskCreationInstruction
         setExecuteApprovedChangeImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
 
         addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_ASPECT, aspect.getClass().getName());
-        addTaskVariable(getChangeProcessor().getWorkflowManager().getWfTaskUtil().getWfPrimaryChangeAspectPropertyDefinition(), aspect.getClass().getName());
+        aspectClassName = aspect.getClass().getName();
 
         if (isExecuteApprovedChangeImmediately()) {
             // actually, context should be emptied anyway; but to be sure, let's do it here as well
@@ -103,8 +109,7 @@ public class PcpChildWfTaskCreationInstruction extends WfTaskCreationInstruction
         }
 
         try {
-            addTaskVariable(getChangeProcessor().getWorkflowManager().getWfTaskUtil().getWfDeltasToProcessPropertyDefinition(),
-                    ObjectTreeDeltas.toObjectTreeDeltasType(objectTreeDeltas));
+            deltasToProcess = ObjectTreeDeltas.toObjectTreeDeltasType(objectTreeDeltas);
         } catch (SchemaException e) {
             throw new SystemException("Couldn't store primary delta(s) into the task variable due to schema exception", e);
         }
@@ -133,6 +138,10 @@ public class PcpChildWfTaskCreationInstruction extends WfTaskCreationInstruction
         }
     }
 
+    public String getAspectClassName() {
+        return aspectClassName;
+    }
+
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
@@ -145,4 +154,18 @@ public class PcpChildWfTaskCreationInstruction extends WfTaskCreationInstruction
         return sb.toString();
     }
 
+    @Override
+    public void tailorTask(Task task) throws SchemaException {
+        super.tailorTask(task);
+
+        PrismContext prismContext = getChangeProcessor().getPrismContext();
+        WfPrimaryChangeProcessorStateType state = new WfPrimaryChangeProcessorStateType();
+        state.setChangeAspect(aspectClassName);
+        state.setDeltasToProcess(deltasToProcess);
+        state.asPrismContainerValue().setConcreteType(WfPrimaryChangeProcessorStateType.COMPLEX_TYPE);
+        task.addModification(
+                DeltaBuilder.deltaFor(TaskType.class, prismContext)
+                        .item(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE).replace(state)
+                        .asItemDelta());
+    }
 }
