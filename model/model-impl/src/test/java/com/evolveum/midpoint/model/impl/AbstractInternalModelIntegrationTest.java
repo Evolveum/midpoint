@@ -143,7 +143,9 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	
 	public static final File RESOURCE_DUMMY_FILE = new File(COMMON_DIR, "resource-dummy.xml");
 	public static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
-	public static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
+	public static final String RESOURCE_DUMMY_NAMESPACE = MidPointConstants.NS_RI;
+	public static final QName RESOURCE_DUMMY_ACCOUNT_OBJECTCLASS_QNAME = new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass");
+	public static final QName RESOURCE_DUMMY_PRIVILEGE_OBJECTCLASS_QNAME = new QName(RESOURCE_DUMMY_NAMESPACE, "CustomprivilegeObjectClass");
 	
 	public static final File USER_TEMPLATE_FILE = new File(COMMON_DIR, "user-template.xml");
 	public static final String USER_TEMPLATE_OID = "10000000-0000-0000-0000-000000000002";

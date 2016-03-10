@@ -312,9 +312,29 @@
         </objectType>
         
         <objectType>
+        	<!-- Not really used. It is here just to confuse the tests. -->
+        	<kind>entitlement</kind>
+        	<intent>fakePrivilege</intent>
+        	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
+        </objectType>
+
+        <objectType>
+        	<!-- Not really used. It is here just to confuse the tests. -->
+        	<kind>entitlement</kind>
+        	<intent>badPrivilege</intent>
+        	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
+        </objectType>
+
+        <objectType>
         	<kind>entitlement</kind>
         	<intent>privilege</intent>
-        	<default>false</default>
+        	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
+        </objectType>
+
+        <objectType>
+        	<!-- Not really used. It is here just to confuse the tests. -->
+        	<kind>entitlement</kind>
+        	<intent>uglyPrivilege</intent>
         	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
         </objectType>
 		

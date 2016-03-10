@@ -123,14 +123,6 @@ public class TestProjector extends AbstractLensTest {
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
         TestUtil.displayTestTile(this, TEST_NAME);
-
-        // WHEN
-        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceDummyType, prismContext);
-        
-        display("Dummy refined schema", refinedSchema);
-        
-        // THEN
-        dummyResourceCtl.assertRefinedSchemaSanity(refinedSchema);
         
         assertNoJackShadow();
 	}
