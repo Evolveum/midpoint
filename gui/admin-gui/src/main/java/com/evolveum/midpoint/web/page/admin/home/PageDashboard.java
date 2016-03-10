@@ -148,9 +148,12 @@ public class PageDashboard extends PageAdminHome {
         Task task = createSimpleTask(OPERATION_LOAD_ACCOUNTS);
         OperationResult result = task.getResult();
         callableResult.setResult(result);
+        GetOperationOptions getOpts = GetOperationOptions.createResolve();
+        getOpts.setNoFetch(Boolean.TRUE);
         Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
+                SelectorOptions.createCollection(ShadowType.F_RESOURCE, getOpts);
 
+        
         List<ObjectReferenceType> references = user.asObjectable().getLinkRef();
         for (ObjectReferenceType reference : references) {
             PrismObject<ShadowType> account = WebModelServiceUtils.loadObject(ShadowType.class, reference.getOid(),
