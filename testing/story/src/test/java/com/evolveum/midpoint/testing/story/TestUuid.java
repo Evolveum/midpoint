@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.testing.story;
 /*
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -471,7 +471,7 @@ public class TestUuid extends AbstractStoryTest {
         PrismReferenceValue linkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
         PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
 		display("OpenDJ shadow linked to "+user, shadow);
-		IntegrationTestTools.assertIcfsNameAttribute(shadow, "uid="+user.getOid()+",ou=clients,dc=example,dc=com");
+		IntegrationTestTools.assertSecondaryIdentifier(shadow, "uid="+user.getOid()+",ou=clients,dc=example,dc=com");
 		// TODO: cn, sn, givenName
 	}
 	

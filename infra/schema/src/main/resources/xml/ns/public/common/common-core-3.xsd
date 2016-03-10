@@ -3376,8 +3376,30 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+<!--         <xsd:element name="objectClass" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0"
+                         maxOccurs="unbounded">
+        	<xsd:annotation>
+        		<xsd:documentation>
+        			The objectClass part of schema handling definition provides a mechanism to redefine schema
+        			objectclasses. The objectclasses are tough of as being fairly abstract. This definition
+        			may define default values to este for each instance of this object class. It may define
+        			default mapping. But these definitions should be directly used in constructions in roles
+        			and assignments. The objectType definitions below are supposed to be used for that purpose.
+        		</xsd:documentation>
+        	</xsd:annotation>
+        </xsd:element>  -->
         <xsd:element name="objectType" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0"
-                         maxOccurs="unbounded"/>
+                         maxOccurs="unbounded">
+        	<xsd:annotation>
+        		<xsd:documentation>
+        			The objectType part of schema handling definition provides a mechanism to define
+        			concrete types of objects that this resource supports. There should be definitions
+        			of account types, entitletement types, etc.
+        			There are the definitions that should be used in constrcutions in roles, orgs,
+        			assignments, etc.
+        		</xsd:documentation>
+        	</xsd:annotation>
+        </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="schemaHandling" type="tns:SchemaHandlingType"/>
@@ -3923,6 +3945,19 @@
                                 this attribue is stored in repository and user for example by synchronization (correlation
                                 rule), consistency mechanism, etc.
                             </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="volatilityTrigger" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If set to true it indicates that change of this attribute may cause
+                                changes in other attributes. In that case midPoint re-reads the object
+                                after the change of this attributes.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+	                            <a:since>3.4</a:since>
+	                            <a:since>3.3.1</a:since>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="displayNameAttribute" type="xsd:boolean" minOccurs="0">
@@ -7247,6 +7282,19 @@
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+			<xsd:element name="orgRelation" type="tns:OrgRelationObjectSpecificationType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                        	Definition of object with respect to subject membership in organizational hierarchy.
+                        	Used to specify authorizations for all objects that belong to an org where the subject a manager, etc.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+            		</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         	<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
         		<xsd:annotation>
         			<xsd:documentation>
@@ -7291,6 +7339,109 @@
         	</xsd:extension>
         </xsd:complexContent>
 	</xsd:complexType>
+	
+	<xsd:complexType name="OrgRelationObjectSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of object with respect to subject membership in organizational hierarchy.
+                Used to specify authorizations for all objects that belong to an org where the subject a manager, etc.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="subjectRelation" minOccurs="0" type="xsd:QName">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Specifies the relation that the subject needs to have to the org for this condition to
+        				trigger. This is usually null (memeber) realtion or manager relation.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="scope" type="tns:OrgScopeType" minOccurs="0" maxOccurs="1" default="allDescendants">
+	        	<xsd:annotation>
+        			<xsd:documentation>
+        				Scope of application that will be used to select objects relative to the reference node.
+        				It determines which objects will be selected (those above or below the refence node, shallow or deep, etc.)
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="includeReferenceOrg" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				If set to true then the reference org (the one which the subjects belongs to) is included
+        				in the scope.
+        				If set to false then the reference org is excluded from the scope. 
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+	</xsd:complexType>
+	
+	
+	    <xsd:simpleType name="OrgScopeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines applicability scope in the organizational structures. 
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>3.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="directDescendants">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Direct descendants of the reference node. I.e. all the nodes
+                		that are exactly one level below.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DIRECT_DESCENDANTS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="allDescendants">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		All descendants of the reference node, including descendants of descendants.
+                		I.e. all the nodes that are one or more levels below.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL_DESCENDANTS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="allAncestors">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		All ancestors of the reference node, including ancestors of ancestors.
+                		I.e. all the nodes that are on any path between the refernce node and the
+                		root node.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL_ANCESTORS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		No objects belong to the scope. Used in conjuction with
+                		includeReferenceOrg option to target only the reference node
+                		and no other node in the hierarchy.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+    	</xsd:restriction>
+    </xsd:simpleType>
+	
 
 	<xsd:simpleType name="SpecialObjectSpecificationType">
         <xsd:annotation>
@@ -8227,7 +8378,7 @@
         </xsd:complexContent>
     </xsd:complexType>
     
-    <xsd:element name="valuePolicy" type="tns:ValuePolicyType"/>
+    <xsd:element name="valuePolicy" type="tns:ValuePolicyType" substitutionGroup="c:object"/>
 
     <xsd:complexType name="PasswordLifeTimeType">
         <xsd:sequence>
@@ -9454,7 +9605,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="securityPolicy" type="tns:SecurityPolicyType"/>
+    <xsd:element name="securityPolicy" type="tns:SecurityPolicyType" substitutionGroup="c:object"/>
     
     <xsd:complexType name="AuthenticationPolicyType">
 		<xsd:annotation>
@@ -10589,7 +10740,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="report" type="tns:ReportType"/>
+    <xsd:element name="report" type="tns:ReportType" substitutionGroup="c:object"/>
 
     <xsd:complexType name="ReportConfigurationType">
         <xsd:annotation>

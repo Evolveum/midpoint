@@ -66,6 +66,8 @@ public abstract class AbstractTreeTablePanel extends SimplePanel<String> {
 
     protected static final int CONFIRM_DELETE = 0;
     protected static final int CONFIRM_DELETE_ROOT = 1;
+    protected static final int CONFIRM_DELETE_MANAGER = 2;
+    protected static final int CONFIRM_DELETE_MEMBER = 3;
 
     protected static final String DOT_CLASS = AbstractTreeTablePanel.class.getName() + ".";
     protected static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";

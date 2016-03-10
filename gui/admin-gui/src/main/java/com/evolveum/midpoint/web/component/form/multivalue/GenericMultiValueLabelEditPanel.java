@@ -69,9 +69,12 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
 
     private static final String CLASS_MULTI_VALUE = "multivalue-form";
 
+    private boolean isMultiple;
+
     public GenericMultiValueLabelEditPanel(String id, IModel<List<T>> value, IModel<String> label,
-                                           String labelSize, String textSize){
+                                           String labelSize, String textSize, boolean isMultiple){
         super(id, value);
+        this.isMultiple = isMultiple;
         setOutputMarkupId(true);
 
         initLayout(label, labelSize, textSize);
@@ -80,7 +83,7 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
     private void initLayout(final IModel<String> label, final String labelSize, final String textSize){
 
         Label l = new Label(ID_LABEL, label);
-
+        l.setVisible(getLabelVisibility());
         if(StringUtils.isNotEmpty(labelSize)){
             l.add(AttributeAppender.prepend("class", labelSize));
         }
@@ -239,14 +242,15 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
     }
 
     protected boolean isAddButtonVisible(ListItem<T> item) {
-        int size = getModelObject().size();
-        if (size <= 1) {
-            return true;
+        if (isMultiple) {
+            int size = getModelObject().size();
+            if (size <= 1) {
+                return true;
+            }
+            if (item.getIndex() == size - 1) {
+                return true;
+            }
         }
-        if (item.getIndex() == size - 1) {
-            return true;
-        }
-
         return false;
     }
 
@@ -307,5 +311,13 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
     public void closeModalWindow(AjaxRequestTarget target){
         ModalWindow window = (ModalWindow) get(ID_MODAL_EDITOR);
         window.close(target);
+    }
+
+    protected boolean getLabelVisibility(){
+        return true;
+    }
+
+    protected boolean getAddButtonVisibility(){
+        return true;
     }
 }

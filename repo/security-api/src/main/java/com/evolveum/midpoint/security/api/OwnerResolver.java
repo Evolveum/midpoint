@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,11 @@ package com.evolveum.midpoint.security.api;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public interface OwnerResolver {
 	
-	<F extends FocusType> PrismObject<F> resolveOwner(PrismObject<ShadowType> shadow);
+	<F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object);
 	
 }

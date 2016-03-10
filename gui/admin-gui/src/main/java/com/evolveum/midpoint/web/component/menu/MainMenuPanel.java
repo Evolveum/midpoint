@@ -15,22 +15,31 @@
  */
 package com.evolveum.midpoint.web.component.menu;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.cycle.RequestCycle;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -77,7 +86,13 @@ public class MainMenuPanel extends SimplePanel<MainMenuItem> {
 
         WebMarkupContainer link;
         if (menu.getPage() != null) {
-            link = new BookmarkablePageLink(ID_LINK, menu.getPage());
+            link = new AjaxLink(ID_LINK) {
+
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    mainMenuPerformed(menu);
+                }
+            };
         } else {
             link = new WebMarkupContainer(ID_LINK);
         }
@@ -129,7 +144,14 @@ public class MainMenuPanel extends SimplePanel<MainMenuItem> {
             }
         }));
 
-        BookmarkablePageLink subLink = new BookmarkablePageLink(ID_SUB_LINK, menu.getPage(), menu.getParams());
+        Link subLink = new Link(ID_SUB_LINK) {
+
+
+            @Override
+            public void onClick() {
+                menuItemPerformed(menu);
+            }
+        };
         listItem.add(subLink);
 
         Label subLabel = new Label(ID_SUB_LABEL, menu.getName());
@@ -160,5 +182,38 @@ public class MainMenuPanel extends SimplePanel<MainMenuItem> {
                 return mi.getVisibleEnable().isEnabled();
             }
         });
+    }
+
+    private void menuItemPerformed(MenuItem menu) {
+        SessionStorage storage = getPageBase().getSessionStorage();
+        storage.clearBreadcrumbs();
+
+        MainMenuItem mainMenuItem = getModelObject();
+        Breadcrumb bc = new Breadcrumb(mainMenuItem.getName());
+        bc.setIcon(new Model<>(mainMenuItem.getIconClass()));
+        storage.pushBreadcrumb(bc);
+
+        List<MenuItem> items = mainMenuItem.getItems();
+        if (!items.isEmpty()) {
+            MenuItem first = items.get(0);
+
+            BreadcrumbPageClass invisibleBc = new BreadcrumbPageClass(first.getName(), first.getPage(),
+                    first.getParams());
+            invisibleBc.setVisible(false);
+            storage.pushBreadcrumb(invisibleBc);
+        }
+
+        setResponsePage(menu.getPage(), menu.getParams());
+    }
+
+    private void mainMenuPerformed(MainMenuItem menu) {
+        SessionStorage storage = getPageBase().getSessionStorage();
+        storage.clearBreadcrumbs();
+
+        if (menu.getParams() == null) {
+            setResponsePage(menu.getPage());
+        } else {
+            setResponsePage(menu.getPage(), menu.getParams());
+        }
     }
 }

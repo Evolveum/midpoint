@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
@@ -34,7 +36,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class NodeDto extends Selectable {
+public class NodeDto extends Selectable implements InlineMenuable {
 
     private String oid;
     private String name;
@@ -47,6 +49,8 @@ public class NodeDto extends Selectable {
     private NodeErrorStatusType errorStatus;
 
     private String statusMessage;
+
+    private List<InlineMenuItem> menuItems;
 
     public NodeDto(NodeType node) {
         Validate.notNull(node, "Node must not be null.");
@@ -76,6 +80,14 @@ public class NodeDto extends Selectable {
         } else {
             statusMessage = "";
         }
+    }
+
+    @Override
+    public List<InlineMenuItem> getMenuItems() {
+        if (menuItems == null) {
+            menuItems = new ArrayList<>();
+        }
+        return menuItems;
     }
 
     public boolean isClustered() {

@@ -41,6 +41,10 @@
         <ansi.color>true</ansi.color>
         <verbose.jaxb2>false</verbose.jaxb2>
         <verbose.jaxws>false</verbose.jaxws>
+
+        <git.describe>${describe}</git.describe>
+        <timestamp>${maven.build.timestamp}</timestamp>
+        <maven.build.timestamp.format>EEE, d MMM yyyy HH:mm:ss Z</maven.build.timestamp.format>
         <!-- Dependencies global versions -->
         <aspectj.version>1.7.3</aspectj.version>
         <commons.io.version>2.0.1</commons.io.version>
@@ -1017,7 +1021,7 @@
                             <archive>
                                 <manifestEntries>
                                     <Version-Number>${project.version}</Version-Number>
-                                    <SCM-Revision>${describe}</SCM-Revision>
+                                    <SCM-Revision>${git.describe}</SCM-Revision>
                                     <Organization>Evolveum</Organization>
                                     <Organization-URL>http://www.evolveum.com</Organization-URL>
                                     <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
@@ -1035,7 +1039,7 @@
                             <archive>
                                 <manifestEntries>
                                     <Version-Number>${project.version}</Version-Number>
-                                    <SCM-Revision>${describe}</SCM-Revision>
+                                    <SCM-Revision>${git.describe}</SCM-Revision>
                                     <Organization>Evolveum</Organization>
                                     <Organization-URL>http://www.evolveum.com</Organization-URL>
                                     <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>

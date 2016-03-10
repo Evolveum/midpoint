@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -326,12 +326,21 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+
+        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountShadowJackDummyOid, null, result);
+        assertIteration(shadowRepo, 0, "");
+        assertSituation(shadowRepo, SynchronizationSituationType.LINKED);
         
         MockLensDebugListener mockListener = new MockLensDebugListener();
         clockwork.setDebugListener(mockListener);
 
         dummyResource.deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
+        
         PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowJackDummyOid);
+        
+        shadowRepo = repositoryService.getObject(ShadowType.class, accountShadowJackDummyOid, null, result);
+        assertIteration(shadowRepo, 0, "");
+        assertSituation(shadowRepo, SynchronizationSituationType.LINKED);
         
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setCurrentShadow(shadow);
@@ -340,9 +349,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		change.setObjectDelta(syncDelta);
         
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
         synchronizationService.notifyChange(change, task, result);
         
         // THEN
+        TestUtil.displayThen(TEST_NAME);
         LensContext<UserType> context = mockListener.getLastSyncContext();
 
         display("Resulting context (as seen by debug listener)", context);
@@ -361,9 +372,9 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		
 		assertNotLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJackDummyOid);
 		
-		shadow = getShadowModelNoFetch(accountShadowJackDummyOid);
-        assertIteration(shadow, 0, "");
-        assertSituation(shadow, SynchronizationSituationType.DELETED);
+		shadowRepo = repositoryService.getObject(ShadowType.class, accountShadowJackDummyOid, null, result);
+        assertIteration(shadowRepo, 0, "");
+        assertSituation(shadowRepo, SynchronizationSituationType.DELETED);
         
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -389,7 +400,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         MockLensDebugListener mockListener = new MockLensDebugListener();
         clockwork.setDebugListener(mockListener);
         
-        PrismObject<ShadowType> accountShadowCalypso = repoAddObjectFromFile(ACCOUNT_SHADOW_CALYPSO_DUMMY_FILENAME, ShadowType.class, result);
+        PrismObject<ShadowType> accountShadowCalypso = repoAddObjectFromFile(ACCOUNT_SHADOW_CALYPSO_DUMMY_FILE, ShadowType.class, result);
         accountShadowCalypsoDummyOid = accountShadowCalypso.getOid();
         provisioningService.applyDefinition(accountShadowCalypso, result);
         assertNotNull("No oid in shadow", accountShadowCalypso.getOid());

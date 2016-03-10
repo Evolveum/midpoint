@@ -2,3 +2,5 @@ dn: ou=clients,dc=example,dc=com
 ou: clients
 objectclass: top
 objectclass: organizationalUnit
+aci: (targetattr="*")(version 3.0; acl "IDM Access"; allow (all)
+  userdn="ldap:///uid=idm,ou=Administrators,dc=example,dc=com";)

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<!-- additional objects for SearchTest -->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+         xmlns:my="http://myself.me/schemas/whatever"
+         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+         xmlns:p="http://example.com/p"
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-core-3.xsd
+         http://prism.evolveum.com/xml/ns/public/query-3 ../../../../../../infra/prism/src/main/resources/xml/ns/public/query-3.xsd">
+
+    <task oid="777">
+        <name>Task with no owner</name>
+        <executionStatus>runnable</executionStatus>
+        <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
+        <recurrence>recurring</recurrence>
+        <binding>tight</binding>
+        <schedule>
+            <interval>5</interval>
+        </schedule>
+    </task>
+
+    <task oid="777a">
+        <name>Task with owner different from administrator</name>
+        <executionStatus>runnable</executionStatus>
+        <ownerRef oid="00000000-0000-0000-2222-333333333333" type="c:UserType"/>
+        <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
+        <recurrence>recurring</recurrence>
+        <binding>tight</binding>
+        <schedule>
+            <interval>5</interval>
+        </schedule>
+    </task>
+
+    <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+        <name>Admin-owned role</name>
+        <linkRef oid="11223355"/>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+    </role>
+
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+        <name>Admin-owned org</name>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+    </org>
+
+    <accessCertificationCampaign>
+        <name>No-owner campaign</name>
+        <definitionRef oid="068e0a87-b456-47c7-811a-5fd9b6f78099"
+                       type="c:AccessCertificationDefinitionType"><!-- All user assignments --></definitionRef>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
+        <stageNumber>0</stageNumber>
+    </accessCertificationCampaign>
+
+    <accessCertificationCampaign>
+        <name>Other-owner campaign</name>
+        <definitionRef oid="068e0a87-b456-47c7-811a-5fd9b6f78099"
+                       type="c:AccessCertificationDefinitionType"><!-- All user assignments --></definitionRef>
+        <ownerRef oid="00000000-0000-0000-0000-111111111122" type="c:UserType"><!-- administrator --></ownerRef>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
+        <stageNumber>0</stageNumber>
+    </accessCertificationCampaign>
+
+    <accessCertificationDefinition>
+        <name>Admin-owned definition</name>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></ownerRef>
+    </accessCertificationDefinition>
+
+</objects>

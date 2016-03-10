@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.RExclusion;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
@@ -40,10 +41,7 @@ import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Persister;
 import org.hibernate.annotations.Where;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -67,6 +65,8 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
     private Boolean requestable;
     private Set<RObjectReference<RFocus>> approverRef;
     private String approvalProcess;
+
+    private REmbeddedReference ownerRef;
 
     public Boolean getRequestable() {
         return requestable;
@@ -103,6 +103,11 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
         return approverRef;
     }
 
+    @Embedded
+    public REmbeddedReference getOwnerRef() {
+        return ownerRef;
+    }
+
     public void setApproverRef(Set<RObjectReference<RFocus>> approverRef) {
         this.approverRef = approverRef;
     }
@@ -113,6 +118,10 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
 
     public void setApprovalProcess(String approvalProcess) {
         this.approvalProcess = approvalProcess;
+    }
+
+    public void setOwnerRef(REmbeddedReference ownerRef) {
+        this.ownerRef = ownerRef;
     }
 
     public void setRequestable(Boolean requestable) {
@@ -138,6 +147,8 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
             return false;
         if (requestable != null ? !requestable.equals(that.requestable) : that.requestable != null)
             return false;
+        if (ownerRef != null ? !ownerRef.equals(that.ownerRef) : that.ownerRef != null)
+            return false;
 
         return true;
     }
@@ -147,6 +158,7 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
         int result = super.hashCode();
         result = 31 * result + (approvalProcess != null ? approvalProcess.hashCode() : 0);
         result = 31 * result + (requestable != null ? requestable.hashCode() : 0);
+        result = 31 * result + (ownerRef != null ? ownerRef.hashCode() : 0);
         return result;
     }
 
@@ -181,5 +193,7 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
         PrismObjectDefinition<AbstractRoleType> roleDefinition = jaxb.asPrismObject().getDefinition();
 
         repo.setApprovalProcess(jaxb.getApprovalProcess());
+
+        repo.setOwnerRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), prismContext));
     }
 }

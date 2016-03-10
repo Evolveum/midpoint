@@ -482,14 +482,14 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     @Override
-    protected IModel<String> createPageSubTitleModel() {
+    protected IModel<String> createPageTitleModel() {
         return new LoadableModel<String>(false) {
 
             @Override
             protected String load() {
                 String name = WebComponentUtil.getName(resourceModel.getObject());
-                return PageBase.createStringResourceStatic(PageContentAccounts.this, "PageContentAccounts.subTitle", name).getString();
-//                return new StringResourceModel("PageContentAccounts.subTitle", PageContentAccounts.this, null, null, name).getString();
+                return createStringResourceStatic(PageContentAccounts.this,
+                        "PageContentAccounts.title", name).getString();
             }
         };
     }

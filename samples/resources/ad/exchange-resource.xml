@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <resource oid="11111111-3333-1111-1111-000000000010" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:my="http://myself.me/schemas/whatever" xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
+        <name>Exchange</name>
+
+        <connectorRef type="ConnectorType">
+            <filter>
+                <q:and>
+                    <q:equal>
+                        <q:path>c:connectorType</q:path>
+                        <q:value>Org.IdentityConnectors.Exchange.ExchangeConnector</q:value>
+                    </q:equal>
+                </q:and>
+            </filter>
+        </connectorRef>
+        <connectorConfiguration>
+            <icfc:resultsHandlerConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+                <icfc:enableNormalizingResultsHandler>true</icfc:enableNormalizingResultsHandler>
+                <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            </icfc:resultsHandlerConfiguration>
+            <icfc:configurationProperties xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:ex="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/Exchange.Connector/Org.IdentityConnectors.Exchange.ExchangeConnector">
+                <ex:ObjectClass>User</ex:ObjectClass>
+                <ex:DirectoryAdminName>...PUT ADMIN USER NAME HERE...</ex:DirectoryAdminName>
+                <ex:DirectoryAdminPassword>
+                    <clearValue>...PUT PASSWORD HERE...</clearValue>
+                </ex:DirectoryAdminPassword>
+                <ex:ExchangeUri>http://EXCHANGE-SERVER-FQDN/PowerShell</ex:ExchangeUri>
+                <ex:SyncDomainController>DOMAIN-CONTROLLER-FQDN</ex:SyncDomainController>
+                <ex:CreateHomeDirectory>true</ex:CreateHomeDirectory>
+                <ex:LDAPHostName>DOMAIN-CONTROLLER-FQDN</ex:LDAPHostName>
+                <ex:SearchChildDomains>false</ex:SearchChildDomains>
+                <ex:SyncGlobalCatalogServer>DOMAIN-CONTROLLER-FQDN</ex:SyncGlobalCatalogServer>
+                <ex:Container>OU=TestOU,DC=test,DC=local</ex:Container>
+                <ex:DomainName>test.local</ex:DomainName>
+                <!-- <ex:ScriptingConfigurationFile>scripts.xml</ex:ScriptingConfigurationFile>
+                <ex:ObjectClassesExtensionFile>schema.xml</ex:ObjectClassesExtensionFile> -->
+                <ex:CacheScripts>false</ex:CacheScripts>
+            </icfc:configurationProperties>
+        </connectorConfiguration>
+        <schemaHandling>
+            <objectType>
+                <kind>account</kind>
+                <intent>default</intent>
+                <displayName>Default Account</displayName>
+                <default>true</default>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <attribute>
+                    <ref>ri:givenName</ref>
+                    <displayName>Given Name</displayName>
+                    <outbound>
+                        <strength>weak</strength>
+                        <source>
+                            <path>$user/givenName</path>
+                        </source>
+                    </outbound>
+                    <inbound>
+                        <target>
+                            <path>$user/givenName</path>
+                        </target>
+                    </inbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:sn</ref>
+                    <displayName>Surname</displayName>
+                    <outbound>
+                        <strength>weak</strength>
+                        <source>
+                            <path>$user/familyName</path>
+                        </source>
+                    </outbound>
+                    <inbound>
+                        <target>
+                            <path>$user/familyName</path>
+                        </target>
+                    </inbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:sAMAccountName</ref>
+                    <displayName>Login name</displayName>
+                    <matchingRule>mr:stringIgnoreCase</matchingRule>
+                    <outbound>
+                        <source>
+                            <path>$user/name</path>
+                        </source>
+                        <expression>
+                            <script>
+                                <code>basic.norm(basic.stringify(name))</code>
+                            </script>
+                        </expression>
+                    </outbound>
+                    <inbound>
+                        <target>
+                            <path>$user/name</path>
+                        </target>
+                    </inbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:mail</ref>
+                    <outbound>
+                        <source>
+                            <path>$user/emailAddress</path>
+                        </source>
+                    </outbound>
+                    <inbound>
+                        <target>
+                            <path>$user/emailAddress</path>
+                        </target>
+                    </inbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:userPrincipalName</ref>
+                    <displayName>User principal name</displayName>
+                    <outbound>
+                        <source>
+                            <path>$user/name</path>
+                        </source>
+                        <expression>
+                            <script>
+                                <code>basic.norm(basic.stringify(name)) + '@test.local'</code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>icfs:name</ref>
+                    <displayName>Distinguished Name</displayName>
+                    <limitations>
+                        <minOccurs>0</minOccurs>
+                    </limitations>
+                    <matchingRule>mr:stringIgnoreCase</matchingRule>
+                    <outbound>
+                        <source>
+                            <path>$user/name</path>
+                        </source>
+                        <expression>
+                            <script>
+                                <code>'cn='+name+',OU=TestOU,DC=test,DC=local'</code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:RecipientType</ref>
+                    <outbound>
+                        <expression><value>UserMailbox</value></expression>   <!-- other values: User, MailUser -->
+                    </outbound>
+                </attribute>
+                <protected>
+                    <icfs:name>cn=Administrator,cn=Users,dc=test,dc=local</icfs:name>
+                </protected>
+                <activation>
+                    <administrativeStatus>
+                        <outbound/>
+                    </administrativeStatus>
+                </activation>
+                <credentials>
+                    <password>
+                        <outbound/>
+                    </password>
+                </credentials>
+            </objectType>
+            <!-- an example of object type other than Account -->
+            <objectType>
+                <kind>generic</kind>
+                <intent>default-accepted-domain</intent>
+                <displayName>Accepted domain (default)</displayName>
+                <objectClass>ri:CustomAcceptedDomainObjectClass</objectClass>
+                <attribute>
+                    <ref>ri:DomainType</ref>
+                    <outbound>
+                        <strength>strong</strength>
+                        <expression>
+                            <value>Authoritative</value>
+                        </expression>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>icfs:name</ref>
+                    <outbound>
+                        <source>
+                            <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">$focus/name</c:path>
+                        </source>
+                        <expression>
+                            <script>
+                                <code>name.toString().toLowerCase() + ' Test.Local'</code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:DomainName</ref>
+                    <outbound>
+                        <source>
+                            <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">$focus/name</c:path>
+                        </source>
+                        <expression>
+                            <script>
+                                <code>name.toString().toLowerCase() + '.test.local'</code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </attribute>
+            </objectType>
+        </schemaHandling>
+        <scripts></scripts>
+        <!-- Synchronization section describes the synchronization policy, timing, reactions and similar synchronization settings. -->
+        <synchronization>
+            <objectSynchronization>
+                <kind>account</kind>
+                <intent>default</intent>
+                <enabled>true</enabled>
+                <correlation>
+                    <q:description>Correlation rule for both internal employees and external accounts.</q:description>
+                    <q:equal>
+                        <q:matching>polyStringNorm</q:matching>
+                        <q:path>c:name</q:path>
+                        <expression>
+                            <description>Matches using sAMAccountName.</description>
+                            <path>$account/attributes/ri:sAMAccountName</path>
+                        </expression>
+                    </q:equal>
+                </correlation>
+                <reaction>
+                    <situation>linked</situation>
+                    <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
+                </reaction>
+            </objectSynchronization>
+        </synchronization>
+    </resource>

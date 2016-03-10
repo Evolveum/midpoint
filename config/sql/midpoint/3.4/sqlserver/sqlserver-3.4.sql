@@ -1,7 +1,10 @@
 CREATE TABLE m_abstract_role (
-  approvalProcess NVARCHAR(255) COLLATE database_default,
-  requestable     BIT,
-  oid             NVARCHAR(36) COLLATE database_default NOT NULL,
+  approvalProcess    NVARCHAR(255) COLLATE database_default,
+  ownerRef_relation  NVARCHAR(157) COLLATE database_default,
+  ownerRef_targetOid NVARCHAR(36) COLLATE database_default,
+  ownerRef_type      INT,
+  requestable        BIT,
+  oid                NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
 

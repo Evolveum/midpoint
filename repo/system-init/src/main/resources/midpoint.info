@@ -1,5 +1,5 @@
 midpoint.version=${project.version}
-midpoint.build=${describe}
+midpoint.build=${git.describe}
 midpoint.branch=${scmBranch}
 midpoint.timestamp=${timestamp}
 midpoint.scm=${project.scm.connection}

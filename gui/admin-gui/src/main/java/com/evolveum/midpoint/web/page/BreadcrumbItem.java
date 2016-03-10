@@ -25,6 +25,7 @@ import java.io.Serializable;
 /**
  * @author Viliam Repan (lazyman)
  */
+@Deprecated
 public class BreadcrumbItem implements Serializable {
 
     private Class<WebPage> page;

@@ -24,6 +24,8 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -87,8 +89,7 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
             List<PrismObject<TaskType>> tasks = getModel().searchObjects(TaskType.class, query, searchOptions, operationTask, result);
             for (PrismObject<TaskType> task : tasks) {
                 try {
-                    TaskDto taskDto = new TaskDto(task.asObjectable(), getModel(), getTaskService(),
-                            getModelInteractionService(), getTaskManager(), options, result, (PageBase)component);
+                    TaskDto taskDto = createTaskDto(task, result);
                     getAvailableData().add(taskDto);
                 } catch (Exception ex) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when getting task {} details", ex, task.getOid());
@@ -105,6 +106,13 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
             }
         }
         return getAvailableData().iterator();
+    }
+
+    public TaskDto createTaskDto(PrismObject<TaskType> task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+
+        return new TaskDto(task.asObjectable(), getModel(), getTaskService(),
+                getModelInteractionService(), getTaskManager(), options, result, (PageBase)component);
     }
 
     @Override

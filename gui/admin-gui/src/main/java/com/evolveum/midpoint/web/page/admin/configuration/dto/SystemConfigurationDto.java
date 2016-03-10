@@ -63,6 +63,7 @@ public class SystemConfigurationDto implements Serializable {
 	public static final String F_NOTIFICATION_CONFIGURATION = "notificationConfig";
 	public static final String F_ENABLE_EXPERIMENTAL_CODE = "enableExperimentalCode";
 	public static final String F_USER_DASHBOARD_LINK = "userDashboardLink";
+	public static final String F_ADDITIONAL_MENU_LINK = "additionalMenuLink";
 
 	private AEPlevel aepLevel;
 
@@ -76,6 +77,7 @@ public class SystemConfigurationDto implements Serializable {
 	private List<ObjectPolicyConfigurationTypeDto> objectPolicyList;
 	private NotificationConfigurationDto notificationConfig;
 	private List<RichHyperlinkType> userDashboardLink;
+	private List<RichHyperlinkType> additionalMenuLink;
 
 	private LoggingDto loggingConfig;
 	private ProfilingDto profilingDto;
@@ -161,6 +163,7 @@ public class SystemConfigurationDto implements Serializable {
 		enableExperimentalCode = SystemConfigurationTypeUtil.isExperimentalCodeEnabled(config);
 
 		userDashboardLink = loadUserDashboardLink(config);
+        additionalMenuLink = loadAdditionalMenuItem(config);
 	}
 
 	public SystemConfigurationType getOldObject() {
@@ -231,6 +234,18 @@ public class SystemConfigurationDto implements Serializable {
 		}
 		if (config.getAdminGuiConfiguration() != null) {
 			links.addAll(config.getAdminGuiConfiguration().getUserDashboardLink());
+		}
+		return links;
+	}
+
+	public static List<RichHyperlinkType> loadAdditionalMenuItem(SystemConfigurationType config) {
+		List<RichHyperlinkType> links = new ArrayList<>();
+		if (config == null || config.getInternals() == null
+				|| config.getInternals().isEnableExperimentalCode() == null) {
+			return links;
+		}
+		if (config.getAdminGuiConfiguration() != null) {
+			links.addAll(config.getAdminGuiConfiguration().getAdditionalMenuLink());
 		}
 		return links;
 	}
@@ -349,4 +364,12 @@ public class SystemConfigurationDto implements Serializable {
 	public void setUserDashboardLink(List<RichHyperlinkType> userDashboardLink) {
 		this.userDashboardLink = userDashboardLink;
 	}
+
+    public List<RichHyperlinkType> getAdditionalMenuLink() {
+        return additionalMenuLink;
+    }
+
+    public void setAdditionalMenuLink(List<RichHyperlinkType> additionalMenuLink) {
+        this.additionalMenuLink = additionalMenuLink;
+    }
 }

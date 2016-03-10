@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -297,7 +297,7 @@ public class Validator {
 				handler.handleGlobalError(validatorResult);
 			}
 			objectResult.recordFatalError(ex);
-			return EventResult.skipObject();
+			return EventResult.skipObject(ex.getMessage());
 		}
 
 		objectResult.addContext(END_LINE_NUMBER, stream.getLocation().getLineNumber());
@@ -365,7 +365,7 @@ public class Validator {
 				object.checkConsistence();
 			} catch (RuntimeException e) {
 				objectResult.recordFatalError("Internal object inconsistence, probably a parser bug: "+e.getMessage(), e);
-				return EventResult.skipObject();
+				return EventResult.skipObject(e.getMessage());
 			}
 			
 			Objectable objectType = null;
@@ -416,7 +416,7 @@ public class Validator {
 				}
 			}
 			objectResult.recordFatalError(ex);
-			return EventResult.skipObject();
+			return EventResult.skipObject(ex.getMessage());
 		} catch (RuntimeException ex) {
             validatorResult.recordFatalError("Couldn't parse object: " + ex.getMessage(), ex);
             if (verbose) {
@@ -432,7 +432,7 @@ public class Validator {
                 }
             }
             objectResult.recordFatalError(ex);
-            return EventResult.skipObject();
+            return EventResult.skipObject(ex.getMessage());
         }
 		
 	}

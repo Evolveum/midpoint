@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -239,7 +239,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			}
 			eventInfo.setSituation(situation.getSituation());
 
-			if (Utils.isDryRun(task)){
+			if (change.isUnrelatedChange() || Utils.isDryRun(task)){
 				PrismObject object = null;
 				if (change.getCurrentShadow() != null){
 					object = change.getCurrentShadow();
@@ -263,6 +263,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				}
 				subResult.recordSuccess();
 				eventInfo.record(task);
+				LOGGER.debug("SYNCHRONIZATION: DONE (dry run) for {}",  object);
 				return;
 			}
 			
@@ -287,6 +288,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 //				LOGGER.trace(subResult.dump());
 //			}
 		}
+		LOGGER.debug("SYNCHRONIZATION: DONE for {}",  currentShadow);
 	}
 	
 	private boolean satisfyTaskConstraints(ObjectSynchronizationType synchronizationPolicy, Task task) {

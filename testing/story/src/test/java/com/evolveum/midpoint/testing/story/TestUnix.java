@@ -54,6 +54,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -119,6 +121,7 @@ public class TestUnix extends AbstractStoryTest {
 	protected static final QName OPENDJ_ASSOCIATION_UNIX_GROUP_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "unixGroup");
 	protected static final String OPENDJ_UIDNUMBER_ATTRIBUTE_NAME = "uidNumber";
 	protected static final String OPENDJ_GIDNUMBER_ATTRIBUTE_NAME = "gidNumber";
+	protected static final String OPENDJ_UID_ATTRIBUTE_NAME = "uid";
 	
 	public static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
 	public static final String ROLE_BASIC_OID = "10000000-0000-0000-0000-000000000601";
@@ -159,6 +162,7 @@ public class TestUnix extends AbstractStoryTest {
 	private static final int USER_WALLY_UID_NUMBER = 1004;
 
 	private static final String USER_RANGER_USERNAME = "ranger";
+	private static final String USER_RANGER_USERNAME_RENAMED = "usranger";
 	private static final String USER_RANGER_FIST_NAME = "Super";
 	private static final String USER_RANGER_LAST_NAME = "Ranger";
 	private static final int USER_RANGER_UID_NUMBER = 1003;
@@ -317,6 +321,8 @@ public class TestUnix extends AbstractStoryTest {
 
         resourceOpenDj = getObject(ResourceType.class, RESOURCE_OPENDJ_OID);
         resourceOpenDjType = resourceOpenDj.asObjectable();
+        
+        IntegrationTestTools.displayXml("Initialized resource", resourceOpenDj);
         
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceOpenDj, prismContext);
         display("OpenDJ schema (resource)", resourceSchema);
@@ -791,7 +797,8 @@ public class TestUnix extends AbstractStoryTest {
         display("Shadow (model)", shadow);
         String accountLArgoDn = assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
         Entry groupVillains = openDJController.fetchEntry(groupVillainsDn);
-        openDJController.assertAttribute(groupVillains, "memberUid", Integer.toString(USER_LARGO_UID_NUMBER));
+        openDJController.assertAttribute(groupVillains, "memberUid", USER_LARGO_USERNAME);
+        //openDJController.assertAttribute(groupVillains, "memberUid", Integer.toString(USER_LARGO_UID_NUMBER));
 	}
 	
 /* *************************************************************************** */
@@ -936,11 +943,19 @@ public class TestUnix extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
-        String accounRangerDn = assertPosixAccount(shadow, USER_RANGER_UID_NUMBER);
+        String accountRangerDn = assertPosixAccount(shadow, USER_RANGER_UID_NUMBER);
         Entry groupRangers = openDJController.fetchEntry(groupRangersDn);
-        openDJController.assertAttribute(groupRangers, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
+        //openDJController.assertAttribute(groupRangers, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
+        openDJController.assertAttribute(groupRangers, "memberUid", USER_RANGER_USERNAME);
         
         assertPosixGroupAssociation(shadow, groupRangersOid);
+        
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        display("Shadow (repo)", repoShadow);
+        //PrismProperty<Integer> uidNumberRepoAttr = repoShadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_UIDNUMBER_ATTRIBUTE_NAME)));
+	//PrismAsserts.assertPropertyValue(uidNumberRepoAttr, USER_RANGER_UID_NUMBER);
+        PrismProperty<String> uidRepoAttr = repoShadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_UID_ATTRIBUTE_NAME)));
+	PrismAsserts.assertPropertyValue(uidRepoAttr, USER_RANGER_USERNAME);
 	}
 	
 	@Test
@@ -970,7 +985,8 @@ public class TestUnix extends AbstractStoryTest {
         display("Shadow (model)", shadow);
         String accountLArgoDn = assertPosixAccount(shadow, USER_RANGER_UID_NUMBER);
         Entry groupSeals = openDJController.fetchEntry(groupSealsDn);
-        openDJController.assertAttribute(groupSeals, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
+        //openDJController.assertAttribute(groupSeals, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
+        openDJController.assertAttribute(groupSeals, "memberUid", USER_RANGER_USERNAME);
         
         assertPosixGroupAssociation(shadow, groupRangersOid);
         assertPosixGroupAssociation(shadow, groupSealsOid);
@@ -1006,7 +1022,8 @@ public class TestUnix extends AbstractStoryTest {
 
         // account should still be in the rangers group
         Entry groupRangers = openDJController.fetchEntry(groupRangersDn);
-        openDJController.assertAttribute(groupRangers, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
+        //openDJController.assertAttribute(groupRangers, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
+        openDJController.assertAttribute(groupRangers, "memberUid", USER_RANGER_USERNAME);
 
         // account should not be in the group anymore. memberUid should be
         // empty...
@@ -1014,15 +1031,54 @@ public class TestUnix extends AbstractStoryTest {
         openDJController.assertNoAttribute(groupSeals, "memberUid");
 	}
 	
-	
 	@Test
-    public void test260DeleteUserRangerUnix() throws Exception {
-		final String TEST_NAME = "test260DeleteUserRangerUnix";
+    public void test257RenameUserAndAccountsCheckGroupmembership() throws Exception {
+		final String TEST_NAME = "test257RenameUserAndAccountsCheckGroupmembership";
         TestUtil.displayTestTile(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_RANGER_USERNAME);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(userBefore.getOid(), UserType.F_NAME, task, result, new PolyString("usranger", "usranger"));
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME_RENAMED);
+        assertNotNull("User not renamed", userAfter);
+        display("User after rename", userAfter);
+        assertUserPosix(userAfter, USER_RANGER_USERNAME_RENAMED, USER_RANGER_FIST_NAME, USER_RANGER_LAST_NAME, USER_RANGER_UID_NUMBER);
+        
+        String accountOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+        display("Shadow (model)", shadow);
+        assertPosixAccount(shadow, USER_RANGER_UID_NUMBER);
+
+        // account should still be in the rangers group, but renamed from
+        // ranger to usranger
+        PrismObject<ShadowType> shadowGroup = getShadowModel(groupRangersOid);
+        display("Shadow rangers group (model)", shadowGroup);
+        Entry groupRangers = openDJController.fetchEntry(groupRangersDn);
+        assertUnixGroup(shadowGroup, ROLE_RANGERS_GID);
+
+        openDJController.assertAttribute(groupRangers, "memberUid", USER_RANGER_USERNAME_RENAMED);
+
+	}
+	
+	
+	@Test
+    public void test260DeleteUserUsrangerUnix() throws Exception {
+		final String TEST_NAME = "test260DeleteUserUsrangerUnix";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_RANGER_USERNAME_RENAMED);
         
         // WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -1032,9 +1088,9 @@ public class TestUnix extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME);
+        PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME_RENAMED);
         display("User after", userAfter);
-        assertNull("User ranger sneaked in", userAfter);
+        assertNull("User usranger sneaked in", userAfter);
         
         assertNoObject(ShadowType.class, accountRangerOid, task, result);
         

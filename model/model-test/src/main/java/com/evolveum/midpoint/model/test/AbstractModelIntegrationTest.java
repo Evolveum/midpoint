@@ -791,6 +791,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assignOrg(userOid, orgOid, null, task, result);
 	}
 	
+	protected void assignOrg(String userOid, String orgOid, QName relation) 
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
+			CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+			PolicyViolationException, SecurityViolationException {
+		Task task = createTask(AbstractIntegrationTest.class.getName()+".assignOrg");
+		OperationResult result = task.getResult();
+		assignOrg(userOid, orgOid, relation, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+	
 	protected void assignOrg(String userOid, String orgOid, QName relation, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
@@ -1794,7 +1805,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     
 	protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
                                      QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
-		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule);
+		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, false);
 		IntegrationTestTools.assertProvisioningShadow(accountShadow, resourceType, RefinedAttributeDefinition.class, objectClass);
 	}
 	

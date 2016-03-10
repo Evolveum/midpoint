@@ -169,14 +169,14 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageAdminFocus.projections")){
+                new AbstractTab(getProjectionsTabTitleModel(parentPage)){
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
 						return createFocusProjectionsTabPanel(panelId, parentPage); 
 					}
 				});
 		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageAdminFocus.assignments")){
+				new AbstractTab(getAssignmentsTabTitleModel(parentPage)){
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
 						return createFocusAssignmentsTabPanel(panelId, parentPage); 
@@ -190,4 +190,44 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
                     }
 				});
 	}
+
+    private IModel<String> getProjectionsTabTitleModel(final PageAdminObjectDetails<F> parentPage){
+        return new IModel<String>() {
+            @Override
+            public String getObject() {
+                return parentPage.createStringResource("pageAdminFocus.projections").getString()
+                        + " (" + (projectionModel.getObject() == null ? 0 : projectionModel.getObject().size()) + ")";
+            }
+
+            @Override
+            public void setObject(String s) {
+
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
+    }
+
+    private IModel<String> getAssignmentsTabTitleModel(final PageAdminObjectDetails<F> parentPage){
+        return new IModel<String>() {
+            @Override
+            public String getObject() {
+                return parentPage.createStringResource("pageAdminFocus.assignments").getString()
+                        + " (" + (assignmentsModel.getObject() == null ? 0 : assignmentsModel.getObject().size()) + ")";
+            }
+
+            @Override
+            public void setObject(String s) {
+
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
+    }
 }

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.objectdetails.FocusDetailsTabPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -47,17 +48,15 @@ public class PrismContainerPanel extends Panel {
     private static final String STRIPED_CLASS = "striped";
 
     private boolean showHeader;
-    private boolean showEmptyFields;
     private PageBase pageBase;
 
     public PrismContainerPanel(String id, IModel<ContainerWrapper> model, Form form) {
-        this(id, model, true, false, form, null);
+        this(id, model, true, form, null);
     }
 
-    public PrismContainerPanel(String id, final IModel<ContainerWrapper> model, boolean showHeader, boolean showEmptyFields, Form form, PageBase pageBase) {
+    public PrismContainerPanel(String id, final IModel<ContainerWrapper> model, boolean showHeader, Form form, PageBase pageBase) {
         super(id);
         this.showHeader = showHeader;
-        this.showEmptyFields = showEmptyFields;
         this.pageBase = pageBase;
 
         LOGGER.trace("Creating container panel for {}", model.getObject());
@@ -117,11 +116,10 @@ public class PrismContainerPanel extends Panel {
         AjaxLink showEmptyFieldsButton = new AjaxLink(ID_SHOW_EMPTY_FIELDS) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                showEmptyFields = !showEmptyFields;
                 ContainerWrapper containerWrapper = model.getObject();
                 ObjectWrapper objectWrapper = containerWrapper.getObject();
-                objectWrapper.setShowEmpty(showEmptyFields);
-                target.add(PrismContainerPanel.this);
+                objectWrapper.setShowEmpty(!objectWrapper.isShowEmpty());
+                target.add(PrismContainerPanel.this.findParent(PrismObjectPanel.class));
             }
         };
         header.add(showEmptyFieldsButton);

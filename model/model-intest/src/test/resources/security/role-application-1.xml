@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2014 Evolveum
+  ~ Copyright (c) 2014-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,5 +18,6 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Application Role One</name>
-    <roleType>application</roleType>    
+    <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>
+    <roleType>application</roleType>
 </role>

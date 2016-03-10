@@ -30,6 +30,20 @@ public class MidPointNamingStrategy extends EJB3NamingStrategy {
     private static final int MAX_LENGTH = 30;
 
     @Override
+    public String columnName(String columnName) {
+        String rv = super.columnName(columnName);
+        LOGGER.trace("columnName {} to {}", columnName, rv);
+        return rv;
+    }
+
+    @Override
+    public String joinKeyColumnName(String joinedColumn, String joinedTable) {
+        String rv = super.joinKeyColumnName(joinedColumn, joinedTable);
+        LOGGER.trace("joinKeyColumnName joinedColumn={}, joinedTable={} to {}", joinedColumn, joinedTable, rv);
+        return rv;
+    }
+
+    @Override
     public String classToTableName(String className) {
         String name = className.substring(1);
         //change camel case to underscore delimited
@@ -85,6 +99,12 @@ public class MidPointNamingStrategy extends EJB3NamingStrategy {
 
     @Override
     public String foreignKeyColumnName(String propertyName, String propertyEntityName, String propertyTableName, String referencedColumnName) {
+        // TODO fixme BRUTAL HACK -- we are not able to eliminate columns like 'ownerRefCampaign_targetOid' from the schema (even with @AttributeOverride/@AssociationOverride)
+        if ("ownerRefCampaign.target".equals(propertyName) ||
+                "ownerRefDefinition.target".equals(propertyName) ||
+                "ownerRefTask.target".equals(propertyName)) {
+            propertyName = "ownerRef.target";
+        }
         String header = propertyName != null ? propertyName.replaceAll("\\.", "_") : propertyTableName;
         String result;
         if (header.endsWith("target") && referencedColumnName.equals("oid")) {
