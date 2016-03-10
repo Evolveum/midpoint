@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,6 +81,7 @@ import org.w3c.dom.Element;
 
 /**
  * @author lazyman
+ * @author semancik
  */
 public final class Utils {
 
@@ -90,37 +91,6 @@ public final class Utils {
 	
     private Utils() {
     }
-
-	// inefficient (does not make use of LensContext resource cache)
-	// and seemingly not used at all => commenting out before deleting forever
-//    public static void resolveResource(ShadowType shadow, ProvisioningService provisioning,
-//            OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException, ConfigurationException,
-//            SecurityViolationException {
-//
-//        Validate.notNull(shadow, "Resource object shadow must not be null.");
-//        Validate.notNull(provisioning, "Provisioning service must not be null.");
-//
-//        ResourceType resource = getResource(shadow, provisioning, result);
-//        shadow.setResourceRef(null);
-//        shadow.setResource(resource);
-//    }
-//
-//    public static ResourceType getResource(ShadowType shadow, ProvisioningService provisioning,
-//            OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException, ConfigurationException,
-//            SecurityViolationException {
-//
-//        if (shadow.getResource() != null) {
-//            return shadow.getResource();
-//        }
-//
-//        if (shadow.getResourceRef() == null) {
-//            throw new IllegalArgumentException("Couldn't resolve resource. Resource object shadow doesn't" +
-//                    " contain resource nor resource ref.");
-//        }
-//
-//        ObjectReferenceType resourceRef = shadow.getResourceRef();
-//        return provisioning.getObject(ResourceType.class, resourceRef.getOid(), null, null, result).asObjectable();
-//    }
 
 	@Deprecated	// use RepositoryService.objectSearchIterative instead
 	public static <T extends ObjectType> void searchIterative(RepositoryService repositoryService, Class<T> type, ObjectQuery query, 
@@ -367,8 +337,8 @@ public final class Utils {
             return determineObjectClassInternal(refinedSchema, objectclass, kind, intent, task);
         }
 
-        public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, PrismObject<ShadowType> shadowToImport) throws SchemaException {
-            ShadowType s = shadowToImport.asObjectable();
+        public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, PrismObject<ShadowType> shadow) throws SchemaException {
+            ShadowType s = shadow.asObjectable();
             return determineObjectClassInternal(refinedSchema, s.getObjectClass(), s.getKind(), s.getIntent(), s);
         }
 
