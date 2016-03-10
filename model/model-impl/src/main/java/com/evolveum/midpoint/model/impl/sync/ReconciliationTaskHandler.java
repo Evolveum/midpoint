@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,6 +86,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -189,7 +190,17 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			resource = provisioningService.getObject(ResourceType.class, resourceOid, null, coordinatorTask, opResult);
 			
 			RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, prismContext);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Refined schema:\n{}", refinedSchema.debugDump());
+				Collection<? extends RefinedObjectClassDefinition> defs = refinedSchema.getRefinedDefinitions(ShadowKindType.GENERIC);
+				for(RefinedObjectClassDefinition def: defs) {
+					LOGGER.trace("GENERIC def:\n{}", def.debugDump());
+				}
+			}
 			objectclassDef = Utils.determineObjectClass(refinedSchema, coordinatorTask);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Determined object class:\n{}", objectclassDef==null?null:objectclassDef.debugDump());
+			}
 			
 		} catch (ObjectNotFoundException ex) {
 			// This is bad. The resource does not exist. Permanent problem.
