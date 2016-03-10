@@ -182,7 +182,7 @@ public class PageDebugView extends PageAdminConfiguration {
     private void initLayout() {
         add(mainForm);
 
-        final IModel<Boolean> editable = new Model<Boolean>(false);
+//        final IModel<Boolean> editable = new Model<Boolean>(false);
 
         mainForm.add(new AjaxCheckBox("encrypt", encrypt) {
 
@@ -212,14 +212,6 @@ public class PageDebugView extends PageAdminConfiguration {
 			}
         });
 
-        mainForm.add(new AjaxCheckBox("edit", editable) {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                editPerformed(target, editable.getObject());
-            }
-        });
-
         mainForm.add(new AjaxCheckBox("switchToPlainText", switchToPlainText) {
 
             @Override
@@ -238,12 +230,10 @@ public class PageDebugView extends PageAdminConfiguration {
         plainTextarea = new TextArea<>(ID_PLAIN_TEXTAREA,
                 new PropertyModel<String>(model, ObjectViewDto.F_XML));
         plainTextarea.setVisible(false);
-        plainTextarea.setEnabled(editable.getObject());
 
         mainForm.add(plainTextarea);
 
         editor = new AceEditor("aceEditor", new PropertyModel<String>(model, ObjectViewDto.F_XML));
-        editor.setReadonly(!editable.getObject());
         mainForm.add(editor);
 
         initButtons(mainForm);
@@ -274,13 +264,6 @@ public class PageDebugView extends PageAdminConfiguration {
             }
         };
         mainForm.add(backButton);
-    }
-
-    public void editPerformed(AjaxRequestTarget target, boolean editable) {
-        editor.setReadonly(!editable);
-        plainTextarea.setEnabled(editable);
-        target.add(mainForm);
-        editor.refreshReadonly(target);
     }
     
     private boolean isReport(PrismObject object){
