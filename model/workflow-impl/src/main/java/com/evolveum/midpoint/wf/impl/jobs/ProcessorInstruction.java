@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,29 +14,19 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.processes.itemApproval;
+package com.evolveum.midpoint.wf.impl.jobs;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessorSpecificStateType;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * @author mederly
  */
-public interface ApprovalSchema {
+public interface ProcessorInstruction {
 
-    String getName();
-
-    String getDescription();
-
-    List<? extends ApprovalLevel> getLevels();
-
-    PrismContext getPrismContext();
-
-    void setPrismContext(PrismContext prismContext);
-
-    void toApprovalSchemaType(ApprovalSchemaType approvalSchemaType);           // expects empty (newly created) ApprovalSchemaType instance
-
-    ApprovalSchemaType toApprovalSchemaType();
+	WfProcessorSpecificStateType createProcessorSpecificState();
+	void createProcessVariables(Map<String, Object> map, PrismContext prismContext) throws SchemaException;
 }

@@ -21,9 +21,7 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.impl.jobs.WfTask;
@@ -31,21 +29,13 @@ import com.evolveum.midpoint.wf.impl.jobs.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.processes.DefaultProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
-import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processors.BaseAuditHelper;
 import com.evolveum.midpoint.wf.impl.processors.general.GcpExternalizationHelper;
-import com.evolveum.midpoint.wf.impl.processors.general.GcpProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.util.JaxbValueContainer;
+import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessorInstruction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorScenarioType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
-
-import org.activiti.engine.task.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.xml.bind.JAXBException;
 
 import java.util.Map;
 
@@ -78,46 +68,46 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
         return true;
     }
 
-    @Override
-    public PrismObject<? extends WorkItemContents> externalizeWorkItemContents(Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException {
-        PrismObject<? extends WorkItemContents> prism = gcpExternalizationHelper.createNewWorkItemContents();
-        gcpExternalizationHelper.fillInQuestionForm(prism.asObjectable().getQuestionForm().asPrismObject(), task, processInstanceVariables, result);
-        return prism;
-    }
+//    @Override
+//    public PrismObject<? extends WorkItemContents> externalizeWorkItemContents(Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException {
+//        PrismObject<? extends WorkItemContents> prism = gcpExternalizationHelper.createNewWorkItemContents();
+//        gcpExternalizationHelper.fillInQuestionForm(prism.asObjectable().getQuestionForm().asPrismObject(), task, processInstanceVariables, result);
+//        return prism;
+//    }
 
-    @Override
-    public ProcessSpecificState externalizeInstanceState(Map<String, Object> variables) throws SchemaException {
-        if (variables.containsKey(CommonProcessVariableNames.VARIABLE_PROCESS_INTERFACE_BEAN_NAME)) {
-            return processInterfaceFinder.getProcessInterface(variables).externalizeProcessInstanceState(variables);
-        } else {
-            return null;
-        }
-    }
+//    @Override
+//    public ProcessSpecificState externalizeInstanceState(Map<String, Object> variables) throws SchemaException {
+//        if (variables.containsKey(CommonProcessVariableNames.VARIABLE_PROCESS_INTERFACE_BEAN_NAME)) {
+//            return processInterfaceFinder.getProcessInterface(variables).externalizeProcessInstanceState(variables);
+//        } else {
+//            return null;
+//        }
+//    }
 
     @Override
     public AuditEventRecord prepareProcessInstanceAuditRecord(Map<String, Object> variables, WfTask wfTask, AuditEventStage stage, OperationResult result) {
-        return baseAuditHelper.prepareProcessInstanceAuditRecord(variables, wfTask, stage, result);
+        return baseAuditHelper.prepareProcessInstanceAuditRecord(wfTask, stage, variables, result);
         // TODO what with missing data (delta, result)? We could at least attempt to determine them ...
     }
 
     @Override
-    public AuditEventRecord prepareWorkItemAuditRecord(TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException {
-        return baseAuditHelper.prepareWorkItemAuditRecord(taskEvent, stage, result);
+    public AuditEventRecord prepareWorkItemAuditRecord(WorkItemNewType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage,
+			OperationResult result) throws WorkflowException {
+        return baseAuditHelper.prepareWorkItemAuditRecord(workItem, wfTask, taskEvent, stage, result);
         // TODO fill-in missing delta somehow
     }
 
     @Override
     public WfTaskCreationInstruction prepareJobCreationInstruction(GeneralChangeProcessorScenarioType scenarioType, LensContext<?> context, WfTask rootWfTask, com.evolveum.midpoint.task.api.Task taskFromModel, OperationResult result) throws SchemaException {
-        WfTaskCreationInstruction instruction = WfTaskCreationInstruction.createWfProcessChildJob(rootWfTask);
-        instruction.setProcessDefinitionKey(scenarioType.getProcessName());
-        if (scenarioType.getBeanName() != null) {
-            instruction.addProcessVariable(GcpProcessVariableNames.VARIABLE_MIDPOINT_SCENARIO_BEAN_NAME, scenarioType.getBeanName());
-        }
-        instruction.setRequesterOidAndRefInProcess(taskFromModel.getOwner());
+
+        GeneralChangeProcessorInstruction processorInstruction = new GeneralChangeProcessorInstruction(context);
+        processorInstruction.setScenarioBeanName(scenarioType.getBeanName());
+
+        WfTaskCreationInstruction instruction = WfTaskCreationInstruction.createWfOnly(rootWfTask.getChangeProcessor(), processorInstruction, null);
+        instruction.setProcessName(scenarioType.getProcessName());
+        instruction.setRequesterRef(taskFromModel.getOwner());
         instruction.setTaskName("Workflow-monitoring task");
         instruction.setProcessInterfaceBean(defaultProcessMidPointInterface);
-        LensContextType lensContextType = context.toLensContextType();
-        instruction.addProcessVariable(GcpProcessVariableNames.VARIABLE_MODEL_CONTEXT, new JaxbValueContainer<>(lensContextType, prismContext));
         return instruction;
     }
 

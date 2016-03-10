@@ -709,6 +709,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="processName" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the process definition, e.g. "ItemApproval".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="processInstanceName" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -809,6 +816,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Contains name of class that manages this particular model operation ("change", thus "change processor").
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="processInterface" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Contains name of class that provides an interface between wf process and midPoint ("process interface bean").
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -951,7 +965,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:WfProcessSpecificStateType">
                 <xsd:sequence>
-                    <xsd:element name="approvalRequest" type="tns:ItemApprovalRequestType"/>
+                    <xsd:element name="approvalSchema" type="tns:ApprovalSchemaType"/>
                     <xsd:element name="decisions" type="c:DecisionType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>

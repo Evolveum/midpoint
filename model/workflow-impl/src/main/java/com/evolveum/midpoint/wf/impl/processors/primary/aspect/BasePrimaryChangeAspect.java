@@ -32,15 +32,12 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
-
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author mederly
@@ -98,11 +95,6 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
     @Override
     public List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpWfTask job, OperationResult result) {
         return processInterfaceFinder.getProcessInterface(event.getVariables()).prepareApprovedBy(event);
-    }
-
-    @Override
-    public ProcessSpecificState externalizeProcessInstanceState(Map<String, Object> variables) {
-        return processInterfaceFinder.getProcessInterface(variables).externalizeProcessInstanceState(variables);
     }
 
     public PrimaryChangeProcessor getChangeProcessor() {

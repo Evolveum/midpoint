@@ -23,18 +23,12 @@ import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -49,31 +43,22 @@ import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.impl.processors.BaseAuditHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
-import com.evolveum.midpoint.wf.impl.processors.BaseExternalizationHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import static com.evolveum.midpoint.audit.api.AuditEventStage.EXECUTION;
+import static com.evolveum.midpoint.audit.api.AuditEventStage.REQUEST;
 import static com.evolveum.midpoint.model.api.context.ModelState.PRIMARY;
 import static com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas.extractFromModelContext;
-import static com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor.ExecutionMode.ALL_AFTERWARDS;
-import static com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor.ExecutionMode.ALL_IMMEDIATELY;
-import static com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor.ExecutionMode.MIXED;
+import static com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor.ExecutionMode.*;
 
 /**
  * @author mederly
@@ -93,13 +78,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
 
     @Autowired
-    private BaseExternalizationHelper baseExternalizationHelper;
-
-    @Autowired
     private BaseAuditHelper baseAuditHelper;
-
-    @Autowired
-    private PcpExternalizationHelper pcpExternalizationHelper;
 
     @Autowired
     private WfTaskUtil wfTaskUtil;
@@ -191,18 +170,19 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         // tweaking the instructions returned from aspects a bit...
 
         // if we are adding a new object, we have to set OBJECT_TO_BE_ADDED variable in all instructions
-        ObjectDelta focusChange = changesBeingDecomposed.getFocusChange();
-        if (focusChange != null && focusChange.isAdd() && focusChange.getObjectToAdd() != null) {
-            String objectToBeAdded;
-            try {
-                objectToBeAdded = MiscDataUtil.serializeObjectToXml(focusChange.getObjectToAdd());
-            } catch (SystemException e) {
-                throw new SystemException("Couldn't serialize object to be added to XML", e);
-            }
-            for (PcpChildWfTaskCreationInstruction instruction : startProcessInstructions) {
-                instruction.addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED, objectToBeAdded);
-            }
-        }
+//        ObjectDelta focusChange = changesBeingDecomposed.getFocusChange();
+//        if (focusChange != null && focusChange.isAdd() && focusChange.getObjectToAdd() != null) {
+//            String objectToBeAdded;
+//            try {
+//                objectToBeAdded = MiscDataUtil.serializeObjectToXml(focusChange.getObjectToAdd());
+//            } catch (SystemException e) {
+//                throw new SystemException("Couldn't serialize object to be added to XML", e);
+//            }
+//            for (PcpChildWfTaskCreationInstruction instruction : startProcessInstructions) {
+//                //instruction.addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED, objectToBeAdded);
+//                SPRAV S TYMTO NIECO
+//            }
+//        }
 
         for (PcpChildWfTaskCreationInstruction instruction : startProcessInstructions) {
             if (instruction.startsWorkflowProcess() && instruction.isExecuteApprovedChangeImmediately()) {
@@ -294,12 +274,12 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     private WfTask createJob0(ModelContext context, ObjectTreeDeltas changesWithoutApproval, WfTask rootWfTask, ExecutionMode executionMode, OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (changesWithoutApproval != null && !changesWithoutApproval.isEmpty() && executionMode != ALL_AFTERWARDS) {
             ModelContext modelContext = contextCopyWithDeltaReplaced(context, changesWithoutApproval);
-            WfTaskCreationInstruction instruction0 = WfTaskCreationInstruction.createModelOperationChildJob(rootWfTask, modelContext);
+            WfTaskCreationInstruction instruction0 = WfTaskCreationInstruction.createModelOnly(rootWfTask.getChangeProcessor(), modelContext);
             instruction0.setTaskName("Executing changes that do not require approval");
             if (context.getFocusContext().getPrimaryDelta().isAdd()) {
                 instruction0.setHandlersAfterModelOperation(WfPropagateTaskObjectReferenceTaskHandler.HANDLER_URI);  // for add operations we have to propagate ObjectOID
             }
-            instruction0.setCreateTaskAsSuspended(true);   // task0 should execute only after all subtasks are created, because when it finishes, it
+            instruction0.setCreateTaskAsSuspended();   // task0 should execute only after all subtasks are created, because when it finishes, it
             // writes some information to all dependent tasks (i.e. they must exist at that time)
             return wfTaskController.createWfTask(instruction0, rootWfTask, result);
         } else {
@@ -382,46 +362,23 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
         pcpJob.storeResultingDeltas(aspect.prepareDeltaOut(event, pcpJob, result));
         pcpJob.addApprovedBy(aspect.prepareApprovedBy(event, pcpJob, result));
-        pcpJob.commitChanges(result);
-    }
-    //endregion
-
-    @Override
-    public PrismObject<? extends ProcessInstanceState> externalizeProcessInstanceState(Map<String, Object> variables) throws SchemaException {
-
-        PrismObject<ProcessInstanceState> processInstanceStatePrismObject = baseExternalizationHelper.externalizeState(variables);
-        processInstanceStatePrismObject.asObjectable().setProcessorSpecificState(pcpExternalizationHelper.externalizeState(variables));
-        processInstanceStatePrismObject.asObjectable().setProcessSpecificState(getChangeAspect(variables).externalizeProcessInstanceState(variables));
-        return processInstanceStatePrismObject;
-    }
-
-    @Override
-    public WfProcessorSpecificStateType externalizeProcessorSpecificState(Map<String, Object> variables) throws SchemaException {
-        return pcpExternalizationHelper.externalizeStateNew(variables);
-    }
-
-    @Override
-    public PrismObject<? extends WorkItemContents> externalizeWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException {
-        return pcpExternalizationHelper.externalizeWorkItemContents(task, processInstanceVariables, result);
     }
     //endregion
 
     //region Auditing
     @Override
-    public AuditEventRecord prepareProcessInstanceAuditRecord(Map<String, Object> variables, WfTask wfTask, AuditEventStage stage, OperationResult result) {
-        AuditEventRecord auditEventRecord = baseAuditHelper.prepareProcessInstanceAuditRecord(variables, wfTask, stage, result);
+    public AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, Map<String, Object> variables, OperationResult result) {
+        AuditEventRecord auditEventRecord = baseAuditHelper.prepareProcessInstanceAuditRecord(wfTask, stage, variables, result);
 
-        ObjectTreeDeltas deltas = null;
+        ObjectTreeDeltas<?> deltas = null;
         try {
-            if (stage == AuditEventStage.REQUEST) {
+            if (stage == REQUEST) {
                 deltas = wfTaskUtil.retrieveDeltasToProcess(wfTask.getTask());
-                //LOGGER.info("### deltas to process = {}", deltas);
             } else {
                 deltas = wfTaskUtil.retrieveResultingDeltas(wfTask.getTask());
-                //LOGGER.info("### resulting deltas = {}", deltas);
             }
         } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't retrieve delta(s) from task " + wfTask.getTask(), e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve delta(s) from task " + wfTask.getTask(), e);
         }
         if (deltas != null) {
             List<ObjectDelta> deltaList = deltas.getDeltaList();
@@ -430,29 +387,32 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             }
         }
 
-        if (stage == AuditEventStage.EXECUTION) {
-            auditEventRecord.setResult(processInterfaceFinder.getProcessInterface(variables).getAnswer(variables));
+        if (stage == EXECUTION) {
+            auditEventRecord.setResult(wfTask.getAnswer());
         }
 
         return auditEventRecord;
     }
 
     @Override
-    public AuditEventRecord prepareWorkItemAuditRecord(TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException {
-        AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemAuditRecord(taskEvent, stage, result);
-        ObjectTreeDeltas deltas = null;
+    public AuditEventRecord prepareWorkItemAuditRecord(WorkItemNewType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage,
+            OperationResult result) throws WorkflowException {
+        AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemAuditRecord(workItem, wfTask, taskEvent, stage, result);
+
+        ObjectTreeDeltas<?> deltas = null;
         try {
-            deltas = miscDataUtil.getObjectTreeDeltas(taskEvent.getVariables(), true);
-            if (deltas != null) {
-                List<ObjectDelta> deltaList = deltas.getDeltaList();
-                for (ObjectDelta delta : deltaList) {
-                    auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
-                }
-            }
-        } catch (JAXBException|SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't retrieve delta to be approved", e);
+			deltas = getWfTaskUtil().retrieveDeltasToProcess(wfTask.getTask());
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve deltas to be put into audit record", e);
         }
-        return auditEventRecord;
+
+		if (deltas != null) {
+			for (ObjectDelta delta : deltas.getDeltaList()) {
+				auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
+			}
+		}
+
+		return auditEventRecord;
     }
 
     //endregion
@@ -463,7 +423,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
     PrimaryChangeAspect getChangeAspect(Map<String, Object> variables) {
-        String aspectClassName = (String) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_ASPECT);
+        String aspectClassName = (String) variables.get(PcpProcessVariableNames.VARIABLE_CHANGE_ASPECT);
         return findPrimaryChangeAspect(aspectClassName);
     }
 

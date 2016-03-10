@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.impl.activiti.dao;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -55,6 +56,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static com.evolveum.midpoint.prism.util.CloneUtil.cloneCollectionMembers;
 import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
@@ -153,7 +155,7 @@ public class ProcessInstanceProvider {
         if (cp == null) {
             throw new SchemaException("No change processor information in process instance " + instance.getId());
         }
-        wfc.setProcessorSpecificState(cp.externalizeProcessorSpecificState(vars));
+        //wfc.setProcessorSpecificState(cp.externalizeProcessorSpecificState(vars));
         wfc.setProcessSpecificState(pmi.externalizeProcessSpecificState(vars));
 
         if (getWorkItems) {
@@ -161,7 +163,7 @@ public class ProcessInstanceProvider {
             List<Task> tasks = ts.createTaskQuery()
                     .processInstanceId(instance.getId())
                     .list();
-            wfc.getWorkItem().addAll(workItemProvider.tasksToWorkItemsNew(tasks, vars, true, true, result));     // "no" to task forms, "yes" to assignee and candidate details
+            wfc.getWorkItem().addAll(workItemProvider.tasksToWorkItemsNew(tasks, vars, false, true, true, result));     // "no" to task forms, "yes" to assignee and candidate details
         }
 
         return wfc;
@@ -191,8 +193,8 @@ public class ProcessInstanceProvider {
                 return;
             }
             boolean retrieveWorkItems = SelectorOptions.hasToLoadPath(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM), options);
-            WfContextType wfContextType = getWfContextType(instanceId, retrieveWorkItems, result);
-            taskType.setWorkflowContext(wfContextType);
+            WfContextType wfContextType2 = getWfContextType(instanceId, retrieveWorkItems, result);
+            taskType.getWorkflowContext().getWorkItem().addAll(cloneCollectionMembers(wfContextType2.getWorkItem()));
         } catch (RuntimeException|SchemaException|ObjectNotFoundException|WorkflowException e) {
             result.recordFatalError(e.getMessage(), e);
             taskType.setFetchResult(result.createOperationResultType());

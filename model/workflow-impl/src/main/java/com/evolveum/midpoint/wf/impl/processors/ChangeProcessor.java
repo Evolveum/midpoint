@@ -21,7 +21,6 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -33,11 +32,7 @@ import com.evolveum.midpoint.wf.impl.jobs.WfTask;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessorSpecificStateType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
-
-import javax.xml.bind.JAXBException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
 
 import java.util.Map;
 
@@ -91,66 +86,36 @@ public interface ChangeProcessor {
      * Should leave the task in saved state (if finishing successfully).
      *
      * @param event
-     * @param task
+     * @param wfTask
      * @param result Here should be stored information about whether the finalization was successful or not
      * @throws SchemaException
      */
     void onProcessEnd(ProcessEvent event, WfTask wfTask, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
 
     /**
-     * Externalizes internal state of the process instance. Typically, uninteresting (auxiliary) data elements
-     * are thrown away, internal representation suitable for workflow processing is replaced by "clean" prism
-     * object structure, and untyped Map[String,Object] is replaced by typed prism data.
-     *
-     * @param variables internal process state represented by a map
-     * @return external representation in the form of PrismObject
-     */
-    PrismObject<? extends ProcessInstanceState> externalizeProcessInstanceState(Map<String, Object> variables) throws SchemaException;
-
-	/**
-	 * TODO
-     * @param variables
-     * @return
-     * @throws SchemaException
-     */
-    WfProcessorSpecificStateType externalizeProcessorSpecificState(Map<String, Object> variables) throws SchemaException;
-
-    /**
-     * Prepares a displayable work item contents. For example, in case of primary change processor,
-     * it returns a GeneralChangeApprovalWorkItemContents containing original object state
-     * (objectOld), to-be object state (objectNew), delta, additional object, and a situation-specific
-     * question form.
-     *
-     * @param task activiti task corresponding to the work item for which the contents is to be prepared
-     * @param processInstanceVariables variables of the process instance of which this task is a part
-     * @param result here the method stores its result
-     * @return
-     * @throws JAXBException
-     * @throws ObjectNotFoundException
-     * @throws SchemaException
-     */
-    PrismObject<? extends WorkItemContents> externalizeWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException;
-
-    /**
      * Prepares a process instance-related audit record.
      *
-     * @param variables
      * @param wfTask
      * @param stage
+     * @param variables
      * @param result
      * @return
      */
-    AuditEventRecord prepareProcessInstanceAuditRecord(Map<String, Object> variables, WfTask wfTask, AuditEventStage stage, OperationResult result);
+    AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, Map<String, Object> variables, OperationResult result);
 
     /**
      * Prepares a work item-related audit record.
      *
-     * @param taskEvent
-     * @param stage
-     * @param result
-     * @return
+     *
+	 * @param workItem
+	 * @param wfTask
+	 * @param taskEvent
+	 * @param stage
+	 * @param result
+	 * @return
      */
-    AuditEventRecord prepareWorkItemAuditRecord(TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException;
+	// workItem contains taskRef, assignee, candidates resolved (if possible)
+    AuditEventRecord prepareWorkItemAuditRecord(WorkItemNewType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException;
 
     /**
      * Auxiliary method to access autowired Spring beans from within non-spring java objects.

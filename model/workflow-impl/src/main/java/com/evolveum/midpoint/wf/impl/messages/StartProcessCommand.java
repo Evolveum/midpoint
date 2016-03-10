@@ -28,7 +28,6 @@ public class StartProcessCommand extends MidPointToActivitiMessage {
     private String processName;
     private String processInstanceName;
     private String processOwner;
-    private String taskOid;
     private boolean sendStartConfirmation;
 
     public String getProcessName() {
@@ -55,14 +54,6 @@ public class StartProcessCommand extends MidPointToActivitiMessage {
         this.sendStartConfirmation = sendStartConfirmation;
     }
 
-    public String getTaskOid() {
-        return taskOid;
-    }
-
-    public void setTaskOid(String taskOid) {
-        this.taskOid = taskOid;
-    }
-
     public Map<String, Object> getVariables() {
         return variables;
     }
@@ -72,7 +63,7 @@ public class StartProcessCommand extends MidPointToActivitiMessage {
     }
 
     public void setVariablesFrom(Map<String, Object> variables) {
-        this.variables = new HashMap<String,Object>(variables);
+        this.variables = new HashMap<>(variables);
     }
 
     public void addVariable(String name, Object value) {
@@ -92,6 +83,6 @@ public class StartProcessCommand extends MidPointToActivitiMessage {
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + "[process=" + processName + "/" + processInstanceName + ", task=" + taskOid + ", variables=" + variables + ", sendStartConfirmation=" + sendStartConfirmation + "]";
+        return this.getClass().getSimpleName() + "[process=" + processName + "/" + processInstanceName + ", variables=" + variables + ", sendStartConfirmation=" + sendStartConfirmation + "]";
     }
 }

@@ -131,39 +131,27 @@ public class MiscDataUtil {
         }
     }
 
-    public PrismObject<UserType> getRequester(Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        LightweightObjectRef ref = (LightweightObjectRef) variables.get(CommonProcessVariableNames.VARIABLE_REQUESTER_REF);
-        return repositoryService.getObject(UserType.class, ref.getOid(), null, result);
-    }
-
-    public ObjectTreeDeltas getObjectTreeDeltas(Map<String, Object> variables, boolean mayBeNull) throws JAXBException, SchemaException {
-        ObjectTreeDeltasType deltas = getObjectTreeDeltaType(variables, mayBeNull);
-        return deltas != null ? ObjectTreeDeltas.fromObjectTreeDeltasType(deltas, prismContext) : null;
-    }
-
-    public ObjectDelta getFocusPrimaryDelta(Map<String, Object> variables, boolean mayBeNull) throws JAXBException, SchemaException {
-        ObjectDeltaType objectDeltaType = getFocusPrimaryObjectDeltaType(variables, mayBeNull);
+    public ObjectDelta getFocusPrimaryDelta(WfContextType workflowContext, boolean mayBeNull) throws JAXBException, SchemaException {
+        ObjectDeltaType objectDeltaType = getFocusPrimaryObjectDeltaType(workflowContext, mayBeNull);
         return objectDeltaType != null ? DeltaConvertor.createObjectDelta(objectDeltaType, prismContext) : null;
     }
 
     // mayBeNull=false means that the corresponding variable must be present (not that focus must be non-null)
     // TODO: review/correct this!
-    public ObjectDeltaType getFocusPrimaryObjectDeltaType(Map<String, Object> variables, boolean mayBeNull) throws JAXBException, SchemaException {
-        ObjectTreeDeltasType deltas = getObjectTreeDeltaType(variables, mayBeNull);
+    public ObjectDeltaType getFocusPrimaryObjectDeltaType(WfContextType workflowContext, boolean mayBeNull) throws JAXBException, SchemaException {
+        ObjectTreeDeltasType deltas = getObjectTreeDeltaType(workflowContext, mayBeNull);
         return deltas != null ? deltas.getFocusPrimaryDelta() : null;
     }
 
-    public ObjectTreeDeltasType getObjectTreeDeltaType(Map<String, Object> variables, boolean mayBeNull) throws SchemaException {
-        StringHolder deltasXml = (StringHolder) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TREE_DELTAS);
-        if (deltasXml == null) {
-            if (mayBeNull) {
-                return null;
-            } else {
-                throw new IllegalStateException("There's no " + PcpProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TREE_DELTAS + " in process variables");
-            }
-        }
-        return prismContext.parseAtomicValue(
-                deltasXml.getValue(), ObjectTreeDeltasType.COMPLEX_TYPE, PrismContext.LANG_XML);
+    public ObjectTreeDeltasType getObjectTreeDeltaType(WfContextType workflowContext, boolean mayBeNull) throws SchemaException {
+		WfProcessorSpecificStateType state = workflowContext.getProcessorSpecificState();
+		if (mayBeNull && state == null) {
+			return null;
+		}
+		if (!(state instanceof WfPrimaryChangeProcessorStateType)) {
+			throw new IllegalStateException("Expected WfPrimaryChangeProcessorStateType but got " + state);
+		}
+		return ((WfPrimaryChangeProcessorStateType) state).getDeltasToProcess();
     }
 
     public static String serializeObjectToXml(PrismObject<? extends ObjectType> object) {
@@ -362,7 +350,15 @@ public class MiscDataUtil {
         return retval;
     }
 
-    public PrismObject resolveObjectReference(ObjectReferenceType ref, OperationResult result) {
+	public PrismObject resolveObjectReference(ObjectReferenceType ref, OperationResult result) {
+		return resolveObjectReference(ref, false, result);
+	}
+
+	public PrismObject resolveAndStoreObjectReference(ObjectReferenceType ref, OperationResult result) {
+		return resolveObjectReference(ref, true, result);
+	}
+
+    private PrismObject resolveObjectReference(ObjectReferenceType ref, boolean storeBack, OperationResult result) {
         if (ref == null) {
             return null;
         }
@@ -370,14 +366,18 @@ public class MiscDataUtil {
 			return ref.asReferenceValue().getObject();
 		}
         try {
-            return repositoryService.getObject((Class) prismContext.getSchemaRegistry().getCompileTimeClass(ref.getType()), ref.getOid(), null, result);
+            PrismObject object = repositoryService.getObject((Class) prismContext.getSchemaRegistry().getCompileTimeClass(ref.getType()), ref.getOid(), null, result);
+			if (storeBack) {
+				ref.asReferenceValue().setObject(object);
+			}
+            return object;
         } catch (ObjectNotFoundException e) {
             // there should be a note in result by now
             LoggingUtils.logException(LOGGER, "Couldn't get reference {} details because it couldn't be found", e, ref);
             return null;
         } catch (SchemaException e) {
             // there should be a note in result by now
-            LoggingUtils.logException(LOGGER, "Couldn't get reference {} details due to schema exception", e, ref);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get reference {} details due to schema exception", e, ref);
             return null;
         }
     }

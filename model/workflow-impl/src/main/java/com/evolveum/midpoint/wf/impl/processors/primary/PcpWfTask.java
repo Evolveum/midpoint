@@ -1,8 +1,11 @@
 package com.evolveum.midpoint.wf.impl.processors.primary;
 
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.jobs.WfTask;
+import com.evolveum.midpoint.wf.impl.jobs.WfTaskController;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
+import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -18,6 +21,10 @@ public class PcpWfTask extends WfTask {
     PcpWfTask(WfTask original) {
         super(original);
     }
+
+	public PcpWfTask(WfTaskController wfTaskController, Task task, String processInstanceId, ChangeProcessor changeProcessor) {
+		super(wfTaskController, task, processInstanceId, changeProcessor);
+	}
 
     public PrimaryChangeAspect getChangeAspect() {
         return getWfTaskUtil().getPrimaryChangeAspect(getTask(), getPcp().getAllChangeAspects());

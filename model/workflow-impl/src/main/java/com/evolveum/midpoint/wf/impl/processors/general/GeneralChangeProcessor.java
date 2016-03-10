@@ -6,42 +6,29 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.api.WorkflowException;
+import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.jobs.WfTask;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskController;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
-import com.evolveum.midpoint.wf.impl.processors.BaseAuditHelper;
-import com.evolveum.midpoint.wf.impl.processors.BaseChangeProcessor;
-import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
-import com.evolveum.midpoint.wf.impl.processors.BaseExternalizationHelper;
-import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper;
+import com.evolveum.midpoint.wf.impl.processors.*;
 import com.evolveum.midpoint.wf.impl.processors.general.scenarios.DefaultGcpScenarioBean;
 import com.evolveum.midpoint.wf.impl.processors.general.scenarios.GcpScenarioBean;
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBException;
 import java.util.Map;
 
 /**
@@ -66,9 +53,6 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
     @Autowired
     private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
-
-    @Autowired
-    private BaseExternalizationHelper baseExternalizationHelper;
 
     @Autowired
     private BaseConfigurationHelper baseConfigurationHelper;
@@ -206,34 +190,16 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     }
     //endregion
 
-    //region Externalization methods (including auditing)
+    //region Auditing
     @Override
-    public PrismObject<? extends WorkItemContents> externalizeWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException {
-        return getScenarioBean(processInstanceVariables).externalizeWorkItemContents(task, processInstanceVariables, result);
-    }
-
-    @Override
-    public PrismObject<? extends ProcessInstanceState> externalizeProcessInstanceState(Map<String, Object> variables) throws SchemaException {
-        PrismObject<ProcessInstanceState> state = baseExternalizationHelper.externalizeState(variables);
-        ProcessSpecificState processSpecificState = getScenarioBean(variables).externalizeInstanceState(variables);
-        state.asObjectable().setProcessSpecificState(processSpecificState);
-        return state;
-    }
-
-    @Override
-    public WfProcessorSpecificStateType externalizeProcessorSpecificState(Map<String, Object> variables)
-            throws SchemaException {
-        throw new UnsupportedOperationException("Not implemented yet.");
-    }
-
-    @Override
-    public AuditEventRecord prepareProcessInstanceAuditRecord(Map<String, Object> variables, WfTask wfTask, AuditEventStage stage, OperationResult result) {
+    public AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, Map<String, Object> variables, OperationResult result) {
         return getScenarioBean(variables).prepareProcessInstanceAuditRecord(variables, wfTask, stage, result);
     }
 
     @Override
-    public AuditEventRecord prepareWorkItemAuditRecord(TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException {
-        return getScenarioBean(taskEvent.getVariables()).prepareWorkItemAuditRecord(taskEvent, stage, result);
+    public AuditEventRecord prepareWorkItemAuditRecord(WorkItemNewType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage,
+            OperationResult result) throws WorkflowException {
+        return getScenarioBean(taskEvent.getVariables()).prepareWorkItemAuditRecord(workItem, wfTask, taskEvent, stage, result);
     }
     //endregion
 }

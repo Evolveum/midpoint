@@ -22,7 +22,6 @@ import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
@@ -36,11 +35,9 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.addrole.AddRoleVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
@@ -48,19 +45,13 @@ import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspe
 import com.evolveum.midpoint.wf.impl.processors.primary.assignments.AssignmentHelper;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AssociationCreationApprovalFormType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Aspect for adding associations.
@@ -254,19 +245,21 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
             String targetName = target.getName() != null ? target.getName().getOrig() : "(unnamed)";
 
+            String approvalTaskName = "Approve adding " + targetName + " to " + assigneeName;
+
             // create a JobCreateInstruction for a given change processor (primaryChangeProcessor in this case)
             PcpChildWfTaskCreationInstruction instruction =
-                    PcpChildWfTaskCreationInstruction.createInstruction(getChangeProcessor());
+                    PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName, approvalRequest);
 
             // set some common task/process attributes
             instruction.prepareCommonAttributes(this, modelContext, assigneeOid, requester);
 
             // prepare and set the delta that has to be approved
             ObjectTreeDeltas objectTreeDeltas = associationAdditionToDelta(modelContext, associationAddition, assigneeOid);
-            instruction.setObjectTreeDeltasProcessAndTaskVariables(objectTreeDeltas);
+            instruction.setDeltasToProcesses(objectTreeDeltas);
 
-            instruction.setObjectRefVariable(modelContext, result);
-            instruction.setTargetRefVariable(ObjectTypeUtil.createObjectRef(target), result);
+            instruction.setObjectRef(modelContext, result);
+            instruction.setTargetRef(ObjectTypeUtil.createObjectRef(target), result);
 
             // set the names of midPoint task and activiti process instance
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";
@@ -274,11 +267,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             instruction.setProcessInstanceName("Adding " + targetName + " to " + assigneeName);
 
             // setup general item approval process
-            String approvalTaskName = "Approve adding " + targetName + " to " + assigneeName;
-            itemApprovalProcessInterface.prepareStartInstruction(instruction, approvalRequest, approvalTaskName);
-
-            // set some aspect-specific variables
-            instruction.addProcessVariable(AddRoleVariableNames.FOCUS_NAME, assigneeName);
+            itemApprovalProcessInterface.prepareStartInstruction(instruction);
 
             instructions.add(instruction);
         }
@@ -304,46 +293,11 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
     //region ------------------------------------------------------------ Things that execute when item is being approved
 
-    @Override
-    public PrismObject<? extends QuestionFormType> prepareQuestionForm(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("prepareQuestionForm starting: execution id {}, pid {}, variables = {}", task.getExecutionId(), task.getProcessInstanceId(), variables);
-        }
-
-        // todo check type compatibility
-        ApprovalRequest request = (ApprovalRequest) variables.get(ProcessVariableNames.APPROVAL_REQUEST);
-        request.setPrismContext(prismContext);
-        Validate.notNull(request, "Approval request is not present among process variables");
-
-        AssociationAdditionType aat = (AssociationAdditionType) request.getItemToApprove();
-        Validate.notNull(aat, "Approval request does not contain the association addition information");
-
-        ShadowType target = getAssociationApprovalTarget(aat.getAssociation(), result);     // may throw an (unchecked) exception
-
-        PrismObjectDefinition<AssociationCreationApprovalFormType> formDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(AssociationCreationApprovalFormType.COMPLEX_TYPE);
-        PrismObject<AssociationCreationApprovalFormType> formPrism = formDefinition.instantiate();
-        AssociationCreationApprovalFormType form = formPrism.asObjectable();
-
-        String focusName = (String) variables.get(AddRoleVariableNames.FOCUS_NAME);
-        form.setFocusName(focusName);                                   // TODO distinguish somehow between users/roles/orgs
-        form.setAssociatedObjectName(getTargetDisplayName(target));
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Resulting prism object instance = {}", formPrism.debugDump());
-        }
-        return formPrism;
-    }
-
     private static String formatTime(XMLGregorianCalendar time) {
         DateFormat formatter = DateFormat.getDateInstance();
         return formatter.format(time.toGregorianCalendar().getTime());
     }
 
-    @Override
-    public PrismObject<? extends ObjectType> prepareRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return null;
-    }
     //endregion
 
     protected boolean isAssociationRelevant(PcpAspectConfigurationType config, AssociationAdditionType itemToApprove,

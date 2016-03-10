@@ -71,15 +71,15 @@ public class BaseModelInvocationProcessingHelper {
 
         WfTaskCreationInstruction instruction;
         if (contextForRoot != null) {
-            instruction = WfTaskCreationInstruction.createModelOperationRootJob(changeProcessor, contextForRoot);
+            instruction = WfTaskCreationInstruction.createModelOnly(changeProcessor, contextForRoot);
         } else {
-            instruction = WfTaskCreationInstruction.createNoModelOperationRootJob(changeProcessor);
+            instruction = WfTaskCreationInstruction.createEmpty(changeProcessor);
         }
 
         instruction.setTaskName(determineRootTaskName(modelContext));
         instruction.setTaskObject(determineRootTaskObject(modelContext));
         instruction.setTaskOwner(taskFromModel.getOwner());
-        instruction.setCreateTaskAsWaiting(true);
+        instruction.setCreateTaskAsWaiting();
 
         return instruction;
     }

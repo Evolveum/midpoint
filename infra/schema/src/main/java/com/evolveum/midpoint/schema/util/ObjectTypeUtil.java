@@ -407,4 +407,11 @@ public class ObjectTypeUtil {
 		}
 		return ref.asReferenceValue().getObject().asObjectable();
 	}
+
+	public static PrismObject<?> getPrismObjectFromReference(ObjectReferenceType ref) {
+		if (ref == null) {
+			return null;
+		}
+		return ref.asReferenceValue().getObject();
+	}
 }

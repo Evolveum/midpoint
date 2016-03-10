@@ -220,7 +220,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
 		ObjectDelta objectDelta = null;
         try {
-            objectDelta = miscDataUtil.getFocusPrimaryDelta(execution.getVariables(), true);
+            objectDelta = miscDataUtil.getFocusPrimaryDelta(wfTask.getWorkflowContext(), true);
         } catch (JAXBException e) {
             throw new SchemaException("Couldn't get object delta: " + e.getMessage(), e);
         }

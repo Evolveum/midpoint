@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -33,40 +32,23 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.addrole.AddRoleVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.modifyAssignment.AssignmentModification;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.AssignmentModificationApprovalFormType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
-import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Change aspect that manages assignment modification approval.
@@ -222,19 +204,21 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
             String focusOid = primaryChangeAspectHelper.getObjectOid(modelContext);
             PrismObject<UserType> requester = primaryChangeAspectHelper.getRequester(taskFromModel, result);
 
+			String approvalTaskName = "Approve modifying assignment of " + targetName + " to " + focusName;
+
             // create a JobCreateInstruction for a given change processor (primaryChangeProcessor in this case)
             PcpChildWfTaskCreationInstruction instruction =
-                    PcpChildWfTaskCreationInstruction.createInstruction(getChangeProcessor());
+                    PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName, approvalRequest);
 
             // set some common task/process attributes
             instruction.prepareCommonAttributes(this, modelContext, focusOid, requester);
 
             // prepare and set the delta that has to be approved
             ObjectDelta<? extends ObjectType> delta = requestToDelta(modelContext, approvalRequest, focusOid);
-            instruction.setDeltaProcessAndTaskVariables(delta);
+            instruction.setDeltasToProcess(delta);
 
-            instruction.setObjectRefVariable(modelContext, result);
-            instruction.setTargetRefVariable(ObjectTypeUtil.createObjectRef(target), result);
+            instruction.setObjectRef(modelContext, result);
+            instruction.setTargetRef(ObjectTypeUtil.createObjectRef(target), result);
 
             // set the names of midPoint task and activiti process instance
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";
@@ -242,11 +226,7 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
             instruction.setProcessInstanceName("Modifying assignment of " + targetName + " to " + focusName);
 
             // setup general item approval process
-            String approvalTaskName = "Approve modifying assignment of " + targetName + " to " + focusName;
-            itemApprovalProcessInterface.prepareStartInstruction(instruction, approvalRequest, approvalTaskName);
-
-            // set some aspect-specific variables
-            instruction.addProcessVariable(AddRoleVariableNames.FOCUS_NAME, focusName);
+            itemApprovalProcessInterface.prepareStartInstruction(instruction);
 
             instructions.add(instruction);
         }
@@ -265,58 +245,6 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
 
     //region ------------------------------------------------------------ Things that execute when item is being approved
 
-    @Override
-    public PrismObject<? extends QuestionFormType> prepareQuestionForm(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("prepareQuestionForm starting: execution id {}, pid {}, variables = {}", task.getExecutionId(), task.getProcessInstanceId(), variables);
-        }
-
-        PrismObjectDefinition<AssignmentModificationApprovalFormType> formDefinition =
-                prismContext.getSchemaRegistry().findObjectDefinitionByType(AssignmentModificationApprovalFormType.COMPLEX_TYPE);
-        PrismObject<AssignmentModificationApprovalFormType> formPrism = formDefinition.instantiate();
-        AssignmentModificationApprovalFormType form = formPrism.asObjectable();
-
-        form.setFocusName((String) variables.get(AddRoleVariableNames.FOCUS_NAME));         // TODO disginguish somehow between users/roles/orgs
-
-        // todo check type compatibility
-        ApprovalRequest request = (ApprovalRequest) variables.get(ProcessVariableNames.APPROVAL_REQUEST);
-        request.setPrismContext(prismContext);
-        Validate.notNull(request, "Approval request is not present among process variables");
-
-        AssignmentModification itemToApprove = (AssignmentModification) request.getItemToApprove();
-        Validate.notNull(itemToApprove, "Approval request does not contain an item to approve");
-
-        T target = (T) itemToApprove.getTarget();           // TODO shouldn't we retrieve fresh value from repo?
-        String targetDisplayName = getTargetDisplayName(target);
-        form.setAssignedObjectName(targetDisplayName);
-        //TODO form.setRequesterComment(itemToApprove.getDescription());
-
-        ObjectDeltaType objectDeltaType = new ObjectDeltaType();
-        objectDeltaType.setOid("?");
-        objectDeltaType.setChangeType(ChangeTypeType.MODIFY);
-        objectDeltaType.setObjectType(UserType.COMPLEX_TYPE);           // TODO
-        objectDeltaType.getItemDelta().addAll(itemToApprove.getModifications());
-        form.setModification(objectDeltaType);
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Resulting prism object instance = {}", formPrism.debugDump());
-        }
-        return formPrism;
-    }
-
-    @Override
-    public PrismObject<? extends ObjectType> prepareRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
-
-        ApprovalRequest<AssignmentModification> approvalRequest = (ApprovalRequest<AssignmentModification>)
-                variables.get(ProcessVariableNames.APPROVAL_REQUEST);
-        approvalRequest.setPrismContext(prismContext);
-        if (approvalRequest == null) {
-            throw new IllegalStateException("No approval request in activiti task " + task);
-        }
-
-        return approvalRequest.getItemToApprove().getTarget().asPrismObject();
-    }
     //endregion
 
 

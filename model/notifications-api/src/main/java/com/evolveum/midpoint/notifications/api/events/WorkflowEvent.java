@@ -17,68 +17,36 @@
 package com.evolveum.midpoint.notifications.api.events;
 
 import com.evolveum.midpoint.notifications.api.OperationStatus;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ItemApprovalProcessState;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ItemApprovalRequestType;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.PrimaryChangeProcessorState;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessorSpecificState;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
-
-import java.io.Serializable;
 
 /**
  * @author mederly
  */
 abstract public class WorkflowEvent extends BaseEvent {
 
-    private String processInstanceName;
-    private PrismObject<? extends ObjectType> processInstanceState;
-    private String operationStatusCustom;                // exact string representation of the status (useful for work items that return custom statuses)
-    private ChangeType changeType;                      // ADD = process/task start, DELETE = process/task finish (for now)
+    private final WfContextType workflowContext;
+    private final ChangeType changeType;                      // ADD = process/task start, DELETE = process/task finish (for now)
 
-    public WorkflowEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType) {
+    public WorkflowEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType, WfContextType workflowContext) {
         super(lightweightIdentifierGenerator);
 
         Validate.notNull(changeType, "changeType is null");
         this.changeType = changeType;
+		Validate.notNull(workflowContext, "workflowContext is null");
+		this.workflowContext = workflowContext;
     }
 
     public String getProcessInstanceName() {
-        return processInstanceName;
-    }
-
-    public void setProcessInstanceName(String processInstanceName) {
-        this.processInstanceName = processInstanceName;
-    }
-
-    public PrismObject<? extends ObjectType> getProcessInstanceState() {
-        return processInstanceState;
-    }
-
-    public void setProcessInstanceState(PrismObject<? extends ObjectType> processInstanceState) {
-        this.processInstanceState = processInstanceState;
+        return workflowContext.getProcessInstanceName();
     }
 
     public OperationStatus getOperationStatus() {
-        return resultToStatus(changeType, operationStatusCustom);
-    }
-
-    public String getOperationStatusCustom() {
-        return operationStatusCustom;
-    }
-
-    public void setOperationStatusCustom(String operationStatusCustom) {
-        this.operationStatusCustom = operationStatusCustom;
+        return resultToStatus(changeType, workflowContext.getAnswer());
     }
 
     @Override
@@ -128,52 +96,28 @@ abstract public class WorkflowEvent extends BaseEvent {
         return false;
     }
 
-    public ProcessorSpecificState getProcessorSpecificState() {
-        if (processInstanceState == null) {
-            return null;
-        }
-        return ((ProcessInstanceState) processInstanceState.asObjectable()).getProcessorSpecificState();
+    public WfProcessorSpecificStateType getProcessorSpecificState() {
+        return workflowContext.getProcessorSpecificState();
     }
 
-    public ProcessSpecificState getProcessSpecificState() {
-        if (processInstanceState == null) {
-            return null;
-        }
-        return ((ProcessInstanceState) processInstanceState.asObjectable()).getProcessSpecificState();
+    public WfProcessSpecificStateType getProcessSpecificState() {
+		return workflowContext.getProcessSpecificState();
     }
 
-    public PrimaryChangeProcessorState getPrimaryChangeProcessorState() {
-        ProcessorSpecificState state = getProcessorSpecificState();
-        if (state instanceof PrimaryChangeProcessorState) {
-            return (PrimaryChangeProcessorState) state;
+    public WfPrimaryChangeProcessorStateType getPrimaryChangeProcessorState() {
+        WfProcessorSpecificStateType state = getProcessorSpecificState();
+        if (state instanceof WfPrimaryChangeProcessorStateType) {
+            return (WfPrimaryChangeProcessorStateType) state;
         } else {
             return null;
         }
     }
 
     // the following three methods are specific to ItemApproval process
-    public ItemApprovalProcessState getItemApprovalProcessState() {
-        ProcessSpecificState state = getProcessSpecificState();
-        if (state instanceof ItemApprovalProcessState) {
-            return (ItemApprovalProcessState) state;
-        } else {
-            return null;
-        }
-    }
-
-    public ItemApprovalRequestType getItemApprovalRequest() {
-        ItemApprovalProcessState state = getItemApprovalProcessState();
-        if (state != null) {
-            return state.getApprovalRequest();
-        } else {
-            return null;
-        }
-    }
-
-    public Object getItemToApprove() {
-        ItemApprovalRequestType request = getItemApprovalRequest();
-        if (request != null) {
-            return request.getItemToApprove();
+    public ItemApprovalProcessStateType getItemApprovalProcessState() {
+        WfProcessSpecificStateType state = getProcessSpecificState();
+        if (state instanceof ItemApprovalProcessStateType) {
+            return (ItemApprovalProcessStateType) state;
         } else {
             return null;
         }
@@ -183,9 +127,9 @@ abstract public class WorkflowEvent extends BaseEvent {
     public String toString() {
         return "WorkflowEvent{" +
                 "event=" + super.toString() +
-                ", processInstanceName='" + processInstanceName + '\'' +
+                ", processInstanceName='" + getProcessInstanceName() + '\'' +
                 ", changeType=" + changeType +
-                ", operationStatusCustom=" + operationStatusCustom +
+                ", answer=" + workflowContext.getAnswer() +
                 '}';
     }
 

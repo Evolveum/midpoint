@@ -21,6 +21,9 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
+import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
 
@@ -31,11 +34,15 @@ import java.util.Map;
  */
 public class WorkItemEvent extends WorkflowEvent {
 
+    private final WorkItemNewType workItem;
     private String workItemName;
     private SimpleObjectRef assignee;
 
-    public WorkItemEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType) {
-        super(lightweightIdentifierGenerator, changeType);
+    public WorkItemEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType, WorkItemNewType workItem,
+            WfContextType workflowContext) {
+        super(lightweightIdentifierGenerator, changeType, workflowContext);
+        Validate.notNull(workItem);
+        this.workItem = workItem;
     }
 
     public String getWorkItemName() {

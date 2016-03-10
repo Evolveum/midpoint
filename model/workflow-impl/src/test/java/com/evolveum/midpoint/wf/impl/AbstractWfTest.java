@@ -57,9 +57,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
+import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.processes.common.WorkflowResult;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
@@ -309,13 +309,9 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
     }
 
     protected boolean decideOnRoleApproval(String executionId) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {
-        ApprovalRequestImpl<AssignmentType> approvalRequest = (ApprovalRequestImpl<AssignmentType>)
-                activitiEngine.getRuntimeService().getVariable(executionId, ProcessVariableNames.APPROVAL_REQUEST);
-        assertNotNull("approval request not found", approvalRequest);
-
-        approvalRequest.setPrismContext(prismContext);
-
-        String roleOid = approvalRequest.getItemToApprove().getTargetRef().getOid();
+        LightweightObjectRef targetRef = (LightweightObjectRef) activitiEngine.getRuntimeService().getVariable(executionId, CommonProcessVariableNames.VARIABLE_TARGET_REF);
+        assertNotNull("targetRef not found", targetRef);
+        String roleOid = targetRef.getOid();
         assertNotNull("requested role OID not found", roleOid);
 
         if (ROLE_R1_OID.equals(roleOid)) {
@@ -381,7 +377,7 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
                 assertTrue("There should be no handlers for root tasks with immediate execution mode", uriStack == null || uriStack.getUriStackEntry().isEmpty());
             }
 
-            ModelContext taskModelContext = testDetails.immediate() ? null : wfTaskUtil.retrieveModelContext(rootTask, result);
+            ModelContext taskModelContext = testDetails.immediate() ? null : wfTaskUtil.getModelContext(rootTask, result);
             if (!testDetails.immediate()) {
                 assertNotNull("Model context is not present in root task", taskModelContext);
             } else {

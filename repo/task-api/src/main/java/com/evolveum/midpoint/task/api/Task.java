@@ -985,4 +985,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     void storeOperationStats();
 
     WfContextType getWorkflowContext();
+
+	void setWorkflowContext(WfContextType context) throws SchemaException;
 }

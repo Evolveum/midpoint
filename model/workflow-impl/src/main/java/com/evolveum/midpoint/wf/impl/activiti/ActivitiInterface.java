@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemProvider;
 import com.evolveum.midpoint.wf.impl.jobs.WfTaskController;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.ProcessFinishedEvent;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.delegate.DelegateExecution;
@@ -81,11 +83,13 @@ public class ActivitiInterface {
     @Autowired
     private ProcessInterfaceFinder processInterfaceFinder;
 
+	@Autowired
+	private WorkItemProvider workItemProvider;
+
 	public void startActivitiProcessInstance(StartProcessCommand spic, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
 		Map<String,Object> map = new HashMap<>();
-		map.put(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID, spic.getTaskOid());
 		map.putAll(spic.getVariables());
 
 		String owner = spic.getProcessOwner();
@@ -226,7 +230,8 @@ public class ActivitiInterface {
         }
 
         try {
-            wfTaskController.onTaskEvent(taskEvent, result);
+			WorkItemNewType workItem = workItemProvider.taskEventToWorkItemNew(taskEvent, null, true, true, true, result);
+            wfTaskController.onTaskEvent(workItem, taskEvent, result);
         } catch (Exception e) {     // todo fix the exception processing e.g. think about situation where an event cannot be audited - should we allow to proceed?
             String message = "Couldn't process an event coming from the workflow management system";
             LoggingUtils.logException(LOGGER, message, e);

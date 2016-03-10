@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,10 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -37,14 +34,11 @@ import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 
 import static com.evolveum.midpoint.prism.util.CloneUtil.cloneListMembers;
@@ -57,23 +51,16 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChan
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_RESULTING_DELTAS;
 
 /**
- * Handles low-level task operations, e.g. handling wf* properties in task extension.
+ * Handles low-level task operations.
  *
  * @author mederly
- *
  */
 
 @Component
-//@DependsOn({ "prismContext" })
-
 public class WfTaskUtil {
 
     @Autowired
     private WfConfiguration wfConfiguration;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
 
     @Autowired
     private PrismContext prismContext;
@@ -85,14 +72,17 @@ public class WfTaskUtil {
 
     public static final String WAIT_FOR_TASKS_HANDLER_URI = "<<< marker for calling pushWaitForTasksHandlerUri >>>";
 
-	void setWfProcessId(Task task, String pid) throws SchemaException {
-        Validate.notEmpty(task.getOid(), "Task oid must not be null or empty (task must be persistent).");
-        task.addModification(
-                DeltaBuilder.deltaFor(TaskType.class, prismContext)
-                        .item(F_WORKFLOW_CONTEXT, F_PROCESS_INSTANCE_ID).replace(pid)
-                        .asItemDelta());
-	}
+    public static WfContextType getWorkflowContextChecked(Task task) {
+        if (task == null) {
+            throw new IllegalStateException("No task");
+        } else if (task.getWorkflowContext() == null) {
+            throw new IllegalStateException("No workflow context in " + task);
+        } else {
+            return task.getWorkflowContext();
+        }
+    }
 
+	@NotNull
     public PrimaryChangeAspect getPrimaryChangeAspect(Task task, Collection<PrimaryChangeAspect> aspects) {
         WfContextType wfc = getWorkflowContextChecked(task);
         WfProcessorSpecificStateType pss = wfc.getProcessorSpecificState();
@@ -104,33 +94,15 @@ public class WfTaskUtil {
         if (aspectClassName == null) {
             throw new IllegalStateException("No wf primary change aspect defined in task " + task);
         }
-
         for (PrimaryChangeAspect a : aspects) {
             if (aspectClassName.equals(a.getClass().getName())) {
                 return a;
             }
         }
-
         throw new IllegalStateException("Primary change aspect " + aspectClassName + " is not registered.");
     }
 
-    public static WfContextType getWorkflowContextChecked(Task task) {
-        if (task == null) {
-            throw new IllegalStateException("No task");
-        } else if (task.getWorkflowContext() == null) {
-            throw new IllegalStateException("No workflow context in " + task);
-        } else {
-            return task.getWorkflowContext();
-        }
-    }
-
-    public void setChangeProcessor(Task task, ChangeProcessor processor) throws SchemaException {
-        Validate.notNull(processor, "Change processor is undefined.");
-        task.addModification(DeltaBuilder.deltaFor(TaskType.class, prismContext)
-                .item(F_WORKFLOW_CONTEXT, F_CHANGE_PROCESSOR).replace(processor.getClass().getName())
-                .asItemDelta());
-    }
-
+	@NotNull
     public ChangeProcessor getChangeProcessor(Task task) {
         String processorClassName = task.getWorkflowContext() != null ? task.getWorkflowContext().getChangeProcessor() : null;
         if (processorClassName == null) {
@@ -138,7 +110,6 @@ public class WfTaskUtil {
         }
         return wfConfiguration.findChangeProcessor(processorClassName);
     }
-
 
     public String getProcessId(Task task) {
         if (task.getWorkflowContext() != null) {
@@ -152,24 +123,15 @@ public class WfTaskUtil {
         return task.getModelOperationContext() != null;
     }
 
-    public ModelContext retrieveModelContext(Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+    public ModelContext getModelContext(Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
         LensContextType modelContextType = task.getModelOperationContext();
         if (modelContextType == null) {
-//            throw new SystemException("No model context information in task " + task);
             return null;
         }
-//        Object value = modelContextProperty.getRealValue();
-//        if (value instanceof Element || value instanceof JAXBElement) {
-//            value = prismContext.getPrismJaxbProcessor().unmarshalObject(value, LensContextType.class);
-//        }
-//        if (!(value instanceof LensContextType)) {
-//            throw new SystemException("Model context information in task " + task + " is of wrong type: " + modelContextProperty.getRealValue().getClass());
-//        }
         return LensContext.fromLensContextType(modelContextType, prismContext, provisioningService, result);
     }
 
     public void storeModelContext(Task task, ModelContext context) throws SchemaException {
-        //Validate.notNull(context, "model context cannot be null");
         LensContextType modelContext = context != null ? ((LensContext) context).toLensContextType() : null;
         storeModelContext(task, modelContext);
     }
@@ -203,28 +165,12 @@ public class WfTaskUtil {
         return ObjectTreeDeltas.fromObjectTreeDeltasType(deltaTypePrismProperty.getRealValue(), prismContext);
     }
 
-    // it is possible that resulting deltas are not in the task
     public ObjectTreeDeltas retrieveResultingDeltas(Task task) throws SchemaException {
         PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty = task.getTaskPrismObject().findProperty(new ItemPath(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_RESULTING_DELTAS));
         if (deltaTypePrismProperty == null) {
             return null;
         }
         return ObjectTreeDeltas.fromObjectTreeDeltasType(deltaTypePrismProperty.getRealValue(), prismContext);
-    }
-
-    public void setTaskNameIfEmpty(Task t, PolyStringType taskName) {
-        if (t.getName() == null || t.getName().toPolyString().isEmpty()) {
-            t.setName(taskName);
-        }
-    }
-
-    public void setProcessInstanceFinishedImmediate(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar(new Date());
-        task.addModificationImmediate(
-                DeltaBuilder.deltaFor(TaskType.class, prismContext)
-                        .item(F_WORKFLOW_CONTEXT, F_END_TIMESTAMP).replace(now)
-                        .asItemDelta(),
-                result);
     }
 
     public boolean isProcessInstanceFinished(Task task) {
@@ -248,12 +194,12 @@ public class WfTaskUtil {
         return ref != null ? ref.getOid() : null;
     }
 
-    public void deleteModelOperationContext(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public void deleteModelOperationContext(Task task) throws SchemaException, ObjectNotFoundException {
         task.setModelOperationContext(null);
     }
 
     public void addApprovedBy(Task task, ObjectReferenceType referenceType) throws SchemaException {
-        addApprovedBy(task, Arrays.asList(referenceType));
+        addApprovedBy(task, Collections.singletonList(referenceType));
     }
 
     public void addApprovedBy(Task task, Collection<ObjectReferenceType> referenceTypes) throws SchemaException {
@@ -297,13 +243,6 @@ public class WfTaskUtil {
         return retval;
     }
 
-    void setTaskOwner(Task task, PrismObject<UserType> owner) {
-        if (owner == null) {
-            throw new IllegalStateException("Couldn't create a job task because the owner is not set.");
-        }
-        task.setOwner(owner);
-    }
-
     // handlers are stored in the list in the order they should be executed; so the last one has to be pushed first
     void pushHandlers(Task task, List<UriStackEntry> handlers) {
         for (int i = handlers.size()-1; i >= 0; i--) {
@@ -316,40 +255,6 @@ public class WfTaskUtil {
                 }
                 task.pushHandlerUri(entry.getHandlerUri(), entry.getSchedule(), TaskBinding.fromTaskType(entry.getBinding()), (ItemDelta) null);
             }
-        }
-    }
-
-    /**
-     * Makes a task active, i.e. a task that actively queries wf process instance about its status.
-     *
-     *          OR
-     *
-     * Creates a passive task, i.e. a task that stores information received from WfMS about a process instance.
-     *
-     * We expect task to be transient at this moment!
-     * @param active
-     * @param t
-     * @param result
-     */
-    void pushProcessShadowHandler(boolean active, Task t, long taskStartDelay, OperationResult result) throws SchemaException, ObjectNotFoundException {
-
-        if (active) {
-
-            ScheduleType schedule = new ScheduleType();
-            schedule.setInterval(wfConfiguration.getProcessCheckInterval());
-            schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(new Date(System.currentTimeMillis() + taskStartDelay)));
-            t.pushHandlerUri(WfProcessInstanceShadowTaskHandler.HANDLER_URI, schedule, TaskBinding.LOOSE);
-
-        } else {
-
-            t.pushHandlerUri(WfProcessInstanceShadowTaskHandler.HANDLER_URI, new ScheduleType(), null);		// note that this handler will not be actively used (at least for now)
-            t.makeWaiting();
-        }
-    }
-
-    void setDefaultTaskOwnerIfEmpty(Task t, OperationResult result, WfTaskController wfTaskController) throws SchemaException, ObjectNotFoundException {
-        if (t.getOwner() == null) {
-            t.setOwner(repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result));
         }
     }
 }

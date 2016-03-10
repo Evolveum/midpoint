@@ -17,6 +17,9 @@
 package com.evolveum.midpoint.wf.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 
 /**
@@ -41,7 +44,7 @@ public interface WorkItemListener {
      * @param assigneeOid OID of the user to which the work item is assigned
      * @param instanceState externalized process instance state
      */
-    public void onWorkItemCreation(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState);
+    public void onWorkItemCreation(WorkItemNewType workItem, Task wfTask, OperationResult result);
 
     /**
      * This method is called by wf module when a work item is completed.
@@ -51,5 +54,5 @@ public interface WorkItemListener {
      * @param instanceState externalized process instance state
      * @param decision decision of the user
      */
-    public void onWorkItemCompletion(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState, String decision);
+    public void onWorkItemCompletion(WorkItemNewType workItem, Task wfTask, OperationResult result);
 }

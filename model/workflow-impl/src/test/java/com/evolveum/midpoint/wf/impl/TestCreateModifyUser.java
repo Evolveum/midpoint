@@ -79,7 +79,7 @@ public class TestCreateModifyUser extends AbstractWfTest {
 
             @Override
             public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
+                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 //assertNoObject(UserType.class, USER_ELISABETH_OID, task, result);
             }
@@ -121,7 +121,7 @@ public class TestCreateModifyUser extends AbstractWfTest {
 
             @Override
             public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
+                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 //assertNotAssignedRole(USER_ELISABETH_OID, ROLE_R3_OID, task, result);
             }

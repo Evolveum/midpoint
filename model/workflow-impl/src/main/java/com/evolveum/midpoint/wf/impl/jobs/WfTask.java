@@ -2,7 +2,9 @@ package com.evolveum.midpoint.wf.impl.jobs;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -13,14 +15,20 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang3.Validate;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static com.evolveum.midpoint.task.api.TaskExecutionStatus.WAITING;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_END_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESS_INSTANCE_ID;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_STATE;
 
 /**
@@ -35,7 +43,7 @@ public class WfTask {
     private WfTaskController wfTaskController;
 
     private Task task;                          // must be non-null
-    private String activitiId;                  // must be non-null for Activiti-related jobs (and may be filled-in later, when activiti process is started)
+    private String processInstanceId;                  // must be non-null for Activiti-related jobs (and may be filled-in later, when activiti process is started)
     private ChangeProcessor changeProcessor;    // must be non-null
 
     //region Constructors and basic getters
@@ -43,24 +51,24 @@ public class WfTask {
         this(wfTaskController, task, null, changeProcessor);
     }
 
-    WfTask(WfTaskController wfTaskController, Task task, String activitiId, ChangeProcessor changeProcessor) {
+    protected WfTask(WfTaskController wfTaskController, Task task, String processInstanceId, ChangeProcessor changeProcessor) {
         Validate.notNull(task, "Task");
         Validate.notNull(changeProcessor, "Change processor");
         this.wfTaskController = wfTaskController;
         this.task = task;
-        this.activitiId = activitiId;
+        this.processInstanceId = processInstanceId;
         this.changeProcessor = changeProcessor;
     }
 
     protected WfTask(WfTask original) {
         this.wfTaskController = original.wfTaskController;
         this.task = original.task;
-        this.activitiId = original.activitiId;
+        this.processInstanceId = original.processInstanceId;
         this.changeProcessor = original.changeProcessor;
     }
 
-    public String getActivitiId() {
-        return activitiId;
+    public String getProcessInstanceId() {
+        return processInstanceId;
     }
 
     public Task getTask() {
@@ -77,7 +85,7 @@ public class WfTask {
     public String toString() {
         return "WfTask{" +
                 "task=" + task +
-                ", activitiId='" + activitiId + '\'' +
+                ", processInstanceId='" + processInstanceId + '\'' +
                 ", changeProcessor=" + changeProcessor +
                 '}';
     }
@@ -99,13 +107,19 @@ public class WfTask {
     }
 
     public void setWfProcessId(String pid) throws SchemaException {
-		activitiId = pid;
-        wfTaskController.getWfTaskUtil().setWfProcessId(task, pid);
+		processInstanceId = pid;
+        task.addModification(
+                DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+                        .item(F_WORKFLOW_CONTEXT, F_PROCESS_INSTANCE_ID).replace(pid)
+                        .asItemDelta());
     }
 
-    public void setProcessInstanceFinishedImmediate(OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        wfTaskController.getWfTaskUtil().setProcessInstanceFinishedImmediate(task, result);
+    public void setProcessInstanceEndTimestamp() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar(new Date());
+        task.addModification(
+                DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+                        .item(F_WORKFLOW_CONTEXT, F_END_TIMESTAMP).replace(now)
+                        .asItemDelta());
     }
 
     public TaskExecutionStatus getTaskExecutionStatus() {
@@ -139,7 +153,7 @@ public class WfTask {
     }
 
     public ModelContext retrieveModelContext(OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-        return getWfTaskUtil().retrieveModelContext(task, result);
+        return getWfTaskUtil().getModelContext(task, result);
     }
 
     public List<WfTask> listChildren(OperationResult result) throws SchemaException {
@@ -155,7 +169,7 @@ public class WfTask {
     }
 
     public void deleteModelOperationContext(OperationResult result) throws SchemaException, ObjectNotFoundException {
-        getWfTaskUtil().deleteModelOperationContext(task, result);
+        getWfTaskUtil().deleteModelOperationContext(task);
     }
 
     public void storeModelContext(ModelContext modelContext) throws SchemaException {
@@ -189,5 +203,21 @@ public class WfTask {
 
 	private PrismContext getPrismContext() {
 		return wfTaskController.getPrismContext();
+	}
+
+	public String getProcessInstanceName() {
+		return task.getWorkflowContext() != null ? task.getWorkflowContext().getProcessInstanceName() : null;
+	}
+
+	public String getAnswer() {
+		return task.getWorkflowContext() != null ? task.getWorkflowContext().getAnswer() : null;
+	}
+
+	public PrismObject<UserType> getRequesterIfExists(OperationResult result) {
+		if (task.getWorkflowContext() == null || task.getWorkflowContext().getRequesterRef() == null) {
+			return null;
+		}
+		ObjectReferenceType requesterRef = task.getWorkflowContext().getRequesterRef();
+		return wfTaskController.getMiscDataUtil().resolveAndStoreObjectReference(requesterRef, result);
 	}
 }

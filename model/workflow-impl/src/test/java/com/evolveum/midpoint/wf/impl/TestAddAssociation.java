@@ -127,7 +127,7 @@ public class TestAddAssociation extends AbstractWfTest {
 
             @Override
             public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
+                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
                 IntegrationTestTools.display("model context from the root task", taskModelContext);
                 assertEquals("Wrong # of projection contexts in root task", 1, taskModelContext.getProjectionContexts().size());
                 assertTrue("There are modifications in primary focus delta", ObjectDelta.isNullOrEmpty(taskModelContext.getFocusContext().getPrimaryDelta()));
@@ -203,7 +203,7 @@ public class TestAddAssociation extends AbstractWfTest {
 
             @Override
             public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
+                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
                 IntegrationTestTools.display("model context from the root task", taskModelContext);
                 assertEquals("Wrong # of projection contexts in root task", 1, taskModelContext.getProjectionContexts().size());
                 assertTrue("There are modifications in primary focus delta", ObjectDelta.isNullOrEmpty(taskModelContext.getFocusContext().getPrimaryDelta()));

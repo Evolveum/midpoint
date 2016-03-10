@@ -792,4 +792,7 @@ public class SimpleTaskAdapter implements Task {
     public WfContextType getWorkflowContext() {
         return null;
     }
+
+    @Override public void setWorkflowContext(WfContextType context) throws SchemaException {
+    }
 }

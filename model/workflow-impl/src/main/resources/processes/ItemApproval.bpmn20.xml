@@ -30,7 +30,7 @@
         <!-- This process takes care of approving "something" - an item to approve.
 
            Input variables:
-             - approvalRequest (ApprovalRequest): data structure describing the item to be approved and (possibly multi-level) schema of the approval process
+             - approvalSchema (ApprovalSchema): data structure describing the (possibly multi-level) schema of the approval process
              - approvalTaskName (String): name of the approval task (e.g. "Approve adding role R to user U")
 
            Output variables:
@@ -54,7 +54,7 @@
 
         <subProcess id="loopLevels">
             <multiInstanceLoopCharacteristics isSequential="true"
-                    activiti:collection="${approvalRequest.approvalSchema.levels}" activiti:elementVariable="level">
+                    activiti:collection="${approvalSchema.levels}" activiti:elementVariable="level">
                 <completionCondition>${loopLevels_stop}</completionCondition>
             </multiInstanceLoopCharacteristics>
 

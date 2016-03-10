@@ -19,16 +19,11 @@ package com.evolveum.midpoint.wf.impl.jobs;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -42,14 +37,16 @@ import com.evolveum.midpoint.wf.api.WorkItemListener;
 import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiInterface;
-import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemProvider;
 import com.evolveum.midpoint.wf.impl.messages.*;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.impl.processes.ProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
+import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
+import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -66,8 +63,6 @@ import static com.evolveum.midpoint.task.api.TaskExecutionStatus.WAITING;
  *
  * This class provides a facade over ugly mess of code managing activiti + task pair describing a workflow process instance.
  *
- * For working with tasks only (e.g. not touching Job structure) it uses wfTaskUtil.
- *
  * @author mederly
  */
 @Component
@@ -75,7 +70,7 @@ public class WfTaskController {
 
     private static final Trace LOGGER = TraceManager.getTrace(WfTaskController.class);
 
-    private static final long TASK_START_DELAY = 5000L;
+    public static final long TASK_START_DELAY = 5000L;
     private static final Object DOT_CLASS = WfTaskController.class.getName() + ".";
 
     private Set<ProcessListener> processListeners = new HashSet<>();
@@ -108,9 +103,6 @@ public class WfTaskController {
     private WfConfiguration wfConfiguration;
 
     @Autowired
-    private WorkItemProvider workItemProvider;
-
-    @Autowired
     private PrismContext prismContext;
     //endregion
 
@@ -133,13 +125,11 @@ public class WfTaskController {
      * @param parentTask the task that will be the parent of the task of newly created job; it may be null
      */
     public WfTask createWfTask(WfTaskCreationInstruction instruction, Task parentTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
-
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Processing start instruction: " + instruction.debugDump());
+            LOGGER.trace("Processing start instruction:\n{}", instruction.debugDump());
         }
-
         Task task = createBackgroundTask(instruction, parentTask, result);
-        WfTask wfTask = new WfTask(this, task, instruction.getChangeProcessor());
+		WfTask wfTask = recreateWfTask(task, instruction.getChangeProcessor());
         if (!instruction.isNoProcess()) {
             startWorkflowProcessInstance(wfTask, instruction, result);
         }
@@ -153,7 +143,16 @@ public class WfTaskController {
      * @return recreated job
      */
     public WfTask recreateWfTask(Task task) {
-        return new WfTask(this, task, wfTaskUtil.getProcessId(task), wfTaskUtil.getChangeProcessor(task));
+		return recreateWfTask(task, wfTaskUtil.getChangeProcessor(task));
+	}
+
+    public WfTask recreateWfTask(Task task, ChangeProcessor changeProcessor) {
+		String processInstanceId = wfTaskUtil.getProcessId(task);
+		if (changeProcessor instanceof PrimaryChangeProcessor) {
+			return new PcpWfTask(this, task, processInstanceId, changeProcessor);
+		} else {
+			return new WfTask(this, task, processInstanceId, changeProcessor);
+		}
     }
 
     /**
@@ -178,65 +177,12 @@ public class WfTaskController {
     //region Working with midPoint tasks
 
     private Task createBackgroundTask(WfTaskCreationInstruction instruction, Task parentTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
-
-        ChangeProcessor changeProcessor = instruction.getChangeProcessor();
-
+		Task wfTask = instruction.createTask(this, parentTask);
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("createBackgroundTask starting; parent task = " + parentTask);
+            LOGGER.trace("Switching workflow root or child task to background:\n{}", wfTask.debugDump());
         }
-
-        Task task;
-        if (parentTask != null) {
-            task = parentTask.createSubtask();
-        } else {
-            task = taskManager.createTaskInstance();
-            wfTaskUtil.setTaskOwner(task, instruction.getTaskOwner());
-        }
-
-        // initial execution state
-        if (instruction.isCreateTaskAsSuspended() && instruction.isCreateTaskAsWaiting()) {
-            throw new IllegalStateException("Both createSuspended and createWaiting attributes are set to TRUE.");
-        }
-        if (instruction.isCreateTaskAsSuspended()) {
-            task.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);
-        } else if (instruction.isCreateTaskAsWaiting()) {
-            task.setInitialExecutionStatus(WAITING);
-        }
-
-        if (instruction.getTaskObject() != null) {
-            task.setObjectRef(instruction.getTaskObject().getOid(), instruction.getTaskObject().getDefinition().getTypeName());
-        } else if (parentTask != null && parentTask.getObjectRef() != null) {
-            task.setObjectRef(parentTask.getObjectRef());
-        }
-        wfTaskUtil.setChangeProcessor(task, changeProcessor);
-        wfTaskUtil.setTaskNameIfEmpty(task, instruction.getTaskName());
-        wfTaskUtil.setDefaultTaskOwnerIfEmpty(task, result, this);
-        task.setCategory(TaskCategory.WORKFLOW);
-
-        // push the handlers, beginning with these that should execute last
-        wfTaskUtil.pushHandlers(task, instruction.getHandlersAfterModelOperation());
-        if (instruction.isExecuteModelOperationHandler()) {
-            task.pushHandlerUri(ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI, null, null);
-        }
-        wfTaskUtil.pushHandlers(task, instruction.getHandlersBeforeModelOperation());
-        wfTaskUtil.pushHandlers(task, instruction.getHandlersAfterWfProcess());
-        if (instruction.startsWorkflowProcess()) {
-            wfTaskUtil.pushProcessShadowHandler(instruction.isSimple(), task, TASK_START_DELAY, result);
-        }
-
-        // put model context + task variables
-        if (instruction.getTaskModelContext() != null) {
-            task.setModelOperationContext(((LensContext) instruction.getTaskModelContext()).toLensContextType());
-        }
-        instruction.tailorTask(task);
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Saving workflow monitoring/execution task: " + task.debugDump());
-        }
-
-        taskManager.switchToBackground(task, result);
-
-        return task;
+        taskManager.switchToBackground(wfTask, result);
+        return wfTask;
     }
 
     /**
@@ -266,25 +212,22 @@ public class WfTaskController {
     //region Working with Activiti process instances
 
     private void startWorkflowProcessInstance(WfTask wfTask, WfTaskCreationInstruction instruction, OperationResult parentResult) {
-
-		OperationResult result = parentResult.createSubresult(DOT_CLASS + ".startWorkflowProcessInstance");
-
+		OperationResult result = parentResult.createSubresult(DOT_CLASS + "startWorkflowProcessInstance");
         try {
 			LOGGER.trace("startWorkflowProcessInstance starting; instruction = {}", instruction);
-
 			Task task = wfTask.getTask();
 
 			StartProcessCommand spc = new StartProcessCommand();
-			spc.setTaskOid(task.getOid());
-			spc.setProcessName(instruction.getProcessDefinitionKey());
+			spc.setProcessName(instruction.getProcessName());
 			spc.setProcessInstanceName(instruction.getProcessInstanceName());
 			spc.setSendStartConfirmation(instruction.isSendStartConfirmation());
-			spc.setVariablesFrom(instruction.getProcessVariables());
+			spc.setVariablesFrom(instruction.getAllProcessVariables());
+			spc.addVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID, task.getOid());
 			spc.setProcessOwner(task.getOwner().getOid());
 
 			activitiInterface.startActivitiProcessInstance(spc, task, result);
-            auditProcessStart(spc, wfTask, result);
-            notifyProcessStart(spc, wfTask, result);
+            auditProcessStart(wfTask, spc.getVariables(), result);
+            notifyProcessStart(wfTask, spc.getVariables(), result);
         } catch (SchemaException|RuntimeException|ObjectNotFoundException|ObjectAlreadyExistsException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't send a request to start a process instance to workflow management system", e);
 			try {
@@ -297,7 +240,6 @@ public class WfTaskController {
         } finally {
 			result.computeStatusIfUnknown();
 		}
-
         LOGGER.trace("startWorkflowProcessInstance finished");
     }
 
@@ -307,7 +249,7 @@ public class WfTaskController {
 
 		LOGGER.trace("Updating instance state and activiti process instance ID in task {}", task);
 
-		if (wfTask.getActivitiId() == null) {
+		if (wfTask.getProcessInstanceId() == null) {
 			wfTask.setWfProcessId(event.getPid());
 		}
 
@@ -337,10 +279,11 @@ public class WfTaskController {
         LOGGER.trace("onProcessFinishedEvent starting");
         LOGGER.trace("Calling onProcessEnd on {}", wfTask.getChangeProcessor());
         wfTask.getChangeProcessor().onProcessEnd(event, wfTask, result);
-		wfTask.setProcessInstanceFinishedImmediate(result);
+		wfTask.setProcessInstanceEndTimestamp();
+		wfTask.commitChanges(result);
 
-        auditProcessEnd(event, wfTask, result);
-        notifyProcessEnd(event, wfTask, result);
+        auditProcessEnd(wfTask, event, result);
+        notifyProcessEnd(wfTask, event, result);
 
         // passive tasks can be 'let go' at this point
         if (wfTask.getTaskExecutionStatus() == WAITING) {
@@ -363,29 +306,30 @@ public class WfTaskController {
     //endregion
 
     //region Processing work item (task) events
-    public void onTaskEvent(TaskEvent taskEvent, OperationResult result) throws WorkflowException {
 
-        // auditing & notifications
+	// workItem contains taskRef, assignee, candidates resolved (if possible)
+    public void onTaskEvent(WorkItemNewType workItem, TaskEvent taskEvent, OperationResult result) throws WorkflowException, SchemaException {
+
+		final TaskType shadowTaskType = (TaskType) ObjectTypeUtil.getObjectFromReference(workItem.getTaskRef());
+		if (shadowTaskType == null) {
+			LOGGER.warn("No task in workItem " + workItem + ", audit and notifications couldn't be performed.");
+			return;
+		}
+		final Task shadowTask = taskManager.createTaskInstance(shadowTaskType.asPrismObject(), result);
+		final WfTask wfTask = recreateWfTask(shadowTask);
+
+		// auditing & notifications
         if (taskEvent instanceof TaskCreatedEvent) {
-            auditWorkItemEvent(taskEvent, AuditEventStage.REQUEST, result);
+            auditWorkItemEvent(workItem, wfTask, taskEvent, AuditEventStage.REQUEST, result);
             try {
-                notifyWorkItemCreated(
-                        taskEvent.getTaskName(),
-                        taskEvent.getAssigneeOid(),
-                        taskEvent.getProcessInstanceName(),
-                        taskEvent.getVariables());
+                notifyWorkItemCreated(workItem, wfTask, result);
             } catch (SchemaException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't send notification about work item create event", e);
             }
         } else if (taskEvent instanceof TaskCompletedEvent) {
-            auditWorkItemEvent(taskEvent, AuditEventStage.EXECUTION, result);
+            auditWorkItemEvent(workItem, wfTask, taskEvent, AuditEventStage.EXECUTION, result);
             try {
-                notifyWorkItemCompleted(
-                        taskEvent.getTaskName(),
-                        taskEvent.getAssigneeOid(),
-                        taskEvent.getProcessInstanceName(),
-                        taskEvent.getVariables(),
-                        (String) taskEvent.getVariables().get(CommonProcessVariableNames.FORM_FIELD_DECISION));
+                notifyWorkItemCompleted(workItem, wfTask, result);
             } catch (SchemaException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't audit work item complete event", e);
             }
@@ -394,86 +338,56 @@ public class WfTaskController {
     //endregion
 
     //region Auditing and notifications
-    private void auditProcessStart(StartProcessCommand spc, WfTask wfTask, OperationResult result) {
-        auditProcessStartEnd(spc.getVariables(), wfTask, AuditEventStage.REQUEST, result);
+    private void auditProcessStart(WfTask wfTask, Map<String, Object> variables, OperationResult result) {
+        auditProcessStartEnd(wfTask, AuditEventStage.REQUEST, variables, result);
     }
 
-    private void auditProcessEnd(ProcessEvent event, WfTask wfTask, OperationResult result) {
-        auditProcessStartEnd(event.getVariables(), wfTask, AuditEventStage.EXECUTION, result);
+    private void auditProcessEnd(WfTask wfTask, ProcessEvent event, OperationResult result) {
+        auditProcessStartEnd(wfTask, AuditEventStage.EXECUTION, event.getVariables(), result);
     }
 
-    private void auditProcessStartEnd(Map<String,Object> variables, WfTask wfTask, AuditEventStage stage, OperationResult result) {
-        AuditEventRecord auditEventRecord = getChangeProcessor(variables).prepareProcessInstanceAuditRecord(variables, wfTask, stage, result);
+    private void auditProcessStartEnd(WfTask wfTask, AuditEventStage stage, Map<String, Object> variables, OperationResult result) {
+        AuditEventRecord auditEventRecord = wfTask.getChangeProcessor().prepareProcessInstanceAuditRecord(wfTask, stage, variables, result);
         auditService.audit(auditEventRecord, wfTask.getTask());
     }
 
-    private void notifyProcessStart(StartProcessCommand spc, WfTask wfTask, OperationResult result) throws SchemaException {
-        PrismObject<? extends ProcessInstanceState> state = wfTask.getChangeProcessor().externalizeProcessInstanceState(spc.getVariables());
+    private void notifyProcessStart(WfTask wfTask, Map<String, Object> variables, OperationResult result) throws SchemaException {
         for (ProcessListener processListener : processListeners) {
-            processListener.onProcessInstanceStart(state, result);
+            processListener.onProcessInstanceStart(wfTask.getTask(), result);
         }
     }
 
-    private void notifyProcessEnd(ProcessEvent event, WfTask wfTask, OperationResult result) throws SchemaException {
-        PrismObject<? extends ProcessInstanceState> state = wfTask.getChangeProcessor().externalizeProcessInstanceState(event.getVariables());
+    private void notifyProcessEnd(WfTask wfTask, ProcessEvent event, OperationResult result) throws SchemaException {
         for (ProcessListener processListener : processListeners) {
-            processListener.onProcessInstanceEnd(state, result);
+            processListener.onProcessInstanceEnd(wfTask.getTask(), result);
         }
     }
 
-    private void notifyWorkItemCreated(String workItemName, String assigneeOid, String processInstanceName, Map<String,Object> processVariables) throws SchemaException {
-        ChangeProcessor cp = getChangeProcessor(processVariables);
-        PrismObject<? extends ProcessInstanceState> state = cp.externalizeProcessInstanceState(processVariables);
+    private void notifyWorkItemCreated(WorkItemNewType workItem, WfTask wfTask, OperationResult result) throws SchemaException {
         for (WorkItemListener workItemListener : workItemListeners) {
-            workItemListener.onWorkItemCreation(workItemName, assigneeOid, state);
+            workItemListener.onWorkItemCreation(workItem, wfTask.getTask(), result);
         }
     }
 
-    private void notifyWorkItemCompleted(String workItemName, String assigneeOid, String processInstanceName, Map<String,Object> processVariables, String decision) throws SchemaException {
-        ChangeProcessor cp = getChangeProcessor(processVariables);
-        PrismObject<? extends ProcessInstanceState> state = cp.externalizeProcessInstanceState(processVariables);
+    private void notifyWorkItemCompleted(WorkItemNewType workItem, WfTask wfTask, OperationResult result) throws SchemaException {
         for (WorkItemListener workItemListener : workItemListeners) {
-            workItemListener.onWorkItemCompletion(workItemName, assigneeOid, state, decision);
+            workItemListener.onWorkItemCompletion(workItem, wfTask.getTask(), result);
         }
     }
 
-    private void auditWorkItemEvent(TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException {
-
-        Task shadowTask;
-        try {
-            String taskOid = (String) taskEvent.getVariables().get(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID);
-            if (taskOid == null) {
-                LOGGER.error("Shadow task OID is unknown for work item " + taskEvent.getDebugName() + ", no audit record will be produced.");
-                return;
-            }
-            shadowTask = taskManager.getTask(taskOid, result);
-        } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't retrieve workflow-related task", e);
-            return;
-        } catch (ObjectNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't retrieve workflow-related task", e);
-            return;
-        }
-
-        AuditEventRecord auditEventRecord = getChangeProcessor(taskEvent).prepareWorkItemAuditRecord(taskEvent, stage, result);
-        auditService.audit(auditEventRecord, shadowTask);
+	// workItem contains taskRef, assignee, candidates resolved (if possible)
+    private void auditWorkItemEvent(WorkItemNewType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException {
+        AuditEventRecord auditEventRecord = getChangeProcessor(taskEvent).prepareWorkItemAuditRecord(workItem, wfTask, taskEvent, stage, result);
+        auditService.audit(auditEventRecord, wfTask.getTask());
     }
-
-//    private String getDebugName(WorkItemType workItemType) {
-//        return workItemType.getName() + " (id " + workItemType.getWorkItemId() + ")";
-//    }
 
     public void registerProcessListener(ProcessListener processListener) {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Registering process listener " + processListener);
-        }
+		LOGGER.trace("Registering process listener {}", processListener);
         processListeners.add(processListener);
     }
 
     public void registerWorkItemListener(WorkItemListener workItemListener) {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Registering work item listener " + workItemListener);
-        }
+		LOGGER.trace("Registering work item listener {}", workItemListener);
         workItemListeners.add(workItemListener);
     }
     //endregion
@@ -483,9 +397,21 @@ public class WfTaskController {
         return wfTaskUtil;
     }
 
-    public PrismContext getPrismContext() {
+	public MiscDataUtil getMiscDataUtil() {
+		return miscDataUtil;
+	}
+
+	public PrismContext getPrismContext() {
         return prismContext;
     }
 
-    //endregion
+	public TaskManager getTaskManager() {
+		return taskManager;
+	}
+
+	public WfConfiguration getWfConfiguration() {
+		return wfConfiguration;
+	}
+
+	//endregion
 }
