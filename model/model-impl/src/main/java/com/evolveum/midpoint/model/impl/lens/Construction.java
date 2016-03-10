@@ -91,14 +91,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
- * Live class that contains "construction" - a definition how to construct a resource object. It in fact reflects
- * the definition of ConstructionType but it also contains "live" objects and can evaluate the construction. It also
+ * Live class that contains "construction" - a definition how to construct a
+ * resource object. It in fact reflects the definition of ConstructionType but
+ * it also contains "live" objects and can evaluate the construction. It also
  * contains intermediary and side results of the evaluation.
  * 
  * @author Radovan Semancik
  *
- * This class is Serializable but it is not in fact serializable. It implements Serializable interface only
- * to be storable in the PrismPropertyValue.
+ *         This class is Serializable but it is not in fact serializable. It
+ *         implements Serializable interface only to be storable in the
+ *         PrismPropertyValue.
  */
 public class Construction<F extends FocusType> implements DebugDumpable, Serializable {
 
@@ -114,18 +116,22 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	private ObjectResolver objectResolver;
 	private MappingFactory mappingFactory;
 	private MappingEvaluator mappingEvaluator;
-	private Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> attributeMappings;
-	private Collection<Mapping<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>> associationMappings;
+	private Collection<Mapping<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> attributeMappings;
+	private Collection<Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> associationMappings;
 	private RefinedObjectClassDefinition refinedObjectClassDefinition;
 	private List<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
 	private AssignmentPathVariables assignmentPathVariables = null;
 	private PrismContext prismContext;
 	private PrismContainerDefinition<ShadowAssociationType> associationContainerDefinition;
-	private PrismObject<SystemConfigurationType> systemConfiguration;		// only to provide $configuration variable (MID-2372)
+	private PrismObject<SystemConfigurationType> systemConfiguration; // only to
+																		// provide
+																		// $configuration
+																		// variable
+																		// (MID-2372)
 	private boolean isValid = true;
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(Construction.class);
-	
+
 	public Construction(ConstructionType constructionType, ObjectType source) {
 		this.constructionType = constructionType;
 		this.source = source;
@@ -136,7 +142,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	public void setSource(ObjectType source) {
 		this.source = source;
 	}
-		
+
 	public ObjectType getSource() {
 		return source;
 	}
@@ -156,7 +162,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	public void setChannel(String channel) {
 		this.channel = channel;
 	}
-	
+
 	public LensContext<F> getLensContext() {
 		return lensContext;
 	}
@@ -220,7 +226,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
 		return refinedObjectClassDefinition;
 	}
-	
+
 	public void setRefinedObjectClassDefinition(RefinedObjectClassDefinition refinedObjectClassDefinition) {
 		this.refinedObjectClassDefinition = refinedObjectClassDefinition;
 	}
@@ -228,14 +234,14 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	public List<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() {
 		return auxiliaryObjectClassDefinitions;
 	}
-	
-	public void addAuxiliaryObjectClassDefinition(RefinedObjectClassDefinition auxiliaryObjectClassDefinition) {
+
+	public void addAuxiliaryObjectClassDefinition(
+			RefinedObjectClassDefinition auxiliaryObjectClassDefinition) {
 		if (auxiliaryObjectClassDefinitions == null) {
 			auxiliaryObjectClassDefinitions = new ArrayList<>();
 		}
 		auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDefinition);
 	}
-
 
 	public ShadowKindType getKind() {
 		if (refinedObjectClassDefinition == null) {
@@ -254,7 +260,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	public Object getDescription() {
 		return constructionType.getDescription();
 	}
-	
+
 	public boolean isValid() {
 		return isValid;
 	}
@@ -263,48 +269,51 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		this.isValid = isValid;
 	}
 
-	public Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> getAttributeMappings() {
+	public Collection<Mapping<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> getAttributeMappings() {
 		if (attributeMappings == null) {
 			attributeMappings = new ArrayList<>();
 		}
 		return attributeMappings;
 	}
-	
-	public Mapping<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> getAttributeMapping(QName attrName) {
-		for (Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> myVc : getAttributeMappings()) {
+
+	public Mapping<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> getAttributeMapping(
+			QName attrName) {
+		for (Mapping<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> myVc : getAttributeMappings()) {
 			if (myVc.getItemName().equals(attrName)) {
 				return myVc;
 			}
 		}
 		return null;
 	}
-	
-	public void addAttributeMapping(Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> mapping) {
+
+	public void addAttributeMapping(
+			Mapping<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping) {
 		getAttributeMappings().add(mapping);
 	}
 
 	public boolean containsAttributeMapping(QName attributeName) {
-		for (Mapping<?,?> mapping: getAttributeMappings()) {
+		for (Mapping<?, ?> mapping : getAttributeMappings()) {
 			if (attributeName.equals(mapping.getItemName())) {
 				return true;
 			}
 		}
 		return false;
 	}
-		
-	public Collection<Mapping<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>> getAssociationMappings() {
+
+	public Collection<Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> getAssociationMappings() {
 		if (associationMappings == null) {
-			associationMappings = new ArrayList<Mapping<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>();
+			associationMappings = new ArrayList<Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>>();
 		}
 		return associationMappings;
 	}
-	
-	public void addAssociationMapping(Mapping<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> mapping) {
+
+	public void addAssociationMapping(
+			Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> mapping) {
 		getAssociationMappings().add(mapping);
 	}
 
 	public boolean containsAssociationMapping(QName assocName) {
-		for (Mapping<?,?> mapping: getAssociationMappings()) {
+		for (Mapping<?, ?> mapping : getAssociationMappings()) {
 			if (assocName.equals(mapping.getItemName())) {
 				return true;
 			}
@@ -319,89 +328,121 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	public void setAssignmentPath(AssignmentPath assignmentPath) {
 		this.assignmentPath = assignmentPath;
 	}
-	
-	private ResourceType resolveTarget(String sourceDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException{
-//		SearchFilterType filter = targetRef.getFilter();
-		ExpressionVariables variables = Utils.getDefaultExpressionVariables(focusOdo.getNewObject().asObjectable(), null, null, null);
-		variables.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole());
-		variables.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment());
-		variables.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment());
-		variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment());
-		LOGGER.info("Expression valriables for filter evaluation: {}", variables);
-		
 
-		ObjectFilter origFilter = QueryConvertor.parseFilter(constructionType.getResourceRef().getFilter(), ResourceType.class, prismContext);
-		LOGGER.info("Orig filter {}", origFilter);
-		ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables, getMappingFactory().getExpressionFactory(), prismContext, " evaluating resource filter expression ", task, result);
-		LOGGER.info("evaluatedFilter filter {}", evaluatedFilter);
-		
-		if (evaluatedFilter == null){
-			throw new SchemaException("The OID is null and filter could not be evaluated in assignment targetRef in "+source);
+	private ResourceType resolveTarget(String sourceDescription, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException, SecurityViolationException {
+		// SearchFilterType filter = targetRef.getFilter();
+		ExpressionVariables variables = Utils
+				.getDefaultExpressionVariables(focusOdo.getNewObject().asObjectable(), null, null, null);
+		if (assignmentPathVariables == null){
+			assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
 		}
 		
-		
-		
+		if (assignmentPathVariables != null) {
+			variables.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE,
+					assignmentPathVariables.getImmediateRole());
+			variables.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT,
+					assignmentPathVariables.getImmediateAssignment());
+			variables.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT,
+					assignmentPathVariables.getThisAssignment());
+			variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT,
+					assignmentPathVariables.getFocusAssignment());
+		}
+		LOGGER.info("Expression valriables for filter evaluation: {}", variables);
+
+		ObjectFilter origFilter = QueryConvertor.parseFilter(constructionType.getResourceRef().getFilter(),
+				ResourceType.class, prismContext);
+		LOGGER.info("Orig filter {}", origFilter);
+		ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables,
+				getMappingFactory().getExpressionFactory(), prismContext,
+				" evaluating resource filter expression ", task, result);
+		LOGGER.info("evaluatedFilter filter {}", evaluatedFilter);
+
+		if (evaluatedFilter == null) {
+			throw new SchemaException(
+					"The OID is null and filter could not be evaluated in assignment targetRef in " + source);
+		}
+
 		final Collection<PrismObject<ResourceType>> results = new ArrayList<>();
 		ResultHandler<ResourceType> handler = new ResultHandler<ResourceType>() {
-			
+
 			@Override
 			public boolean handle(PrismObject<ResourceType> object, OperationResult parentResult) {
 				LOGGER.info("Found object {}", object);
 				return results.add(object);
 			}
 		};
-        objectResolver.searchIterative(ResourceType.class, ObjectQuery.createObjectQuery(evaluatedFilter), null, handler, task, result);
-        
-        if (org.apache.commons.collections.CollectionUtils.isEmpty(results)){
-        	throw new IllegalArgumentException("Got null target from repository, filter:"+evaluatedFilter+", class:"+ResourceType.class+" (should not happen, probably a bug) in "+sourceDescription);
-        }
-        
-        if (results.size() > 1){
-        	throw new IllegalArgumentException("Got more than one target from repository, filter:"+evaluatedFilter+", class:"+ResourceType.class+" (should not happen, probably a bug) in "+sourceDescription);
-        }
-        
-        PrismObject<ResourceType> target = results.iterator().next();
-        
-//        assignmentType.getTargetRef().setOid(target.getOid());
-        return target.asObjectable();
+		objectResolver.searchIterative(ResourceType.class, ObjectQuery.createObjectQuery(evaluatedFilter),
+				null, handler, task, result);
+
+		if (org.apache.commons.collections.CollectionUtils.isEmpty(results)) {
+			throw new IllegalArgumentException("Got null target from repository, filter:" + evaluatedFilter
+					+ ", class:" + ResourceType.class + " (should not happen, probably a bug) in "
+					+ sourceDescription);
+		}
+
+		if (results.size() > 1) {
+			throw new IllegalArgumentException("Got more than one target from repository, filter:"
+					+ evaluatedFilter + ", class:" + ResourceType.class
+					+ " (should not happen, probably a bug) in " + sourceDescription);
+		}
+
+		PrismObject<ResourceType> target = results.iterator().next();
+
+		// assignmentType.getTargetRef().setOid(target.getOid());
+		return target.asObjectable();
 	}
 
-	public ResourceType getResource(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+	public ResourceType getResource(Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException {
 		if (resource == null) {
 			if (constructionType.getResource() != null) {
 				resource = constructionType.getResource();
 			} else if (constructionType.getResourceRef() != null) {
 				try {
-					
-					if (constructionType.getResourceRef().getOid() == null){
+
+					if (constructionType.getResourceRef().getOid() == null) {
 						resource = resolveTarget(" resolving resource ", task, result);
 					} else {
-						resource = LensUtil.getResource(lensContext, constructionType.getResourceRef().getOid(), objectResolver, task, result);
+						resource = LensUtil.getResource(lensContext,
+								constructionType.getResourceRef().getOid(), objectResolver, task, result);
 					}
 				} catch (ObjectNotFoundException e) {
-					throw new ObjectNotFoundException("Resource reference seems to be invalid in account construction in " + source + ": "+e.getMessage(), e);
-				} catch (SecurityViolationException|CommunicationException|ConfigurationException e) {
-					throw new SystemException("Couldn't fetch the resource in account construction in " + source + ": " + e.getMessage(), e);
+					throw new ObjectNotFoundException(
+							"Resource reference seems to be invalid in account construction in " + source
+									+ ": " + e.getMessage(),
+							e);
+				} catch (SecurityViolationException | CommunicationException | ConfigurationException e) {
+					throw new SystemException("Couldn't fetch the resource in account construction in "
+							+ source + ": " + e.getMessage(), e);
 				} catch (ExpressionEvaluationException e) {
-					throw new SystemException("Couldn't evaluate filter expression for the resource in account construction in " + source + ": " + e.getMessage(), e);
+					throw new SystemException(
+							"Couldn't evaluate filter expression for the resource in account construction in "
+									+ source + ": " + e.getMessage(),
+							e);
 				}
 			}
 			if (resource == null) {
-				throw new SchemaException("No resource set in account construction in " + source + ", resource : " + constructionType.getResource() + ", resourceRef: " + constructionType.getResourceRef());
+				throw new SchemaException("No resource set in account construction in " + source
+						+ ", resource : " + constructionType.getResource() + ", resourceRef: "
+						+ constructionType.getResourceRef());
 			}
 			constructionType.getResourceRef().setOid(resource.getOid());
 		}
 		return resource;
 	}
-	
-	public void evaluate(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+
+	public void evaluate(Task task, OperationResult result)
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
 		evaluateKindIntentObjectClass(task, result);
 		evaluateAttributes(task, result);
 		evaluateAssociations(task, result);
 	}
-	
-	private void evaluateKindIntentObjectClass(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+
+	private void evaluateKindIntentObjectClass(Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException {
 		String resourceOid = null;
 		if (constructionType.getResourceRef() != null) {
 			resourceOid = constructionType.getResourceRef().getOid();
@@ -411,98 +452,122 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		}
 		ResourceType resource = getResource(task, result);
 		if (resourceOid != null && !resource.getOid().equals(resourceOid)) {
-			throw new IllegalStateException("The specified resource and the resource in construction does not match");
+			throw new IllegalStateException(
+					"The specified resource and the resource in construction does not match");
 		}
-		
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, prismContext);
+
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
+				LayerType.MODEL, prismContext);
 		if (refinedSchema == null) {
 			// Refined schema may be null in some error-related border cases
-			throw new SchemaException("No (refined) schema for "+resource);
+			throw new SchemaException("No (refined) schema for " + resource);
 		}
-		
+
 		ShadowKindType kind = constructionType.getKind();
 		if (kind == null) {
 			kind = ShadowKindType.ACCOUNT;
 		}
 		refinedObjectClassDefinition = refinedSchema.getRefinedDefinition(kind, constructionType.getIntent());
-		
+
 		if (refinedObjectClassDefinition == null) {
 			if (constructionType.getIntent() != null) {
-				throw new SchemaException("No "+kind+" type '"+constructionType.getIntent()+"' found in "+getResource(task, result)+" as specified in construction in "+source);
+				throw new SchemaException(
+						"No " + kind + " type '" + constructionType.getIntent() + "' found in "
+								+ getResource(task, result) + " as specified in construction in " + source);
 			} else {
-				throw new SchemaException("No default "+kind+" type found in " + resource + " as specified in construction in "+source);
+				throw new SchemaException("No default " + kind + " type found in " + resource
+						+ " as specified in construction in " + source);
 			}
 		}
-		
+
 		auxiliaryObjectClassDefinitions = new ArrayList<>(constructionType.getAuxiliaryObjectClass().size());
-		for (QName auxiliaryObjectClassName: constructionType.getAuxiliaryObjectClass()) {
-			RefinedObjectClassDefinition auxOcDef = refinedSchema.getRefinedDefinition(auxiliaryObjectClassName);
+		for (QName auxiliaryObjectClassName : constructionType.getAuxiliaryObjectClass()) {
+			RefinedObjectClassDefinition auxOcDef = refinedSchema
+					.getRefinedDefinition(auxiliaryObjectClassName);
 			if (auxOcDef == null) {
-				throw new SchemaException("No auxiliary object class "+auxiliaryObjectClassName+" found in "+getResource(task, result)+" as specified in construction in "+source);
+				throw new SchemaException(
+						"No auxiliary object class " + auxiliaryObjectClassName + " found in "
+								+ getResource(task, result) + " as specified in construction in " + source);
 			}
 			auxiliaryObjectClassDefinitions.add(auxOcDef);
 		}
 	}
 
-	private void evaluateAttributes(Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	private void evaluateAttributes(Task task, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		attributeMappings = new ArrayList<>();
-//		LOGGER.trace("Assignments used for account construction for {} ({}): {}", new Object[]{this.resource,
-//				assignments.size(), assignments});
+		// LOGGER.trace("Assignments used for account construction for {} ({}):
+		// {}", new Object[]{this.resource,
+		// assignments.size(), assignments});
 		for (ResourceAttributeDefinitionType attribudeDefinitionType : constructionType.getAttribute()) {
 			QName attrName = ItemPathUtil.getOnlySegmentQName(attribudeDefinitionType.getRef());
 			if (attrName == null) {
-				throw new SchemaException("No attribute name (ref) in attribute definition in account construction in "+source);
+				throw new SchemaException(
+						"No attribute name (ref) in attribute definition in account construction in "
+								+ source);
 			}
 			if (!attribudeDefinitionType.getInbound().isEmpty()) {
-				throw new SchemaException("Cannot process inbound section in definition of attribute "+attrName+" in account construction in "+source);
+				throw new SchemaException("Cannot process inbound section in definition of attribute "
+						+ attrName + " in account construction in " + source);
 			}
 			MappingType outboundMappingType = attribudeDefinitionType.getOutbound();
 			if (outboundMappingType == null) {
-				throw new SchemaException("No outbound section in definition of attribute "+attrName+" in account construction in "+source);
+				throw new SchemaException("No outbound section in definition of attribute " + attrName
+						+ " in account construction in " + source);
 			}
-			Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> attributeMapping = evaluateAttribute(attribudeDefinitionType, task, result);
+			Mapping<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> attributeMapping = evaluateAttribute(
+					attribudeDefinitionType, task, result);
 			if (attributeMapping != null) {
 				attributeMappings.add(attributeMapping);
 			}
 		}
 	}
 
-	private <T> Mapping<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluateAttribute(ResourceAttributeDefinitionType attribudeDefinitionType,
-			Task task, OperationResult result) 
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	private <T> Mapping<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluateAttribute(
+			ResourceAttributeDefinitionType attribudeDefinitionType, Task task, OperationResult result)
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		QName attrName = ItemPathUtil.getOnlySegmentQName(attribudeDefinitionType.getRef());
 		if (attrName == null) {
-			throw new SchemaException("Missing 'ref' in attribute construction in account construction in "+ObjectTypeUtil.toShortString(source));
+			throw new SchemaException("Missing 'ref' in attribute construction in account construction in "
+					+ ObjectTypeUtil.toShortString(source));
 		}
 		if (!attribudeDefinitionType.getInbound().isEmpty()) {
-			throw new SchemaException("Cannot process inbound section in definition of attribute "+attrName+" in account construction in "+source);
+			throw new SchemaException("Cannot process inbound section in definition of attribute " + attrName
+					+ " in account construction in " + source);
 		}
 		MappingType outboundMappingType = attribudeDefinitionType.getOutbound();
 		if (outboundMappingType == null) {
-			throw new SchemaException("No outbound section in definition of attribute "+attrName+" in account construction in "+source);
+			throw new SchemaException("No outbound section in definition of attribute " + attrName
+					+ " in account construction in " + source);
 		}
 		ResourceAttributeDefinition<T> outputDefinition = findAttributeDefinition(attrName);
 		if (outputDefinition == null) {
-			throw new SchemaException("Attribute "+attrName+" not found in schema for account type "+getIntent()+", "+ObjectTypeUtil.toShortString(getResource(task, result))+" as definied in "+ObjectTypeUtil.toShortString(source), attrName);
+			throw new SchemaException("Attribute " + attrName + " not found in schema for account type "
+					+ getIntent() + ", " + ObjectTypeUtil.toShortString(getResource(task, result))
+					+ " as definied in " + ObjectTypeUtil.toShortString(source), attrName);
 		}
-		Mapping<PrismPropertyValue<T>,ResourceAttributeDefinition<T>> mapping = mappingFactory.createMapping(outboundMappingType,
-				"for attribute " + PrettyPrinter.prettyPrint(attrName)  + " in "+source);
-		
-		Mapping<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluatedMapping = evaluateMapping(mapping, attrName, outputDefinition, null, task, result);		
-		
-		LOGGER.trace("Evaluated mapping for attribute "+attrName+": "+evaluatedMapping);
+		Mapping<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> mapping = mappingFactory.createMapping(
+				outboundMappingType,
+				"for attribute " + PrettyPrinter.prettyPrint(attrName) + " in " + source);
+
+		Mapping<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluatedMapping = evaluateMapping(
+				mapping, attrName, outputDefinition, null, task, result);
+
+		LOGGER.trace("Evaluated mapping for attribute " + attrName + ": " + evaluatedMapping);
 		return evaluatedMapping;
 	}
 
 	public <T> RefinedAttributeDefinition<T> findAttributeDefinition(QName attributeName) {
 		if (refinedObjectClassDefinition == null) {
-			throw new IllegalStateException("Construction "+this+" was not evaluated:\n"+this.debugDump());
+			throw new IllegalStateException(
+					"Construction " + this + " was not evaluated:\n" + this.debugDump());
 		}
-		RefinedAttributeDefinition<T> attrDef = refinedObjectClassDefinition.findAttributeDefinition(attributeName);
+		RefinedAttributeDefinition<T> attrDef = refinedObjectClassDefinition
+				.findAttributeDefinition(attributeName);
 		if (attrDef != null) {
 			return attrDef;
 		}
-		for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+		for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
 			attrDef = auxiliaryObjectClassDefinition.findAttributeDefinition(attributeName);
 			if (attrDef != null) {
 				return attrDef;
@@ -510,11 +575,12 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		}
 		return null;
 	}
-	
+
 	public boolean hasValueForAttribute(QName attributeName) {
-		for (Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> attributeConstruction: attributeMappings) {
+		for (Mapping<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> attributeConstruction : attributeMappings) {
 			if (attributeName.equals(attributeConstruction.getItemName())) {
-				PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> outputTriple = attributeConstruction.getOutputTriple();
+				PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> outputTriple = attributeConstruction
+						.getOutputTriple();
 				if (outputTriple != null && !outputTriple.isEmpty()) {
 					return true;
 				}
@@ -522,63 +588,70 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		}
 		return false;
 	}
-	
-	private void evaluateAssociations(Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+
+	private void evaluateAssociations(Task task, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		associationMappings = new ArrayList<>();
 		for (ResourceObjectAssociationType associationDefinitionType : constructionType.getAssociation()) {
 			QName assocName = ItemPathUtil.getOnlySegmentQName(associationDefinitionType.getRef());
 			if (assocName == null) {
-				throw new SchemaException("No association name (ref) in association definition in construction in "+source);
+				throw new SchemaException(
+						"No association name (ref) in association definition in construction in " + source);
 			}
 			MappingType outboundMappingType = associationDefinitionType.getOutbound();
 			if (outboundMappingType == null) {
-				throw new SchemaException("No outbound section in definition of association "+assocName+" in construction in "+source);
+				throw new SchemaException("No outbound section in definition of association " + assocName
+						+ " in construction in " + source);
 			}
-			Mapping<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> assocMapping = evaluateAssociation(associationDefinitionType, task, result);
+			Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> assocMapping = evaluateAssociation(
+					associationDefinitionType, task, result);
 			if (assocMapping != null) {
 				associationMappings.add(assocMapping);
 			}
 		}
 	}
 
-	private Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluateAssociation(ResourceObjectAssociationType associationDefinitionType,
-			Task task, OperationResult result) 
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	private Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluateAssociation(
+			ResourceObjectAssociationType associationDefinitionType, Task task, OperationResult result)
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		QName assocName = ItemPathUtil.getOnlySegmentQName(associationDefinitionType.getRef());
 		if (assocName == null) {
-			throw new SchemaException("Missing 'ref' in association in construction in "+source);
+			throw new SchemaException("Missing 'ref' in association in construction in " + source);
 		}
 		MappingType outboundMappingType = associationDefinitionType.getOutbound();
 		if (outboundMappingType == null) {
-			throw new SchemaException("No outbound section in definition of association "+assocName+" in construction in "+source);
+			throw new SchemaException("No outbound section in definition of association " + assocName
+					+ " in construction in " + source);
 		}
 		PrismContainerDefinition<ShadowAssociationType> outputDefinition = getAssociationContainerDefinition();
-		Mapping<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> mapping = mappingFactory.createMapping(outboundMappingType,
-				"for association " + PrettyPrinter.prettyPrint(assocName)  + " in " + source);
+		Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> mapping = mappingFactory
+				.createMapping(outboundMappingType,
+						"for association " + PrettyPrinter.prettyPrint(assocName) + " in " + source);
 		mapping.setOriginType(OriginType.ASSIGNMENTS);
 		mapping.setOriginObject(source);
-		
+
 		RefinedAssociationDefinition rAssocDef = refinedObjectClassDefinition.findAssociation(assocName);
 		if (rAssocDef == null) {
-			throw new SchemaException("No association "+assocName+" in object class "+refinedObjectClassDefinition.getHumanReadableName()
-					+" in construction in "+source);
+			throw new SchemaException("No association " + assocName + " in object class "
+					+ refinedObjectClassDefinition.getHumanReadableName() + " in construction in " + source);
 		}
-		
-		Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = evaluateMapping(mapping, assocName, outputDefinition, 
-				rAssocDef.getAssociationTarget(), task, result);
-		
-		LOGGER.trace("Evaluated mapping for association "+assocName+": "+evaluatedMapping);
+
+		Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = evaluateMapping(
+				mapping, assocName, outputDefinition, rAssocDef.getAssociationTarget(), task, result);
+
+		LOGGER.trace("Evaluated mapping for association " + assocName + ": " + evaluatedMapping);
 		return evaluatedMapping;
 	}
-	
-	private <V extends PrismValue,D extends ItemDefinition> Mapping<V, D> evaluateMapping(Mapping<V,D> mapping, QName mappingQName, D outputDefinition,
-			RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result) 
+
+	private <V extends PrismValue, D extends ItemDefinition> Mapping<V, D> evaluateMapping(
+			Mapping<V, D> mapping, QName mappingQName, D outputDefinition,
+			RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		
+
 		if (!mapping.isApplicableToChannel(channel)) {
 			return null;
 		}
-		
+
 		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source);
@@ -589,20 +662,23 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		mapping.setOriginType(originType);
 		mapping.setOriginObject(source);
 		mapping.setRefinedObjectClassDefinition(refinedObjectClassDefinition);
-		
+
 		mapping.addVariableDefinition(ExpressionConstants.VAR_CONTAINING_OBJECT, source);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_ORDER_ONE_OBJECT, orderOneObject);
 		if (assocTargetObjectClassDefinition != null) {
-			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION, assocTargetObjectClassDefinition);
+			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION,
+					assocTargetObjectClassDefinition);
 		}
 		LensUtil.addAssignmentPathVariables(mapping, assignmentPathVariables);
 		if (getSystemConfiguration() != null) {
 			mapping.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, getSystemConfiguration());
 		}
 		// TODO: other variables ?
-		
-		// Set condition masks. There are used as a brakes to avoid evaluating to nonsense values in case user is not present
-		// (e.g. in old values in ADD situations and new values in DELETE situations).
+
+		// Set condition masks. There are used as a brakes to avoid evaluating
+		// to nonsense values in case user is not present
+		// (e.g. in old values in ADD situations and new values in DELETE
+		// situations).
 		if (focusOdo.getOldObject() == null) {
 			mapping.setConditionMaskOld(false);
 		}
@@ -614,11 +690,13 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 
 		return mapping;
 	}
-	
+
 	private PrismContainerDefinition<ShadowAssociationType> getAssociationContainerDefinition() {
 		if (associationContainerDefinition == null) {
-			PrismObjectDefinition<ShadowType> shadowDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-			associationContainerDefinition = shadowDefinition.findContainerDefinition(ShadowType.F_ASSOCIATION);
+			PrismObjectDefinition<ShadowType> shadowDefinition = prismContext.getSchemaRegistry()
+					.findObjectDefinitionByCompileTimeClass(ShadowType.class);
+			associationContainerDefinition = shadowDefinition
+					.findContainerDefinition(ShadowType.F_ASSOCIATION);
 		}
 		return associationContainerDefinition;
 	}
@@ -690,7 +768,11 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		DebugUtil.debugDumpLabel(sb, "Construction", indent);
 		if (refinedObjectClassDefinition == null) {
 			sb.append(" (no object class definition)");
-			if (constructionType != null && constructionType.getResourceRef() != null) {		// should be always the case
+			if (constructionType != null && constructionType.getResourceRef() != null) { // should
+																							// be
+																							// always
+																							// the
+																							// case
 				sb.append("\n");
 				DebugUtil.debugDumpLabel(sb, "resourceRef / kind / intent", indent + 1);
 				sb.append(" ");
@@ -712,43 +794,44 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		} else if (auxiliaryObjectClassDefinitions.isEmpty()) {
 			sb.append(" (empty)");
 		} else {
-			for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+			for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
 				sb.append("\n");
-				DebugUtil.indentDebugDump(sb, indent+2);
+				DebugUtil.indentDebugDump(sb, indent + 2);
 				sb.append(auxiliaryObjectClassDefinition.getTypeName());
 			}
 		}
 		if (constructionType != null && constructionType.getDescription() != null) {
 			sb.append("\n");
-			DebugUtil.debugDumpLabel(sb, "description", indent+1);
+			DebugUtil.debugDumpLabel(sb, "description", indent + 1);
 			sb.append(" ").append(constructionType.getDescription());
 		}
 		if (attributeMappings != null && !attributeMappings.isEmpty()) {
 			sb.append("\n");
-			DebugUtil.debugDumpLabel(sb, "attribute mappings", indent+1);
-			for (Mapping mapping: attributeMappings) {
+			DebugUtil.debugDumpLabel(sb, "attribute mappings", indent + 1);
+			for (Mapping mapping : attributeMappings) {
 				sb.append("\n");
-				sb.append(mapping.debugDump(indent+2));
+				sb.append(mapping.debugDump(indent + 2));
 			}
 		}
 		if (associationMappings != null && !associationMappings.isEmpty()) {
 			sb.append("\n");
-			DebugUtil.debugDumpLabel(sb, "association mappings", indent+1);
-			for (Mapping mapping: associationMappings) {
+			DebugUtil.debugDumpLabel(sb, "association mappings", indent + 1);
+			for (Mapping mapping : associationMappings) {
 				sb.append("\n");
-				sb.append(mapping.debugDump(indent+2));
+				sb.append(mapping.debugDump(indent + 2));
 			}
 		}
 		if (assignmentPath != null) {
 			sb.append("\n");
-			sb.append(assignmentPath.debugDump(indent+1));
+			sb.append(assignmentPath.debugDump(indent + 1));
 		}
 		return sb.toString();
 	}
 
 	@Override
 	public String toString() {
-		return "Construction(" + (refinedObjectClassDefinition == null ? constructionType : refinedObjectClassDefinition.getShadowDiscriminator()) + ")";
+		return "Construction(" + (refinedObjectClassDefinition == null ? constructionType
+				: refinedObjectClassDefinition.getShadowDiscriminator()) + ")";
 	}
-	
+
 }
