@@ -27,11 +27,14 @@ import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
+import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.Item;
@@ -47,7 +50,12 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -80,6 +88,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * Live class that contains "construction" - a definition how to construct a resource object. It in fact reflects
@@ -310,6 +319,52 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	public void setAssignmentPath(AssignmentPath assignmentPath) {
 		this.assignmentPath = assignmentPath;
 	}
+	
+	private ResourceType resolveTarget(String sourceDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException{
+//		SearchFilterType filter = targetRef.getFilter();
+		ExpressionVariables variables = Utils.getDefaultExpressionVariables(focusOdo.getNewObject().asObjectable(), null, null, null);
+		variables.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole());
+		variables.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment());
+		variables.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment());
+		variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment());
+		LOGGER.info("Expression valriables for filter evaluation: {}", variables);
+		
+
+		ObjectFilter origFilter = QueryConvertor.parseFilter(constructionType.getResourceRef().getFilter(), ResourceType.class, prismContext);
+		LOGGER.info("Orig filter {}", origFilter);
+		ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables, getMappingFactory().getExpressionFactory(), prismContext, " evaluating resource filter expression ", task, result);
+		LOGGER.info("evaluatedFilter filter {}", evaluatedFilter);
+		
+		if (evaluatedFilter == null){
+			throw new SchemaException("The OID is null and filter could not be evaluated in assignment targetRef in "+source);
+		}
+		
+		
+		
+		final Collection<PrismObject<ResourceType>> results = new ArrayList<>();
+		ResultHandler<ResourceType> handler = new ResultHandler<ResourceType>() {
+			
+			@Override
+			public boolean handle(PrismObject<ResourceType> object, OperationResult parentResult) {
+				LOGGER.info("Found object {}", object);
+				return results.add(object);
+			}
+		};
+        objectResolver.searchIterative(ResourceType.class, ObjectQuery.createObjectQuery(evaluatedFilter), null, handler, task, result);
+        
+        if (org.apache.commons.collections.CollectionUtils.isEmpty(results)){
+        	throw new IllegalArgumentException("Got null target from repository, filter:"+evaluatedFilter+", class:"+ResourceType.class+" (should not happen, probably a bug) in "+sourceDescription);
+        }
+        
+        if (results.size() > 1){
+        	throw new IllegalArgumentException("Got more than one target from repository, filter:"+evaluatedFilter+", class:"+ResourceType.class+" (should not happen, probably a bug) in "+sourceDescription);
+        }
+        
+        PrismObject<ResourceType> target = results.iterator().next();
+        
+//        assignmentType.getTargetRef().setOid(target.getOid());
+        return target.asObjectable();
+	}
 
 	public ResourceType getResource(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		if (resource == null) {
@@ -317,23 +372,31 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 				resource = constructionType.getResource();
 			} else if (constructionType.getResourceRef() != null) {
 				try {
-					resource = LensUtil.getResource(lensContext, constructionType.getResourceRef().getOid(), objectResolver, task, result);
+					
+					if (constructionType.getResourceRef().getOid() == null){
+						resource = resolveTarget(" resolving resource ", task, result);
+					} else {
+						resource = LensUtil.getResource(lensContext, constructionType.getResourceRef().getOid(), objectResolver, task, result);
+					}
 				} catch (ObjectNotFoundException e) {
 					throw new ObjectNotFoundException("Resource reference seems to be invalid in account construction in " + source + ": "+e.getMessage(), e);
 				} catch (SecurityViolationException|CommunicationException|ConfigurationException e) {
 					throw new SystemException("Couldn't fetch the resource in account construction in " + source + ": " + e.getMessage(), e);
+				} catch (ExpressionEvaluationException e) {
+					throw new SystemException("Couldn't evaluate filter expression for the resource in account construction in " + source + ": " + e.getMessage(), e);
 				}
 			}
 			if (resource == null) {
-				throw new SchemaException("No resource set in account construction in " + source);
+				throw new SchemaException("No resource set in account construction in " + source + ", resource : " + constructionType.getResource() + ", resourceRef: " + constructionType.getResourceRef());
 			}
+			constructionType.getResourceRef().setOid(resource.getOid());
 		}
 		return resource;
 	}
 	
 	public void evaluate(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		evaluateKindIntentObjectClass(task, result);
 		assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
+		evaluateKindIntentObjectClass(task, result);
 		evaluateAttributes(task, result);
 		evaluateAssociations(task, result);
 	}
@@ -347,7 +410,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 			resourceOid = constructionType.getResource().getOid();
 		}
 		ResourceType resource = getResource(task, result);
-		if (!resource.getOid().equals(resourceOid)) {
+		if (resourceOid != null && !resource.getOid().equals(resourceOid)) {
 			throw new IllegalStateException("The specified resource and the resource in construction does not match");
 		}
 		

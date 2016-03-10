@@ -324,7 +324,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 
 	@Override
 	public boolean isEmpty() {
-		return oid == null && object == null;
+		return oid == null && object == null && filter == null;
 	}
 	
 	/**
