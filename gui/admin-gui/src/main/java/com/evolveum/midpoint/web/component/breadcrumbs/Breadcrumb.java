@@ -29,6 +29,8 @@ public class Breadcrumb implements Serializable {
 
     private IModel<String> label;
     private IModel<String> icon;
+    private boolean useLink = false;
+    private boolean visible = true;
 
     public Breadcrumb() {
     }
@@ -58,8 +60,20 @@ public class Breadcrumb implements Serializable {
         this.icon = icon;
     }
 
-    public boolean isLink() {
-        return false;
+    public boolean isUseLink() {
+        return useLink;
+    }
+
+    public void setUseLink(boolean useLink) {
+        this.useLink = useLink;
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
     }
 
     public void redirect(Component component) {

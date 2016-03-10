@@ -463,7 +463,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
                     @Override
                     public boolean isEnabled() {
-                        return dto.isLink();
+                        return dto.isUseLink();
                     }
                 });
 
@@ -480,6 +480,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
                 Label bcName = new Label(ID_BC_NAME, dto.getLabel());
 				bcLink.add(bcName);
+
+				item.add(new VisibleEnableBehaviour() {
+
+					@Override
+					public boolean isVisible() {
+						return dto.isVisible();
+					}
+				});
 			}
 		};
         add(breadcrumbs);

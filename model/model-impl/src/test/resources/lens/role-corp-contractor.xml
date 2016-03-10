@@ -15,6 +15,7 @@
   -->
 
 <role oid="12345678-d34d-b33f-f00d-55555555a004"
+xmlns:ext="http://midpoint.evolveum.com/xml/ns/samples/piracy"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Contractor</name>
     <description>Universal role for contractors working for the company</description>
@@ -29,4 +30,8 @@
     </authorization>
     <requestable>true</requestable>
     <roleType>job</roleType>
+    <extension>
+    	<ext:resourceName>Dummy Resource</ext:resourceName>
+    	<ext:resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
+	</extension>
 </role>

@@ -39,6 +39,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.cycle.RequestCycle;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -85,7 +86,13 @@ public class MainMenuPanel extends SimplePanel<MainMenuItem> {
 
         WebMarkupContainer link;
         if (menu.getPage() != null) {
-            link = new BookmarkablePageLink(ID_LINK, menu.getPage());
+            link = new AjaxLink(ID_LINK) {
+
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    mainMenuPerformed(menu);
+                }
+            };
         } else {
             link = new WebMarkupContainer(ID_LINK);
         }
@@ -186,6 +193,27 @@ public class MainMenuPanel extends SimplePanel<MainMenuItem> {
         bc.setIcon(new Model<>(mainMenuItem.getIconClass()));
         storage.pushBreadcrumb(bc);
 
+        List<MenuItem> items = mainMenuItem.getItems();
+        if (!items.isEmpty()) {
+            MenuItem first = items.get(0);
+
+            BreadcrumbPageClass invisibleBc = new BreadcrumbPageClass(first.getName(), first.getPage(),
+                    first.getParams());
+            invisibleBc.setVisible(false);
+            storage.pushBreadcrumb(invisibleBc);
+        }
+
         setResponsePage(menu.getPage(), menu.getParams());
+    }
+
+    private void mainMenuPerformed(MainMenuItem menu) {
+        SessionStorage storage = getPageBase().getSessionStorage();
+        storage.clearBreadcrumbs();
+
+        if (menu.getParams() == null) {
+            setResponsePage(menu.getPage());
+        } else {
+            setResponsePage(menu.getPage(), menu.getParams());
+        }
     }
 }

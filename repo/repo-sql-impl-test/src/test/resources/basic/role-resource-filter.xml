@@ -1,0 +1,71 @@
+<!--
+  ~ Copyright (c) 2010-2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!--
+
+Explanation for roles structure:
+
+user-assignable roles:
+
+  roles of unspecified type
+  - Visitor
+  - Customer
+
+  roles of type: job
+  - Contractor
+  - Employee
+    - Engineer (induces Employee)
+    - Manager (induces Employee)
+
+metaroles:
+
+  - Generic Metarole:                                   assigned to Visitor and Customer
+    - Job Metarole (induces Generic Metarole):          assigned to Contractor, Employee, Engineer, Manager
+
+-->
+
+<role oid="12345678-d34d-b33f-f00d-55555555a020"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>Generic Metarole</name>
+    <description>Metarole for all roles which are assigned directly to users</description>
+    <inducement id="1">
+        <construction>
+            <resourceRef type="ResourceType"> <!-- should be evaluated to oid="10000000-0000-0000-0000-000000000004"  -->
+            	<filter>
+            		<q:equal>
+            			<q:path>name</q:path>
+            			<expression>
+            				<path>$focus/extension/ext:resourceName</path>  <!--  should be Dummy Resource -->
+            			</expression>
+            		</q:equal>
+            	</filter>
+            </resourceRef>
+            <kind>account</kind>
+            <attribute>
+                <ref>ri:location</ref>
+                <outbound>
+                    <source>
+                        <path>$focus/locality</path>
+                    </source>
+                </outbound>
+            </attribute>
+        </construction>
+        <order>2</order>
+    </inducement>
+</role>

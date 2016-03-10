@@ -33,6 +33,8 @@ public class BreadcrumbPageInstance extends Breadcrumb {
     public BreadcrumbPageInstance(IModel<String> label, WebPage page) {
         super(label);
 
+        setUseLink(true);
+
         Validate.notNull(page, "Page must not be null");
 
         this.page = page;
@@ -45,11 +47,6 @@ public class BreadcrumbPageInstance extends Breadcrumb {
     @Override
     public void redirect(Component component) {
         component.setResponsePage(page);
-    }
-
-    @Override
-    public boolean isLink() {
-        return true;
     }
 
     @Override

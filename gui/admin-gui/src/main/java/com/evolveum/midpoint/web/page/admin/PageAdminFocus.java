@@ -103,7 +103,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjectDetails<F>
-
 		implements ProgressReportingAwarePage {
 
 	public static final String AUTH_USERS_ALL = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL;

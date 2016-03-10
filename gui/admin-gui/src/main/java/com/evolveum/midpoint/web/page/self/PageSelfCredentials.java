@@ -24,6 +24,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -46,6 +47,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -93,6 +95,14 @@ public class PageSelfCredentials extends PageSelf {
         };
 
         initLayout();
+    }
+
+    @Override
+    protected void createBreadcrumb() {
+        super.createBreadcrumb();
+
+        Breadcrumb bc = getSessionStorage().peekBreadcrumb();
+        bc.setIcon(new Model("fa fa-shield"));
     }
 
     public PageSelfCredentials(final MyPasswordsDto myPasswordsDto) {
