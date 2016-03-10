@@ -277,7 +277,7 @@
 		<objectType>
 			<kind>entitlement</kind>
         	<intent>group</intent>
-        	<default>true</default>
+        	<default>false</default>
         	<objectClass>ri:GroupObjectClass</objectClass>
         	<attribute>
 				<ref>icfs:name</ref>
@@ -309,6 +309,13 @@
 					</target>
 				</inbound>
 			</attribute>
+        </objectType>
+
+        <objectType>
+        	<!-- Not really used. It is here just to confuse the tests. -->
+        	<kind>entitlement</kind>
+        	<default>true</default>
+        	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
         </objectType>
         
         <objectType>
