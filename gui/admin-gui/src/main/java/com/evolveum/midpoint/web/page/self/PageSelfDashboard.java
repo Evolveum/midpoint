@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.util.CallableResult;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -94,6 +95,14 @@ public class PageSelfDashboard extends PageSelf {
     public PageSelfDashboard() {
         principalModel.setObject(loadUser());
         initLayout();
+    }
+
+    @Override
+    protected void createBreadcrumb() {
+        super.createBreadcrumb();
+
+        Breadcrumb bc = getSessionStorage().peekBreadcrumb();
+        bc.setIcon(new Model("fa fa-dashboard"));
     }
 
     private void initLayout(){

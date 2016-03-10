@@ -33,6 +33,7 @@ public class MatchingRuleRegistryFactory {
 		registry.registerMatchingRule(new ExchangeEmailAddressesMatchingRule());
 		registry.registerMatchingRule(new DistinguishedNameMatchingRule());
 		registry.registerMatchingRule(new XmlMatchingRule());
+		registry.registerMatchingRule(new UuidMatchingRule());
 		
 		return registry;
 	}

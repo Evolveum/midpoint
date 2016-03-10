@@ -48,6 +48,8 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_TAB_PANEL = "tabPanel";
 	private static final String ID_EXECUTE_OPTIONS = "executeOptions";
+	private static final String ID_BACK = "back";
+	private static final String ID_SAVE = "save";
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectMainPanel.class);
 	
@@ -140,7 +142,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	}
 
 	protected void initLayoutSaveButton(final PageAdminObjectDetails<O> parentPage) {
-		AjaxSubmitButton saveButton = new AjaxSubmitButton("save", parentPage.createStringResource("pageAdminFocus.button.save")) {
+		AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE, parentPage.createStringResource("pageAdminFocus.button.save")) {
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target,
@@ -159,11 +161,11 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	}
 
 	protected void initLayoutBackButton(PageAdminObjectDetails<O> parentPage) {
-		AjaxButton back = new AjaxButton("back", parentPage.createStringResource("pageAdminFocus.button.back")) {
+		AjaxButton back = new AjaxButton(ID_BACK, parentPage.createStringResource("pageAdminFocus.button.back")) {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				getDetailsPage().goBackPage();
+				backPerformed(target);
 			}
 			
 		};
@@ -173,10 +175,12 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	public ExecuteChangeOptionsDto getExecuteChangeOptionsDto() {
 		return executeOptionsModel.getObject();
 	}
-	
+
+	private void backPerformed(AjaxRequestTarget target) {
+		getDetailsPage().redirectBack();
+	}
 	
 	protected PageAdminObjectDetails<O> getDetailsPage() {
 		return (PageAdminObjectDetails<O>)getPage();
 	}
-
 }

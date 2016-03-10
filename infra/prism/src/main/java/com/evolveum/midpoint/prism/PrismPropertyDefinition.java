@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,7 @@ public class PrismPropertyDefinition<T> extends ItemDefinition<PrismProperty<T>>
     private Collection<? extends DisplayableValue<T>> allowedValues;
     private Boolean indexed = null;
     private T defaultValue;
+    private QName matchingRuleQName = null;
 
     public PrismPropertyDefinition(QName elementName, QName typeName, PrismContext prismContext) {
         super(elementName, typeName, prismContext);
@@ -119,6 +120,21 @@ public class PrismPropertyDefinition<T> extends ItemDefinition<PrismProperty<T>>
 
 	public void setIndexed(Boolean indexed) {
 		this.indexed = indexed;
+	}
+
+	/**
+	 * Returns matching rule name. Matching rules are algorithms that specify
+	 * how to compare, normalize and/or order the values. E.g. there are matching
+	 * rules for case insensitive string comparison, for LDAP DNs, etc.
+	 *  
+	 * @return matching rule name
+	 */
+	public QName getMatchingRuleQName() {
+		return matchingRuleQName;
+	}
+
+	public void setMatchingRuleQName(QName matchingRuleQName) {
+		this.matchingRuleQName = matchingRuleQName;
 	}
 
 	@Override

@@ -251,23 +251,7 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
         List<IColumn<SelectableBean<AssignmentEditorDto>, String>> columns = initColumns();
 
         BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, tableProvider, columns,
-                UserProfileStorage.TableId.TABLE_ROLES, ITEMS_PER_PAGE){
-            @Override
-            protected void onBeforeRender() {
-                super.onBeforeRender();
-                long itemCount = this.getDataTable().getItemCount();
-                if (itemCount == 0 || itemCount % ITEMS_PER_PAGE > 0){
-                    long pageCount = this.getDataTable().getPageCount();
-                    this.getDataTable().setCurrentPage(pageCount);
-                    BaseSortableDataProvider provider = (BaseSortableDataProvider)this.getDataTable().getDataProvider();
-                    List list = provider.getAvailableData();
-                    IModel model = this.getDataTable().getDefaultModel();
-                    if (list != null && model != null) {
-                        list.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, new AssignmentType(), getPageBase()));
-                    }
-                }
-            }
-        };
+                UserProfileStorage.TableId.TABLE_ROLES, ITEMS_PER_PAGE);
         updateBoxedTablePanelStyles(table);
         //hide footer menu
         table.getFooterMenu().setVisible(false);

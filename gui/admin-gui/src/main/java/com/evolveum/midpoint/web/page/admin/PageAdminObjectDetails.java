@@ -616,6 +616,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	}
 	
 	// TODO: fix name, confusing. clashes with goBack()
+	// todo: we should navigate using breadcrumb stack [lazyman]
+	@Deprecated
 	public void goBackPage() {
 		StringValue orgReturn = getPageParameters().get(PARAM_RETURN_PAGE);
         if (PageOrgTree.PARAM_ORG_RETURN.equals(orgReturn.toString())) {
