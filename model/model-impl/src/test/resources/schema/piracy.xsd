@@ -21,6 +21,8 @@
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
+	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+
     <!-- user extension -->
 
     <xsd:complexType name="UserTypeExtensionType">
@@ -35,5 +37,20 @@
             <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
+    
+     <!-- user extension -->
+
+    <xsd:complexType name="RoleTypeExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:RoleType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="resourceName" type="xsd:string"/>
+            <xsd:element name="resourceRef" type="c:ObjectReferenceType" />
+        </xsd:sequence>
+    </xsd:complexType>
+   
 
 </xsd:schema>

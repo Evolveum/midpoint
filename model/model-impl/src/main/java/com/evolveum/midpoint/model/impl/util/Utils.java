@@ -48,10 +48,13 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
+import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -285,6 +288,12 @@ public final class Utils {
 	            result.recordFatalError("Missing definition of type of reference " + refName);
 	            return;
 	        }
+	        
+	        if (containExpression(objFilter)){
+	        	result.recordSuccessIfUnknown();
+	        	return;
+	        }
+	        
 	        try {
 	        	ObjectQuery query = ObjectQuery.createObjectQuery(objFilter);
 	            objects = (List)repository.searchObjects(type, query, null, result);
@@ -313,6 +322,22 @@ public final class Utils {
 	        refVal.setOid(oid);
 	        result.recordSuccessIfUnknown();
 	    }
+	
+	private static boolean containExpression(ObjectFilter filter){
+		if (filter == null){
+			return false;
+		}
+		
+		if (filter instanceof InOidFilter && ((InOidFilter) filter).getExpression() != null){
+			return true;
+		}
+		
+		if (filter instanceof PropertyValueFilter && ((PropertyValueFilter) filter).getExpression() != null){
+			return true;
+		}
+		
+		return false;
+	}
 
         public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task) throws SchemaException {
 
