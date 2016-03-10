@@ -18,11 +18,13 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -135,6 +137,13 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 		target.add(getFeedbackPanel());
 	}
 	
+	protected void showModalWindow(Component body, IModel<String> title, AjaxRequestTarget target) {
+        getPageBase().setMainPopupContent(body);
+        getPageBase().setMainPopupTitle(title);
+        getPageBase().showMainPopup(target);
+		target.add(getFeedbackPanel());
+	}
+
 	protected void addPrismPropertyPanel(MarkupContainer parentComponent, String id, QName propertyName) {
 		addPrismPropertyPanel(parentComponent, id, new ItemPath(propertyName));
 	}
