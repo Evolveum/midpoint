@@ -20,19 +20,19 @@ import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.wf.WorkItemsTablePanel;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.*;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoNewProvider;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemNewDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.List;
 
@@ -185,7 +185,7 @@ public class PageWorkItems extends PageAdminWorkItems {
             try {
                 workflowService.claimWorkItem(workItemNewDto.getWorkItemId(), result);
                 result.computeStatusIfUnknown();
-            } catch (RuntimeException e) {
+            } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException e) {
                 result.recordPartialError("Couldn't claim work item due to an unexpected exception.", e);
             }
         }
@@ -216,7 +216,7 @@ public class PageWorkItems extends PageAdminWorkItems {
             try {
                 workflowService.releaseWorkItem(workItemNewDto.getWorkItemId(), result);
                 result.computeStatusIfUnknown();
-            } catch (RuntimeException e) {
+            } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException e) {
                 result.recordPartialError("Couldn't release work item due to an unexpected exception.", e);
             }
         }

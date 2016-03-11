@@ -1809,7 +1809,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     //region Workflow-related operations
     @Override
-    public void approveOrRejectWorkItem(String workItemId, boolean decision, String comment, OperationResult parentResult) {
+    public void approveOrRejectWorkItem(String workItemId, boolean decision, String comment, OperationResult parentResult)
+			throws SecurityViolationException {
         getWorkflowManagerChecked().approveOrRejectWorkItem(workItemId, decision, comment, parentResult);
     }
 
@@ -1824,12 +1825,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public void claimWorkItem(String workItemId, OperationResult parentResult) {
+    public void claimWorkItem(String workItemId, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException {
         getWorkflowManagerChecked().claimWorkItem(workItemId, parentResult);
     }
 
     @Override
-    public void releaseWorkItem(String workItemId, OperationResult parentResult) {
+    public void releaseWorkItem(String workItemId, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException {
         getWorkflowManagerChecked().releaseWorkItem(workItemId, parentResult);
     }
     //endregion

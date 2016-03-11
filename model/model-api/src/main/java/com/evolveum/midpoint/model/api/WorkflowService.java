@@ -1,14 +1,8 @@
 package com.evolveum.midpoint.model.api;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
-
-import java.util.List;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 /**
  * @author mederly
@@ -22,13 +16,13 @@ public interface WorkflowService {
      * @param parentResult
      * @param comment
      */
-    void approveOrRejectWorkItem(String workItemId, boolean decision, String comment, OperationResult parentResult);
+    void approveOrRejectWorkItem(String workItemId, boolean decision, String comment, OperationResult parentResult) throws SecurityViolationException;
 
     void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
 
     void deleteProcessInstance(String instanceId, OperationResult parentResult);
 
-    void claimWorkItem(String workItemId, OperationResult parentResult);
+    void claimWorkItem(String workItemId, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException;
 
-    void releaseWorkItem(String workItemId, OperationResult parentResult);
+    void releaseWorkItem(String workItemId, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException;
 }

@@ -17,20 +17,12 @@
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author mederly
@@ -40,59 +32,43 @@ public class ProcessInstanceNewDto extends Selectable {
     public static final String F_SHADOW_TASK = "shadowTask";
     public static final String F_SHADOW_TASK_EXISTING = "shadowTaskExisting";
 
-    WfProcessInstanceType processInstance;
-    ProcessInstanceState processInstanceState;
 
-    private String shadowTaskName;
-    private boolean shadowTaskExisting;
+    private WfContextType workflowContext;
 
     public ProcessInstanceNewDto(TaskType task) {
-        Validate.notNull(processInstance);
-        this.processInstance = processInstance;
-        this.processInstanceState = (ProcessInstanceState) processInstance.getState();
-//        if (shadowTask != null) {
-//            shadowTaskName = PolyString.getOrig(shadowTask.getName());
-//            shadowTaskExisting = true;
-//        } else {
-//            shadowTaskExisting = false;
-//        }
+        Validate.notNull(task);
+        Validate.notNull(task.getWorkflowContext());
+        this.workflowContext = task.getWorkflowContext();
     }
 
     public String getStartedTime() {
-        return processInstance.getStartTimestamp() == null ? "-" : WebComponentUtil.formatDate(XmlTypeConverter.toDate(processInstance.getStartTimestamp()));
+        return workflowContext.getStartTimestamp() == null ? "-" : WebComponentUtil.formatDate(XmlTypeConverter.toDate(workflowContext.getStartTimestamp()));
     }
 
     public String getFinishedTime() {
-        return processInstance.getEndTimestamp() == null ? "-" : WebComponentUtil.formatDate(XmlTypeConverter.toDate(processInstance.getEndTimestamp()));
+        return workflowContext.getEndTimestamp() == null ? "-" : WebComponentUtil.formatDate(XmlTypeConverter.toDate(workflowContext.getEndTimestamp()));
     }
 
     public String getName() {
-        return PolyString.getOrig(processInstance.getName());
+        return workflowContext.getProcessInstanceName();
     }
 
     public String getInstanceId() {
-        return processInstance.getProcessInstanceId();
+        return workflowContext.getProcessInstanceId();
     }
 
-    public WfProcessInstanceType getProcessInstance() {
-        return processInstance;
-    }
-
-    public List<WorkItemDto> getWorkItems() {
-        List<WorkItemDto> retval = new ArrayList<WorkItemDto>();
-        if (processInstance.getWorkItems() != null) {
-            for (WorkItemType workItem : processInstance.getWorkItems()) {
-                retval.add(new WorkItemDto(workItem));
-            }
-        }
-        return retval;
-    }
+//    public List<WorkItemDto> getWorkItems() {
+//        List<WorkItemDto> retval = new ArrayList<WorkItemDto>();
+//        if (processInstance.getWorkItems() != null) {
+//            for (WorkItemType workItem : processInstance.getWorkItems()) {
+//                retval.add(new WorkItemDto(workItem));
+//            }
+//        }
+//        return retval;
+//    }
 
     public String getAnswer() {
-        if (processInstanceState == null) {
-            return null;
-        }
-        return processInstanceState.getAnswer();
+        return workflowContext.getAnswer();
     }
 
     public boolean isAnswered() {
@@ -105,32 +81,7 @@ public class ProcessInstanceNewDto extends Selectable {
     }
 
     public boolean isFinished() {
-        return processInstance.isFinished();
+        return workflowContext.getEndTimestamp() != null;
     }
 
-    public boolean isShadowTaskExisting() {
-        return shadowTaskExisting;
-    }
-
-    public String getShadowTask() {
-        String oid = processInstanceState.getShadowTaskOid();
-        if (shadowTaskName != null) {
-            return shadowTaskName + " (" + oid + ")";
-        } else {
-            return oid;
-        }
-    }
-
-    public ProcessInstanceState getInstanceState() {
-        return (ProcessInstanceState) processInstance.getState();
-    }
-
-    public String getShadowTaskOid() {
-        return processInstanceState.getShadowTaskOid();
-    }
-
-    public void reviveIfNeeded(Component component) {
-        WebComponentUtil.reviveIfNeeded(processInstance, component);
-        WebComponentUtil.reviveIfNeeded(processInstanceState, component);
-    }
 }

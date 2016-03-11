@@ -27,6 +27,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -302,7 +304,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         try {
             workflowService.claimWorkItem(workItemDtoModel.getObject().getWorkItemId(), result);
             setReinitializePreviousPages(true);
-        } catch (RuntimeException e) {
+        } catch (SecurityViolationException | ObjectNotFoundException | RuntimeException e) {
             result.recordFatalError("Couldn't claim work item due to an unexpected exception.", e);
         }
         result.computeStatusIfUnknown();
@@ -323,7 +325,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         try {
             workflowService.releaseWorkItem(workItemDtoModel.getObject().getWorkItem().getWorkItemId(), result);
             setReinitializePreviousPages(true);
-        } catch (RuntimeException e) {
+        } catch (SecurityViolationException | ObjectNotFoundException | RuntimeException e) {
             result.recordFatalError("Couldn't release work item due to an unexpected exception.", e);
         }
         result.computeStatusIfUnknown();
