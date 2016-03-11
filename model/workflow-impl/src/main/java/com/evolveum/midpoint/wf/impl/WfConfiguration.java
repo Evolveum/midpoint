@@ -85,7 +85,7 @@ public class WfConfiguration implements BeanFactoryAware {
 
     private static final String AUTO_DEPLOYMENT_FROM_DEFAULT = "classpath*:processes/*.bpmn20.xml";
 
-    private Boolean enabled = null;
+    private boolean enabled;
 
     private boolean activitiSchemaUpdate;
 
@@ -238,7 +238,7 @@ public class WfConfiguration implements BeanFactoryAware {
         return activitiSchemaUpdate;
     }
 
-    public Boolean isEnabled() {
+    public boolean isEnabled() {
         return enabled;
     }
 

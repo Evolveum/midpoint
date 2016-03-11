@@ -16,11 +16,10 @@
 
 package com.evolveum.midpoint.wf.impl.processors.general;
 
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.wf.impl.jobs.ProcessorInstruction;
+import com.evolveum.midpoint.wf.impl.tasks.ProcessorSpecificContent;
 import com.evolveum.midpoint.wf.impl.util.JaxbValueContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessorSpecificStateType;
 
@@ -29,12 +28,12 @@ import java.util.Map;
 /**
  * @author mederly
  */
-public class GeneralChangeProcessorInstruction implements ProcessorInstruction {
+public class GeneralChangeProcessorSpecificContent implements ProcessorSpecificContent {
 
 	private String scenarioBeanName;
 	private LensContext<?> modelContext;
 
-	public GeneralChangeProcessorInstruction(LensContext<?> context) {
+	public GeneralChangeProcessorSpecificContent(LensContext<?> context) {
 		this.modelContext = context;
 	}
 

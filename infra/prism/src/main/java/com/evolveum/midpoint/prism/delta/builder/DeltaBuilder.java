@@ -16,33 +16,13 @@
 
 package com.evolveum.midpoint.prism.delta.builder;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.builder.R_Filter;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -57,17 +37,17 @@ import java.util.List;
  *
  * @author mederly
  */
-public class DeltaBuilder implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
+public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
 
-    final private Class<? extends Objectable> objectClass;
+    final private Class<T> objectClass;
     final private ComplexTypeDefinition containerCTD;
     final private PrismContext prismContext;
 
     // BEWARE - although these are final, their content may (and does) vary. Not much clean.
-    final List<ItemDelta> deltas;
+    final List<ItemDelta<?,?>> deltas;
     final ItemDelta currentDelta;
 
-    private DeltaBuilder(Class<? extends Objectable> objectClass, PrismContext prismContext) throws SchemaException {
+    private DeltaBuilder(Class<T> objectClass, PrismContext prismContext) throws SchemaException {
         this.objectClass = objectClass;
         this.prismContext = prismContext;
         containerCTD = prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(this.objectClass);
@@ -78,7 +58,7 @@ public class DeltaBuilder implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
         currentDelta = null;
     }
 
-    public DeltaBuilder(Class<? extends Objectable> objectClass, ComplexTypeDefinition containerCTD, PrismContext prismContext, List<ItemDelta> deltas, ItemDelta currentDelta) {
+    public DeltaBuilder(Class<T> objectClass, ComplexTypeDefinition containerCTD, PrismContext prismContext, List<ItemDelta<?,?>> deltas, ItemDelta currentDelta) {
         this.objectClass = objectClass;
         this.containerCTD = containerCTD;
         this.prismContext = prismContext;
@@ -86,7 +66,7 @@ public class DeltaBuilder implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
         this.currentDelta = currentDelta;
     }
 
-    public Class<? extends Containerable> getObjectClass() {
+    public Class<T> getObjectClass() {
         return objectClass;
     }
 
@@ -94,8 +74,8 @@ public class DeltaBuilder implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
         return prismContext;
     }
 
-    public static S_ItemEntry deltaFor(Class<? extends Objectable> objectClass, PrismContext prismContext) throws SchemaException {
-        return new DeltaBuilder(objectClass, prismContext);
+    public static <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass, PrismContext prismContext) throws SchemaException {
+        return new DeltaBuilder<C>(objectClass, prismContext);
     }
 
     @Override
@@ -129,21 +109,22 @@ public class DeltaBuilder implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
         } else {
             throw new IllegalStateException("Unsupported definition type: " + definition);
         }
-        List<ItemDelta> newDeltas = deltas;
+        List<ItemDelta<?,?>> newDeltas = deltas;
         if (currentDelta != null) {
             newDeltas.add(currentDelta);
         }
         return new DeltaBuilder(objectClass, containerCTD, prismContext, newDeltas, newDelta);
     }
 
+    // TODO fix this after ObjectDelta is changed to accept Containerable
     @Override
     public ObjectDelta asObjectDelta(String oid) {
-        return ObjectDelta.createModifyDelta(oid, getAllDeltas(), objectClass, prismContext);
+        return ObjectDelta.createModifyDelta(oid, getAllDeltas(), (Class) objectClass, prismContext);
     }
 
     @Override
     public ItemDelta asItemDelta() {
-        List<ItemDelta> allDeltas = getAllDeltas();
+        List<ItemDelta<?,?>> allDeltas = getAllDeltas();
         if (allDeltas.size() > 1) {
             throw new IllegalStateException("Too many deltas to fit into item delta: " + allDeltas.size());
         } else if (allDeltas.size() == 1) {
@@ -154,11 +135,11 @@ public class DeltaBuilder implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
     }
 
     @Override
-    public List<ItemDelta> asItemDeltas() {
+    public List<ItemDelta<?,?>> asItemDeltas() {
         return getAllDeltas();
     }
 
-    private List<ItemDelta> getAllDeltas() {
+    private List<ItemDelta<?,?>> getAllDeltas() {
         if (currentDelta != null) {
             deltas.add(currentDelta);
         }
@@ -267,7 +248,7 @@ public class DeltaBuilder implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
         return this;
     }
 
-    private PrismValue toPrismValue(ItemDelta currentDelta, Object v) {
+    private PrismValue toPrismValue(ItemDelta<?,?> currentDelta, Object v) {
         ItemDefinition definition = currentDelta.getDefinition();
         if (definition instanceof PrismPropertyDefinition) {
             return new PrismPropertyValue<>(v);

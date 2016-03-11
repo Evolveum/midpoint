@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.Collection;
@@ -63,11 +64,11 @@ public interface WorkflowManager {
      * @param comment
      * @param parentResult
      */
-    void approveOrRejectWorkItem(String taskId, boolean decision, String comment, OperationResult parentResult);
+    void approveOrRejectWorkItem(String taskId, boolean decision, String comment, OperationResult parentResult) throws SecurityViolationException;
 
-    void claimWorkItem(String workItemId, OperationResult result);
+    void claimWorkItem(String workItemId, OperationResult result) throws ObjectNotFoundException, SecurityViolationException;
 
-    void releaseWorkItem(String workItemId, OperationResult result);
+    void releaseWorkItem(String workItemId, OperationResult result) throws SecurityViolationException, ObjectNotFoundException;
 
     void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
 
@@ -93,9 +94,11 @@ public interface WorkflowManager {
 
     boolean isCurrentUserAuthorizedToClaim(WorkItemNewType workItem);
 
+    // doesn't throw any exceptions - these are logged and stored into the operation result
     <T extends ObjectType> void augmentTaskObject(PrismObject<T> object, Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult result);
 
+    // doesn't throw any exceptions - these are logged and stored into the operation result
     <T extends ObjectType> void augmentTaskObjectList(SearchResultList<PrismObject<T>> list,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result);
 

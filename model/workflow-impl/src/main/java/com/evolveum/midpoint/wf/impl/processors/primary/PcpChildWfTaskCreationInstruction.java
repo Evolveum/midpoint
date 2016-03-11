@@ -24,11 +24,10 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.wf.impl.jobs.ProcessInstruction;
-import com.evolveum.midpoint.wf.impl.jobs.WfTask;
-import com.evolveum.midpoint.wf.impl.jobs.WfTaskCreationInstruction;
+import com.evolveum.midpoint.wf.impl.tasks.ProcessSpecificContent;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalInstruction;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalSpecificContent;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -36,16 +35,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * @author mederly
  */
-public class PcpChildWfTaskCreationInstruction<PI extends ProcessInstruction> extends WfTaskCreationInstruction<PrimaryChangeProcessorInstruction, PI> {
+public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent> extends WfTaskCreationInstruction<PrimaryChangeProcessorSpecificContent, PI> {
 
     protected PcpChildWfTaskCreationInstruction(ChangeProcessor changeProcessor, PI processInstruction) {
-        super(changeProcessor, new PrimaryChangeProcessorInstruction(changeProcessor.getPrismContext()), processInstruction);
+        super(changeProcessor, new PrimaryChangeProcessorSpecificContent(changeProcessor.getPrismContext()), processInstruction);
     }
 
 	// useful shortcut
 	public static PcpChildWfTaskCreationInstruction createItemApprovalInstruction(ChangeProcessor changeProcessor, String approvalTaskName,
 			ApprovalRequest<?> approvalRequest) {
-		ItemApprovalInstruction itemApprovalInstruction = new ItemApprovalInstruction();
+		ItemApprovalSpecificContent itemApprovalInstruction = new ItemApprovalSpecificContent();
 		itemApprovalInstruction.setTaskName(approvalTaskName);
 		itemApprovalInstruction.setApprovalSchema(approvalRequest.getApprovalSchema());
 		PcpChildWfTaskCreationInstruction pcpjci = new PcpChildWfTaskCreationInstruction(changeProcessor, itemApprovalInstruction);
@@ -53,16 +52,16 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessInstruction> ex
 	}
 
     public boolean isExecuteApprovedChangeImmediately() {
-        return processorInstruction.isExecuteApprovedChangeImmediately();
+        return processorContent.isExecuteApprovedChangeImmediately();
     }
 
     public void prepareCommonAttributes(PrimaryChangeAspect aspect, ModelContext<?> modelContext, String objectOid, PrismObject<UserType> requester) throws SchemaException {
 
         setRequesterRef(requester);
 
-		processorInstruction.setExecuteApprovedChangeImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
+		processorContent.setExecuteApprovedChangeImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
 
-		processorInstruction.createProcessorSpecificState().setChangeAspect(aspect.getClass().getName());
+		processorContent.createProcessorSpecificState().setChangeAspect(aspect.getClass().getName());
 
         if (isExecuteApprovedChangeImmediately()) {
             // actually, context should be emptied anyway; but to be sure, let's do it here as well
@@ -78,14 +77,14 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessInstruction> ex
 
     public void setDeltasToProcesses(ObjectTreeDeltas objectTreeDeltas) {
         try {
-            processorInstruction.createProcessorSpecificState().setDeltasToProcess(ObjectTreeDeltas.toObjectTreeDeltasType(objectTreeDeltas));
+            processorContent.createProcessorSpecificState().setDeltasToProcess(ObjectTreeDeltas.toObjectTreeDeltasType(objectTreeDeltas));
         } catch (SchemaException e) {
             throw new SystemException("Couldn't store primary delta(s) into the task variable due to schema exception", e);
         }
     }
 
 	public String getAspectClassName() {
-        return processorInstruction.createProcessorSpecificState().getChangeAspect();
+        return processorContent.createProcessorSpecificState().getChangeAspect();
     }
 
     @Override

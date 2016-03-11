@@ -97,6 +97,14 @@ public class MiscDataUtil {
     @Autowired
     private ActivitiEngine activitiEngine;
 
+    public static ObjectReferenceType toObjectReferenceType(LightweightObjectRef ref) {
+		if (ref != null) {
+			return ref.toObjectReferenceType();
+		} else {
+			return null;
+		}
+	}
+
     public PrismObject<UserType> getUserByOid(String oid, OperationResult result) {
         if (oid == null) {
             return null;

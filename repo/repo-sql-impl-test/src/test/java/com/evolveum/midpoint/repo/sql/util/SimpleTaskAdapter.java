@@ -785,6 +785,10 @@ public class SimpleTaskAdapter implements Task {
     @Override public void addModification(ItemDelta<?, ?> delta) throws SchemaException {
     }
 
+    @Override public void addModifications(Collection<ItemDelta<?, ?>> deltas) throws SchemaException {
+
+    }
+
     @Override public void addModificationImmediate(ItemDelta<?, ?> delta, OperationResult parentResult) throws SchemaException {
     }
 

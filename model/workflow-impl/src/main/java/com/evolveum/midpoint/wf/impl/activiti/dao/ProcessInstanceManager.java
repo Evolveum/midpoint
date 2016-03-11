@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.impl.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-
-import org.activiti.engine.ActivitiException;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +40,6 @@ public class ProcessInstanceManager {
     @Autowired
     private ActivitiEngine activitiEngine;
 
-    private static final String DOT_CLASS = WorkflowManagerImpl.class.getName() + ".";
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
     private static final String OPERATION_STOP_PROCESS_INSTANCE = DOT_INTERFACE + "stopProcessInstance";
@@ -57,13 +53,13 @@ public class ProcessInstanceManager {
         try {
             LOGGER.trace("Stopping process instance {} on the request of {}", instanceId, username);
             String deletionMessage = "Process instance stopped on the request of " + username;
-//            rs.setVariable(instanceId, CommonProcessVariableNames.VARIABLE_WF_STATE, deletionMessage);
             rs.setVariable(instanceId, CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_IS_STOPPING, Boolean.TRUE);
             rs.deleteProcessInstance(instanceId, deletionMessage);
-            result.recordSuccess();
-        } catch (ActivitiException e) {
-            result.recordFatalError("Process instance couldn't be stopped", e);
-            LoggingUtils.logException(LOGGER, "Process instance {} couldn't be stopped", e, instanceId);
+        } catch (RuntimeException e) {
+            result.recordFatalError("Process instance couldn't be stopped: " + e.getMessage(), e);
+            throw e;
+        } finally {
+            result.computeStatusIfUnknown();
         }
     }
 
@@ -74,11 +70,12 @@ public class ProcessInstanceManager {
         HistoryService hs = activitiEngine.getHistoryService();
         try {
             hs.deleteHistoricProcessInstance(instanceId);
-            result.recordSuccess();
-        } catch (ActivitiException e) {
+        } catch (RuntimeException e) {
             result.recordFatalError("Process instance couldn't be deleted", e);
-            LoggingUtils.logException(LOGGER, "Process instance {} couldn't be deleted", e);
-        }
+			throw e;
+        } finally {
+			result.computeStatusIfUnknown();
+		}
     }
 
 }

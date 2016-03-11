@@ -25,9 +25,9 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.wf.api.ProcessListener;
 import com.evolveum.midpoint.wf.api.WorkItemListener;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
@@ -35,14 +35,14 @@ import com.evolveum.midpoint.wf.impl.activiti.dao.ProcessInstanceManager;
 import com.evolveum.midpoint.wf.impl.activiti.dao.ProcessInstanceProvider;
 import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemManager;
 import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemProvider;
-import com.evolveum.midpoint.wf.impl.jobs.WfTaskController;
-import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -54,15 +54,11 @@ import java.util.List;
 @Component("workflowManager")
 public class WorkflowManagerImpl implements WorkflowManager {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(WorkflowManagerImpl.class);
+    //private static final transient Trace LOGGER = TraceManager.getTrace(WorkflowManagerImpl.class);
 
     @Autowired
     private PrismContext prismContext;
     
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private com.evolveum.midpoint.repo.api.RepositoryService repositoryService;
-
     @Autowired
     private WfConfiguration wfConfiguration;
 
@@ -87,7 +83,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
     @Autowired
     private MiscDataUtil miscDataUtil;
 
-    private static final String DOT_CLASS = WorkflowManagerImpl.class.getName() + ".";
+    private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
 
     /*
@@ -96,35 +92,57 @@ public class WorkflowManagerImpl implements WorkflowManager {
      */
 
     @Override
-    public <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+    public <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
-        if (!WorkItemNewType.class.equals(type)) {
-            throw new UnsupportedOperationException("countContainers is available only for work items");
-        }
-        return workItemProvider.countWorkItems(query, options, result);
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".countContainers");
+        result.addParams(new String[] { "type", "query" }, type, query);
+        result.addCollectionOfSerializablesAsParam("options", options);
+		try {
+			if (!WorkItemNewType.class.equals(type)) {
+				throw new UnsupportedOperationException("countContainers is available only for work items");
+			}
+			return workItemProvider.countWorkItems(query, options, result);
+		} catch (SchemaException|RuntimeException e) {
+			result.recordFatalError("Couldn't count items: " + e.getMessage(), e);
+			throw e;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
     }
 
+	@SuppressWarnings("unchecked")
     @Override
-    public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+    public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
-        if (!WorkItemNewType.class.equals(type)) {
-            throw new UnsupportedOperationException("searchContainers is available only for work items");
-        }
-        return workItemProvider.searchWorkItems(query, options, result);
+		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".searchContainers");
+		result.addParams(new String[] { "type", "query" }, type, query);
+		result.addCollectionOfSerializablesAsParam("options", options);
+		try {
+			if (!WorkItemNewType.class.equals(type)) {
+				throw new UnsupportedOperationException("searchContainers is available only for work items");
+			}
+			return (SearchResultList<T>) workItemProvider.searchWorkItems(query, options, result);
+		} catch (SchemaException|RuntimeException e) {
+			result.recordFatalError("Couldn't count items: " + e.getMessage(), e);
+			throw e;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
     }
 
     @Override
-    public void approveOrRejectWorkItem(String taskId, boolean decision, String comment, OperationResult parentResult) {
-        workItemManager.completeWorkItemWithDetails(taskId, comment, ApprovalUtils.approvalStringValue(decision), parentResult);
+    public void approveOrRejectWorkItem(String taskId, boolean decision, String comment, OperationResult parentResult)
+			throws SecurityViolationException {
+        workItemManager.completeWorkItem(taskId, ApprovalUtils.approvalStringValue(decision), comment, parentResult);
     }
 
     @Override
-    public void claimWorkItem(String workItemId, OperationResult result) {
+    public void claimWorkItem(String workItemId, OperationResult result) throws ObjectNotFoundException, SecurityViolationException {
         workItemManager.claimWorkItem(workItemId, result);
     }
 
     @Override
-    public void releaseWorkItem(String workItemId, OperationResult result) {
+    public void releaseWorkItem(String workItemId, OperationResult result) throws SecurityViolationException, ObjectNotFoundException {
         workItemManager.releaseWorkItem(workItemId, result);
     }
 

@@ -281,7 +281,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
         ResourceShadowDiscriminator shadowDiscriminator =
                 ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(addition.getResourceShadowDiscriminator());
         String projectionOid = modelContext.findProjectionContext(shadowDiscriminator).getOid();
-        ObjectDelta<ShadowType> objectDelta = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+        ObjectDelta<ShadowType> objectDelta = (ObjectDelta<ShadowType>) DeltaBuilder.deltaFor(ShadowType.class, prismContext)
                 .item(ShadowType.F_ASSOCIATION).add(addition.getAssociation().clone())
                 .asObjectDelta(projectionOid);
 

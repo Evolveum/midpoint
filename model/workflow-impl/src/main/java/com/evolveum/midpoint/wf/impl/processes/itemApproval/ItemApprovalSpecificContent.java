@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.wf.impl.jobs.ProcessInstruction;
+import com.evolveum.midpoint.wf.impl.tasks.ProcessSpecificContent;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemApprovalProcessStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificStateType;
 
@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * @author mederly
  */
-public class ItemApprovalInstruction implements ProcessInstruction {
+public class ItemApprovalSpecificContent implements ProcessSpecificContent {
 
 	private String taskName;
 	private ApprovalSchema approvalSchema;

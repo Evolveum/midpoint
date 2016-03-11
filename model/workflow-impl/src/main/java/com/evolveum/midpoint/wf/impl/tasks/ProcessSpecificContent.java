@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.jobs;
+package com.evolveum.midpoint.wf.impl.tasks;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessorSpecificStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificStateType;
 
 import java.util.Map;
 
 /**
+ * Process-specific part of WfTaskCreationInstruction.
+ *
  * @author mederly
  */
-public interface ProcessorInstruction {
+public interface ProcessSpecificContent {
 
-	WfProcessorSpecificStateType createProcessorSpecificState();
-	void createProcessVariables(Map<String, Object> map, PrismContext prismContext) throws SchemaException;
+	void createProcessVariables(Map<String, Object> map, PrismContext prismContext);
+
+	WfProcessSpecificStateType createProcessSpecificState();
 }

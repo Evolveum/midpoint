@@ -18,7 +18,7 @@ package com.evolveum.midpoint.wf.impl.processors.primary;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.wf.impl.jobs.ProcessorInstruction;
+import com.evolveum.midpoint.wf.impl.tasks.ProcessorSpecificContent;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType;
 
 import java.util.Map;
@@ -26,12 +26,12 @@ import java.util.Map;
 /**
  * @author mederly
  */
-public class PrimaryChangeProcessorInstruction implements ProcessorInstruction {
+public class PrimaryChangeProcessorSpecificContent implements ProcessorSpecificContent {
 
 	private final WfPrimaryChangeProcessorStateType processorState;
 	private boolean executeApprovedChangeImmediately;     // should the child job execute approved change immediately (i.e. executeModelOperationHandler must be set as well!)
 
-	public PrimaryChangeProcessorInstruction(PrismContext prismContext) {
+	public PrimaryChangeProcessorSpecificContent(PrismContext prismContext) {
 		processorState = new WfPrimaryChangeProcessorStateType(prismContext);
 		processorState.asPrismContainerValue().setConcreteType(WfPrimaryChangeProcessorStateType.COMPLEX_TYPE);
 	}

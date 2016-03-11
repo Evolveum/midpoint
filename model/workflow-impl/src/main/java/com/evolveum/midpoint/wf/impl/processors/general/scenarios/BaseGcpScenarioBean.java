@@ -24,14 +24,14 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.api.WorkflowException;
-import com.evolveum.midpoint.wf.impl.jobs.WfTask;
-import com.evolveum.midpoint.wf.impl.jobs.WfTaskCreationInstruction;
+import com.evolveum.midpoint.wf.impl.tasks.WfTask;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.processes.DefaultProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.impl.processors.BaseAuditHelper;
 import com.evolveum.midpoint.wf.impl.processors.general.GcpExternalizationHelper;
-import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessorInstruction;
+import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessorSpecificContent;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorScenarioType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,7 +100,7 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
     @Override
     public WfTaskCreationInstruction prepareJobCreationInstruction(GeneralChangeProcessorScenarioType scenarioType, LensContext<?> context, WfTask rootWfTask, com.evolveum.midpoint.task.api.Task taskFromModel, OperationResult result) throws SchemaException {
 
-        GeneralChangeProcessorInstruction processorInstruction = new GeneralChangeProcessorInstruction(context);
+        GeneralChangeProcessorSpecificContent processorInstruction = new GeneralChangeProcessorSpecificContent(context);
         processorInstruction.setScenarioBeanName(scenarioType.getBeanName());
 
         WfTaskCreationInstruction instruction = WfTaskCreationInstruction.createWfOnly(rootWfTask.getChangeProcessor(), processorInstruction, null);

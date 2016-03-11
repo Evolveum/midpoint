@@ -940,6 +940,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	 * @throws SchemaException
 	 */
 	void addModification(ItemDelta<?, ?> delta) throws SchemaException;
+	void addModifications(Collection<ItemDelta<?, ?>> deltas) throws SchemaException;
 
     /**
      * Changes in-memory and in-repo representations immediately.

@@ -40,7 +40,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.AbstractWfTest;
 import com.evolveum.midpoint.wf.impl.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
-import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
@@ -176,7 +176,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 //                }
 //
 //                login(getUser(USER_ADMINISTRATOR_OID));
-////                workflowServiceImpl.completeWorkItemWithDetails(taskId, qFormObject, "approve", result);
+////                workflowServiceImpl.completeWorkItem(taskId, qFormObject, "approve", result);
             }
 
             @Override
@@ -229,7 +229,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 //                questionFormPrism.addReplaceExisting(rejectAll);
 //
 //                login(getUser(USER_ADMINISTRATOR_OID));
-////                workflowServiceImpl.completeWorkItemWithDetails(taskId, questionFormPrism, "rejectAll", result);
+////                workflowServiceImpl.completeWorkItem(taskId, questionFormPrism, "rejectAll", result);
             }
 
             @Override
@@ -329,7 +329,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 //                questionFormPrism.addReplaceExisting(approve);
 //
 //                login(getUser(USER_ADMINISTRATOR_OID));
-////                workflowServiceImpl.completeWorkItemWithDetails(taskId, questionFormPrism, "approve", result);
+////                workflowServiceImpl.completeWorkItem(taskId, questionFormPrism, "approve", result);
             }
 
             @Override

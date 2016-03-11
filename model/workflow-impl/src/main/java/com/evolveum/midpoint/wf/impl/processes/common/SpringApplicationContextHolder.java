@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiInterface;
-import com.evolveum.midpoint.wf.impl.jobs.WfTaskController;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpRepoAccessHelper;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 

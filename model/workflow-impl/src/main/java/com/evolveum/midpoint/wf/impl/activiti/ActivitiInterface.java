@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemProvider;
-import com.evolveum.midpoint.wf.impl.jobs.WfTaskController;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.ProcessFinishedEvent;
 import com.evolveum.midpoint.wf.impl.messages.ProcessStartedEvent;
@@ -89,9 +89,6 @@ public class ActivitiInterface {
 	public void startActivitiProcessInstance(StartProcessCommand spic, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
-		Map<String,Object> map = new HashMap<>();
-		map.putAll(spic.getVariables());
-
 		String owner = spic.getProcessOwner();
 		if (owner != null) {
 			activitiEngine.getIdentityService().setAuthenticatedUserId(owner);
@@ -101,7 +98,7 @@ public class ActivitiInterface {
 		ProcessInstanceBuilder builder = rs.createProcessInstanceBuilder()
 				.processDefinitionKey(spic.getProcessName())
 				.processInstanceName(spic.getProcessInstanceName());
-		for (Map.Entry<String, Object> varEntry : map.entrySet()) {
+		for (Map.Entry<String, Object> varEntry : spic.getVariables().entrySet()) {
 			builder.addVariable(varEntry.getKey(), varEntry.getValue());
 		}
 		ProcessInstance pi = builder.start();
@@ -195,10 +192,7 @@ public class ActivitiInterface {
 		}
     }
 
-    //region Processing work item events
-
     public void notifyMidpointAboutTaskEvent(DelegateTask delegateTask) {
-
         OperationResult result = new OperationResult(DOT_CLASS + "notifyMidpointAboutTaskEvent");
 
         TaskEvent taskEvent;
@@ -238,6 +232,4 @@ public class ActivitiInterface {
             result.recordFatalError(message, e);
         }
     }
-
-    //endregion
 }

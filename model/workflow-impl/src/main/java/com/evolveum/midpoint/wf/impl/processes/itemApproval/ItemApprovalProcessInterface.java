@@ -19,7 +19,7 @@ package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.wf.impl.jobs.WfTaskCreationInstruction;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.processes.BaseProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
