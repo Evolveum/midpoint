@@ -469,7 +469,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 		try {
 			
-			ObjectQuery query = createObjectclassSearchQuery(resource, objectclassDef);
+			ObjectQuery query = objectclassDef.createShadowSearchQuery(resource.getOid());
 
 			OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative");
 
@@ -738,12 +738,6 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		return EqualFilter.createEqual(ShadowType.F_FAILED_OPERATION_TYPE, ShadowType.class, prismContext, null, failedOp);
 	}
 	
-	private ObjectQuery createObjectclassSearchQuery(PrismObject<ResourceType> resource,
-			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
-		QName objectClass = objectClassDefinition.getTypeName();
-		return ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
-	}
-
 	@Override
 	public Long heartbeat(Task task) {
 		// TODO Auto-generated method stub

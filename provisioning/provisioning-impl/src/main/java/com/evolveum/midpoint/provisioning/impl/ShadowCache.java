@@ -305,9 +305,9 @@ public abstract class ShadowCache {
 				return resourceShadow;
 
 			} catch (GenericFrameworkException e) {
-				throw new SystemException(e);
+				throw new SystemException(e.getMessage(), e);
 			} catch (ObjectAlreadyExistsException e) {
-				throw new SystemException(e);
+				throw new SystemException(e.getMessage(), e);
 			}
 		}
 		
