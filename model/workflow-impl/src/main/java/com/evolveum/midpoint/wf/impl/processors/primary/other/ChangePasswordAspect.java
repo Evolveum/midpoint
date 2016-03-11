@@ -68,9 +68,9 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
     private ItemApprovalProcessInterface itemApprovalProcessInterface;
 
     @Override
-    public List<PcpChildWfTaskCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException {
+    public List<PcpChildWfTaskCreationInstruction> prepareTasks(ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException {
 
-        List<ApprovalRequest<String>> approvalRequestList = new ArrayList<ApprovalRequest<String>>();
+        List<ApprovalRequest<String>> approvalRequestList = new ArrayList<>();
         List<PcpChildWfTaskCreationInstruction> instructions = new ArrayList<>();
 
         ObjectDelta changeRequested = objectTreeDeltas.getFocusChange();
@@ -115,7 +115,7 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
     private PcpChildWfTaskCreationInstruction createStartProcessInstruction(ModelContext<?> modelContext, ItemDelta delta, ApprovalRequest approvalRequest, Task taskFromModel, OperationResult result) throws SchemaException {
 
         String userName = MiscDataUtil.getFocusObjectName(modelContext);
-        String objectOid = primaryChangeAspectHelper.getObjectOid(modelContext);
+        String objectOid = MiscDataUtil.getFocusObjectOid(modelContext);
         PrismObject<UserType> requester = primaryChangeAspectHelper.getRequester(taskFromModel, result);
 
         String approvalTaskName = "Approve changing password for " + userName;

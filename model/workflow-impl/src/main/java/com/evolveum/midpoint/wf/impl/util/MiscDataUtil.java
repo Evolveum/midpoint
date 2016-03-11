@@ -18,17 +18,17 @@ package com.evolveum.midpoint.wf.impl.util;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -47,7 +47,6 @@ import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.form.FormProperty;
@@ -57,11 +56,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.evolveum.midpoint.prism.delta.ChangeType.ADD;
 
 /**
  * @author mederly
@@ -102,6 +102,7 @@ public class MiscDataUtil {
 		}
 	}
 
+    //region ========================================================================== Miscellaneous
     public PrismObject<UserType> getUserByOid(String oid, OperationResult result) {
         if (oid == null) {
             return null;
@@ -218,6 +219,17 @@ public class MiscDataUtil {
     public static String getFocusObjectName(ModelContext<? extends ObjectType> modelContext) {
         ObjectType object = getFocusObjectNewOrOld(modelContext);
         return object.getName() != null ? object.getName().getOrig() : null;
+    }
+
+    public static String getFocusObjectOid(ModelContext<?> modelContext) {
+        ModelElementContext<?> fc = modelContext.getFocusContext();
+        if (fc.getObjectNew() != null && fc.getObjectNew().getOid() != null) {
+            return fc.getObjectNew().getOid();
+        } else if (fc.getObjectOld() != null && fc.getObjectOld().getOid() != null) {
+            return fc.getObjectOld().getOid();
+        } else {
+            return null;
+        }
     }
 
     public static ObjectType getFocusObjectNewOrOld(ModelContext<? extends ObjectType> modelContext) {
@@ -429,4 +441,37 @@ public class MiscDataUtil {
         }
     }
 
+	public void generateFocusOidIfNeeded(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change) {
+		if (modelContext.getFocusContext().getOid() != null) {
+			return;
+		}
+
+		String newOid = OidUtil.generateOid();
+		LOGGER.trace("This is ADD operation with no focus OID provided. Generated new OID to be used: {}", newOid);
+		if (change.getChangeType() != ADD) {
+			throw new IllegalStateException("Change type is not ADD for no-oid focus situation: " + change);
+		} else if (change.getObjectToAdd() == null) {
+			throw new IllegalStateException("Object to add is null for change: " + change);
+		} else if (change.getObjectToAdd().getOid() != null) {
+			throw new IllegalStateException("Object to add has already an OID present: " + change);
+		}
+		change.getObjectToAdd().setOid(newOid);
+		((LensFocusContext<?>) modelContext.getFocusContext()).setOid(newOid);
+	}
+
+	public void generateProjectionOidIfNeeded(ModelContext<?> modelContext, ShadowType shadow, ResourceShadowDiscriminator rsd) {
+		if (shadow.getOid() != null) {
+			return;
+		}
+		String newOid = OidUtil.generateOid();
+		LOGGER.trace("This is ADD operation with no shadow OID for {} provided. Generated new OID to be used: {}", rsd, newOid);
+		shadow.setOid(newOid);
+		LensProjectionContext projCtx = ((LensProjectionContext) modelContext.findProjectionContext(rsd));
+		if (projCtx == null) {
+			throw new IllegalStateException("No projection context for " + rsd + " could be found");
+		} else if (projCtx.getOid() != null) {
+			throw new IllegalStateException("No projection context for " + rsd + " has already an OID: " + projCtx.getOid());
+		}
+		projCtx.setOid(newOid);
+	}
 }

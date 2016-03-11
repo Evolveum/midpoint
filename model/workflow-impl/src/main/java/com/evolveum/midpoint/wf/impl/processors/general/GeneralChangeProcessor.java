@@ -135,12 +135,12 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
             // ========== preparing root task ===========
 
             WfTaskCreationInstruction rootInstruction = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel);
-            WfTask rootWfTask = baseModelInvocationProcessingHelper.createRootJob(rootInstruction, taskFromModel, result);
+            WfTask rootWfTask = baseModelInvocationProcessingHelper.submitRootTask(rootInstruction, taskFromModel, result);
 
             // ========== preparing child task, starting WF process ===========
 
             WfTaskCreationInstruction instruction = scenarioBean.prepareJobCreationInstruction(scenarioType, (LensContext<?>) context, rootWfTask, taskFromModel, result);
-            wfTaskController.createWfTask(instruction, rootWfTask, result);
+            wfTaskController.submitWfTask(instruction, rootWfTask, result);
 
             // ========== complete the action ===========
 

@@ -33,10 +33,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowException;
-import com.evolveum.midpoint.wf.impl.tasks.WfTask;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
@@ -45,6 +41,10 @@ import com.evolveum.midpoint.wf.impl.processors.BaseChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
+import com.evolveum.midpoint.wf.impl.tasks.WfTask;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
@@ -122,7 +122,15 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             return null;
         }
 
-        ObjectTreeDeltas objectTreeDeltas = extractFromModelContext(context);
+		PrimaryChangeProcessorConfigurationType processorConfigurationType =
+				wfConfigurationType != null ? wfConfigurationType.getPrimaryChangeProcessor() : null;
+
+		if (processorConfigurationType != null && Boolean.FALSE.equals(processorConfigurationType.isEnabled())) {
+			LOGGER.debug("Primary change processor is disabled.");
+			return null;
+		}
+
+		ObjectTreeDeltas objectTreeDeltas = extractFromModelContext(context);
         if (objectTreeDeltas.isEmpty()) {
             return null;
         }
@@ -130,72 +138,37 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         // examine the request using process aspects
 
         ObjectTreeDeltas changesBeingDecomposed = objectTreeDeltas.clone();
-        List<PcpChildWfTaskCreationInstruction> jobCreationInstructions = gatherStartInstructions(context, wfConfigurationType, changesBeingDecomposed, taskFromModel, result);
+        List<PcpChildWfTaskCreationInstruction> childTaskInstructions = gatherStartInstructions(
+				context, processorConfigurationType, changesBeingDecomposed, taskFromModel, result);
 
         // start the process(es)
 
-        if (jobCreationInstructions.isEmpty()) {
+        if (childTaskInstructions.isEmpty()) {
             LOGGER.trace("There are no workflow processes to be started, exiting.");
             return null;
-        } else {
-            return startJobs(jobCreationInstructions, context, changesBeingDecomposed, taskFromModel, result);
         }
+		return submitTasks(childTaskInstructions, context, changesBeingDecomposed, taskFromModel, result);
     }
 
-    private List<PcpChildWfTaskCreationInstruction> gatherStartInstructions(ModelContext<? extends ObjectType> context,
-			WfConfigurationType wfConfigurationType, ObjectTreeDeltas changesBeingDecomposed,
-			Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private List<PcpChildWfTaskCreationInstruction> gatherStartInstructions(ModelContext<? extends ObjectType> context,
+			PrimaryChangeProcessorConfigurationType processorConfigurationType, ObjectTreeDeltas changesBeingDecomposed, Task taskFromModel,
+			OperationResult result) throws SchemaException, ObjectNotFoundException {
+
         List<PcpChildWfTaskCreationInstruction> startProcessInstructions = new ArrayList<>();
-
-        PrimaryChangeProcessorConfigurationType processorConfigurationType =
-                wfConfigurationType != null ? wfConfigurationType.getPrimaryChangeProcessor() : null;
-
-        if (processorConfigurationType != null && Boolean.FALSE.equals(processorConfigurationType.isEnabled())) {
-            LOGGER.debug("Primary change processor is disabled.");
-            return startProcessInstructions;
-        }
-
         for (PrimaryChangeAspect aspect : getActiveChangeAspects(processorConfigurationType)) {
             if (changesBeingDecomposed.isEmpty()) {      // nothing left
                 break;
             }
-            List<PcpChildWfTaskCreationInstruction> instructions = aspect.prepareJobCreationInstructions(
-                    context, wfConfigurationType, changesBeingDecomposed, taskFromModel, result);
+            List<PcpChildWfTaskCreationInstruction> instructions = aspect.prepareTasks(context, processorConfigurationType, changesBeingDecomposed, taskFromModel, result);
             logAspectResult(aspect, instructions, changesBeingDecomposed);
             if (instructions != null) {
                 startProcessInstructions.addAll(instructions);
             }
         }
-
-        // tweaking the instructions returned from aspects a bit...
-
-        // if we are adding a new object, we have to set OBJECT_TO_BE_ADDED variable in all instructions
-//        ObjectDelta focusChange = changesBeingDecomposed.getFocusChange();
-//        if (focusChange != null && focusChange.isAdd() && focusChange.getObjectToAdd() != null) {
-//            String objectToBeAdded;
-//            try {
-//                objectToBeAdded = MiscDataUtil.serializeObjectToXml(focusChange.getObjectToAdd());
-//            } catch (SystemException e) {
-//                throw new SystemException("Couldn't serialize object to be added to XML", e);
-//            }
-//            for (PcpChildWfTaskCreationInstruction instruction : startProcessInstructions) {
-//                //instruction.addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED, objectToBeAdded);
-//                SPRAV S TYMTO NIECO
-//            }
-//        }
-
-        for (PcpChildWfTaskCreationInstruction instruction : startProcessInstructions) {
-            if (instruction.startsWorkflowProcess() && instruction.isExecuteApprovedChangeImmediately()) {
-                // if we want to execute approved changes immediately in this instruction, we have to wait for
-                // task0 (if there is any) and then to update our model context with the results (if there are any)
-                instruction.addHandlersAfterWfProcessAtEnd(WfTaskUtil.WAIT_FOR_TASKS_HANDLER_URI, WfPrepareChildOperationTaskHandler.HANDLER_URI);
-            }
-        }
-
         return startProcessInstructions;
     }
 
-    private Collection<PrimaryChangeAspect> getActiveChangeAspects(PrimaryChangeProcessorConfigurationType processorConfigurationType) {
+	private Collection<PrimaryChangeAspect> getActiveChangeAspects(PrimaryChangeProcessorConfigurationType processorConfigurationType) {
         Collection<PrimaryChangeAspect> rv = new HashSet<>();
         for (PrimaryChangeAspect aspect : getAllChangeAspects()) {
             if (aspect.isEnabled(processorConfigurationType)) {
@@ -217,19 +190,26 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
     }
 
-    private HookOperationMode startJobs(List<PcpChildWfTaskCreationInstruction> instructions, final ModelContext context, final ObjectTreeDeltas changesWithoutApproval, Task taskFromModel, OperationResult result) {
+    private HookOperationMode submitTasks(List<PcpChildWfTaskCreationInstruction> instructions, final ModelContext context, final ObjectTreeDeltas changesWithoutApproval, Task taskFromModel, OperationResult result) {
 
         try {
 
-            // prepare root job and job0
-            ExecutionMode executionMode = determineExecutionMode(instructions);
-            WfTask rootWfTask = createRootJob(context, changesWithoutApproval, taskFromModel, result, executionMode);
-            WfTask wfTask0 = createJob0(context, changesWithoutApproval, rootWfTask, executionMode, result);
+			ExecutionMode executionMode = determineExecutionMode(instructions);
+
+			// prepare root task and task0
+            WfTask rootWfTask = submitRootTask(context, changesWithoutApproval, taskFromModel, executionMode, result);
+            WfTask wfTask0 = submitTask0(context, changesWithoutApproval, rootWfTask, executionMode, result);
 
             // start the jobs
             List<WfTask> wfTasks = new ArrayList<>(instructions.size());
-            for (WfTaskCreationInstruction instruction : instructions) {
-                WfTask wfTask = wfTaskController.createWfTask(instruction, rootWfTask.getTask(), result);
+            for (PcpChildWfTaskCreationInstruction instruction : instructions) {
+				if (instruction.startsWorkflowProcess() && instruction.isExecuteApprovedChangeImmediately()) {
+					// if we want to execute approved changes immediately in this instruction, we have to wait for
+					// task0 (if there is any) and then to update our model context with the results (if there are any)
+					// TODO CONSIDER THIS... when OID is no longer transferred
+					instruction.addHandlersAfterWfProcessAtEnd(WfTaskUtil.WAIT_FOR_TASKS_HANDLER_URI, WfPrepareChildOperationTaskHandler.HANDLER_URI);
+				}
+				WfTask wfTask = wfTaskController.submitWfTask(instruction, rootWfTask.getTask(), result);
                 wfTasks.add(wfTask);
             }
 
@@ -241,12 +221,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
                 wfTask0.commitChanges(result);
             }
 
-            // now start the tasks - and exit
-
             baseModelInvocationProcessingHelper.logJobsBeforeStart(rootWfTask, result);
-            if (wfTask0 != null) {
-                wfTask0.resumeTask(result);
-            }
             rootWfTask.startWaitingForSubtasks(result);
             return HookOperationMode.BACKGROUND;
 
@@ -259,29 +234,24 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
     }
 
-    private WfTask createRootJob(ModelContext context, ObjectTreeDeltas changesWithoutApproval, Task taskFromModel, OperationResult result, ExecutionMode executionMode)
+    private WfTask submitRootTask(ModelContext context, ObjectTreeDeltas changesWithoutApproval, Task taskFromModel, ExecutionMode executionMode,
+			OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         LensContext lensContextForRootTask = determineLensContextForRootTask(context, changesWithoutApproval, executionMode);
         WfTaskCreationInstruction instructionForRoot = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel, lensContextForRootTask);
-        if (executionMode != ALL_IMMEDIATELY) {
-            instructionForRoot.setHandlersBeforeModelOperation(WfPrepareRootOperationTaskHandler.HANDLER_URI);      // gather all deltas from child objects
-            instructionForRoot.setExecuteModelOperationHandler(true);
-        }
-        return baseModelInvocationProcessingHelper.createRootJob(instructionForRoot, taskFromModel, result);
+		if (executionMode != ALL_IMMEDIATELY) {
+			instructionForRoot.setHandlersBeforeModelOperation(WfPrepareRootOperationTaskHandler.HANDLER_URI);      // gather all deltas from child objects
+		}
+		return baseModelInvocationProcessingHelper.submitRootTask(instructionForRoot, taskFromModel, result);
     }
 
-    // Child job0 - in modes 2, 3 we have to prepare first child that executes all changes that do not require approval
-    private WfTask createJob0(ModelContext context, ObjectTreeDeltas changesWithoutApproval, WfTask rootWfTask, ExecutionMode executionMode, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    // Child task0 - in modes 2, 3 we have to prepare first child that executes all changes that do not require approval
+    private WfTask submitTask0(ModelContext context, ObjectTreeDeltas changesWithoutApproval, WfTask rootWfTask, ExecutionMode executionMode, OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (changesWithoutApproval != null && !changesWithoutApproval.isEmpty() && executionMode != ALL_AFTERWARDS) {
-            ModelContext modelContext = contextCopyWithDeltaReplaced(context, changesWithoutApproval);
-            WfTaskCreationInstruction instruction0 = WfTaskCreationInstruction.createModelOnly(rootWfTask.getChangeProcessor(), modelContext);
+            ModelContext task0context = contextCopyWithDeltasReplaced(context, changesWithoutApproval);
+            WfTaskCreationInstruction instruction0 = WfTaskCreationInstruction.createModelOnly(rootWfTask.getChangeProcessor(), task0context);
             instruction0.setTaskName("Executing changes that do not require approval");
-            if (context.getFocusContext().getPrimaryDelta().isAdd()) {
-                instruction0.setHandlersAfterModelOperation(WfPropagateTaskObjectReferenceTaskHandler.HANDLER_URI);  // for add operations we have to propagate ObjectOID
-            }
-            instruction0.setCreateTaskAsSuspended();   // task0 should execute only after all subtasks are created, because when it finishes, it
-            // writes some information to all dependent tasks (i.e. they must exist at that time)
-            return wfTaskController.createWfTask(instruction0, rootWfTask, result);
+			return wfTaskController.submitWfTask(instruction0, rootWfTask, result);
         } else {
             return null;
         }
@@ -290,7 +260,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     private LensContext determineLensContextForRootTask(ModelContext context, ObjectTreeDeltas changesWithoutApproval, ExecutionMode executionMode) throws SchemaException {
         LensContext contextForRootTask;
         if (executionMode == ALL_AFTERWARDS) {
-            contextForRootTask = contextCopyWithDeltaReplaced(context, changesWithoutApproval);
+            contextForRootTask = contextCopyWithDeltasReplaced(context, changesWithoutApproval);
         } else if (executionMode == MIXED) {
             contextForRootTask = contextCopyWithNoDelta(context);
         } else {
@@ -299,7 +269,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         return contextForRootTask;
     }
 
-    private LensContext contextCopyWithDeltaReplaced(ModelContext context, ObjectTreeDeltas changes) throws SchemaException {
+    private LensContext contextCopyWithDeltasReplaced(ModelContext context, ObjectTreeDeltas changes) throws SchemaException {
         Validate.notNull(changes, "changes");
         LensContext contextCopy = ((LensContext) context).clone();
 
@@ -381,7 +351,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve delta(s) from task " + wfTask.getTask(), e);
         }
         if (deltas != null) {
-            List<ObjectDelta> deltaList = deltas.getDeltaList();
+            List<ObjectDelta<?>> deltaList = deltas.getDeltaList();
             for (ObjectDelta delta : deltaList) {
                 auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
             }
@@ -407,7 +377,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
 
 		if (deltas != null) {
-			for (ObjectDelta delta : deltas.getDeltaList()) {
+			for (ObjectDelta<?> delta : deltas.getDeltaList()) {
 				auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
 			}
 		}

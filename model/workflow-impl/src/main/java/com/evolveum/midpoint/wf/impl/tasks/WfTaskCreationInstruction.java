@@ -269,7 +269,7 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
     public void setProcessInterfaceBean(ProcessMidPointInterface processInterfaceBean) {
 		wfContext.setProcessInterface(processInterfaceBean.getBeanName());
     }
-    //endregion
+	//endregion
 
     //region Diagnostics
     public String toString() {
@@ -399,5 +399,6 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 	private LightweightObjectRef toLightweightObjectRef(ObjectReferenceType ref) {
 		return ref != null ? new LightweightObjectRefImpl(ref) : null;
 	}
+
 	//endregion
 }

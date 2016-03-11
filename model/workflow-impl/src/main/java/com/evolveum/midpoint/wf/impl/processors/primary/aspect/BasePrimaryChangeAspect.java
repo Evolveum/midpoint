@@ -30,6 +30,7 @@ import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
+import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
 import org.springframework.beans.factory.BeanNameAware;
@@ -72,6 +73,9 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 
     @Autowired
     protected ItemApprovalProcessInterface itemApprovalProcessInterface;
+
+    @Autowired
+    protected MiscDataUtil miscDataUtil;
 
     @PostConstruct
     public void init() {

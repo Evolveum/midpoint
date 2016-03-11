@@ -80,7 +80,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
     //region ------------------------------------------------------------ Things that execute on request arrival
 
     @Override
-    public List<PcpChildWfTaskCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public List<PcpChildWfTaskCreationInstruction> prepareTasks(ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (!isFocusRelevant(modelContext)) {
             return null;
         }
@@ -97,7 +97,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
         return true;
     }
 
-    private List<ApprovalRequest<AssociationAdditionType>> getApprovalRequests(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType,
+    private List<ApprovalRequest<AssociationAdditionType>> getApprovalRequests(ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType,
                                                                                ObjectTreeDeltas changes, Task taskFromModel, OperationResult result) {
 
         List<ApprovalRequest<AssociationAdditionType>> requests = new ArrayList<>();
@@ -133,6 +133,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             if (isAssociationRelevant(config, itemToApprove, rsd, modelContext, taskFromModel, result)) {
                 approvalRequestList.add(createApprovalRequest(config, itemToApprove));
                 associationIterator.remove();
+                miscDataUtil.generateProjectionOidIfNeeded(modelContext, shadowType, rsd);
             }
         }
         return approvalRequestList;
@@ -230,7 +231,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
         List<PcpChildWfTaskCreationInstruction> instructions = new ArrayList<>();
         String assigneeName = MiscDataUtil.getFocusObjectName(modelContext);
-        String assigneeOid = primaryChangeAspectHelper.getObjectOid(modelContext);
+        String assigneeOid = MiscDataUtil.getFocusObjectOid(modelContext);
         PrismObject<UserType> requester = primaryChangeAspectHelper.getRequester(taskFromModel, result);
 
         for (ApprovalRequest<AssociationAdditionType> approvalRequest : approvalRequestList) {
@@ -258,7 +259,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             ObjectTreeDeltas objectTreeDeltas = associationAdditionToDelta(modelContext, associationAddition, assigneeOid);
             instruction.setDeltasToProcesses(objectTreeDeltas);
 
-            instruction.setObjectRef(modelContext, result);
+            instruction.setObjectRef(modelContext, result);     // TODO - or should we take shadow as an object?
             instruction.setTargetRef(ObjectTypeUtil.createObjectRef(target), result);
 
             // set the names of midPoint task and activiti process instance

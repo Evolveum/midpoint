@@ -178,8 +178,8 @@ public class ObjectTreeDeltas<F extends FocusType> implements DebugDumpable {
         return deltas;
     }
 
-    public List<ObjectDelta> getDeltaList() {
-        List<ObjectDelta> rv = new ArrayList<>();
+    public List<ObjectDelta<?>> getDeltaList() {
+        List<ObjectDelta<?>> rv = new ArrayList<>();
         if (focusChange != null) {
             rv.add(focusChange);
         }

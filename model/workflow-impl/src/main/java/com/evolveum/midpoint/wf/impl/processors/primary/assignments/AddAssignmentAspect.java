@@ -28,28 +28,29 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalSpecificContent;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
+import static com.evolveum.midpoint.wf.impl.util.MiscDataUtil.getFocusObjectName;
+import static com.evolveum.midpoint.wf.impl.util.MiscDataUtil.getFocusObjectOid;
 
 /**
  * Aspect for adding assignments of any type (abstract role or resource).
@@ -76,7 +77,7 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
     //region ------------------------------------------------------------ Things that execute on request arrival
 
     @Override
-    public List<PcpChildWfTaskCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException {
+    public List<PcpChildWfTaskCreationInstruction> prepareTasks(ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException {
         if (!isFocusRelevant(modelContext) || objectTreeDeltas.getFocusChange() == null) {
             return null;
         }
@@ -84,22 +85,23 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return null;
         }
-        return prepareJobCreateInstructions(modelContext, taskFromModel, result, approvalRequestList);
+        return prepareTaskInstructions(modelContext, taskFromModel, result, approvalRequestList);
     }
 
-    private List<ApprovalRequest<AssignmentType>> getApprovalRequests(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, OperationResult result) {
+    private List<ApprovalRequest<AssignmentType>> getApprovalRequests(ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, OperationResult result) {
         if (change.getChangeType() != ChangeType.ADD && change.getChangeType() != ChangeType.MODIFY) {
             return null;
         }
         PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(wfConfigurationType, this);
         if (change.getChangeType() == ChangeType.ADD) {
-            return getApprovalRequestsFromFocusAdd(config, change, result);
+            return getApprovalRequestsFromFocusAdd(config, change, modelContext, result);
         } else {
             return getApprovalRequestsFromFocusModify(config, modelContext.getFocusContext().getObjectOld(), change, result);
         }
     }
 
-    private List<ApprovalRequest<AssignmentType>> getApprovalRequestsFromFocusAdd(PcpAspectConfigurationType config, ObjectDelta<? extends ObjectType> change, OperationResult result) {
+    private List<ApprovalRequest<AssignmentType>> getApprovalRequestsFromFocusAdd(PcpAspectConfigurationType config, ObjectDelta<? extends ObjectType> change,
+			ModelContext<?> modelContext, OperationResult result) {
         LOGGER.trace("Relevant assignments in focus add delta:");
 
         List<ApprovalRequest<AssignmentType>> approvalRequestList = new ArrayList<>();
@@ -115,6 +117,7 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
                     AssignmentType aCopy = cloneAndCanonicalizeAssignment(a);
                     approvalRequestList.add(createApprovalRequest(config, aCopy, specificObjectType));
                     assignmentTypeIterator.remove();
+					miscDataUtil.generateFocusOidIfNeeded(modelContext, change);
                 }
             }
         }
@@ -203,12 +206,12 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
         return null;
     }
 
-    private List<PcpChildWfTaskCreationInstruction> prepareJobCreateInstructions(ModelContext<?> modelContext, Task taskFromModel,
-                                                                              OperationResult result, List<ApprovalRequest<AssignmentType>> approvalRequestList) throws SchemaException {
+    private List<PcpChildWfTaskCreationInstruction> prepareTaskInstructions(ModelContext<?> modelContext, Task taskFromModel,
+            OperationResult result, List<ApprovalRequest<AssignmentType>> approvalRequestList) throws SchemaException {
 
         List<PcpChildWfTaskCreationInstruction> instructions = new ArrayList<>();
-        String assigneeName = MiscDataUtil.getFocusObjectName(modelContext);
-        String assigneeOid = primaryChangeAspectHelper.getObjectOid(modelContext);
+		String assigneeOid = getFocusObjectOid(modelContext);
+        String assigneeName = getFocusObjectName(modelContext);
         PrismObject<UserType> requester = primaryChangeAspectHelper.getRequester(taskFromModel, result);
 
         for (ApprovalRequest<AssignmentType> approvalRequest : approvalRequestList) {
@@ -221,29 +224,23 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
             Validate.notNull(target, "No target in assignment to be approved");
 
             String targetName = target.getName() != null ? target.getName().getOrig() : "(unnamed)";
-
             String approvalTaskName = "Approve adding " + targetName + " to " + assigneeName;
 
-            // create a JobCreateInstruction for a given change processor (primaryChangeProcessor in this case)
-            PcpChildWfTaskCreationInstruction instruction =
+            PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> instruction =
                     PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName, approvalRequest);
 
-            // set some common task/process attributes
             instruction.prepareCommonAttributes(this, modelContext, requester);
 
-            // prepare and set the delta that has to be approved
-            ObjectDelta<? extends ObjectType> delta = assignmentToDelta(modelContext, assignmentType, assigneeOid);
+            ObjectDelta<? extends FocusType> delta = assignmentToDelta(modelContext, assignmentType, assigneeOid);
             instruction.setDeltasToProcess(delta);
 
             instruction.setObjectRef(modelContext, result);
-            instruction.setTargetRef(ObjectTypeUtil.createObjectRef(target), result);
+            instruction.setTargetRef(createObjectRef(target), result);
 
-            // set the names of midPoint task and activiti process instance
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";
             instruction.setTaskName("Workflow for approving " + andExecuting + "adding " + targetName + " to " + assigneeName);
             instruction.setProcessInstanceName("Adding " + targetName + " to " + assigneeName);
 
-            // setup general item approval process
             itemApprovalProcessInterface.prepareStartInstruction(instruction);
 
             instructions.add(instruction);
@@ -252,7 +249,8 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
     }
 
     // creates an ObjectDelta that will be executed after successful approval of the given assignment
-    private ObjectDelta<? extends ObjectType> assignmentToDelta(ModelContext<?> modelContext, AssignmentType assignmentType, String objectOid) {
+	@SuppressWarnings("unchecked")
+    private ObjectDelta<? extends FocusType> assignmentToDelta(ModelContext<?> modelContext, AssignmentType assignmentType, String objectOid) {
         PrismObject<FocusType> focus = (PrismObject<FocusType>) modelContext.getFocusContext().getObjectNew();
         PrismContainerDefinition<AssignmentType> prismContainerDefinition = focus.getDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);
 
@@ -261,36 +259,7 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
         addRoleDelta.addValueToAdd(assignmentValue);
 
         Class focusClass = primaryChangeAspectHelper.getFocusClass(modelContext);
-        String focusOid = objectOid != null ? objectOid : PrimaryChangeProcessor.UNKNOWN_OID;
-        return ObjectDelta.createModifyDelta(focusOid, addRoleDelta, focusClass, ((LensContext) modelContext).getPrismContext());
-    }
-
-    //endregion
-
-    //region ------------------------------------------------------------ Things that execute when item is being approved
-
-    public static String formatTimeIntervalBrief(AssignmentType assignment) {
-        StringBuilder sb = new StringBuilder();
-        if (assignment != null && assignment.getActivation() != null &&
-                (assignment.getActivation().getValidFrom() != null || assignment.getActivation().getValidTo() != null)) {
-            if (assignment.getActivation().getValidFrom() != null && assignment.getActivation().getValidTo() != null) {
-                sb.append(formatTime(assignment.getActivation().getValidFrom()));
-                sb.append("-");
-                sb.append(formatTime(assignment.getActivation().getValidTo()));
-            } else if (assignment.getActivation().getValidFrom() != null) {
-                sb.append("from ");
-                sb.append(formatTime(assignment.getActivation().getValidFrom()));
-            } else {
-                sb.append("to ");
-                sb.append(formatTime(assignment.getActivation().getValidTo()));
-            }
-        }
-        return sb.toString();
-    }
-
-    private static String formatTime(XMLGregorianCalendar time) {
-        DateFormat formatter = DateFormat.getDateInstance();
-        return formatter.format(time.toGregorianCalendar().getTime());
+        return ObjectDelta.createModifyDelta(objectOid, addRoleDelta, focusClass, ((LensContext) modelContext).getPrismContext());
     }
 
     //endregion

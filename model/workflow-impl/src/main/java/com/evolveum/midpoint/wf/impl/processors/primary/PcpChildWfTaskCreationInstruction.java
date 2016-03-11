@@ -24,20 +24,25 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.wf.impl.tasks.ProcessSpecificContent;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalSpecificContent;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.wf.impl.tasks.ProcessSpecificContent;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author mederly
  */
 public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent> extends WfTaskCreationInstruction<PrimaryChangeProcessorSpecificContent, PI> {
 
-    protected PcpChildWfTaskCreationInstruction(ChangeProcessor changeProcessor, PI processInstruction) {
+	private static final Trace LOGGER = TraceManager.getTrace(PcpChildWfTaskCreationInstruction.class);
+
+	protected PcpChildWfTaskCreationInstruction(ChangeProcessor changeProcessor, PI processInstruction) {
         super(changeProcessor, new PrimaryChangeProcessorSpecificContent(changeProcessor.getPrismContext()), processInstruction);
     }
 
@@ -82,7 +87,7 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
         }
     }
 
-    @Override
+	@Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
 
@@ -93,5 +98,4 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
         sb.append(super.debugDump(indent+1));
         return sb.toString();
     }
-
 }

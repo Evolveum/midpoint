@@ -83,8 +83,6 @@ public interface ChangeProcessor {
      * Handles an event from WfMS that indicates finishing of the workflow process instance.
      * Usually, at this point we see what was approved (and what was not) and continue with model operation(s).
      *
-     * Should leave the task in saved state (if finishing successfully).
-     *
      * @param event
      * @param wfTask
      * @param result Here should be stored information about whether the finalization was successful or not

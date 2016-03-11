@@ -75,7 +75,7 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
     //region ------------------------------------------------------------ Things that execute on request arrival
 
     @Override
-    public List<PcpChildWfTaskCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException {
+    public List<PcpChildWfTaskCreationInstruction> prepareTasks(ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException {
         if (!isFocusRelevant(modelContext) || objectTreeDeltas.getFocusChange() == null) {
             return null;
         }
@@ -86,7 +86,7 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
         return prepareJobCreateInstructions(modelContext, taskFromModel, result, approvalRequestList);
     }
 
-    private List<ApprovalRequest<AssignmentModification>> getApprovalRequests(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, OperationResult result) throws SchemaException {
+    private List<ApprovalRequest<AssignmentModification>> getApprovalRequests(ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, OperationResult result) throws SchemaException {
         if (change.getChangeType() != ChangeType.MODIFY) {
             return null;
         }
@@ -201,7 +201,7 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
             Validate.notNull(target);
             String targetName = getTargetDisplayName(target);
 
-            String focusOid = primaryChangeAspectHelper.getObjectOid(modelContext);
+            String focusOid = MiscDataUtil.getFocusObjectOid(modelContext);
             PrismObject<UserType> requester = primaryChangeAspectHelper.getRequester(taskFromModel, result);
 
 			String approvalTaskName = "Approve modifying assignment of " + targetName + " to " + focusName;

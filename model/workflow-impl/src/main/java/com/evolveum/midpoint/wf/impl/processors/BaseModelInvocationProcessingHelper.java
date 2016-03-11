@@ -80,7 +80,6 @@ public class BaseModelInvocationProcessingHelper {
         instruction.setTaskObject(determineRootTaskObject(modelContext));
         instruction.setTaskOwner(taskFromModel.getOwner());
         instruction.setCreateTaskAsWaiting();
-
         return instruction;
     }
 
@@ -151,9 +150,9 @@ public class BaseModelInvocationProcessingHelper {
      * @throws SchemaException
      * @throws ObjectNotFoundException
      */
-    public WfTask createRootJob(WfTaskCreationInstruction rootInstruction, Task taskFromModel, OperationResult result)
+    public WfTask submitRootTask(WfTaskCreationInstruction rootInstruction, Task taskFromModel, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        WfTask rootWfTask = wfTaskController.createWfTask(rootInstruction, determineParentTaskForRoot(taskFromModel), result);
+        WfTask rootWfTask = wfTaskController.submitWfTask(rootInstruction, determineParentTaskForRoot(taskFromModel), result);
         wfTaskUtil.setRootTaskOidImmediate(taskFromModel, rootWfTask.getTask().getOid(), result);
         return rootWfTask;
     }

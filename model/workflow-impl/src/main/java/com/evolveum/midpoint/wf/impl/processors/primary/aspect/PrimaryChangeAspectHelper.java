@@ -104,19 +104,6 @@ public class PrimaryChangeAspectHelper {
 
     //endregion
 
-    //region ========================================================================== Miscellaneous
-    public String getObjectOid(ModelContext<?> modelContext) {
-        ModelElementContext<UserType> fc = (ModelElementContext<UserType>) modelContext.getFocusContext();
-        String objectOid = null;
-        if (fc.getObjectNew() != null && fc.getObjectNew().getOid() != null) {
-            return fc.getObjectNew().getOid();
-        } else if (fc.getObjectOld() != null && fc.getObjectOld().getOid() != null) {
-            return fc.getObjectOld().getOid();
-        } else {
-            return null;
-        }
-    }
-
     public PrismObject<UserType> getRequester(Task task, OperationResult result) {
         // let's get fresh data (not the ones read on user login)
         PrismObject<UserType> requester = null;

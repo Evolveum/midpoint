@@ -17,10 +17,12 @@
 package com.evolveum.midpoint.wf.impl.processors.primary.objects;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -30,10 +32,7 @@ import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 
 import java.util.ArrayList;
@@ -55,8 +54,8 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
     protected abstract String getObjectLabel(T object);
 
     @Override
-    public List<PcpChildWfTaskCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext,
-                                                                               WfConfigurationType wfConfigurationType,
+    public List<PcpChildWfTaskCreationInstruction> prepareTasks(ModelContext<?> modelContext,
+                                                                               PrimaryChangeProcessorConfigurationType wfConfigurationType,
                                                                                ObjectTreeDeltas objectTreeDeltas,
                                                                                Task taskFromModel, OperationResult result) throws SchemaException {
         PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(wfConfigurationType, this);
@@ -79,6 +78,11 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
             return null;
         }
         T objectType = (T) change.getObjectToAdd().asObjectable().clone();
+        if (objectType.getOid() == null) {
+            String newOid = OidUtil.generateOid();
+            objectType.setOid(newOid);
+            ((LensFocusContext<?>) modelContext.getFocusContext()).setOid(newOid);
+        }
         change.setObjectToAdd(null);            // make the change empty
         return Arrays.asList(createApprovalRequest(config, objectType));
     }
@@ -112,7 +116,7 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
                     PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName, approvalRequest);
 
             // set some common task/process attributes
-            instruction.prepareCommonAttributes(this, modelContext, requester);       // objectOid is null (because object does not exist yet)
+            instruction.prepareCommonAttributes(this, modelContext, requester);
 
             // prepare and set the delta that has to be approved
             ObjectDelta<? extends ObjectType> delta = assignmentToDelta(modelContext);

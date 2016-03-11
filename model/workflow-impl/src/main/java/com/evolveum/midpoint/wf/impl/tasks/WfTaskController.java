@@ -102,14 +102,14 @@ public class WfTaskController {
 
     //region Job creation & re-creation
     /**
-     * Creates a job, just as prescribed by the job creation instruction.
+     * Creates a background task, just as prescribed by the task creation instruction.
      *
      * @param instruction the job creation instruction
      * @param parentWfTask the job that will be the parent of newly created one; it may be null
      */
 
-    public WfTask createWfTask(WfTaskCreationInstruction instruction, WfTask parentWfTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return createWfTask(instruction, parentWfTask.getTask(), result);
+    public WfTask submitWfTask(WfTaskCreationInstruction instruction, WfTask parentWfTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return submitWfTask(instruction, parentWfTask.getTask(), result);
     }
 
     /**
@@ -118,11 +118,11 @@ public class WfTaskController {
      * @param instruction the job creation instruction
      * @param parentTask the task that will be the parent of the task of newly created job; it may be null
      */
-    public WfTask createWfTask(WfTaskCreationInstruction instruction, Task parentTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public WfTask submitWfTask(WfTaskCreationInstruction instruction, Task parentTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Processing start instruction:\n{}", instruction.debugDump());
         }
-        Task task = createBackgroundTask(instruction, parentTask, result);
+        Task task = submitTask(instruction, parentTask, result);
 		WfTask wfTask = recreateWfTask(task, instruction.getChangeProcessor());
         if (!instruction.isNoProcess()) {
             startWorkflowProcessInstance(wfTask, instruction, result);
@@ -170,7 +170,7 @@ public class WfTaskController {
 
     //region Working with midPoint tasks
 
-    private Task createBackgroundTask(WfTaskCreationInstruction instruction, Task parentTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private Task submitTask(WfTaskCreationInstruction instruction, Task parentTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		Task wfTask = instruction.createTask(this, parentTask);
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Switching workflow root or child task to background:\n{}", wfTask.debugDump());

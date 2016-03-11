@@ -28,7 +28,6 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationIn
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 
 import java.util.List;
 
@@ -67,7 +66,7 @@ public interface PrimaryChangeAspect {
      * @param result Operation result - the method should report any errors here (TODO what about creating subresults?)    @return list of start process instructions
      * @see WfTaskCreationInstruction
      */
-    List<PcpChildWfTaskCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    List<PcpChildWfTaskCreationInstruction> prepareTasks(ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     /**
      * On process instance end, prepares deltaOut based in deltaIn and information gathered during approval process.
