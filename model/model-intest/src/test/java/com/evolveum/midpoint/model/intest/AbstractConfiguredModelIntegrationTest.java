@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -302,6 +303,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public static final String GROUP_SHADOW_JOKER_DUMMY_UPCASE_OID = "bc2a1d98-9ca4-11e4-a600-001e8c717e5b";
 	public static final String GROUP_SHADOW_JOKER_DUMMY_UPCASE_NAME = "joker";
 	public static final String GROUP_JOKER_DUMMY_UPCASE_NAME = "JOKER";
+	
+	public static final String DUMMY_ORG_TOP_NAME = DummyResourceContoller.ORG_TOP_NAME;
 	
 	protected static final String PASSWORD_POLICY_GLOBAL_FILENAME = COMMON_DIR + "/password-policy-global.xml";
 	protected static final String PASSWORD_POLICY_GLOBAL_OID = "12344321-0000-0000-0000-000000000003";

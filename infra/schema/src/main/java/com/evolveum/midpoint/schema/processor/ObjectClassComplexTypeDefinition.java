@@ -23,6 +23,11 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -337,6 +342,10 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	
 	public ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
 		return new ResourceAttributeContainerDefinition(elementName, this, getPrismContext());
+	}
+	
+	public ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+		return ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid, getTypeName(), prismContext);
 	}
 	
 	/**
