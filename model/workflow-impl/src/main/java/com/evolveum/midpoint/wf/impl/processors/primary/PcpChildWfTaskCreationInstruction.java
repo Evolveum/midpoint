@@ -42,20 +42,19 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
     }
 
 	// useful shortcut
-	public static PcpChildWfTaskCreationInstruction createItemApprovalInstruction(ChangeProcessor changeProcessor, String approvalTaskName,
+	public static PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> createItemApprovalInstruction(ChangeProcessor changeProcessor, String approvalTaskName,
 			ApprovalRequest<?> approvalRequest) {
 		ItemApprovalSpecificContent itemApprovalInstruction = new ItemApprovalSpecificContent();
 		itemApprovalInstruction.setTaskName(approvalTaskName);
 		itemApprovalInstruction.setApprovalSchema(approvalRequest.getApprovalSchema());
-		PcpChildWfTaskCreationInstruction pcpjci = new PcpChildWfTaskCreationInstruction(changeProcessor, itemApprovalInstruction);
-		return pcpjci;
+		return new PcpChildWfTaskCreationInstruction<>(changeProcessor, itemApprovalInstruction);
 	}
 
     public boolean isExecuteApprovedChangeImmediately() {
         return processorContent.isExecuteApprovedChangeImmediately();
     }
 
-    public void prepareCommonAttributes(PrimaryChangeAspect aspect, ModelContext<?> modelContext, String objectOid, PrismObject<UserType> requester) throws SchemaException {
+    public void prepareCommonAttributes(PrimaryChangeAspect aspect, ModelContext<?> modelContext, PrismObject<UserType> requester) throws SchemaException {
 
         setRequesterRef(requester);
 
@@ -71,8 +70,8 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
     }
 
     @Deprecated
-    public void setDeltasToProcess(ObjectDelta delta) {
-        setDeltasToProcesses(new ObjectTreeDeltas(delta, getChangeProcessor().getPrismContext()));
+    public <F extends FocusType> void setDeltasToProcess(ObjectDelta<F> delta) {
+        setDeltasToProcesses(new ObjectTreeDeltas<>(delta, getChangeProcessor().getPrismContext()));
     }
 
     public void setDeltasToProcesses(ObjectTreeDeltas objectTreeDeltas) {
@@ -81,10 +80,6 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
         } catch (SchemaException e) {
             throw new SystemException("Couldn't store primary delta(s) into the task variable due to schema exception", e);
         }
-    }
-
-	public String getAspectClassName() {
-        return processorContent.createProcessorSpecificState().getChangeAspect();
     }
 
     @Override

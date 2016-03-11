@@ -81,7 +81,7 @@ public class WfHook implements ChangeHook {
     }
 
     @Override
-    public HookOperationMode invoke(ModelContext context, Task task, OperationResult parentResult) {
+    public <O extends ObjectType> HookOperationMode invoke(ModelContext<O> context, Task task, OperationResult parentResult) {
 
         Validate.notNull(context);
         Validate.notNull(task);

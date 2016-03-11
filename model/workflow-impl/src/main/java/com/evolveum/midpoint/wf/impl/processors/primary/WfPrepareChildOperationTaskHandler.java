@@ -115,7 +115,7 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
                     LOGGER.trace("We'll delete model operation context.");
                 }
 
-                wfTask.deleteModelOperationContext(result);
+                wfTask.deleteModelOperationContext();
 
             } else {
 

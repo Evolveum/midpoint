@@ -125,7 +125,7 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
                 PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName, approvalRequest);
 
         // set some common task/process attributes
-        instruction.prepareCommonAttributes(this, modelContext, objectOid, requester);
+        instruction.prepareCommonAttributes(this, modelContext, requester);
 
         // prepare and set the delta that has to be approved
         instruction.setDeltasToProcess(itemDeltaToObjectDelta(objectOid, delta));

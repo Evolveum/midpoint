@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * Command to start process instance.
  */
-public class StartProcessCommand extends MidPointToActivitiMessage {
+public class StartProcessCommand {
 
     private Map<String,Object> variables;
     private String processName;

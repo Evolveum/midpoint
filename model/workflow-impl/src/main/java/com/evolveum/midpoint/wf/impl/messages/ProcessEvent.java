@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Process instance event - signals that something has happened with process instance.
  */
-public class ProcessEvent extends ActivitiToMidPointMessage {
+public class ProcessEvent {
 
     /**
      * Workflow process instance variables.

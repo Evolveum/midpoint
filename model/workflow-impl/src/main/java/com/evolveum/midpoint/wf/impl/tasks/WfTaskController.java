@@ -20,7 +20,6 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -49,7 +48,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
@@ -85,10 +83,6 @@ public class WfTaskController {
 
     @Autowired
     private ActivitiInterface activitiInterface;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
 
     @Autowired
     private AuditService auditService;
@@ -211,7 +205,7 @@ public class WfTaskController {
 
     //region Working with Activiti process instances
 
-    private void startWorkflowProcessInstance(WfTask wfTask, WfTaskCreationInstruction instruction, OperationResult parentResult) {
+    private void startWorkflowProcessInstance(WfTask wfTask, WfTaskCreationInstruction<?,?> instruction, OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(DOT_CLASS + "startWorkflowProcessInstance");
         try {
 			LOGGER.trace("startWorkflowProcessInstance starting; instruction = {}", instruction);
@@ -227,7 +221,7 @@ public class WfTaskController {
 
 			activitiInterface.startActivitiProcessInstance(spc, task, result);
             auditProcessStart(wfTask, spc.getVariables(), result);
-            notifyProcessStart(wfTask, spc.getVariables(), result);
+            notifyProcessStart(wfTask, result);
         } catch (SchemaException|RuntimeException|ObjectNotFoundException|ObjectAlreadyExistsException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't send a request to start a process instance to workflow management system", e);
 			try {
@@ -284,7 +278,7 @@ public class WfTaskController {
 		wfTask.commitChanges(result);
 
         auditProcessEnd(wfTask, event, result);
-        notifyProcessEnd(wfTask, event, result);
+        notifyProcessEnd(wfTask, result);
 
         // passive tasks can be 'let go' at this point
         if (wfTask.getTaskExecutionStatus() == WAITING) {
@@ -309,6 +303,7 @@ public class WfTaskController {
     //region Processing work item (task) events
 
 	// workItem contains taskRef, assignee, candidates resolved (if possible)
+	@SuppressWarnings("unchecked")
     public void onTaskEvent(WorkItemType workItem, TaskEvent taskEvent, OperationResult result) throws WorkflowException, SchemaException {
 
 		final TaskType shadowTaskType = (TaskType) ObjectTypeUtil.getObjectFromReference(workItem.getTaskRef());
@@ -352,13 +347,13 @@ public class WfTaskController {
         auditService.audit(auditEventRecord, wfTask.getTask());
     }
 
-    private void notifyProcessStart(WfTask wfTask, Map<String, Object> variables, OperationResult result) throws SchemaException {
+    private void notifyProcessStart(WfTask wfTask, OperationResult result) throws SchemaException {
         for (ProcessListener processListener : processListeners) {
             processListener.onProcessInstanceStart(wfTask.getTask(), result);
         }
     }
 
-    private void notifyProcessEnd(WfTask wfTask, ProcessEvent event, OperationResult result) throws SchemaException {
+    private void notifyProcessEnd(WfTask wfTask, OperationResult result) throws SchemaException {
         for (ProcessListener processListener : processListeners) {
             processListener.onProcessInstanceEnd(wfTask.getTask(), result);
         }

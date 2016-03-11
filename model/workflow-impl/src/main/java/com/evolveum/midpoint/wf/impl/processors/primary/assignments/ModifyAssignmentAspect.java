@@ -211,7 +211,7 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
                     PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName, approvalRequest);
 
             // set some common task/process attributes
-            instruction.prepareCommonAttributes(this, modelContext, focusOid, requester);
+            instruction.prepareCommonAttributes(this, modelContext, requester);
 
             // prepare and set the delta that has to be approved
             ObjectDelta<? extends ObjectType> delta = requestToDelta(modelContext, approvalRequest, focusOid);

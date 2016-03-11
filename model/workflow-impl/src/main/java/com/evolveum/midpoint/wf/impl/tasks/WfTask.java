@@ -79,7 +79,6 @@ public class WfTask {
     }
     //endregion
 
-
     @Override
     public String toString() {
         return "WfTask{" +
@@ -156,7 +155,7 @@ public class WfTask {
     }
 
     public List<WfTask> listChildren(OperationResult result) throws SchemaException {
-        List<WfTask> wfTasks = new ArrayList<WfTask>();
+        List<WfTask> wfTasks = new ArrayList<>();
         for (Task subtask : task.listSubtasks(result)) {
             wfTasks.add(wfTaskController.recreateChildWfTask(subtask, this));
         }
@@ -167,7 +166,7 @@ public class WfTask {
         return getWfTaskUtil().retrieveResultingDeltas(task);
     }
 
-    public void deleteModelOperationContext(OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public void deleteModelOperationContext() throws SchemaException, ObjectNotFoundException {
         getWfTaskUtil().deleteModelOperationContext(task);
     }
 
@@ -176,7 +175,7 @@ public class WfTask {
     }
 
     public List<WfTask> listDependents(OperationResult result) throws SchemaException, ObjectNotFoundException {
-        List<WfTask> wfTasks = new ArrayList<WfTask>();
+        List<WfTask> wfTasks = new ArrayList<>();
         for (Task subtask : task.listDependents(result)) {
             wfTasks.add(wfTaskController.recreateWfTask(subtask));
         }
@@ -186,14 +185,6 @@ public class WfTask {
     public WfTask getParentJob(OperationResult result) throws SchemaException, ObjectNotFoundException {
         Task parentTask = task.getParentTask(result);
         return wfTaskController.recreateWfTask(parentTask);
-    }
-
-    public String getRequesterOid() {
-        if (task.getWorkflowContext() == null || task.getWorkflowContext().getRequesterRef() == null) {
-            return null;
-        } else {
-			return task.getWorkflowContext().getRequesterRef().getOid();
-		}
     }
 
 	void setProcessInstanceState(String stateDescription) throws SchemaException {
@@ -212,12 +203,13 @@ public class WfTask {
 		return task.getWorkflowContext() != null ? task.getWorkflowContext().getAnswer() : null;
 	}
 
+	@SuppressWarnings("unchecked")
 	public PrismObject<UserType> getRequesterIfExists(OperationResult result) {
 		if (task.getWorkflowContext() == null || task.getWorkflowContext().getRequesterRef() == null) {
 			return null;
 		}
 		ObjectReferenceType requesterRef = task.getWorkflowContext().getRequesterRef();
-		return wfTaskController.getMiscDataUtil().resolveAndStoreObjectReference(requesterRef, result);
+		return (PrismObject<UserType>) wfTaskController.getMiscDataUtil().resolveAndStoreObjectReference(requesterRef, result);
 	}
 
     public void setAnswer(String answer) throws SchemaException {

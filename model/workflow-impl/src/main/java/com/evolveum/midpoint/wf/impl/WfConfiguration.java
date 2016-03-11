@@ -24,12 +24,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processors.BaseChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -39,7 +36,6 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-
 import java.util.*;
 
 /**
@@ -71,7 +67,7 @@ public class WfConfiguration implements BeanFactoryAware {
             KEY_JDBC_USERNAME, KEY_JDBC_PASSWORD, KEY_DATA_SOURCE, KEY_ACTIVITI_SCHEMA_UPDATE, KEY_PROCESS_CHECK_INTERVAL,
             KEY_AUTO_DEPLOYMENT_FROM, KEY_ALLOW_APPROVE_OTHERS_ITEMS);
 
-    public static final List<String> DEPRECATED_KEYS = Arrays.asList(CHANGE_PROCESSORS_SECTION);
+    public static final List<String> DEPRECATED_KEYS = Collections.singletonList(CHANGE_PROCESSORS_SECTION);
 
     @Autowired
     private MidpointConfiguration midpointConfiguration;
@@ -142,7 +138,7 @@ public class WfConfiguration implements BeanFactoryAware {
 
         String explicitJdbcUrl = c.getString(KEY_JDBC_URL, null);
         if (explicitJdbcUrl == null) {
-            if (sqlConfig.isEmbedded()) {
+            if (sqlConfig == null || sqlConfig.isEmbedded()) {
                 jdbcUrl = defaultJdbcUrlPrefix + "-activiti;DB_CLOSE_ON_EXIT=FALSE";
             } else {
                 jdbcUrl = sqlConfig.getJdbcUrl();
@@ -205,10 +201,10 @@ public class WfConfiguration implements BeanFactoryAware {
         }
     }
 
-    public Configuration getChangeProcessorsConfig() {
-        Validate.notNull(midpointConfiguration, "midpointConfiguration was not initialized correctly (check spring beans initialization order)");
-        return midpointConfiguration.getConfiguration(WF_CONFIG_SECTION).subset(CHANGE_PROCESSORS_SECTION); // via subset, because getConfiguration puts 'midpoint.home' property to the result
-    }
+//    public Configuration getChangeProcessorsConfig() {
+//        Validate.notNull(midpointConfiguration, "midpointConfiguration was not initialized correctly (check spring beans initialization order)");
+//        return midpointConfiguration.getConfiguration(WF_CONFIG_SECTION).subset(CHANGE_PROCESSORS_SECTION); // via subset, because getConfiguration puts 'midpoint.home' property to the result
+//    }
 
     void validate() {
 

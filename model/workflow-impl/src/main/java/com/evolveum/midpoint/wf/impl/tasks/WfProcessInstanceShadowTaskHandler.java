@@ -28,14 +28,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiInterface;
 import com.evolveum.midpoint.wf.impl.messages.QueryProcessCommand;
-
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-
 import java.util.List;
 
 /**
@@ -96,14 +94,12 @@ public class WfProcessInstanceShadowTaskHandler implements TaskHandler {
 		    // is this task already closed? (this flag is set by activiti2midpoint when it gets information about wf process termination)
             // todo: fixme this is a bit weird
 		    if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
-			    LOGGER.info("Task " + task.getName() + " has been flagged as closed; exiting the run() method.");
+			    LOGGER.info("Task {} has been flagged as closed; exiting the run() method.", task);
 		    }
             else {
                 String id = wfTaskUtil.getProcessId(task);
                 if (id != null) {
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Task " + task.getName() + ": requesting status for wf process id " + id + "...");
-                    }
+					LOGGER.debug("Task {}: requesting status for wf process id {}", task, id);
                     queryProcessInstance(id, task, task.getResult());
                 }
             }
@@ -142,9 +138,9 @@ public class WfProcessInstanceShadowTaskHandler implements TaskHandler {
             LoggingUtils.logException(LOGGER,
                     "Couldn't send a request to query a process instance to workflow management system", e);
             result.recordPartialError("Couldn't send a request to query a process instance to workflow management system", e);
-        }
-
-        result.recordSuccessIfUnknown();
+        } finally {
+			result.computeStatusIfUnknown();
+		}
     }
 
 

@@ -112,7 +112,7 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
                     PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName, approvalRequest);
 
             // set some common task/process attributes
-            instruction.prepareCommonAttributes(this, modelContext, null, requester);       // objectOid is null (because object does not exist yet)
+            instruction.prepareCommonAttributes(this, modelContext, requester);       // objectOid is null (because object does not exist yet)
 
             // prepare and set the delta that has to be approved
             ObjectDelta<? extends ObjectType> delta = assignmentToDelta(modelContext);

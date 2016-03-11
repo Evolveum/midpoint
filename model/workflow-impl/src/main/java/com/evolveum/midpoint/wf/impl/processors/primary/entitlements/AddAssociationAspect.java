@@ -252,7 +252,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
                     PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName, approvalRequest);
 
             // set some common task/process attributes
-            instruction.prepareCommonAttributes(this, modelContext, assigneeOid, requester);
+            instruction.prepareCommonAttributes(this, modelContext, requester);
 
             // prepare and set the delta that has to be approved
             ObjectTreeDeltas objectTreeDeltas = associationAdditionToDelta(modelContext, associationAddition, assigneeOid);
