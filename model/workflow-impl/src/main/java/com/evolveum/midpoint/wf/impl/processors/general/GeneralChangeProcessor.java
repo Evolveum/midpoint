@@ -197,7 +197,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     }
 
     @Override
-    public AuditEventRecord prepareWorkItemAuditRecord(WorkItemNewType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage,
+    public AuditEventRecord prepareWorkItemAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage,
             OperationResult result) throws WorkflowException {
         return getScenarioBean(taskEvent.getVariables()).prepareWorkItemAuditRecord(workItem, wfTask, taskEvent, stage, result);
     }

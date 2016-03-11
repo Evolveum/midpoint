@@ -49,10 +49,10 @@ public class WorkItemNewDto extends Selectable {
     //
     // Depending on expected use (work item list vs. work item details)
 
-    protected WorkItemNewType workItem;
+    protected WorkItemType workItem;
     protected String approverComment;
 
-    public WorkItemNewDto(WorkItemNewType workItem) {
+    public WorkItemNewDto(WorkItemType workItem) {
         this.workItem = workItem;
     }
 
@@ -156,7 +156,7 @@ public class WorkItemNewDto extends Selectable {
         this.approverComment = approverComment;
     }
 
-    public WorkItemNewType getWorkItem() {
+    public WorkItemType getWorkItem() {
         return workItem;
     }
 }

@@ -41,7 +41,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemNewDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -55,7 +55,7 @@ import java.util.List;
 import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
 
 /**
  * @author mederly
@@ -128,13 +128,13 @@ public class PageWorkItem extends PageAdminWorkItems {
         WorkItemNewDto workItemDto = null;
         try {
             String id = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
-            final ObjectQuery query = QueryBuilder.queryFor(WorkItemNewType.class, getPrismContext())
+            final ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
                     .item(F_WORK_ITEM_ID).eq(id)
                     .build();
 			final Collection<SelectorOptions<GetOperationOptions>> options = resolveItemsNamed(
 					F_ASSIGNEE_REF,
 					new ItemPath(F_TASK_REF, F_WORKFLOW_CONTEXT, F_REQUESTER_REF));
-			List<WorkItemNewType> workItems = getModelService().searchContainers(WorkItemNewType.class, query, options, task, result);
+			List<WorkItemType> workItems = getModelService().searchContainers(WorkItemType.class, query, options, task, result);
             if (workItems.size() > 1) {
                 throw new SystemException("More than one work item with ID of " + id);
             } else if (workItems.size() == 0) {
@@ -183,7 +183,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         VisibleEnableBehaviour isAllowedToRelease = new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                WorkItemNewType workItem = workItemDtoModel.getObject().getWorkItem();
+                WorkItemType workItem = workItemDtoModel.getObject().getWorkItem();
                 MidPointPrincipal principal;
                 try {
                     principal = (MidPointPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

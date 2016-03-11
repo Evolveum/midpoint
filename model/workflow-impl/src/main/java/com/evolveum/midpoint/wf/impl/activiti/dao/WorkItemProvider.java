@@ -42,7 +42,7 @@ import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.task.IdentityLink;
 import org.activiti.engine.task.IdentityLinkType;
@@ -58,7 +58,7 @@ import static com.evolveum.midpoint.schema.constants.ObjectTypes.USER;
 import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.FilterComponents;
 import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.factorOutQuery;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -94,7 +94,7 @@ public class WorkItemProvider {
 		return (int) taskQuery.count();
 	}
 
-	public SearchResultList<WorkItemNewType> searchWorkItems(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+	public SearchResultList<WorkItemType> searchWorkItems(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
 			throws SchemaException {
 		TaskQuery taskQuery = createTaskQuery(query, options, result);
 		Integer offset = query != null ? query.getOffset() : null;
@@ -119,7 +119,7 @@ public class WorkItemProvider {
         final ItemPath WORK_ITEM_ID_PATH = new ItemPath(F_WORK_ITEM_ID);
         final ItemPath ASSIGNEE_PATH = new ItemPath(F_ASSIGNEE_REF);
         final ItemPath CANDIDATE_ROLES_PATH = new ItemPath(F_CANDIDATE_ROLES_REF);
-        final ItemPath CREATED_PATH = new ItemPath(WorkItemNewType.F_WORK_ITEM_CREATED_TIMESTAMP);
+        final ItemPath CREATED_PATH = new ItemPath(WorkItemType.F_WORK_ITEM_CREATED_TIMESTAMP);
 
         final Map.Entry<ItemPath, Collection<? extends PrismValue>> workItemIdFilter = components.getKnownComponent(WORK_ITEM_ID_PATH);
         final Map.Entry<ItemPath, Collection<? extends PrismValue>> assigneeFilter = components.getKnownComponent(ASSIGNEE_PATH);
@@ -172,7 +172,7 @@ public class WorkItemProvider {
     }
 
     // special interface for ProcessInstanceProvider - TODO align with other interfaces
-    public SearchResultList<WorkItemNewType> getWorkItemsForProcessInstanceId(String processInstanceId, OperationResult result) {
+    public SearchResultList<WorkItemType> getWorkItemsForProcessInstanceId(String processInstanceId, OperationResult result) {
         TaskService ts = activitiEngine.getTaskService();
         List<Task> tasks = ts.createTaskQuery()
                 .processInstanceId(processInstanceId)
@@ -182,9 +182,9 @@ public class WorkItemProvider {
         return tasksToWorkItemsNew(tasks, null, false, true, true, result);
     }
 
-    private SearchResultList<WorkItemNewType> tasksToWorkItemsNew(List<Task> tasks, Map<String, Object> processVariables,
+    private SearchResultList<WorkItemType> tasksToWorkItemsNew(List<Task> tasks, Map<String, Object> processVariables,
             boolean resolveTask, boolean resolveAssignee, boolean resolveCandidates, OperationResult result) {
-        SearchResultList<WorkItemNewType> retval = new SearchResultList<>(new ArrayList<WorkItemNewType>());
+        SearchResultList<WorkItemType> retval = new SearchResultList<>(new ArrayList<WorkItemType>());
         for (Task task : tasks) {
             try {
                 retval.add(taskToWorkItemNew(task, processVariables, resolveTask, resolveAssignee, resolveCandidates, result));
@@ -317,25 +317,25 @@ public class WorkItemProvider {
         }
     }
 
-    private WorkItemNewType taskToWorkItemNew(Task task, Map<String, Object> processVariables, boolean resolveTask, boolean resolveAssignee,
+    private WorkItemType taskToWorkItemNew(Task task, Map<String, Object> processVariables, boolean resolveTask, boolean resolveAssignee,
             boolean resolveCandidates, OperationResult result) {
 		TaskExtract taskExtract = new TaskExtract(task, processVariables);
 		return taskExtractToWorkItemNew(taskExtract, resolveTask, resolveAssignee, resolveCandidates, result);
     }
 
-    public WorkItemNewType taskEventToWorkItemNew(TaskEvent taskEvent, Map<String, Object> processVariables, boolean resolveTask,
+    public WorkItemType taskEventToWorkItemNew(TaskEvent taskEvent, Map<String, Object> processVariables, boolean resolveTask,
 			boolean resolveAssignee, boolean resolveCandidates, OperationResult result) {
 		TaskExtract taskExtract = new TaskExtract(taskEvent);
 		return taskExtractToWorkItemNew(taskExtract, resolveTask, resolveAssignee, resolveCandidates, result);
     }
 
-    public WorkItemNewType taskExtractToWorkItemNew(TaskExtract task, boolean resolveTask, boolean resolveAssignee, boolean resolveCandidates, OperationResult parentResult) {
+    public WorkItemType taskExtractToWorkItemNew(TaskExtract task, boolean resolveTask, boolean resolveAssignee, boolean resolveCandidates, OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(OPERATION_ACTIVITI_TASK_TO_WORK_ITEM);
 		result.addParams(new String [] { "activitiTaskId", "resolveTask", "resolveAssignee", "resolveCandidates" },
 				task.getId(), resolveTask, resolveAssignee, resolveCandidates);
 		try {
 
-			WorkItemNewType wi = new WorkItemNewType(prismContext);
+			WorkItemType wi = new WorkItemType(prismContext);
 			final Map<String, Object> variables = task.getVariables();
 
 			wi.setWorkItemId(task.getId());

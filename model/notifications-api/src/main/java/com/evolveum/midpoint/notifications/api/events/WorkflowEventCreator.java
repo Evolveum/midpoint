@@ -18,7 +18,7 @@ package com.evolveum.midpoint.notifications.api.events;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
 /**
  * Used to create (fill-in) a workflow event based on information passed from workflow module.
@@ -39,7 +39,7 @@ public interface WorkflowEventCreator {
 
     WorkflowProcessEvent createWorkflowProcessEndEvent(Task wfTask, OperationResult result);
 
-    WorkItemEvent createWorkItemCreateEvent(WorkItemNewType workItem, Task wfTask, OperationResult result);
+    WorkItemEvent createWorkItemCreateEvent(WorkItemType workItem, Task wfTask, OperationResult result);
 
-    WorkItemEvent createWorkItemCompleteEvent(WorkItemNewType workItem, Task wfTask, OperationResult result);
+    WorkItemEvent createWorkItemCompleteEvent(WorkItemType workItem, Task wfTask, OperationResult result);
 }

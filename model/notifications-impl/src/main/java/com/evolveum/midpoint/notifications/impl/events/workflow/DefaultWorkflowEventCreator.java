@@ -28,7 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -73,17 +73,17 @@ public class DefaultWorkflowEventCreator implements WorkflowEventCreator {
     }
 
     @Override
-    public WorkItemEvent createWorkItemCreateEvent(WorkItemNewType workItem, Task wfTask, OperationResult result) {
+    public WorkItemEvent createWorkItemCreateEvent(WorkItemType workItem, Task wfTask, OperationResult result) {
         return createWorkItemEvent(workItem, wfTask, ChangeType.ADD);
     }
 
     @Override
-    public WorkItemEvent createWorkItemCompleteEvent(WorkItemNewType workItem, Task wfTask, OperationResult result) {
+    public WorkItemEvent createWorkItemCompleteEvent(WorkItemType workItem, Task wfTask, OperationResult result) {
         return createWorkItemEvent(workItem, wfTask, ChangeType.DELETE);
     }
 
-    private WorkItemEvent createWorkItemEvent(WorkItemNewType workItemNewType, Task wfTask, ChangeType changeType) {
-        WorkItemEvent event = new WorkItemEvent(lightweightIdentifierGenerator, changeType, workItemNewType, wfTask.getWorkflowContext());
+    private WorkItemEvent createWorkItemEvent(WorkItemType workItemType, Task wfTask, ChangeType changeType) {
+        WorkItemEvent event = new WorkItemEvent(lightweightIdentifierGenerator, changeType, workItemType, wfTask.getWorkflowContext());
         fillInEvent(event, wfTask);
         return event;
     }

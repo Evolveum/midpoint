@@ -30,7 +30,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -81,7 +81,7 @@ public class ProcessInstanceProvider {
                 // We assume that everything (except work items) is already stored in repo.
                 return;
             }
-			final List<WorkItemNewType> workItems = workItemProvider.getWorkItemsForProcessInstanceId(instanceId, result);
+			final List<WorkItemType> workItems = workItemProvider.getWorkItemsForProcessInstanceId(instanceId, result);
 			taskType.getWorkflowContext().getWorkItem().addAll(workItems);
         } catch (RuntimeException e) {
             result.recordFatalError(e.getMessage(), e);

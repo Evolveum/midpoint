@@ -41,7 +41,7 @@ import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.delegate.DelegateExecution;
@@ -224,7 +224,7 @@ public class ActivitiInterface {
         }
 
         try {
-			WorkItemNewType workItem = workItemProvider.taskEventToWorkItemNew(taskEvent, null, true, true, true, result);
+			WorkItemType workItem = workItemProvider.taskEventToWorkItemNew(taskEvent, null, true, true, true, result);
             wfTaskController.onTaskEvent(workItem, taskEvent, result);
         } catch (Exception e) {     // todo fix the exception processing e.g. think about situation where an event cannot be audited - should we allow to proceed?
             String message = "Couldn't process an event coming from the workflow management system";

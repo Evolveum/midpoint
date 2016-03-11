@@ -90,9 +90,9 @@ public interface WorkflowManager {
 
     List<? extends ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException;
 
-    boolean isCurrentUserAuthorizedToSubmit(WorkItemNewType workItem);
+    boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem);
 
-    boolean isCurrentUserAuthorizedToClaim(WorkItemNewType workItem);
+    boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem);
 
     // doesn't throw any exceptions - these are logged and stored into the operation result
     <T extends ObjectType> void augmentTaskObject(PrismObject<T> object, Collection<SelectorOptions<GetOperationOptions>> options,

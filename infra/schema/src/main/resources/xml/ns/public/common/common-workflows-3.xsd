@@ -500,7 +500,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="workItem" type="tns:WorkItemNewType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="workItem" type="tns:WorkItemType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Currently open work items for this process.
@@ -649,7 +649,7 @@
     </xsd:complexType>
     <xsd:element name="itemApprovalRequestType" type="tns:ItemApprovalRequestType" />
 
-    <xsd:complexType name="WorkItemNewType">
+    <xsd:complexType name="WorkItemType">
         <xsd:annotation>
             <xsd:documentation>
                 WorkItemType contains information about a human task (or a notification).
@@ -813,7 +813,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:element name="workItemNew" type="tns:WorkItemNewType" />
+    <xsd:element name="workItem" type="tns:WorkItemType" />
 
 
 </xsd:schema>

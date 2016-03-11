@@ -16,16 +16,10 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,7 +30,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
@@ -46,8 +39,7 @@ import java.util.*;
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.*;
 import static com.evolveum.midpoint.prism.query.OrderDirection.DESCENDING;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createResolve;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType.F_TARGET_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
 
 /**
  * @author lazyman
@@ -87,9 +79,9 @@ public class WorkItemDtoNewProvider extends BaseSortableDataProvider<WorkItemNew
             Collection<SelectorOptions<GetOperationOptions>> options =
                     Arrays.asList(
                             SelectorOptions.create(new ItemPath(F_ASSIGNEE_REF), createResolve()));
-            List<WorkItemNewType> items = getModel().searchContainers(WorkItemNewType.class, query, options, task, result);
+            List<WorkItemType> items = getModel().searchContainers(WorkItemType.class, query, options, task, result);
 
-            for (WorkItemNewType item : items) {
+            for (WorkItemType item : items) {
                 try {
                     getAvailableData().add(new WorkItemNewDto(item));
                 } catch (Exception e) {
@@ -118,8 +110,8 @@ public class WorkItemDtoNewProvider extends BaseSortableDataProvider<WorkItemNew
 
     private ObjectQuery createQuery() throws SchemaException {
         if (assigned) {
-            return QueryBuilder.queryFor(WorkItemNewType.class, getPrismContext())
-                    .item(WorkItemNewType.F_ASSIGNEE_REF).ref(currentUser())
+            return QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
+                    .item(WorkItemType.F_ASSIGNEE_REF).ref(currentUser())
                     .build();
         } else {
             throw new UnsupportedOperationException("search by more than one ref is not supported");
@@ -133,7 +125,7 @@ public class WorkItemDtoNewProvider extends BaseSortableDataProvider<WorkItemNew
         OperationResult result = new OperationResult(OPERATION_COUNT_ITEMS);
         try {
             ObjectQuery query = createQuery();
-            count = getModel().countContainers(WorkItemNewType.class, query, null, task, result);
+            count = getModel().countContainers(WorkItemType.class, query, null, task, result);
         } catch (SchemaException|RuntimeException e) {
             throw new SystemException("Couldn't count work items: " + e.getMessage(), e);
         }

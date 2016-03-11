@@ -152,7 +152,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             }
 
             @Override
-            void completeWorkItem(WorkItemNewType workItem, String taskId, OperationResult result) throws Exception {
+            void completeWorkItem(WorkItemType workItem, String taskId, OperationResult result) throws Exception {
 //                WorkItemContents contents = (WorkItemContents) workItem.getContents();
 //                PrismObject<? extends QuestionFormType> qFormObject = contents.getQuestionForm().asPrismObject();
 //                LOGGER.trace("workItemContents = " + qFormObject.debugDump());
@@ -210,7 +210,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             }
 
             @Override
-            void completeWorkItem(WorkItemNewType workItem, String taskId, OperationResult result) throws Exception {
+            void completeWorkItem(WorkItemType workItem, String taskId, OperationResult result) throws Exception {
 //
 //                PrismObject<? extends WorkItemContents> workItemContents = workItem.getContents().asPrismObject();
 //                display("workItemContents", workItemContents);
@@ -310,7 +310,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             }
 
             @Override
-            void completeWorkItem(WorkItemNewType workItem, String taskId, OperationResult result) throws Exception {
+            void completeWorkItem(WorkItemType workItem, String taskId, OperationResult result) throws Exception {
 //
 //                PrismObject<? extends WorkItemContents> workItemContents = workItem.getContents().asPrismObject();
 //                display("workItemContents", workItemContents);
@@ -367,7 +367,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception { }
         String getObjectOid(Task task, OperationResult result) throws SchemaException { return null; };
 
-        abstract void completeWorkItem(WorkItemNewType workItem, String taskId, OperationResult result) throws Exception;
+        abstract void completeWorkItem(WorkItemType workItem, String taskId, OperationResult result) throws Exception;
     }
 
 	private void executeTest(String testName, String oid, int subtaskCount, boolean immediate, boolean checkObjectOnSubtasks, ContextCreator contextCreator) throws Exception {

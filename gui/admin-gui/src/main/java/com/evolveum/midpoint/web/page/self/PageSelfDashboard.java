@@ -48,7 +48,7 @@ import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -62,7 +62,7 @@ import java.util.List;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType.F_WORK_ITEM_CREATED_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_WORK_ITEM_CREATED_TIMESTAMP;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -223,12 +223,12 @@ public class PageSelfDashboard extends PageSelf {
         callableResult.setResult(result);
 
         try {
-            ObjectQuery query = QueryBuilder.queryFor(WorkItemNewType.class, prismContext)
-                    .item(WorkItemNewType.F_ASSIGNEE_REF).ref(user.getOid())
+            ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, prismContext)
+                    .item(WorkItemType.F_ASSIGNEE_REF).ref(user.getOid())
                     .desc(F_WORK_ITEM_CREATED_TIMESTAMP)
                     .build();
-            List<WorkItemNewType> workItems = getModelService().searchContainers(WorkItemNewType.class, query, null, task, result);
-            for (WorkItemNewType workItem : workItems) {
+            List<WorkItemType> workItems = getModelService().searchContainers(WorkItemType.class, query, null, task, result);
+            for (WorkItemType workItem : workItems) {
                 list.add(new WorkItemNewDto(workItem));
             }
         } catch (Exception e) {

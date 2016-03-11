@@ -852,7 +852,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		}
 
 		final boolean isCase = AccessCertificationCaseType.class.equals(type);
-		final boolean isWorkItem = WorkItemNewType.class.equals(type);
+		final boolean isWorkItem = WorkItemType.class.equals(type);
 
 		if (!isCase && !isWorkItem) {
 			throw new UnsupportedOperationException("searchContainers method is currently supported only for AccessCertificationCaseType and WorkItemType classes");
@@ -939,7 +939,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		Validate.notNull(type, "Container value type must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
 
-		final boolean isWorkItem = WorkItemNewType.class.equals(type);
+		final boolean isWorkItem = WorkItemType.class.equals(type);
 
 		if (!isWorkItem) {
 			throw new UnsupportedOperationException("countContainers method is currently supported only for WorkItemType classes");

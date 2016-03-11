@@ -46,7 +46,7 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -309,7 +309,7 @@ public class WfTaskController {
     //region Processing work item (task) events
 
 	// workItem contains taskRef, assignee, candidates resolved (if possible)
-    public void onTaskEvent(WorkItemNewType workItem, TaskEvent taskEvent, OperationResult result) throws WorkflowException, SchemaException {
+    public void onTaskEvent(WorkItemType workItem, TaskEvent taskEvent, OperationResult result) throws WorkflowException, SchemaException {
 
 		final TaskType shadowTaskType = (TaskType) ObjectTypeUtil.getObjectFromReference(workItem.getTaskRef());
 		if (shadowTaskType == null) {
@@ -364,20 +364,20 @@ public class WfTaskController {
         }
     }
 
-    private void notifyWorkItemCreated(WorkItemNewType workItem, WfTask wfTask, OperationResult result) throws SchemaException {
+    private void notifyWorkItemCreated(WorkItemType workItem, WfTask wfTask, OperationResult result) throws SchemaException {
         for (WorkItemListener workItemListener : workItemListeners) {
             workItemListener.onWorkItemCreation(workItem, wfTask.getTask(), result);
         }
     }
 
-    private void notifyWorkItemCompleted(WorkItemNewType workItem, WfTask wfTask, OperationResult result) throws SchemaException {
+    private void notifyWorkItemCompleted(WorkItemType workItem, WfTask wfTask, OperationResult result) throws SchemaException {
         for (WorkItemListener workItemListener : workItemListeners) {
             workItemListener.onWorkItemCompletion(workItem, wfTask.getTask(), result);
         }
     }
 
 	// workItem contains taskRef, assignee, candidates resolved (if possible)
-    private void auditWorkItemEvent(WorkItemNewType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException {
+    private void auditWorkItemEvent(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException {
         AuditEventRecord auditEventRecord = getChangeProcessor(taskEvent).prepareWorkItemAuditRecord(workItem, wfTask, taskEvent, stage, result);
         auditService.audit(auditEventRecord, wfTask.getTask());
     }

@@ -45,9 +45,6 @@ import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
-import com.evolveum.midpoint.wf.impl.processes.common.StringHolder;
-import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
-import com.evolveum.midpoint.wf.impl.processors.primary.PcpProcessVariableNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
@@ -241,7 +238,7 @@ public class MiscDataUtil {
         }
     }
 
-    public boolean isAuthorizedToSubmit(WorkItemNewType workItem) {
+    public boolean isAuthorizedToSubmit(WorkItemType workItem) {
         return isAuthorizedToSubmit(workItem.getWorkItemId(),
                 workItem.getAssigneeRef() != null ? workItem.getAssigneeRef().getOid() : null);
     }
@@ -298,7 +295,7 @@ public class MiscDataUtil {
         return false;
     }
 
-    public boolean isAuthorizedToClaim(WorkItemNewType workItem) {
+    public boolean isAuthorizedToClaim(WorkItemType workItem) {
         return isAuthorizedToClaim(workItem.getWorkItemId());
     }
 

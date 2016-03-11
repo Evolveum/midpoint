@@ -70,7 +70,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -177,10 +177,10 @@ public class TestUserChangeApproval extends AbstractWfTest {
                 F_ASSIGNEE_REF,
                 new ItemPath(F_TASK_REF, F_WORKFLOW_CONTEXT, F_REQUESTER_REF));
 
-        List<WorkItemNewType> workItems = modelService.searchContainers(WorkItemNewType.class, null, options1, opTask, result);
+        List<WorkItemType> workItems = modelService.searchContainers(WorkItemType.class, null, options1, opTask, result);
         assertEquals("Wrong # of work items", processNames.length, workItems.size());
         i = 0;
-        for (WorkItemNewType workItem : workItems) {
+        for (WorkItemType workItem : workItems) {
             display("Work item #"+(i+1)+": ", workItem);
             display("Task ref", workItem.getTaskRef() != null ? workItem.getTaskRef().asReferenceValue().debugDump(0, true) : null);
             assertRef("object reference", workItem.getObjectRef(), USER_JACK_OID, true, true);

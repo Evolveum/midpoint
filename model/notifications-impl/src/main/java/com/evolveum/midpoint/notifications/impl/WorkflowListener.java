@@ -29,7 +29,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.ProcessListener;
 import com.evolveum.midpoint.wf.api.WorkItemListener;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -81,14 +81,14 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
     }
 
     @Override
-    public void onWorkItemCreation(WorkItemNewType workItem, Task wfTask, OperationResult result) {
+    public void onWorkItemCreation(WorkItemType workItem, Task wfTask, OperationResult result) {
         WorkflowEventCreator workflowEventCreator = notificationManager.getWorkflowEventCreator(wfTask);
         WorkItemEvent event = workflowEventCreator.createWorkItemCreateEvent(workItem, wfTask, result);
         processEvent(event);
     }
 
     @Override
-    public void onWorkItemCompletion(WorkItemNewType workItem, Task wfTask, OperationResult result) {
+    public void onWorkItemCompletion(WorkItemType workItem, Task wfTask, OperationResult result) {
         WorkflowEventCreator workflowEventCreator = notificationManager.getWorkflowEventCreator(wfTask);
         WorkItemEvent event = workflowEventCreator.createWorkItemCompleteEvent(workItem, wfTask, result);
         processEvent(event);

@@ -41,7 +41,7 @@ import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNewType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -98,7 +98,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
         result.addParams(new String[] { "type", "query" }, type, query);
         result.addCollectionOfSerializablesAsParam("options", options);
 		try {
-			if (!WorkItemNewType.class.equals(type)) {
+			if (!WorkItemType.class.equals(type)) {
 				throw new UnsupportedOperationException("countContainers is available only for work items");
 			}
 			return workItemProvider.countWorkItems(query, options, result);
@@ -118,7 +118,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
 		result.addParams(new String[] { "type", "query" }, type, query);
 		result.addCollectionOfSerializablesAsParam("options", options);
 		try {
-			if (!WorkItemNewType.class.equals(type)) {
+			if (!WorkItemType.class.equals(type)) {
 				throw new UnsupportedOperationException("searchContainers is available only for work items");
 			}
 			return (SearchResultList<T>) workItemProvider.searchWorkItems(query, options, result);
@@ -217,12 +217,12 @@ public class WorkflowManagerImpl implements WorkflowManager {
     }
 
     @Override
-    public boolean isCurrentUserAuthorizedToSubmit(WorkItemNewType workItem) {
+    public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem) {
         return miscDataUtil.isAuthorizedToSubmit(workItem);
     }
 
     @Override
-    public boolean isCurrentUserAuthorizedToClaim(WorkItemNewType workItem) {
+    public boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem) {
         return miscDataUtil.isAuthorizedToClaim(workItem);
     }
 }
