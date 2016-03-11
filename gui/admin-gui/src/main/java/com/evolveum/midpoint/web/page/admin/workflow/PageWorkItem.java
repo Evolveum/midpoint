@@ -39,7 +39,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemNewDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -82,7 +82,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     private PageParameters parameters;
 
-    private LoadableModel<WorkItemNewDto> workItemDtoModel;
+    private LoadableModel<WorkItemDto> workItemDtoModel;
 
     public PageWorkItem() {
         this(new PageParameters(), null);
@@ -98,9 +98,9 @@ public class PageWorkItem extends PageAdminWorkItems {
         setPreviousPage(previousPage);
         setReinitializePreviousPages(reinitializePreviousPage);
 
-        workItemDtoModel = new LoadableModel<WorkItemNewDto>(false) {
+        workItemDtoModel = new LoadableModel<WorkItemDto>(false) {
             @Override
-            protected WorkItemNewDto load() {
+            protected WorkItemDto load() {
                 return loadWorkItemDtoIfNecessary();
             }
         };
@@ -119,13 +119,13 @@ public class PageWorkItem extends PageAdminWorkItems {
         };
     }
 
-    private WorkItemNewDto loadWorkItemDtoIfNecessary() {
+    private WorkItemDto loadWorkItemDtoIfNecessary() {
         if (workItemDtoModel.isLoaded()) {
             return workItemDtoModel.getObject();
         }
         Task task = createSimpleTask(OPERATION_LOAD_WORK_ITEM);
         OperationResult result = task.getResult();
-        WorkItemNewDto workItemDto = null;
+        WorkItemDto workItemDto = null;
         try {
             String id = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
             final ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
@@ -140,7 +140,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             } else if (workItems.size() == 0) {
                 throw new SystemException("No work item with ID of " + id);
             }
-            workItemDto = new WorkItemNewDto(workItems.get(0));
+            workItemDto = new WorkItemDto(workItems.get(0));
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get work item.", ex);
@@ -278,7 +278,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         OperationResult result = new OperationResult(OPERATION_SAVE_WORK_ITEM);
 
         try {
-			WorkItemNewDto dto = workItemDtoModel.getObject();
+			WorkItemDto dto = workItemDtoModel.getObject();
             getWorkflowService().approveOrRejectWorkItem(dto.getWorkItemId(), decision, dto.getApproverComment(), result);
             setReinitializePreviousPages(true);
         } catch (Exception ex) {

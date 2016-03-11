@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author lazyman
  * @author mederly
  */
-public class WorkItemNewDto extends Selectable {
+public class WorkItemDto extends Selectable {
 
     public static final String F_NAME = "name";
     public static final String F_CREATED = "created";
@@ -52,7 +52,7 @@ public class WorkItemNewDto extends Selectable {
     protected WorkItemType workItem;
     protected String approverComment;
 
-    public WorkItemNewDto(WorkItemType workItem) {
+    public WorkItemDto(WorkItemType workItem) {
         this.workItem = workItem;
     }
 

@@ -41,7 +41,7 @@ import com.evolveum.midpoint.web.page.admin.home.component.DashboardColor;
 import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkflowRequestsPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemNewDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.page.self.component.LinksPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
@@ -133,19 +133,19 @@ public class PageSelfDashboard extends PageSelf {
 
 		final PrismContext prismContext = getPrismContext();
 
-		AsyncDashboardPanel<Object, List<WorkItemNewDto>> workItemsPanel =
-                new AsyncDashboardPanel<Object, List<WorkItemNewDto>>(ID_WORK_ITEMS_PANEL, createStringResource("PageSelfDashboard.workItems"),
+		AsyncDashboardPanel<Object, List<WorkItemDto>> workItemsPanel =
+                new AsyncDashboardPanel<Object, List<WorkItemDto>>(ID_WORK_ITEMS_PANEL, createStringResource("PageSelfDashboard.workItems"),
                         "fa fa-fw fa-tasks", DashboardColor.RED) {
 
                     @Override
-                    protected SecurityContextAwareCallable<CallableResult<List<WorkItemNewDto>>> createCallable(
+                    protected SecurityContextAwareCallable<CallableResult<List<WorkItemDto>>> createCallable(
                             Authentication auth, IModel callableParameterModel) {
 
-                        return new SecurityContextAwareCallable<CallableResult<List<WorkItemNewDto>>>(
+                        return new SecurityContextAwareCallable<CallableResult<List<WorkItemDto>>>(
                                 getSecurityEnforcer(), auth) {
 
                             @Override
-                            public CallableResult<List<WorkItemNewDto>> callWithContextPrepared() throws Exception {
+                            public CallableResult<List<WorkItemDto>> callWithContextPrepared() throws Exception {
                                 return loadWorkItems(prismContext);
                             }
                         };
@@ -153,7 +153,7 @@ public class PageSelfDashboard extends PageSelf {
 
                     @Override
                     protected Component getMainComponent(String markupId) {
-						ISortableDataProvider provider = new ListDataProvider(this, new PropertyModel<List<WorkItemNewDto>>(getModel(), CallableResult.F_VALUE));
+						ISortableDataProvider provider = new ListDataProvider(this, new PropertyModel<List<WorkItemDto>>(getModel(), CallableResult.F_VALUE));
 						return new WorkItemsTablePanel(markupId, provider, null, 10, false);
                     }
                 };
@@ -201,12 +201,12 @@ public class PageSelfDashboard extends PageSelf {
 
     }
 
-    private CallableResult<List<WorkItemNewDto>> loadWorkItems(PrismContext prismContext) {
+    private CallableResult<List<WorkItemDto>> loadWorkItems(PrismContext prismContext) {
 
         LOGGER.debug("Loading work items.");
 
         AccountCallableResult callableResult = new AccountCallableResult();
-        List<WorkItemNewDto> list = new ArrayList<>();
+        List<WorkItemDto> list = new ArrayList<>();
         callableResult.setValue(list);
 
         if (!getWorkflowManager().isEnabled()) {
@@ -229,7 +229,7 @@ public class PageSelfDashboard extends PageSelf {
                     .build();
             List<WorkItemType> workItems = getModelService().searchContainers(WorkItemType.class, query, null, task, result);
             for (WorkItemType workItem : workItems) {
-                list.add(new WorkItemNewDto(workItem));
+                list.add(new WorkItemDto(workItem));
             }
         } catch (Exception e) {
             result.recordFatalError("Couldn't get list of work items.", e);

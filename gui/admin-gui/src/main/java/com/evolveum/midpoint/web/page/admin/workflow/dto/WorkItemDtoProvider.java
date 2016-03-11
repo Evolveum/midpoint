@@ -44,10 +44,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.
 /**
  * @author lazyman
  */
-public class WorkItemDtoNewProvider extends BaseSortableDataProvider<WorkItemNewDto> {
+public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(WorkItemDtoNewProvider.class);
-    private static final String DOT_CLASS = WorkItemDtoNewProvider.class.getName() + ".";
+    private static final transient Trace LOGGER = TraceManager.getTrace(WorkItemDtoProvider.class);
+    private static final String DOT_CLASS = WorkItemDtoProvider.class.getName() + ".";
     private static final String OPERATION_LIST_ITEMS = DOT_CLASS + "listItems";
     private static final String OPERATION_COUNT_ITEMS = DOT_CLASS + "countItems";
 
@@ -62,13 +62,13 @@ public class WorkItemDtoNewProvider extends BaseSortableDataProvider<WorkItemNew
         return principal.getOid();
     }
 
-    public WorkItemDtoNewProvider(Component component, boolean assigned) {
+    public WorkItemDtoProvider(Component component, boolean assigned) {
         super(component);
         this.assigned = assigned;
     }
 
     @Override
-    public Iterator<? extends WorkItemNewDto> internalIterator(long first, long count) {
+    public Iterator<? extends WorkItemDto> internalIterator(long first, long count) {
         getAvailableData().clear();
 
         Task task = getTaskManager().createTaskInstance();
@@ -83,7 +83,7 @@ public class WorkItemDtoNewProvider extends BaseSortableDataProvider<WorkItemNew
 
             for (WorkItemType item : items) {
                 try {
-                    getAvailableData().add(new WorkItemNewDto(item));
+                    getAvailableData().add(new WorkItemDto(item));
                 } catch (Exception e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing work item {}", e, item);
                     result.recordFatalError("Couldn't list work item.", e);

@@ -24,8 +24,8 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItem;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoNewProvider;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemNewDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoProvider;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -48,9 +48,9 @@ public class WorkItemsTablePanel extends BasePanel {
 
     private static final String ID_WORK_ITEMS_TABLE = "workItemsTable";
 
-    private ISortableDataProvider<WorkItemNewDto, String> provider;
+    private ISortableDataProvider<WorkItemDto, String> provider;
 
-    public WorkItemsTablePanel(String id, ISortableDataProvider<WorkItemNewDto, String> provider,
+    public WorkItemsTablePanel(String id, ISortableDataProvider<WorkItemDto, String> provider,
             UserProfileStorage.TableId tableId, long pageSize, boolean showAssigned) {
         super(id);
         this.provider = provider;
@@ -59,30 +59,30 @@ public class WorkItemsTablePanel extends BasePanel {
 
     // this is called locally in order to take showAssigned into account
     private void initLayout(UserProfileStorage.TableId tableId, long pageSize, boolean showAssigned) {
-        List<IColumn<WorkItemNewDto, String>> columns = new ArrayList<>();
+        List<IColumn<WorkItemDto, String>> columns = new ArrayList<>();
 
         // TODO configurable
-        columns.add(new CheckBoxHeaderColumn<WorkItemNewDto>());
+        columns.add(new CheckBoxHeaderColumn<WorkItemDto>());
 
         // TODO clickable links and info icons
-        columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.object"), WorkItemNewDto.F_OBJECT_NAME));
-        columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.target"), WorkItemNewDto.F_TARGET_NAME));
+        columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.object"), WorkItemDto.F_OBJECT_NAME));
+        columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.target"), WorkItemDto.F_TARGET_NAME));
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL)) {
-            columns.add(new LinkColumn<WorkItemNewDto>(createStringResource("WorkItemsPanel.name"), WorkItemNewDto.F_NAME, WorkItemNewDto.F_NAME) {
+            columns.add(new LinkColumn<WorkItemDto>(createStringResource("WorkItemsPanel.name"), WorkItemDto.F_NAME, WorkItemDto.F_NAME) {
                 @Override
-                public void onClick(AjaxRequestTarget target, IModel<WorkItemNewDto> rowModel) {
+                public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
                     PageParameters parameters = new PageParameters();
                     parameters.add(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getWorkItemId());
                     setResponsePage(new PageWorkItem(parameters, (PageBase) WorkItemsTablePanel.this.getPage()));
                 }
             });
         } else {
-            columns.add(new AbstractColumn<WorkItemNewDto, String>(createStringResource("WorkItemsPanel.name")) {
+            columns.add(new AbstractColumn<WorkItemDto, String>(createStringResource("WorkItemsPanel.name")) {
                 @Override
-                public void populateItem(Item<ICellPopulator<WorkItemNewDto>> item, String componentId,
-                                         final IModel<WorkItemNewDto> rowModel) {
+                public void populateItem(Item<ICellPopulator<WorkItemDto>> item, String componentId,
+                                         final IModel<WorkItemDto> rowModel) {
                     item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
                         @Override
                         public Object getObject() {
@@ -93,10 +93,10 @@ public class WorkItemsTablePanel extends BasePanel {
             });
         }
 
-        columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.started"), WorkItemNewDto.F_PROCESS_STARTED));
-        columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.created"), WorkItemNewDto.F_CREATED));
+        columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.started"), WorkItemDto.F_PROCESS_STARTED));
+        columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.created"), WorkItemDto.F_CREATED));
         if (showAssigned) {
-            columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.assigned"), WorkItemNewDto.F_ASSIGNEE_OR_CANDIDATES));
+            columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.assigned"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
         }
 
         TablePanel workItemsTable = new TablePanel<>(ID_WORK_ITEMS_TABLE, provider, columns, tableId, pageSize);
@@ -107,12 +107,12 @@ public class WorkItemsTablePanel extends BasePanel {
         return (TablePanel) get(ID_WORK_ITEMS_TABLE);
     }
 
-    public List<WorkItemNewDto> getSelectedWorkItems() {
+    public List<WorkItemDto> getSelectedWorkItems() {
         DataTable table = getWorkItemTable().getDataTable();
-        WorkItemDtoNewProvider provider = (WorkItemDtoNewProvider) table.getDataProvider();
+        WorkItemDtoProvider provider = (WorkItemDtoProvider) table.getDataProvider();
 
-        List<WorkItemNewDto> selected = new ArrayList<>();
-        for (WorkItemNewDto row : provider.getAvailableData()) {
+        List<WorkItemDto> selected = new ArrayList<>();
+        for (WorkItemDto row : provider.getAvailableData()) {
             if (row.isSelected()) {
                 selected.add(row);
             }

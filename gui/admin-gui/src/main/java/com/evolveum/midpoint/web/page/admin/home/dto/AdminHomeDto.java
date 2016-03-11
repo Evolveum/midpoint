@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.home.dto;
 
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemNewDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ public class AdminHomeDto implements Serializable {
     private List<SimpleAssignmentDto> assignments;
     private List<SimpleAssignmentDto> orgAssignments;
     private List<String> resources;
-    private List<WorkItemNewDto> workItems;
+    private List<WorkItemDto> workItems;
 
     public List<SimpleAssignmentDto> getOrgAssignments() {
         if (orgAssignments == null) {
@@ -58,9 +58,9 @@ public class AdminHomeDto implements Serializable {
         return resources;
     }
 
-    public List<WorkItemNewDto> getWorkItems() {
+    public List<WorkItemDto> getWorkItems() {
         if (workItems == null) {
-            workItems = new ArrayList<WorkItemNewDto>();
+            workItems = new ArrayList<WorkItemDto>();
         }
         return workItems;
     }

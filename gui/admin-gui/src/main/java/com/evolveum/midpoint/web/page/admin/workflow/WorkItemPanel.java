@@ -19,7 +19,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalHistoryPanel;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemNewDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
@@ -28,7 +28,7 @@ import org.apache.wicket.model.PropertyModel;
 /**
  * @author mederly
  */
-public class WorkItemPanel extends BasePanel<WorkItemNewDto> {
+public class WorkItemPanel extends BasePanel<WorkItemDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(WorkItemPanel.class);
 
@@ -42,21 +42,21 @@ public class WorkItemPanel extends BasePanel<WorkItemNewDto> {
     private static final String ID_HISTORY = "history";
     private static final String ID_APPROVER_COMMENT = "approverComment";
 
-    public WorkItemPanel(String id, IModel<WorkItemNewDto> model) {
+    public WorkItemPanel(String id, IModel<WorkItemDto> model) {
         super(id, model);
         initLayout();
     }
 
     protected void initLayout() {
-        add(new Label(ID_REQUESTED_BY, new PropertyModel(getModel(), WorkItemNewDto.F_REQUESTER_NAME)));
-        add(new Label(ID_REQUESTED_BY_FULL_NAME, new PropertyModel(getModel(), WorkItemNewDto.F_REQUESTER_FULL_NAME)));
-        add(new Label(ID_REQUESTED_ON, new PropertyModel(getModel(), WorkItemNewDto.F_PROCESS_STARTED)));
-        add(new Label(ID_WORK_ITEM_CREATED_ON, new PropertyModel(getModel(), WorkItemNewDto.F_CREATED)));
-        add(new Label(ID_ASSIGNEE, new PropertyModel(getModel(), WorkItemNewDto.F_ASSIGNEE)));
-        add(new Label(ID_CANDIDATES, new PropertyModel(getModel(), WorkItemNewDto.F_CANDIDATES)));
-        add(new ItemApprovalHistoryPanel(ID_HISTORY, new PropertyModel(getModel(), WorkItemNewDto.F_WORKFLOW_CONTEXT)));
+        add(new Label(ID_REQUESTED_BY, new PropertyModel(getModel(), WorkItemDto.F_REQUESTER_NAME)));
+        add(new Label(ID_REQUESTED_BY_FULL_NAME, new PropertyModel(getModel(), WorkItemDto.F_REQUESTER_FULL_NAME)));
+        add(new Label(ID_REQUESTED_ON, new PropertyModel(getModel(), WorkItemDto.F_PROCESS_STARTED)));
+        add(new Label(ID_WORK_ITEM_CREATED_ON, new PropertyModel(getModel(), WorkItemDto.F_CREATED)));
+        add(new Label(ID_ASSIGNEE, new PropertyModel(getModel(), WorkItemDto.F_ASSIGNEE)));
+        add(new Label(ID_CANDIDATES, new PropertyModel(getModel(), WorkItemDto.F_CANDIDATES)));
+        add(new ItemApprovalHistoryPanel(ID_HISTORY, new PropertyModel(getModel(), WorkItemDto.F_WORKFLOW_CONTEXT)));
         //add(new DeltaPanel(ID_DELTA_TO_BE_APPROVED, deltaModel));
-        add(new TextArea(ID_APPROVER_COMMENT, new PropertyModel(getModel(), WorkItemNewDto.F_APPROVER_COMMENT)));
+        add(new TextArea(ID_APPROVER_COMMENT, new PropertyModel(getModel(), WorkItemDto.F_APPROVER_COMMENT)));
     }
 
 }

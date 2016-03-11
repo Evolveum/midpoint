@@ -28,8 +28,8 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.wf.WorkItemsTablePanel;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoNewProvider;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemNewDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoProvider;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -75,7 +75,7 @@ public class PageWorkItems extends PageAdminWorkItems {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        WorkItemsTablePanel panel = new WorkItemsTablePanel(ID_WORK_ITEMS_PANEL, new WorkItemDtoNewProvider(PageWorkItems.this, assigned),
+        WorkItemsTablePanel panel = new WorkItemsTablePanel(ID_WORK_ITEMS_PANEL, new WorkItemDtoProvider(PageWorkItems.this, assigned),
                 UserProfileStorage.TableId.PAGE_WORK_ITEMS, getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEMS), true);
 
         panel.setOutputMarkupId(true);
@@ -127,7 +127,7 @@ public class PageWorkItems extends PageAdminWorkItems {
         mainForm.add(reject);
     }
 
-    private boolean isSomeItemSelected(List<WorkItemNewDto> items, AjaxRequestTarget target) {
+    private boolean isSomeItemSelected(List<WorkItemDto> items, AjaxRequestTarget target) {
         if (!items.isEmpty()) {
             return true;
         }
@@ -142,17 +142,17 @@ public class PageWorkItems extends PageAdminWorkItems {
     }
 
     private void approveOrRejectWorkItemsPerformed(AjaxRequestTarget target, boolean approve) {
-        List<WorkItemNewDto> WorkItemNewDtoList = getWorkItemsPanel().getSelectedWorkItems();
-        if (!isSomeItemSelected(WorkItemNewDtoList, target)) {
+        List<WorkItemDto> workItemDtoList = getWorkItemsPanel().getSelectedWorkItems();
+        if (!isSomeItemSelected(workItemDtoList, target)) {
             return;
         }
 
         OperationResult mainResult = new OperationResult(OPERATION_APPROVE_OR_REJECT_ITEMS);
         WorkflowService workflowService = getWorkflowService();
-        for (WorkItemNewDto workItemNewDto : WorkItemNewDtoList) {
+        for (WorkItemDto workItemDto : workItemDtoList) {
             OperationResult result = mainResult.createSubresult(OPERATION_APPROVE_OR_REJECT_ITEM);
             try {
-                workflowService.approveOrRejectWorkItem(workItemNewDto.getWorkItemId(), approve, null, result);
+                workflowService.approveOrRejectWorkItem(workItemDto.getWorkItemId(), approve, null, result);
                 result.computeStatus();
             } catch (Exception e) {
                 result.recordPartialError("Couldn't approve/reject work item due to an unexpected exception.", e);
@@ -173,17 +173,17 @@ public class PageWorkItems extends PageAdminWorkItems {
     }
 
     private void claimWorkItemsPerformed(AjaxRequestTarget target) {
-        List<WorkItemNewDto> WorkItemNewDtoList = getWorkItemsPanel().getSelectedWorkItems();
-        if (!isSomeItemSelected(WorkItemNewDtoList, target)) {
+        List<WorkItemDto> workItemDtoList = getWorkItemsPanel().getSelectedWorkItems();
+        if (!isSomeItemSelected(workItemDtoList, target)) {
             return;
         }
 
         OperationResult mainResult = new OperationResult(OPERATION_CLAIM_ITEMS);
         WorkflowService workflowService = getWorkflowService();
-        for (WorkItemNewDto workItemNewDto : WorkItemNewDtoList) {
+        for (WorkItemDto workItemDto : workItemDtoList) {
             OperationResult result = mainResult.createSubresult(OPERATION_CLAIM_ITEM);
             try {
-                workflowService.claimWorkItem(workItemNewDto.getWorkItemId(), result);
+                workflowService.claimWorkItem(workItemDto.getWorkItemId(), result);
                 result.computeStatusIfUnknown();
             } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException e) {
                 result.recordPartialError("Couldn't claim work item due to an unexpected exception.", e);
@@ -204,17 +204,17 @@ public class PageWorkItems extends PageAdminWorkItems {
     }
 
     private void releaseWorkItemsPerformed(AjaxRequestTarget target) {
-        List<WorkItemNewDto> WorkItemNewDtoList = getWorkItemsPanel().getSelectedWorkItems();
-        if (!isSomeItemSelected(WorkItemNewDtoList, target)) {
+        List<WorkItemDto> workItemDtoList = getWorkItemsPanel().getSelectedWorkItems();
+        if (!isSomeItemSelected(workItemDtoList, target)) {
             return;
         }
 
         OperationResult mainResult = new OperationResult(OPERATION_RELEASE_ITEMS);
         WorkflowService workflowService = getWorkflowService();
-        for (WorkItemNewDto workItemNewDto : WorkItemNewDtoList) {
+        for (WorkItemDto workItemDto : workItemDtoList) {
             OperationResult result = mainResult.createSubresult(OPERATION_RELEASE_ITEM);
             try {
-                workflowService.releaseWorkItem(workItemNewDto.getWorkItemId(), result);
+                workflowService.releaseWorkItem(workItemDto.getWorkItemId(), result);
                 result.computeStatusIfUnknown();
             } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException e) {
                 result.recordPartialError("Couldn't release work item due to an unexpected exception.", e);
