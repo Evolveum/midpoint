@@ -222,6 +222,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File USER_RAPP_FILE = new File(COMMON_DIR, "user-rapp.xml");
 	protected static final String USER_RAPP_OID = "c0c010c0-d34d-b33f-f00d-11111111c008";
 	protected static final String USER_RAPP_USERNAME = "rapp";
+	protected static final String USER_RAPP_FULLNAME = "Rapp Scallion";
 
 	// Herman has a validity dates set in the activation part
 	protected static final File USER_HERMAN_FILE = new File(COMMON_DIR, "user-herman.xml");

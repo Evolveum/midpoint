@@ -53,6 +53,8 @@ import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTes
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -239,9 +241,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		dummyResourceCtlLime.setResource(resourceDummyLime);
 		
 		// Create an account that midPoint does not know about yet
-		dummyResourceCtl.addAccount(USER_RAPP_USERNAME, "Rapp Scallion", "Scabb Island");
+		dummyResourceCtl.addAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, "Scabb Island");
+		dummyResource.getAccountByUsername(USER_RAPP_USERNAME)
+					.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The Elaine");
 		
-		dummyResourceCtlLime.addAccount(USER_RAPP_USERNAME, "Rapp Scallion", "Scabb Island");
+		dummyResourceCtlLime.addAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, "Scabb Island");
+		dummyResourceLime.getAccountByUsername(USER_RAPP_USERNAME)
+					.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The Elaine");
 		dummyResourceCtlLime.addAccount(ACCOUNT_RUM_NAME, "Rum Rogers");
 		dummyResourceCtlLime.addAccount(ACCOUNT_MURRAY_NAME, "Murray");
 		
@@ -372,6 +378,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
         assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
         
+        PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
+        display("User rapp after", userRappAfter);
+        PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT, 
+        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        
         assertEquals("Unexpected number of users", 8, users.size());
         
         // Check audit
@@ -426,6 +437,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
         assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
         
+        PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
+        display("User rapp after", userRappAfter);
+        PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT, 
+        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        
         assertEquals("Unexpected number of users", 8, users.size());
         
         // Check audit
@@ -446,6 +462,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertUsers(8);
         dummyAuditService.clear();
         rememberShadowFetchOperationCount();
+        
+        display("Rapp lime account before", dummyResourceLime.getAccountByUsername(USER_RAPP_USERNAME));
+        
+        PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
+        display("User rapp before", userRappBefore);
+        PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT, 
+        		PrismTestUtil.createPolyString("The crew of The Elaine"));
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -474,9 +497,16 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByUsername(ACCOUNT_RUM_NAME, RESOURCE_DUMMY_LIME_OID);
         assertImportedUserByUsername(ACCOUNT_MURRAY_NAME, RESOURCE_DUMMY_LIME_OID);
         
+        PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
+        display("User rapp after", userRappAfter);
+        PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT, 
+        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        
         // These are protected accounts, they should not be imported
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
         assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        
+        display("Rapp lime account after", dummyResourceLime.getAccountByUsername(USER_RAPP_USERNAME));
         
         assertUsers(10);
         
@@ -516,6 +546,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Calypso is protected, this should not reconcile
         DummyAccount calypsoDummyAccount = dummyResource.getAccountByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
         calypsoDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Calypso");
+        
+        PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
+        display("User rapp before", userRappBefore);
+        PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT, 
+        		PrismTestUtil.createPolyString("The crew of The Elaine"));
         
         dummyResource.purgeScriptHistory();
         dummyAuditService.clear();
@@ -562,6 +597,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         		"Arr!", "I want to be a pirate!");
         
         assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
+        PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
+        display("User rapp after", userRappAfter);
+        PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT, 
+        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        
         assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
 
         // These are protected accounts, they should not be imported
@@ -581,12 +621,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
         addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
-        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
+        addReconScripts(scripts, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, false);
         addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
-        //assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
-		assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_OID);		// Temporary measure, see MID-2441. There is a (seemingly) redundant user delta there.
+        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
+//		assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_OID);		// Temporary measure, see MID-2441. There is a (seemingly) redundant user delta there.
         
         // Task result
         PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECONCILE_DUMMY_OID);
@@ -731,7 +771,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
         addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
-        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
+        addReconScripts(scripts, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, false);
         addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
@@ -803,7 +843,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Guybrush is broken.
         addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true, false);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
-        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
+        addReconScripts(scripts, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, false);
         addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
@@ -871,6 +911,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         		"Arr!", "I want to be a pirate!");
         
         assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
+        PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
+        display("User rapp after", userRappAfter);
+        PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT, 
+        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        
         assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
         assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
@@ -887,7 +932,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
         addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
-        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
+        addReconScripts(scripts, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, false);
         addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
@@ -976,12 +1021,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
         addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", false);
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
-        addReconScripts(scripts, USER_RAPP_USERNAME, "Rapp Scallion", false);
+        addReconScripts(scripts, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, false);
         addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
         addReconScripts(scripts, ACCOUNT_HTM_NAME, ACCOUNT_HTM_FULL_NAME, true);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
-        assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_OID); // the second modification is unlink
+        assertReconAuditModifications(3, TASK_RECONCILE_DUMMY_OID); // the second modification is unlink
         
         assertShadows(14);
         
@@ -1020,9 +1065,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		}
 	}
 	
+	/**
+	 * Create illegal (non-correlable) account. See that it is disabled.
+	 */
 	@Test
-    public void test300ReconcileDummyAzure() throws Exception {
-		final String TEST_NAME = "test300ReconcileDummyAzure";
+    public void test300ReconcileDummyAzureAddAccountOtis() throws Exception {
+		final String TEST_NAME = "test300ReconcileDummyAzureAddAccountOtis";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -1034,6 +1082,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         // Create some illegal account
         dummyResourceCtlAzure.addAccount(ACCOUNT_OTIS_NAME, ACCOUNT_OTIS_FULLNAME);
+        display("Otis account before", dummyResourceAzure.getAccountByUsername(ACCOUNT_OTIS_NAME));
         
         dummyResourceAzure.purgeScriptHistory();
         dummyAuditService.clear();
@@ -1064,6 +1113,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         // Otis
         assertNoImporterUserByUsername(ACCOUNT_OTIS_NAME);
+        display("Otis account after", dummyResourceAzure.getAccountByUsername(ACCOUNT_OTIS_NAME));
         assertDummyAccount(RESOURCE_DUMMY_AZURE_NAME, ACCOUNT_OTIS_NAME, ACCOUNT_OTIS_FULLNAME, false);
         
         // These are protected accounts, they should not be imported
@@ -1127,6 +1177,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertNoImporterUserByUsername(ACCOUNT_OTIS_NAME);
         assertDummyAccount(RESOURCE_DUMMY_AZURE_NAME, ACCOUNT_OTIS_NAME, ACCOUNT_OTIS_FULLNAME, false);
         
+        PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
+        display("User rapp after", userRappAfter);
+        PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT, 
+        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        
         // These are protected accounts, they should not be imported
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
         assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
@@ -1140,7 +1195,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         assertReconAuditModifications(0, TASK_RECONCILE_DUMMY_AZURE_OID);
 	}
-
+	
 	@Test
     public void test320ReconcileDummyAzureDeleteOtis() throws Exception {
 		final String TEST_NAME = "test320ReconcileDummyAzureDeleteOtis";
@@ -1157,7 +1212,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<ShadowType> otisShadow = findShadowByName(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, ACCOUNT_OTIS_NAME, resourceDummyAzure, result);
         
-        // Create some illegal account
         dummyResourceAzure.deleteAccountByName(ACCOUNT_OTIS_NAME);
         
         dummyResourceAzure.purgeScriptHistory();
@@ -1208,6 +1262,228 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertReconAuditModifications(0, TASK_RECONCILE_DUMMY_AZURE_OID);
 	}
 
+	/**
+	 * Create account that will correlate to existing user.
+	 * See that it is linked and modified.
+	 */
+	@Test
+    public void test330ReconcileDummyAzureAddAccountRapp() throws Exception {
+		final String TEST_NAME = "test330ReconcileDummyAzureAddAccountRapp";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        dummyResource.setBreakMode(BreakMode.NONE);
+        dummyResourceAzure.setBreakMode(BreakMode.NONE);
+        
+        dummyResourceCtlAzure.addAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME);
+        display("Rapp azure account before", dummyResourceAzure.getAccountByUsername(USER_RAPP_USERNAME));
+        
+        PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
+        display("User rapp before", userRappBefore);
+        PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT, 
+        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        
+        dummyResourceAzure.purgeScriptHistory();
+        dummyAuditService.clear();
+        reconciliationTaskResultListener.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        restartTask(TASK_RECONCILE_DUMMY_AZURE_OID);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
+        
+        TestUtil.displayThen(TEST_NAME);
+        
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after reconcile", users);
+        
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 0);
+        
+        assertImportedUserByOid(USER_ADMINISTRATOR_OID);
+        assertImportedUserByOid(USER_JACK_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID);        
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME);
+        assertImportedUserByUsername(ACCOUNT_HTM_NAME, RESOURCE_DUMMY_OID);
+        
+        // Rapp
+        display("Rapp azure account after", dummyResourceAzure.getAccountByUsername(USER_RAPP_USERNAME));
+        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID, RESOURCE_DUMMY_AZURE_OID);
+        assertDummyAccount(RESOURCE_DUMMY_AZURE_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_AZURE_NAME, USER_RAPP_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Elaine");
+        
+        // These are protected accounts, they should not be imported
+        assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
+        assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        // Calypso is protected account. Reconciliation should not touch it
+        assertDummyAccountAttribute(null, ACCOUNT_CALYPSO_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
+        		"Calypso");
+        
+        assertEquals("Unexpected number of users", 11, users.size());
+        
+        display("Dummy resource (azure)", dummyResourceAzure.debugDump());
+        
+        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE_OID);
+	}
+	
+	/**
+	 * Make a repository modification of the user Rapp. Run recon. See that the
+	 * account is modified.
+	 */
+	@Test
+    public void test332ModifyUserRappAndReconcileDummyAzure() throws Exception {
+		final String TEST_NAME = "test332ModifyUserRappAndReconcileDummyAzure";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        dummyResource.setBreakMode(BreakMode.NONE);
+        dummyResourceAzure.setBreakMode(BreakMode.NONE);
+        
+        display("Rapp azure account before", dummyResourceAzure.getAccountByUsername(USER_RAPP_USERNAME));
+        assertDummyAccountAttribute(RESOURCE_DUMMY_AZURE_NAME, USER_RAPP_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Elaine");
+        
+        PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
+        display("User rapp before", userRappBefore);
+        PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT, 
+        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+
+        ObjectDelta<UserType> userRappDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_RAPP_OID, 
+        		UserType.F_ORGANIZATIONAL_UNIT, prismContext, PrismTestUtil.createPolyString("The six feet under crew"));
+		repositoryService.modifyObject(UserType.class, USER_RAPP_OID, userRappDelta.getModifications(), result);
+		
+		userRappBefore = getUser(USER_RAPP_OID);
+        display("User rapp before (modified)", userRappBefore);
+        PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT, 
+        		PrismTestUtil.createPolyString("The six feet under crew"));
+        
+        dummyResourceAzure.purgeScriptHistory();
+        dummyAuditService.clear();
+        reconciliationTaskResultListener.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        restartTask(TASK_RECONCILE_DUMMY_AZURE_OID);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
+        
+        TestUtil.displayThen(TEST_NAME);
+        
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after reconcile", users);
+        
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 0);
+        
+        assertImportedUserByOid(USER_ADMINISTRATOR_OID);
+        assertImportedUserByOid(USER_JACK_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID);        
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME);
+        assertImportedUserByUsername(ACCOUNT_HTM_NAME, RESOURCE_DUMMY_OID);
+        
+        // Rapp
+        display("Rapp azure account after", dummyResourceAzure.getAccountByUsername(USER_RAPP_USERNAME));
+        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID, RESOURCE_DUMMY_AZURE_OID);
+        assertDummyAccount(RESOURCE_DUMMY_AZURE_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_AZURE_NAME, USER_RAPP_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The six feet under crew");
+        
+        // These are protected accounts, they should not be imported
+        assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
+        assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        // Calypso is protected account. Reconciliation should not touch it
+        assertDummyAccountAttribute(null, ACCOUNT_CALYPSO_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
+        		"Calypso");
+        
+        assertEquals("Unexpected number of users", 11, users.size());
+        
+        display("Dummy resource (azure)", dummyResourceAzure.debugDump());
+        
+        assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_AZURE_OID);
+	}
+	
+	@Test
+    public void test339ReconcileDummyAzureDeleteRapp() throws Exception {
+		final String TEST_NAME = "test339ReconcileDummyAzureDeleteRapp";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        dummyResource.setBreakMode(BreakMode.NONE);
+        dummyResourceAzure.setBreakMode(BreakMode.NONE);
+        
+        assertShadows(15);
+        
+        PrismObject<ShadowType> rappShadow = findShadowByName(ShadowKindType.ACCOUNT, 
+        		SchemaConstants.INTENT_DEFAULT, USER_RAPP_USERNAME, resourceDummyAzure, result);
+        
+        dummyResourceAzure.deleteAccountByName(USER_RAPP_USERNAME);
+        
+        dummyResourceAzure.purgeScriptHistory();
+        dummyAuditService.clear();
+        reconciliationTaskResultListener.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        restartTask(TASK_RECONCILE_DUMMY_AZURE_OID);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE_OID, false);
+        
+        TestUtil.displayThen(TEST_NAME);
+        
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after reconcile", users);
+        
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 0, 0, 1);
+        
+        assertImportedUserByOid(USER_ADMINISTRATOR_OID);
+        assertImportedUserByOid(USER_JACK_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID);        
+        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME);
+        assertImportedUserByUsername(ACCOUNT_HTM_NAME, RESOURCE_DUMMY_OID);
+        
+        // Rapp
+        assertNoImporterUserByUsername(ACCOUNT_OTIS_NAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_AZURE_NAME, USER_RAPP_USERNAME);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_AZURE_NAME, ACCOUNT_OTIS_NAME);
+        // These are protected accounts, they should not be imported
+        assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
+        assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        // Calypso is protected account. Reconciliation should not touch it
+        assertDummyAccountAttribute(null, ACCOUNT_CALYPSO_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
+        		"Calypso");
+        
+        assertNoObject(ShadowType.class, rappShadow.getOid(), task, result);
+        assertShadows(14);
+        
+        assertEquals("Unexpected number of users", 11, users.size());
+        
+        display("Dummy resource (azure)", dummyResourceAzure.debugDump());
+        
+        // deleting linkRef
+        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE_OID);
+	}
+
+	
 	@Test
     public void test400ReconcileDummyLimeAddAccount() throws Exception {
 		final String TEST_NAME = "test400ReconcileDummyLimeAddAccount";
@@ -2102,34 +2378,26 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     	}
 
     	int modifications = 0;
-    	for (; i < (auditRecords.size() - 1); i+=2) {
-        	AuditEventRecord requestRecord = auditRecords.get(i);
-        	assertNotNull("No request audit record ("+i+")", requestRecord);
+    	for (; i < (auditRecords.size() - 1); ) {
+        	AuditEventRecord record = auditRecords.get(i);
+        	assertNotNull("No request audit record ("+i+")", record);
+        	i++;
 
-            if (requestRecord.getEventStage() == AuditEventStage.EXECUTION && requestRecord.getEventType() == AuditEventType.RECONCILIATION) {
+            if (record.getEventStage() == AuditEventStage.EXECUTION && record.getEventType() == AuditEventType.RECONCILIATION) {
                 // end of audit records;
                 break;
             }
-        	        	
-        	assertEquals("Got this instead of request audit record ("+i+"): "+requestRecord, AuditEventStage.REQUEST, requestRecord.getEventStage());
-        	// Request audit may or may not have a delta. Usual records will not have a delta. But e.g. disableAccount reactions will have.
-
-        	AuditEventRecord executionRecord = auditRecords.get(i+1);
-        	assertNotNull("No execution audit record (" + i + ")", executionRecord);
-        	assertEquals("Got this instead of execution audit record (" + i + "): " + executionRecord, AuditEventStage.EXECUTION, executionRecord.getEventStage());
         	
-        	assertTrue("Empty deltas in execution audit record " + executionRecord, executionRecord.getDeltas() != null && !executionRecord.getDeltas().isEmpty());
-        	modifications++;
+            if (record.getEventStage() == AuditEventStage.REQUEST) {
+            	record = auditRecords.get(i);
+            	i++;
+            }
 
-			while (i+2 < auditRecords.size()) {
-				AuditEventRecord nextRecord = auditRecords.get(i+2);
-				if (nextRecord.getEventStage() == AuditEventStage.EXECUTION && nextRecord.getEventType() == requestRecord.getEventType()) {
-					// this is an additional EXECUTION record due to changes in clockwork
-					i++;
-				} else {
-					break;
-				}
-			}
+        	assertNotNull("No execution audit record (" + i + ")", record);
+        	assertEquals("Got this instead of execution audit record (" + i + "): " + record, AuditEventStage.EXECUTION, record.getEventStage());
+        	
+        	assertTrue("Empty deltas in execution audit record " + record, record.getDeltas() != null && !record.getDeltas().isEmpty());
+        	modifications++;
         }
         assertEquals("Unexpected number of audit modifications", expectedModifications, modifications);
 

@@ -15,7 +15,9 @@
   ~ limitations under the License.
   -->
 
-<!-- AZURE resource. It disables unmatched accounts. -->
+<!-- AZURE resource. It disables unmatched accounts. 
+     It also has several objectType definitions that are designed to confuse
+     the code that determines refined schema definitions -->
 
 <resource oid="10000000-0000-0000-0000-00000000a204"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -112,11 +114,53 @@
 	</schema>
 
 	<schemaHandling>
+	
 		<objectType>
+			<!-- Not used. Just to confuse the tests a bit. -->
+			<kind>account</kind>
+			<intent>fake</intent>
+			<displayName>Fake Account</displayName>
+			<default>false</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>ri:ship</ref>
+				<displayName>Ship</displayName>
+				<outbound>
+					<strength>strong</strength>
+					<expression>
+						<value>Flying Saucer</value>
+					</expression>
+				</outbound>
+			</attribute>
+		</objectType>
+		
+		<objectType>
+			<!-- Not used. Just to confuse the tests a bit. -->
+			<!--  This is the default definition for AccountObjectClass. But it should not be used. -->
+			<kind>account</kind>
+			<intent>trap</intent>
+			<displayName>Trap Account</displayName>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>ri:ship</ref>
+				<displayName>Ship</displayName>
+				<outbound>
+					<strength>strong</strength>
+					<expression>
+						<value>Titanic</value>
+					</expression>
+				</outbound>
+			</attribute>
+		</objectType>
+	
+		<objectType>
+			<!-- This is the primary object type. It has the "default" intent, but it is not
+			     a default type for AccountObjectClass -->
 			<kind>account</kind>
 			<intent>default</intent>
 			<displayName>Default Account</displayName>
-			<default>true</default>
+			<default>false</default>
 			<objectClass>ri:AccountObjectClass</objectClass>
 			<attribute>
 				<ref>icfs:name</ref>
@@ -162,7 +206,7 @@
 				<ref>ri:ship</ref>
 				<displayName>Ship</displayName>
 				<outbound>
-					<strength>weak</strength>
+					<strength>strong</strength>
 					<source>
 						<path>$c:user/c:organizationalUnit</path>
 					</source>
@@ -214,6 +258,9 @@
 	<synchronization>
 		<objectSynchronization>
 			<enabled>true</enabled>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<kind>account</kind>
+			<intent>default</intent>
 			<correlation>
 				<q:equal>
 					<q:path>c:name</q:path>
