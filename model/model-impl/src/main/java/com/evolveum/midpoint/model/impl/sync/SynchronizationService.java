@@ -193,6 +193,20 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			ObjectSynchronizationType synchronizationPolicy = determineSynchronizationPolicy(resourceType,
 					applicableShadow, configuration, task, subResult);
 			
+			if (LOGGER.isTraceEnabled()) {
+				String policyDesc = null;
+				if (synchronizationPolicy != null) {
+					if (synchronizationPolicy.getName() == null) {
+						policyDesc = "(kind=" + synchronizationPolicy.getKind() + ", intent=" +
+								synchronizationPolicy.getIntent() + ", objectclass=" + synchronizationPolicy.getObjectClass() +
+								")";
+					} else {
+						policyDesc = synchronizationPolicy.getName();
+					}
+				}
+				LOGGER.trace("SYNCHRONIZATION determined policy: {}", policyDesc);
+			}
+			
 			if (synchronizationPolicy == null) {
 				String message = "SYNCHRONIZATION no matching policy for " + resourceType
 						+ " ignoring change from channel " + change.getSourceChannel();

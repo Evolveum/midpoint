@@ -992,5 +992,14 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 			return getKind()+":"+getIntent();
 		}
 	}
+	
+	@Override
+	public String toString() {
+		if (getKind() == null) {
+			return getDebugDumpClassName() + "("+PrettyPrinter.prettyPrint(getTypeName())+")";
+		} else {
+			return getDebugDumpClassName() + "("+getKind()+":"+getIntent()+"="+PrettyPrinter.prettyPrint(getTypeName())+")";
+		}
+	}
 
 }

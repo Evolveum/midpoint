@@ -585,6 +585,10 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return debugDump(indent, layer);
 	}
 
+    // Do NOT override&delegate debugDump(int indent, LayerType layer) here.
+    // We want to use code in the context of this class so things like 
+    // getDebugDumpClassName() will be correct.
+	
 	/**
      * Return a human readable name of this class suitable for logs.
      */
@@ -628,8 +632,4 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return refinedObjectClassDefinition.getAuxiliaryObjectClassDefinitions();
 	}
 
-	@Override
-    protected String debugDump(int indent, LayerType layer) {
-        return refinedObjectClassDefinition.debugDump(indent, layer);
-    }
 }
