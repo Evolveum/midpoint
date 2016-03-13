@@ -32,16 +32,6 @@ public class BreadcrumbPageClass extends Breadcrumb {
     private Class<? extends WebPage> page;
     private PageParameters parameters;
 
-    public BreadcrumbPageClass(IModel<String> label) {
-        super(label);
-
-        setUseLink(true);
-    }
-
-    public BreadcrumbPageClass(IModel<String> label, Class<? extends WebPage> page) {
-        this(label, page, null);
-    }
-
     public BreadcrumbPageClass(IModel<String> label, Class<? extends WebPage> page, PageParameters parameters) {
         super(label);
 
@@ -49,6 +39,8 @@ public class BreadcrumbPageClass extends Breadcrumb {
 
         this.page = page;
         this.parameters = parameters;
+
+        setUseLink(true);
     }
 
     public Class<? extends WebPage> getPage() {

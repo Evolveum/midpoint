@@ -26,6 +26,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
@@ -49,6 +50,7 @@ public class PageError extends PageBase {
     private static final String ID_LABEL = "label";
     private static final String ID_MESSAGE = "message";
     private static final String ID_BACK = "back";
+    private static final String ID_HOME = "home";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageError.class);
 
@@ -123,15 +125,19 @@ public class PageError extends PageBase {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
-                        AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
-                    setResponsePage(PageDashboard.class);
-                } else {
-                    setResponsePage(PageSelfDashboard.class);
-                }
+                backPerformed(target);
             }
         };
         add(back);
+
+        AjaxButton home = new AjaxButton(ID_HOME, createStringResource("PageError.button.home")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                homePerformed(target);
+            }
+        };
+        add(home);
     }
 
     private int getCode() {
@@ -153,5 +159,18 @@ public class PageError extends PageBase {
     @Override
     public boolean isErrorPage() {
         return true;
+    }
+
+    private void homePerformed(AjaxRequestTarget target) {
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+                AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
+            setResponsePage(PageDashboard.class);
+        } else {
+            setResponsePage(PageSelfDashboard.class);
+        }
+    }
+
+    private void backPerformed(AjaxRequestTarget target) {
+        redirectBack();
     }
 }
