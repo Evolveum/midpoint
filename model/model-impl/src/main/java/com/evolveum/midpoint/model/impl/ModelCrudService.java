@@ -461,7 +461,7 @@ public class ModelCrudService {
 
 			ObjectDelta<T> objectDelta = (ObjectDelta<T>) ObjectDelta.createModifyDelta(oid, modifications, type, prismContext);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-			modelController.executeChanges(deltas, null, task, result);
+			modelController.executeChanges(deltas, options, task, result);
 
             result.computeStatus();
 			
