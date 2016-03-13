@@ -93,13 +93,13 @@
 <!-- https://jira.evolveum.com/browse/MID-2146 -->
 	<name>Do not allow to assign anything for self</name>
 	<decision>deny</decision>
-<phase>request</phase>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
+ 	<phase>request</phase>
         <object>
             <type>RoleType</type>
         </object>
     </authorization>
-    <roleType>customer</roleType>
     <requestable>false</requestable>
+    <roleType>customer</roleType>
 </role>
