@@ -55,6 +55,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	private boolean generateAccountDescriptionOnUpdate = false;        // simulates volatile behavior (on update)
 	private String[] forbiddenNames = new String[0];
 	private boolean useLegacySchema = true;
+	private String requiredBaseContextOrgName = null;
 
 	/**
      * Defines name of the dummy resource instance. There may be several dummy resource running in
@@ -304,6 +305,16 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setUseLegacySchema(boolean useLegacySchema) {
 		this.useLegacySchema = useLegacySchema;
+	}
+
+	@ConfigurationProperty(displayMessageKey = "UI_REQUIRED_BASE_CONTEXT_ORG_NAME",
+			helpMessageKey = "UI_REQUIRED_BASE_CONTEXT_ORG_NAME_HELP")
+	public String getRequiredBaseContextOrgName() {
+		return requiredBaseContextOrgName;
+	}
+
+	public void setRequiredBaseContextOrgName(String requiredBaseContextOrgName) {
+		this.requiredBaseContextOrgName = requiredBaseContextOrgName;
 	}
 
 	/**

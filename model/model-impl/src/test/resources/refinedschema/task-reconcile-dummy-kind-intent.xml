@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,30 +15,29 @@
   ~ limitations under the License.
   -->
 
-<!--Reconciliation task definition for dummy resource -->
-
-<task oid="10000000-0000-0000-5656-56560000a204"
+<task oid="d4cd18f2-e60c-11e5-a806-3faae6c13aff"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:syncext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 								  
-	<name>Reconciliation: Dummy Azure</name>
+	<name>Reconciliation: Dummy - kind+intent</name>
 	
 	<extension>
-		<syncext:freshnessInterval>1000</syncext:freshnessInterval>
-		<syncext:kind>account</syncext:kind>
-		<syncext:intent>default</syncext:intent>
-		<syncext:objectclass>ri:AccountObjectClass</syncext:objectclass>
+		<syncext:kind>entitlement</syncext:kind>
+		<syncext:intent>privilege</syncext:intent>
 	</extension>
 	
-	<taskIdentifier>10000000-0000-0000-5656-56560000a204</taskIdentifier>
+	<taskIdentifier>bed15976-e604-11e5-a181-af0dade5e5a0</taskIdentifier>
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-	<executionStatus>runnable</executionStatus>
+	<executionStatus>suspended</executionStatus>
 
 	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
-	<objectRef oid="10000000-0000-0000-0000-00000000a204" type="ResourceType"/>
-	<recurrence>single</recurrence>
+	<objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
+	<recurrence>recurring</recurrence>
+	<schedule>
+		<interval>10</interval>
+	</schedule>
 
 </task>

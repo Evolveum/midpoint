@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2014 Evolveum
+  ~ Copyright (c) 2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -31,14 +31,6 @@
 	<source>
     		<path>name</path>
     	</source>
-	<condition>
-		<script>
-			<code>
-			log.info("XXXXXX ORG TEMPLATE orgType CONDITION: {}", orgType);
-			orgType == 'customer'
-			</code>
-		</script>
-	</condition>
     	<expression>
             <assignmentTargetSearch>
             	<targetType>c:OrgType</targetType>
@@ -59,7 +51,15 @@
     	<target>
     		<path>assignment</path>
     	</target>
-    	
+    	<condition>
+                <script>
+                        <code>
+                        log.info("XXXXXX ORG TEMPLATE orgType CONDITION: {}", orgType);
+                        orgType == 'customer'
+                        </code>
+                </script>
+        </condition>
+	
         </mapping>
 
 	<mapping>

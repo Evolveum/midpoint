@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,7 +100,7 @@ public class GenericErrorHandler extends ErrorHandler{
 
 				if (shadow.getFailedOperationType() == null) {
 					String message = "Generic error in the connector. Can't process shadow "
-							+ ObjectTypeUtil.toShortString(shadow) + ". ";
+							+ ObjectTypeUtil.toShortString(shadow) + ": " + ex.getMessage();
 					result.recordFatalError(message, ex);
 					throw new GenericFrameworkException(message, ex);
 				}

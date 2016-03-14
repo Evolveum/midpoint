@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
+import com.evolveum.icf.dummy.resource.DummyOrg;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
@@ -104,6 +105,10 @@ public class DummyResourceContoller extends AbstractResourceController {
 	public static final String CONNECTOR_DUMMY_USELESS_STRING_NAME = "uselessString";
 	public static final QName CONNECTOR_DUMMY_USELESS_STRING_QNAME = new QName(CONNECTOR_DUMMY_NS, CONNECTOR_DUMMY_USELESS_STRING_NAME);
 
+	public static final String ORG_TOP_NAME = "top";
+	
+	public static final String OBJECTCLASS_ORG_LOCAL_PART = "CustomorgObjectClass";
+	
 	private DummyResource dummyResource;
 	private boolean isExtendedSchema = false;
 	private String instanceName;
@@ -229,6 +234,10 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assert isExtendedSchema : "Resource "+resource+" does not have extended schema yet an extedned attribute was requested";
 	}
 	
+	public void assertDummyResourceSchemaSanity(ResourceSchema resourceSchema) {
+		assertDummyResourceSchemaSanity(resourceSchema, resource.asObjectable());
+	}
+	
 	public void assertDummyResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
 		IntegrationTestTools.assertIcfResourceSchemaSanity(resourceSchema, resourceType);
 		
@@ -258,6 +267,10 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertTrue("No members create", membersDef.canAdd());
 		assertTrue("No members update", membersDef.canModify());
 		assertTrue("No members read", membersDef.canRead());
+	}
+	
+	public void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema) {
+		assertDummyResourceSchemaSanityExtended(resourceSchema, resource.asObjectable());
 	}
 	
 	public void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType) {
@@ -318,6 +331,12 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS,"password")));
 		
 	}
+	
+	public DummyOrg addOrgTop() throws ConnectException, FileNotFoundException, ObjectAlreadyExistsException, SchemaViolationException {
+		DummyOrg org = new DummyOrg(ORG_TOP_NAME);
+		dummyResource.addOrg(org);
+		return org;
+	}
 
 	public DummyAccount addAccount(String userId, String fullName) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException {
 		DummyAccount account = new DummyAccount(userId);
@@ -341,6 +360,10 @@ public class DummyResourceContoller extends AbstractResourceController {
 		DummyGroup group = new DummyGroup(name);
 		group.setEnabled(true);
 		dummyResource.addGroup(group);
+	}
+
+	public QName getOrgObjectClassQName() {
+		return new QName(getNamespace(), OBJECTCLASS_ORG_LOCAL_PART);
 	}
 
 }

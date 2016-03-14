@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -940,6 +942,15 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	}
 
     @Override
+	public ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+		if (getKind() == null) {
+			return super.createShadowSearchQuery(resourceOid);
+		} else {
+			return ObjectQueryUtil.createResourceAndKindIntent(resourceOid, getKind(), getIntent(), getPrismContext());
+		}
+	}
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
@@ -1153,9 +1164,9 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	@Override
 	public String toString() {
 		if (getKind() == null) {
-			return getDebugDumpClassName() + " ("+PrettyPrinter.prettyPrint(getTypeName())+")";
+			return getDebugDumpClassName() + "("+PrettyPrinter.prettyPrint(getTypeName())+")";
 		} else {
-			return getDebugDumpClassName() + " ("+getKind()+":"+getIntent()+"="+PrettyPrinter.prettyPrint(getTypeName())+")";
+			return getDebugDumpClassName() + "("+getKind()+":"+getIntent()+"="+PrettyPrinter.prettyPrint(getTypeName())+")";
 		}
 	}
 

@@ -199,111 +199,111 @@ It also contains inbound mappings and definition to enable synchronization.
 			</attribute>
 			<attribute>
 				<ref>ri:givenName</ref>
-				<displayName>Given Name</displayName>
-				<outbound>
-					<source>
-						<!-- Full namespace prefixes can be used in the path -->
-						<path>$c:user/c:givenName</path>
-					</source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:uid</ref>
-				<displayName>Login Name</displayName>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
-				<outbound>
-					<strength>weak</strength>
-					<source>
-						<description>Source may have description</description>
-						<path>$user/name</path>
-					</source>
-					<expression>
-						<script>
-							<code>name</code>
-						</script>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:description</ref>
-				<outbound>
-					<source>
-						<path>$user/description</path>
-					</source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:l</ref>
-				<displayName>Location</displayName>
-				<outbound>
-					<source>
-						<path>$user/locality</path>
-					</source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:employeeType</ref>
-				<displayName>Employee Type</displayName>
-				<tolerant>false</tolerant>
-				<outbound>
-					<source>
-						<path>$user/employeeType</path>
-					</source>
-				</outbound>
-			</attribute>
-						
-			<association>
-				<ref>ri:group</ref>
-				<displayName>LDAP Group Membership</displayName>
-				<kind>entitlement</kind>
-				<intent>ldapGroup</intent>
-				<intent>group-org-admin</intent>
-				<intent>group-org-user</intent>
-				<intent>group-org-poweruser</intent>
-				<intent>group-custom</intent>
-				<direction>objectToSubject</direction>
-				<associationAttribute>ri:member</associationAttribute>
-				<valueAttribute>ri:dn</valueAttribute>
-				<explicitReferentialIntegrity>true</explicitReferentialIntegrity>
-			</association>
-			
-			<iteration>
-				<maxIterations>5</maxIterations>
-			</iteration>
-			
-			<protected>
-       			<filter>
-	       			<q:equal>
-					<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
-					<q:path>attributes/ri:dn</q:path>
-					<q:value>cn=idm,ou=Administrators,dc=example,dc=com</q:value>
-		            </q:equal>
-	            </filter>
-			</protected>
-            
-			<activation>
-                <administrativeStatus>
-                    <outbound/>
-                </administrativeStatus>
-            </activation>
-			
-            <credentials>
-                <password>
-                    <outbound>
-                    	<expression>
-                        	<asIs/>
-                        </expression>
-                    </outbound>
-                </password>
-            </credentials>
+			<displayName>Given Name</displayName>
+			<outbound>
+				<source>
+					<!-- Full namespace prefixes can be used in the path -->
+					<path>$c:user/c:givenName</path>
+				</source>
+			</outbound>
+		</attribute>
+		<attribute>
+			<ref>ri:uid</ref>
+			<displayName>Login Name</displayName>
+			<matchingRule>mr:stringIgnoreCase</matchingRule>
+			<outbound>
+				<strength>weak</strength>
+				<source>
+					<description>Source may have description</description>
+					<path>$user/name</path>
+				</source>
+				<expression>
+					<script>
+						<code>name</code>
+					</script>
+				</expression>
+			</outbound>
+		</attribute>
+		<attribute>
+			<ref>ri:description</ref>
+			<outbound>
+				<source>
+					<path>$user/description</path>
+				</source>
+			</outbound>
+		</attribute>
+		<attribute>
+			<ref>ri:l</ref>
+			<displayName>Location</displayName>
+			<outbound>
+				<source>
+					<path>$user/locality</path>
+				</source>
+			</outbound>
+		</attribute>
+		<attribute>
+			<ref>ri:employeeType</ref>
+			<displayName>Employee Type</displayName>
+			<tolerant>false</tolerant>
+			<outbound>
+				<source>
+					<path>$user/employeeType</path>
+				</source>
+			</outbound>
+		</attribute>
+					
+		<association>
+			<ref>ri:group</ref>
+			<displayName>LDAP Group Membership</displayName>
+			<kind>entitlement</kind>
+			<intent>ldapGroup</intent>
+			<intent>group-org-admin</intent>
+			<intent>group-org-user</intent>
+			<intent>group-org-poweruser</intent>
+			<intent>group-custom</intent>
+			<direction>objectToSubject</direction>
+			<associationAttribute>ri:member</associationAttribute>
+			<valueAttribute>ri:dn</valueAttribute>
+			<explicitReferentialIntegrity>true</explicitReferentialIntegrity>
+		</association>
+		
+		<iteration>
+			<maxIterations>5</maxIterations>
+		</iteration>
+		
+		<protected>
+		<filter>
+			<q:equal>
+				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+				<q:path>attributes/ri:dn</q:path>
+				<q:value>cn=idm,ou=Administrators,dc=example,dc=com</q:value>
+		    </q:equal>
+	    </filter>
+		</protected>
+    
+		<activation>
+	<administrativeStatus>
+	    <outbound/>
+	</administrativeStatus>
+    </activation>
+		
+    <credentials>
+	<password>
+	    <outbound>
+		<expression>
+			<asIs/>
+		</expression>
+	    </outbound>
+	</password>
+    </credentials>
 
-		</objectType>
+	</objectType>
 		
 		<objectType>
 			<kind>generic</kind>
 			<intent>ou-customer</intent>
-			<default>true</default>
 			<displayName>Customer Organizational Unit</displayName>
+			<default>true</default>
 			<objectClass>ri:organizationalUnit</objectClass>
 
 			<attribute>
@@ -345,8 +345,8 @@ It also contains inbound mappings and definition to enable synchronization.
 		<objectType>
 			<kind>entitlement</kind>
 			<intent>ldapGroup</intent>
+			<displayName>LDAP Group</displayName>	
 			<default>true</default>
-			<displayName>LDAP Group</displayName>
 			<objectClass>ri:groupOfNames</objectClass>
 
 			<attribute>
