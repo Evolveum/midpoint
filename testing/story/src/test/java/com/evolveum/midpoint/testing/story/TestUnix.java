@@ -243,6 +243,9 @@ public class TestUnix extends AbstractStoryTest {
 	private String accountRangerOid;
 	private String accountRangerDn;
 	
+	private String accountWallyOid;
+	private String accountWallyDn;
+	
 	private String roleMonkeyIslandOid; 
 	private String groupMonkeyIslandDn;
 	
@@ -1169,16 +1172,117 @@ public class TestUnix extends AbstractStoryTest {
         assertNotNull("No herman user", userAfter);
         display("User after", userAfter);
         assertUserPosix(userAfter, USER_WALLY_USERNAME, USER_WALLY_FIST_NAME, USER_WALLY_LAST_NAME, USER_WALLY_UID_NUMBER);
-        accountMancombOid = getSingleLinkOid(userAfter);
+        accountWallyOid = getSingleLinkOid(userAfter);
         
-        PrismObject<ShadowType> shadow = getShadowModel(accountMancombOid);
+        PrismObject<ShadowType> shadow = getShadowModel(accountWallyOid);
         display("Shadow (model)", shadow);
-        accountMancombDn = assertPosixAccount(shadow, USER_WALLY_UID_NUMBER);
+        accountWallyDn = assertPosixAccount(shadow, USER_WALLY_UID_NUMBER);
         
         PrismObject<SequenceType> sequenceAfter = getObject(SequenceType.class, SEQUENCE_UIDNUMBER_OID);
         display("Sequence after", sequenceAfter);
         assertEquals("Sequence has moved", USER_WALLY_UID_NUMBER + 1, sequenceAfter.asObjectable().getCounter().intValue());
         assertTrue("Unexpected unused values in the sequence", sequenceAfter.asObjectable().getUnusedValues().isEmpty());
+	}
+	
+	/**
+	 * Remove posixAccount directly in LDAP server. Then try to get the account. MidPoint should survive that.
+	 */
+	@Test
+    public void test312AccountWallyRemovePosixObjectclassNative() throws Exception {
+		final String TEST_NAME = "test312AccountWallyRemovePosixObjectclassNative";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        openDJController.executeLdifChange("dn: "+accountWallyDn+"\n"+
+                                           "changetype: modify\n"+
+                                           "delete: objectclass\n"+
+                                           "objectclass: posixAccount\n"+
+                                           "-\n"+
+                                           "delete: uidNumber\n"+
+                                           "uidNumber: "+USER_WALLY_UID_NUMBER+"\n"+
+                                           "-\n"+
+                                           "delete: gidNumber\n"+
+                                           "gidNumber: "+USER_WALLY_UID_NUMBER+"\n"+
+                                           "-\n"+
+                                           "delete: homeDirectory\n"+
+                                           "homeDirectory: /home/wally");
+        
+        Entry entryWallyBefore = openDJController.fetchEntry(accountWallyDn);
+        display("Wally LDAP account before", entryWallyBefore);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountWallyOid, null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        display("Shadow (model)", shadow);
+        assertBasicAccount(shadow);
+        
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountWallyOid, null, result);
+        display("Shadow (repo)", repoShadow);
+        PrismAsserts.assertNoItem(repoShadow, ShadowType.F_AUXILIARY_OBJECT_CLASS);
+//        PrismAsserts.assertPropertyValue(repoShadow, ShadowType.F_AUXILIARY_OBJECT_CLASS);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(USER_WALLY_USERNAME);
+        assertNotNull("No herman user", userAfter);
+        display("User after", userAfter);
+        assertUserPosix(userAfter, USER_WALLY_USERNAME, USER_WALLY_FIST_NAME, USER_WALLY_LAST_NAME, USER_WALLY_UID_NUMBER);
+        accountMancombOid = getSingleLinkOid(userAfter);        
+	}
+	
+	/**
+	 * Add posixAccount directly in LDAP server. Then try to get the account. MidPoint should survive that.
+	 */
+	@Test
+    public void test314AccountWallyAddPosixObjectclassNative() throws Exception {
+		final String TEST_NAME = "test314AccountWallyAddPosixObjectclassNative";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        openDJController.executeLdifChange("dn: "+accountWallyDn+"\n"+
+                                           "changetype: modify\n"+
+                                           "add: objectclass\n"+
+                                           "objectclass: posixAccount\n"+
+                                           "-\n"+
+                                           "add: uidNumber\n"+
+                                           "uidNumber: "+USER_WALLY_UID_NUMBER+"\n"+
+                                           "-\n"+
+                                           "add: gidNumber\n"+
+                                           "gidNumber: "+USER_WALLY_UID_NUMBER+"\n"+
+                                           "-\n"+
+                                           "add: homeDirectory\n"+
+                                           "homeDirectory: /home/wally");
+        
+        Entry entryWallyBefore = openDJController.fetchEntry(accountWallyDn);
+        display("Wally LDAP account before", entryWallyBefore);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountWallyOid, null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        display("Shadow (model)", shadow);
+        assertPosixAccount(shadow, USER_WALLY_UID_NUMBER);
+        
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountWallyOid, null, result);
+        display("Shadow (repo)", repoShadow);
+        PrismAsserts.assertPropertyValue(repoShadow, ShadowType.F_AUXILIARY_OBJECT_CLASS, OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(USER_WALLY_USERNAME);
+        assertNotNull("No herman user", userAfter);
+        display("User after", userAfter);
+        assertUserPosix(userAfter, USER_WALLY_USERNAME, USER_WALLY_FIST_NAME, USER_WALLY_LAST_NAME, USER_WALLY_UID_NUMBER);
+        accountMancombOid = getSingleLinkOid(userAfter);        
 	}
 	
 	@Test
