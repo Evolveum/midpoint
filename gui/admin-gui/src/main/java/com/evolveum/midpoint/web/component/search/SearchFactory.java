@@ -46,6 +46,9 @@ public class SearchFactory {
                 new ItemPath(UserType.F_COST_CENTER)));
         SEARCHABLE_OBJECTS.put(RoleType.class, Arrays.asList(
                 new ItemPath(RoleType.F_NAME),
+                new ItemPath(RoleType.F_DISPLAY_NAME),
+//                new ItemPath(RoleType.F_OWNER_REF),
+                new ItemPath(RoleType.F_REQUESTABLE),
                 new ItemPath(RoleType.F_ROLE_TYPE)));
 
         //todo add other object types and properties which can be used in search

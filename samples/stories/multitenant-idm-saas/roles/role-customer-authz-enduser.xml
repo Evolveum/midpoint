@@ -1,3 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
 <role oid="408be7b4-e502-11e5-9cd2-3c970e44b9e2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -93,13 +109,13 @@
 <!-- https://jira.evolveum.com/browse/MID-2146 -->
 	<name>Do not allow to assign anything for self</name>
 	<decision>deny</decision>
-<phase>request</phase>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
+ 	<phase>request</phase>
         <object>
             <type>RoleType</type>
         </object>
     </authorization>
-    <roleType>customer</roleType>
     <requestable>false</requestable>
+    <roleType>customer</roleType>
 </role>

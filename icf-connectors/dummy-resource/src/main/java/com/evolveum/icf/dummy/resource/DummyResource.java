@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,6 +78,7 @@ public class DummyResource implements DebugDumpable {
 	private Map<String,DummyAccount> accounts;
 	private Map<String,DummyGroup> groups;
 	private Map<String,DummyPrivilege> privileges;
+	private Map<String,DummyOrg> orgs;
 	private List<ScriptHistoryEntry> scriptHistory;
 	private DummyObjectClass accountObjectClass;
 	private DummyObjectClass groupObjectClass;
@@ -117,6 +118,7 @@ public class DummyResource implements DebugDumpable {
 		accounts = Collections.synchronizedMap(new LinkedHashMap<String, DummyAccount>());
 		groups = Collections.synchronizedMap(new LinkedHashMap<String, DummyGroup>());
 		privileges = Collections.synchronizedMap(new LinkedHashMap<String, DummyPrivilege>());
+		orgs = Collections.synchronizedMap(new LinkedHashMap<String, DummyOrg>());
 		scriptHistory = new ArrayList<ScriptHistoryEntry>();
 		accountObjectClass = new DummyObjectClass();
 		groupObjectClass = new DummyObjectClass();
@@ -134,6 +136,7 @@ public class DummyResource implements DebugDumpable {
 		accounts.clear();
 		groups.clear();
 		privileges.clear();
+		orgs.clear();
 		scriptHistory.clear();
 		accountObjectClass = new DummyObjectClass();
 		groupObjectClass = new DummyObjectClass();
@@ -422,6 +425,10 @@ public class DummyResource implements DebugDumpable {
 		return getObjectByName(privileges, name);
 	}
 	
+	public DummyOrg getOrgByName(String name) throws ConnectException, FileNotFoundException {
+		return getObjectByName(orgs, name);
+	}
+	
 	private <T extends DummyObject> T getObjectById(Class<T> expectedClass, String id) throws ConnectException, FileNotFoundException {
 		if (getBreakMode == BreakMode.NONE) {
 			DummyObject dummyObject = allObjects.get(id);
@@ -461,6 +468,10 @@ public class DummyResource implements DebugDumpable {
 	public DummyPrivilege getPrivilegeById(String id) throws ConnectException, FileNotFoundException {
 		return getObjectById(DummyPrivilege.class, id);
 	}
+	
+	public DummyOrg getOrgById(String id) throws ConnectException, FileNotFoundException {
+		return getObjectById(DummyOrg.class, id);
+	}
 
 	public Collection<DummyGroup> listGroups() throws ConnectException, FileNotFoundException {
 		if (getBreakMode == BreakMode.NONE) {
@@ -486,6 +497,27 @@ public class DummyResource implements DebugDumpable {
 	public Collection<DummyPrivilege> listPrivileges() throws ConnectException, FileNotFoundException {
 		if (getBreakMode == BreakMode.NONE) {
 			return privileges.values();
+		} else if (schemaBreakMode == BreakMode.NETWORK) {
+			throw new ConnectException("Network error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.IO) {
+			throw new FileNotFoundException("IO error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.GENERIC) {
+			// The connector will react with generic exception
+			throw new IllegalArgumentException("Generic error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.RUNTIME) {
+			// The connector will just pass this up
+			throw new IllegalStateException("Generic error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
+			throw new UnsupportedOperationException("Not supported (simulated error)");
+		} else {
+			// This is a real error. Use this strange thing to make sure it passes up
+			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
+		}
+	}
+	
+	public Collection<DummyOrg> listOrgs() throws ConnectException, FileNotFoundException {
+		if (getBreakMode == BreakMode.NONE) {
+			return orgs.values();
 		} else if (schemaBreakMode == BreakMode.NETWORK) {
 			throw new ConnectException("Network error (simulated error)");
 		} else if (schemaBreakMode == BreakMode.IO) {
@@ -620,6 +652,10 @@ public class DummyResource implements DebugDumpable {
 
 	public void deletePrivilegeById(String id) throws ConnectException, FileNotFoundException, ObjectDoesNotExistException {
 		deleteObjectById(DummyPrivilege.class, privileges, id);
+	}
+	
+	public void deleteOrgById(String id) throws ConnectException, FileNotFoundException, ObjectDoesNotExistException {
+		deleteObjectById(DummyOrg.class, orgs, id);
 	}
 
 	private synchronized <T extends DummyObject> void deleteObjectById(Class<T> type, Map<String,T> map, String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException {
@@ -771,6 +807,18 @@ public class DummyResource implements DebugDumpable {
 		renameObject(DummyPrivilege.class, privileges, id, oldName, newName);
 	}
 	
+	public String addOrg(DummyOrg newGroup) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException {
+		return addObject(orgs, newGroup);
+	}
+	
+	public void deleteOrgByName(String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException {
+		deleteObjectByName(DummyOrg.class, orgs, id);
+	}
+
+	public void renameOrg(String id, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
+		renameObject(DummyOrg.class, orgs, id, oldName, newName);
+	}
+	
 	void recordModify(DummyObject dObject) {
 		if (syncStyle != DummySyncStyle.NONE) {
 			int syncToken = nextSyncToken();
@@ -905,6 +953,20 @@ public class DummyResource implements DebugDumpable {
 			sb.append(": ");
 			sb.append(entry.getValue());
 		}
+		sb.append("\nPrivileges:");
+		for (Entry<String, DummyPrivilege> entry: privileges.entrySet()) {
+			sb.append("\n  ");
+			sb.append(entry.getKey());
+			sb.append(": ");
+			sb.append(entry.getValue());
+		}
+		sb.append("\nOrgs:");
+		for (Entry<String, DummyOrg> entry: orgs.entrySet()) {
+			sb.append("\n  ");
+			sb.append(entry.getKey());
+			sb.append(": ");
+			sb.append(entry.getValue());
+		}
 		sb.append("\nDeltas:");
 		for (DummyDelta delta: deltas) {
 			sb.append("\n  ");
@@ -916,7 +978,7 @@ public class DummyResource implements DebugDumpable {
 
 	@Override
 	public String toString() {
-		return "DummyResource("+accounts.size()+" accounts, "+groups.size()+" groups)";
+		return "DummyResource("+instanceName+": "+accounts.size()+" accounts, "+groups.size()+" groups, "+privileges.size()+" privileges, "+orgs.size()+" orgs)";
 	}
 
 }
