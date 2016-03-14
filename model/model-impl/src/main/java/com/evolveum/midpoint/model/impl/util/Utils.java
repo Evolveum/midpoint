@@ -48,10 +48,13 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
+import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -91,6 +94,40 @@ public final class Utils {
 	
     private Utils() {
     }
+
+
+	// inefficient (does not make use of LensContext resource cache)
+	// and seemingly not used at all => commenting out before deleting forever
+//    public static void resolveResource(ShadowType shadow, ProvisioningService provisioning,
+//            OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException, ConfigurationException,
+//            SecurityViolationException {
+//
+//        Validate.notNull(shadow, "Resource object shadow must not be null.");
+//        Validate.notNull(provisioning, "Provisioning service must not be null.");
+//
+//        ResourceType resource = getResource(shadow, provisioning, result);
+//        shadow.setResourceRef(null);
+//        shadow.setResource(resource);
+//    }
+//
+//    public static ResourceType getResource(ShadowType shadow, ProvisioningService provisioning,
+//            OperationResult result) throws CommunicationException, SchemaException, ObjectNotFoundException, ConfigurationException,
+//            SecurityViolationException {
+//
+//        if (shadow.getResource() != null) {
+//            return shadow.getResource();
+//        }
+//
+//        if (shadow.getResourceRef() == null) {
+//            throw new IllegalArgumentException("Couldn't resolve resource. Resource object shadow doesn't" +
+//                    " contain resource nor resource ref.");
+//        }
+//
+//        ObjectReferenceType resourceRef = shadow.getResourceRef();
+//        return provisioning.getObject(ResourceType.class, resourceRef.getOid(), null, null, result).asObjectable();
+//    }
+    
+    
 
 	@Deprecated	// use RepositoryService.objectSearchIterative instead
 	public static <T extends ObjectType> void searchIterative(RepositoryService repositoryService, Class<T> type, ObjectQuery query, 
@@ -285,6 +322,12 @@ public final class Utils {
 	            result.recordFatalError("Missing definition of type of reference " + refName);
 	            return;
 	        }
+	        
+	        if (containExpression(objFilter)){
+	        	result.recordSuccessIfUnknown();
+	        	return;
+	        }
+	        
 	        try {
 	        	ObjectQuery query = ObjectQuery.createObjectQuery(objFilter);
 	            objects = (List)repository.searchObjects(type, query, null, result);
@@ -313,6 +356,22 @@ public final class Utils {
 	        refVal.setOid(oid);
 	        result.recordSuccessIfUnknown();
 	    }
+	
+	private static boolean containExpression(ObjectFilter filter){
+		if (filter == null){
+			return false;
+		}
+		
+		if (filter instanceof InOidFilter && ((InOidFilter) filter).getExpression() != null){
+			return true;
+		}
+		
+		if (filter instanceof PropertyValueFilter && ((PropertyValueFilter) filter).getExpression() != null){
+			return true;
+		}
+		
+		return false;
+	}
 
         public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task) throws SchemaException {
 

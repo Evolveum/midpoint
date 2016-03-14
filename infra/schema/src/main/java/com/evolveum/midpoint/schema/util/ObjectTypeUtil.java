@@ -23,6 +23,9 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.parser.XPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -89,6 +92,23 @@ public class ObjectTypeUtil {
 			return null;
 		}
 		return property.getRealValues();
+	}
+	
+	public static Collection<Referencable> getExtensionReferenceValues(ObjectType objectType, QName propertyQname) {
+		PrismObject<? extends ObjectType> object = objectType.asPrismObject();
+		PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
+		if (extensionContainer == null) {
+			return null;
+		}
+		PrismReference property = extensionContainer.findReference(propertyQname);
+		if (property == null) {
+			return null;
+		}
+		Collection<Referencable> refs = new ArrayList<Referencable>(property.getValues().size());
+		for (PrismReferenceValue refVal : property.getValues()){
+			refs.add(refVal.asReferencable());
+		}
+		return refs;
 	}
     
 

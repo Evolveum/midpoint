@@ -48,6 +48,7 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEval
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -354,6 +355,10 @@ public class BasicExpressionFunctions {
 		return getExtensionPropertyValue(object, new javax.xml.namespace.QName(namespace, localPart));
 	}
 	
+	public Referencable getExtensionReferenceValue(ObjectType object, String namespace, String localPart) throws SchemaException {
+		return getExtensionReferenceValue(object, new javax.xml.namespace.QName(namespace, localPart));
+	}
+	
 	public <T> T getExtensionPropertyValue(ObjectType object, groovy.xml.QName propertyQname) throws SchemaException {
 		return getExtensionPropertyValue(object, propertyQname.getNamespaceURI(), propertyQname.getLocalPart());
 	}
@@ -363,6 +368,14 @@ public class BasicExpressionFunctions {
 			return null;
 		}
 		Collection<T> values = ObjectTypeUtil.getExtensionPropertyValues(object, propertyQname);
+		return toSingle(values, "a multi-valued extension property "+propertyQname);
+	}
+	
+	public Referencable getExtensionReferenceValue(ObjectType object, javax.xml.namespace.QName propertyQname) throws SchemaException {
+		if (object == null) {
+			return null;
+		}
+		Collection<Referencable> values = ObjectTypeUtil.getExtensionReferenceValues(object, propertyQname);
 		return toSingle(values, "a multi-valued extension property "+propertyQname);
 	}
 	
