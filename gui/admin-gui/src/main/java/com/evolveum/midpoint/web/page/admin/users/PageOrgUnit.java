@@ -165,7 +165,7 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 	}
 
 	@Override
-	protected PageBase getDefaultBackPage() {
+	public PageBase getDefaultBackPage() {
 		return new PageOrgTree();
 	}
 
