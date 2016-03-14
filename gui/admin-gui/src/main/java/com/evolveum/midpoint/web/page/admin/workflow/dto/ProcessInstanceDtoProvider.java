@@ -21,6 +21,8 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -33,10 +35,13 @@ import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.Component;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInteger;
+import static com.evolveum.midpoint.schema.GetOperationOptions.*;
+import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OBJECT_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
@@ -95,7 +100,8 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
             ObjectQuery query = getObjectQuery();
             query.setPaging(ObjectPaging.createPaging(safeLongToInteger(first), safeLongToInteger(count)));
 
-            List<PrismObject<TaskType>> tasks = getModel().searchObjects(TaskType.class, query, null, opTask, result);
+            Collection<SelectorOptions<GetOperationOptions>> options = createCollection(createResolveNames());
+            List<PrismObject<TaskType>> tasks = getModel().searchObjects(TaskType.class, query, options, opTask, result);
             for (PrismObject<TaskType> task : tasks) {
                 try {
                     getAvailableData().add(new ProcessInstanceDto(task.asObjectable()));
