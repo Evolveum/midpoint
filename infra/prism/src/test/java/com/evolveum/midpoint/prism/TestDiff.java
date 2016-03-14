@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static org.testng.AssertJUnit.assertNull;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -28,12 +29,14 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -75,6 +78,52 @@ public class TestDiff {
         assertEquals("Wrong OID", USER_JACK_OID, delta.getOid());
         delta.checkConsistence();
     }
+	
+	@Test
+    public void testPropertySimplePropertyDiffNoChange() throws Exception {
+		System.out.println("\n\n===[ testPropertySimplePropertyDiffNoChange ]===\n");
+		// GIVEN
+		PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
+		
+		PrismObject<UserType> user1 = userDef.instantiate();
+		user1.setOid(USER_JACK_OID);
+		user1.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyString("test name"));
+		PrismProperty<PolyString> user1NameProp = user1.findProperty(UserType.F_NAME);
+		
+		PrismObject<UserType> user2 = userDef.instantiate();
+		user2.setOid(USER_JACK_OID);
+		user2.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyString("test name"));
+		PrismProperty<PolyString> user2NameProp = user2.findProperty(UserType.F_NAME);
+		
+		// WHEN
+        PropertyDelta<PolyString> delta = user1NameProp.diff(user2NameProp);
+        
+        // THEN
+        assertNull(delta);
+    }
+	
+	@Test
+    public void testPropertySimplePropertyDiffNoChangeStatic() throws Exception {
+		System.out.println("\n\n===[ testPropertySimplePropertyDiffNoChangeStatic ]===\n");
+		// GIVEN
+		PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
+		
+		PrismObject<UserType> user1 = userDef.instantiate();
+		user1.setOid(USER_JACK_OID);
+		user1.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyString("test name"));
+		PrismProperty<PolyString> user1NameProp = user1.findProperty(UserType.F_NAME);
+		
+		PrismObject<UserType> user2 = userDef.instantiate();
+		user2.setOid(USER_JACK_OID);
+		user2.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyString("test name"));
+		PrismProperty<PolyString> user2NameProp = user2.findProperty(UserType.F_NAME);
+		
+		// WHEN
+        PropertyDelta<PolyString> delta = PrismProperty.diff(user1NameProp, user2NameProp);
+        
+        // THEN
+        assertNull(delta);
+    }
 
 	@Test
     public void testUserSimplePropertyDiffReplace() throws Exception {
@@ -99,6 +148,58 @@ public class TestDiff {
         assertEquals("Unexpected number of midifications", 1, delta.getModifications().size());
         PrismAsserts.assertPropertyReplace(delta, UserType.F_NAME, PrismTestUtil.createPolyString("other name"));
         assertEquals("Wrong OID", USER_JACK_OID, delta.getOid());
+        delta.checkConsistence();
+    }
+
+	@Test
+    public void testPropertyUserSimplePropertyDiffReplace() throws Exception {
+		System.out.println("\n\n===[ testPropertyUserSimplePropertyDiffReplace ]===\n");
+		// GIVEN
+		PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
+		
+		PrismObject<UserType> user1 = userDef.instantiate();
+		user1.setOid(USER_JACK_OID);
+		user1.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyString("test name"));
+		PrismProperty<PolyString> user1NameProp = user1.findProperty(UserType.F_NAME);
+		
+		PrismObject<UserType> user2 = userDef.instantiate();
+		user2.setOid(USER_JACK_OID);
+		user2.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyString("other name"));
+		PrismProperty<PolyString> user2NameProp = user2.findProperty(UserType.F_NAME);
+		
+		// WHEN
+		PropertyDelta<PolyString> delta = user1NameProp.diff(user2NameProp);
+        
+        // THEN
+        assertNotNull(delta);
+        System.out.println(delta.debugDump());
+        PrismAsserts.assertReplace(delta, PrismTestUtil.createPolyString("other name"));
+        delta.checkConsistence();
+    }
+	
+	@Test
+    public void testPropertyUserSimplePropertyDiffReplaceStatic() throws Exception {
+		System.out.println("\n\n===[ testPropertyUserSimplePropertyDiffReplaceStatic ]===\n");
+		// GIVEN
+		PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
+		
+		PrismObject<UserType> user1 = userDef.instantiate();
+		user1.setOid(USER_JACK_OID);
+		user1.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyString("test name"));
+		PrismProperty<PolyString> user1NameProp = user1.findProperty(UserType.F_NAME);
+		
+		PrismObject<UserType> user2 = userDef.instantiate();
+		user2.setOid(USER_JACK_OID);
+		user2.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyString("other name"));
+		PrismProperty<PolyString> user2NameProp = user2.findProperty(UserType.F_NAME);
+		
+		// WHEN
+		PropertyDelta<PolyString> delta = PrismProperty.diff(user1NameProp, user2NameProp);
+        
+        // THEN
+        assertNotNull(delta);
+        System.out.println(delta.debugDump());
+        PrismAsserts.assertReplace(delta, PrismTestUtil.createPolyString("other name"));
         delta.checkConsistence();
     }
 
@@ -130,6 +231,58 @@ public class TestDiff {
         assertEquals("Wrong OID", USER_JACK_OID, delta.getOid());
         delta.checkConsistence();
     }
+    
+    @Test
+    public void testPropertyUserSimpleDiffMultiNoChange() throws Exception {
+    	System.out.println("\n\n===[ testPropertyUserSimpleDiffMultiNoChange ]===\n");
+    	
+    	// GIVEN
+    	PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
+		
+		PrismObject<UserType> user1 = userDef.instantiate();
+		user1.setOid(USER_JACK_OID);
+		PrismProperty<String> additionalNamesProp1 = user1.findOrCreateProperty(UserType.F_ADDITIONAL_NAMES);
+		additionalNamesProp1.addRealValue("foo");
+		additionalNamesProp1.addRealValue("bar");
+		
+		PrismObject<UserType> user2 = userDef.instantiate();
+		user2.setOid(USER_JACK_OID);
+		PrismProperty<String> additionalNamesProp2 = user2.findOrCreateProperty(UserType.F_ADDITIONAL_NAMES);
+		additionalNamesProp2.addRealValue("foo");
+		additionalNamesProp2.addRealValue("bar");
+		
+		// WHEN
+        PropertyDelta<String> delta = additionalNamesProp1.diff(additionalNamesProp2);
+        
+        // THEN
+        assertNull(delta);
+    }
+    
+    @Test
+    public void testPropertyUserSimpleDiffMultiNoChangeStatic() throws Exception {
+    	System.out.println("\n\n===[ testPropertyUserSimpleDiffMultiNoChangeStatic ]===\n");
+    	
+    	// GIVEN
+    	PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
+		
+		PrismObject<UserType> user1 = userDef.instantiate();
+		user1.setOid(USER_JACK_OID);
+		PrismProperty<String> additionalNamesProp1 = user1.findOrCreateProperty(UserType.F_ADDITIONAL_NAMES);
+		additionalNamesProp1.addRealValue("foo");
+		additionalNamesProp1.addRealValue("bar");
+		
+		PrismObject<UserType> user2 = userDef.instantiate();
+		user2.setOid(USER_JACK_OID);
+		PrismProperty<String> additionalNamesProp2 = user2.findOrCreateProperty(UserType.F_ADDITIONAL_NAMES);
+		additionalNamesProp2.addRealValue("foo");
+		additionalNamesProp2.addRealValue("bar");
+		
+		// WHEN
+        PropertyDelta<String> delta = PrismProperty.diff(additionalNamesProp1, additionalNamesProp2);
+        
+        // THEN
+        assertNull(delta);
+    }
 
     @Test
     public void testUserSimpleDiffMultiAdd() throws Exception {
@@ -160,6 +313,112 @@ public class TestDiff {
         assertEquals("Unexpected number of midifications", 1, delta.getModifications().size());
         PrismAsserts.assertPropertyAdd(delta, UserType.F_ADDITIONAL_NAMES, "baz");
         assertEquals("Wrong OID", USER_JACK_OID, delta.getOid());
+        delta.checkConsistence();
+    }
+    
+    @Test
+    public void testPropertyUserSimpleDiffMultiAdd() throws Exception {
+    	System.out.println("\n\n===[ testPropertyUserSimpleDiffMultiAdd ]===\n");
+    	
+    	// GIVEN
+    	PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
+		
+		PrismObject<UserType> user1 = userDef.instantiate();
+		user1.setOid(USER_JACK_OID);
+		PrismProperty<String> additionalNamesProp1 = user1.findOrCreateProperty(UserType.F_ADDITIONAL_NAMES);
+		additionalNamesProp1.addRealValue("foo");
+		additionalNamesProp1.addRealValue("bar");
+		
+		PrismObject<UserType> user2 = userDef.instantiate();
+		user2.setOid(USER_JACK_OID);
+		PrismProperty<String> additionalNamesProp2 = user2.findOrCreateProperty(UserType.F_ADDITIONAL_NAMES);
+		additionalNamesProp2.addRealValue("foo");
+		additionalNamesProp2.addRealValue("bar");
+		additionalNamesProp2.addRealValue("baz");
+		
+		// WHEN
+		PropertyDelta<String> delta = additionalNamesProp1.diff(additionalNamesProp2);
+        
+        // THEN
+        assertNotNull(delta);
+        System.out.println(delta.debugDump());
+        PrismAsserts.assertAdd(delta, "baz");
+        delta.checkConsistence();
+    }
+    
+    @Test
+    public void testPropertyUserSimpleDiffMultiAddStatic() throws Exception {
+    	System.out.println("\n\n===[ testPropertyUserSimpleDiffMultiAddStatic ]===\n");
+    	
+    	// GIVEN
+    	PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
+		
+		PrismObject<UserType> user1 = userDef.instantiate();
+		user1.setOid(USER_JACK_OID);
+		PrismProperty<String> additionalNamesProp1 = user1.findOrCreateProperty(UserType.F_ADDITIONAL_NAMES);
+		additionalNamesProp1.addRealValue("foo");
+		additionalNamesProp1.addRealValue("bar");
+		
+		PrismObject<UserType> user2 = userDef.instantiate();
+		user2.setOid(USER_JACK_OID);
+		PrismProperty<String> additionalNamesProp2 = user2.findOrCreateProperty(UserType.F_ADDITIONAL_NAMES);
+		additionalNamesProp2.addRealValue("foo");
+		additionalNamesProp2.addRealValue("bar");
+		additionalNamesProp2.addRealValue("baz");
+		
+		// WHEN
+		PropertyDelta<String> delta = PrismProperty.diff(additionalNamesProp1, additionalNamesProp2);
+        
+        // THEN
+        assertNotNull(delta);
+        System.out.println(delta.debugDump());
+        PrismAsserts.assertAdd(delta, "baz");
+        delta.checkConsistence();
+    }
+    
+    @Test
+    public void testPropertyUserSimpleDiffMultiAddStaticNull1() throws Exception {
+    	System.out.println("\n\n===[ testPropertyUserSimpleDiffMultiAddStaticNull1 ]===\n");
+    	
+    	// GIVEN
+    	PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
+				
+		PrismObject<UserType> user2 = userDef.instantiate();
+		user2.setOid(USER_JACK_OID);
+		PrismProperty<String> additionalNamesProp2 = user2.findOrCreateProperty(UserType.F_ADDITIONAL_NAMES);
+		additionalNamesProp2.addRealValue("foo");
+		additionalNamesProp2.addRealValue("bar");
+		
+		// WHEN
+		PropertyDelta<String> delta = PrismProperty.diff(null, additionalNamesProp2);
+        
+        // THEN
+        assertNotNull(delta);
+        System.out.println(delta.debugDump());
+        PrismAsserts.assertAdd(delta, "foo", "bar");
+        delta.checkConsistence();
+    }
+    
+    @Test
+    public void testPropertyUserSimpleDiffMultiAddStaticNull2() throws Exception {
+    	System.out.println("\n\n===[ testPropertyUserSimpleDiffMultiAddStaticNull2 ]===\n");
+    	
+    	// GIVEN
+    	PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
+				
+		PrismObject<UserType> user2 = userDef.instantiate();
+		user2.setOid(USER_JACK_OID);
+		PrismProperty<String> additionalNamesProp1 = user2.findOrCreateProperty(UserType.F_ADDITIONAL_NAMES);
+		additionalNamesProp1.addRealValue("bar");
+		additionalNamesProp1.addRealValue("baz");
+		
+		// WHEN
+		PropertyDelta<String> delta = PrismProperty.diff(additionalNamesProp1, null);
+        
+        // THEN
+        assertNotNull(delta);
+        System.out.println(delta.debugDump());
+        PrismAsserts.assertDelete(delta, "bar", "baz");
         delta.checkConsistence();
     }
 

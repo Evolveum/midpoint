@@ -196,7 +196,7 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
 	}
 	
 	@Override
-	protected PageBase getDefaultBackPage() {
+	public PageBase getDefaultBackPage() {
 		return new PageRoles(false, "");
 	}
 
