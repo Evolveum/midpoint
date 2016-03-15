@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.MultiButtonColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
@@ -77,7 +78,6 @@ public class PageCertDefinitions extends PageAdminWorkItems {
     private static final String DOT_CLASS = PageCertDefinitions.class.getName() + ".";
     private static final String OPERATION_CREATE_CAMPAIGN = DOT_CLASS + "createCampaign";
     private static final String OPERATION_DELETE_DEFINITION = DOT_CLASS + "deleteDefinition";
-    private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_DEFINITIONS_TABLE = "definitionsTable";
@@ -114,15 +114,6 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 
         ObjectDataProvider provider = createProvider();
         
-        add(new ConfirmationDialog(DIALOG_CONFIRM_DELETE,
-                createStringResource("PageCertDefinitions.title.confirmDelete"), createDeleteConfirmString()) {
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                close(target);
-                deleteDefinitionPerformed(target, singleDelete);
-            }
-        });
         int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_DEFINITIONS_PANEL);
         BoxedTablePanel table = new BoxedTablePanel<>(ID_DEFINITIONS_TABLE, provider, initColumns(),
                 UserProfileStorage.TableId.PAGE_CERT_DEFINITIONS_PANEL, itemsPerPage);
@@ -244,8 +235,8 @@ public class PageCertDefinitions extends PageAdminWorkItems {
     private void deleteConfirmation(AjaxRequestTarget target, AccessCertificationDefinitionType definition) {
     	
     	   this.singleDelete = definition;
-           ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE);
-           dialog.show(target);
+           showMainPopup(getDeleteDefinitionConfirmationPanel(), createStringResource("PageCertDefinitions.title.confirmDelete"),
+                   target);
        }
 
     private void deleteDefinitionPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType definition) {
@@ -288,4 +279,18 @@ public class PageCertDefinitions extends PageAdminWorkItems {
     }
 
     //endregion
+
+    private Component getDeleteDefinitionConfirmationPanel() {
+        return new ConfirmationPanel(getMainPopupBodyId(),
+                createDeleteConfirmString()) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                ModalWindow modalWindow = findParent(ModalWindow.class);
+                if (modalWindow != null) {
+                    modalWindow.close(target);
+                    deleteDefinitionPerformed(target, singleDelete);
+                }
+            }
+        };
+    }
 }

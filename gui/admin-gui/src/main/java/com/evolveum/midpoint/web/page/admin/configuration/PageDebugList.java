@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -173,7 +174,6 @@ public class PageDebugList extends PageAdminConfiguration {
 	private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "loadResources";
 	private static final String OPERATION_DELETE_SHADOWS = DOT_CLASS + "deleteShadows";
 
-	private static final String ID_CONFIRM_DELETE_POPUP = "confirmDeletePopup";
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_ZIP_CHECK = "zipCheck";
 	private static final String ID_TABLE = "table";
@@ -267,35 +267,6 @@ public class PageDebugList extends PageAdminConfiguration {
 			}
 		};
 		add(deleteAllDialog);
-
-		ConfirmationDialog deleteConfirm = new ConfirmationDialog(ID_CONFIRM_DELETE_POPUP,
-				createStringResource("pageDebugList.dialog.title.confirmDelete"),
-				createDeleteConfirmString()) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-
-				DebugConfDialogDto dto = confDialogModel.getObject();
-				switch (dto.getOperation()) {
-					case DELETE_ALL_TYPE:
-						deleteAllTypeConfirmed(target);
-						break;
-					case DELETE_SELECTED:
-						deleteSelectedConfirmed(target, dto.getObjects());
-						break;
-					case DELETE_RESOURCE_SHADOWS:
-						deleteAllShadowsOnResourceConfirmed(target);
-						break;
-				}
-			}
-
-			@Override
-			public boolean getLabelEscapeModelStrings() {
-				return false;
-			}
-		};
-		add(deleteConfirm);
 
 		Form main = new Form(ID_MAIN_FORM);
 		add(main);
@@ -715,8 +686,8 @@ public class PageDebugList extends PageAdminConfiguration {
 				searchDto.getType().getClassDefinition());
 		confDialogModel.setObject(dto);
 
-		ModalWindow dialog = (ModalWindow) get(ID_CONFIRM_DELETE_POPUP);
-		dialog.show(target);
+        showMainPopup(getDeleteConfirmationPanel(), createStringResource("pageDebugList.dialog.title.confirmDelete"),
+                target);
 	}
 
 	private List<DebugObjectItem> getSelectedData(AjaxRequestTarget target, DebugObjectItem item) {
@@ -747,8 +718,8 @@ public class PageDebugList extends PageAdminConfiguration {
 				selected, searchDto.getType().getClassDefinition());
 		confDialogModel.setObject(dto);
 
-		ModalWindow dialog = (ModalWindow) get(ID_CONFIRM_DELETE_POPUP);
-		dialog.show(target);
+        showMainPopup(getDeleteConfirmationPanel(), createStringResource("pageDebugList.dialog.title.confirmDelete"),
+                target);
 	}
 
 	private void deleteAllIdentities(AjaxRequestTarget target) {
@@ -824,11 +795,42 @@ public class PageDebugList extends PageAdminConfiguration {
 				DebugConfDialogDto.Operation.DELETE_RESOURCE_SHADOWS, null, null);
 		confDialogModel.setObject(dialogDto);
 
-		ModalWindow dialog = (ModalWindow) get(ID_CONFIRM_DELETE_POPUP);
-		dialog.show(target);
+        showMainPopup(getDeleteConfirmationPanel(), createStringResource("pageDebugList.dialog.title.confirmDelete"),
+                target);
 	}
 
-	private void deleteAllShadowsOnResourceConfirmed(AjaxRequestTarget target) {
+
+    private Component getDeleteConfirmationPanel() {
+        return new ConfirmationPanel(getMainPopupBodyId(),
+                createDeleteConfirmString()) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                ModalWindow modalWindow = findParent(ModalWindow.class);
+                if (modalWindow != null) {
+                    modalWindow.close(target);
+                    DebugConfDialogDto dto = confDialogModel.getObject();
+                    switch (dto.getOperation()) {
+                        case DELETE_ALL_TYPE:
+                            deleteAllTypeConfirmed(target);
+                            break;
+                        case DELETE_SELECTED:
+                            deleteSelectedConfirmed(target, dto.getObjects());
+                            break;
+                        case DELETE_RESOURCE_SHADOWS:
+                            deleteAllShadowsOnResourceConfirmed(target);
+                            break;
+                    }
+                }
+            }
+
+            @Override
+            public boolean getLabelEscapeModelStrings() {
+                return false;
+            }
+        };
+    }
+
+    private void deleteAllShadowsOnResourceConfirmed(AjaxRequestTarget target) {
 		DebugSearchDto dto = searchModel.getObject();
 		String resourceOid = dto.getResource().getOid();
 
