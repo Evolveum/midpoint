@@ -704,6 +704,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     }
 
+   
 	protected String createComponentPath(String... components) {
 		return StringUtils.join(components, ":");
 	}
