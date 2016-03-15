@@ -54,7 +54,7 @@ public class PageSelfProfile extends PageUser {
 	}
 	
 	@Override
-	protected PageBase getDefaultBackPage() {
+	public PageBase getDefaultBackPage() {
 		return new PageSelfProfile();
 	}
 //

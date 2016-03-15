@@ -203,7 +203,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			}
 			goBackPage();
 		} else {
-			showResult(result);
+            getProgressReporter().showBackButton(target);
+            getProgressReporter().hideAbortButton(target);
+            showResult(result);
 			target.add(getFeedbackPanel());
 
 			// if we only stayed on the page because of displaying results, hide

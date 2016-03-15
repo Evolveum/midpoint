@@ -68,6 +68,7 @@ public class ProgressReporter implements Serializable {
 
     // links to wicket artefacts on parent page
     private AjaxSubmitButton abortButton;
+    private AjaxSubmitButton backButton;
     private ProgressReportingAwarePage parentPage;
     private ProgressPanel progressPanel;
     private Behavior refreshingBehavior = null;             // behavior is attached to the progress panel
@@ -191,6 +192,7 @@ public class ProgressReporter implements Serializable {
         if (abortEnabled) {
             showAbortButton(target);
         }
+        showBackButton(target);
 
         result.recordInProgress();              // to disable showing not-final results (why does it work? and why is the result shown otherwise?)
 
@@ -244,6 +246,13 @@ public class ProgressReporter implements Serializable {
         this.abortButton = abortButton;
     }
 
+    public void registerBackButton(AjaxSubmitButton backButton) {
+        backButton.setOutputMarkupId(true);
+        backButton.setOutputMarkupPlaceholderTag(true);
+        backButton.setVisible(false);
+        this.backButton = backButton;
+    }
+
     /**
      * You have to call this method when Abort button is pressed
      */
@@ -266,7 +275,7 @@ public class ProgressReporter implements Serializable {
         hideAbortButton(target);
     }
 
-    private void hideAbortButton(AjaxRequestTarget target) {
+    public void hideAbortButton(AjaxRequestTarget target) {
         abortButton.setVisible(false);
         target.add(abortButton);
     }
@@ -274,6 +283,11 @@ public class ProgressReporter implements Serializable {
     public void showAbortButton(AjaxRequestTarget target) {
         abortButton.setVisible(true);
         target.add(abortButton);
+    }
+
+    public void showBackButton(AjaxRequestTarget target) {
+        backButton.setVisible(true);
+        target.add(backButton);
     }
 
 
