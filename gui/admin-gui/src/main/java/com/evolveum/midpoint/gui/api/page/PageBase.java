@@ -553,11 +553,17 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		getMainPopup().show(target);
 	}
 
-	public void hideMainPopup(AjaxRequestTarget target) {
-		getMainPopup().close(target);
-	}
+    public void showMainPopup(Component body, IModel<String> title, AjaxRequestTarget target) {
+        setMainPopupContent(body);
+        setMainPopupTitle(title);
+        showMainPopup(target);
+    }
 
-	private VisibleEnableBehaviour createUserStatusBehaviour(final boolean visibleIfLoggedIn) {
+    public void hideMainPopup(AjaxRequestTarget target) {
+        getMainPopup().close(target);
+    }
+
+    private VisibleEnableBehaviour createUserStatusBehaviour(final boolean visibleIfLoggedIn) {
 		return new VisibleEnableBehaviour() {
 
 			@Override
