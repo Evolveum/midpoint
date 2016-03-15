@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -459,7 +459,7 @@ public class ProjectionValuesProcessor {
 		if (accountDelta == null) {
 			return false;
 		}
-		RefinedObjectClassDefinition oOcDef = projectionContext.getStructuralObjectClassDefinition();
+		RefinedObjectClassDefinition oOcDef = projectionContext.getCompositeObjectClassDefinition();
 		for (RefinedAttributeDefinition identifierDef: oOcDef.getIdentifiers()) {
 			ItemPath identifierPath = new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName());
 			if (accountDelta.findPropertyDelta(identifierPath) != null) {
@@ -552,7 +552,7 @@ public class ProjectionValuesProcessor {
 			return;
 		}
 		
-		RefinedObjectClassDefinition rAccountDef = accountContext.getStructuralObjectClassDefinition();
+		RefinedObjectClassDefinition rAccountDef = accountContext.getCompositeObjectClassDefinition();
 		if (rAccountDef == null) {
 			throw new SchemaException("No definition for account type '"
 					+accountContext.getResourceShadowDiscriminator()+"' in "+accountContext.getResource());

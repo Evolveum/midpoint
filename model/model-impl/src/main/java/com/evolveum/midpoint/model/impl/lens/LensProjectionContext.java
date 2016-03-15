@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jvnet.jaxb2_commons.lang.Validate;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -184,6 +185,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     
     private transient RefinedObjectClassDefinition structuralObjectClassDefinition;
     private transient Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
+    private transient CompositeRefinedObjectClassDefinition compositeObjectClassDefinition;
     
     private ValuePolicyType accountPasswordPolicy;
 
@@ -389,7 +391,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	public PrismObjectDefinition<ShadowType> getObjectDefinition() {
 		if (shadowDefinition == null) {
 			try {
-				shadowDefinition = ShadowUtil.applyObjectClass(super.getObjectDefinition(), getStructuralObjectClassDefinition());
+				shadowDefinition = ShadowUtil.applyObjectClass(super.getObjectDefinition(), getCompositeObjectClassDefinition());
 			} catch (SchemaException e) {
 				// This should not happen
 				throw new SystemException(e.getMessage(), e);
@@ -604,6 +606,17 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     	}
     	return auxiliaryObjectClassDefinitions;
 	}
+    
+    public CompositeRefinedObjectClassDefinition getCompositeObjectClassDefinition() throws SchemaException {
+    	if (compositeObjectClassDefinition == null) {
+    		RefinedObjectClassDefinition structuralObjectClassDefinition = getStructuralObjectClassDefinition();
+    		if (structuralObjectClassDefinition != null) {
+    			compositeObjectClassDefinition = new CompositeRefinedObjectClassDefinition(
+    					structuralObjectClassDefinition, getAuxiliaryObjectClassDefinitions());
+    		}
+    	}
+    	return compositeObjectClassDefinition;
+    }
 
 	private void addAuxiliaryObjectClassNames(List<QName> auxiliaryObjectClassQNames,
 			PrismObject<ShadowType> shadow) {
@@ -739,7 +752,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
         
         if (base == null && accDelta.isModify()) {
-        	RefinedObjectClassDefinition rAccountDef = getStructuralObjectClassDefinition();
+        	RefinedObjectClassDefinition rAccountDef = getCompositeObjectClassDefinition();
         	if (rAccountDef != null) {
         		base = (PrismObject<ShadowType>) rAccountDef.createBlankShadow();
         	}
@@ -828,13 +841,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             	// We need to convert modify delta to ADD
             	ObjectDelta<ShadowType> addDelta = new ObjectDelta<ShadowType>(getObjectTypeClass(),
                 		ChangeType.ADD, getPrismContext());
-                RefinedObjectClassDefinition rAccount = getStructuralObjectClassDefinition();
+                RefinedObjectClassDefinition rObjectClassDef = getCompositeObjectClassDefinition();
 
-                if (rAccount == null) {
+                if (rObjectClassDef == null) {
                     throw new IllegalStateException("Definition for account type " + getResourceShadowDiscriminator() 
                     		+ " not found in the context, but it should be there");
                 }
-                PrismObject<ShadowType> newAccount = (PrismObject<ShadowType>) rAccount.createBlankShadow();
+                PrismObject<ShadowType> newAccount = (PrismObject<ShadowType>) rObjectClassDef.createBlankShadow();
                 addDelta.setObjectToAdd(newAccount);
                 
                 if (origDelta != null) {

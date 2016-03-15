@@ -407,7 +407,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		ResourceType resourceType = accCtx.getResource();
 		QName attrQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeLocalName);
 		ItemPath attrPath = new ItemPath(ShadowType.F_ATTRIBUTES, attrQName);
-		RefinedObjectClassDefinition refinedAccountDefinition = accCtx.getStructuralObjectClassDefinition();
+		RefinedObjectClassDefinition refinedAccountDefinition = accCtx.getCompositeObjectClassDefinition();
 		RefinedAttributeDefinition attrDef = refinedAccountDefinition.findAttributeDefinition(attrQName);
 		assertNotNull("No definition of attribute "+attrQName+" in account def "+refinedAccountDefinition, attrDef);
 		ObjectDelta<ShadowType> accountDelta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountOid, prismContext);

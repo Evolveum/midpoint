@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -161,15 +161,15 @@ public class InboundProcessor {
             		continue;
             	}
 
-                RefinedObjectClassDefinition accountDefinition = projectionContext.getStructuralObjectClassDefinition();
-                if (accountDefinition == null) {
-                    LOGGER.error("Definition for account type {} not found in the context, but it " +
+                RefinedObjectClassDefinition rOcDef = projectionContext.getCompositeObjectClassDefinition();
+                if (rOcDef == null) {
+                    LOGGER.error("Definition for projection type {} not found in the context, but it " +
                             "should be there, dumping context:\n{}", rat, context.debugDump());
-                    throw new IllegalStateException("Definition for account type " + rat
+                    throw new IllegalStateException("Definition for projection type " + rat
                             + " not found in the context, but it should be there");
                 }
 
-                processInboundExpressionsForProjection(context, projectionContext, accountDefinition, aPrioriDelta, task, now, result);
+                processInboundExpressionsForProjection(context, projectionContext, rOcDef, aPrioriDelta, task, now, result);
             }
 
         } finally {

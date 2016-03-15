@@ -114,7 +114,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 
     @Override
     public ResourceAttributeDefinition<?> getDescriptionAttribute() {
-        return objectClassDefinition.getDescriptionAttribute();
+        return getObjectClassDefinition().getDescriptionAttribute();
     }
 
     @Override
@@ -124,17 +124,17 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 
     @Override
     public RefinedAttributeDefinition<?> getNamingAttribute() {
-        return substituteRefinedAttributeDefinition(objectClassDefinition.getNamingAttribute());
+        return substituteRefinedAttributeDefinition(getObjectClassDefinition().getNamingAttribute());
     }
     
     @Override
     public QName getTypeName() {
-        return objectClassDefinition.getTypeName();
+        return getObjectClassDefinition().getTypeName();
     }
 
 	@Override
     public String getNativeObjectClass() {
-        return objectClassDefinition.getNativeObjectClass();
+        return getObjectClassDefinition().getNativeObjectClass();
     }
 
     @Override
@@ -173,7 +173,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	@Override
     public RefinedAttributeDefinition<?> getDisplayNameAttribute() {
 		if (displayNameAttributeDefinition == null) {
-			ResourceAttributeDefinition<?> displayNameAttribute = objectClassDefinition.getDisplayNameAttribute();
+			ResourceAttributeDefinition<?> displayNameAttribute = getObjectClassDefinition().getDisplayNameAttribute();
 			if (displayNameAttribute == null) {
 				return null;
 			}
@@ -296,7 +296,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	}
 	
 	public PrismContext getPrismContext() {
-		return resourceType.asPrismObject().getPrismContext();
+		return getResourceType().asPrismObject().getPrismContext();
 	}
 
     @Override
@@ -361,7 +361,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     }
 
 	protected String getResourceNamespace() {
-		return ResourceTypeUtil.getResourceNamespace(resourceType);
+		return ResourceTypeUtil.getResourceNamespace(getResourceType());
 	}
 
 	@Override
@@ -440,7 +440,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     }
 
 	public RefinedAttributeDefinition<?> getAttributeDefinition(QName attributeName) {
-        for (RefinedAttributeDefinition<?> attrDef : attributeDefinitions) {
+        for (RefinedAttributeDefinition<?> attrDef : getAttributeDefinitions()) {
             if (QNameUtil.match(attrDef.getName(), attributeName)) {
                 return attrDef;
             }
@@ -450,7 +450,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 
 
     public void add(RefinedAttributeDefinition<?> refinedAttributeDefinition) {
-        attributeDefinitions.add(refinedAttributeDefinition);
+    	((Collection)getAttributeDefinitions()).add(refinedAttributeDefinition);
     }
 
     public boolean containsAttributeDefinition(ItemPathType pathType) {
@@ -459,7 +459,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     }
     
     public boolean containsAttributeDefinition(QName attributeName) {
-        for (RefinedAttributeDefinition<?> rAttributeDef : attributeDefinitions) {
+        for (RefinedAttributeDefinition<?> rAttributeDef : getAttributeDefinitions()) {
             if (QNameUtil.match(rAttributeDef.getName(), attributeName)) {
                 return true;
             }
@@ -654,7 +654,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 			return;
 		}
 		
-		parseAttributesFrom(rSchema, objectClassDefinition, false, contextDescription);
+		parseAttributesFrom(rSchema, getObjectClassDefinition(), false, contextDescription);
 		if (auxiliaryObjectClassDefinitions != null) {
 			for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
 				parseAttributesFrom(rSchema, auxiliaryObjectClassDefinition, true, contextDescription);
@@ -759,8 +759,8 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         
     	accountShadowType.setIntent(getIntent());
         accountShadowType.setKind(getKind());
-        accountShadowType.setObjectClass(objectClassDefinition.getTypeName());
-        accountShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(resourceType));
+        accountShadowType.setObjectClass(getObjectClassDefinition().getTypeName());
+        accountShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(getResourceType()));
         
         // Setup definition
         PrismObjectDefinition<ShadowType> newDefinition = accountShadow.getDefinition().cloneWithReplacedDefinition(
@@ -771,7 +771,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     }
 
     public ResourceShadowDiscriminator getShadowDiscriminator() {
-        return new ResourceShadowDiscriminator(resourceType.getOid(), getKind(), getIntent());
+        return new ResourceShadowDiscriminator(getResourceType().getOid(), getKind(), getIntent());
     }
 
     public Collection<? extends QName> getNamesOfAttributesWithOutboundExpressions() {
@@ -892,7 +892,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	}
     
     public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) {
-		return ResourceTypeUtil.getEffectiveCapability(resourceType, schemaHandlingObjectTypeDefinitionType, capabilityClass);
+		return ResourceTypeUtil.getEffectiveCapability(getResourceType(), schemaHandlingObjectTypeDefinitionType, capabilityClass);
 	}
 
     public PagedSearchCapabilityType getPagedSearches() {
@@ -910,14 +910,14 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     
     
 	public boolean isAuxiliary() {
-		return objectClassDefinition.isAuxiliary();
+		return getObjectClassDefinition().isAuxiliary();
 	}
 
 	public boolean matches(ShadowType shadowType) {
 		if (shadowType == null) {
 			return false;
 		}
-		if (!QNameUtil.match(objectClassDefinition.getTypeName(), shadowType.getObjectClass())) {
+		if (!QNameUtil.match(getObjectClassDefinition().getTypeName(), shadowType.getObjectClass())) {
 			return false;
 		}
 		if (shadowType.getKind() == null) {
