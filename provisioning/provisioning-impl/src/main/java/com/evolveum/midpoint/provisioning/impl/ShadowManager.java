@@ -19,6 +19,7 @@ package com.evolveum.midpoint.provisioning.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -50,6 +51,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -809,7 +811,70 @@ public class ShadowManager {
 			throw new SystemException(e.getMessage(), e);
 		}
 		return repoShadowChanges;
-	}	
+	}
+	
+	/**
+	 * Updates repository shadow based on shadow from resource. Handles rename cases,
+	 * change of auxiliary object classes, etc.
+	 */
+	public void updateRepoShadow(ProvisioningContext ctx, ShadowType currentShadowType, ShadowType oldShadowType, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, CommunicationException {
+		Collection<ResourceAttribute<?>> oldSecondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(oldShadowType);
+		if (oldSecondaryIdentifiers.isEmpty()){
+			return;
+		}
+		ResourceAttributeContainer newSecondaryIdentifiers = ShadowUtil.getAttributesContainer(currentShadowType);
+		
+		//remember name before normalizing attributes
+		PolyString currentShadowName = ShadowUtil.determineShadowName(currentShadowType);
+		currentShadowType.setName(new PolyStringType(currentShadowName));
+		
+		Iterator<ResourceAttribute<?>> oldSecondaryIterator = oldSecondaryIdentifiers.iterator();
+		Collection<PropertyDelta> repoShadowDeltas = new ArrayList<PropertyDelta>();
+		while (oldSecondaryIterator.hasNext()){
+			ResourceAttribute<?> oldSecondaryIdentifier = oldSecondaryIterator.next();
+			ResourceAttribute newSecondaryIdentifier = newSecondaryIdentifiers.findAttribute(oldSecondaryIdentifier.getElementName());
+			Collection newValue = newSecondaryIdentifier.getRealValues();
+			
+			if (!compareAttribute(ctx.getObjectClassDefinition(), newSecondaryIdentifier, oldSecondaryIdentifier)){
+				PropertyDelta<?> propertyDelta = PropertyDelta.createDelta(new ItemPath(ShadowType.F_ATTRIBUTES, oldSecondaryIdentifier.getElementName()), oldShadowType.asPrismObject().getDefinition());
+				propertyDelta.addValuesToDelete(PrismPropertyValue.cloneCollection((Collection)oldSecondaryIdentifier.getValues()));
+				propertyDelta.addValuesToAdd(PrismPropertyValue.cloneCollection((Collection)newSecondaryIdentifier.getValues()));
+				repoShadowDeltas.add(propertyDelta);
+			}
+
+		}
+		
+		if (!repoShadowDeltas.isEmpty()){
+		
+			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, 
+					oldShadowType.asPrismObject().getDefinition(),currentShadowName);
+			repoShadowDeltas.add(shadowNameDelta);
+		} else {
+			
+			if (!oldShadowType.getName().getOrig().equals(currentShadowType.getName().getOrig())){
+				PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, 
+						oldShadowType.asPrismObject().getDefinition(), currentShadowName);
+				repoShadowDeltas.add(shadowNameDelta);
+				
+			}
+		}
+		
+		PropertyDelta<QName> auxOcDelta = PrismProperty.diff(
+				oldShadowType.asPrismObject().findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS),
+				currentShadowType.asPrismObject().findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS));
+		if (auxOcDelta != null) {
+			repoShadowDeltas.add(auxOcDelta);
+		}
+		
+		if (!repoShadowDeltas.isEmpty()){
+			normalizeDeltas((Collection)repoShadowDeltas, ctx.getObjectClassDefinition());
+			ConstraintsChecker.onShadowModifyOperation(repoShadowDeltas);
+			LOGGER.trace("Modifying repository shadow {}:\n{}", oldShadowType, DebugUtil.debugDump(repoShadowDeltas));
+			repositoryService.modifyObject(ShadowType.class, oldShadowType.getOid(), repoShadowDeltas, parentResult);
+			oldShadowType.setName(new PolyStringType(currentShadowName));
+		}
+
+	}
 
 	/**
 	 * Re-reads the shadow, re-evaluates the identifiers and stored values, updates them if necessary. Returns
