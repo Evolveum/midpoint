@@ -27,27 +27,17 @@ import java.io.Serializable;
  */
 public class DebugSearchDto implements Serializable {
 
-    public static final String F_TEXT = "text";
     public static final String F_TYPE = "type";
     public static final String F_RESOURCE_OID = "resource";
     public static final String F_SEARCH = "search";
 
-    private String text;
     private ObjectTypes type;
     private ObjectViewDto resource;
     private Search search;
 
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
-    }
-
     public ObjectTypes getType() {
         if (type == null) {
-            return ObjectTypes.SYSTEM_CONFIGURATION;
+            type = ObjectTypes.SYSTEM_CONFIGURATION;
         }
         return type;
     }
