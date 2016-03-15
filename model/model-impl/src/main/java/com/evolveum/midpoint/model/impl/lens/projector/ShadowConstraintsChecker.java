@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,7 +106,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 
 	public void check(Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
-		RefinedObjectClassDefinition projDef = projectionContext.getStructuralObjectClassDefinition();
+		RefinedObjectClassDefinition projOcDef = projectionContext.getCompositeObjectClassDefinition();
 		PrismObject<ShadowType> projectionNew = projectionContext.getObjectNew();
 		if (projectionNew == null) {
 			// This must be delete
@@ -140,7 +140,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 			}
 		};
 
-		constraintsCheckingResult = provisioningService.checkConstraints(projDef, projectionNew,
+		constraintsCheckingResult = provisioningService.checkConstraints(projOcDef, projectionNew,
 				projectionContext.getResource(), projectionContext.getOid(), projectionContext.getResourceShadowDiscriminator(),
 				confirmer, task, result);
 

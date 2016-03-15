@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2010-2016 Evolveum
+/* Copyright (c) 2010-2016 Evolveum
+ *
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,9 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchPanel;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -60,9 +62,7 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
@@ -72,7 +72,6 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -90,7 +89,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
@@ -99,7 +97,6 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.TwoValueLinkPanel;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.dialog.DeleteAllDialog;
 import com.evolveum.midpoint.web.component.dialog.DeleteAllDto;
 import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
@@ -124,38 +121,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.PropertyListView;
-import org.apache.wicket.markup.html.panel.Fragment;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.*;
-import org.apache.wicket.model.util.ListModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import javax.swing.text.html.ListView;
-import javax.xml.namespace.QName;
-
-import java.util.*;
 
 /**
  * @author lazyman
@@ -181,10 +146,10 @@ public class PageDebugList extends PageAdminConfiguration {
 	private static final String ID_EXPORT = "export";
 	private static final String ID_EXPORT_ALL = "exportAll";
 	private static final String ID_SEARCH_FORM = "searchForm";
-	private static final String ID_BASIC_SEARCH = "basicSearch";
 	private static final String ID_DELETE_ALL_DIALOG = "confirmDeleteAll";
 	private static final String ID_RESOURCE = "resource";
 	private static final String ID_TABLE_HEADER = "tableHeader";
+	private static final String ID_SEARCH = "search";
 
 	private static final Integer DELETE_LOG_INTERVAL = 50;
 
@@ -204,7 +169,11 @@ public class PageDebugList extends PageAdminConfiguration {
 			@Override
 			protected DebugSearchDto load() {
 				ConfigurationStorage storage = getSessionStorage().getConfiguration();
-				return storage.getDebugSearchDto();
+
+				DebugSearchDto dto = storage.getDebugSearchDto();
+				setupSearchDto(dto);
+
+				return dto;
 			}
 		};
 
@@ -298,7 +267,6 @@ public class PageDebugList extends PageAdminConfiguration {
 	}
 
 	private void addOrReplaceTable(RepositoryObjectDataProvider provider) {
-		provider.setQuery(createQuery());
 		Form mainForm = (Form) get(ID_MAIN_FORM);
 
 		BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, initColumns(provider.getType()),
@@ -515,12 +483,31 @@ public class PageDebugList extends PageAdminConfiguration {
 		return (Table) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
 	}
 
+	/**
+	 * called when object type is changed, search panel will be refreshed
+     */
 	private void listObjectsPerformed(AjaxRequestTarget target) {
+		DebugSearchDto dto = searchModel.getObject();
+		setupSearchDto(dto);
+
+		Search search = dto.getSearch();
+		ObjectQuery query = search.createObjectQuery(getPrismContext());
+
+		listObjectsPerformed(query, target);
+	}
+
+	private void setupSearchDto(DebugSearchDto dto) {
+		ObjectTypes type = dto.getType();
+		Search search = SearchFactory.createSearch(type.getClassDefinition(), getPrismContext(), true);
+		dto.setSearch(search);
+	}
+
+	private void listObjectsPerformed(ObjectQuery query, AjaxRequestTarget target) {
 		DebugSearchDto dto = searchModel.getObject();
 		ObjectTypes selected = dto.getType();
 
 		RepositoryObjectDataProvider provider = getTableDataProvider();
-		provider.setQuery(createQuery());
+		provider.setQuery(createQuery(query));
 
 		if (selected != null) {
 			provider.setType(selected.getClassDefinition());
@@ -535,7 +522,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		target.add((Component) table);
 	}
 
-	private ObjectQuery createQuery() {
+	private ObjectQuery createQuery(ObjectQuery searchQuery) {
 		DebugSearchDto dto = searchModel.getObject();
 
 		List<ObjectFilter> filters = new ArrayList<>();
@@ -546,14 +533,8 @@ public class PageDebugList extends PageAdminConfiguration {
 			filters.add(ref);
 		}
 
-		if (StringUtils.isNotEmpty(dto.getText())) {
-			String nameText = dto.getText();
-			PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
-			String normalizedString = normalizer.normalize(nameText);
-
-			ObjectFilter substring = SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class,
-					getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedString);
-			filters.add(substring);
+		if (searchQuery != null && searchQuery.getFilter() != null) {
+			filters.add(searchQuery.getFilter());
 		}
 
 		if (filters.isEmpty()) {
@@ -791,13 +772,6 @@ public class PageDebugList extends PageAdminConfiguration {
 		target.add(getFeedbackPanel());
 	}
 
-	private void clearSearchPerformed(AjaxRequestTarget target) {
-		DebugSearchDto dto = searchModel.getObject();
-		dto.setText(null);
-
-		listObjectsPerformed(target);
-	}
-
 	private void deleteAllShadowsOnResource(AjaxRequestTarget target) {
 		DebugSearchDto dto = searchModel.getObject();
 		if (dto.getResource() == null) {
@@ -946,28 +920,6 @@ public class PageDebugList extends PageAdminConfiguration {
 
 			final IModel<DebugSearchDto> model = (IModel) getDefaultModel();
 
-			BasicSearchPanel<DebugSearchDto> basicSearch = new BasicSearchPanel<DebugSearchDto>(
-					ID_BASIC_SEARCH, model) {
-
-				@Override
-				protected IModel<String> createSearchTextModel() {
-					return new PropertyModel<>(model, DebugSearchDto.F_TEXT);
-				}
-
-				@Override
-				protected void searchPerformed(AjaxRequestTarget target) {
-					PageDebugList page = (PageDebugList) getPage();
-					page.listObjectsPerformed(target);
-				}
-
-				@Override
-				protected void clearSearchPerformed(AjaxRequestTarget target) {
-					PageDebugList page = (PageDebugList) getPage();
-					page.clearSearchPerformed(target);
-				}
-			};
-			searchForm.add(basicSearch);
-
 			EnumChoiceRenderer<ObjectTypes> renderer = new EnumChoiceRenderer<ObjectTypes>() {
 				
 				protected String resourceKey(ObjectTypes object) {
@@ -1019,6 +971,17 @@ public class PageDebugList extends PageAdminConfiguration {
 				}
 			};
 			add(zipCheck);
+
+			SearchPanel search = new SearchPanel(ID_SEARCH,
+					new PropertyModel<Search>(model, DebugSearchDto.F_SEARCH)) {
+
+				@Override
+				public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+					PageDebugList page = (PageDebugList) getPage();
+					page.listObjectsPerformed(query, target);
+				}
+			};
+			searchForm.add(search);
 		}
 
 		public AjaxCheckBox getZipCheck() {
