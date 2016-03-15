@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -223,6 +224,10 @@ public class CompositeRefinedObjectClassDefinition extends RefinedObjectClassDef
 
 	public PrismObjectDefinition<ShadowType> getObjectDefinition() {
 		return structuralObjectClassDefinition.getObjectDefinition();
+	}
+
+	public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
+		return structuralObjectClassDefinition.getObjectClassDefinition();
 	}
 
 	public ResourceObjectReferenceType getBaseContext() {
