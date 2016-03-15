@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 
 import java.io.Serializable;
@@ -29,10 +30,12 @@ public class DebugSearchDto implements Serializable {
     public static final String F_TEXT = "text";
     public static final String F_TYPE = "type";
     public static final String F_RESOURCE_OID = "resource";
+    public static final String F_SEARCH = "search";
 
     private String text;
     private ObjectTypes type;
     private ObjectViewDto resource;
+    private Search search;
 
     public String getText() {
         return text;
@@ -59,5 +62,13 @@ public class DebugSearchDto implements Serializable {
 
     public void setResource(ObjectViewDto resource) {
         this.resource = resource;
+    }
+
+    public Search getSearch() {
+        return search;
+    }
+
+    public void setSearch(Search search) {
+        this.search = search;
     }
 }

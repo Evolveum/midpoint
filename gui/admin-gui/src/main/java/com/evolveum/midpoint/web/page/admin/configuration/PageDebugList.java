@@ -23,6 +23,9 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchPanel;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -185,6 +188,7 @@ public class PageDebugList extends PageAdminConfiguration {
 	private static final String ID_DELETE_ALL_DIALOG = "confirmDeleteAll";
 	private static final String ID_RESOURCE = "resource";
 	private static final String ID_TABLE_HEADER = "tableHeader";
+	private static final String ID_SEARCH = "search";
 
 	private static final Integer DELETE_LOG_INTERVAL = 50;
 
@@ -204,7 +208,11 @@ public class PageDebugList extends PageAdminConfiguration {
 			@Override
 			protected DebugSearchDto load() {
 				ConfigurationStorage storage = getSessionStorage().getConfiguration();
-				return storage.getDebugSearchDto();
+				DebugSearchDto dto = storage.getDebugSearchDto();
+				Search search = SearchFactory.createSearch(UserType.class, getPrismContext(), true);
+				dto.setSearch(search);
+
+				return dto;
 			}
 		};
 
@@ -984,6 +992,18 @@ public class PageDebugList extends PageAdminConfiguration {
 				}
 			};
 			add(zipCheck);
+
+			SearchPanel search = new SearchPanel(ID_SEARCH,
+					new PropertyModel<Search>(model, DebugSearchDto.F_SEARCH)) {
+
+				@Override
+				public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+					PageDebugList page = (PageDebugList) getPage();
+					//todo fix search button [lazyman]
+//					page.listObjectsPerformed(query, target);
+				}
+			};
+			searchForm.add(search);
 		}
 
 		public AjaxCheckBox getZipCheck() {
