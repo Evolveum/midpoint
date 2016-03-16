@@ -408,7 +408,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 		
 		PrismObject<? extends ObjectType> target = null;
-        target = repository.getObject(clazz, oid, null, result);
+		try {
+			target = repository.getObject(clazz, oid, null, result);
+        } catch (SchemaException e) {
+        	throw new SchemaException(e.getMessage() + " in " + sourceDescription, e);
+        }
         if (target == null) {
             throw new IllegalArgumentException("Got null target from repository, oid:"+oid+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
         }

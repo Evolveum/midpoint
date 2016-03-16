@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,6 +104,15 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
 	private static final File ROLE_STUPID_FILE = new File(TEST_DIR, "role-stupid.xml");
 	private static final String ROLE_STUPID_OID = "12345678-d34d-b33f-f00d-555555550002";
+	
+	private static final File ROLE_BAD_CONSTRUCTION_RESOURCE_REF_FILE = new File(TEST_DIR, "role-bad-construction-resource-ref.xml");
+	private static final String ROLE_BAD_CONSTRUCTION_RESOURCE_REF_OID = "54084f2c-eba0-11e5-8278-03ea5d7058d9";
+	
+	private static final File ROLE_META_BAD_CONSTRUCTION_RESOURCE_REF_FILE = new File(TEST_DIR, "role-meta-bad-construction-resource-ref.xml");
+	private static final String ROLE_META_BAD_CONSTRUCTION_RESOURCE_REF_OID = "90b931ae-eba8-11e5-977a-b73ba58cf18b";
+
+	private static final File ROLE_TARGET_BAD_CONSTRUCTION_RESOURCE_REF_FILE = new File(TEST_DIR, "role-target-bad-construction-resource-ref.xml");
+	private static final String ROLE_TARGET_BAD_CONSTRUCTION_RESOURCE_REF_OID = "e69b791a-eba8-11e5-80f5-33732b18f10a";
 
 	private static final File ROLE_RECURSION_FILE = new File(TEST_DIR, "role-recursion.xml");
 	private static final String ROLE_RECURSION_OID = "12345678-d34d-b33f-f00d-555555550003";
@@ -140,6 +149,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		addObject(ROLE_IDIOT_FILE, initTask, initResult);
 		addObject(ROLE_STUPID_FILE, initTask, initResult);
 		addObject(ROLE_RECURSION_FILE, initTask, initResult);
+		addObject(ROLE_BAD_CONSTRUCTION_RESOURCE_REF_FILE, initTask, initResult);
+		addObject(ROLE_META_BAD_CONSTRUCTION_RESOURCE_REF_FILE, initTask, initResult);
 		
 		DebugUtil.setDetailedDebugDump(true);
 	}
@@ -636,6 +647,88 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
 		assertAssignments(userDeGhoulash, 0);
+	}
+	
+	@Test
+    public void test350AssignDeGhoulashRoleBadConstructionResourceRef() throws Exception {
+		final String TEST_NAME = "test350AssignDeGhoulashRoleBadConstructionResourceRef";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+                                
+		// WHEN
+        assignRole(USER_DEGHOULASH_OID, ROLE_BAD_CONSTRUCTION_RESOURCE_REF_OID, task, result);
+	        		
+		// THEN
+		result.computeStatus();
+		display("result", result);
+        TestUtil.assertPartialError(result);
+        String message = result.getMessage();
+        TestUtil.assertMessageContains(message, "role:"+ROLE_BAD_CONSTRUCTION_RESOURCE_REF_OID);
+        TestUtil.assertMessageContains(message, "Bad resourceRef in construction");
+        TestUtil.assertMessageContains(message, "this-oid-does-not-exist");
+        
+		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
+		display("User after change execution", userDeGhoulash);
+		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
+		assertAssignedRole(userDeGhoulash, ROLE_BAD_CONSTRUCTION_RESOURCE_REF_OID);
+	}
+	
+	@Test
+    public void test351UnAssignDeGhoulashRoleBadConstructionResourceRef() throws Exception {
+		final String TEST_NAME = "test351UnAssignDeGhoulashRoleBadConstructionResourceRef";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+                                
+		// WHEN
+        unassignRole(USER_DEGHOULASH_OID, ROLE_BAD_CONSTRUCTION_RESOURCE_REF_OID, task, result);
+	        		
+		// THEN
+		result.computeStatus();
+		display("result", result);
+        TestUtil.assertPartialError(result);
+        String message = result.getMessage();
+        TestUtil.assertMessageContains(message, "role:"+ROLE_BAD_CONSTRUCTION_RESOURCE_REF_OID);
+        TestUtil.assertMessageContains(message, "Bad resourceRef in construction");
+        TestUtil.assertMessageContains(message, "this-oid-does-not-exist");
+        
+		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
+		display("User after change execution", userDeGhoulash);
+		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
+		assertAssignedNoRole(userDeGhoulash);
+	}
+
+	@Test
+    public void test360AddRoleTargetBadConstructionResourceRef() throws Exception {
+		final String TEST_NAME = "test360AddRoleTargetBadConstructionResourceRef";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+
+		// WHEN
+    	addObject(ROLE_TARGET_BAD_CONSTRUCTION_RESOURCE_REF_FILE, task, result);
+	        		
+		// THEN
+		result.computeStatus();
+		display("result", result);
+        TestUtil.assertPartialError(result);
+        String message = result.getMessage();
+        TestUtil.assertMessageContains(message, "role:"+ROLE_META_BAD_CONSTRUCTION_RESOURCE_REF_OID);
+        TestUtil.assertMessageContains(message, "Bad resourceRef in construction metarole");
+        TestUtil.assertMessageContains(message, "this-oid-does-not-exist");     
 	}
 
     @Test
