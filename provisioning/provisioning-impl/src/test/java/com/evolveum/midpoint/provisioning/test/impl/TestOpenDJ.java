@@ -72,8 +72,10 @@ import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.match.UuidMatchingRule;
 import com.evolveum.midpoint.prism.match.XmlMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -1636,10 +1638,12 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		rememberConnectorSimulatedPagingSearchCount();
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		List<PrismObject<ShadowType>> searchResults = 
 			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 		
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		assertSuccess(result);
 		display("Search resutls", searchResults);
@@ -1667,10 +1671,12 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		rememberConnectorSimulatedPagingSearchCount();
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		List<PrismObject<ShadowType>> searchResults = 
 			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 		
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		assertSuccess(result);
 		display("Search resutls", searchResults);
@@ -1698,15 +1704,87 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		rememberConnectorSimulatedPagingSearchCount();
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		SearchResultList<PrismObject<ShadowType>> searchResults = provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 		
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		assertSuccess(result);
 		display("Search resutls", searchResults);
 		
 		// The results should be this:
 		assertSearchResults(searchResults, "hbarbossa", "idm", "jbeckett", "jbond", "jgibbs" );
+		
+		assertConnectorOperationIncrement(1);
+		assertConnectorSimulatedPagingSearchIncrement(0);
+	}
+	
+	@Test
+	public void test233SearchObjectsPagedNoOffsetSortSn() throws Exception {
+		final String TEST_NAME = "test233SearchObjectsPagedNoOffsetSortSn";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		
+		ObjectPaging paging = ObjectPaging.createPaging(null, 4);
+		paging.setOrdering(ObjectOrdering.createOrdering(
+				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
+		query.setPaging(paging);
+		
+		rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		List<PrismObject<ShadowType>> searchResults = 
+			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		assertSuccess(result);
+		display("Search resutls", searchResults);
+		
+		assertSearchResults(searchResults, "monk", "hbarbossa", "jbeckett", "jbond" );
+		
+		assertConnectorOperationIncrement(1);
+		assertConnectorSimulatedPagingSearchIncrement(0);
+	}
+	
+	@Test
+	public void test234SearchObjectsPagedOffsetSortSn() throws Exception {
+		final String TEST_NAME = "test234SearchObjectsPagedOffsetSortSn";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		
+		ObjectPaging paging = ObjectPaging.createPaging(2, 4);
+		paging.setOrdering(ObjectOrdering.createOrdering(
+				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
+		query.setPaging(paging);
+		
+		rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		List<PrismObject<ShadowType>> searchResults = 
+			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		assertSuccess(result);
+		display("Search resutls", searchResults);
+		
+		assertSearchResults(searchResults, "jbeckett", "jbond", "cook", "drake" );
 		
 		assertConnectorOperationIncrement(1);
 		assertConnectorSimulatedPagingSearchIncrement(0);
