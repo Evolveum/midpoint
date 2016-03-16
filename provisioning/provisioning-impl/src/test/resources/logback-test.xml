@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@
     <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
     
     <!-- WARNING! See also logging.properties. Apache LDAP API logs too much. Therefore it is limited on JUL level. -->
-    <logger name="org.apache.directory" level="DEBUG" />
+    <logger name="org.apache.directory" level="INFO" />
     <logger name="org.apache.directory.api.ldap.model.schema.registries" level="INFO" />
     <logger name="org.apache.directory.api.ldap.model.schema.parsers" level="INFO" />
     <logger name="org.apache.directory.api.asn1" level="INFO" />

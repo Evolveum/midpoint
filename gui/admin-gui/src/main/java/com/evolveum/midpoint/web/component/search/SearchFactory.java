@@ -47,14 +47,55 @@ public class SearchFactory {
         SEARCHABLE_OBJECTS.put(RoleType.class, Arrays.asList(
                 new ItemPath(RoleType.F_NAME),
                 new ItemPath(RoleType.F_DISPLAY_NAME),
-//                new ItemPath(RoleType.F_OWNER_REF),
-                new ItemPath(RoleType.F_REQUESTABLE),
                 new ItemPath(RoleType.F_ROLE_TYPE)));
-
-        //todo add other object types and properties which can be used in search
+        SEARCHABLE_OBJECTS.put(ConnectorHostType.class, Arrays.asList(
+                new ItemPath(ConnectorHostType.F_HOSTNAME)
+        ));
+        SEARCHABLE_OBJECTS.put(ConnectorType.class, Arrays.asList(
+                new ItemPath(ConnectorType.F_CONNECTOR_BUNDLE),
+                new ItemPath(ConnectorType.F_CONNECTOR_VERSION),
+                new ItemPath(ConnectorType.F_CONNECTOR_TYPE)
+        ));
+        SEARCHABLE_OBJECTS.put(AbstractRoleType.class, Arrays.asList(
+                new ItemPath(RoleType.F_REQUESTABLE)
+        ));
+        SEARCHABLE_OBJECTS.put(OrgType.class, Arrays.asList(
+                new ItemPath(OrgType.F_DISPLAY_NAME),
+                new ItemPath(OrgType.F_COST_CENTER),
+                new ItemPath(OrgType.F_IDENTIFIER),
+                new ItemPath(OrgType.F_ORG_TYPE),
+                new ItemPath(OrgType.F_TENANT),
+                new ItemPath(OrgType.F_LOCALITY)
+        ));
+        SEARCHABLE_OBJECTS.put(GenericObjectType.class, Arrays.asList(
+                new ItemPath(GenericObjectType.F_OBJECT_TYPE)
+        ));
+        SEARCHABLE_OBJECTS.put(NodeType.class, Arrays.asList(
+                new ItemPath(NodeType.F_NODE_IDENTIFIER)
+        ));
+        SEARCHABLE_OBJECTS.put(ReportType.class, Arrays.asList(
+                new ItemPath(ReportType.F_PARENT)
+        ));
+        SEARCHABLE_OBJECTS.put(ShadowType.class, Arrays.asList(
+                new ItemPath(ShadowType.F_OBJECT_CLASS),
+                new ItemPath(ShadowType.F_DEAD),
+                new ItemPath(ShadowType.F_INTENT),
+                new ItemPath(ShadowType.F_EXISTS)
+        ));
+        SEARCHABLE_OBJECTS.put(TaskType.class, Arrays.asList(
+                new ItemPath(TaskType.F_TASK_IDENTIFIER),
+                new ItemPath(TaskType.F_NODE),
+                new ItemPath(TaskType.F_CATEGORY),
+                new ItemPath(TaskType.F_RESULT_STATUS)
+        ));
     }
 
-    public static <T extends ObjectType> Search createSearch(Class<T> type, PrismContext ctx, boolean useDefsFromSuperclass) {
+    public static <T extends ObjectType> Search createSearch(Class<T> type, PrismContext ctx) {
+        return createSearch(type, ctx, true);
+    }
+
+    public static <T extends ObjectType> Search createSearch(Class<T> type, PrismContext ctx,
+                                                             boolean useDefsFromSuperclass) {
         Map<ItemPath, ItemDefinition> availableDefs = getAvailableDefinitions(type, ctx, useDefsFromSuperclass);
 
         Search search = new Search(type, availableDefs);
@@ -80,7 +121,7 @@ public class SearchFactory {
             if (pathList != null) {
                 map.putAll(createAvailableDefinitions(typeClass, ctx, pathList));
             }
-            if (!useDefsFromSuperclass){
+            if (!useDefsFromSuperclass) {
                 break;
             }
             typeClass = (Class<T>) typeClass.getSuperclass();

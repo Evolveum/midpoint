@@ -126,11 +126,7 @@ public class PageUsers extends PageAdminUsers {
     public PageUsers(boolean clearPagingInSession) {
         this(clearPagingInSession, null, null);
     }
-    @Override
-    protected void onBeforeRender() {
-    	// TODO Auto-generated method stub
-    	super.onBeforeRender();
-    }
+    
 
     public PageUsers(boolean clearPagingInSession, final UsersDto.SearchType type, final String text) {
         searchModel = new LoadableModel<Search>(false) {
@@ -156,7 +152,6 @@ public class PageUsers extends PageAdminUsers {
         };
 
         getSessionStorage().clearPagingInSession(clearPagingInSession);
-        add(getFeedbackPanel());
         initLayout();
     }
 

@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.LayerRefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.LayerRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -270,21 +271,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		}
     	
     	RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-    	ShadowType shadowType = shadow.asObjectable();
-    	ShadowKindType kind = shadowType.getKind();
-    	String intent = shadowType.getIntent();
-        RefinedObjectClassDefinition rocd;
-    	if (kind != null) {
-    		rocd = refinedSchema.getRefinedDefinition(kind, intent);
-    	} else {
-    		QName objectClassName = shadowType.getObjectClass();
-    		if (objectClassName == null) {
-    			// No data. Fall back to the default
-    			rocd = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
-    		} else {
-    			rocd = refinedSchema.getRefinedDefinition(objectClassName);
-    		}
-    	}
+    	CompositeRefinedObjectClassDefinition rocd = refinedSchema.determineCompositeObjectClassDefinition(shadow);
         LayerRefinedObjectClassDefinition layeredROCD = rocd.forLayer(LayerType.PRESENTATION);
 
     	ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);

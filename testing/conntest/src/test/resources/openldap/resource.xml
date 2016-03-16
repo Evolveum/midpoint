@@ -48,6 +48,7 @@
 			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
 			<icfcldap:bindDn>cn=idm,ou=Administrators,dc=example,dc=com</icfcldap:bindDn>
 			<icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+			<icfcldap:usePermissiveModify>always</icfcldap:usePermissiveModify>
 			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
 			<icfcldap:passwordHashAlgorithm>SSHA</icfcldap:passwordHashAlgorithm>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
@@ -275,7 +276,7 @@
 	</schemaHandling>
     
     <consistency>
-		<avoidDuplicateValues>true</avoidDuplicateValues>
+		<avoidDuplicateValues>false</avoidDuplicateValues>
 	</consistency>
 	
 	<synchronization>

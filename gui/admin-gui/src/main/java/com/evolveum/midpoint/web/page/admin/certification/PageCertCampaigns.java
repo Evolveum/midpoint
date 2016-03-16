@@ -50,6 +50,7 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.SingleButtonColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListItemDto;
@@ -120,11 +121,6 @@ public class PageCertCampaigns extends PageAdminCertification {
 	public static final String OP_CLOSE_STAGE = "PageCertCampaigns.button.closeStage";
 	public static final String OP_OPEN_NEXT_STAGE = "PageCertCampaigns.button.openNextStage";
 	public static final String OP_START_REMEDIATION = "PageCertCampaigns.button.startRemediation";
-	private static final String DIALOG_CONFIRM_CLOSE_STAGE = "confirmCloseStagePopup";
-    private static final String DIALOG_CONFIRM_DELETE_CAMPAIGN ="confirmDeleteCampaignPopup";
-	private static final String DIALOG_CONFIRM_DELETE_MULTIPLE_CAMPAIGNS = "confirmDeleteMultipleCampaignsPopup";
-    private static final String DIALOG_CONFIRM_CLOSE_CAMPAIGN ="confirmCloseCampaignPopup";
-    private static final String DIALOG_CONFIRM_CLOSE_MULTIPLE_CAMPAIGNS ="confirmCloseMultipleCampaignsPopup";
 
 	// campaign on which close-stage/close-campaign/delete has to be executed (if chosen directly from row menu)
 	private CertCampaignListItemDto relevantCampaign;
@@ -212,66 +208,6 @@ public class PageCertCampaigns extends PageAdminCertification {
 	private void initLayout() {
 		Form mainForm = new Form(ID_MAIN_FORM);
 		add(mainForm);
-
-		add(new ConfirmationDialog(
-				DIALOG_CONFIRM_CLOSE_STAGE,
-				createStringResource("PageCertCampaigns.dialog.title.confirmCloseStage"),
-				createCloseStageConfirmString()) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-				closeStageConfirmedPerformed(target, relevantCampaign);
-			}
-		});
-
-		add(new ConfirmationDialog(
-				DIALOG_CONFIRM_CLOSE_CAMPAIGN,
-				createStringResource("PageCertCampaigns.dialog.title.confirmCloseCampaign"),
-				createCloseCampaignConfirmString()) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-				closeCampaignConfirmedPerformed(target, relevantCampaign);
-			}
-		});
-		
-		add(new ConfirmationDialog(
-				DIALOG_CONFIRM_CLOSE_MULTIPLE_CAMPAIGNS,
-				createStringResource("PageCertCampaigns.dialog.title.confirmCloseCampaign"),
-				createCloseSelectedCampaignsConfirmString()) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-				closeSelectedCampaignsConfirmedPerformed(target);
-			}
-		});
-			
-		add(new ConfirmationDialog(
-				DIALOG_CONFIRM_DELETE_CAMPAIGN,
-				createStringResource("PageCertCampaigns.dialog.title.confirmDeleteCampaign"),
-				createDeleteCampaignConfirmString()) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-				deleteCampaignConfirmedPerformed(target);
-			}
-		});
-
-		add(new ConfirmationDialog(
-				DIALOG_CONFIRM_DELETE_MULTIPLE_CAMPAIGNS,
-				createStringResource("PageCertCampaigns.dialog.title.confirmDeleteCampaign"),
-				createDeleteSelectedCampaignsConfirmString()) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-				deleteSelectedCampaignsConfirmedPerformed(target);
-			}
-		});
 
 		CertCampaignListItemDtoProvider provider = createProvider();
 		int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_CAMPAIGNS_PANEL);
@@ -574,20 +510,48 @@ public class PageCertCampaigns extends PageAdminCertification {
 		if (!ensureSomethingIsSelected(target)) {
 			return;
 		}
-		ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_CLOSE_MULTIPLE_CAMPAIGNS);
-		dialog.show(target);
-	}
+        showMainPopup(getCloseSelectedCampaignsConfirmationPanel(), createStringResource("PageCertCampaigns.dialog.title.confirmCloseCampaign"),
+                target);
+    }
 
-	private void deleteSelectedCampaignsConfirmation(AjaxRequestTarget target) {
+    private Component getCloseSelectedCampaignsConfirmationPanel() {
+        return new ConfirmationPanel(getMainPopupBodyId(),
+                createCloseSelectedCampaignsConfirmString()) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                ModalWindow modalWindow = findParent(ModalWindow.class);
+                if (modalWindow != null) {
+                    modalWindow.close(target);
+                    closeSelectedCampaignsConfirmedPerformed(target);
+                }
+            }
+        };
+    }
+
+    private void deleteSelectedCampaignsConfirmation(AjaxRequestTarget target) {
 		this.relevantCampaign = null;
 		if (!ensureSomethingIsSelected(target)) {
 			return;
 		}
-		ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE_MULTIPLE_CAMPAIGNS);
-		dialog.show(target);
-	}
+        showMainPopup(getDeleteSelectedCampaignsConfirmationPanel(), createStringResource("PageCertCampaigns.dialog.title.confirmDeleteCampaign"),
+                target);
+    }
 
-	private boolean ensureSomethingIsSelected(AjaxRequestTarget target) {
+    private Component getDeleteSelectedCampaignsConfirmationPanel() {
+        return new ConfirmationPanel(getMainPopupBodyId(),
+                createDeleteSelectedCampaignsConfirmString()) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                ModalWindow modalWindow = findParent(ModalWindow.class);
+                if (modalWindow != null) {
+                    modalWindow.close(target);
+                    deleteSelectedCampaignsConfirmedPerformed(target);
+                }
+            }
+        };
+    }
+
+    private boolean ensureSomethingIsSelected(AjaxRequestTarget target) {
 		if (relevantCampaign != null) {
 			return true;
 		} else if (!WebComponentUtil.getSelectedData(getTable()).isEmpty()) {
@@ -603,23 +567,65 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 	private void closeStageConfirmation(AjaxRequestTarget target, CertCampaignListItemDto campaignDto) {
 		this.relevantCampaign = campaignDto;
-		ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_CLOSE_STAGE);
-		dialog.show(target);
+		showMainPopup(getCloseStageConfirmationPanel(), createStringResource("PageCertCampaigns.dialog.title.confirmCloseStage"),
+                target);
 	}
 
-	private void closeCampaignConfirmation(AjaxRequestTarget target, CertCampaignListItemDto campaignDto) {
+    private Component getCloseStageConfirmationPanel() {
+        return new ConfirmationPanel(getMainPopupBodyId(),
+                createCloseStageConfirmString()) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                ModalWindow modalWindow = findParent(ModalWindow.class);
+                if (modalWindow != null) {
+                    modalWindow.close(target);
+                    closeStageConfirmedPerformed(target, relevantCampaign);
+                }
+            }
+        };
+    }
+
+    private void closeCampaignConfirmation(AjaxRequestTarget target, CertCampaignListItemDto campaignDto) {
 		this.relevantCampaign = campaignDto;
-		ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_CLOSE_CAMPAIGN);
-		dialog.show(target);
-	}
+        showMainPopup(getCloseCampaignConfirmationPanel(), createStringResource("PageCertCampaigns.dialog.title.confirmCloseCampaign"),
+                target);
+    }
 
-	private void deleteCampaignConfirmation(AjaxRequestTarget target, CertCampaignListItemDto campaignDto) {
+    private Component getCloseCampaignConfirmationPanel() {
+        return new ConfirmationPanel(getMainPopupBodyId(),
+                createCloseCampaignConfirmString()) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                ModalWindow modalWindow = findParent(ModalWindow.class);
+                if (modalWindow != null) {
+                    modalWindow.close(target);
+                    closeCampaignConfirmedPerformed(target, relevantCampaign);
+                }
+            }
+        };
+    }
+
+    private void deleteCampaignConfirmation(AjaxRequestTarget target, CertCampaignListItemDto campaignDto) {
 		this.relevantCampaign = campaignDto;
-		ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE_CAMPAIGN);
-		dialog.show(target);
-	}
+        showMainPopup(getDeleteCampaignConfirmationPanel(), createStringResource("PageCertCampaigns.dialog.title.confirmDeleteCampaign"),
+                target);
+    }
 
-	// actions after confirmation (single and multiple versions mixed)
+    private Component getDeleteCampaignConfirmationPanel() {
+        return new ConfirmationPanel(getMainPopupBodyId(),
+                createDeleteCampaignConfirmString()) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                ModalWindow modalWindow = findParent(ModalWindow.class);
+                if (modalWindow != null) {
+                    modalWindow.close(target);
+                    deleteCampaignConfirmedPerformed(target);
+                }
+            }
+        };
+    }
+
+    // actions after confirmation (single and multiple versions mixed)
 
 	private void deleteCampaignConfirmedPerformed(AjaxRequestTarget target) {
 		deleteCampaignsPerformed(target, Arrays.asList(relevantCampaign));

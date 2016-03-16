@@ -230,7 +230,7 @@ public class ConsolidationProcessor {
         ObjectDelta<ShadowType> objectDelta = new ObjectDelta<ShadowType>(ShadowType.class, ChangeType.MODIFY, prismContext);
         objectDelta.setOid(projCtx.getOid());
 
-        RefinedObjectClassDefinition rOcDef = projCtx.getStructuralObjectClassDefinition();
+        RefinedObjectClassDefinition rOcDef = projCtx.getCompositeObjectClassDefinition();
         if (rOcDef == null) {
             LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", discr, context.debugDump());
             throw new IllegalStateException("Definition for account type " + discr + " not found in the context, but it should be there");
