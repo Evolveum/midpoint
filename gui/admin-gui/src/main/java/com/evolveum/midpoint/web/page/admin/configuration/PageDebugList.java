@@ -321,7 +321,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		columns.add(column);
 		columns.add(new PropertyColumn(createStringResource("pageDebugList.description"),
-				DebugObjectItem.F_DESCRIPTION));
+                DebugObjectItem.F_DESCRIPTION));
 
 		if (ShadowType.class.isAssignableFrom(type)) {
 			columns.add(new PropertyColumn(createStringResource("pageDebugList.resourceName"),
@@ -384,15 +384,33 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		headerMenuItems
 				.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAllSelectedType"),
-						true, new HeaderMenuAction(this) {
+                        true, new HeaderMenuAction(this) {
 
-							@Override
-							public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-								exportAllType(target);
-							}
-						}));
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        exportAllType(target);
+                    }
+                }));
 
-		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAll"), true,
+        headerMenuItems
+                .add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportShadowsOnResource"),
+                        new Model(true), new AbstractReadOnlyModel<Boolean>() {
+
+                    @Override
+                    public Boolean getObject() {
+                        DebugSearchDto dto = searchModel.getObject();
+                        return ObjectTypes.SHADOW.equals(dto.getType());
+                    }
+
+                }, false, new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        exportAllShadowsOnResource(target);
+                    }
+                }));
+
+        headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAll"), true,
 				new HeaderMenuAction(this) {
 
 					@Override
@@ -423,21 +441,21 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		headerMenuItems
 				.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteShadowsOnResource"),
-						new Model(true), new AbstractReadOnlyModel<Boolean>() {
+                        new Model(true), new AbstractReadOnlyModel<Boolean>() {
 
-							@Override
-							public Boolean getObject() {
-								DebugSearchDto dto = searchModel.getObject();
-								return ObjectTypes.SHADOW.equals(dto.getType());
-							}
+                    @Override
+                    public Boolean getObject() {
+                        DebugSearchDto dto = searchModel.getObject();
+                        return ObjectTypes.SHADOW.equals(dto.getType());
+                    }
 
-						}, false, new HeaderMenuAction(this) {
+                }, false, new HeaderMenuAction(this) {
 
-							@Override
-							public void onClick(AjaxRequestTarget target) {
-								deleteAllShadowsOnResource(target);
-							}
-						}));
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        deleteAllShadowsOnResource(target);
+                    }
+                }));
 
 		headerMenuItems.add(new InlineMenuItem());
 
@@ -493,7 +511,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		if (selected != null) {
 			provider.setType(selected.getClassDefinition());
-			addOrReplaceTable(provider);
+//			addOrReplaceTable(provider);
 		}
 
 		// save object type category to session storage, used by back button
@@ -620,7 +638,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
 
 		ObjectFilter kind = EqualFilter.createEqual(ShadowType.F_KIND, ShadowType.class, getPrismContext(),
-				null, ShadowKindType.ACCOUNT);
+                null, ShadowKindType.ACCOUNT);
 
 		String taskName;
 		ObjectQuery query;
@@ -773,6 +791,21 @@ public class PageDebugList extends PageAdminConfiguration {
                 target);
 	}
 
+	private void exportAllShadowsOnResource(AjaxRequestTarget target) {
+		DebugSearchDto dto = searchModel.getObject();
+		if (dto.getResource() == null) {
+			error(getString("pageDebugList.message.resourceNotSelected"));
+			target.add(getFeedbackPanel());
+			return;
+		}
+
+        RefFilter ref = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
+                getPrismContext(), dto.getResource().getOid());
+        ObjectQuery objectQuery = ObjectQuery.createObjectQuery(ref);
+        initDownload(target, dto.getType().getClassDefinition(), objectQuery);
+
+    }
+
 
     private Component getDeleteConfirmationPanel() {
         return new ConfirmationPanel(getMainPopupBodyId(),
@@ -911,24 +944,32 @@ public class PageDebugList extends PageAdminConfiguration {
 			});
 
 			DropDownChoice resource = new DropDownChoice(ID_RESOURCE,
-					new PropertyModel(model, DebugSearchDto.F_RESOURCE_OID), resourcesModel,
+					new PropertyModel(model, DebugSearchDto.F_RESOURCE), resourcesModel,
 					createResourceRenderer());
 			resource.setNullValid(true);
 			resource.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
-				@Override
-				protected void onUpdate(AjaxRequestTarget target) {
-					// nothing to do, it's here just to update model
-				}
-			});
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                    // nothing to do, it's here just to update model
+                }
+            });
+            resource.add(new OnChangeAjaxBehavior() {
+
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                    PageDebugList page = (PageDebugList) getPage();
+                    page.listObjectsPerformed(target);
+                }
+            });
 			resource.add(new VisibleEnableBehaviour() {
 
-				@Override
-				public boolean isVisible() {
-					DebugSearchDto dto = model.getObject();
-					return ObjectTypes.SHADOW.equals(dto.getType());
-				}
-			});
+                @Override
+                public boolean isVisible() {
+                    DebugSearchDto dto = model.getObject();
+                    return ObjectTypes.SHADOW.equals(dto.getType());
+                }
+            });
 			searchForm.add(resource);
 
 			AjaxCheckBox zipCheck = new AjaxCheckBox(ID_ZIP_CHECK, new Model<>(false)) {
