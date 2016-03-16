@@ -28,7 +28,7 @@ import java.io.Serializable;
 public class DebugSearchDto implements Serializable {
 
     public static final String F_TYPE = "type";
-    public static final String F_RESOURCE_OID = "resource";
+    public static final String F_RESOURCE = "resource";
     public static final String F_SEARCH = "search";
 
     private ObjectTypes type;

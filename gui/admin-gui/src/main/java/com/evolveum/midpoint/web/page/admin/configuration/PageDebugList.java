@@ -511,7 +511,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		if (selected != null) {
 			provider.setType(selected.getClassDefinition());
-			addOrReplaceTable(provider);
+//			addOrReplaceTable(provider);
 		}
 
 		// save object type category to session storage, used by back button
@@ -944,24 +944,32 @@ public class PageDebugList extends PageAdminConfiguration {
 			});
 
 			DropDownChoice resource = new DropDownChoice(ID_RESOURCE,
-					new PropertyModel(model, DebugSearchDto.F_RESOURCE_OID), resourcesModel,
+					new PropertyModel(model, DebugSearchDto.F_RESOURCE), resourcesModel,
 					createResourceRenderer());
 			resource.setNullValid(true);
 			resource.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
-				@Override
-				protected void onUpdate(AjaxRequestTarget target) {
-					// nothing to do, it's here just to update model
-				}
-			});
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                    // nothing to do, it's here just to update model
+                }
+            });
+            resource.add(new OnChangeAjaxBehavior() {
+
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                    PageDebugList page = (PageDebugList) getPage();
+                    page.listObjectsPerformed(target);
+                }
+            });
 			resource.add(new VisibleEnableBehaviour() {
 
-				@Override
-				public boolean isVisible() {
-					DebugSearchDto dto = model.getObject();
-					return ObjectTypes.SHADOW.equals(dto.getType());
-				}
-			});
+                @Override
+                public boolean isVisible() {
+                    DebugSearchDto dto = model.getObject();
+                    return ObjectTypes.SHADOW.equals(dto.getType());
+                }
+            });
 			searchForm.add(resource);
 
 			AjaxCheckBox zipCheck = new AjaxCheckBox(ID_ZIP_CHECK, new Model<>(false)) {
