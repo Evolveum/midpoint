@@ -17,6 +17,11 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -38,6 +43,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * @author semancik
@@ -50,7 +56,8 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	private static final String ID_EXECUTE_OPTIONS = "executeOptions";
 	private static final String ID_BACK = "back";
 	private static final String ID_SAVE = "save";
-	
+	private static final String ID_PREVIEW_CHANGES = "previewChanges";
+
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectMainPanel.class);
 	
 	private Form mainForm;
@@ -137,6 +144,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	}
 	
 	protected void initLayoutButtons(PageAdminObjectDetails<O> parentPage) {
+		initLayoutPreviewButton(parentPage);
 		initLayoutSaveButton(parentPage);
 		initLayoutBackButton(parentPage);
 	}
@@ -158,6 +166,26 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 		};
 		mainForm.setDefaultButton(saveButton);
 		mainForm.add(saveButton);
+	}
+
+	// TEMPORARY
+	protected void initLayoutPreviewButton(final PageAdminObjectDetails<O> parentPage) {
+		AjaxSubmitButton previewButton = new AjaxSubmitButton(ID_PREVIEW_CHANGES, parentPage.createStringResource("pageAdminFocus.button.previewChanges")) {
+
+			@Override
+			protected void onSubmit(AjaxRequestTarget target,
+					org.apache.wicket.markup.html.form.Form<?> form) {
+				ModelContext modelContext = getDetailsPage().previewChangesPerformed(target);
+				parentPage.setResponsePage(new PagePreviewChanges(modelContext, parentPage.getModelInteractionService()));
+			}
+
+			@Override
+			protected void onError(AjaxRequestTarget target,
+					org.apache.wicket.markup.html.form.Form<?> form) {
+				target.add(parentPage.getFeedbackPanel());
+			}
+		};
+		mainForm.add(previewButton);
 	}
 
 	protected void initLayoutBackButton(PageAdminObjectDetails<O> parentPage) {

@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
@@ -376,6 +377,176 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		}
 		return object;
 	}
+
+	/**
+	 * TEMPORARY IMPLEMENTATION
+	 */
+	public ModelContext<ObjectType> previewChangesPerformed(AjaxRequestTarget target) {
+		progressReporter.onSaveSubmit();
+		OperationResult result = new OperationResult(OPERATION_SAVE);
+		ObjectWrapper<O> objectWrapper = getObjectWrapper();
+		LOGGER.debug("Previewing changes for object {}", objectWrapper);
+
+		// todo: improve, delta variable is quickfix for MID-1006
+		// redirecting to user list page everytime user is created in repository
+		// during user add in gui,
+		// and we're not taking care about account/assignment create errors
+		// (error message is still displayed)
+		delta = null;
+
+		Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
+
+		ModelExecuteOptions options = getExecuteChangesOptions();
+		LOGGER.debug("Using execute options {}.", new Object[] { options });
+
+		try {
+			reviveModels();
+
+			delta = objectWrapper.getObjectDelta();
+			if (objectWrapper.getOldDelta() != null) {
+				delta = ObjectDelta.summarize(objectWrapper.getOldDelta(), delta);
+			}
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("User delta computed from form:\n{}", new Object[] { delta.debugDump(3) });
+			}
+		} catch (Exception ex) {
+			result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
+			LoggingUtils.logException(LOGGER, "Create user failed", ex);
+			showResult(result);
+			return null;
+		}
+
+		ModelContext<ObjectType> modelContext = null;
+		switch (objectWrapper.getStatus()) {
+			case ADDING:
+				try {
+					PrismObject<O> objectToAdd = delta.getObjectToAdd();
+					WebComponentUtil.encryptCredentials(objectToAdd, true, getMidpointApplication());
+					prepareObjectForAdd(objectToAdd);
+					getPrismContext().adopt(objectToAdd, getCompileTimeClass());
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Delta before add user:\n{}", new Object[] { delta.debugDump(3) });
+					}
+
+					if (!delta.isEmpty()) {
+						delta.revive(getPrismContext());
+
+						Collection<SimpleValidationError> validationErrors = performCustomValidation(objectToAdd,
+								WebComponentUtil.createDeltaCollection(delta));
+						if (validationErrors != null && !validationErrors.isEmpty()) {
+							for (SimpleValidationError error : validationErrors) {
+								LOGGER.error("Validation error, attribute: '" + error.printAttribute()
+										+ "', message: '" + error.getMessage() + "'.");
+								error("Validation error, attribute: '" + error.printAttribute()
+										+ "', message: '" + error.getMessage() + "'.");
+							}
+
+							target.add(getFeedbackPanel());
+							return modelContext;
+						}
+
+						modelContext = progressReporter.previewChanges(WebComponentUtil.createDeltaCollection(delta), options,
+								task, result, target);
+					} else {
+						result.recordSuccess();
+					}
+				} catch (Exception ex) {
+					result.recordFatalError(getString("pageFocus.message.cantCreateFocus"), ex);
+					LoggingUtils.logException(LOGGER, "Create user failed", ex);
+				}
+				break;
+
+			case MODIFYING:
+				try {
+					WebComponentUtil.encryptCredentials(delta, true, getMidpointApplication());
+					prepareObjectDeltaForModify(delta);
+
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Delta before modify user:\n{}", new Object[] { delta.debugDump(3) });
+					}
+
+					Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+					if (!delta.isEmpty()) {
+						delta.revive(getPrismContext());
+						deltas.add(delta);
+					}
+
+					List<ObjectDelta<? extends ObjectType>> additionalDeltas = getAdditionalModifyDeltas(result);
+					if (additionalDeltas != null) {
+						for (ObjectDelta additionalDelta : additionalDeltas) {
+							if (!additionalDelta.isEmpty()) {
+								additionalDelta.revive(getPrismContext());
+								deltas.add(additionalDelta);
+							}
+						}
+					}
+
+					if (delta.isEmpty() && ModelExecuteOptions.isReconcile(options)) {
+						ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(getCompileTimeClass(),
+								objectWrapper.getObject().getOid(), getPrismContext());
+						deltas.add(emptyDelta);
+
+						Collection<SimpleValidationError> validationErrors = performCustomValidation(null,
+								deltas);
+						if (validationErrors != null && !validationErrors.isEmpty()) {
+							for (SimpleValidationError error : validationErrors) {
+								LOGGER.error("Validation error, attribute: '" + error.printAttribute()
+										+ "', message: '" + error.getMessage() + "'.");
+								error("Validation error, attribute: '" + error.printAttribute()
+										+ "', message: '" + error.getMessage() + "'.");
+							}
+
+							target.add(getFeedbackPanel());
+							return modelContext;
+						}
+
+						modelContext = progressReporter.previewChanges(deltas, options, task, result, target);
+					} else if (!deltas.isEmpty()) {
+						Collection<SimpleValidationError> validationErrors = performCustomValidation(null,
+								deltas);
+						if (validationErrors != null && !validationErrors.isEmpty()) {
+							for (SimpleValidationError error : validationErrors) {
+								LOGGER.error("Validation error, attribute: '" + error.printAttribute()
+										+ "', message: '" + error.getMessage() + "'.");
+								error("Validation error, attribute: '" + error.printAttribute()
+										+ "', message: '" + error.getMessage() + "'.");
+							}
+
+							target.add(getFeedbackPanel());
+							return modelContext;
+						}
+
+						modelContext = progressReporter.previewChanges(deltas, options, task, result, target);
+					} else {
+						result.recordSuccess();
+					}
+
+				} catch (Exception ex) {
+					if (!executeForceDelete(objectWrapper, task, options, result)) {
+						result.recordFatalError(getString("pageUser.message.cantUpdateUser"), ex);
+						LoggingUtils.logException(LOGGER, getString("pageUser.message.cantUpdateUser"), ex);
+					} else {
+						result.recomputeStatus();
+					}
+				}
+				break;
+			// support for add/delete containers (e.g. delete credentials)
+			default:
+				error(getString("pageAdminFocus.message.unsupportedState", objectWrapper.getStatus()));
+		}
+
+		result.recomputeStatus();
+
+		if (!result.isInProgress()) {
+			LOGGER.trace("Result NOT in progress, calling finishProcessing");
+			finishProcessing(target, result);
+		}
+
+		LOGGER.trace("returning from previewChangesPerformed");
+
+		return modelContext;
+	}
+
 
 	/**
 	 * This will be called from the main form when save button is pressed.

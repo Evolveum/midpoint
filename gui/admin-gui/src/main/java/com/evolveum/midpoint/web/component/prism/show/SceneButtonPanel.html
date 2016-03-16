@@ -13,26 +13,14 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-<body>
 <wicket:panel>
-	<form wicket:id="mainForm" class="form-horizontal">
-	
-		<div wicket:id="tabPanel" class="nav-tabs-custom" />
-   	    
-   	    <wicket:child />
-
-      	<div style="margin: 20px 0;" class="form-group" wicket:id="executeOptions" />
-
-   	    <div class="main-button-bar">
-            <span class="button-group">
-                <a class="btn btn-default" wicket:id="back"/>
-            </span>
-			<a class="btn" wicket:id="previewChanges"/>
-            <a class="btn btn-primary" wicket:id="save"/>
-        </div>
-	</form>
+	<div style="float: left; display: inline-block; clear: both;">
+		<a wicket:id="minimizeButton"><img
+			class="objectFormHeaderControllButton objectFormHeaderButtonMinMax" wicket:id="minimizeImg" />
+		</a>
+	</div>
 </wicket:panel>
-</body>
 </html>

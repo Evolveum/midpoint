@@ -18,11 +18,12 @@ package com.evolveum.midpoint.model.impl.controller;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +44,6 @@ import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
-import com.evolveum.midpoint.prism.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -126,7 +126,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	@Autowired(required = true)
 	private PrismContext prismContext;
-	
+
+	@Autowired
+	private Visualizer visualizer;
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.api.ModelInteractionService#previewChanges(com.evolveum.midpoint.prism.delta.ObjectDelta, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
@@ -626,6 +629,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		}
 		result.recordSuccess();
 		return cmp;
+	}
+
+	@Override
+	public Scene visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) throws SchemaException {
+		return visualizer.visualizeDeltas(deltas, task, result);
 	}
 
 }

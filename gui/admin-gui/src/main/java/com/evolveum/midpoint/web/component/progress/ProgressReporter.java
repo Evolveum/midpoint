@@ -16,10 +16,8 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.ProgressListener;
+import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -42,7 +40,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.time.Duration;
 import org.springframework.security.core.Authentication;
@@ -140,6 +137,31 @@ public class ProgressReporter implements Serializable {
             executeChangesSync(deltas, options, task, result, target, modelService);
         }
     }
+
+    public ModelContext<ObjectType> previewChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, final ModelExecuteOptions options, final Task task, final OperationResult result, AjaxRequestTarget target) {
+        parentPage.startProcessing(target, result);
+        ModelService modelService = parentPage.getModelService();
+        return previewChangesSync(deltas, options, task, result, target, modelService);
+    }
+
+	// TEMPORARY implementation
+    private ModelContext<ObjectType> previewChangesSync(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result, AjaxRequestTarget target, ModelService modelService) {
+        try {
+            ModelInteractionService modelInteractionService = parentPage.getModelInteractionService();
+			ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(deltas, options, task, result);
+			result.computeStatusIfUnknown();
+			return modelContext;
+        } catch (CommunicationException |ObjectAlreadyExistsException |ExpressionEvaluationException |
+                PolicyViolationException |SchemaException |SecurityViolationException |
+                ConfigurationException |ObjectNotFoundException |RuntimeException e) {
+            LoggingUtils.logException(LOGGER, "Error previewing changes", e);
+            if (!result.isFatalError()) {       // just to be sure the exception is recorded into the result
+                result.recordFatalError(e.getMessage(), e);
+            }
+        }
+        parentPage.finishProcessing(target, result);
+		return null;
+	}
 
     private void executeChangesSync(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result, AjaxRequestTarget target, ModelService modelService) {
         try {

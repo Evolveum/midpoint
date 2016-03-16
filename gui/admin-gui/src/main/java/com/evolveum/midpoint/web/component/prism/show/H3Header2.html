@@ -13,26 +13,12 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-<body>
 <wicket:panel>
-	<form wicket:id="mainForm" class="form-horizontal">
-	
-		<div wicket:id="tabPanel" class="nav-tabs-custom" />
-   	    
-   	    <wicket:child />
-
-      	<div style="margin: 20px 0;" class="form-group" wicket:id="executeOptions" />
-
-   	    <div class="main-button-bar">
-            <span class="button-group">
-                <a class="btn btn-default" wicket:id="back"/>
-            </span>
-			<a class="btn" wicket:id="previewChanges"/>
-            <a class="btn btn-primary" wicket:id="save"/>
-        </div>
-	</form>
+    <div class="col-xs-10" style="padding-left: 5px;">
+        <h3 style="display: inline-block;" wicket:id="title"/>
+    </div>
 </wicket:panel>
-</body>
 </html>
