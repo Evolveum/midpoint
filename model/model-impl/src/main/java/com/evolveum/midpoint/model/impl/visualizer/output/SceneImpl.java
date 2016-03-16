@@ -42,6 +42,7 @@ public class SceneImpl implements Scene, DebugDumpable {
 	private final SceneImpl owner;
 	private boolean operational;
 	private ItemPath sourcePath;
+	private ItemPath sourceFullPath;
 	private PrismContainerValue<?> sourceValue;
 	private PrismContainerDefinition<?> sourceDefinition;
 	private ObjectDelta<?> sourceDelta;
@@ -109,6 +110,14 @@ public class SceneImpl implements Scene, DebugDumpable {
 		this.sourcePath = sourcePath;
 	}
 
+	public ItemPath getSourceFullPath() {
+		return sourceFullPath;
+	}
+
+	public void setSourceFullPath(ItemPath sourceFullPath) {
+		this.sourceFullPath = sourceFullPath;
+	}
+
 	@Override
 	public PrismContainerValue<?> getSourceValue() {
 		return sourceValue;
@@ -153,15 +162,19 @@ public class SceneImpl implements Scene, DebugDumpable {
 		} else {
 			sb.append("(unnamed)");
 		}
-		sb.append(" [path: ").append(sourcePath).append("]");
+		sb.append(" [rel-path: ").append(sourcePath).append("]");
+		sb.append(" [full-path: ").append(sourceFullPath).append("]");
 		if (sourceValue != null) {
-			sb.append(" SVAL");
+			sb.append(" VAL");
 		}
 		if (sourceDefinition != null) {
-			sb.append(" SDEF");
+			sb.append(" DEF(").append(sourceDefinition.getName().getLocalPart()).append(")");
 		}
 		if (sourceDelta != null) {
-			sb.append(" SDELTA");
+			sb.append(" DELTA");
+		}
+		if (operational) {
+			sb.append(" OPER");
 		}
 		for (SceneItemImpl dataItem : items) {
 			sb.append("\n");

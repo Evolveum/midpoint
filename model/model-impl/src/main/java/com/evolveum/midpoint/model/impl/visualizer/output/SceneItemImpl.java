@@ -96,12 +96,15 @@ public class SceneItemImpl implements SceneItem, DebugDumpable {
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("Item: ").append(name).append(" [path: ").append(sourcePath).append("]");
+		sb.append("Item: ").append(name).append(" [rel-path: ").append(sourcePath).append("]");
 		if (sourceItem != null) {
-			sb.append(" SITEM");
+			sb.append(" ITEM");
 			if (sourceItem.getDefinition() != null) {
-				sb.append(" SDEF");
+				sb.append(" DEF(").append(sourceItem.getDefinition().getName().getLocalPart()).append(")");
 			}
+		}
+		if (operational) {
+			sb.append(" OPER");
 		}
 		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent+1);

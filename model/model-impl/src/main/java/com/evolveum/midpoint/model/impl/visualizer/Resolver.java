@@ -61,7 +61,7 @@ public class Resolver {
 	private Visualizer visualizer;
 
 	public <O extends ObjectType> void resolve(PrismObject<O> object, Task task, OperationResult result) throws SchemaException {
-		if (object.getDefinition() == null) {
+		/*if (object.getDefinition() == null) */{
 			Class<O> clazz = object.getCompileTimeClass();
 			if (clazz == null) {
 				warn(result, "Compile time class for " + toShortString(object) + " is not known");
@@ -90,7 +90,7 @@ public class Resolver {
 				warn(result, "Definition for " + objectTypeClass + " couldn't be found");
 			}
 			for (ItemDelta itemDelta : objectDelta.getModifications()) {
-				if (itemDelta.getDefinition() == null) {
+				/*if (itemDelta.getDefinition() == null)*/ {
 					ItemDefinition<?> def = objectDefinition.findItemDefinition(itemDelta.getPath());
 					if (def != null) {
 						itemDelta.applyDefinition(def);

@@ -88,15 +88,18 @@ public class SceneDeltaItemImpl extends SceneItemImpl implements SceneDeltaItem,
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("ItemDelta: ").append(name).append(" [path: ").append(sourcePath).append("]");
+		sb.append("ItemDelta: ").append(name).append(" [rel-path: ").append(sourcePath).append("]");
 		if (sourceItem != null) {
-			sb.append(" SITEM");
+			sb.append(" ITEM");
 			if (sourceItem.getDefinition() != null) {
-				sb.append(" SDEF");
+				sb.append(" DEF(").append(sourceItem.getDefinition().getName().getLocalPart()).append(")");
 			}
 		}
 		if (sourceDelta != null) {
-			sb.append(" SDELTA");
+			sb.append(" DELTA");
+		}
+		if (operational) {
+			sb.append(" OPER");
 		}
 		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent+1);

@@ -37,6 +37,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+import static com.evolveum.midpoint.prism.delta.ChangeType.*;
 import static com.evolveum.midpoint.prism.path.ItemPath.EMPTY_PATH;
 import static com.evolveum.midpoint.prism.path.ItemPath.isNullOrEmpty;
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
@@ -85,6 +86,7 @@ public class Visualizer {
 		scene.setChangeType(null);
 		scene.setName(createSceneName(object));
 		scene.setSourcePath(EMPTY_PATH);
+		scene.setSourceFullPath(EMPTY_PATH);
 		scene.setSourceDefinition(object.getDefinition());
 		scene.setSourceValue(object.getValue());
 		scene.setSourceDelta(null);
@@ -98,6 +100,7 @@ public class Visualizer {
 		NameImpl name = new NameImpl("id " + containerValue.getId());		// TODO
 		scene.setName(name);
 		scene.setSourcePath(EMPTY_PATH);
+		scene.setSourceFullPath(EMPTY_PATH);
 		if (containerValue.getConcreteTypeDefinition() != null) {
 			scene.setSourceDefinition(containerValue.getConcreteTypeDefinition());
 		} else if (containerValue.getParent() != null && containerValue.getParent().getDefinition() != null) {
@@ -150,6 +153,7 @@ public class Visualizer {
 		scene.setChangeType(objectDelta.getChangeType());
 		scene.setSourceDelta(objectDelta);
 		scene.setSourcePath(ItemPath.EMPTY_PATH);
+		scene.setSourceFullPath(ItemPath.EMPTY_PATH);
 		PrismObject<? extends ObjectType> object =
 				objectDelta.isAdd() ? objectDelta.getObjectToAdd() : getOldObject(objectDelta.getOid(), objectDelta.getObjectTypeClass(), context, task, result);
 		if (object != null) {
@@ -221,8 +225,19 @@ public class Visualizer {
 				for (PrismContainerValue<?> pcv : pc.getValues()) {
 					if (separate) {
 						SceneImpl si = new SceneImpl(scene);
-						NameImpl name = createSceneName(pc, pcv);
+						NameImpl name = new NameImpl(item.getElementName().getLocalPart());
+						name.setId(name.getSimpleName());
+						if (def != null) {
+							name.setDisplayName(def.getDisplayName());
+						}
 						si.setName(name);
+						if (def != null) {
+							si.setOperational(def.isOperational());
+							si.setSourceDefinition(def);
+						}
+						si.setSourcePath(new ItemPath(item.getElementName()));
+						si.setSourceFullPath(scene.getSourceFullPath().subPath(item.getElementName()));
+						si.setSourceDelta(null);
 						scene.addPartialScene(si);
 						currentScene = si;
 					}
@@ -262,76 +277,165 @@ public class Visualizer {
 		List<ItemDelta<?, ?>> deltasToShow = new ArrayList<>(deltas);
 //		Collections.sort(deltasToShow, getDeltaDisplayOrderComparator());
 		for (ItemDelta<?, ?> delta : deltasToShow) {
-
-			ItemPath deltaParentPath = delta.getParentPath();
-			ItemPath deltaPath = delta.getPath();
-
 			if (delta instanceof ContainerDelta) {
-				// visualize container ADD, REPLACE, DELETE
+				visualizeContainerDelta((ContainerDelta) delta, scene, context, task, result);
 			} else {
-				SceneImpl sceneForItem = null;
-				if (isNullOrEmpty(deltaParentPath)) {
-					sceneForItem = scene;
-				} else {
-					sceneForItem = findPartialSceneByPath(scene, deltaParentPath);
-					if (sceneForItem == null) {
-						sceneForItem = new SceneImpl(scene);
-						sceneForItem.setChangeType(ChangeType.MODIFY);
-						NameImpl name = new NameImpl(deltaParentPath.toString());
-
-						if (delta.getDefinition() != null && delta.getDefinition().getDisplayName() != null) {
-							name.setDisplayName(delta.getDefinition().getDisplayName());
-						}
-						ItemPath deltaParentItemPath;
-						Long lastId;
-						if (deltaParentPath.last() instanceof IdItemPathSegment) {
-							deltaParentItemPath = deltaParentPath.allExceptLast();
-							lastId = ((IdItemPathSegment) deltaParentPath.last()).getId();
-							name.setId(String.valueOf(lastId));
-						} else {
-							deltaParentItemPath = deltaParentPath;
-							lastId = null;
-						}
-						sceneForItem.setName(name);
-						ItemPath sceneRelativePath = deltaParentPath.remainder(scene.getSourcePath());
-						ItemPath sceneRelativeItemPath = deltaParentItemPath.remainder(scene.getSourcePath());
-						sceneForItem.setSourcePath(sceneRelativePath);
-
-						PrismContainerValue<?> ownerPCV = scene.getSourceValue();
-						if (ownerPCV != null) {
-							Item<?,?> item = ownerPCV.findItem(sceneRelativeItemPath);
-							if (item instanceof PrismContainer) {
-								PrismContainer<?> container = (PrismContainer<?>) item;
-								sceneForItem.setSourceDefinition(container.getDefinition());
-								if (lastId == null) {
-									if (container.size() == 1) {
-										sceneForItem.setSourceValue(container.getValues().get(0));
-									}
-								} else {
-									PrismContainerValue<?> pcv = container.findValue(lastId);
-									if (pcv != null) {
-										sceneForItem.setSourceValue(pcv);
-									}
-								}
-							}
-						}
-
-						sceneForItem.setSourceDelta(null);
-
-						if (delta.getDefinition() != null) {
-							sceneForItem.setOperational(delta.getDefinition().isOperational());
-						}
-						scene.addPartialScene(sceneForItem);
-					}
-				}
-				visualizeAtomicItemDelta(sceneForItem, delta, context, task, result);
+				visualizeAtomicDelta(delta, scene, context, task, result);
 			}
 		}
 	}
 
+	private <C extends Containerable> void visualizeContainerDelta(ContainerDelta<C> delta, SceneImpl scene, VisualizationContext context, Task task, OperationResult result) {
+		if (delta.isEmpty()) {
+			return;
+		}
+		Collection<PrismContainerValue<C>> valuesToAdd;
+		Collection<PrismContainerValue<C>> valuesToDelete;
+		if (!delta.isReplace()) {
+			valuesToAdd = delta.getValuesToAdd();
+			valuesToDelete = delta.getValuesToDelete();
+		} else {
+			valuesToAdd = new ArrayList<>();
+			valuesToDelete = new ArrayList<>();
+			Collection<PrismContainerValue<C>> oldValues = delta.getEstimatedOldValues();
+			for (PrismContainerValue<C> newValue : delta.getValuesToReplace()) {
+				if (oldValues == null || !oldValues.contains(newValue)) {
+					valuesToAdd.add(newValue);
+				}
+			}
+			if (oldValues != null) {
+				for (PrismContainerValue<C> oldValue : oldValues) {
+					if (!delta.getValuesToReplace().contains(oldValue)) {
+						valuesToDelete.add(oldValue);
+					}
+				}
+			}
+		}
+		if (valuesToDelete != null) {
+			for (PrismContainerValue<C> value : valuesToDelete) {
+				visualizeContainerDeltaValue(value, DELETE, delta.getPath(), scene, context, task, result);
+			}
+		}
+		if (valuesToAdd != null) {
+			for (PrismContainerValue<C> value : valuesToAdd) {
+				visualizeContainerDeltaValue(value, ADD, delta.getPath(), scene, context, task, result);
+			}
+		}
+	}
+
+	private <C extends Containerable> void visualizeContainerDeltaValue(PrismContainerValue<C> value, ChangeType changeType,
+			ItemPath containerPath, SceneImpl owningScene, VisualizationContext context, Task task, OperationResult result) {
+		SceneImpl scene = createContainerScene(changeType, containerPath, owningScene);
+		scene.setSourceValue(value);
+		visualizeItems(scene, value.getItems(), context, task, result);
+
+		owningScene.addPartialScene(scene);
+	}
+
+	private SceneImpl createContainerScene(ChangeType changeType, ItemPath containerPath, SceneImpl owningScene) {
+		SceneImpl scene = new SceneImpl(owningScene);
+		scene.setChangeType(changeType);
+
+		ItemPath deltaParentItemPath = getDeltaParentItemPath(containerPath);
+		PrismContainerDefinition<?> sceneDefinition = getSceneDefinition(scene, deltaParentItemPath);
+
+		NameImpl name = createNameForContainerDelta(containerPath, scene);
+		scene.setName(name);
+
+		if (sceneDefinition != null) {
+			scene.setOperational(sceneDefinition.isOperational());
+			scene.setSourceDefinition(sceneDefinition);
+		}
+
+		ItemPath sceneRelativePath = containerPath.remainder(owningScene.getSourcePath());
+		scene.setSourcePath(sceneRelativePath);
+		scene.setSourceFullPath(containerPath);
+		scene.setSourceDelta(null);
+		return scene;
+	}
+
+	private NameImpl createNameForContainerDelta(ItemPath deltaParentPath, SceneImpl ownerScene) {
+		NameImpl name = new NameImpl(deltaParentPath.toString());
+		name.setId(String.valueOf(getLastId(deltaParentPath)));
+		PrismContainerDefinition<?> sceneDefinition = getSceneDefinition(ownerScene, getDeltaParentItemPath(deltaParentPath));
+		if (sceneDefinition != null) {
+			name.setDisplayName(sceneDefinition.getDisplayName());
+		}
+		return name;
+	}
+
+	private ItemPath getDeltaParentItemPath(ItemPath deltaParentPath) {
+		if (deltaParentPath.last() instanceof IdItemPathSegment) {
+			return deltaParentPath.allExceptLast();
+		} else {
+			return deltaParentPath;
+		}
+	}
+
+	private Long getLastId(ItemPath deltaParentPath) {
+		if (deltaParentPath.last() instanceof IdItemPathSegment) {
+			return ((IdItemPathSegment) deltaParentPath.last()).getId();
+		} else {
+			return null;
+		}
+	}
+
+	private PrismContainerDefinition<?> getSceneDefinition(SceneImpl ownerScene, ItemPath deltaParentItemPath) {
+		PrismContainerDefinition<?> rootDefinition = getRootDefinition(ownerScene);
+		if (rootDefinition == null) {
+			return null;
+		} else {
+			return rootDefinition.findContainerDefinition(deltaParentItemPath);
+		}
+	}
+
+	private void visualizeAtomicDelta(ItemDelta<?, ?> delta, SceneImpl scene, VisualizationContext context, Task task, OperationResult result)
+			throws SchemaException {
+		ItemPath deltaParentPath = delta.getParentPath();
+		SceneImpl sceneForItem;
+		if (isNullOrEmpty(deltaParentPath)) {
+			sceneForItem = scene;
+		} else {
+			sceneForItem = findPartialSceneByPath(scene, deltaParentPath);
+			if (sceneForItem == null) {
+				sceneForItem = createContainerScene(MODIFY, deltaParentPath, scene);
+				ItemPath sceneRelativeItemPath = getDeltaParentItemPath(deltaParentPath).remainder(scene.getSourcePath());
+
+				PrismContainerValue<?> ownerPCV = scene.getSourceValue();
+				if (ownerPCV != null) {
+					Item<?,?> item = ownerPCV.findItem(sceneRelativeItemPath);
+					if (item instanceof PrismContainer) {
+						PrismContainer<?> container = (PrismContainer<?>) item;
+						sceneForItem.setSourceDefinition(container.getDefinition());
+						Long lastId = getLastId(deltaParentPath);
+						if (lastId == null) {
+							if (container.size() == 1) {
+								sceneForItem.setSourceValue(container.getValues().get(0));
+							}
+						} else {
+							PrismContainerValue<?> pcv = container.findValue(lastId);
+							if (pcv != null) {
+								sceneForItem.setSourceValue(pcv);
+							}
+						}
+					}
+				}
+				scene.addPartialScene(sceneForItem);
+			}
+		}
+		visualizeAtomicItemDelta(sceneForItem, delta, context, task, result);
+	}
+
+	private PrismContainerDefinition<?> getRootDefinition(SceneImpl scene) {
+		while (scene.getOwner() != null) {
+			scene = scene.getOwner();
+		}
+		return scene.getSourceDefinition();
+	}
+
 	private SceneImpl findPartialSceneByPath(SceneImpl scene, ItemPath deltaParentPath) {
 		for (SceneImpl subscene : scene.getPartialScenes()) {
-			if (subscene.getSourcePath().equivalent(deltaParentPath)) {
+			if (subscene.getSourceFullPath().equivalent(deltaParentPath) && subscene.getChangeType() == MODIFY) {
 				return subscene;
 			}
 		}
@@ -388,6 +492,7 @@ public class Visualizer {
 		if (def != null) {
 			si.setOperational(def.isOperational());
 		}
+		si.setSourceItem(item);
 		si.setSourcePath(new ItemPath(item.getElementName()));
 		return si;
 	}
