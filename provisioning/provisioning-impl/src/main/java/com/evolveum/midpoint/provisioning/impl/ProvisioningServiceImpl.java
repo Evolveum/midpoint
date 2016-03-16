@@ -636,7 +636,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						SelectorOptions.findRootOptions(options), result);
 				return (PrismObject<T>) completeResource;
 		} else {
-
+			//TODO: applyDefinition??? 
+			applyDefinition(inObject, result);
 			return inObject;
 			
 		}
@@ -1068,7 +1069,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			return metadata;
 		}
 		
-		if (!ShadowType.class.isAssignableFrom(type)) {
+		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+		
+		if (!ShadowType.class.isAssignableFrom(type) || GetOperationOptions.isNoFetch(rootOptions)) {
 			ResultHandler<T> internalHandler = new ResultHandler<T>() {
 				@Override
 				public boolean handle(PrismObject<T> object, OperationResult objResult) {
