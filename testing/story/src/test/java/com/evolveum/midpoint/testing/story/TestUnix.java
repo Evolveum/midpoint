@@ -82,6 +82,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -405,6 +406,36 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<ShadowType> shadow = getShadowModel(accountMancombOid);
         display("Shadow (model)", shadow);
         accountMancombDn = assertPosixAccount(shadow, 1001);
+	}
+	
+	@Test
+    public void test111AccountMancombEditObjectClassDefinition() throws Exception {
+		final String TEST_NAME = "test111AccountMancombEditObjectClassDefinition";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<ShadowType> shadow = getShadowModel(accountMancombOid);
+        display("shadow", shadow);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		RefinedObjectClassDefinition editObjectClassDefinition = modelInteractionService.getEditObjectClassDefinition(shadow, resourceOpenDj, AuthorizationPhaseType.REQUEST);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        display("OC def", editObjectClassDefinition);
+        
+        PrismAsserts.assertPropertyDefinition(editObjectClassDefinition, 
+        		new QName(RESOURCE_OPENDJ_NAMESPACE, "cn"), DOMUtil.XSD_STRING, 1, -1);
+        PrismAsserts.assertPropertyDefinition(editObjectClassDefinition, 
+        		new QName(RESOURCE_OPENDJ_NAMESPACE, "o"), DOMUtil.XSD_STRING, 0, -1);
+        PrismAsserts.assertPropertyDefinition(editObjectClassDefinition, 
+        		new QName(RESOURCE_OPENDJ_NAMESPACE, "uidNumber"), DOMUtil.XSD_INT, 1, 1);
+        PrismAsserts.assertPropertyDefinition(editObjectClassDefinition, 
+        		new QName(RESOURCE_OPENDJ_NAMESPACE, "gidNumber"), DOMUtil.XSD_INT, 1, 1);
 	}
 	
 	@Test

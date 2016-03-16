@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,7 +104,7 @@ public class OutboundProcessor {
 
         LOGGER.trace("Processing outbound expressions for {} starting", discr);
 
-        RefinedObjectClassDefinition rOcDef = projCtx.getStructuralObjectClassDefinition();
+        RefinedObjectClassDefinition rOcDef = projCtx.getCompositeObjectClassDefinition();
         if (rOcDef == null) {
             LOGGER.error("Definition for {} not found in the context, but it should be there, dumping context:\n{}", discr, context.debugDump());
             throw new IllegalStateException("Definition for " + discr + " not found in the context, but it should be there");

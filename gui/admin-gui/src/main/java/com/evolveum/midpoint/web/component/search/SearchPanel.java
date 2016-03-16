@@ -110,6 +110,14 @@ public class SearchPanel extends BasePanel<Search> {
                 togglePopover(target, button, popover, 14);
             }
         };
+        more.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                Search search = getModelObject();
+                return !search.getAvailableDefinitions().isEmpty();
+            }
+        });
         more.setOutputMarkupId(true);
         form.add(more);
 
