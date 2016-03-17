@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.security.core.GrantedAuthority;
@@ -45,6 +46,7 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
     private Collection<Authorization> authorizations = new ArrayList<Authorization>();
     private ActivationStatusType effectiveActivationStatus;
     private AdminGuiConfigurationType adminGuiConfiguration;
+    private SecurityPolicyType applicableSecurityPolicy;
 
     public MidPointPrincipal(UserType user) {
         Validate.notNull(user, "User must not be null.");
@@ -182,6 +184,14 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
 
 	public void setAdminGuiConfiguration(AdminGuiConfigurationType adminGuiConfiguration) {
 		this.adminGuiConfiguration = adminGuiConfiguration;
+	}
+
+	public SecurityPolicyType getApplicableSecurityPolicy() {
+		return applicableSecurityPolicy;
+	}
+
+	public void setApplicableSecurityPolicy(SecurityPolicyType applicableSecurityPolicy) {
+		this.applicableSecurityPolicy = applicableSecurityPolicy;
 	}
 
 	/* (non-Javadoc)

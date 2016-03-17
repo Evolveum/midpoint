@@ -2503,6 +2503,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <!-- TODO: lockoutTimestamp -->
             <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -9664,6 +9665,57 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="maxAge" type="xsd:duration" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Maximum age of the credential, counted from the last credential value update.
+						The credential must not be used after the age is exceeded (it is expired).
+						Any authentication with such credential must fail.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="minAge" type="xsd:duration" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Minimum age of the credential, counted from the last credential value update.
+						The credential cannot be changed before its minimal age is reached.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="warningBeforeExpirationDuration" type="xsd:duration" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						The time interval before credential expiration (exceeded maxAge) that the user will be
+						warned that the credential is about to expire.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="lockoutMaxFailedAttempts" type="xsd:int" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Maximum number of failed authentication attempts that can be tried before the credential
+						is locked-out.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="lockoutFailedAttemptsDuration" type="xsd:duration" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						The duration in which the failed attemps must happen for the credential to be locked-out.
+						The failed attempt counter is re-set after this duration (counted from the last failed attempt).
+						The credential is NOT locked-out during this duration.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="lockoutDuration" type="xsd:duration" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						The duration for which the credential remains locked-out. The credential is automatically
+						unlocked after this duration.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- TODO: historyLength, similarity criteria (history vs new password) -->
 		</xsd:sequence>
 	</xsd:complexType>
 	

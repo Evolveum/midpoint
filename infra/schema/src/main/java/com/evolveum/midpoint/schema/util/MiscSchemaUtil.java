@@ -57,6 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnfo
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
@@ -368,4 +369,18 @@ public class MiscSchemaUtil {
 		}
 	}
 
+	/**
+	 * Returns modification time or creation time (if there was no mo 
+	 */
+	public static XMLGregorianCalendar getChangeTimestamp(MetadataType metadata) {
+		if (metadata == null) {
+			return null;
+		}
+		XMLGregorianCalendar modifyTimestamp = metadata.getModifyTimestamp();
+		if (modifyTimestamp != null) {
+			return modifyTimestamp;
+		} else {
+			return metadata.getCreateTimestamp();
+		}
+	}
 }

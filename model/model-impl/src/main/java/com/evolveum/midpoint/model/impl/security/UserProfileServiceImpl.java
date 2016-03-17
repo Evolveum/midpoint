@@ -181,8 +181,12 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
 		Collection<Authorization> authorizations = principal.getAuthorities();
 		Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
-        CredentialsType credentials = userType.getCredentials();
 
+		Task task = taskManager.createTaskInstance(UserProfileServiceImpl.class.getName() + ".addAuthorizations");
+        OperationResult result = task.getResult();
+
+        principal.setApplicableSecurityPolicy(locateSecurityPolicy(principal, systemConfiguration, task, result));
+        
         if (userType.getAssignment().isEmpty()) {
         	if (systemConfiguration != null) {
         		principal.setAdminGuiConfiguration(systemConfiguration.asObjectable().getAdminGuiConfiguration());
@@ -211,8 +215,6 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         LensContext<UserType> lensContext = new LensContextPlaceholder<>(prismContext);
 		assignmentEvaluator.setLensContext(lensContext);
 		
-		Task task = taskManager.createTaskInstance(UserProfileServiceImpl.class.getName() + ".addAuthorizations");
-        OperationResult result = task.getResult();
         for(AssignmentType assignmentType: userType.getAssignment()) {
         	try {
         		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
@@ -238,6 +240,22 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			}
         }
         principal.setAdminGuiConfiguration(AdminGuiConfigTypeUtil.compileAdminGuiConfiguration(adminGuiConfigurations, systemConfiguration));
+	}
+
+	private SecurityPolicyType locateSecurityPolicy(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) {
+		if (systemConfiguration == null) {
+			return null;
+		}
+		ObjectReferenceType globalSecurityPolicyRef = systemConfiguration.asObjectable().getGlobalSecurityPolicyRef();
+		if (globalSecurityPolicyRef == null) {
+			return null;
+		}
+		try {
+			return objectResolver.resolve(globalSecurityPolicyRef, SecurityPolicyType.class, null, "global security policy reference in system configuration", task, result);
+		} catch (ObjectNotFoundException | SchemaException e) {
+			LOGGER.error(e.getMessage(), e);
+			return null;
+		}
 	}
 
 	private MidPointPrincipal save(MidPointPrincipal person, OperationResult result) throws RepositoryException {

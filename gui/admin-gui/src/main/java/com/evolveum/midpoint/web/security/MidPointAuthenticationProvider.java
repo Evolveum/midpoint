@@ -57,24 +57,6 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 	private static final Trace LOGGER = TraceManager.getTrace(MidPointAuthenticationProvider.class);
 	@Autowired(required = true)
 	private transient UserProfileService userProfileService;
-	@Autowired(required = true)
-	private transient Protector protector;
-	private int loginTimeout;
-	private int maxFailedLogins;
-
-	public void setLoginTimeout(int loginTimeout) {
-		if (loginTimeout < 0) {
-			loginTimeout = 0;
-		}
-		this.loginTimeout = loginTimeout;
-	}
-
-	public void setMaxFailedLogins(int maxFailedLogins) {
-		if (maxFailedLogins < 0) {
-			maxFailedLogins = 0;
-		}
-		this.maxFailedLogins = maxFailedLogins;
-	}
 
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -135,100 +117,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 		
 	}
 	
-	private Authentication authenticateUserPassword(MidPointPrincipal principal, String password) throws BadCredentialsException {		
-		if (StringUtils.isBlank(password)) {
-			throw new BadCredentialsException("web.security.provider.access.denied");
-		}
-		
-		if (principal == null || principal.getUser() == null || principal.getUser().getCredentials() == null) {
-			throw new BadCredentialsException("web.security.provider.invalid");
-		}
-
-		if (!principal.isEnabled()) {
-			throw new BadCredentialsException("web.security.provider.disabled");
-		}
-		
-		UserType userType = principal.getUser();
-		CredentialsType credentials = userType.getCredentials();
-
-		PasswordType passwordType = credentials.getPassword();
-		int failedLogins = passwordType.getFailedLogins() != null ? passwordType.getFailedLogins() : 0;
-		if (maxFailedLogins > 0 && failedLogins >= maxFailedLogins) {
-			Calendar calendar = Calendar.getInstance();
-			calendar.setTimeInMillis(MiscUtil.asDate(passwordType.getLastFailedLogin().getTimestamp()).getTime());
-			calendar.add(Calendar.MINUTE, loginTimeout);
-			long lockedTill = calendar.getTimeInMillis();
-
-			if (lockedTill > System.currentTimeMillis()) {
-				throw new BadCredentialsException("web.security.provider.locked");
-			}
-		}
-
-		ProtectedStringType protectedString = passwordType.getValue();
-		if (protectedString == null) {
-			throw new BadCredentialsException("web.security.provider.password.bad");
-		}
-
-		if (StringUtils.isEmpty(password)) {
-			throw new BadCredentialsException("web.security.provider.password.encoding");
-		}
-		
-			Collection<Authorization> authorizations = principal.getAuthorities();
-    		if (authorizations == null || authorizations.isEmpty()){
-    			throw new BadCredentialsException("web.security.provider.access.denied");
-    		}
-    		
-			for (Authorization auth : authorizations){
-    			if (auth.getAction() == null || auth.getAction().isEmpty()){
-    				throw new BadCredentialsException("web.security.provider.access.denied");
-    			}
-			}
-    	
-
-		try {
-			String decoded;
-			if (protectedString.getEncryptedDataType() != null) {
-				decoded = protector.decryptString(protectedString);
-			} else {
-				LOGGER.warn("Authenticating user based on clear value. Please check objects, "
-						+ "this should not happen. Protected string should be encrypted.");
-				decoded = protectedString.getClearValue();
-			}
-			if (password.equals(decoded)) {
-				// Good password
-				if (failedLogins > 0) {
-					passwordType.setFailedLogins(0);
-				}
-				XMLGregorianCalendar systemTime = MiscUtil.asXMLGregorianCalendar(new Date(System
-						.currentTimeMillis()));
-				LoginEventType event = new LoginEventType();
-				event.setTimestamp(systemTime);
-				event.setFrom(getRemoteHost());
-
-				passwordType.setPreviousSuccessfulLogin(passwordType.getLastSuccessfulLogin());
-				passwordType.setLastSuccessfulLogin(event);
-
-				userProfileService.updateUser(principal);
-				UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(principal, 
-						password, principal.getAuthorities());
-				return token;
-			} else {
-				// Bad password					
-				passwordType.setFailedLogins(++failedLogins);
-				XMLGregorianCalendar systemTime = MiscUtil.asXMLGregorianCalendar(new Date(System
-						.currentTimeMillis()));
-				LoginEventType event = new LoginEventType();
-				event.setTimestamp(systemTime);
-				event.setFrom(getRemoteHost());
-				passwordType.setLastFailedLogin(event);
-				userProfileService.updateUser(principal);
-				
-				throw new BadCredentialsException("web.security.provider.invalid");
-			}
-		} catch (EncryptionException ex) {
-			throw new AuthenticationServiceException("web.security.provider.unavailable", ex);
-		}
-	}
+	
 
 	public static String getRemoteHost() {
         WebRequest req = (WebRequest) RequestCycle.get().getRequest();
