@@ -32,13 +32,13 @@ import org.apache.wicket.request.resource.PackageResourceReference;
  */
 public class SceneButtonPanel extends Panel {
 
-    public SceneButtonPanel(String id, IModel<DataSceneDto> model) {
+    public SceneButtonPanel(String id, IModel<SceneDto> model) {
         super(id);
 
         initLayout(model);
     }
 
-    private void initLayout(final IModel<DataSceneDto> model) {
+    private void initLayout(final IModel<SceneDto> model) {
         AjaxLink minimize = new AjaxLink("minimizeButton") {
 
             @Override
@@ -52,7 +52,7 @@ public class SceneButtonPanel extends Panel {
 
             @Override
             public Object getObject() {
-                DataSceneDto dto = model.getObject();
+                SceneDto dto = model.getObject();
                 if (dto.isMinimized()) {
                     return new PackageResourceReference(PrismObjectPanel.class, "Maximize.png");
                 }
@@ -63,7 +63,7 @@ public class SceneButtonPanel extends Panel {
 
 			@Override
 			public Object getObject() {
-				DataSceneDto dto = model.getObject();
+				SceneDto dto = model.getObject();
                 if (dto.isMinimized()) {
                     return getString("prismOptionButtonPanel.maximize");
                 }

@@ -24,6 +24,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -41,6 +43,8 @@ import org.apache.wicket.model.IModel;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
+
 /**
  * @author mederly
  */
@@ -53,32 +57,59 @@ import java.util.List;
 				description = "PageWorkItem.auth.workItem.description")})
 public class PagePreviewChanges extends PageAdminWorkItems {		// TODO extends
 
-	private static final String ID_DATA_CONTEXT_PANEL = "dataContextPanel";
+	private static final String ID_PRIMARY_DELTAS_SCENE = "primaryDeltas";
+	private static final String ID_SECONDARY_DELTAS_SCENE = "secondaryDeltas";
 	private static final String ID_BACK = "back";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PagePreviewChanges.class);
 
-	private IModel<DataSceneDto> contextDtoModel;
+	private IModel<SceneDto> primaryDeltasModel;
+	private IModel<SceneDto> secondaryDeltasModel;
 
 	public PagePreviewChanges(ModelContext<? extends ObjectType> modelContext, ModelInteractionService modelInteractionService) {
-		List<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-		deltas.add(modelContext.getFocusContext().getPrimaryDelta());
-		deltas.add(modelContext.getFocusContext().getSecondaryDelta());
-		for (ModelProjectionContext projCtx : modelContext.getProjectionContexts()) {
-			deltas.add(projCtx.getPrimaryDelta());
-			deltas.add(projCtx.getSecondaryDelta());
+		List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
+		List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
+		if (modelContext != null) {
+			if (modelContext.getFocusContext() != null) {
+				addIgnoreNull(primaryDeltas, modelContext.getFocusContext().getPrimaryDelta());
+				addIgnoreNull(secondaryDeltas, modelContext.getFocusContext().getSecondaryDelta());
+			}
+			for (ModelProjectionContext projCtx : modelContext.getProjectionContexts()) {
+				addIgnoreNull(primaryDeltas, projCtx.getPrimaryDelta());
+				addIgnoreNull(secondaryDeltas, projCtx.getSecondaryDelta());
+			}
 		}
-		LOGGER.info("Deltas:\n{}", DebugUtil.debugDump(deltas));
+		LOGGER.info("Primary deltas:\n{}", DebugUtil.debugDump(primaryDeltas));
+		LOGGER.info("Secondary deltas:\n{}", DebugUtil.debugDump(secondaryDeltas));
 
 		Task task = createSimpleTask("visualize");
-		final Scene scene = modelInteractionService.visualizeDeltas(deltas, task, task.getResult());
-		LOGGER.info("Creating context DTO for:\n{}", scene.debugDump());
+		final List<? extends Scene> primaryScenes;
+		final List<? extends Scene> secondaryScenes;
+		try {
+			primaryScenes = modelInteractionService.visualizeDeltas(primaryDeltas, task, task.getResult());
+			secondaryScenes = modelInteractionService.visualizeDeltas(secondaryDeltas, task, task.getResult());
+		} catch (SchemaException e) {
+			throw new SystemException(e);		// TODO
+		}
+		LOGGER.info("Creating context DTO for primary deltas:\n{}", DebugUtil.debugDump(primaryScenes));
+		LOGGER.info("Creating context DTO for secondary deltas:\n{}", DebugUtil.debugDump(secondaryScenes));
 
-		final DataSceneDto context = new DataSceneDto(scene);
-		contextDtoModel = new AbstractReadOnlyModel<DataSceneDto>() {
+		final SceneDto primarySceneDto = new SceneDto(new ListScene(primaryScenes,
+				createStringResource("PagePreviewChanges.primaryChanges").getObject(),
+				createStringResource(primaryDeltas.size() != 1 ? "PagePreviewChanges.objects" : "PagePreviewChanges.object", primaryDeltas.size()).getObject()));
+		final SceneDto secondarySceneDto = new SceneDto(new ListScene(secondaryScenes,
+				createStringResource("PagePreviewChanges.secondaryChanges").getObject(),
+				createStringResource(secondaryDeltas.size() != 1 ? "PagePreviewChanges.objects" : "PagePreviewChanges.object", secondaryDeltas.size()).getObject()));
+		primaryDeltasModel = new AbstractReadOnlyModel<SceneDto>() {
 			@Override
-			public DataSceneDto getObject() {
-				return context;
+			public SceneDto getObject() {
+				return primarySceneDto;
+			}
+		};
+		secondaryDeltasModel = new AbstractReadOnlyModel<SceneDto>() {
+			@Override
+			public SceneDto getObject() {
+				return secondarySceneDto;
 			}
 		};
 		initLayout();
@@ -89,7 +120,8 @@ public class PagePreviewChanges extends PageAdminWorkItems {		// TODO extends
 		mainForm.setMultiPart(true);
 		add(mainForm);
 
-		mainForm.add(new DataScenePanel(ID_DATA_CONTEXT_PANEL, contextDtoModel, mainForm, this));
+		mainForm.add(new ScenePanel(ID_PRIMARY_DELTAS_SCENE, primaryDeltasModel, mainForm, this));
+		mainForm.add(new ScenePanel(ID_SECONDARY_DELTAS_SCENE, secondaryDeltasModel, mainForm, this));
 		initButtons(mainForm);
 	}
 

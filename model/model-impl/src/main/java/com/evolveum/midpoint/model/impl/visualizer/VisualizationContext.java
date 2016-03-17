@@ -31,6 +31,8 @@ public class VisualizationContext {
 	private boolean separateMultivaluedContainers = true;
 	private boolean separateSinglevaluedContainersInDeltas = true;
 	private boolean separateMultivaluedContainersInDeltas = true;
+	private boolean removeExtraDescriptiveItems = true;
+	private boolean includeOperationalItems = false;
 	private Map<String,PrismObject<? extends ObjectType>> oldObjects;
 	private Map<String,PrismObject<? extends ObjectType>> currentObjects;
 
@@ -64,6 +66,22 @@ public class VisualizationContext {
 
 	public void setSeparateMultivaluedContainersInDeltas(boolean separateMultivaluedContainersInDeltas) {
 		this.separateMultivaluedContainersInDeltas = separateMultivaluedContainersInDeltas;
+	}
+
+	public boolean isRemoveExtraDescriptiveItems() {
+		return removeExtraDescriptiveItems;
+	}
+
+	public void setRemoveExtraDescriptiveItems(boolean removeExtraDescriptiveItems) {
+		this.removeExtraDescriptiveItems = removeExtraDescriptiveItems;
+	}
+
+	public boolean isIncludeOperationalItems() {
+		return includeOperationalItems;
+	}
+
+	public void setIncludeOperationalItems(boolean includeOperationalItems) {
+		this.includeOperationalItems = includeOperationalItems;
 	}
 
 	public Map<String, PrismObject<? extends ObjectType>> getOldObjects() {

@@ -17,8 +17,10 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="col-xs-10" style="padding-left: 5px;">
-        <h3 style="display: inline-block;" wicket:id="title"/>
-    </div>
+    <tr>
+        <td wicket:id="nameContainer"><span wicket:id="name"/></td>
+        <!--<td><span wicket:id="oldValue"/></td>-->
+        <td><span wicket:id="newValue"/></td>
+    </tr>
 </wicket:panel>
 </html>

@@ -37,7 +37,7 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import difflib.DiffUtils;
@@ -49,11 +49,16 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
+import sun.security.provider.SHA;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
+import static com.evolveum.midpoint.schema.constants.ObjectTypes.*;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.util.TestUtil.*;
 import static org.testng.AssertJUnit.*;
@@ -119,14 +124,14 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 		ass1.setActivation(new ActivationType(prismContext));
 		ass1.getActivation().setAdministrativeStatus(ActivationStatusType.ENABLED);
 		ass1.getActivation().setValidTo(XmlTypeConverter.createXMLGregorianCalendar(2019, 1, 1, 0, 0, 0));
-		ass1.setTargetRef(ObjectTypeUtil.createObjectRef(ROLE_SUPERUSER_OID, ObjectTypes.ROLE));
+		ass1.setTargetRef(createObjectRef(ROLE_SUPERUSER_OID, ROLE));
 		ut.getAssignment().add(ass1);
 		AssignmentType ass2 = new AssignmentType(prismContext);
-		ass2.setTargetRef(ObjectTypeUtil.createObjectRef("777", ObjectTypes.ROLE));
+		ass2.setTargetRef(createObjectRef("777", ROLE));
 		ut.getAssignment().add(ass2);
 		AssignmentType ass3 = new AssignmentType(prismContext);
 		ass3.setConstruction(new ConstructionType(prismContext));
-		ass3.getConstruction().setResourceRef(ObjectTypeUtil.createObjectRef(RESOURCE_DUMMY_OID, ObjectTypes.RESOURCE));
+		ass3.getConstruction().setResourceRef(createObjectRef(RESOURCE_DUMMY_OID, RESOURCE));
 		ut.getAssignment().add(ass3);
 
 		/// WHEN
@@ -169,12 +174,12 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 		ass1.setActivation(new ActivationType(prismContext));
 		ass1.getActivation().setAdministrativeStatus(ActivationStatusType.ENABLED);
 		ass1.getActivation().setValidTo(XmlTypeConverter.createXMLGregorianCalendar(2017, 1, 1, 0, 0, 0));
-		ass1.setTargetRef(ObjectTypeUtil.createObjectRef(ROLE_SUPERUSER_OID, ObjectTypes.ROLE));
+		ass1.setTargetRef(createObjectRef(ROLE_SUPERUSER_OID, ROLE));
 
 		ObjectDelta<?> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_NAME).replace("admin")
 				.item(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).replace(ActivationStatusType.ENABLED)
-				.item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_TARGET_REF).replace(ObjectTypeUtil.createObjectRef("123", ObjectTypes.ROLE).asReferenceValue())
+				.item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_TARGET_REF).replace(createObjectRef("123", ROLE).asReferenceValue())
 				.item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_DESCRIPTION).add("suspicious")
 				.item(UserType.F_ASSIGNMENT).add(ass1)
 				.asObjectDelta(USER_ADMINISTRATOR_OID);
@@ -182,6 +187,200 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 		/// WHEN
 		displayWhen(TEST_NAME);
 		final Scene scene = visualizer.visualizeDelta((ObjectDelta<? extends ObjectType>) delta, task, task.getResult());
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("scene", scene);
+
+		// TODO some asserts
+	}
+
+	@Test
+	public void test212UserDeltaContainerSimple() throws SchemaException {
+		final String TEST_NAME = "test212UserDeltaContainerSimple";
+		Task task = createTask(TEST_NAME);
+
+		ObjectDelta<?> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS).replace(ActivationStatusType.ENABLED)
+				.item(UserType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP).replace(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
+				.asObjectDelta(USER_ADMINISTRATOR_OID);
+
+		/// WHEN
+		displayWhen(TEST_NAME);
+		final List<? extends Scene> scenes = visualizer.visualizeDeltas((List) Collections.singletonList(delta), task, task.getResult());
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("scenes", scenes);
+
+		// TODO some asserts
+	}
+
+	@Test
+	public void test220UserContainerReplace() throws SchemaException {
+		final String TEST_NAME = "test220UserContainerReplace";
+		Task task = createTask(TEST_NAME);
+
+		AssignmentType ass1 = new AssignmentType(prismContext);
+		ass1.setActivation(new ActivationType(prismContext));
+		ass1.getActivation().setAdministrativeStatus(ActivationStatusType.DISABLED);
+		ass1.getActivation().setValidFrom(XmlTypeConverter.createXMLGregorianCalendar(2010, 1, 1, 0, 0, 0));
+		ass1.setTargetRef(createObjectRef(ROLE_SUPERUSER_OID, ROLE));
+
+		ActivationType act1 = new ActivationType(prismContext);
+		act1.setAdministrativeStatus(ActivationStatusType.DISABLED);
+
+		ObjectDelta<?> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_NAME).replace("admin")
+				.item(UserType.F_ACTIVATION).replace(act1)
+				.item(UserType.F_ASSIGNMENT).replace(ass1)
+				.asObjectDelta(USER_ADMINISTRATOR_OID);
+
+		/// WHEN
+		displayWhen(TEST_NAME);
+		final Scene scene = visualizer.visualizeDelta((ObjectDelta<? extends ObjectType>) delta, task, task.getResult());
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("scene", scene);
+
+		// TODO some asserts
+	}
+
+	@Test
+	public void test230UserContainerDelete() throws SchemaException {
+		final String TEST_NAME = "test230UserContainerDelete";
+		Task task = createTask(TEST_NAME);
+
+		AssignmentType ass1 = new AssignmentType(prismContext);
+		ass1.setId(1L);
+
+		AssignmentType ass2 = new AssignmentType(prismContext);
+		ass2.setId(99999L);
+
+		ObjectDelta<?> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_NAME).replace("admin")
+				.item(UserType.F_ASSIGNMENT).delete(ass1, ass2)
+				.asObjectDelta(USER_ADMINISTRATOR_OID);
+
+		/// WHEN
+		displayWhen(TEST_NAME);
+		final Scene scene = visualizer.visualizeDelta((ObjectDelta<? extends ObjectType>) delta, task, task.getResult());
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("scene", scene);
+
+		// TODO some asserts
+	}
+
+	@Test
+	public void test300UserAssignmentAdd() throws Exception {
+		final String TEST_NAME = "test300UserAssignmentAdd";
+		Task task = createTask(TEST_NAME);
+
+		display("jack", getUser(USER_JACK_OID));
+
+		AssignmentType ass1 = new AssignmentType();
+		ass1.setConstruction(new ConstructionType());
+		ass1.getConstruction().setResourceRef(createObjectRef(RESOURCE_DUMMY_OID, RESOURCE));
+
+		ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).add(ass1)
+				.asObjectDelta(USER_JACK_OID);
+
+		/// WHEN
+		displayWhen(TEST_NAME);
+		final Scene scene = visualizer.visualizeDelta(delta, task, task.getResult());
+
+		modelService.executeChanges(Collections.<ObjectDelta<? extends ObjectType>>singletonList(delta), null, task, task.getResult());
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("scene", scene);
+		display("jack with assignment", getUser(USER_JACK_OID));
+
+		// TODO some asserts
+	}
+
+	private String dummyAccountOid;
+
+	@Test
+	public void test310UserLinkRefDelete() throws Exception {
+		final String TEST_NAME = "test310UserLinkRefDelete";
+		Task task = createTask(TEST_NAME);
+
+		UserType jack = getUser(USER_JACK_OID).asObjectable();
+		assertEquals("wrong # of linkrefs", 1, jack.getLinkRef().size());
+		dummyAccountOid = jack.getLinkRef().get(0).getOid();
+
+		ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_LINK_REF).delete(createObjectRef(dummyAccountOid, SHADOW).asReferenceValue())
+				.asObjectDelta(USER_JACK_OID);
+
+		/// WHEN
+		displayWhen(TEST_NAME);
+		final Scene scene = visualizer.visualizeDelta(delta, task, task.getResult());
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("scene", scene);
+
+		// TODO some asserts
+	}
+
+	@Test
+	public void test320UserLinkRefAdd() throws Exception {
+		final String TEST_NAME = "test320UserLinkRefAdd";
+		Task task = createTask(TEST_NAME);
+
+		ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_LINK_REF).add(createObjectRef(dummyAccountOid, SHADOW).asReferenceValue())
+				.asObjectDelta(USER_JACK_OID);
+
+		/// WHEN
+		displayWhen(TEST_NAME);
+		final Scene scene = visualizer.visualizeDelta(delta, task, task.getResult());
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("scene", scene);
+
+		// TODO some asserts
+	}
+
+	@Test
+	public void test330UserLinkRefReplaceNoOp() throws Exception {
+		final String TEST_NAME = "test330UserLinkRefReplaceNoOp";
+		Task task = createTask(TEST_NAME);
+
+		ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_LINK_REF).replace(createObjectRef(dummyAccountOid, SHADOW).asReferenceValue())
+				.asObjectDelta(USER_JACK_OID);
+
+		/// WHEN
+		displayWhen(TEST_NAME);
+		final Scene scene = visualizer.visualizeDelta(delta, task, task.getResult());
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("scene", scene);
+
+		// TODO some asserts
+	}
+
+	@Test
+	public void test340UserLinkRefReplaceOp() throws Exception {
+		final String TEST_NAME = "test340UserLinkRefReplaceOp";
+		Task task = createTask(TEST_NAME);
+
+		ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_LINK_REF).replace(createObjectRef("777", SHADOW).asReferenceValue())
+				.asObjectDelta(USER_JACK_OID);
+
+		/// WHEN
+		displayWhen(TEST_NAME);
+		final Scene scene = visualizer.visualizeDelta(delta, task, task.getResult());
 
 		// THEN
 		displayThen(TEST_NAME);

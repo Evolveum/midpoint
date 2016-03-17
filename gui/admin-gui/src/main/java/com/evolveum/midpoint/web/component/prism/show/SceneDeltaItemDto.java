@@ -16,34 +16,24 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
-import com.evolveum.midpoint.model.api.visualizer.SceneItem;
-
-import java.io.Serializable;
+import com.evolveum.midpoint.model.api.visualizer.SceneDeltaItem;
 
 /**
  * @author mederly
  */
-public class ItemDto implements Serializable {
+public class SceneDeltaItemDto extends SceneItemDto {
 
 	public static final String F_NAME = "name";
 	public static final String F_OLD_VALUE = "oldValue";
-	public static final String F_NEW_VALUE = "newValue";
 
-	private final SceneItem sceneItem;
+	private final SceneDeltaItem sceneDeltaItem;
 
-	public ItemDto(SceneItem sceneItem) {
-		this.sceneItem = sceneItem;
-	}
-
-	public String getName() {
-		return sceneItem.getName().getSimpleName();
+	public SceneDeltaItemDto(SceneDeltaItem sceneDeltaItem) {
+		super(sceneDeltaItem);
+		this.sceneDeltaItem = sceneDeltaItem;
 	}
 
 	public String getOldValue() {
-		return String.valueOf(sceneItem.getOldValues());
-	}
-
-	public String getNewValue() {
-		return String.valueOf(sceneItem.getNewValues());
+		return String.valueOf(sceneDeltaItem.getOldValues());
 	}
 }

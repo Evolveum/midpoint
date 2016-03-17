@@ -16,13 +16,9 @@
 
 package com.evolveum.midpoint.model.impl.visualizer.output;
 
-import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.SceneDeltaItem;
-import com.evolveum.midpoint.model.api.visualizer.SceneItem;
 import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -38,6 +34,7 @@ public class SceneDeltaItemImpl extends SceneItemImpl implements SceneDeltaItem,
 	private List<SceneItemValueImpl> oldValues;
 	private List<SceneItemValueImpl> addedValues;
 	private List<SceneItemValueImpl> deletedValues;
+	private List<SceneItemValueImpl> unchangedValues;
 	private ItemDelta<?,?> sourceDelta;
 
 	public SceneDeltaItemImpl(NameImpl name) {
@@ -70,6 +67,14 @@ public class SceneDeltaItemImpl extends SceneItemImpl implements SceneDeltaItem,
 		this.deletedValues = deletedValues;
 	}
 
+	public List<SceneItemValueImpl> getUnchangedValues() {
+		return unchangedValues;
+	}
+
+	public void setUnchangedValues(List<SceneItemValueImpl> unchangedValues) {
+		this.unchangedValues = unchangedValues;
+	}
+
 	@Override
 	public ItemDelta<?, ?> getSourceDelta() {
 		return sourceDelta;
@@ -88,11 +93,11 @@ public class SceneDeltaItemImpl extends SceneItemImpl implements SceneDeltaItem,
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("ItemDelta: ").append(name).append(" [rel-path: ").append(sourcePath).append("]");
+		sb.append("ItemDelta: ").append(name).append(" [rel-path: ").append(sourceRelPath).append("]");
 		if (sourceItem != null) {
 			sb.append(" ITEM");
 			if (sourceItem.getDefinition() != null) {
-				sb.append(" DEF(").append(sourceItem.getDefinition().getName().getLocalPart()).append(")");
+				sb.append(" DEF(").append(sourceItem.getDefinition().getName().getLocalPart()).append("/").append(sourceItem.getDefinition().getDisplayName()).append(")");
 			}
 		}
 		if (sourceDelta != null) {
@@ -109,7 +114,9 @@ public class SceneDeltaItemImpl extends SceneItemImpl implements SceneDeltaItem,
 		DebugUtil.indentDebugDump(sb, indent+1);
 		sb.append("ADDED: ").append(addedValues).append("\n");
 		DebugUtil.indentDebugDump(sb, indent+1);
-		sb.append("DELETED: ").append(deletedValues);
+		sb.append("DELETED: ").append(deletedValues).append("\n");
+		DebugUtil.indentDebugDump(sb, indent+1);
+		sb.append("UNCHANGED: ").append(unchangedValues);
 		return sb.toString();
 	}
 }

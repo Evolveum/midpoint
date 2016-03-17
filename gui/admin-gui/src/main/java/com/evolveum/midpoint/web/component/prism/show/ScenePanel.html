@@ -17,27 +17,30 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div>
-        <h3>Data Context Panel</h3>
-        <div class="tableForm" >
-            <div class="tableFormHead" style="display: none;">
-                <div class="objectFormHeader" wicket:id="headerPanel">
-                    <div class="objectFormHeaderOptionButtons" wicket:id="optionButtons" />
-                    <!--<img class="objectFormHeaderIcon" wicket:id="headerImg"/>-->
-
-                    <div class="objectFormHeaderText">
-                        <span class="objectFormHeaderName" wicket:id="header"/>
-                        <br>
-                        <span class="objectFormHeaderDescription" wicket:id="description"/>
+    <div class="form-horizontal">
+        <div class="box" style="width: auto; display: table;">
+            <div class="box-body no-padding">
+                <div wicket:id="headerPanel">
+                    <div>
+                        <span wicket:id="changeType"/>
+                        <span wicket:id="objectType"/>
+                        <span wicket:id="name"/> <span wicket:id="description"/>
+                        <div style="float: right;" wicket:id="optionButtons" />
                     </div>
-                    <div class="objectFormHeaderOperationButtons" wicket:id="operationButtons" />
                 </div>
             </div>
 
-            <div class="row header" wicket:id="header"/>
             <div wicket:id="body">
-                <div wicket:id="items">
-                </div>
+                <table class="table table-striped table-hover table-bordered" wicket:id="itemsTable">
+                    <tr>
+                        <th>Item</th>
+                        <th>Old value</th>
+                        <th>New value</th>
+                    </tr>
+                    <div wicket:id="items">
+                        <div wicket:id="item"/>
+                    </div>
+                </table>
                 <div wicket:id="partialScenes">
                     <div wicket:id="partialScene"/>
                 </div>

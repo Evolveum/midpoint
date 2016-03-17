@@ -20,8 +20,6 @@ import com.evolveum.midpoint.model.api.visualizer.SceneItem;
 import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -39,7 +37,8 @@ public class SceneItemImpl implements SceneItem, DebugDumpable {
 	protected List<SceneItemValueImpl> newValues;
 	protected boolean operational;
 	protected Item<?,?> sourceItem;
-	protected ItemPath sourcePath;
+	protected ItemPath sourceRelPath;
+	protected boolean descriptive;					// added only as a description of container value being changed
 
 	public SceneItemImpl(NameImpl name) {
 		notNull(name);
@@ -69,6 +68,14 @@ public class SceneItemImpl implements SceneItem, DebugDumpable {
 		this.operational = operational;
 	}
 
+	public boolean isDescriptive() {
+		return descriptive;
+	}
+
+	public void setDescriptive(boolean descriptive) {
+		this.descriptive = descriptive;
+	}
+
 	@Override
 	public Item<?, ?> getSourceItem() {
 		return sourceItem;
@@ -78,13 +85,12 @@ public class SceneItemImpl implements SceneItem, DebugDumpable {
 		this.sourceItem = sourceItem;
 	}
 
-	@Override
-	public ItemPath getSourcePath() {
-		return sourcePath;
+	public ItemPath getSourceRelPath() {
+		return sourceRelPath;
 	}
 
-	public void setSourcePath(ItemPath sourcePath) {
-		this.sourcePath = sourcePath;
+	public void setSourceRelPath(ItemPath sourceRelPath) {
+		this.sourceRelPath = sourceRelPath;
 	}
 
 	@Override
@@ -96,15 +102,18 @@ public class SceneItemImpl implements SceneItem, DebugDumpable {
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("Item: ").append(name).append(" [rel-path: ").append(sourcePath).append("]");
+		sb.append("Item: ").append(name).append(" [rel-path: ").append(sourceRelPath).append("]");
 		if (sourceItem != null) {
 			sb.append(" ITEM");
 			if (sourceItem.getDefinition() != null) {
-				sb.append(" DEF(").append(sourceItem.getDefinition().getName().getLocalPart()).append(")");
+				sb.append(" DEF(").append(sourceItem.getDefinition().getName().getLocalPart()).append("/").append(sourceItem.getDefinition().getDisplayName()).append(")");
 			}
 		}
 		if (operational) {
 			sb.append(" OPER");
+		}
+		if (descriptive) {
+			sb.append(" DESC");
 		}
 		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent+1);

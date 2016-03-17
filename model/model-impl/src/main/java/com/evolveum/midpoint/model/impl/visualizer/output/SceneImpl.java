@@ -17,8 +17,6 @@
 package com.evolveum.midpoint.model.impl.visualizer.output;
 
 import com.evolveum.midpoint.model.api.visualizer.Scene;
-import com.evolveum.midpoint.model.api.visualizer.SceneItem;
-import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -41,8 +39,8 @@ public class SceneImpl implements Scene, DebugDumpable {
 	private final List<SceneItemImpl> items = new ArrayList<>();
 	private final SceneImpl owner;
 	private boolean operational;
-	private ItemPath sourcePath;
-	private ItemPath sourceFullPath;
+	private ItemPath sourceRelPath;
+	private ItemPath sourceAbsPath;
 	private PrismContainerValue<?> sourceValue;
 	private PrismContainerDefinition<?> sourceDefinition;
 	private ObjectDelta<?> sourceDelta;
@@ -52,7 +50,7 @@ public class SceneImpl implements Scene, DebugDumpable {
 	}
 
 	@Override
-	public Name getName() {
+	public NameImpl getName() {
 		return name;
 	}
 
@@ -79,7 +77,7 @@ public class SceneImpl implements Scene, DebugDumpable {
 	}
 
 	@Override
-	public List<? extends SceneItem> getItems() {
+	public List<? extends SceneItemImpl> getItems() {
 		return items;
 	}
 
@@ -101,21 +99,21 @@ public class SceneImpl implements Scene, DebugDumpable {
 		this.operational = operational;
 	}
 
+	public ItemPath getSourceRelPath() {
+		return sourceRelPath;
+	}
+
+	public void setSourceRelPath(ItemPath sourceRelPath) {
+		this.sourceRelPath = sourceRelPath;
+	}
+
 	@Override
-	public ItemPath getSourcePath() {
-		return sourcePath;
+	public ItemPath getSourceAbsPath() {
+		return sourceAbsPath;
 	}
 
-	public void setSourcePath(ItemPath sourcePath) {
-		this.sourcePath = sourcePath;
-	}
-
-	public ItemPath getSourceFullPath() {
-		return sourceFullPath;
-	}
-
-	public void setSourceFullPath(ItemPath sourceFullPath) {
-		this.sourceFullPath = sourceFullPath;
+	public void setSourceAbsPath(ItemPath sourceAbsPath) {
+		this.sourceAbsPath = sourceAbsPath;
 	}
 
 	@Override
@@ -127,6 +125,7 @@ public class SceneImpl implements Scene, DebugDumpable {
 		this.sourceValue = sourceValue;
 	}
 
+	@Override
 	public PrismContainerDefinition<?> getSourceDefinition() {
 		return sourceDefinition;
 	}
@@ -162,13 +161,13 @@ public class SceneImpl implements Scene, DebugDumpable {
 		} else {
 			sb.append("(unnamed)");
 		}
-		sb.append(" [rel-path: ").append(sourcePath).append("]");
-		sb.append(" [full-path: ").append(sourceFullPath).append("]");
+		sb.append(" [rel-path: ").append(sourceRelPath).append("]");
+		sb.append(" [abs-path: ").append(sourceAbsPath).append("]");
 		if (sourceValue != null) {
 			sb.append(" VAL");
 		}
 		if (sourceDefinition != null) {
-			sb.append(" DEF(").append(sourceDefinition.getName().getLocalPart()).append(")");
+			sb.append(" DEF(").append(sourceDefinition.getName().getLocalPart()).append("/").append(sourceDefinition.getDisplayName()).append(")");
 		}
 		if (sourceDelta != null) {
 			sb.append(" DELTA");

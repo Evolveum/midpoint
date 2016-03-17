@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.model.api.visualizer;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -44,13 +45,17 @@ public interface Scene extends Serializable, DebugDumpable {
 	/**
 	 * Scene root path, relative to the owning scene root path.
 	 */
-	ItemPath getSourcePath();
+	ItemPath getSourceRelPath();
+
+	ItemPath getSourceAbsPath();
 
 	/**
 	 * Source container value where more details can be found.
 	 * (For scenes that display object or value add.)
 	 */
 	PrismContainerValue<?> getSourceValue();
+
+	PrismContainerDefinition<?> getSourceDefinition();
 
 	/**
 	 * Source object delta where more details can be found.

@@ -39,5 +39,5 @@ public interface SceneItem extends Serializable {
 	/**
 	 * Item path, relative to the scene root path.
 	 */
-	ItemPath getSourcePath();
+	ItemPath getSourceRelPath();
 }
