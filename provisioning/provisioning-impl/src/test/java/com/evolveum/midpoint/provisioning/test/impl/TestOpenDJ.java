@@ -72,8 +72,10 @@ import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.match.UuidMatchingRule;
 import com.evolveum.midpoint.prism.match.XmlMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -1046,6 +1048,62 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		assertShadows(3);
 	}
+	
+	/**
+	 * Make a duplicate modification. Add a givenName value that is already there.
+	 * Normal LDAP should fail. So check that connector and midPoitn handles that.
+	 */
+	@Test
+	public void test147ModifyAccountJackGivenNameDuplicit() throws Exception {
+		final String TEST_NAME = "test147ModifyAccountJackGivenNameDuplicit";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+		
+		PropertyDelta<String> givenNameDelta = new PropertyDelta<>(
+				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "givenName")), 
+				null , prismContext);
+		givenNameDelta.addValueToAdd(new PrismPropertyValue<String>("Jack"));
+		
+		// Also make an ordinary non-conflicting modification. We need to make sure that
+		// the operation was not ignored as a whole
+		PropertyDelta<String> titleDelta = new PropertyDelta<>(
+				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "title")), 
+				null , prismContext);
+		titleDelta.addValueToAdd(new PrismPropertyValue<String>("Great Captain"));
+		
+		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(givenNameDelta, titleDelta);
+		
+		display("Modifications",modifications);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, ACCOUNT_JACK_OID,
+				modifications, null, null, taskManager.createTaskInstance(), result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		Entry entry = openDJController.searchByUid("rename");
+		display("LDAP Entry", entry);
+		OpenDJController.assertAttribute(entry, "givenName", "Jack");
+		OpenDJController.assertAttribute(entry, "title", "Great Captain");
+		
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_JACK_OID, null, taskManager.createTaskInstance(), result);
+		
+		display("Object after change",shadow);
+		
+		PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		PrismAsserts.assertPropertyValue(attributesContainer, new QName(RESOURCE_OPENDJ_NS, "givenName"), "Jack");
+		PrismAsserts.assertPropertyValue(attributesContainer, new QName(RESOURCE_OPENDJ_NS, "title"), "Great Captain");
+		
+		assertShadows(3);
+	}
+
 
 	@Test
 	public void test150ChangePassword() throws Exception {
@@ -1580,10 +1638,12 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		rememberConnectorSimulatedPagingSearchCount();
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		List<PrismObject<ShadowType>> searchResults = 
 			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 		
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		assertSuccess(result);
 		display("Search resutls", searchResults);
@@ -1611,10 +1671,12 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		rememberConnectorSimulatedPagingSearchCount();
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		List<PrismObject<ShadowType>> searchResults = 
 			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 		
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		assertSuccess(result);
 		display("Search resutls", searchResults);
@@ -1642,15 +1704,87 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		rememberConnectorSimulatedPagingSearchCount();
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		SearchResultList<PrismObject<ShadowType>> searchResults = provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 		
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		assertSuccess(result);
 		display("Search resutls", searchResults);
 		
 		// The results should be this:
 		assertSearchResults(searchResults, "hbarbossa", "idm", "jbeckett", "jbond", "jgibbs" );
+		
+		assertConnectorOperationIncrement(1);
+		assertConnectorSimulatedPagingSearchIncrement(0);
+	}
+	
+	@Test
+	public void test233SearchObjectsPagedNoOffsetSortSn() throws Exception {
+		final String TEST_NAME = "test233SearchObjectsPagedNoOffsetSortSn";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		
+		ObjectPaging paging = ObjectPaging.createPaging(null, 4);
+		paging.setOrdering(ObjectOrdering.createOrdering(
+				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
+		query.setPaging(paging);
+		
+		rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		List<PrismObject<ShadowType>> searchResults = 
+			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		assertSuccess(result);
+		display("Search resutls", searchResults);
+		
+		assertSearchResults(searchResults, "monk", "hbarbossa", "jbeckett", "jbond" );
+		
+		assertConnectorOperationIncrement(1);
+		assertConnectorSimulatedPagingSearchIncrement(0);
+	}
+	
+	@Test
+	public void test234SearchObjectsPagedOffsetSortSn() throws Exception {
+		final String TEST_NAME = "test234SearchObjectsPagedOffsetSortSn";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		
+		ObjectPaging paging = ObjectPaging.createPaging(2, 4);
+		paging.setOrdering(ObjectOrdering.createOrdering(
+				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
+		query.setPaging(paging);
+		
+		rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		List<PrismObject<ShadowType>> searchResults = 
+			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		assertSuccess(result);
+		display("Search resutls", searchResults);
+		
+		assertSearchResults(searchResults, "jbeckett", "jbond", "cook", "drake" );
 		
 		assertConnectorOperationIncrement(1);
 		assertConnectorSimulatedPagingSearchIncrement(0);

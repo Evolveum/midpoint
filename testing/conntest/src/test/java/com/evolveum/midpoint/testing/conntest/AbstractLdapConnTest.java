@@ -541,8 +541,8 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 	}
 
 	@Test
-    public void test210ModifyAccountBarbossaTitle() throws Exception {
-		final String TEST_NAME = "test210ModifyAccountBarbossaTitle";
+    public void test210ModifyAccountBarbossaReplaceTitle() throws Exception {
+		final String TEST_NAME = "test210ModifyAccountBarbossaReplaceTitle";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -553,6 +553,43 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = PropertyDelta.createModificationReplaceProperty(
+        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
+        delta.addModification(attrDelta);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "title", "Captain");
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+	}
+	
+	/**
+	 * Make a duplicate modification. Add a title value that is already there.
+	 * Normal LDAP should fail. So check that connector and midPoint handles that.
+	 */
+	@Test
+    public void test212ModifyAccountBarbossaAddTitleDuplicate() throws Exception {
+		final String TEST_NAME = "test212ModifyAccountBarbossaAddTitleDuplicate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        QName attrQName = new QName(MidPointConstants.NS_RI, "title");
+        ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        PropertyDelta<String> attrDelta = PropertyDelta.createModificationAddProperty(
         		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
         
