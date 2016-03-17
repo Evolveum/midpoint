@@ -87,7 +87,7 @@ public class PageUser extends PageAdminFocus<UserType> {
         // !userModel.getObject().getFocusPrimaryDelta().isEmpty()){
         // showModalWindow(MODAL_ID_CONFIRM_CANCEL, target);
         // } else{
-        goBackPage();
+        redirectBack();
 
         // }
         // }catch(Exception ex){
