@@ -29,7 +29,7 @@
             <t:clearValue>secret</t:clearValue>
          </icfconf:password>
          <icfconf:hostname>192.168.56.101</icfconf:hostname>
-         <icfconf:port>22</gen581:port>
+         <icfconf:port>22</icfconf:port>
          <icfconf:createHomeDirectory>true</icfconf:createHomeDirectory>
          <icfconf:deleteHomeDirectory>true</icfconf:deleteHomeDirectory>
          <icfconf:shell>$</icfconf:shell>
