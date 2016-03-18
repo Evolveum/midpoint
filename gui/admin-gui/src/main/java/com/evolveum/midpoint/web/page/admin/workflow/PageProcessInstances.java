@@ -25,6 +25,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
@@ -66,6 +67,9 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
     private static final String DOT_CLASS = PageProcessInstances.class.getName() + ".";
     private static final String OPERATION_STOP_PROCESS_INSTANCES = DOT_CLASS + "stopProcessInstances";
 
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_PROCESS_INSTANCES_TABLE = "processInstancesTable";
+    private static final String ID_FINISHED_PROCESS_INSTANCES_TABLE = "finishedProcessInstancesTable";
 
     public PageProcessInstances(boolean requestedBy, boolean requestedFor) {
         this.requestedBy = requestedBy;
@@ -74,17 +78,19 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
     }
 
     private void initLayout() {
-        Form mainForm = new Form("mainForm");
+        Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
         List<IColumn<ProcessInstanceDto, String>> columns = initColumns();
-        TablePanel<ProcessInstanceDto> table = new TablePanel<ProcessInstanceDto>("processInstancesTable", new ProcessInstanceDtoProvider(PageProcessInstances.this, requestedBy, requestedFor, false),
+        BoxedTablePanel<ProcessInstanceDto> table = new BoxedTablePanel<>(ID_PROCESS_INSTANCES_TABLE,
+                new ProcessInstanceDtoProvider(PageProcessInstances.this, requestedBy, requestedFor, false),
                 columns);
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
         List<IColumn<ProcessInstanceDto, String>> finishedColumns = initFinishedColumns();
-        TablePanel<ProcessInstanceDto> finishedTable = new TablePanel<ProcessInstanceDto>("finishedProcessInstancesTable", new ProcessInstanceDtoProvider(PageProcessInstances.this, requestedBy, requestedFor, true),
+        BoxedTablePanel<ProcessInstanceDto> finishedTable = new BoxedTablePanel<>(ID_FINISHED_PROCESS_INSTANCES_TABLE,
+                new ProcessInstanceDtoProvider(PageProcessInstances.this, requestedBy, requestedFor, true),
                 finishedColumns);
         finishedTable.setOutputMarkupId(true);
         mainForm.add(finishedTable);
