@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.List;
@@ -35,8 +36,8 @@ public interface Scene extends Serializable, DebugDumpable {
 	Name getName();
 	ChangeType getChangeType();
 
-	List<? extends Scene> getPartialScenes();
-	List<? extends SceneItem> getItems();
+	@NotNull List<? extends Scene> getPartialScenes();
+	@NotNull List<? extends SceneItem> getItems();
 
 	boolean isOperational();
 

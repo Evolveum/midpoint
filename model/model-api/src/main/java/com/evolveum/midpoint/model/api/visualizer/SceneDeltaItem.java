@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.api.visualizer;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.List;
@@ -28,9 +29,10 @@ import java.util.List;
  */
 public interface SceneDeltaItem extends SceneItem, Serializable {
 
-	List<? extends SceneItemValue> getOldValues();
-	List<? extends SceneItemValue> getAddedValues();
-	List<? extends SceneItemValue> getDeletedValues();
+	@NotNull List<? extends SceneItemValue> getOldValues();
+	@NotNull List<? extends SceneItemValue> getAddedValues();
+	@NotNull List<? extends SceneItemValue> getDeletedValues();
+	@NotNull List<? extends SceneItemValue> getUnchangedValues();
 
 	/**
 	 * Item delta (if applicable). It should contain the original path (not a relative one).

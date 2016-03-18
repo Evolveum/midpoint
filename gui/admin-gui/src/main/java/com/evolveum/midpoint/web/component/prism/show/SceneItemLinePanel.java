@@ -25,17 +25,20 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 /**
- * @author lazyman
+ * @author mederly
  */
 public class SceneItemLinePanel extends BasePanel<SceneItemLineDto> {
 
     private static final String ID_NAME_CONTAINER = "nameContainer";
     private static final String ID_NAME = "name";
+    private static final String ID_OLD_VALUE_CONTAINER = "oldValueContainer";
     private static final String ID_OLD_VALUE = "oldValue";
+	private static final String ID_NEW_VALUE_CONTAINER = "newValueContainer";
     private static final String ID_NEW_VALUE = "newValue";
 
     private static final Trace LOGGER = TraceManager.getTrace(SceneItemLinePanel.class);
@@ -62,6 +65,31 @@ public class SceneItemLinePanel extends BasePanel<SceneItemLineDto> {
 			}
 		});
 		add(nameCell);
-		add(new Label(ID_NEW_VALUE, new PropertyModel<String>(getModel(), SceneItemLineDto.F_NEW_VALUE)));
+
+		WebMarkupContainer oldValueCell = new WebMarkupContainer(ID_OLD_VALUE_CONTAINER);
+		oldValueCell.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return getModelObject().isDelta();
+			}
+		});
+		oldValueCell.add(new Label(ID_OLD_VALUE, new PropertyModel<String>(getModel(), SceneItemLineDto.F_OLD_VALUE)));
+		add(oldValueCell);
+
+		WebMarkupContainer newValueCell = new WebMarkupContainer(ID_NEW_VALUE_CONTAINER);
+		newValueCell.add(new Label(ID_NEW_VALUE, new PropertyModel<String>(getModel(), SceneItemLineDto.F_NEW_VALUE)));
+		newValueCell.add(new AttributeModifier("colspan", new AbstractReadOnlyModel<Integer>() {
+			@Override
+			public Integer getObject() {
+				return !getModelObject().isDelta() && getModelObject().isDeltaScene() ? 2 : 1;
+			}
+		}));
+		newValueCell.add(new AttributeModifier("align", new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				return !getModelObject().isDelta() && getModelObject().isDeltaScene() ? "center" : null;
+			}
+		}));
+		add(newValueCell);
 	}
 }

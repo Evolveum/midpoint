@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
@@ -76,11 +77,13 @@ public class ListScene implements Scene {
 		return null;
 	}
 
+	@NotNull
 	@Override
 	public List<? extends Scene> getPartialScenes() {
 		return partialScenes;
 	}
 
+	@NotNull
 	@Override
 	public List<? extends SceneItem> getItems() {
 		return Collections.emptyList();

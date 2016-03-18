@@ -67,25 +67,25 @@ public class PagePreviewChanges extends PageAdminWorkItems {		// TODO extends
 	private IModel<SceneDto> secondaryDeltasModel;
 
 	public PagePreviewChanges(ModelContext<? extends ObjectType> modelContext, ModelInteractionService modelInteractionService) {
-		List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
-		List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
-		if (modelContext != null) {
-			if (modelContext.getFocusContext() != null) {
-				addIgnoreNull(primaryDeltas, modelContext.getFocusContext().getPrimaryDelta());
-				addIgnoreNull(secondaryDeltas, modelContext.getFocusContext().getSecondaryDelta());
-			}
-			for (ModelProjectionContext projCtx : modelContext.getProjectionContexts()) {
-				addIgnoreNull(primaryDeltas, projCtx.getPrimaryDelta());
-				addIgnoreNull(secondaryDeltas, projCtx.getSecondaryDelta());
-			}
-		}
-		LOGGER.info("Primary deltas:\n{}", DebugUtil.debugDump(primaryDeltas));
-		LOGGER.info("Secondary deltas:\n{}", DebugUtil.debugDump(secondaryDeltas));
-
-		Task task = createSimpleTask("visualize");
+		final List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
+		final List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
 		final List<? extends Scene> primaryScenes;
 		final List<? extends Scene> secondaryScenes;
 		try {
+			if (modelContext != null) {
+				if (modelContext.getFocusContext() != null) {
+					addIgnoreNull(primaryDeltas, modelContext.getFocusContext().getPrimaryDelta());
+					addIgnoreNull(secondaryDeltas, modelContext.getFocusContext().getSecondaryDelta());
+				}
+				for (ModelProjectionContext projCtx : modelContext.getProjectionContexts()) {
+					addIgnoreNull(primaryDeltas, projCtx.getPrimaryDelta());
+					addIgnoreNull(secondaryDeltas, projCtx.getExecutableDelta());
+				}
+			}
+			LOGGER.info("Primary deltas:\n{}", DebugUtil.debugDump(primaryDeltas));
+			LOGGER.info("Secondary deltas:\n{}", DebugUtil.debugDump(secondaryDeltas));
+
+			Task task = createSimpleTask("visualize");
 			primaryScenes = modelInteractionService.visualizeDeltas(primaryDeltas, task, task.getResult());
 			secondaryScenes = modelInteractionService.visualizeDeltas(secondaryDeltas, task, task.getResult());
 		} catch (SchemaException e) {

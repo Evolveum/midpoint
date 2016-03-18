@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.prism.show;
 
 import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.model.api.visualizer.SceneDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.SceneItem;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -49,7 +50,7 @@ public class SceneDto implements Serializable {
 		this.scene = scene;
 		for (SceneItem item : scene.getItems()) {
 			if (item != null) {
-				items.add(new SceneItemDto(item));
+				items.add(new SceneItemDto(this, item));
 			}
 		}
 		for (Scene sub : scene.getPartialScenes()) {
@@ -113,4 +114,12 @@ public class SceneDto implements Serializable {
 		return scene.getChangeType();
 	}
 
+	public boolean containsDeltaItems() {
+		for (SceneItem item : scene.getItems()) {
+			if (item instanceof SceneDeltaItem) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

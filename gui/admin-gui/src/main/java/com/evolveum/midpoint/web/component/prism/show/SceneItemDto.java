@@ -16,12 +16,13 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
-import com.evolveum.midpoint.model.api.visualizer.Name;
-import com.evolveum.midpoint.model.api.visualizer.SceneItem;
-import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
+import com.evolveum.midpoint.model.api.visualizer.*;
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -30,13 +31,18 @@ import java.util.List;
 public class SceneItemDto implements Serializable {
 
 	public static final String F_NAME = "name";
-	public static final String F_NEW_VALUE = "newValue";
 	public static final String F_LINES = "lines";
 
-	private final SceneItem sceneItem;
+	@NotNull private final SceneItem sceneItem;
+	@NotNull private final SceneDto sceneDto;
+	@NotNull private final List<SceneItemLineDto> lines;
 
-	public SceneItemDto(SceneItem sceneItem) {
+	public SceneItemDto(@NotNull SceneDto sceneDto, @NotNull SceneItem sceneItem) {
+		Validate.notNull(sceneDto);
+		Validate.notNull(sceneItem);
+		this.sceneDto = sceneDto;
 		this.sceneItem = sceneItem;
+		this.lines = computeLines();
 	}
 
 	public String getName() {
@@ -54,12 +60,39 @@ public class SceneItemDto implements Serializable {
 		return String.valueOf(sceneItem.getNewValues());
 	}
 
-	public List<SceneItemLineDto> getLines() {
+	public List<SceneItemLineDto> computeLines() {
 		List<SceneItemLineDto> rv = new ArrayList<>();
 		int index = 0;
-		for (SceneItemValue itemValue : sceneItem.getNewValues()) {		// TODO
-			rv.add(new SceneItemLineDto(this, itemValue, index++));
+		if (!isDelta()) {
+			for (SceneItemValue itemValue : sceneItem.getNewValues()) {
+				rv.add(new SceneItemLineDto(this, null, itemValue, index++, false));
+			}
+		} else {
+			SceneDeltaItem deltaItem = (SceneDeltaItem) sceneItem;
+			for (SceneItemValue itemValue : deltaItem.getUnchangedValues()) {
+				rv.add(new SceneItemLineDto(this, null, itemValue, index++, false));
+			}
+			Iterator<? extends SceneItemValue> deletedValuesIter = deltaItem.getDeletedValues().iterator();
+			Iterator<? extends SceneItemValue> addedValuesIter = deltaItem.getAddedValues().iterator();
+			while (deletedValuesIter.hasNext() || addedValuesIter.hasNext()) {
+				SceneItemValue deletedValue = deletedValuesIter.hasNext() ? deletedValuesIter.next() : null;
+				SceneItemValue addedValue = addedValuesIter.hasNext() ? addedValuesIter.next() : null;
+				rv.add(new SceneItemLineDto(this, deletedValue, addedValue, index++, true));
+			}
 		}
 		return rv;
+	}
+
+	@NotNull
+	public List<SceneItemLineDto> getLines() {
+		return lines;
+	}
+
+	public boolean isDelta() {
+		return sceneItem instanceof SceneDeltaItem;
+	}
+
+	public boolean isDeltaScene() {
+		return sceneDto.containsDeltaItems();
 	}
 }

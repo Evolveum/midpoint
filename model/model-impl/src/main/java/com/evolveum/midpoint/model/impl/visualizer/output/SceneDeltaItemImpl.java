@@ -21,57 +21,61 @@ import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
-
-import static org.apache.commons.lang.Validate.notNull;
 
 /**
  * @author mederly
  */
 public class SceneDeltaItemImpl extends SceneItemImpl implements SceneDeltaItem, DebugDumpable {
 
-	private List<SceneItemValueImpl> oldValues;
-	private List<SceneItemValueImpl> addedValues;
-	private List<SceneItemValueImpl> deletedValues;
-	private List<SceneItemValueImpl> unchangedValues;
+	@NotNull private List<SceneItemValueImpl> oldValues = Collections.emptyList();
+	@NotNull private List<SceneItemValueImpl> addedValues = Collections.emptyList();
+	@NotNull private List<SceneItemValueImpl> deletedValues = Collections.emptyList();
+	@NotNull private List<SceneItemValueImpl> unchangedValues = Collections.emptyList();
 	private ItemDelta<?,?> sourceDelta;
 
 	public SceneDeltaItemImpl(NameImpl name) {
 		super(name);
 	}
 
+	@NotNull
 	@Override
 	public List<? extends SceneItemValue> getOldValues() {
 		return oldValues;
 	}
 
-	public void setOldValues(List<SceneItemValueImpl> oldValues) {
+	public void setOldValues(@NotNull List<SceneItemValueImpl> oldValues) {
 		this.oldValues = oldValues;
 	}
 
+	@NotNull
 	@Override
 	public List<SceneItemValueImpl> getAddedValues() {
 		return addedValues;
 	}
 
-	public void setAddedValues(List<SceneItemValueImpl> addedValues) {
+	public void setAddedValues(@NotNull List<SceneItemValueImpl> addedValues) {
 		this.addedValues = addedValues;
 	}
 
+	@NotNull
 	public List<SceneItemValueImpl> getDeletedValues() {
 		return deletedValues;
 	}
 
-	public void setDeletedValues(List<SceneItemValueImpl> deletedValues) {
+	public void setDeletedValues(@NotNull List<SceneItemValueImpl> deletedValues) {
 		this.deletedValues = deletedValues;
 	}
 
+	@NotNull
 	public List<SceneItemValueImpl> getUnchangedValues() {
 		return unchangedValues;
 	}
 
-	public void setUnchangedValues(List<SceneItemValueImpl> unchangedValues) {
+	public void setUnchangedValues(@NotNull List<SceneItemValueImpl> unchangedValues) {
 		this.unchangedValues = unchangedValues;
 	}
 
@@ -91,20 +95,9 @@ public class SceneDeltaItemImpl extends SceneItemImpl implements SceneDeltaItem,
 
 	@Override
 	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("ItemDelta: ").append(name).append(" [rel-path: ").append(sourceRelPath).append("]");
-		if (sourceItem != null) {
-			sb.append(" ITEM");
-			if (sourceItem.getDefinition() != null) {
-				sb.append(" DEF(").append(sourceItem.getDefinition().getName().getLocalPart()).append("/").append(sourceItem.getDefinition().getDisplayName()).append(")");
-			}
-		}
+		StringBuilder sb = debugDumpCommon(indent);
 		if (sourceDelta != null) {
 			sb.append(" DELTA");
-		}
-		if (operational) {
-			sb.append(" OPER");
 		}
 		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent+1);

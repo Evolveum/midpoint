@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.model.impl.visualizer;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.migrator.Migrator;
@@ -53,6 +55,7 @@ import sun.security.provider.SHA;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -61,6 +64,7 @@ import static com.evolveum.midpoint.schema.constants.ObjectTypes.*;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.util.TestUtil.*;
+import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -275,8 +279,55 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 	}
 
 	@Test
-	public void test300UserAssignmentAdd() throws Exception {
-		final String TEST_NAME = "test300UserAssignmentAdd";
+	public void test300UserAssignmentPreview() throws Exception {
+		final String TEST_NAME = "test300UserAssignmentPreview";
+		Task task = createTask(TEST_NAME);
+
+		PrismObject<UserType> jack = getUser(USER_JACK_OID);
+		display("jack", jack);
+
+		AssignmentType ass1 = new AssignmentType(prismContext);
+		ass1.setConstruction(new ConstructionType(prismContext));
+		ass1.getConstruction().setResourceRef(createObjectRef(RESOURCE_DUMMY_OID, RESOURCE));
+
+		ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).add(ass1)
+				.asObjectDelta(USER_JACK_OID);
+
+		delta.applyDefinition(jack.getDefinition());
+
+		/// WHEN
+		displayWhen(TEST_NAME);
+		ModelContext<UserType> modelContext = modelInteractionService.previewChanges(Collections.<ObjectDelta<? extends ObjectType>>singletonList(delta), null, task, task.getResult());
+		List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
+		List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
+		if (modelContext != null) {
+			if (modelContext.getFocusContext() != null) {
+				addIgnoreNull(primaryDeltas, modelContext.getFocusContext().getPrimaryDelta());
+				addIgnoreNull(secondaryDeltas, modelContext.getFocusContext().getSecondaryDelta());
+			}
+			for (ModelProjectionContext projCtx : modelContext.getProjectionContexts()) {
+				addIgnoreNull(primaryDeltas, projCtx.getPrimaryDelta());
+				addIgnoreNull(secondaryDeltas, projCtx.getExecutableDelta());
+			}
+		}
+		display("primary deltas", primaryDeltas);
+		display("secondary deltas", secondaryDeltas);
+
+		List<? extends Scene> primaryScenes = modelInteractionService.visualizeDeltas(primaryDeltas, task, task.getResult());
+		List<? extends Scene> secondaryScenes = modelInteractionService.visualizeDeltas(secondaryDeltas, task, task.getResult());
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("primary scenes", primaryScenes);
+		display("secondary scenes", secondaryScenes);
+
+		// TODO some asserts
+	}
+
+	@Test
+	public void test305UserAssignmentAdd() throws Exception {
+		final String TEST_NAME = "test305UserAssignmentAdd";
 		Task task = createTask(TEST_NAME);
 
 		display("jack", getUser(USER_JACK_OID));

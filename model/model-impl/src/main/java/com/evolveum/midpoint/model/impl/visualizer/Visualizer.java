@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -60,8 +61,6 @@ public class Visualizer {
 
 	@Autowired
 	private Resolver resolver;
-
-	private static final boolean REMOVE_EXTRA_DESCRIPTIVE_ITEMS = true;
 
 	private static final Map<Class<?>, List<ItemPath>> descriptiveItems = new HashMap<>();
 	static {
@@ -285,7 +284,6 @@ public class Visualizer {
 			return;
 		}
 		List<ItemDelta<?, ?>> deltasToShow = new ArrayList<>(deltas);
-//		Collections.sort(deltasToShow, getDeltaDisplayOrderComparator());
 		for (ItemDelta<?, ?> delta : deltasToShow) {
 			if (delta instanceof ContainerDelta) {
 				visualizeContainerDelta((ContainerDelta) delta, scene, context, task, result);
@@ -293,6 +291,59 @@ public class Visualizer {
 				visualizeAtomicDelta(delta, scene, context, task, result);
 			}
 		}
+		sortItems(scene);
+		sortPartialScenes(scene);
+	}
+
+	private void sortItems(SceneImpl scene) {
+		Collections.sort(scene.getItems(), new Comparator<SceneItemImpl>() {
+			@Override
+			public int compare(SceneItemImpl o1, SceneItemImpl o2) {
+				return compareDefinitions(o1.getSourceDefinition(), o2.getSourceDefinition());
+			}
+		});
+	}
+
+	private void sortPartialScenes(SceneImpl scene) {
+		Collections.sort(scene.getPartialScenes(), new Comparator<SceneImpl>() {
+			@Override
+			public int compare(SceneImpl s1, SceneImpl s2) {
+				final PrismContainerDefinition<?> def1 = s1.getSourceDefinition();
+				final PrismContainerDefinition<?> def2 = s2.getSourceDefinition();
+				int a = compareDefinitions(def1, def2);
+				if (a != 0) {
+					return a;
+				}
+				if (def1 == null && def2 == null) {
+					return 0;
+				} else if (def1 == null) {
+					return 1;
+				} else if (def2 == null) {
+					return -1;
+				}
+				if (s1.isContainerValue() && s2.isContainerValue()) {
+					Long id1 = s1.getSourceContainerValueId();
+					Long id2 = s2.getSourceContainerValueId();
+					return compareNullableIntegers(id1, id2);
+				} else if (s1.isObjectValue() && s2.isObjectValue()) {
+					boolean f1 = s1.isFocusObject();
+					boolean f2 = s2.isFocusObject();
+					if (f1 && !f2) {
+						return -1;
+					} else if (f2 && !f1) {
+						return 1;
+					} else {
+						return 0;
+					}
+				}
+				if (s1.isObjectValue()) {
+					return -1;
+				} else if (s2.isObjectValue()) {
+					return 1;
+				}
+				return 0;
+			}
+		});
 	}
 
 	private <C extends Containerable> void visualizeContainerDelta(ContainerDelta<C> delta, SceneImpl scene, VisualizationContext context, Task task, OperationResult result) {
@@ -520,16 +571,6 @@ public class Visualizer {
 		}
 	}
 
-	//	private Comparator<ItemDelta<?, ?>> getDeltaDisplayOrderComparator() {
-//		return new Comparator<ItemDelta<?, ?>>() {
-//			@Override
-//			public int compare(ItemDelta<?, ?> delta1, ItemDelta<?, ?> delta2) {
-//
-//			}
-//		};
-//	}
-
-
 	private Comparator<Item<?, ?>> getItemDisplayOrderComparator() {
 		return new Comparator<Item<?, ?>>() {
 			@Override
@@ -542,14 +583,30 @@ public class Visualizer {
 	private int compareDefinitions(ItemDefinition d1, ItemDefinition d2) {
 		Integer order1 = d1 != null ? d1.getDisplayOrder() : null;
 		Integer order2 = d2 != null ? d2.getDisplayOrder() : null;
-		if (order1 == null && order2 == null) {
+		return compareNullableIntegers(order1, order2);
+	}
+
+	private int compareNullableIntegers(Integer i1, Integer i2) {
+		if (i1 == null && i2 == null) {
 			return 0;
-		} else if (order1 == null) {
+		} else if (i1 == null) {
 			return 1;
-		} else if (order2 == null) {
+		} else if (i2 == null) {
 			return -1;
 		} else {
-			return Integer.compare(order1, order2);
+			return Integer.compare(i1, i2);
+		}
+	}
+
+	private int compareNullableIntegers(Long i1, Long i2) {
+		if (i1 == null && i2 == null) {
+			return 0;
+		} else if (i1 == null) {
+			return 1;
+		} else if (i2 == null) {
+			return -1;
+		} else {
+			return Long.compare(i1, i2);
 		}
 	}
 
@@ -708,7 +765,7 @@ public class Visualizer {
 		if (values != null) {
 			for (PrismPropertyValue<?> value : values) {
 				if (value != null) {
-					SceneItemValueImpl siv = new SceneItemValueImpl(String.valueOf(value.getValue()));
+					SceneItemValueImpl siv = new SceneItemValueImpl(ValueDisplayUtil.toStringValue(value));
 					siv.setSourceValue(value);
 					rv.add(siv);
 				}

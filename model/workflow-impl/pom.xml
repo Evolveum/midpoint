@@ -88,7 +88,6 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations-java5</artifactId>
-            <version>15.0</version>
         </dependency>
         <!-- this one is needed to get SQL configuration from the repository -->
         <dependency>

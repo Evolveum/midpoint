@@ -58,10 +58,11 @@ public class ScenePanel extends BasePanel<SceneDto> {
 	public static final String ID_HEADER_NAME = "name";
 	public static final String ID_HEADER_CHANGE_TYPE = "changeType";
 	public static final String ID_HEADER_OBJECT_TYPE = "objectType";
-	public static final String ID_ROW_HEADER = "rowHeader";
 	public static final String ID_BODY = "body";
+	public static final String ID_OLD_VALUE_LABEL = "oldValueLabel";
+	public static final String ID_NEW_VALUE_LABEL = "newValueLabel";
+	public static final String ID_VALUE_LABEL = "valueLabel";
 
-	private boolean showHeader = true;
     private PageBase pageBase;
 
     public ScenePanel(String id, IModel<SceneDto> model, Form form, PageBase pageBase) {
@@ -129,6 +130,30 @@ public class ScenePanel extends BasePanel<SceneDto> {
 				return !model.getObject().getItems().isEmpty();
 			}
 		});
+		WebMarkupContainer oldValueLabel = new WebMarkupContainer(ID_OLD_VALUE_LABEL);
+		oldValueLabel.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return model.getObject().containsDeltaItems();
+			}
+		});
+		itemsTable.add(oldValueLabel);
+		WebMarkupContainer newValueLabel = new WebMarkupContainer(ID_NEW_VALUE_LABEL);
+		newValueLabel.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return model.getObject().containsDeltaItems();
+			}
+		});
+		itemsTable.add(newValueLabel);
+		WebMarkupContainer valueLabel = new WebMarkupContainer(ID_VALUE_LABEL);
+		valueLabel.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return !model.getObject().containsDeltaItems();
+			}
+		});
+		itemsTable.add(valueLabel);
 		ListView<SceneItemDto> items = new ListView<SceneItemDto>(ID_ITEMS, new PropertyModel<List<SceneItemDto>>(model, SceneDto.F_ITEMS)) {
 			@Override
 			protected void populateItem(ListItem<SceneItemDto> item) {

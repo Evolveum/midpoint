@@ -19,11 +19,14 @@ package com.evolveum.midpoint.model.impl.visualizer.output;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +70,7 @@ public class SceneImpl implements Scene, DebugDumpable {
 		this.changeType = changeType;
 	}
 
+	@NotNull
 	@Override
 	public List<? extends SceneImpl> getPartialScenes() {
 		return partialScenes;
@@ -76,6 +80,7 @@ public class SceneImpl implements Scene, DebugDumpable {
 		partialScenes.add(subscene);
 	}
 
+	@NotNull
 	@Override
 	public List<? extends SceneItemImpl> getItems() {
 		return items;
@@ -184,5 +189,33 @@ public class SceneImpl implements Scene, DebugDumpable {
 			sb.append(dataContext.debugDump(indent+1));
 		}
 		return sb.toString();
+	}
+
+	public String getSourceOid() {
+		if (sourceValue != null && sourceValue.getParent() instanceof PrismObject) {
+			return ((PrismObject) sourceValue.getParent()).getOid();
+		} else {
+			return null;
+		}
+	}
+
+	public boolean isObjectValue() {
+		return sourceValue != null && sourceValue.getParent() instanceof PrismObject;
+	}
+
+	public boolean isContainerValue() {
+		return sourceValue != null && !(sourceValue.getParent() instanceof PrismObject);
+	}
+
+	public Long getSourceContainerValueId() {
+		if (isContainerValue()) {
+			return sourceValue.getId();
+		} else {
+			return null;
+		}
+	}
+
+	public boolean isFocusObject() {
+		return sourceDefinition != null && sourceDefinition.getCompileTimeClass() != null && FocusType.class.isAssignableFrom(sourceDefinition.getCompileTimeClass());
 	}
 }

@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
-import com.evolveum.midpoint.model.api.visualizer.SceneItem;
 import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
 
 import java.io.Serializable;
@@ -27,25 +26,34 @@ import java.io.Serializable;
 public class SceneItemLineDto implements Serializable {
 
 	public static final String F_NAME = "name";
+	public static final String F_OLD_VALUE = "oldValue";
 	public static final String F_NEW_VALUE = "newValue";
 	public static final String F_NUMBER_OF_LINES = "numberOfLines";
 
 	private final SceneItemDto sceneItemDto;
-	private final SceneItemValue sceneItemValue;
+	private final SceneItemValue sceneItemOldValue;
+	private final SceneItemValue sceneItemNewValue;
 	private final int index;
+	private final boolean isDelta;
 
-	public SceneItemLineDto(SceneItemDto sceneItemDto, SceneItemValue sceneItemValue, int index) {
+	public SceneItemLineDto(SceneItemDto sceneItemDto, SceneItemValue sceneItemOldValue, SceneItemValue sceneItemNewValue, int index, boolean isDelta) {
 		this.sceneItemDto = sceneItemDto;
-		this.sceneItemValue = sceneItemValue;
+		this.sceneItemOldValue = sceneItemOldValue;
+		this.sceneItemNewValue = sceneItemNewValue;
 		this.index = index;
+		this.isDelta = isDelta;
 	}
 
 	public String getName() {
 		return sceneItemDto.getName();
 	}
 
+	public String getOldValue() {
+		return sceneItemOldValue != null ? sceneItemOldValue.getText() : null;
+	}
+
 	public String getNewValue() {
-		return sceneItemValue.getText();
+		return sceneItemNewValue != null ? sceneItemNewValue.getText() : null;
 	}
 
 	public Integer getNumberOfLines() {
@@ -54,5 +62,13 @@ public class SceneItemLineDto implements Serializable {
 
 	public boolean isFirst() {
 		return index == 0;
+	}
+
+	public boolean isDelta() {
+		return isDelta;
+	}
+
+	public boolean isDeltaScene() {
+		return sceneItemDto.isDeltaScene();
 	}
 }

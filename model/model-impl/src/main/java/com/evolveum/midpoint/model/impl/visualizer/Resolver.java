@@ -20,13 +20,17 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -58,6 +62,9 @@ public class Resolver {
 	private ModelService modelService;
 
 	@Autowired
+	private ProvisioningService provisioningService;
+
+	@Autowired
 	private Visualizer visualizer;
 
 	public <O extends ObjectType> void resolve(PrismObject<O> object, Task task, OperationResult result) throws SchemaException {
@@ -68,7 +75,16 @@ public class Resolver {
 			} else {
 				PrismObjectDefinition<O> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
 				if (def != null) {
-					object.applyDefinition(def);
+					if (ResourceType.class.isAssignableFrom(clazz) || ShadowType.class.isAssignableFrom(clazz)) {
+						try {
+							provisioningService.applyDefinition(object, result);
+						} catch (ObjectNotFoundException|CommunicationException|ConfigurationException e) {
+							LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply definition on {} -- continuing with no definition", e,
+									ObjectTypeUtil.toShortString(object));
+						}
+					} else {
+						object.applyDefinition(def);
+					}
 				} else {
 					warn(result, "Definition for " + toShortString(object) + " couldn't be found");
 				}
@@ -84,13 +100,21 @@ public class Resolver {
 		} else {
 			PrismObject<O> originalObject = null;
 			boolean originalObjectFetched = false;
-			final Class<O> objectTypeClass = objectDelta.getObjectTypeClass();
-			PrismObjectDefinition<O> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectTypeClass);
+			final Class<O> clazz = objectDelta.getObjectTypeClass();
+			PrismObjectDefinition<O> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
 			if (objectDefinition == null) {
-				warn(result, "Definition for " + objectTypeClass + " couldn't be found");
+				warn(result, "Definition for " + clazz + " couldn't be found");
+			} else {
+				if (ResourceType.class.isAssignableFrom(clazz) || ShadowType.class.isAssignableFrom(clazz)) {
+					try {
+						provisioningService.applyDefinition(objectDelta, result);
+					} catch (ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+						LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply definition on {} -- continuing with no definition", e, objectDelta);
+					}
+				}
 			}
 			for (ItemDelta itemDelta : objectDelta.getModifications()) {
-				/*if (itemDelta.getDefinition() == null)*/ {
+				if (objectDefinition != null) {
 					ItemDefinition<?> def = objectDefinition.findItemDefinition(itemDelta.getPath());
 					if (def != null) {
 						itemDelta.applyDefinition(def);
@@ -100,7 +124,7 @@ public class Resolver {
 					if (!originalObjectFetched) {
 						final String oid = objectDelta.getOid();
 						try {
-							originalObject = modelService.getObject(objectTypeClass, oid, createCollection(createNoFetch()), task, result);
+							originalObject = modelService.getObject(clazz, oid, createCollection(createNoFetch()), task, result);
 						} catch (RuntimeException|SchemaException|ConfigurationException |CommunicationException |SecurityViolationException e) {
 							LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
 							warn(result, "Couldn't resolve object " + oid + ": " + e.getMessage(), e);

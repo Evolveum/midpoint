@@ -20,9 +20,11 @@ import com.evolveum.midpoint.model.api.visualizer.SceneItem;
 import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -100,18 +102,7 @@ public class SceneItemImpl implements SceneItem, DebugDumpable {
 
 	@Override
 	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("Item: ").append(name).append(" [rel-path: ").append(sourceRelPath).append("]");
-		if (sourceItem != null) {
-			sb.append(" ITEM");
-			if (sourceItem.getDefinition() != null) {
-				sb.append(" DEF(").append(sourceItem.getDefinition().getName().getLocalPart()).append("/").append(sourceItem.getDefinition().getDisplayName()).append(")");
-			}
-		}
-		if (operational) {
-			sb.append(" OPER");
-		}
+		StringBuilder sb = debugDumpCommon(indent);
 		if (descriptive) {
 			sb.append(" DESC");
 		}
@@ -119,5 +110,27 @@ public class SceneItemImpl implements SceneItem, DebugDumpable {
 		DebugUtil.indentDebugDump(sb, indent+1);
 		sb.append("VALUES: ").append(newValues);
 		return sb.toString();
+	}
+
+	@NotNull
+	protected StringBuilder debugDumpCommon(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("Item: ").append(name).append(" [rel-path: ").append(sourceRelPath).append("]");
+		if (sourceItem != null) {
+			sb.append(" ITEM");
+			final ItemDefinition def = sourceItem.getDefinition();
+			if (def != null) {
+				sb.append(" DEF(").append(def.getName().getLocalPart()).append("/").append(def.getDisplayName()).append(":").append(def.getDisplayOrder()).append(")");
+			}
+		}
+		if (operational) {
+			sb.append(" OPER");
+		}
+		return sb;
+	}
+
+	public ItemDefinition<?> getSourceDefinition() {
+		return sourceItem != null ? sourceItem.getDefinition() : null;
 	}
 }

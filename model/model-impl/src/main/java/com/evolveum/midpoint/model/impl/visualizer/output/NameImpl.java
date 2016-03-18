@@ -32,7 +32,6 @@ public class NameImpl implements Name {
 	private String description;
 
 	public NameImpl(String simpleName) {
-		Validate.notNull(simpleName);
 		this.simpleName = simpleName;
 	}
 
