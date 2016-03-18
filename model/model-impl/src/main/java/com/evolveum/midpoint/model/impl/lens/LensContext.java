@@ -593,6 +593,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			projCtx.recompute();
 		}
 	}
+	
+	public void refreshAuxiliaryObjectClassDefinitions() throws SchemaException {
+		for (LensProjectionContext projCtx: getProjectionContexts()) {
+			projCtx.refreshAuxiliaryObjectClassDefinitions();
+		}		
+	}
 
     public void checkAbortRequested() {
         if (isAbortRequested()) {
