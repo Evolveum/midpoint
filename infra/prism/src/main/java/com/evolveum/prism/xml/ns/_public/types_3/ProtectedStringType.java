@@ -67,7 +67,9 @@ public class ProtectedStringType extends ProtectedDataType<String> implements Cl
 
 	@Override
 	public void setClearBytes(byte[] bytes) {
-        setClearValue(bytesToString(bytes));
+        if (bytes != null) {
+            setClearValue(bytesToString(bytes));
+        }
 	}
 
 	@Override

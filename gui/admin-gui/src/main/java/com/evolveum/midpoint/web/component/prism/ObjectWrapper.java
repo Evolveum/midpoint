@@ -332,6 +332,13 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
                     if (itemWrapper instanceof PropertyWrapper) {
                         ItemDelta pDelta = computePropertyDeltas((PropertyWrapper) itemWrapper, containerPath);
                         if (!pDelta.isEmpty()) {
+                            //HACK to remove a password replace delta is to be created
+                            if (containerWrapper.getName().equals(CredentialsType.F_PASSWORD)) {
+                                if (pDelta.getValuesToDelete() != null){
+                                    pDelta.resetValuesToDelete();
+                                    pDelta.setValuesToReplace(new ArrayList());
+                                }
+                            }
                             delta.addModification(pDelta);
                         }
                     } else if (itemWrapper instanceof ReferenceWrapper) {
