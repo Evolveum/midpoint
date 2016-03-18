@@ -27,20 +27,18 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.*;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoProvider;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
@@ -74,6 +72,9 @@ public class PageWorkItems extends PageAdminWorkItems {
     private static final String OPERATION_RELEASE_ITEMS = DOT_CLASS + "releaseItems";
     private static final String OPERATION_RELEASE_ITEM = DOT_CLASS + "releaseItem";
 
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_WORK_ITEM_TABLE = "workItemTable";
+
     boolean assigned;
 
     public PageWorkItems() {
@@ -87,14 +88,18 @@ public class PageWorkItems extends PageAdminWorkItems {
     }
 
     private void initLayout() {
-        Form mainForm = new Form("mainForm");
+        Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
+        ISortableDataProvider provider = new WorkItemDtoProvider(PageWorkItems.this, assigned);
         List<IColumn<WorkItemDto, String>> workItemColumns = initWorkItemColumns();
-        TablePanel<WorkItemDto> workItemTable = new TablePanel<>("workItemTable", new WorkItemDtoProvider(PageWorkItems.this, assigned),
-                workItemColumns, UserProfileStorage.TableId.PAGE_WORK_ITEMS, getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEMS));
-        workItemTable.setOutputMarkupId(true);
-        mainForm.add(workItemTable);
+
+        BoxedTablePanel table = new BoxedTablePanel(ID_WORK_ITEM_TABLE, provider, workItemColumns,
+                UserProfileStorage.TableId.PAGE_WORK_ITEMS,
+                (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEMS)) {
+        };
+        table.setOutputMarkupId(true);
+        mainForm.add(table);
 
         initItemButtons(mainForm);
     }
@@ -102,7 +107,7 @@ public class PageWorkItems extends PageAdminWorkItems {
     private List<IColumn<WorkItemDto, String>> initWorkItemColumns() {
         List<IColumn<WorkItemDto, String>> columns = new ArrayList<>();
 
-        IColumn column = new CheckBoxHeaderColumn<TaskType>();
+        IColumn column = new CheckBoxHeaderColumn<>();
         columns.add(column);
 
         column = new LinkColumn<WorkItemDto>(createStringResource("pageWorkItems.item.name"), "name", "name") {
@@ -194,7 +199,7 @@ public class PageWorkItems extends PageAdminWorkItems {
         DataTable table = getWorkItemTable().getDataTable();
         WorkItemDtoProvider provider = (WorkItemDtoProvider) table.getDataProvider();
 
-        List<WorkItemDto> selected = new ArrayList<WorkItemDto>();
+        List<WorkItemDto> selected = new ArrayList<>();
         for (WorkItemDto row : provider.getAvailableData()) {
             if (row.isSelected()) {
                 selected.add(row);

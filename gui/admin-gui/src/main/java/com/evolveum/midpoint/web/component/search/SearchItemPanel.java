@@ -25,7 +25,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.MarkupContainer;
@@ -447,10 +446,13 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
         public String getIdValue(DisplayableValue<T> object, int index) {
             return Integer.toString(index);
         }
-        
+
         @Override
         public DisplayableValue<T> getObject(String id, IModel<? extends List<? extends DisplayableValue<T>>> choices) {
-        	return choices.getObject().get(Integer.parseInt(id));
+            if (StringUtils.isEmpty(id)) {
+                return null;
+            }
+            return choices.getObject().get(Integer.parseInt(id));
         }
 
         @Override
