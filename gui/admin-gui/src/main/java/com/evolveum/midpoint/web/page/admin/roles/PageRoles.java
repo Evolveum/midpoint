@@ -43,7 +43,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchPanel;
+import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.RolesStorage;
@@ -51,7 +51,6 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -59,7 +58,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -86,9 +84,6 @@ public class PageRoles extends PageAdminRoles {
     private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
     private static final String ID_TABLE = "table";
     private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_SEARCH_FORM = "searchForm";
-    private static final String ID_TABLE_HEADER = "tableHeader";
-    private static final String ID_SEARCH = "search";
 
     private IModel<Search> searchModel;
 
@@ -143,7 +138,13 @@ public class PageRoles extends PageAdminRoles {
 
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
-                return new SearchFragment(headerId, ID_TABLE_HEADER, PageRoles.this, searchModel);
+                return new SearchFormPanel(headerId, searchModel) {
+
+                    @Override
+                    protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+                        PageRoles.this.listRolesPerformed(query, target);
+                    }
+                };
             }
         };
         table.setOutputMarkupId(true);
@@ -305,33 +306,5 @@ public class PageRoles extends PageAdminRoles {
         table.setCurrentPage(null);
         target.add((Component) table);
         target.add(getFeedbackPanel());
-    }
-
-    private static class SearchFragment extends Fragment {
-
-        public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
-                              IModel<Search> model) {
-            super(id, markupId, markupProvider, model);
-
-            initLayout();
-        }
-
-        private void initLayout() {
-            final Form searchForm = new Form(ID_SEARCH_FORM);
-            add(searchForm);
-            searchForm.setOutputMarkupId(true);
-
-            final IModel<Search> model = (IModel) getDefaultModel();
-
-            SearchPanel search = new SearchPanel(ID_SEARCH, model) {
-
-                @Override
-                public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-                    PageRoles page = (PageRoles) getPage();
-                    page.listRolesPerformed(query, target);
-                }
-            };
-            searchForm.add(search);
-        }
     }
 }
