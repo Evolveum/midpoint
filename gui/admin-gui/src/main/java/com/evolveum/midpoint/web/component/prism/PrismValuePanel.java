@@ -437,7 +437,10 @@ public class PrismValuePanel extends Panel {
                   
               } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
                   boolean showRemovePasswordButton = true;
-                  if (((PageUser)pageBase).getObjectWrapper().getObject().getOid().equals(SecurityUtils.getPrincipalUser().getOid())){
+				  if (pageBase instanceof PageUser &&
+						  ((PageUser) pageBase).getObjectWrapper().getObject() != null &&
+						  ((PageUser) pageBase).getObjectWrapper().getObject().getOid() != null &&
+						  ((PageUser) pageBase).getObjectWrapper().getObject().getOid().equals(SecurityUtils.getPrincipalUser().getOid())) {
                       showRemovePasswordButton = false;
                   }
                   panel = new PasswordPanel(id, new PropertyModel<ProtectedStringType>(model, baseExpression),
