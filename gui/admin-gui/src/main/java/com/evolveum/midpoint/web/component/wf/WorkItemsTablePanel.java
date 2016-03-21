@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
@@ -51,14 +52,14 @@ public class WorkItemsTablePanel extends BasePanel {
     private ISortableDataProvider<WorkItemDto, String> provider;
 
     public WorkItemsTablePanel(String id, ISortableDataProvider<WorkItemDto, String> provider,
-            UserProfileStorage.TableId tableId, long pageSize, boolean showAssigned) {
+            UserProfileStorage.TableId tableId, int pageSize, boolean showAssigned) {
         super(id);
         this.provider = provider;
         initLayout(tableId, pageSize, showAssigned);
     }
 
     // this is called locally in order to take showAssigned into account
-    private void initLayout(UserProfileStorage.TableId tableId, long pageSize, boolean showAssigned) {
+    private void initLayout(UserProfileStorage.TableId tableId, int pageSize, boolean showAssigned) {
         List<IColumn<WorkItemDto, String>> columns = new ArrayList<>();
 
         // TODO configurable
@@ -99,7 +100,7 @@ public class WorkItemsTablePanel extends BasePanel {
             columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.assigned"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
         }
 
-        TablePanel workItemsTable = new TablePanel<>(ID_WORK_ITEMS_TABLE, provider, columns, tableId, pageSize);
+        BoxedTablePanel<WorkItemDto> workItemsTable = new BoxedTablePanel<>(ID_WORK_ITEMS_TABLE, provider, columns, tableId, pageSize);
         add(workItemsTable);
     }
 

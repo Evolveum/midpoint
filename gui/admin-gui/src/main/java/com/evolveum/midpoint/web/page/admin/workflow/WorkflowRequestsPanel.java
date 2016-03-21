@@ -3,6 +3,7 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
@@ -40,14 +41,14 @@ public class WorkflowRequestsPanel extends BasePanel {
 	private ISortableDataProvider<ProcessInstanceDto, String> provider;
 
 	public WorkflowRequestsPanel(String id, ISortableDataProvider<ProcessInstanceDto, String> provider,
-			UserProfileStorage.TableId tableId, long pageSize) {
+			UserProfileStorage.TableId tableId, int pageSize) {
 		super(id);
 		this.provider = provider;
 		initLayout(tableId, pageSize);
 	}
 
-    private void initLayout(UserProfileStorage.TableId tableId, long pageSize) {
-		TablePanel<ProcessInstanceDto> table = new TablePanel<>(ID_REQUESTS_TABLE, provider, initColumns(), tableId, pageSize);
+    private void initLayout(UserProfileStorage.TableId tableId, int pageSize) {
+		BoxedTablePanel<ProcessInstanceDto> table = new BoxedTablePanel<>(ID_REQUESTS_TABLE, provider, initColumns(), tableId, pageSize);
 		table.setOutputMarkupId(true);
 		add(table);
 	}

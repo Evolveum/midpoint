@@ -88,7 +88,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 
 		ISortableDataProvider<ProcessInstanceDto, String> provider = new ProcessInstanceDtoProvider(PageProcessInstances.this, requestedBy, requestedFor);
 		WorkflowRequestsPanel panel = new WorkflowRequestsPanel(ID_PROCESS_INSTANCES_TABLE, provider,
-				UserProfileStorage.TableId.PAGE_WORKFLOW_REQUESTS, getItemsPerPage(UserProfileStorage.TableId.PAGE_WORKFLOW_REQUESTS));
+				UserProfileStorage.TableId.PAGE_WORKFLOW_REQUESTS, (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_WORKFLOW_REQUESTS));
 		panel.setOutputMarkupId(true);
 		mainForm.add(panel);
 
