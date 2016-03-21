@@ -301,18 +301,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 		ModelContext<UserType> modelContext = modelInteractionService.previewChanges(Collections.<ObjectDelta<? extends ObjectType>>singletonList(delta), null, task, task.getResult());
 		List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
 		List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
-		if (modelContext != null) {
-			if (modelContext.getFocusContext() != null) {
-				addIgnoreNull(primaryDeltas, modelContext.getFocusContext().getPrimaryDelta());
-				addIgnoreNull(secondaryDeltas, modelContext.getFocusContext().getSecondaryDelta());
-			}
-			for (ModelProjectionContext projCtx : modelContext.getProjectionContexts()) {
-				addIgnoreNull(primaryDeltas, projCtx.getPrimaryDelta());
-				addIgnoreNull(secondaryDeltas, projCtx.getExecutableDelta());
-			}
-		}
-		display("primary deltas", primaryDeltas);
-		display("secondary deltas", secondaryDeltas);
+		fillDeltas(modelContext, primaryDeltas, secondaryDeltas);
 
 		List<? extends Scene> primaryScenes = modelInteractionService.visualizeDeltas(primaryDeltas, task, task.getResult());
 		List<? extends Scene> secondaryScenes = modelInteractionService.visualizeDeltas(secondaryDeltas, task, task.getResult());
@@ -352,6 +341,49 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 		display("jack with assignment", getUser(USER_JACK_OID));
 
 		// TODO some asserts
+	}
+
+	@Test
+	public void test307UserDisablePreview() throws Exception {
+		final String TEST_NAME = "test307UserDisablePreview";
+		Task task = createTask(TEST_NAME);
+
+		ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).replace(ActivationStatusType.DISABLED)
+				.asObjectDelta(USER_JACK_OID);
+
+		/// WHEN
+		displayWhen(TEST_NAME);
+		ModelContext<UserType> modelContext = modelInteractionService.previewChanges(Collections.<ObjectDelta<? extends ObjectType>>singletonList(delta), null, task, task.getResult());
+		List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
+		List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
+		fillDeltas(modelContext, primaryDeltas, secondaryDeltas);
+
+		List<? extends Scene> primaryScenes = modelInteractionService.visualizeDeltas(primaryDeltas, task, task.getResult());
+		List<? extends Scene> secondaryScenes = modelInteractionService.visualizeDeltas(secondaryDeltas, task, task.getResult());
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("primary scenes", primaryScenes);
+		display("secondary scenes", secondaryScenes);
+
+		// TODO some asserts
+	}
+
+	protected void fillDeltas(ModelContext<UserType> modelContext, List<ObjectDelta<? extends ObjectType>> primaryDeltas,
+			List<ObjectDelta<? extends ObjectType>> secondaryDeltas) throws SchemaException {
+		if (modelContext != null) {
+			if (modelContext.getFocusContext() != null) {
+				addIgnoreNull(primaryDeltas, modelContext.getFocusContext().getPrimaryDelta());
+				addIgnoreNull(secondaryDeltas, modelContext.getFocusContext().getSecondaryDelta());
+			}
+			for (ModelProjectionContext projCtx : modelContext.getProjectionContexts()) {
+				addIgnoreNull(primaryDeltas, projCtx.getPrimaryDelta());
+				addIgnoreNull(secondaryDeltas, projCtx.getExecutableDelta());
+			}
+		}
+		display("primary deltas", primaryDeltas);
+		display("secondary deltas", secondaryDeltas);
 	}
 
 	private String dummyAccountOid;

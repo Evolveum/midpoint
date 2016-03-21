@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
@@ -66,7 +67,8 @@ public class PagePreviewChanges extends PageAdminWorkItems {		// TODO extends
 	private IModel<SceneDto> primaryDeltasModel;
 	private IModel<SceneDto> secondaryDeltasModel;
 
-	public PagePreviewChanges(ModelContext<? extends ObjectType> modelContext, ModelInteractionService modelInteractionService) {
+	public PagePreviewChanges(ModelContext<? extends ObjectType> modelContext, ModelInteractionService modelInteractionService, PageBase previousPage) {		// TODO remove previousPage
+		setPreviousPage(previousPage);
 		final List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
 		final List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
 		final List<? extends Scene> primaryScenes;

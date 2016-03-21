@@ -15,13 +15,11 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -35,11 +33,6 @@ import com.evolveum.midpoint.common.refinery.LayerRefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.LayerRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
@@ -138,7 +131,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	public <F extends ObjectType> ModelContext<F> previewChanges(
 			Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-		
+		return previewChanges(deltas, options, task, Collections.<ProgressListener>emptyList(), parentResult);
+	}
+
+	@Override
+	public <F extends ObjectType> ModelContext<F> previewChanges(
+			Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task,
+			Collection<ProgressListener> listeners, OperationResult parentResult)
+			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Preview changes input:\n{}", DebugUtil.debugDump(deltas));
 		}
@@ -164,7 +165,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.trace("Preview changes context:\n{}", context.debugDump());
 			}
-		
+			context.setProgressListeners(listeners);
 			
 			projector.projectAllWaves(context, "preview", task, result);
 			context.distributeResource();

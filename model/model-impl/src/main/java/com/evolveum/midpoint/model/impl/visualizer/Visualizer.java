@@ -72,6 +72,10 @@ public class Visualizer {
 				new ItemPath(AssignmentType.F_TENANT_REF),
 				new ItemPath(AssignmentType.F_ORG_REF),
 				new ItemPath(AssignmentType.F_DESCRIPTION)));
+		descriptiveItems.put(ShadowType.class, Arrays.asList(
+				new ItemPath(ShadowType.F_RESOURCE_REF),
+				new ItemPath(ShadowType.F_KIND),
+				new ItemPath(ShadowType.F_INTENT)));
 	}
 
 	public SceneImpl visualize(PrismObject<? extends ObjectType> object, Task task, OperationResult parentResult) throws SchemaException {
@@ -181,9 +185,14 @@ public class Visualizer {
 			}
 			visualizeItems(scene, object.getValue().getItems(), false, context, task, result);
 		} else if (objectDelta.isModify()) {
+			if (object != null) {
+				addDescriptiveItems(scene, object.getValue(), context, task, result);
+			}
 			visualizeItemDeltas(scene, objectDelta.getModifications(), context, task, result);
 		} else if (objectDelta.isDelete()) {
-			// nothing more to do
+			if (object != null) {
+				addDescriptiveItems(scene, object.getValue(), context, task, result);
+			}
 		} else {
 			throw new IllegalStateException("Object delta that is neither ADD, nor MODIFY nor DELETE: " + objectDelta);
 		}

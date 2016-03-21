@@ -175,8 +175,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 			@Override
 			protected void onSubmit(AjaxRequestTarget target,
 					org.apache.wicket.markup.html.form.Form<?> form) {
-				ModelContext modelContext = getDetailsPage().previewChangesPerformed(target);
-				parentPage.setResponsePage(new PagePreviewChanges(modelContext, parentPage.getModelInteractionService()));
+				getDetailsPage().previewPerformed(target);
 			}
 
 			@Override
