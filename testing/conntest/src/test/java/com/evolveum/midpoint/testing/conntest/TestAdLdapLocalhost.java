@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public class TestAdLdapLocalhost extends AbstractAdLdapTest {
+public class TestAdLdapLocalhost extends AbstractAdLdapCookedTest {
 
 	@Override
 	protected String getResourceOid() {

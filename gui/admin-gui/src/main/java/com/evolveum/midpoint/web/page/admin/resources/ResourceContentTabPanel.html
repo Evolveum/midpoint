@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2010-2016 Evolveum
   ~
@@ -14,13 +15,31 @@
   ~ limitations under the License.
   -->
 
-<!DOCTYPE html>
-<html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <tr>
-        <td style="vertical-align:middle" wicket:id="nameContainer"><span wicket:id="name"/></td>
-        <td wicket:id="oldValueContainer"><div wicket:id="oldValue"/></td>
-        <td wicket:id="newValueContainer"><div wicket:id="newValue"/></td>
-    </tr>
+
+
+    <div class="clearfix">
+	<div class="form-inline search-form">
+		<!--         <row class="form-inline pull-right search-form"> -->
+		<div class="form-group">
+			<label><wicket:message key="ShadowType.intent" /></label>
+			<div wicket:id="intent" />
+		</div>
+
+		<div class="form-group">
+			<label><wicket:message key="ResourceContentTabPanel.searchType" /></label>
+			<div wicket:id="searchType" />
+		</div>
+
+
+	</div>
+
+</div>
+
+	<form wicket:id="mainForm">
+		<div wicket:id="table" />
+	</form>
+
+
+
 </wicket:panel>
-</html>

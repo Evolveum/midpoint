@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public class TestAdLdapMedusa extends AbstractAdLdapCookedTest {
+public class TestAdLdapRawLocalhost extends AbstractAdLdapRawTest {
 
 	@Override
 	protected String getResourceOid() {
@@ -37,17 +37,17 @@ public class TestAdLdapMedusa extends AbstractAdLdapCookedTest {
 	
 	@Override
 	protected File getResourceFile() {
-		return new File(getBaseDir(), "resource-medusa.xml");
+		return new File(getBaseDir(), "resource-raw-localhost.xml");
 	}
 
 	@Override
 	protected String getLdapServerHost() {
-		return "medusa.lab.evolveum.com";
+		return "localhost";
 	}
 
 	@Override
 	protected int getLdapServerPort() {
-		return 636;
+		return 9636;
 	}
 	
 }

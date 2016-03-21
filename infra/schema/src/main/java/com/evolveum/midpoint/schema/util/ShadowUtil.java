@@ -102,6 +102,10 @@ public class ShadowUtil {
 		return attributesContainer.getAllIdentifiers();	
 	}
 	
+	public static Collection<ResourceAttribute<?>> getAllIdentifiers(ShadowType shadow) {
+		return getAllIdentifiers(shadow.asPrismObject());
+	}
+	
 	public static ResourceAttribute<String> getNamingAttribute(ShadowType shadow){
 		return getNamingAttribute(shadow.asPrismObject());
 	}

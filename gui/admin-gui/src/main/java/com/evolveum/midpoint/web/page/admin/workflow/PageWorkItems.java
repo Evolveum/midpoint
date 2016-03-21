@@ -79,7 +79,7 @@ public class PageWorkItems extends PageAdminWorkItems {
         add(mainForm);
 
         WorkItemsTablePanel panel = new WorkItemsTablePanel(ID_WORK_ITEMS_PANEL, new WorkItemDtoProvider(PageWorkItems.this, assigned),
-                UserProfileStorage.TableId.PAGE_WORK_ITEMS, getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEMS), true);
+                UserProfileStorage.TableId.PAGE_WORK_ITEMS, (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEMS), true);
 
         panel.setOutputMarkupId(true);
         mainForm.add(panel);

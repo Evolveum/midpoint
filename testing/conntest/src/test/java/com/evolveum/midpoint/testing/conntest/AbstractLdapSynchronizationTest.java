@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.testing.conntest;
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,11 +140,11 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	protected static final String ACCOUNT_HTM_UID = "htm";
 	protected static final String ACCOUNT_HTM_CN = "Horatio Torquemada Marley";
 
-	private static final String GROUP_MONKEYS_CN = "monkeys";
-	private static final String GROUP_MONKEYS_DESCRIPTION = "Monkeys of Monkey Island";
+	protected static final String GROUP_MONKEYS_CN = "monkeys";
+	protected static final String GROUP_MONKEYS_DESCRIPTION = "Monkeys of Monkey Island";
 
-	private static final String GROUP_FOOLS_CN = "fools";
-	private static final String GROUP_FOOLS_DESCRIPTION = "not quite the shilling";
+	protected static final String GROUP_FOOLS_CN = "fools";
+	protected static final String GROUP_FOOLS_DESCRIPTION = "not quite the shilling";
 
 	
 	protected abstract void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd) throws ObjectNotFoundException, SchemaException;

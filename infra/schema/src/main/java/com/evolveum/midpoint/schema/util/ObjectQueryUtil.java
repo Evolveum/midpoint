@@ -124,6 +124,10 @@ public class ObjectQueryUtil {
 		return ObjectQuery.createObjectQuery(createResourceAndKindIntentFilter(resourceOid, kind, intent, prismContext));
 	}
 	
+	public static ObjectQuery createResourceAndKind(String resourceOid, ShadowKindType kind, PrismContext prismContext) throws SchemaException {
+		return ObjectQuery.createObjectQuery(createResourceAndKindFilter(resourceOid, kind, prismContext));
+	}
+	
 	public static ObjectFilter createResourceAndKindIntentFilter(String resourceOid, ShadowKindType kind, String intent, PrismContext prismContext) throws SchemaException {
 		Validate.notNull(resourceOid, "Resource where to search must not be null.");
 		Validate.notNull(kind, "Kind to search must not be null.");
@@ -132,6 +136,16 @@ public class ObjectQueryUtil {
 				createResourceFilter(resourceOid, prismContext),
 				EqualFilter.createEqual(ShadowType.F_KIND, ShadowType.class, prismContext, null, kind),
 				EqualFilter.createEqual(ShadowType.F_INTENT, ShadowType.class, prismContext, null, intent));
+		return and;
+	}
+	
+	private static ObjectFilter createResourceAndKindFilter(String resourceOid, ShadowKindType kind, PrismContext prismContext) throws SchemaException {
+		Validate.notNull(resourceOid, "Resource where to search must not be null.");
+		Validate.notNull(kind, "Kind to search must not be null.");
+		Validate.notNull(prismContext, "Prism context must not be null.");
+		AndFilter and = AndFilter.createAnd(
+				createResourceFilter(resourceOid, prismContext),
+				EqualFilter.createEqual(ShadowType.F_KIND, ShadowType.class, prismContext, null, kind));
 		return and;
 	}
 
