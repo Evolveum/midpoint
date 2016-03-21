@@ -222,9 +222,8 @@ public class CompositeRefinedObjectClassDefinition extends RefinedObjectClassDef
 		return structuralObjectClassDefinition.getResourceType();
 	}
 
-	public PrismObjectDefinition<ShadowType> getObjectDefinition() {
-		return structuralObjectClassDefinition.getObjectDefinition();
-	}
+	// Do NOT override getObjectDefinition(). It will work by itself.
+	// overriding it will just complicate things.
 
 	public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
 		return structuralObjectClassDefinition.getObjectClassDefinition();
