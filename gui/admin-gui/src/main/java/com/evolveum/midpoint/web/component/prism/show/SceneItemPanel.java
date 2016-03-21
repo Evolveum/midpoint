@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -38,13 +37,11 @@ public class SceneItemPanel extends Panel {
     private static final Trace LOGGER = TraceManager.getTrace(SceneItemPanel.class);
 
     private boolean showHeader = true;
-    private PageBase pageBase;
 
-    public SceneItemPanel(String id, IModel<SceneItemDto> model, PageBase pageBase) {
+    public SceneItemPanel(String id, IModel<SceneItemDto> model) {
         super(id);
         setOutputMarkupId(true);
 
-        this.pageBase = pageBase;
         initLayout(model);
     }
 
@@ -52,7 +49,7 @@ public class SceneItemPanel extends Panel {
 		ListView<SceneItemLineDto> items = new ListView<SceneItemLineDto>(ID_ITEM_LINES, new PropertyModel<List<SceneItemLineDto>>(model, SceneItemDto.F_LINES)) {
 			@Override
 			protected void populateItem(ListItem<SceneItemLineDto> item) {
-				SceneItemLinePanel panel = new SceneItemLinePanel(ID_ITEM_LINE, item.getModel(), pageBase);
+				SceneItemLinePanel panel = new SceneItemLinePanel(ID_ITEM_LINE, item.getModel());
 				panel.setOutputMarkupPlaceholderTag(true);
 				item.add(panel);
 			}

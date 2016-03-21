@@ -122,4 +122,8 @@ public class SceneDto implements Serializable {
 		}
 		return false;
 	}
+
+	public boolean isWrapper() {
+		return scene instanceof WrapperScene;
+	}
 }

@@ -32,18 +32,28 @@ import java.util.List;
 
 /**
  * Artificial implementation of a scene used to hold a list of deltas.
+ * (A bit of hack, unfortunately.)
  *
  * @author mederly
  */
-public class ListScene implements Scene {
+public class WrapperScene implements Scene {
 
-	private String simpleName, displayName;
+	private String displayNameKey;
+	private Object[] displayNameParameters;
 	private List<? extends Scene> partialScenes;
 
-	public ListScene(List<? extends Scene> partialScenes, String displayName, String simpleName) {
+	public WrapperScene(List<? extends Scene> partialScenes, String displayNameKey, Object... displayNameParameters) {
 		this.partialScenes = partialScenes;
-		this.simpleName = simpleName;
-		this.displayName = displayName;
+		this.displayNameKey = displayNameKey;
+		this.displayNameParameters = displayNameParameters;
+	}
+
+	public String getDisplayNameKey() {
+		return displayNameKey;
+	}
+
+	public Object[] getDisplayNameParameters() {
+		return displayNameParameters;
 	}
 
 	@Override
@@ -52,12 +62,12 @@ public class ListScene implements Scene {
 
 			@Override
 			public String getSimpleName() {
-				return simpleName;
+				return "";
 			}
 
 			@Override
 			public String getDisplayName() {
-				return displayName;
+				return null;
 			}
 
 			@Override

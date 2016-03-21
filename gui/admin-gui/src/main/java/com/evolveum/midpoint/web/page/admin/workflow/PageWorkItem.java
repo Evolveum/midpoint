@@ -141,7 +141,7 @@ public class PageWorkItem extends PageAdminWorkItems {
                 throw new SystemException("No work item with ID of " + id);
             }
             workItemDto = new WorkItemDto(workItems.get(0));
-			workItemDto.prepareDeltaVisualization(createStringResource("pageWorkItem.delta").getObject(), getPrismContext(), getModelInteractionService(), task, result);
+			workItemDto.prepareDeltaVisualization("pageWorkItem.delta", getPrismContext(), getModelInteractionService(), task, result);
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get work item.", ex);

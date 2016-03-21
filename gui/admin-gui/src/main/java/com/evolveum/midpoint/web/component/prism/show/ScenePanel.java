@@ -35,6 +35,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.util.List;
 
@@ -54,6 +55,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 	public static final String ID_OPTION_BUTTONS = "optionButtons";
 	public static final String ID_HEADER_PANEL = "headerPanel";
 	public static final String ID_HEADER_DESCRIPTION = "description";
+	public static final String ID_HEADER_WRAPPER_DISPLAY_NAME = "wrapperDisplayName";
 	public static final String ID_HEADER_NAME = "name";
 	public static final String ID_HEADER_CHANGE_TYPE = "changeType";
 	public static final String ID_HEADER_OBJECT_TYPE = "objectType";
@@ -62,15 +64,12 @@ public class ScenePanel extends BasePanel<SceneDto> {
 	public static final String ID_NEW_VALUE_LABEL = "newValueLabel";
 	public static final String ID_VALUE_LABEL = "valueLabel";
 
-    private PageBase pageBase;
-
-    public ScenePanel(String id, IModel<SceneDto> model, PageBase pageBase) {
+    public ScenePanel(String id, IModel<SceneDto> model) {
         super(id, model);
         setOutputMarkupId(true);
 
         LOGGER.trace("Creating object panel for {}", model.getObject());
 
-        this.pageBase = pageBase;
         initLayout();
     }
 
@@ -100,16 +99,47 @@ public class ScenePanel extends BasePanel<SceneDto> {
 		Label headerObjectType = new Label(ID_HEADER_OBJECT_TYPE, new ObjectTypeModel());
         Label headerName = new Label(ID_HEADER_NAME, new PropertyModel<String>(model, SceneDto.F_NAME));
         Label headerDescription = new Label(ID_HEADER_DESCRIPTION, new PropertyModel<String>(model, SceneDto.F_DESCRIPTION));
+        Label headerWrapperDisplayName = new Label(ID_HEADER_WRAPPER_DISPLAY_NAME,
+				new AbstractReadOnlyModel<String>() {
+					@Override
+					public String getObject() {
+						String key = ((WrapperScene) getModelObject().getScene()).getDisplayNameKey();
+						Object[] parameters = ((WrapperScene) getModelObject().getScene()).getDisplayNameParameters();
+						return new StringResourceModel(key, this).setModel(null)
+								.setDefaultValue(key)
+								.setParameters(parameters).getObject();
+					}
+				});
 
 		headerPanel.add(headerChangeType);
 		headerPanel.add(headerObjectType);
 		headerPanel.add(headerName);
 		headerPanel.add(headerDescription);
+		headerPanel.add(headerWrapperDisplayName);
 
 		headerChangeType.add(createHeaderOnClickBehaviour(model));
 		headerObjectType.add(createHeaderOnClickBehaviour(model));
 		headerName.add(createHeaderOnClickBehaviour(model));
 		headerDescription.add(createHeaderOnClickBehaviour(model));
+		headerWrapperDisplayName.add(createHeaderOnClickBehaviour(model));
+
+		VisibleEnableBehaviour visibleIfNotWrapper = new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return !getModelObject().isWrapper();
+			}
+		};
+		VisibleEnableBehaviour visibleIfWrapper = new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return getModelObject().isWrapper();
+			}
+		};
+		headerChangeType.add(visibleIfNotWrapper);
+		headerObjectType.add(visibleIfNotWrapper);
+		headerName.add(visibleIfNotWrapper);
+		headerDescription.add(visibleIfNotWrapper);
+		headerWrapperDisplayName.add(visibleIfWrapper);
 
 		WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
         body.add(new VisibleEnableBehaviour() {
@@ -156,7 +186,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 		ListView<SceneItemDto> items = new ListView<SceneItemDto>(ID_ITEMS, new PropertyModel<List<SceneItemDto>>(model, SceneDto.F_ITEMS)) {
 			@Override
 			protected void populateItem(ListItem<SceneItemDto> item) {
-				SceneItemPanel panel = new SceneItemPanel(ID_ITEM, item.getModel(), pageBase);
+				SceneItemPanel panel = new SceneItemPanel(ID_ITEM, item.getModel());
 				panel.setOutputMarkupPlaceholderTag(true);
 				item.add(panel);
 			}
@@ -168,7 +198,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
         ListView<SceneDto> partialScenes = new ListView<SceneDto>(ID_PARTIAL_SCENES, new PropertyModel<List<SceneDto>>(model, SceneDto.F_PARTIAL_SCENES)) {
             @Override
             protected void populateItem(ListItem<SceneDto> item) {
-                ScenePanel panel = new ScenePanel(ID_PARTIAL_SCENE, item.getModel(), pageBase);
+                ScenePanel panel = new ScenePanel(ID_PARTIAL_SCENE, item.getModel());
 				panel.setOutputMarkupPlaceholderTag(true);
 				item.add(panel);
             }

@@ -96,12 +96,12 @@ public class PagePreviewChanges extends PageAdminWorkItems {		// TODO extends
 		LOGGER.info("Creating context DTO for primary deltas:\n{}", DebugUtil.debugDump(primaryScenes));
 		LOGGER.info("Creating context DTO for secondary deltas:\n{}", DebugUtil.debugDump(secondaryScenes));
 
-		final SceneDto primarySceneDto = new SceneDto(new ListScene(primaryScenes,
-				createStringResource("PagePreviewChanges.primaryChanges").getObject(),
-				createStringResource(primaryDeltas.size() != 1 ? "PagePreviewChanges.objects" : "PagePreviewChanges.object", primaryDeltas.size()).getObject()));
-		final SceneDto secondarySceneDto = new SceneDto(new ListScene(secondaryScenes,
-				createStringResource("PagePreviewChanges.secondaryChanges").getObject(),
-				createStringResource(secondaryDeltas.size() != 1 ? "PagePreviewChanges.objects" : "PagePreviewChanges.object", secondaryDeltas.size()).getObject()));
+		final WrapperScene primaryScene = new WrapperScene(primaryScenes,
+				primaryDeltas.size() != 1 ? "PagePreviewChanges.primaryChangesMore" : "PagePreviewChanges.primaryChangesOne", primaryDeltas.size());
+		final WrapperScene secondaryScene = new WrapperScene(secondaryScenes,
+				secondaryDeltas.size() != 1 ? "PagePreviewChanges.secondaryChangesMore" : "PagePreviewChanges.secondaryChangesOne", secondaryDeltas.size());
+		final SceneDto primarySceneDto = new SceneDto(primaryScene);
+		final SceneDto secondarySceneDto = new SceneDto(secondaryScene);
 		primaryDeltasModel = new AbstractReadOnlyModel<SceneDto>() {
 			@Override
 			public SceneDto getObject() {
@@ -122,8 +122,8 @@ public class PagePreviewChanges extends PageAdminWorkItems {		// TODO extends
 		mainForm.setMultiPart(true);
 		add(mainForm);
 
-		mainForm.add(new ScenePanel(ID_PRIMARY_DELTAS_SCENE, primaryDeltasModel, this));
-		mainForm.add(new ScenePanel(ID_SECONDARY_DELTAS_SCENE, secondaryDeltasModel, this));
+		mainForm.add(new ScenePanel(ID_PRIMARY_DELTAS_SCENE, primaryDeltasModel));
+		mainForm.add(new ScenePanel(ID_SECONDARY_DELTAS_SCENE, secondaryDeltasModel));
 		initButtons(mainForm);
 	}
 

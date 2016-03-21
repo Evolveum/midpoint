@@ -19,6 +19,8 @@ package com.evolveum.midpoint.web.component.model.operationStatus;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.model.delta.DeltaPanel;
+import com.evolveum.midpoint.web.component.prism.show.SceneDto;
+import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.markup.html.basic.Label;
@@ -48,7 +50,7 @@ public class ModelOperationStatusPanel extends SimplePanel<ModelOperationStatusD
         add(new Label(ID_FOCUS_NAME, new PropertyModel<String>(getModel(), ModelOperationStatusDto.F_FOCUS_NAME)));
 
 
-        DeltaPanel deltaPanel = new DeltaPanel(ID_PRIMARY_DELTA, new PropertyModel<DeltaDto>(getModel(), ModelOperationStatusDto.F_PRIMARY_DELTA));
+        ScenePanel deltaPanel = new ScenePanel(ID_PRIMARY_DELTA, new PropertyModel<SceneDto>(getModel(), ModelOperationStatusDto.F_PRIMARY_DELTA));
         deltaPanel.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {

@@ -36,7 +36,7 @@ import java.util.List;
  */
 public class SceneUtil {
 
-	public static Scene visualizeObjectTreeDeltas(ObjectTreeDeltasType deltas, String simpleName, String displayName,
+	public static Scene visualizeObjectTreeDeltas(ObjectTreeDeltasType deltas, String displayNameKey,
 			PrismContext prismContext, ModelInteractionService modelInteractionService,
 			Task task, OperationResult result) throws SchemaException {
 		List<Scene> scenes = new ArrayList<>();
@@ -48,6 +48,6 @@ public class SceneUtil {
 			ObjectDelta<? extends ObjectType> delta = DeltaConvertor.createObjectDelta(projectionObjectDelta.getPrimaryDelta(), prismContext);
 			scenes.add(modelInteractionService.visualizeDelta(delta, task, result));
 		}
-		return new ListScene(scenes, displayName, simpleName);
+		return new WrapperScene(scenes, displayNameKey);
 	}
 }

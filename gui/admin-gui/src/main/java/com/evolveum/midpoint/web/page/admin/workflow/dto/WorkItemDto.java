@@ -66,7 +66,7 @@ public class WorkItemDto extends Selectable {
         this.workItem = workItem;
     }
 
-	public void prepareDeltaVisualization(String sceneName, PrismContext prismContext,
+	public void prepareDeltaVisualization(String sceneNameKey, PrismContext prismContext,
 			ModelInteractionService modelInteractionService, Task opTask, OperationResult result) throws SchemaException {
 		TaskType task = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
 		if (task == null || task.getWorkflowContext() == null) {
@@ -76,7 +76,7 @@ public class WorkItemDto extends Selectable {
 			return;
 		}
 		WfPrimaryChangeProcessorStateType state = (WfPrimaryChangeProcessorStateType) task.getWorkflowContext().getProcessorSpecificState();
-		Scene deltasScene = SceneUtil.visualizeObjectTreeDeltas(state.getDeltasToProcess(), sceneName, null, prismContext, modelInteractionService, opTask, result);
+		Scene deltasScene = SceneUtil.visualizeObjectTreeDeltas(state.getDeltasToProcess(), sceneNameKey, prismContext, modelInteractionService, opTask, result);
 		deltas = new SceneDto(deltasScene);
 	}
 

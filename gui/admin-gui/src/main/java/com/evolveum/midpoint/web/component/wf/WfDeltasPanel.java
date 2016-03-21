@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.component.wf;
 
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.model.delta.DeltaPanel;
+import com.evolveum.midpoint.web.component.prism.show.SceneDto;
+import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
@@ -48,17 +50,17 @@ public class WfDeltasPanel extends SimplePanel<TaskDto> {
     @Override
     protected void initLayout() {
 
-        add(new ListView<DeltaDto>(ID_DELTA_IN_LIST, new PropertyModel<List<DeltaDto>>(getModel(), TaskDto.F_WORKFLOW_DELTAS_IN)) {
+        add(new ListView<SceneDto>(ID_DELTA_IN_LIST, new PropertyModel<List<SceneDto>>(getModel(), TaskDto.F_WORKFLOW_DELTAS_IN)) {
             @Override
-            protected void populateItem(ListItem<DeltaDto> item) {
-                item.add(new DeltaPanel(ID_DELTA_IN, item.getModel()));
+            protected void populateItem(ListItem<SceneDto> item) {
+                item.add(new ScenePanel(ID_DELTA_IN, item.getModel()));
             }
         });
 
-        ListView<DeltaDto> deltaOutListView = new ListView<DeltaDto>(ID_DELTA_OUT_LIST, new PropertyModel<List<DeltaDto>>(getModel(), TaskDto.F_WORKFLOW_DELTAS_OUT)) {
+        ListView<SceneDto> deltaOutListView = new ListView<SceneDto>(ID_DELTA_OUT_LIST, new PropertyModel<List<SceneDto>>(getModel(), TaskDto.F_WORKFLOW_DELTAS_OUT)) {
             @Override
-            protected void populateItem(ListItem<DeltaDto> item) {
-                item.add(new DeltaPanel(ID_DELTA_OUT, item.getModel()));
+            protected void populateItem(ListItem<SceneDto> item) {
+                item.add(new ScenePanel(ID_DELTA_OUT, item.getModel()));
             }
         };
         deltaOutListView.add(new VisibleEnableBehaviour() {

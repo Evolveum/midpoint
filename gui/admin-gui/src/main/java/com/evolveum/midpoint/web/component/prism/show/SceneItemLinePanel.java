@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.web.component.prism.show;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -42,13 +41,10 @@ public class SceneItemLinePanel extends BasePanel<SceneItemLineDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SceneItemLinePanel.class);
 
-    private PageBase pageBase;
-
-    public SceneItemLinePanel(String id, IModel<SceneItemLineDto> model, PageBase pageBase) {
+    public SceneItemLinePanel(String id, IModel<SceneItemLineDto> model) {
         super(id, model);
         setOutputMarkupId(true);
 
-        this.pageBase = pageBase;
         initLayout();
     }
 

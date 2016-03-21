@@ -216,8 +216,8 @@ public class PageTasks extends PageAdminTasks {
             }
 
             @Override
-            public TaskDto createTaskDto(PrismObject<TaskType> task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-                TaskDto dto = super.createTaskDto(task, result);
+            public TaskDto createTaskDto(PrismObject<TaskType> task, Task opTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+                TaskDto dto = super.createTaskDto(task, opTask, result);
                 addInlineMenuToTaskRow(dto);
 
                 return dto;
