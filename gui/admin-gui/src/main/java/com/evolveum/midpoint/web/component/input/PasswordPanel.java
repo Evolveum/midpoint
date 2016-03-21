@@ -48,7 +48,10 @@ public class PasswordPanel extends InputPanel {
 
 	private static final String ID_LINK_CONTAINER = "linkContainer";
 	private static final String ID_PASSWORD_SET = "passwordSet";
+	private static final String ID_PASSWORD_REMOVE = "passwordRemove";
 	private static final String ID_CHANGE_PASSWORD_LINK = "changePasswordLink";
+	private static final String ID_REMOVE_PASSWORD_LINK = "removePasswordLink";
+	private static final String ID_REMOVE_BUTTON_CONTAINER = "removeButtonContainer";
 	private static final String ID_INPUT_CONTAINER = "inputContainer";
     private static final String ID_PASSWORD_ONE = "password1";
     private static final String ID_PASSWORD_TWO = "password2";
@@ -58,18 +61,18 @@ public class PasswordPanel extends InputPanel {
     private boolean passwordInputVisble;
 
     public PasswordPanel(String id, IModel<ProtectedStringType> model) {
-        this(id, model, false);
+        this(id, model, false, false);
     }
 
-    public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly) {
+    public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean showRemoveButton) {
         super(id);
 
-        initLayout(model, isReadOnly);
+        initLayout(model, isReadOnly, showRemoveButton);
     }
 
-    private void initLayout(IModel<ProtectedStringType> model, final boolean isReadOnly) {
+    private void initLayout(final IModel<ProtectedStringType> model, final boolean isReadOnly, boolean showRemoveButton) {
     	setOutputMarkupId(true);
-    	
+
     	passwordInputVisble = model.getObject() == null;
     	// TODO: remove
 //    	LOGGER.trace("PASSWORD model: {}", model.getObject());
@@ -116,11 +119,16 @@ public class PasswordPanel extends InputPanel {
 			}
 		};
 		inputContainer.setOutputMarkupId(true);
+        linkContainer.setOutputMarkupId(true);
 		add(linkContainer);
 		
-		Label passwordSetLabel = new Label(ID_PASSWORD_SET, new ResourceModel("passwordPanel.passwordSet"));
+		final Label passwordSetLabel = new Label(ID_PASSWORD_SET, new ResourceModel("passwordPanel.passwordSet"));
 		linkContainer.add(passwordSetLabel);
         
+		final Label passwordRemoveLabel = new Label(ID_PASSWORD_REMOVE, new ResourceModel("passwordPanel.passwordRemoveLabel"));
+        passwordRemoveLabel.setVisible(false);
+		linkContainer.add(passwordRemoveLabel);
+
         AjaxLink link = new AjaxLink(ID_CHANGE_PASSWORD_LINK) {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
@@ -142,12 +150,37 @@ public class PasswordPanel extends InputPanel {
         link.setBody(new ResourceModel("passwordPanel.passwordChange"));
 		link.setOutputMarkupId(true);
 		linkContainer.add(link);
-        
+
+        final WebMarkupContainer removeButtonContainer = new WebMarkupContainer(ID_REMOVE_BUTTON_CONTAINER);
+        AjaxLink removePassword = new AjaxLink(ID_REMOVE_PASSWORD_LINK) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onRemovePassword(model, target);
+            }
+
+        };
+        removePassword.setVisible(showRemoveButton);
+        removePassword.setBody(new ResourceModel("passwordPanel.passwordRemove"));
+        removePassword.setOutputMarkupId(true);
+        removeButtonContainer.add(removePassword);
+        add(removeButtonContainer);
     }
     
 	private void onLinkClick(AjaxRequestTarget target) {
     	passwordInputVisble = true;
     	target.add(this);
+    }
+
+	private void onRemovePassword(IModel<ProtectedStringType> model, AjaxRequestTarget target) {
+        get(ID_LINK_CONTAINER).get(ID_PASSWORD_SET).setVisible(false);
+        get(ID_LINK_CONTAINER).get(ID_PASSWORD_REMOVE).setVisible(true);
+        passwordInputVisble = false;
+        target.add(this);
+
+        ProtectedStringType newValue = new ProtectedStringType();
+        byte[] temp = new byte[0];
+        newValue.setClearBytes(temp);
+        model.setObject(null);
     }
 
     @Override

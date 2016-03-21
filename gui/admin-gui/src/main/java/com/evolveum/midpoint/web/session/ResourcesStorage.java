@@ -16,39 +16,39 @@
 package com.evolveum.midpoint.web.session;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentSearchDto;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceSearchDto;
 
 /**
- *  @author shood
- * */
-public class ResourcesStorage extends PageStorage{
+ * @author shood
+ */
+public class ResourcesStorage extends PageStorage {
 
     /**
-     *  DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.resources.PageResources}
-     * */
-    private ResourceSearchDto resourceSearch;
+     * DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.resources.PageResources}
+     */
+    private Search resourceSearch;
 
     /**
-     *  Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.resources.PageResources}
-     * */
+     * Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.resources.PageResources}
+     */
     private ObjectPaging resourcePaging;
 
     /**
-     *  DTO used for search in {@link com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts}
-     * */
+     * DTO used for search in {@link com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts}
+     */
     private AccountContentSearchDto accountContentSearch;
 
     /**
-     *  Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts}
-     * */
+     * Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts}
+     */
     private ObjectPaging accountContentPaging;
 
-    public ResourceSearchDto getResourceSearch() {
+    public Search getResourceSearch() {
         return resourceSearch;
     }
 
-    public void setResourceSearch(ResourceSearchDto resourceSearch) {
+    public void setResourceSearch(Search resourceSearch) {
         this.resourceSearch = resourceSearch;
     }
 

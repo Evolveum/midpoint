@@ -21,8 +21,8 @@ package com.evolveum.midpoint.wf.impl.processes.itemApproval;
  */
 public class ProcessVariableNames {
 
-    // A data structure that describes the request to approve something. Contains item that has to be approved (e.g. assignment) and approval schema.
-    public static final String APPROVAL_REQUEST = "approvalRequest";            // of type ApprovalRequest
+    // A data structure that describes the approval schema.
+    public static final String APPROVAL_SCHEMA = "approvalSchema";            // of type ApprovalSchema
 
     // How the user task (work item) should be named.
     public static final String APPROVAL_TASK_NAME = "approvalTaskName";         // of type String

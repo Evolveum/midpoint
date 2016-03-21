@@ -233,6 +233,9 @@ public class ProjectionValuesProcessor {
 		        context.recompute();
 		        if (consistencyChecks) context.checkConsistence();
 		        
+		        // Aux object classes may have changed during consolidation. Make sure we have up-to-date definitions.
+		        context.refreshAuxiliaryObjectClassDefinitions();
+		        
 		        // Check if we need to reset the iteration counter (and token) e.g. because we have rename
 		        // we cannot do that before because the mappings are not yet evaluated and the triples and not
 		        // consolidated to deltas. We can do it only now. It means that we will waste the first run

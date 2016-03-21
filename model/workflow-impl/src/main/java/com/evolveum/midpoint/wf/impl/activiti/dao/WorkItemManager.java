@@ -16,22 +16,18 @@
 
 package com.evolveum.midpoint.wf.impl.activiti.dao;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.impl.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-
-import org.activiti.engine.ActivitiException;
-import org.activiti.engine.ActivitiObjectNotFoundException;
 import org.activiti.engine.FormService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.form.FormProperty;
@@ -42,11 +38,10 @@ import org.activiti.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.xml.namespace.QName;
-
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 
 /**
  * @author mederly
@@ -66,183 +61,108 @@ public class WorkItemManager {
     @Autowired
     private SecurityEnforcer securityEnforcer;
 
-    private static final String DOT_CLASS = WorkflowManagerImpl.class.getName() + ".";
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
-    private static final String OPERATION_COMPLETE_WORK_ITEM = DOT_CLASS + "completeWorkItemWithDetails";
-    private static final String OPERATION_CLAIM_WORK_ITEM = DOT_CLASS + "claimWorkItem";
-    private static final String OPERATION_RELEASE_WORK_ITEM = DOT_CLASS + "releaseWorkItem";
+    private static final String OPERATION_COMPLETE_WORK_ITEM = DOT_INTERFACE + "completeWorkItem";
+    private static final String OPERATION_CLAIM_WORK_ITEM = DOT_INTERFACE + "claimWorkItem";
+    private static final String OPERATION_RELEASE_WORK_ITEM = DOT_INTERFACE + "releaseWorkItem";
 
-    // choiceDecision - contains the name of the button ([B]xxxx) that was pressed
-    // approvalDecision - contains true or false (approved / rejected)
-    //
-    // exactly one of choiceDecision and approvalDecision must be set
-    //
-    // todo error reporting
-    public void completeWorkItemWithDetails(String taskId, PrismObject specific, String decision, OperationResult parentResult) {
-
-        MidPointPrincipal principal;
-		try {
-			principal = securityEnforcer.getPrincipal();
-		} catch (SecurityViolationException e) {
-			LOGGER.error("Security violation: {}", e.getMessage(), e);
-            return;
-		}
+    public void completeWorkItem(String taskId, String decision, String comment, OperationResult parentResult) throws SecurityViolationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_COMPLETE_WORK_ITEM);
-        result.addParam("taskId", taskId);
-        result.addParam("decision", decision);
-        result.addParam("task-specific data", specific);
-        result.addContext("user", principal.getUser());
+        result.addParams(new String[] { "taskId", "decision", "comment" }, taskId, decision, comment);
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Completing work item " + taskId);
-            LOGGER.trace("Decision: " + decision);
-            LOGGER.trace("WorkItem form object (task-specific) = " + (specific != null ? specific.debugDump() : "(none)"));
-            LOGGER.trace("User: " + principal.getUser());
-        }
+		try {
+			final String userDecription = toShortString(securityEnforcer.getPrincipal().getUser());
+			result.addContext("user", userDecription);
 
-        FormService formService = activitiEngine.getFormService();
-        TaskFormData data = activitiEngine.getFormService().getTaskFormData(taskId);
+			LOGGER.trace("Completing work item {} with decision of {} ['{}'] by {}", taskId, decision, comment, userDecription);
 
-        String assigneeOid = data.getTask().getAssignee();
-        if (!miscDataUtil.isAuthorizedToSubmit(taskId, assigneeOid)) {
-            result.recordFatalError("You are not authorized to complete the selected work item.");
-            LOGGER.error("Authorization failure: task.assigneeOid = {}, principal = {}", assigneeOid, principal);
-            return;
-        }
+			FormService formService = activitiEngine.getFormService();
+			TaskFormData data = activitiEngine.getFormService().getTaskFormData(taskId);
 
-        Map<String,String> propertiesToSubmit = new HashMap<String,String>();
+			String assigneeOid = data.getTask().getAssignee();
+			if (!miscDataUtil.isAuthorizedToSubmit(taskId, assigneeOid)) {
+				throw new SecurityViolationException("You are not authorized to complete this work item.");
+			}
 
-        propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_DECISION, decision);
+			final Map<String, String> propertiesToSubmit = new HashMap<>();
+			propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_DECISION, decision);
+			if (comment != null) {
+				propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_COMMENT, comment);
+			}
 
-        // we also fill-in the corresponding 'button' property (if there's one that corresponds to the decision)
-        for (FormProperty formProperty : data.getFormProperties()) {
-            if (formProperty.getId().startsWith(CommonProcessVariableNames.FORM_BUTTON_PREFIX)) {
-                boolean value = formProperty.getId().equals(CommonProcessVariableNames.FORM_BUTTON_PREFIX + decision);
-                LOGGER.trace("Setting the value of {} to writable property {}", value, formProperty.getId());
-                propertiesToSubmit.put(formProperty.getId(), Boolean.toString(value));
-            }
-        }
-
-        if (specific != null) {
-
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("# of form properties: " + data.getFormProperties().size());
-            }
-
-            for (FormProperty formProperty : data.getFormProperties()) {
-
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Processing property " + formProperty.getId() + ":" + formProperty.getName());
-                }
-
-                if (formProperty.isWritable()) {
-
-                    Object value;
-
-                    if (!CommonProcessVariableNames.FORM_FIELD_DECISION.equals(formProperty.getId()) &&
-                            !formProperty.getId().startsWith(CommonProcessVariableNames.FORM_BUTTON_PREFIX)) {
-
-                        // todo strip [flags] section
-                        QName propertyName = new QName(SchemaConstants.NS_WFCF, formProperty.getId());
-                        value = specific.getPropertyRealValue(propertyName, Object.class);
-
-                        if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("Writable property " + formProperty.getId() + " has a value of " + value);
-                        }
-
-                        propertiesToSubmit.put(formProperty.getId(), value == null ? "" : value.toString());
-                    }
-                }
-            }
-        }
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Submitting " + propertiesToSubmit.size() + " properties");
-        }
-
-        formService.submitTaskFormData(taskId, propertiesToSubmit);
-
-        result.recordSuccessIfUnknown();
+			// we also fill-in the corresponding 'button' property (if there's one that corresponds to the decision)
+			for (FormProperty formProperty : data.getFormProperties()) {
+				if (formProperty.getId().startsWith(CommonProcessVariableNames.FORM_BUTTON_PREFIX)) {
+					boolean value = formProperty.getId().equals(CommonProcessVariableNames.FORM_BUTTON_PREFIX + decision);
+					LOGGER.trace("Setting the value of {} to writable property {}", value, formProperty.getId());
+					propertiesToSubmit.put(formProperty.getId(), Boolean.toString(value));
+				}
+			}
+			LOGGER.trace("Submitting {} properties", propertiesToSubmit.size());
+			formService.submitTaskFormData(taskId, propertiesToSubmit);
+		} catch (SecurityViolationException|RuntimeException e) {
+			result.recordFatalError("Couldn't complete the work item " + taskId + ": " + e.getMessage(), e);
+			throw e;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
     }
 
-
-    public void claimWorkItem(String taskId, OperationResult parentResult) {
-        MidPointPrincipal principal;
-        try {
-            principal = securityEnforcer.getPrincipal();
-        } catch (SecurityViolationException e) {
-            LOGGER.error("Security violation: {}", e.getMessage(), e);
-            return;
-        }
-
+    public void claimWorkItem(String taskId, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(OPERATION_CLAIM_WORK_ITEM);
         result.addParam("taskId", taskId);
-        result.addContext("user", principal.getUser());
+		try {
+			MidPointPrincipal principal = securityEnforcer.getPrincipal();
+			result.addContext("user", toShortString(principal.getUser()));
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Claiming work item " + taskId);
-            LOGGER.trace("User: " + principal.getUser());
-        }
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Claiming work item {} by {}", taskId, toShortString(principal.getUser()));
+			}
 
-        try {
-            TaskService taskService = activitiEngine.getTaskService();
-            Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
-            if (task == null) {
-                result.recordFatalError("Couldn't claim work item " + taskId + ", because it does not exist");
-                return;
-            }
-            if (task.getAssignee() != null) {
-                String desc = task.getAssignee().equals(principal.getOid()) ?
-                        "the current" : "another";
-                result.recordFatalError("Couldn't claim work item " + taskId + ", because it is already assigned to "+desc+" user");
-                return;
-            }
-            if (!miscDataUtil.isAuthorizedToClaim(task.getId())) {
-                result.recordFatalError("Current user is not authorized to claim the selected work item.");
-                return;
-            }
-            taskService.claim(taskId, principal.getOid());
-            result.recordSuccess();
-        } catch (ActivitiException e) {
-            result.recordFatalError("Couldn't claim work item " + taskId + ": " + e.getMessage(), e);
-        }
-    }
+			TaskService taskService = activitiEngine.getTaskService();
+			Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
+			if (task == null) {
+				throw new ObjectNotFoundException("The work item does not exist");
+			}
+			if (task.getAssignee() != null) {
+				String desc = task.getAssignee().equals(principal.getOid()) ? "the current" : "another";
+				throw new SystemException("The work item is already assigned to "+desc+" user");
+			}
+			if (!miscDataUtil.isAuthorizedToClaim(task.getId())) {
+				throw new SecurityViolationException("You are not authorized to claim the selected work item.");
+			}
+			taskService.claim(taskId, principal.getOid());
+		} catch (ObjectNotFoundException|SecurityViolationException|RuntimeException e) {
+			result.recordFatalError("Couldn't claim the work item " + taskId + ": " + e.getMessage(), e);
+			throw e;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
+	}
 
-    public void releaseWorkItem(String taskId, OperationResult parentResult) {
-        MidPointPrincipal principal;
-        try {
-            principal = securityEnforcer.getPrincipal();
-        } catch (SecurityViolationException e) {
-            LOGGER.error("Security violation: {}", e.getMessage(), e);
-            parentResult.recordFatalError("Security violation: " + e.getMessage(), e);
-            return;
-        }
-
+    public void releaseWorkItem(String taskId, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException {
         OperationResult result = parentResult.createSubresult(OPERATION_RELEASE_WORK_ITEM);
         result.addParam("taskId", taskId);
-        result.addContext("user", principal.getUser());
+		try {
+			MidPointPrincipal principal = securityEnforcer.getPrincipal();
+			result.addContext("user", toShortString(principal.getUser()));
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Releasing work item " + taskId);
-            LOGGER.trace("User: " + principal.getUser());
-        }
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Releasing work item {} by {}", taskId, toShortString(principal.getUser()));
+			}
 
-        try {
             TaskService taskService = activitiEngine.getTaskService();
             Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
             if (task == null) {
-                result.recordFatalError("Couldn't release work item " + taskId + ", because it does not exist");
-                return;
+				throw new ObjectNotFoundException("The work item does not exist");
             }
             if (task.getAssignee() == null) {
-                result.recordFatalError("Couldn't release work item " + taskId + ", because it is not assigned to a user");
-                return;
+				throw new SystemException("The work item is not assigned to a user");
             }
             if (!task.getAssignee().equals(principal.getOid())) {
-                result.recordFatalError("Couldn't release work item " + taskId + ", because it is not assigned to the current user");
-                return;
+                throw new SystemException("The work item is not assigned to the current user");
             }
             boolean candidateFound = false;
             for (IdentityLink link : taskService.getIdentityLinksForTask(taskId)) {
@@ -252,13 +172,14 @@ public class WorkItemManager {
                 }
             }
             if (!candidateFound) {
-                result.recordFatalError("Couldn't release work item " + taskId + ", because it has no candidates to be offered to");
-                return;
+                throw new SystemException("It has no candidates to be offered to");
             }
             taskService.unclaim(taskId);
-            result.recordSuccess();
-        } catch (ActivitiException e) {
+        } catch (ObjectNotFoundException|SecurityViolationException|RuntimeException e) {
             result.recordFatalError("Couldn't release work item " + taskId + ": " + e.getMessage(), e);
-        }
+			throw e;
+        } finally {
+			result.computeStatusIfUnknown();
+		}
     }
 }

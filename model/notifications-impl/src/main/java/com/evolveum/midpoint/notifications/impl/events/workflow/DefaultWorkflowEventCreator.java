@@ -23,19 +23,14 @@ import com.evolveum.midpoint.notifications.api.events.WorkflowEventCreator;
 import com.evolveum.midpoint.notifications.api.events.WorkflowProcessEvent;
 import com.evolveum.midpoint.notifications.impl.NotificationsUtil;
 import com.evolveum.midpoint.notifications.impl.SimpleObjectRefImpl;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.PrimaryChangeProcessorState;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
-
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @author mederly
@@ -52,64 +47,44 @@ public class DefaultWorkflowEventCreator implements WorkflowEventCreator {
     @Autowired
     private NotificationManager notificationManager;
 
-    @PostConstruct
-    public void init() {
-        notificationManager.registerWorkflowEventCreator(ProcessInstanceState.class, this);
+    @Override
+    public WorkflowProcessEvent createWorkflowProcessStartEvent(Task wfTask, OperationResult result) {
+        return createWorkflowProcessEvent(wfTask, ChangeType.ADD, result);
     }
 
     @Override
-    public WorkflowProcessEvent createWorkflowProcessStartEvent(PrismObject<? extends ProcessInstanceState> instanceState, OperationResult result) {
-        return createWorkflowProcessEvent(instanceState, ChangeType.ADD, result);
+    public WorkflowProcessEvent createWorkflowProcessEndEvent(Task wfTask, OperationResult result) {
+        return createWorkflowProcessEvent(wfTask, ChangeType.DELETE, result);
     }
 
-    @Override
-    public WorkflowProcessEvent createWorkflowProcessEndEvent(PrismObject<? extends ProcessInstanceState> instanceState, OperationResult result) {
-        return createWorkflowProcessEvent(instanceState, ChangeType.DELETE, result);
-    }
-
-    private WorkflowProcessEvent createWorkflowProcessEvent(PrismObject<? extends ProcessInstanceState> instanceState, ChangeType changeType, OperationResult result) {
-        WorkflowProcessEvent event = new WorkflowProcessEvent(lightweightIdentifierGenerator, changeType);
-        fillInEvent(event, instanceState.asObjectable().getProcessInstanceName(), instanceState, instanceState.asObjectable().getAnswer(), result);
+    private WorkflowProcessEvent createWorkflowProcessEvent(Task wfTask, ChangeType changeType, OperationResult result) {
+        WorkflowProcessEvent event = new WorkflowProcessEvent(lightweightIdentifierGenerator, changeType, wfTask.getWorkflowContext());
+        fillInEvent(event, wfTask);
         return event;
     }
 
-    private void fillInEvent(WorkflowEvent event, String instanceName, PrismObject<? extends ProcessInstanceState> instanceState, String decision, OperationResult result) {
-        event.setProcessInstanceName(instanceName);
-        event.setOperationStatusCustom(decision);
-        event.setProcessInstanceState(instanceState);
-        event.setRequester(new SimpleObjectRefImpl(notificationsUtil, instanceState.asObjectable().getRequesterOid()));
-        if (instanceState.asObjectable().getObjectOid() != null) {
-            event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, instanceState.asObjectable().getObjectOid()));
+    private void fillInEvent(WorkflowEvent event, Task wfTask) {
+		WfContextType wfc = wfTask.getWorkflowContext();
+        event.setRequester(new SimpleObjectRefImpl(notificationsUtil, wfc.getRequesterRef()));
+        if (wfc.getObjectRef() != null) {
+            event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, wfc.getObjectRef()));
         }
-
-        // fill-in requestee (for primary approval process variables)
-
-        if (event.getRequestee() == null && instanceState.asObjectable().getProcessorSpecificState() instanceof PrimaryChangeProcessorState) {
-            PrimaryChangeProcessorState pcpState = (PrimaryChangeProcessorState) instanceState.asObjectable().getProcessorSpecificState();
-            if (pcpState.getObjectToBeAdded() != null) {
-                ObjectType objectToBeAdded = pcpState.getObjectToBeAdded();
-                if (objectToBeAdded instanceof UserType) {
-                    event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, objectToBeAdded));
-                }
-            }
-        }
+		// TODO what if requestee is yet to be created?
     }
 
     @Override
-    public WorkItemEvent createWorkItemCreateEvent(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState) {
-        return createWorkItemEvent(workItemName, assigneeOid, instanceState, ChangeType.ADD, null);
+    public WorkItemEvent createWorkItemCreateEvent(WorkItemType workItem, Task wfTask, OperationResult result) {
+        return createWorkItemEvent(workItem, wfTask, ChangeType.ADD);
     }
 
     @Override
-    public WorkItemEvent createWorkItemCompleteEvent(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState, String decision) {
-        return createWorkItemEvent(workItemName, assigneeOid, instanceState, ChangeType.DELETE, decision);
+    public WorkItemEvent createWorkItemCompleteEvent(WorkItemType workItem, Task wfTask, OperationResult result) {
+        return createWorkItemEvent(workItem, wfTask, ChangeType.DELETE);
     }
 
-    private WorkItemEvent createWorkItemEvent(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState, ChangeType changeType, String decision) {
-        WorkItemEvent event = new WorkItemEvent(lightweightIdentifierGenerator, changeType);
-        event.setWorkItemName(workItemName);
-        event.setAssignee(new SimpleObjectRefImpl(notificationsUtil, assigneeOid));
-        fillInEvent(event, instanceState.asObjectable().getProcessInstanceName(), instanceState, decision, new OperationResult("dummy"));
+    private WorkItemEvent createWorkItemEvent(WorkItemType workItemType, Task wfTask, ChangeType changeType) {
+        WorkItemEvent event = new WorkItemEvent(lightweightIdentifierGenerator, changeType, workItemType, wfTask.getWorkflowContext());
+        fillInEvent(event, wfTask);
         return event;
     }
 }

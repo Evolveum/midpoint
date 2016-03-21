@@ -42,11 +42,11 @@ public class WfHistoryPanel extends SimplePanel<List<WfHistoryEventDto>> {
     @Override
     protected void initLayout() {
 
-        List<IColumn<WorkItemDto, String>> columns = new ArrayList<IColumn<WorkItemDto, String>>();
+        List<IColumn<WfHistoryEventDto, String>> columns = new ArrayList<>();
         columns.add(new PropertyColumn(createStringResource("WfHistoryPanel.label.timestamp"), WfHistoryEventDto.F_TIMESTAMP_FORMATTED));
         columns.add(new PropertyColumn(createStringResource("WfHistoryPanel.label.event"), WfHistoryEventDto.F_EVENT));
 
         ISortableDataProvider provider = new ListDataProvider(this, getModel());
-        add(new TablePanel<WorkItemDto>(ID_HISTORY_TABLE, provider, columns));
+        add(new TablePanel<>(ID_HISTORY_TABLE, provider, columns));
     }
 }

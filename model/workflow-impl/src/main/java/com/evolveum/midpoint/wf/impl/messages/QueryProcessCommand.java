@@ -19,7 +19,7 @@ package com.evolveum.midpoint.wf.impl.messages;
 /**
  * Command to query a process instance.
  */
-public class QueryProcessCommand extends MidPointToActivitiMessage {
+public class QueryProcessCommand {
 
     private String pid;
     private String taskOid;

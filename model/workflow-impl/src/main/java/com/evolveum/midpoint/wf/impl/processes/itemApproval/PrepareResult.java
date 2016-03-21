@@ -19,12 +19,12 @@ package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.BaseProcessMidPointInterface;
-import com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.apache.commons.lang.Validate;
+
+import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getActivitiInterface;
 
 public class PrepareResult implements JavaDelegate {
 
@@ -39,7 +39,7 @@ public class PrepareResult implements JavaDelegate {
         execution.setVariable(BaseProcessMidPointInterface.VARIABLE_WF_ANSWER, ApprovalUtils.approvalStringValue(approved));
         execution.setVariable(BaseProcessMidPointInterface.VARIABLE_WF_STATE, "Final decision is " + (approved ? "APPROVED" : "REFUSED"));
 
-        SpringApplicationContextHolder.getActivitiInterface().notifyMidpointAboutProcessFinishedEvent(execution);
+        getActivitiInterface().notifyMidpointAboutProcessFinishedEvent(execution);
     }
 
 }

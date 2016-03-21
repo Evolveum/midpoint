@@ -265,6 +265,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		cleanupDelete(toAccountDn(USER_CPTBARBOSSA_USERNAME, USER_CPTBARBOSSA_FULL_NAME));
 		cleanupDelete(toAccountDn(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME));
 		cleanupDelete(toGroupDn(GROUP_MELEE_ISLAND_NAME));
+		cleanupDelete(toGroupDn(GROUP_FOOLS_CN));
 	}
 
 	@Test

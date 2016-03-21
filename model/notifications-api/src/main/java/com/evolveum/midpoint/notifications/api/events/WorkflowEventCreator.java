@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.notifications.api.events;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
 /**
  * Used to create (fill-in) a workflow event based on information passed from workflow module.
@@ -35,11 +35,11 @@ import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.Proc
  */
 public interface WorkflowEventCreator {
 
-    WorkflowProcessEvent createWorkflowProcessStartEvent(PrismObject<? extends ProcessInstanceState> instanceState, OperationResult result);
+    WorkflowProcessEvent createWorkflowProcessStartEvent(Task wfTask, OperationResult result);
 
-    WorkflowProcessEvent createWorkflowProcessEndEvent(PrismObject<? extends ProcessInstanceState> instanceState, OperationResult result);
+    WorkflowProcessEvent createWorkflowProcessEndEvent(Task wfTask, OperationResult result);
 
-    WorkItemEvent createWorkItemCreateEvent(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState);
+    WorkItemEvent createWorkItemCreateEvent(WorkItemType workItem, Task wfTask, OperationResult result);
 
-    WorkItemEvent createWorkItemCompleteEvent(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState, String decision);
+    WorkItemEvent createWorkItemCompleteEvent(WorkItemType workItem, Task wfTask, OperationResult result);
 }

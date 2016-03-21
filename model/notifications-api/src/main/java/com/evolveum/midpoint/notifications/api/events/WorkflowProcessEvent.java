@@ -19,14 +19,15 @@ package com.evolveum.midpoint.notifications.api.events;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 
 /**
  * @author mederly
  */
 public class WorkflowProcessEvent extends WorkflowEvent {
 
-    public WorkflowProcessEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType) {
-        super(lightweightIdentifierGenerator, changeType);
+    public WorkflowProcessEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType, WfContextType workflowContext) {
+        super(lightweightIdentifierGenerator, changeType, workflowContext);
     }
 
     @Override

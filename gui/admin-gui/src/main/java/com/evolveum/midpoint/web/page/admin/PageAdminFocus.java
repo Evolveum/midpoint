@@ -24,6 +24,7 @@ import java.util.TreeSet;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -184,6 +185,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 	@Override
 	public void finishProcessing(AjaxRequestTarget target, OperationResult result) {
+
+		if (previewRequested) {
+			finishPreviewProcessing(target, result);
+			return;
+		}
+
 		boolean userAdded = getDelta() != null && getDelta().isAdd() && StringUtils.isNotEmpty(getDelta().getOid());
 		if (!isKeepDisplayingResults() && getProgressReporter().isAllSuccess()
 				&& (userAdded || !result.isFatalError())) { // TODO
@@ -201,7 +208,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 					
 				}
 			}
-			goBackPage();
+			redirectBack();
 		} else {
             getProgressReporter().showBackButton(target);
             getProgressReporter().hideAbortButton(target);
@@ -218,6 +225,13 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 //				progressReporter.hideSaveButton(target);
 			}
 		}
+	}
+
+	private void finishPreviewProcessing(AjaxRequestTarget target, OperationResult result) {
+		showResult(result);
+		target.add(getFeedbackPanel());
+		setResponsePage(new PagePreviewChanges(getProgressReporter().getPreviewResult(), getModelInteractionService(), this));
+		// TODO implement "back" functionality correctly
 	}
 
 	private List<FocusProjectionDto> loadShadowWrappers() {

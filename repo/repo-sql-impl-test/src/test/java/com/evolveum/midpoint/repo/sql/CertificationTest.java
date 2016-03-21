@@ -127,7 +127,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test200ModifyCampaignProperties() throws Exception {
         OperationResult result = new OperationResult("test200ModifyCampaignProperties");
 
-        List<ItemDelta> modifications = new ArrayList<>();
+        List<ItemDelta<?,?>> modifications = new ArrayList<>();
         modifications.add(createModificationReplaceProperty(F_NAME, campaignDef, new PolyString("Campaign 1+", "campaign 1")));
         modifications.add(createModificationReplaceProperty(F_STATE, campaignDef, IN_REVIEW_STAGE));
 
@@ -138,7 +138,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test210ModifyCaseProperties() throws Exception {
         OperationResult result = new OperationResult("test210ModifyCaseProperties");
 
-        List<ItemDelta> modifications = new ArrayList<>();
+        List<ItemDelta<?,?>> modifications = new ArrayList<>();
         ItemPath case1 = new ItemPath(F_CASE).subPath(new IdItemPathSegment(1L));
         modifications.add(createModificationReplaceProperty(case1.subPath(F_CURRENT_STAGE_OUTCOME), campaignDef, DELEGATE));
         modifications.add(createModificationReplaceProperty(case1.subPath(F_CURRENT_STAGE_NUMBER), campaignDef, 300));
@@ -150,7 +150,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test220ModifyDecisionProperties() throws Exception {
         OperationResult result = new OperationResult("test220ModifyDecisionProperties");
 
-        List<ItemDelta> modifications = new ArrayList<>();
+        List<ItemDelta<?,?>> modifications = new ArrayList<>();
         ItemPath d1 = new ItemPath(F_CASE).subPath(1L).subPath(F_DECISION).subPath(1L);
         modifications.add(createModificationReplaceProperty(d1.subPath(F_RESPONSE), campaignDef, DELEGATE));
         modifications.add(createModificationReplaceProperty(d1.subPath(F_COMMENT), campaignDef, "hi"));
@@ -162,7 +162,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test230ModifyAllLevels() throws Exception {
         OperationResult result = new OperationResult("test230ModifyAllLevels");
 
-        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_NAME).replace(new PolyString("Campaign 2", "campaign 2"))
                 .item(F_STATE).replace(IN_REMEDIATION)
                 .item(F_CASE, 2, F_CURRENT_STAGE_OUTCOME).replace(NO_RESPONSE)
@@ -191,7 +191,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         case100.getCurrentReviewerRef().add(createObjectRef("100789", ObjectTypes.USER));
         case100.setCurrentStageNumber(1);
 
-        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE).add(caseNoId, case100)
                 .asItemDeltas();
 
@@ -205,7 +205,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         AccessCertificationCaseType case7 = new AccessCertificationCaseType();
         case7.setId(7L);
 
-        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE).delete(case7)
                 .asItemDeltas();
 
@@ -221,7 +221,7 @@ public class CertificationTest extends BaseSQLRepoTest {
 
         PrismReferenceValue reviewerToDelete = createObjectRef("100789", ObjectTypes.USER).asReferenceValue();
 
-        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE, 100, F_CURRENT_REVIEWER_REF).delete(reviewerToDelete)
                 .asItemDeltas();
 
@@ -249,7 +249,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         AccessCertificationCaseType case100 = new AccessCertificationCaseType();
         case100.setId(100L);
 
-        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE).add(caseNoId, case110).delete(case100)
                 .item(F_CASE, 3, F_CURRENT_STAGE_NUMBER).replace(400)
                 .asItemDeltas();
@@ -273,7 +273,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         AccessCertificationDecisionType dec1 = new AccessCertificationDecisionType();
         dec1.setId(1L);
 
-        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE, 6, F_DECISION).add(decNoId, dec200)
                 .item(F_CASE, 6, F_DECISION).delete(dec1)
                 .item(F_CASE, 6, F_DECISION, 2, F_RESPONSE).replace(ACCEPT)
@@ -291,7 +291,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         dec200.setStageNumber(44);
         dec200.setReviewerRef(createObjectRef("999999", ObjectTypes.USER));
 
-        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE, 6, F_DECISION).replace(dec200)
                 .asItemDeltas();
 
@@ -311,7 +311,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         dec251.setId(251L);
         dec251.setStageNumber(1);
 
-        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE, 6, F_DECISION).replace(dec250, dec251)
                 .asItemDeltas();
 
@@ -340,7 +340,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         caseNoId.getDecision().add(dec777);
         caseNoId.getDecision().add(decNoId);
 
-        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE).replace(caseNoId)
                 .asItemDeltas();
 
@@ -492,7 +492,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         AssertJUnit.assertTrue(result.isSuccess());
     }
 
-    protected void executeAndCheckModification(List<ItemDelta> modifications, OperationResult result, int versionDelta) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
+    protected void executeAndCheckModification(List<ItemDelta<?,?>> modifications, OperationResult result, int versionDelta) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
         PrismObject<AccessCertificationCampaignType> before = getFullCampaign(campaign1Oid, result);
         int expectedVersion = Integer.parseInt(before.getVersion()) + versionDelta;
         List<ItemDelta> savedModifications = (List) CloneUtil.cloneCollectionMembers(modifications);

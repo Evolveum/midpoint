@@ -155,6 +155,23 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		return opts;
 	}
 
+	// TODO exact placement of this method
+	public static Collection<SelectorOptions<GetOperationOptions>> resolveItemsNamed(Object... items) {
+		Collection<SelectorOptions<GetOperationOptions>> rv = new ArrayList<>(items.length);
+		for (Object item : items) {
+			final ItemPath path;
+			if (item instanceof QName) {
+				path = new ItemPath((QName) item);
+			} else if (item instanceof ItemPath) {
+				path = ((ItemPath) item);
+			} else {
+				throw new IllegalArgumentException("item has to be QName or ItemPath but is " + item);
+			}
+			rv.add(SelectorOptions.create(path, createResolve()));
+		}
+		return rv;
+	}
+
 	public Boolean getNoFetch() {
 		return noFetch;
 	}

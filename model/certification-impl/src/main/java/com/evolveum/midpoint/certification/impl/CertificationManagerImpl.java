@@ -208,7 +208,7 @@ public class CertificationManagerImpl implements CertificationManager {
             } else {
                 final CertificationHandler handler = findCertificationHandler(campaign);
                 final AccessCertificationStageType stage = updateHelper.createStage(campaign, currentStageNumber+1);
-                final List<ItemDelta> deltas = updateHelper.getDeltasForStageOpen(campaign, stage, handler, task, result);
+                final List<ItemDelta<?,?>> deltas = updateHelper.getDeltasForStageOpen(campaign, stage, handler, task, result);
                 updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
                 updateHelper.afterStageOpen(campaignOid, stage, task, result);
             }
@@ -251,7 +251,7 @@ public class CertificationManagerImpl implements CertificationManager {
             } else if (!IN_REVIEW_STAGE.equals(state)) {
                 result.recordFatalError("Couldn't close review stage " + stageNumberToClose + " as it is currently not open");
             } else {
-                List<ItemDelta> deltas = updateHelper.getDeltasForStageClose(campaign, result);
+                List<ItemDelta<?,?>> deltas = updateHelper.getDeltasForStageClose(campaign, result);
                 updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
                 updateHelper.afterStageClose(campaignOid, task, result);
             }
@@ -293,7 +293,7 @@ public class CertificationManagerImpl implements CertificationManager {
             } else if (!REVIEW_STAGE_DONE.equals(state)) {
                 result.recordFatalError("Couldn't start the remediation as the last stage was not properly closed.");
             } else {
-                List<ItemDelta> deltas = updateHelper.createDeltasForStageNumberAndState(lastStageNumber + 1, IN_REMEDIATION);
+                List<ItemDelta<?,?>> deltas = updateHelper.createDeltasForStageNumberAndState(lastStageNumber + 1, IN_REMEDIATION);
                 updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
 
                 if (CertCampaignTypeUtil.isRemediationAutomatic(campaign)) {

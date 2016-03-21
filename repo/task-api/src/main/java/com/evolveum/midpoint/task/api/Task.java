@@ -909,7 +909,11 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
 	void setModelOperationContext(LensContextType modelOperationContext) throws SchemaException;
 
-    // ====================================================================================== Other methods
+	// temporary!
+	void initializeWorkflowContextImmediate(String processInstanceId, OperationResult result)
+			throws SchemaException, ObjectNotFoundException;
+
+	// ====================================================================================== Other methods
 
     /**
      * Returns backing task prism object.
@@ -929,6 +933,22 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	 * @throws ObjectNotFoundException 
 	 */
 	public void refresh(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
+	/**
+	 * Changes in-memory representation immediately and schedules a corresponding batched modification.
+	 * @param delta
+	 * @throws SchemaException
+	 */
+	void addModification(ItemDelta<?, ?> delta) throws SchemaException;
+	void addModifications(Collection<ItemDelta<?, ?>> deltas) throws SchemaException;
+
+    /**
+     * Changes in-memory and in-repo representations immediately.
+     * @param delta
+     * @param parentResult
+     * @throws SchemaException
+     */
+    void addModificationImmediate(ItemDelta<?, ?> delta, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
 
     /**
      * Saves modifications done against the in-memory version of the task into the repository.
@@ -964,4 +984,8 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     void startCollectingOperationStatsFromStoredValues(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics);
 
     void storeOperationStats();
+
+    WfContextType getWorkflowContext();
+
+	void setWorkflowContext(WfContextType context) throws SchemaException;
 }

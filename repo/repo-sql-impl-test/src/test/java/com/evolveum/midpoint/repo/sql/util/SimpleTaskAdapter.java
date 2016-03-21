@@ -777,4 +777,26 @@ public class SimpleTaskAdapter implements Task {
     public void storeOperationStats() {
 
     }
+
+    @Override
+    public void initializeWorkflowContextImmediate(String processInstanceId, OperationResult result) throws SchemaException {
+    }
+
+    @Override public void addModification(ItemDelta<?, ?> delta) throws SchemaException {
+    }
+
+    @Override public void addModifications(Collection<ItemDelta<?, ?>> deltas) throws SchemaException {
+
+    }
+
+    @Override public void addModificationImmediate(ItemDelta<?, ?> delta, OperationResult parentResult) throws SchemaException {
+    }
+
+    @Override
+    public WfContextType getWorkflowContext() {
+        return null;
+    }
+
+    @Override public void setWorkflowContext(WfContextType context) throws SchemaException {
+    }
 }

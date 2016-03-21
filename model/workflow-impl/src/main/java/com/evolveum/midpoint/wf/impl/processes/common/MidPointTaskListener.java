@@ -18,10 +18,10 @@ package com.evolveum.midpoint.wf.impl.processes.common;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.activiti.ActivitiInterface;
-
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.delegate.TaskListener;
+
+import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getActivitiInterface;
 
 /**
  * @author mederly
@@ -29,19 +29,12 @@ import org.activiti.engine.delegate.TaskListener;
 public class MidPointTaskListener implements TaskListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointTaskListener.class);
-    private static final String DOT_CLASS = MidPointTaskListener.class.getName() + ".";
 
     @Override
     public void notify(DelegateTask delegateTask) {
-
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("notify called; event name = {}, name = {}", delegateTask.getEventName(), delegateTask.getName());
         }
-
-        ActivitiInterface activitiInterface = SpringApplicationContextHolder.getActivitiInterface();
-        activitiInterface.notifyMidpointAboutTaskEvent(delegateTask);
-
+        getActivitiInterface().notifyMidpointAboutTaskEvent(delegateTask);
     }
-
-
 }

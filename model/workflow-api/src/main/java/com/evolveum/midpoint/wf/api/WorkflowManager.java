@@ -16,15 +16,19 @@
 
 package com.evolveum.midpoint.wf.api;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.Collection;
 import java.util.List;
@@ -42,64 +46,11 @@ public interface WorkflowManager {
      * ==========
      */
 
-    /**
-     * Counts Work Items related to a user.
-     *
-     * @param userOid OID of the user
-     * @param assigned whether to count assigned (true) or assignable (false) work items
-     * @param parentResult
-     * @return number of relevant work items
-     * @throws WorkflowException
-     */
-    int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
+    <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+            throws SchemaException;
 
-    /**
-     * Lists work items related to a user.
-     *
-     * @param userOid OID of the user
-     * @param assigned whether to count assigned (true) or assignable (false) work items
-     * @param first
-     * @param count
-     * @param parentResult
-     * @return list of work items
-     * @throws WorkflowException
-     */
-    List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
-
-    /**
-     * Provides detailed information about a given work item (may be inefficient, so use with care).
-     *
-     * @param taskId
-     * @param parentResult
-     * @return
-     * @throws ObjectNotFoundException
-     * @throws WorkflowException
-     */
-    WorkItemType getWorkItemDetailsById(String taskId, OperationResult parentResult) throws ObjectNotFoundException;
-
-    /*
-     * Process instances
-     * =================
-     */
-
-    int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult);
-
-    List<WfProcessInstanceType> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult);
-
-    WfProcessInstanceType getProcessInstanceByWorkItemId(String taskId, OperationResult parentResult) throws ObjectNotFoundException;
-
-    /**
-     * Returns information about a process instance. WorkItems attribute is filled-in only upon request! (see getWorkItems parameter)
-     *
-     * @param instanceId
-     * @param historic
-     * @param getWorkItems
-     * @param parentResult
-     * @return
-     * @throws ObjectNotFoundException
-     * @throws WorkflowException
-     */
-    public WfProcessInstanceType getProcessInstanceById(String instanceId, boolean historic, boolean getWorkItems, OperationResult parentResult) throws ObjectNotFoundException;
+    <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+            throws SchemaException;
 
     /*
      * CHANGING THINGS
@@ -108,20 +59,16 @@ public interface WorkflowManager {
 
     /**
      * Approves or rejects a work item (without supplying any further information).
-     *
-     * @param taskId identifier of activiti task backing the work item
+     *  @param taskId identifier of activiti task backing the work item
      * @param decision true = approve, false = reject
+     * @param comment
      * @param parentResult
      */
-    void approveOrRejectWorkItem(String taskId, boolean decision, OperationResult parentResult);
+    void approveOrRejectWorkItem(String taskId, boolean decision, String comment, OperationResult parentResult) throws SecurityViolationException;
 
-    void approveOrRejectWorkItemWithDetails(String taskId, PrismObject specific, boolean decision, OperationResult result);
+    void claimWorkItem(String workItemId, OperationResult result) throws ObjectNotFoundException, SecurityViolationException;
 
-    void completeWorkItemWithDetails(String taskId, PrismObject specific, String decision, OperationResult parentResult);
-
-    void claimWorkItem(String workItemId, OperationResult result);
-
-    void releaseWorkItem(String workItemId, OperationResult result);
+    void releaseWorkItem(String workItemId, OperationResult result) throws SecurityViolationException, ObjectNotFoundException;
 
     void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
 
@@ -146,4 +93,13 @@ public interface WorkflowManager {
     boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem);
 
     boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem);
+
+    // doesn't throw any exceptions - these are logged and stored into the operation result
+    <T extends ObjectType> void augmentTaskObject(PrismObject<T> object, Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task, OperationResult result);
+
+    // doesn't throw any exceptions - these are logged and stored into the operation result
+    <T extends ObjectType> void augmentTaskObjectList(SearchResultList<PrismObject<T>> list,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result);
+
 }
