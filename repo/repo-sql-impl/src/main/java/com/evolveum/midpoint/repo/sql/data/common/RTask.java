@@ -47,6 +47,13 @@ import java.util.Set;
  * @author lazyman
  */
 @Entity
+@Table(name = "m_task", indexes = {
+		@javax.persistence.Index(name = "iTaskWfProcessInstanceId", columnList = "wfProcessInstanceId"),
+		@javax.persistence.Index(name = "iTaskWfStartTimestamp", columnList = "wfStartTimestamp"),
+		@javax.persistence.Index(name = "iTaskWfEndTimestamp", columnList = "wfEndTimestamp"),
+		@javax.persistence.Index(name = "iTaskWfRequesterOid", columnList = "wfRequesterRef_targetOid"),
+		@javax.persistence.Index(name = "iTaskWfObjectOid", columnList = "wfObjectRef_targetOid"),
+		@javax.persistence.Index(name = "iTaskWfTargetOid", columnList = "wfTargetRef_targetOid") })
 @ForeignKey(name = "fk_task")
 @Persister(impl = MidPointJoinedPersister.class)
 public class RTask extends RObject<TaskType> implements OperationResult {
