@@ -56,6 +56,7 @@ public class ObjectDataProvider2<W extends Serializable, T extends ObjectType>
     private Set<T> selected = new HashSet<>();
     
     private boolean emptyListOnNullQuery = false;
+    private boolean useObjectCounting = true;
     
     private Class<T> type;
     private Collection<SelectorOptions<GetOperationOptions>> options;
@@ -170,12 +171,15 @@ public class ObjectDataProvider2<W extends Serializable, T extends ObjectType>
     @Override
     protected int internalSize() {
         LOGGER.trace("begin::internalSize()");
+        if (!isUseObjectCounting()) {
+            return Integer.MAX_VALUE;
+        }
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
             Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
             Integer counted = getModel().countObjects(type, getQuery(), options, task, result);
-            count = counted == null ? 1000 : counted.intValue();
+            count = counted == null ? 0 : counted.intValue();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't count objects", ex);
@@ -207,6 +211,14 @@ public class ObjectDataProvider2<W extends Serializable, T extends ObjectType>
         this.type = type;
 
         clearCache();
+    }
+    
+    protected boolean isUseObjectCounting(){
+    	return useObjectCounting;
+    }
+    
+    public void setUseObjectCounting(boolean useCounting) {
+    	this.useObjectCounting = useCounting;
     }
 
     public Collection<SelectorOptions<GetOperationOptions>> getOptions() {

@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.resources;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -11,7 +12,6 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -27,7 +27,14 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
@@ -36,30 +43,35 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.AuthorizationException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider2;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
-import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
+import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.dialog.UserBrowserDialog;
 import com.evolveum.midpoint.web.component.input.AutoCompleteTextPanel;
 import com.evolveum.midpoint.web.component.input.TwoStateBooleanPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
-import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
-import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentDto;
-import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountOwnerChangeDto;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -68,47 +80,36 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class ResourceContentTabPanel extends Panel {
 
-	private static final Trace LOGGER = TraceManager.getTrace(PageContentAccounts.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ResourceContentTabPanel.class);
 
-	private static final String DOT_CLASS = PageContentAccounts.class.getName() + ".";
+	enum Operation {
+		REMOVE, MODIFY;
+	}
+
+	private static final String DOT_CLASS = ResourceContentTabPanel.class.getName() + ".";
 	private static final String OPERATION_CHANGE_OWNER = DOT_CLASS + "changeOwner";
-	private static final String OPERATION_CREATE_USER_FROM_ACCOUNTS = DOT_CLASS + "createUserFromAccounts";
-	private static final String OPERATION_CREATE_USER_FROM_ACCOUNT = DOT_CLASS + "createUserFromAccount";
-	private static final String OPERATION_DELETE_ACCOUNT_FROM_RESOURCE = DOT_CLASS
-			+ "deleteAccountFromResource";
-	private static final String OPERATION_ADJUST_ACCOUNT_STATUS = "changeAccountActivationStatus";
-	private static final String OPERATION_LOAD_OWNER = DOT_CLASS + "loadOwner";
+	
 
-	private static final String MODAL_ID_OWNER_CHANGE = "ownerChangePopup";
-	private static final String MODAL_ID_CONFIRM_DELETE = "confirmDeletePopup";
-
+	private static final String OPERATION_LOAD_SHADOW_OWNER = DOT_CLASS + "loadOwner";
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_INTENT = "intent";
-	private static final String ID_BASIC_SEARCH = "basicSearch";
+
 	private static final String ID_SEARCH_TYPE = "searchType";
-	private static final String ID_NAME_CHECK = "nameCheck";
-	private static final String ID_IDENTIFIERS_CHECK = "identifiersCheck";
+
 	private static final String ID_TABLE = "table";
-	private static final String ID_OBJECTCLASS_FORM = "objectclassForm";
-	private static final String ID_OBJECTCLASS_INPUT = "objectclassInput";
+
 
 	private PageBase parentPage;
 	private ShadowKindType kind;
 
-	private Model<Boolean> searchTypeModel = new Model<Boolean>(true);
+	private Model<Boolean> searchTypeModel = new Model<Boolean>(false);
 
 	private IModel<String> intentModel;
 
-	// IModel<RefinedObjectClassDefinition> objectClassModel;
-
-	private LoadableModel<AccountOwnerChangeDto> ownerChangeModel;
-
-	// RefinedResourceSchema refinedSchema;
 
 	public ResourceContentTabPanel(String id, ShadowKindType kind,
 			final IModel<PrismObject<ResourceType>> model, PageBase parentPage) {
@@ -116,17 +117,8 @@ public class ResourceContentTabPanel extends Panel {
 		this.parentPage = parentPage;
 		this.kind = kind;
 
-		ownerChangeModel = new LoadableModel<AccountOwnerChangeDto>(false) {
-
-			@Override
-			protected AccountOwnerChangeDto load() {
-				return new AccountOwnerChangeDto();
-			}
-		};
-
 		intentModel = new Model();
-		// objectClassModel = createObjectClassModel(model);
-
+	
 		initLayout(model);
 	}
 
@@ -159,27 +151,8 @@ public class ResourceContentTabPanel extends Panel {
 	}
 
 	private void initLayout(final IModel<PrismObject<ResourceType>> model) {
-
-		add(new VisibleEnableBehaviour() {
-
-			@Override
-			public boolean isEnabled() {
-				try {
-					return getDefinitionByKind(model) != null;
-				} catch (SchemaException e) {
-					return true;
-				}
-			}
-
-			@Override
-			public boolean isVisible() {
-				try {
-					return getDefinitionByKind(model) != null;
-				} catch (SchemaException e) {
-					return true;
-				}
-			}
-		});
+			
+		setOutputMarkupId(true);
 
 		AutoCompleteTextPanel<String> intent = new AutoCompleteTextPanel<String>(ID_INTENT, intentModel,
 				String.class) {
@@ -197,26 +170,17 @@ public class ResourceContentTabPanel extends Panel {
 				return RefinedResourceSchema.getIntentsForKind(refinedSchema, kind).iterator();
 
 			}
-			
-			
+
 		};
 		intent.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
-		
-			
+
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				BoxedTablePanel table = (BoxedTablePanel) get(parentPage.createComponentPath(ID_MAIN_FORM, ID_TABLE));
-				ObjectDataProvider2 provider = (ObjectDataProvider2) table.getDataTable().getDataProvider();
-				try {
-					provider.setQuery(createQuery((IModel<PrismObject<ResourceType>>) ResourceContentTabPanel.this.getDefaultModel()));
-				} catch (SchemaException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				target.add(table);
-				
+				updateTable(target, model);
+
 			}
 		});
+		intent.setOutputMarkupId(true);
 		add(intent);
 		final Form mainForm = new Form(ID_MAIN_FORM);
 		mainForm.setOutputMarkupId(true);
@@ -226,76 +190,25 @@ public class ResourceContentTabPanel extends Panel {
 
 			@Override
 			protected void onStateChanged(AjaxRequestTarget target, Boolean newValue) {
-				target.add(ResourceContentTabPanel.this);
+				updateTable(target, model);
 			}
 		};
+		searchType.setOutputMarkupId(true);
 		add(searchType);
-		// Form searchForm = new Form(ID_SEARCH_FORM);
-		// add(searchForm);
-
-		// CheckBox nameCheck = new CheckBox(ID_NAME_CHECK, new
-		// PropertyModel(searchModel, AccountContentSearchDto.F_NAME));
-		// searchForm.add(nameCheck);
-		//
-		// CheckBox identifiersCheck = new CheckBox(ID_IDENTIFIERS_CHECK,
-		// new PropertyModel(searchModel,
-		// AccountContentSearchDto.F_IDENTIFIERS));
-		// searchForm.add(identifiersCheck);
-		//
-		// BasicSearchPanel<AccountContentSearchDto> basicSearch = new
-		// BasicSearchPanel<AccountContentSearchDto>(ID_BASIC_SEARCH) {
-		//
-		// @Override
-		// protected IModel<String> createSearchTextModel() {
-		// return new PropertyModel<>(searchModel,
-		// AccountContentSearchDto.F_SEARCH_TEXT);
-		// }
-		//
-		// @Override
-		// protected void searchPerformed(AjaxRequestTarget target) {
-		// PageContentAccounts.this.searchPerformed(target);
-		// }
-		//
-		// @Override
-		// protected void clearSearchPerformed(AjaxRequestTarget target) {
-		// PageContentAccounts.this.clearSearchPerformed(target);
-		// }
-		// };
-		// searchForm.add(basicSearch);
-
-		IModel<RefinedObjectClassDefinition> objectClassModel = createObjectClassModel(model);
+	
 
 		add(mainForm);
 
-		ObjectDataProvider2<AccountContentDto, ShadowType> provider = new ObjectDataProvider2<AccountContentDto, ShadowType>(
-				this, ShadowType.class) {
-
-			@Override
-			public AccountContentDto createDataObjectWrapper(ShadowType obj) {
-				return createAccountContentDto(obj, new OperationResult("Create resource content dto."));
-			}
-			
-			
-			// @Override
-			// protected void addInlineMenuToDto(AccountContentDto dto) {
-			// addRowMenuToTable(dto);
-			// }
-		};
+		ObjectDataProvider2<SelectableBean<ShadowType>, ShadowType> provider = new ObjectDataProvider2<SelectableBean<ShadowType>, ShadowType>(
+				this, ShadowType.class);
 		try {
-			
+
 			provider.setQuery(createQuery(model));
 			provider.setEmptyListOnNullQuery(true);
+			createSearchOptions(provider, model);
 		} catch (SchemaException e) {
 			// TODO
 		}
-		
-		Collection<SelectorOptions<GetOperationOptions>> opts =
-                SelectorOptions.createCollection(ShadowType.F_ASSOCIATION, GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
-		if (searchTypeModel.getObject()){
-			opts.add(new SelectorOptions<GetOperationOptions>(GetOperationOptions.createNoFetch()));
-		}
-		
-		provider.setOptions(opts);
 
 		List<IColumn> columns = initColumns();
 		final BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns,
@@ -303,21 +216,42 @@ public class ResourceContentTabPanel extends Panel {
 		table.setOutputMarkupId(true);
 		mainForm.add(table);
 
-		// Form objectclassForm = new Form(ID_OBJECTCLASS_FORM);
-		// add(objectclassForm);
-		// RefinedObjectTypeChoicePanel objectclassInput = new
-		// RefinedObjectTypeChoicePanel(ID_OBJECTCLASS_INPUT, objectClassModel,
-		// model);
-		// objectclassInput.getBaseFormComponent().add(new
-		// AjaxFormComponentUpdatingBehavior("change") {
-		// @Override
-		// protected void onUpdate(AjaxRequestTarget target) {
-		// target.add(table);
-		// }
-		// });
-		// objectclassForm.add(objectclassInput);
+	}
 
-		initDialog();
+	private void createSearchOptions(ObjectDataProvider2 provider,
+			IModel<PrismObject<ResourceType>> resourceModel) throws SchemaException {
+		Collection<SelectorOptions<GetOperationOptions>> opts = SelectorOptions.createCollection(
+				ShadowType.F_ASSOCIATION, GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
+		if (!searchTypeModel.getObject()) {
+			opts.add(new SelectorOptions<GetOperationOptions>(GetOperationOptions.createNoFetch()));
+			provider.setUseObjectCounting(true);
+		} else {
+
+			provider.setUseObjectCounting(isUseObjectCounting(resourceModel));
+		}
+		provider.setOptions(opts);
+	}
+
+	private BoxedTablePanel getTable() {
+		return (BoxedTablePanel) get(parentPage.createComponentPath(ID_MAIN_FORM, ID_TABLE));
+	}
+
+	private void updateTable(AjaxRequestTarget target, IModel<PrismObject<ResourceType>> model) {
+		BoxedTablePanel table = getTable();
+		ObjectDataProvider2 provider = (ObjectDataProvider2) table.getDataTable().getDataProvider();
+		try {
+			provider.setQuery(createQuery(
+					(IModel<PrismObject<ResourceType>>) ResourceContentTabPanel.this.getDefaultModel()));
+			createSearchOptions(provider, model);
+		} catch (SchemaException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		target.add(table);
+
+		Form main = (Form) get(ID_MAIN_FORM);
+		main.addOrReplace(table);
 	}
 
 	private StringResourceModel createStringResource(String key) {
@@ -338,32 +272,40 @@ public class ResourceContentTabPanel extends Panel {
 	}
 
 	private List<IColumn> initColumns() {
-		List<IColumn> columns = new ArrayList<IColumn>();
 
-		IColumn column = new CheckBoxColumn(new Model<String>(), AccountContentDto.F_SELECTED);
+		List<ColumnTypeDto> columnDefs = Arrays.asList(
+				new ColumnTypeDto("ShadowType.synchronizationSituation",
+						SelectableBean.F_VALUE + ".synchronizationSituation",
+						ShadowType.F_SYNCHRONIZATION_SITUATION.getLocalPart()),
+				new ColumnTypeDto<String>("ShadowType.intent", SelectableBean.F_VALUE + ".intent",
+						ShadowType.F_INTENT.getLocalPart()));
+
+		List<IColumn> columns = new ArrayList<>();
+		IColumn column = new CheckBoxColumn(new Model<String>(), SelectableBean.F_SELECTED);
 		columns.add(column);
 
-		column = new LinkColumn<AccountContentDto>(createStringResource("pageContentAccounts.name"),
-				AccountContentDto.F_ACCOUNT_NAME) {
+		column = new LinkColumn<SelectableBean<ShadowType>>(createStringResource("pageContentAccounts.name"),
+				SelectableBean.F_VALUE + ".name") {
 
 			@Override
-			public void onClick(AjaxRequestTarget target, IModel<AccountContentDto> rowModel) {
-				AccountContentDto dto = rowModel.getObject();
-				accountDetailsPerformed(target, dto.getAccountName(), dto.getAccountOid());
+			public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ShadowType>> rowModel) {
+				SelectableBean<ShadowType> shadow = rowModel.getObject();
+				ShadowType shadowType = shadow.getValue();
+				accountDetailsPerformed(target, WebComponentUtil.getName(shadowType), shadowType.getOid());
 			}
 		};
 		columns.add(column);
 
-		column = new AbstractColumn<AccountContentDto, String>(
+		column = new AbstractColumn<SelectableBean<ShadowType>, String>(
 				createStringResource("pageContentAccounts.identifiers")) {
 
 			@Override
-			public void populateItem(Item<ICellPopulator<AccountContentDto>> cellItem, String componentId,
-					IModel<AccountContentDto> rowModel) {
+			public void populateItem(Item<ICellPopulator<SelectableBean<ShadowType>>> cellItem,
+					String componentId, IModel<SelectableBean<ShadowType>> rowModel) {
 
-				AccountContentDto dto = rowModel.getObject();
+				SelectableBean<ShadowType> dto = rowModel.getObject();
 				List values = new ArrayList();
-				for (ResourceAttribute<?> attr : dto.getIdentifiers()) {
+				for (ResourceAttribute<?> attr : ShadowUtil.getAllIdentifiers(dto.getValue())) {
 					values.add(attr.getElementName().getLocalPart() + ": " + attr.getRealValue());
 				}
 				cellItem.add(new Label(componentId, new Model<>(StringUtils.join(values, ", "))));
@@ -371,232 +313,303 @@ public class ResourceContentTabPanel extends Panel {
 		};
 		columns.add(column);
 
-//		column = new PropertyColumn(createStringResource("pageContentAccounts.kind"),
-//				AccountContentDto.F_KIND);
-//		columns.add(column);
-
-		column = new PropertyColumn(createStringResource("pageContentAccounts.intent"),
-				AccountContentDto.F_INTENT);
-		columns.add(column);
-
-//		column = new PropertyColumn(createStringResource("pageContentAccounts.objectClass"),
-//				AccountContentDto.F_OBJECT_CLASS);
-//		columns.add(column);
-
-		column = new EnumPropertyColumn(createStringResource("pageContentAccounts.situation"),
-				AccountContentDto.F_SITUATION) {
+		columns.addAll(ColumnUtils.createColumns(columnDefs));
+		column = new LinkColumn<SelectableBean<ShadowType>>(createStringResource("pageContentAccounts.owner"),
+				true) {
 
 			@Override
-			protected String translate(Enum en) {
-				return parentPage.createStringResource(en).getString();
-			}
-		};
-		columns.add(column);
+			protected IModel createLinkModel(final IModel<SelectableBean<ShadowType>> rowModel) {
 
-		column = new LinkColumn<AccountContentDto>(createStringResource("pageContentAccounts.owner")) {
-
-			@Override
-			protected IModel<String> createLinkModel(final IModel<AccountContentDto> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new AbstractReadOnlyModel<FocusType>() {
 
 					@Override
-					public String getObject() {
-						AccountContentDto dto = rowModel.getObject();
-						if (StringUtils.isNotBlank(dto.getOwnerName())) {
-							return dto.getOwnerName();
+					public FocusType getObject() {
+						FocusType owner = loadShadowOwner(rowModel);
+						if (owner == null) {
+							return null;
 						}
-
-						return dto.getOwnerOid();
+						return owner;
+					
 					}
+
 				};
 			}
 
 			@Override
-			public void onClick(AjaxRequestTarget target, IModel<AccountContentDto> rowModel) {
-				AccountContentDto dto = rowModel.getObject();
-
-				ownerDetailsPerformed(target, dto.getOwnerName(), dto.getOwnerOid());
+			public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ShadowType>> rowModel) {
+				SelectableBean<ShadowType> shadow = rowModel.getObject();
+				ShadowType shadowType = shadow.getValue();
+				ownerDetailsPerformed(target, this.getModelObjectIdentifier());
 			}
 		};
 		columns.add(column);
 
-		// column = new InlineMenuHeaderColumn(createHeaderMenuItems());
-		// columns.add(column);
+		column = new InlineMenuHeaderColumn(createHeaderMenuItems());
+		columns.add(column);
 
 		return columns;
 	}
 
-	// private List<InlineMenuItem> createHeaderMenuItems() {
-	// List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
-	//
-	// items.add(new
-	// InlineMenuItem(createStringResource("pageContentAccounts.menu.enableAccount"),
-	// true,
-	// new HeaderMenuAction(this){
-	//
-	// @Override
-	// public void onSubmit(AjaxRequestTarget target, Form<?> form){
-	// updateAccountStatusPerformed(target, null, true);
-	// }
-	// }));
-	//
-	// items.add(new
-	// InlineMenuItem(createStringResource("pageContentAccounts.menu.disableAccount"),
-	// true,
-	// new HeaderMenuAction(this){
-	//
-	// @Override
-	// public void onSubmit(AjaxRequestTarget target, Form<?> form){
-	// updateAccountStatusPerformed(target, null, false);
-	// }
-	// }));
-	//
-	// items.add(new
-	// InlineMenuItem(createStringResource("pageContentAccounts.menu.deleteAccount"),
-	// true,
-	// new HeaderMenuAction(this){
-	//
-	// @Override
-	// public void onSubmit(AjaxRequestTarget target, Form<?> form){
-	// deleteAccountPerformed(target, null);
-	// }
-	// }));
-	//
-	// items.add(new InlineMenuItem());
-	//
-	// items.add(new
-	// InlineMenuItem(createStringResource("pageContentAccounts.menu.importAccount"),
-	// true,
-	// new HeaderMenuAction(this) {
-	//
-	// @Override
-	// public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-	// importAccount(target, null);
-	// }
-	// }));
-	//
-	// items.add(new InlineMenuItem());
-	//
-	// items.add(new
-	// InlineMenuItem(createStringResource("pageContentAccounts.menu.removeOwner"),
-	// true,
-	// new HeaderMenuAction(this) {
-	//
-	// @Override
-	// public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-	// removeOwnerPerformed(target, null);
-	// }
-	// }));
-	//
-	// return items;
-	// }
-	//
+	private List<InlineMenuItem> createHeaderMenuItems() {
+		List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
 
-	private AccountContentDto createAccountContentDto(ShadowType shadow, OperationResult result) {
+		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.enableAccount"), true,
+				new HeaderMenuAction(this) {
 
-		AccountContentDto dto = new AccountContentDto();
-		dto.setAccountName(WebComponentUtil.getName(shadow));
-		dto.setAccountOid(shadow.getOid());
-		// ShadowType shadow = object.asObjectable();
+					@Override
+					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+						// updateAccountStatusPerformed(target, null, true);
+					}
+				}));
 
-		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(shadow);
-		if (identifiers != null) {
-			List<ResourceAttribute<?>> idList = new ArrayList<ResourceAttribute<?>>();
-			idList.addAll(identifiers);
-			dto.setIdentifiers(idList);
-		}
+		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.disableAccount"), true,
+				new HeaderMenuAction(this) {
 
-		try {
-			PrismObject<? extends FocusType> owner = loadOwner(dto.getAccountOid(), result);
-			if (owner != null) {
-				dto.setOwnerName(WebComponentUtil.getName(owner));
-				dto.setOwnerOid(owner.getOid());
-			}
-		} catch (AuthorizationException e) {
-			// owner was found, but the current user is not authorized to read
-			// it
-			result.muteLastSubresultError();
-			dto.setOwnerName("(unauthorized)");
-		} catch (SecurityViolationException | SchemaException | ConfigurationException e) {
-			// TODO Auto-generated catch block
-			LOGGER.error("Cannot get owner for shadow: " + e.getMessage());
-			warn("Could not get owner for shadow: " + e.getMessage());
-		}
+					@Override
+					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+						// updateAccountStatusPerformed(target, null, false);
+					}
+				}));
 
-		dto.setSituation(WebComponentUtil.getValue(shadow.asPrismContainer(),
-				ShadowType.F_SYNCHRONIZATION_SITUATION, SynchronizationSituationType.class));
+		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.deleteAccount"), true,
+				new HeaderMenuAction(this) {
 
-		dto.setKind(shadow.getKind());
-		dto.setIntent(shadow.getIntent());
-		dto.setObjectClass(shadow.getObjectClass().getLocalPart());
+					@Override
+					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+						// deleteAccountPerformed(target, null);
+					}
+				}));
 
-		// addInlineMenuToDto(dto);
+		items.add(new InlineMenuItem());
 
-		return dto;
+		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.importAccount"), true,
+				new HeaderMenuAction(this) {
+
+					@Override
+					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+						// importAccount(target, null);
+					}
+				}));
+
+		items.add(new InlineMenuItem());
+
+		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.removeOwner"), true,
+				new HeaderMenuAction(this) {
+
+					@Override
+					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+						changeOwner(target, null, Operation.REMOVE);
+						// removeOwnerPerformed(target, null);
+					}
+				}));
+
+		
+		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.changeOwner"), true,
+				new HeaderMenuAction(this) {
+
+					@Override
+					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+
+						FocusBrowserDialogPanel browser = new FocusBrowserDialogPanel(
+								parentPage.getMainPopupBodyId(), UserType.class, parentPage) {
+
+							@Override
+							public void userDetailsPerformed(AjaxRequestTarget target, FocusType user) {
+								super.userDetailsPerformed(target, user);
+								changeOwner(target, user, Operation.MODIFY);
+							}
+
+						};
+					
+						parentPage.getMainPopup().setInitialHeight(400);
+						parentPage.getMainPopup().setInitialWidth(600);
+						parentPage.showMainPopup(browser, new Model<String>("ChangeOwner"), target);
+
+					}
+				}));
+
+		return items;
 	}
 
-	private PrismObject<? extends FocusType> loadOwner(String accountOid, OperationResult result)
-			throws SecurityViolationException, SchemaException, ConfigurationException {
+	private void changeOwner(AjaxRequestTarget target, FocusType ownerToChange, Operation operation) {
+		BoxedTablePanel table = getTable();
+		List<SelectableBean<ShadowType>> selectedShadow = WebComponentUtil.getSelectedData(table);
 
-		Task task = parentPage.createSimpleTask(OPERATION_LOAD_OWNER);
+		Collection<? extends ItemDelta> modifications = new ArrayList<>();
+
+		ReferenceDelta delta = null;
+		switch (operation) {
+			
+			case REMOVE:
+				for (SelectableBean<ShadowType> selected : selectedShadow) {
+					modifications = new ArrayList<>();
+					FocusType owner = loadShadowOwner(selected.getValue().getOid());
+					if (owner != null) {
+						delta = ReferenceDelta.createModificationDelete(FocusType.F_LINK_REF,
+								getFocusDefinition(),
+								ObjectTypeUtil.createObjectRef(selected.getValue()).asReferenceValue());
+
+						((Collection) modifications).add(delta);
+						changeOwnerInternal(owner.getOid(), modifications, target);
+					}
+				}
+				break;
+			case MODIFY:
+				if (!isSatisfyConstraints(selectedShadow)) {
+					break;
+				}
+
+				ShadowType shadow = selectedShadow.iterator().next().getValue();
+				FocusType owner = loadShadowOwner(shadow.getOid());
+				if (owner != null) {
+					delta = ReferenceDelta.createModificationDelete(FocusType.F_LINK_REF,
+							getFocusDefinition(), ObjectTypeUtil.createObjectRef(shadow).asReferenceValue());
+
+					((Collection) modifications).add(delta);
+					changeOwnerInternal(owner.getOid(), modifications, target);
+				}
+				modifications = new ArrayList<>();
+				
+		delta = ReferenceDelta.createModificationAdd(FocusType.F_LINK_REF, getFocusDefinition(),
+						ObjectTypeUtil.createObjectRef(shadow).asReferenceValue());
+				((Collection) modifications).add(delta);
+				changeOwnerInternal(ownerToChange.getOid(), modifications, target);
+
+				break;
+		}
+
+	}
+
+	private boolean isSatisfyConstraints(List selected) {
+		if (selected.size() > 1) {
+			error("Could not link to more than one owner");
+			return false;
+		}
+
+		if (selected.isEmpty()) {
+			warn("Could not link to more than one owner");
+			return false;
+		}
+
+		return true;
+	}
+
+	private void changeOwnerInternal(String ownerOid, Collection<? extends ItemDelta> modifications, AjaxRequestTarget target) {
+		OperationResult result = new OperationResult(OPERATION_CHANGE_OWNER);
+		Task task = parentPage.createSimpleTask(OPERATION_CHANGE_OWNER);
+		ObjectDelta objectDelta = ObjectDelta.createModifyDelta(ownerOid, modifications, FocusType.class,
+				parentPage.getPrismContext());
+		Collection deltas = new ArrayList<>();
+		deltas.add(objectDelta);
 		try {
-			return parentPage.getModelService().searchShadowOwner(accountOid, null, task, result);
-		} catch (ObjectNotFoundException ex) {
+			if (!deltas.isEmpty()) {
+				parentPage.getModelService().executeChanges(deltas, null, task, result);
+
+			}
+		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+				| ExpressionEvaluationException | CommunicationException | ConfigurationException
+				| PolicyViolationException | SecurityViolationException e) {
+
+		}
+
+		result.computeStatusIfUnknown();
+
+		parentPage.showResult(result);
+		target.add(parentPage.getFeedbackPanel());
+		target.add(ResourceContentTabPanel.this);
+	}
+
+	private PrismObjectDefinition getFocusDefinition() {
+		return parentPage.getPrismContext().getSchemaRegistry()
+				.findObjectDefinitionByCompileTimeClass(FocusType.class);
+	}
+
+	
+
+	private <F extends FocusType> F loadShadowOwner(IModel<SelectableBean<ShadowType>> model) {
+		F owner = null;
+
+		ShadowType shadow = model.getObject().getValue();
+		String shadowOid;
+		if (shadow != null) {
+			shadowOid = shadow.getOid();
+		} else {
+			return null;
+		}
+
+		Task task = parentPage.createSimpleTask(OPERATION_LOAD_SHADOW_OWNER);
+		OperationResult result = new OperationResult(OPERATION_LOAD_SHADOW_OWNER);
+
+		try {
+			PrismObject prismOwner = parentPage.getModelService().searchShadowOwner(shadowOid, null, task,
+					result);
+
+			if (prismOwner != null) {
+				owner = (F) prismOwner.asObjectable();
+			}
+		} catch (ObjectNotFoundException exception) {
 			// owner was not found, it's possible and it's ok on unlinked
 			// accounts
+		} catch (Exception ex) {
+			result.recordFatalError(parentPage.getString("PageAccounts.message.ownerNotFound", shadowOid),
+					ex);
+			LoggingUtils.logException(LOGGER, "Could not load owner of account with oid: " + shadowOid, ex);
+		} finally {
+			result.computeStatusIfUnknown();
 		}
+
+		if (WebComponentUtil.showResultInPage(result)) {
+			parentPage.showResult(result, false);
+		}
+
+		return owner;
+	}
+
+	private <F extends FocusType> F loadShadowOwner(String shadowOid) {
+
+		Task task = parentPage.createSimpleTask(OPERATION_LOAD_SHADOW_OWNER);
+		OperationResult result = new OperationResult(OPERATION_LOAD_SHADOW_OWNER);
+
+		try {
+			PrismObject prismOwner = parentPage.getModelService().searchShadowOwner(shadowOid, null, task,
+					result);
+
+			if (prismOwner != null) {
+				return (F) prismOwner.asObjectable();
+			}
+		} catch (ObjectNotFoundException exception) {
+			// owner was not found, it's possible and it's ok on unlinked
+			// accounts
+		} catch (Exception ex) {
+			result.recordFatalError(parentPage.getString("PageAccounts.message.ownerNotFound", shadowOid),
+					ex);
+			LoggingUtils.logException(LOGGER, "Could not load owner of account with oid: " + shadowOid, ex);
+		} finally {
+			result.computeStatusIfUnknown();
+		}
+
+		if (WebComponentUtil.showResultInPage(result)) {
+			parentPage.showResult(result, false);
+		}
+
 		return null;
 	}
 
-	private void initDialog() {
-		UserBrowserDialog<UserType> dialog = new UserBrowserDialog<UserType>(MODAL_ID_OWNER_CHANGE,
-				UserType.class) {
 
-			@Override
-			public void userDetailsPerformed(AjaxRequestTarget target, UserType user) {
-				super.userDetailsPerformed(target, user);
-
-				// ownerChangePerformed(target, user);
-				// target.add(getTable());
-			}
-		};
-		add(dialog);
-
-		add(new ConfirmationDialog(MODAL_ID_CONFIRM_DELETE,
-				parentPage.createStringResource("pageContentAccounts.dialog.title.confirmDelete"),
-				createDeleteConfirmString()) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-				// deleteConfirmedPerformed(target);
-			}
-		});
-	}
 
 	private IModel<String> createDeleteConfirmString() {
 		return new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
 				return "asdasd";
-				// if(singleDelete == null){
-				// return
-				// createStringResource("pageContentAccounts.message.deleteConfirmation",
-				// getSelectedAccounts(null).size()).getString();
-				// } else{
-				// return
-				// createStringResource("pageContentAccounts.message.deleteConfirmationSingle",
-				// singleDelete.getAccountName()).getString();
-				// }
+				
 			}
 		};
 	}
 
-	private void ownerDetailsPerformed(AjaxRequestTarget target, String ownerName, String ownerOid) {
+	private void ownerDetailsPerformed(AjaxRequestTarget target, String ownerOid) {
 		if (StringUtils.isEmpty(ownerOid)) {
-			// error(getString("pageContentAccounts.message.cantShowUserDetails",
-			// ownerName, ownerOid));
-			// target.add(getFeedbackPanel());
+			
 			return;
 		}
 
@@ -605,23 +618,7 @@ public class ResourceContentTabPanel extends Panel {
 		setResponsePage(PageUser.class, parameters);
 	}
 
-	private void changeOwnerPerformed(AjaxRequestTarget target, AccountContentDto dto) {
-		reloadOwnerChangeModel(dto.getAccountOid(), dto.getOwnerOid());
-
-		// showModalWindow(MODAL_ID_OWNER_CHANGE, target);
-	}
-
-	private void reloadOwnerChangeModel(String accountOid, String ownerOid) {
-		ownerChangeModel.reset();
-
-		AccountOwnerChangeDto changeDto = ownerChangeModel.getObject();
-
-		changeDto.setAccountOid(accountOid);
-		changeDto.setAccountType(ShadowType.COMPLEX_TYPE);
-
-		changeDto.setOldOwnerOid(ownerOid);
-	}
-
+	
 	private ObjectQuery createQuery(IModel<PrismObject<ResourceType>> resourceModel) throws SchemaException {
 
 		ObjectQuery baseQuery = null;
@@ -652,31 +649,10 @@ public class ResourceContentTabPanel extends Panel {
 		}
 
 	
-	// if (rOcDef.getKind() != null) {
-	
-	// } else {
-	// baseQuery =
-	// ObjectQueryUtil.createResourceAndObjectClassQuery(resourceModel.getObject().getOid(),
-	// rOcDef.getTypeName(), parentPage.getPrismContext());
-	// }
-	return baseQuery;
+		return baseQuery;
 
 	}
 
-	private IModel<Boolean> createUseObjectCountingModel(
-			final IModel<PrismObject<ResourceType>> resourceModel) {
-		return new LoadableModel<Boolean>(false) {
-
-			@Override
-			protected Boolean load() {
-				try {
-					return isUseObjectCounting(resourceModel);
-				} catch (Exception ex) {
-					throw new SystemException(ex.getMessage(), ex);
-				}
-			}
-		};
-	}
 
 	private boolean isUseObjectCounting(IModel<PrismObject<ResourceType>> resourceModel)
 			throws SchemaException {

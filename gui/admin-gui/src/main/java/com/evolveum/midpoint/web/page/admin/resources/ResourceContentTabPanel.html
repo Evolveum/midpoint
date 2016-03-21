@@ -18,16 +18,24 @@
 <wicket:panel>
 
 
-	
-		<div class="row">
-
-
-
+    <div class="clearfix">
+	<div class="form-inline search-form">
+		<!--         <row class="form-inline pull-right search-form"> -->
+		<div class="form-group">
+			<label><wicket:message key="ShadowType.intent" /></label>
 			<div wicket:id="intent" />
+		</div>
 
+		<div class="form-group">
+			<label><wicket:message key="ResourceContentTabPanel.searchType" /></label>
 			<div wicket:id="searchType" />
 		</div>
-	
+
+
+	</div>
+
+</div>
+
 	<form wicket:id="mainForm">
 		<div wicket:id="table" />
 	</form>
