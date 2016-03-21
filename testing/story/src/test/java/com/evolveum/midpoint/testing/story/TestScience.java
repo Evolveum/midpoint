@@ -219,7 +219,9 @@ public class TestScience  extends AbstractStoryTest {
 		
 		//internalId on unix dummy resource and title on openDJ simulation must be the same
 		PrismProperty unixId = shadowUnix.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, UNIX_INTERNAL_ID));
+		assertNotNull("No "+UNIX_INTERNAL_ID+" in "+shadowUnix, unixId);
 		PrismProperty openDjSyncedId = shadowOpenDj.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(NS_RESOURCE_INSTANCE, "title")));
+		assertNotNull("No 'title' in "+shadowOpenDj, openDjSyncedId);
 		PrismAsserts.assertEquals("Unix id was not synced to the opendj properly.", String.valueOf(unixId.getAnyRealValue()), openDjSyncedId.getAnyRealValue());
 		
 		PrismProperty<Integer> generatedValue = userJack.findExtensionItem(SCIENCE_EXTENSION_UID_QNAME);

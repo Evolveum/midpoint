@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.prism.show;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -68,11 +69,11 @@ public class SceneItemLinePanel extends BasePanel<SceneItemLineDto> {
 				return getModelObject().isDelta();
 			}
 		});
-		oldValueCell.add(new Label(ID_OLD_VALUE, new PropertyModel<String>(getModel(), SceneItemLineDto.F_OLD_VALUE)));
+		oldValueCell.add(new SceneItemValuePanel(ID_OLD_VALUE, new PropertyModel<SceneItemValue>(getModel(), SceneItemLineDto.F_OLD_VALUE)));
 		add(oldValueCell);
 
 		WebMarkupContainer newValueCell = new WebMarkupContainer(ID_NEW_VALUE_CONTAINER);
-		newValueCell.add(new Label(ID_NEW_VALUE, new PropertyModel<String>(getModel(), SceneItemLineDto.F_NEW_VALUE)));
+		newValueCell.add(new SceneItemValuePanel(ID_NEW_VALUE, new PropertyModel<SceneItemValue>(getModel(), SceneItemLineDto.F_NEW_VALUE)));
 		newValueCell.add(new AttributeModifier("colspan", new AbstractReadOnlyModel<Integer>() {
 			@Override
 			public Integer getObject() {
