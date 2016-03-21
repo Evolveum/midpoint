@@ -733,6 +733,86 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test090QuerySingleAssignmentWithTargetAndTenant() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .exists(F_ASSIGNMENT)
+                    	.item(AssignmentType.F_TARGET_REF).ref("target-oid-123")
+						.and().item(AssignmentType.F_TENANT_REF).ref("tenant-oid-456")
+                    .build();
+
+            String real = getInterpretedQuery2(session, UserType.class, query);
+            String expected = "select\n"
+					+ "  u.fullObject,\n"
+					+ "  u.stringsCount,\n"
+					+ "  u.longsCount,\n"
+					+ "  u.datesCount,\n"
+					+ "  u.referencesCount,\n"
+					+ "  u.polysCount,\n"
+					+ "  u.booleansCount\n"
+					+ "from\n"
+					+ "  RUser u\n"
+					+ "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n"
+					+ "where\n"
+					+ "  (\n"
+					+ "    (\n"
+					+ "      a.targetRef.targetOid = :targetOid and\n"
+					+ "      a.targetRef.relation = :relation\n"
+					+ "    ) and\n"
+					+ "    (\n"
+					+ "      u.tenantRef.targetOid = :targetOid2 and\n"
+					+ "      u.tenantRef.relation = :relation2\n"
+					+ "    )\n"
+					+ "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+	@Test
+	public void test092QueryAssignmentsWithTargetAndTenant() throws Exception {
+		Session session = open();
+
+		try {
+			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+					.item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref("target-oid-123")
+					.and().item(UserType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF).ref("tenant-oid-456")
+					.build();
+
+			String real = getInterpretedQuery2(session, UserType.class, query);
+			String expected = "select\n"
+					+ "  u.fullObject,\n"
+					+ "  u.stringsCount,\n"
+					+ "  u.longsCount,\n"
+					+ "  u.datesCount,\n"
+					+ "  u.referencesCount,\n"
+					+ "  u.polysCount,\n"
+					+ "  u.booleansCount\n"
+					+ "from\n"
+					+ "  RUser u\n"
+					+ "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n"
+					+ "    left join u.assignments a2 with a2.assignmentOwner = :assignmentOwner2\n"
+					+ "where\n"
+					+ "  (\n"
+					+ "    (\n"
+					+ "      a.targetRef.targetOid = :targetOid and\n"
+					+ "      a.targetRef.relation = :relation\n"
+					+ "    ) and\n"
+					+ "    (\n"
+					+ "      a2.tenantRef.targetOid = :targetOid2 and\n"
+					+ "      a2.tenantRef.relation = :relation2\n"
+					+ "    )\n"
+					+ "  )\n";
+			assertEqualsIgnoreWhitespace(expected, real);
+		} finally {
+			close(session);
+		}
+	}
+
+    @Test
     public void test100QueryObjectByName() throws Exception {
         Session session = open();
 

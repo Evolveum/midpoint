@@ -16,7 +16,11 @@
 
 package com.evolveum.midpoint.wf.impl.messages;
 
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
+import com.evolveum.midpoint.wf.impl.processes.ProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
+import org.activiti.engine.delegate.DelegateExecution;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,70 +28,58 @@ import java.util.Map;
 /**
  * Process instance event - signals that something has happened with process instance.
  */
-public class ProcessEvent extends ActivitiToMidPointMessage {
+public class ProcessEvent {
 
     /**
      * Workflow process instance variables.
      */
-    private Map<String,Object> variables = new HashMap<String,Object>();
+    private final Map<String,Object> variables = new HashMap<>();
 
     /**
      * Workflow process instance ID.
      */
-    private String pid;
-
-    /**
-     * MidPoint monitoring task OID.
-     */
-    private String taskOid;
+    private final String pid;
 
     /**
      * Is the process still running?
      */
     private boolean running;
 
-    /**
-     * What is a (textually characterized) state of the process instance?
-     */
-    private String state;
-
-    /**
-     * What is a (textually characterized) final answer?
-     */
     private String answer;
+	private String state;
 
-    public String getPid() {
+	public ProcessEvent(DelegateExecution execution, ProcessInterfaceFinder processInterfaceFinder) {
+		pid = execution.getProcessInstanceId();
+		running = true;
+		addVariablesFrom(execution.getVariables());
+		computeStateAndAnswer(processInterfaceFinder);
+	}
+
+	private void computeStateAndAnswer(ProcessInterfaceFinder processInterfaceFinder) {
+		ProcessMidPointInterface pmi = processInterfaceFinder.getProcessInterface(variables);
+		state = pmi.getState(variables);
+		answer = pmi.getAnswer(variables);
+	}
+
+	public ProcessEvent(String pid, Map<String, Object> variables, ProcessInterfaceFinder processInterfaceFinder) {
+		this.pid = pid;
+		addVariablesFrom(variables);
+		computeStateAndAnswer(processInterfaceFinder);
+	}
+
+	public String getPid() {
         return pid;
-    }
-
-    public void setPid(String pid) {
-        this.pid = pid;
-    }
-
-    public String getTaskOid() {
-        return taskOid;
-    }
-
-    public void setTaskOid(String taskOid) {
-        this.taskOid = taskOid;
     }
 
     public Map<String, Object> getVariables() {
         return variables;
     }
 
-    public Object getVariable(String name) {
-        return variables.get(name);
-    }
-
-    public void setVariables(Map<String, Object> variables) {
-        this.variables = variables;
+    public <T> T getVariable(String name, Class<T> clazz) {
+        return (T) variables.get(name);
     }
 
     public void putVariable(String name, Object value) {
-        if (variables == null) {
-            variables = new HashMap<String,Object>();
-        }
         variables.put(name, value);
     }
 
@@ -99,13 +91,29 @@ public class ProcessEvent extends ActivitiToMidPointMessage {
         this.running = running;
     }
 
-    public void setVariablesFrom(Map<String, Object> map) {
-        variables = new HashMap<String,Object>(map);
+    public void addVariablesFrom(Map<String, Object> map) {
+        variables.putAll(map);
     }
 
-    @Override
+	public String getAnswer() {
+		return answer;
+	}
+
+	public void setAnswer(String answer) {
+		this.answer = answer;
+	}
+
+	public String getState() {
+		return state;
+	}
+
+	public void setState(String state) {
+		this.state = state;
+	}
+
+	@Override
     public String toString() {
-        return this.getClass().getSimpleName() + "[pid=" + pid + ", running=" + running + ", task=" + taskOid +  ", variables=" + variables + "]";
+        return this.getClass().getSimpleName() + "[pid=" + pid + ", running=" + running + ", variables=" + variables + "]";
     }
 
     public boolean containsVariable(String varname) {
@@ -116,19 +124,7 @@ public class ProcessEvent extends ActivitiToMidPointMessage {
         }
     }
 
-    public String getState() {
-        return state;
-    }
-
-    public void setState(String state) {
-        this.state = state;
-    }
-
-    public String getAnswer() {
-        return answer;
-    }
-
-    public void setAnswer(String answer) {
-        this.answer = answer;
-    }
+	public String getProcessDebugInfo() {
+		return "pid=" + pid + ", name=" + getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME, String.class);
+	}
 }

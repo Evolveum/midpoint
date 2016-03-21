@@ -16,9 +16,16 @@
 
 package com.evolveum.midpoint.wf.impl.messages;
 
+import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
+
+import java.util.Map;
+
 /**
  * @author mederly
  */
 public class QueryProcessResponse extends ProcessEvent {
 
+	public QueryProcessResponse(String pid, Map<String, Object> variables, ProcessInterfaceFinder processInterfaceFinder) {
+		super(pid, variables, processInterfaceFinder);
+	}
 }

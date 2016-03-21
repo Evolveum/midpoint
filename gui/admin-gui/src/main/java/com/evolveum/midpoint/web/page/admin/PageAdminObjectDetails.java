@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
@@ -86,6 +87,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	private static final String OPERATION_LOAD_PARENT_ORGS = DOT_CLASS + "loadParentOrgs";
 	private static final String OPERATION_LOAD_GUI_CONFIGURATION = DOT_CLASS + "loadGuiConfiguration";
 	protected static final String OPERATION_SAVE = DOT_CLASS + "save";
+	protected static final String OPERATION_PREVIEW_CHANGES = DOT_CLASS + "previewChanges";
 	protected static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
 
 	protected static final String ID_SUMMARY_PANEL = "summaryPanel";
@@ -377,12 +379,27 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		return object;
 	}
 
+	// TODO put this into correct place
+	protected boolean previewRequested;
+
 	/**
 	 * This will be called from the main form when save button is pressed.
 	 */
 	public void savePerformed(AjaxRequestTarget target) {
 		progressReporter.onSaveSubmit();
 		OperationResult result = new OperationResult(OPERATION_SAVE);
+		previewRequested = false;
+		saveOrPreviewPerformed(target, result, false);
+	}
+
+	public void previewPerformed(AjaxRequestTarget target) {
+		progressReporter.onSaveSubmit();
+		OperationResult result = new OperationResult(OPERATION_PREVIEW_CHANGES);
+		previewRequested = true;
+		saveOrPreviewPerformed(target, result, true);
+	}
+
+	public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
 		ObjectWrapper<O> objectWrapper = getObjectWrapper();
 		LOGGER.debug("Saving object {}", objectWrapper);
 		
@@ -429,22 +446,12 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 					if (!delta.isEmpty()) {
 						delta.revive(getPrismContext());
 
-						Collection<SimpleValidationError> validationErrors = performCustomValidation(objectToAdd,
-								WebComponentUtil.createDeltaCollection(delta));
-						if (validationErrors != null && !validationErrors.isEmpty()) {
-							for (SimpleValidationError error : validationErrors) {
-								LOGGER.error("Validation error, attribute: '" + error.printAttribute()
-										+ "', message: '" + error.getMessage() + "'.");
-								error("Validation error, attribute: '" + error.printAttribute()
-										+ "', message: '" + error.getMessage() + "'.");
-							}
-
-							target.add(getFeedbackPanel());
+						final Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
+						final Collection<SimpleValidationError> validationErrors = performCustomValidation(objectToAdd, deltas);
+						if (checkValidationErrors(target, validationErrors)) {
 							return;
 						}
-
-						progressReporter.executeChanges(WebComponentUtil.createDeltaCollection(delta), options,
-								task, result, target);
+						progressReporter.executeChanges(deltas, previewOnly, options, task, result, target);
 					} else {
 						result.recordSuccess();
 					}
@@ -484,37 +491,17 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 								objectWrapper.getObject().getOid(), getPrismContext());
 						deltas.add(emptyDelta);
 
-						Collection<SimpleValidationError> validationErrors = performCustomValidation(null,
-								deltas);
-						if (validationErrors != null && !validationErrors.isEmpty()) {
-							for (SimpleValidationError error : validationErrors) {
-								LOGGER.error("Validation error, attribute: '" + error.printAttribute()
-										+ "', message: '" + error.getMessage() + "'.");
-								error("Validation error, attribute: '" + error.printAttribute()
-										+ "', message: '" + error.getMessage() + "'.");
-							}
-
-							target.add(getFeedbackPanel());
+						Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);
+						if (checkValidationErrors(target, validationErrors)) {
 							return;
 						}
-
-						progressReporter.executeChanges(deltas, options, task, result, target);
+						progressReporter.executeChanges(deltas, previewOnly, options, task, result, target);
 					} else if (!deltas.isEmpty()) {
-						Collection<SimpleValidationError> validationErrors = performCustomValidation(null,
-								deltas);
-						if (validationErrors != null && !validationErrors.isEmpty()) {
-							for (SimpleValidationError error : validationErrors) {
-								LOGGER.error("Validation error, attribute: '" + error.printAttribute()
-										+ "', message: '" + error.getMessage() + "'.");
-								error("Validation error, attribute: '" + error.printAttribute()
-										+ "', message: '" + error.getMessage() + "'.");
-							}
-
-							target.add(getFeedbackPanel());
+						Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);
+						if (checkValidationErrors(target, validationErrors)) {
 							return;
 						}
-
-						progressReporter.executeChanges(deltas, options, task, result, target);
+						progressReporter.executeChanges(deltas, previewOnly, options, task, result, target);
 					} else {
 						result.recordSuccess();
 					}
@@ -540,7 +527,22 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			finishProcessing(target, result);
 		}
 		
-		LOGGER.trace("returning from savePerformed");
+		LOGGER.trace("returning from saveOrPreviewPerformed");
+	}
+
+	protected boolean checkValidationErrors(AjaxRequestTarget target, Collection<SimpleValidationError> validationErrors) {
+		if (validationErrors != null && !validationErrors.isEmpty()) {
+			for (SimpleValidationError error : validationErrors) {
+				LOGGER.error("Validation error, attribute: '" + error.printAttribute()
+						+ "', message: '" + error.getMessage() + "'.");
+				error("Validation error, attribute: '" + error.printAttribute()
+						+ "', message: '" + error.getMessage() + "'.");
+			}
+
+			target.add(getFeedbackPanel());
+			return true;
+		}
+		return false;
 	}
 
 	@Override

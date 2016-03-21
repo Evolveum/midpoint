@@ -22,9 +22,11 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -83,9 +85,19 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return application.getModel();
     }
 
+    protected RepositoryService getRepositoryService() {
+        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        return application.getRepositoryService();
+    }
+
     protected TaskManager getTaskManager() {
         MidPointApplication application = (MidPointApplication) MidPointApplication.get();
         return application.getTaskManager();
+    }
+
+    protected PrismContext getPrismContext() {
+        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        return application.getPrismContext();
     }
 
     protected TaskService getTaskService() {

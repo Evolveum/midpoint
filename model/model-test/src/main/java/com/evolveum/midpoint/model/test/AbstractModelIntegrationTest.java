@@ -181,7 +181,7 @@ import static org.testng.AssertJUnit.fail;
 
 /**
  * Abstract framework for an integration test that is placed on top of a model API.
- * This provides complete environment that the test should need, e.g model service instance, repository, provisionig,
+ * This provides complete environment that the test should need, e.g model service instance, repository, provisioning,
  * dummy auditing, etc. It also implements lots of useful methods to make writing the tests easier.
  *  
  * @author Radovan Semancik

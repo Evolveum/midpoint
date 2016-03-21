@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.wf.impl.messages;
 
+import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
+import org.activiti.engine.delegate.DelegateExecution;
+
 /**
  * Created with IntelliJ IDEA.
  * User: mederly
@@ -25,4 +28,8 @@ package com.evolveum.midpoint.wf.impl.messages;
  */
 public class ProcessFinishedEvent extends ProcessEvent {
 
+	public ProcessFinishedEvent(DelegateExecution execution, ProcessInterfaceFinder processInterfaceFinder) {
+		super(execution, processInterfaceFinder);
+		setRunning(false);
+	}
 }

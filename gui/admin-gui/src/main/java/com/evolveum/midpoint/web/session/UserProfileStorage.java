@@ -49,6 +49,7 @@ public class UserProfileStorage implements Serializable {
         PAGE_TASKS_NODES_PANEL,
         PAGE_USERS_PANEL,
         PAGE_WORK_ITEMS,
+        PAGE_WORKFLOW_REQUESTS,
         PAGE_RESOURCES_CONNECTOR_HOSTS,
         PAGE_REPORTS,
         PAGE_CERT_CAMPAIGN_OUTCOMES_PANEL,

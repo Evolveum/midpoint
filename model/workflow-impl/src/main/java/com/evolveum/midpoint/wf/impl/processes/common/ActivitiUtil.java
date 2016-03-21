@@ -18,12 +18,20 @@ package com.evolveum.midpoint.wf.impl.processes.common;
 
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import org.activiti.engine.delegate.DelegateExecution;
 
 import java.io.Serializable;
+
+import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.*;
 
 /**
  * General utilities that can be used from within processes.
@@ -64,11 +72,24 @@ public class ActivitiUtil implements Serializable {
 
     // todo - better name?
     public MidpointFunctions midpoint() {
-        return SpringApplicationContextHolder.getMidpointFunctions();
+        return getMidpointFunctions();
     }
 
     @Override
     public String toString() {
         return this.getClass().getName() + " object.";
     }
+
+    public static Task getTask(DelegateExecution execution, OperationResult result) {
+        String oid = execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID, String.class);
+        if (oid == null) {
+			throw new IllegalStateException("No task OID in process " + execution.getProcessInstanceId());
+		}
+
+		try {
+			return getTaskManager().getTask(oid, result);
+		} catch (ObjectNotFoundException|SchemaException|RuntimeException e) {
+			throw new SystemException("Couldn't get task " + oid + " corresponding to process " + execution.getProcessInstanceId(), e);
+		}
+	}
 }

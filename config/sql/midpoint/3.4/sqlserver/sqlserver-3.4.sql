@@ -621,6 +621,18 @@ CREATE TABLE m_task (
   taskIdentifier         NVARCHAR(255) COLLATE database_default,
   threadStopAction       INT,
   waitingReason          INT,
+  wfEndTimestamp           DATETIME2,
+  wfObjectRef_relation     NVARCHAR(157) COLLATE database_default,
+  wfObjectRef_targetOid    NVARCHAR(36) COLLATE database_default,
+  wfObjectRef_type         INT,
+  wfProcessInstanceId      NVARCHAR(255) COLLATE database_default,
+  wfRequesterRef_relation  NVARCHAR(157) COLLATE database_default,
+  wfRequesterRef_targetOid NVARCHAR(36) COLLATE database_default,
+  wfRequesterRef_type      INT,
+  wfStartTimestamp         DATETIME2,
+  wfTargetRef_relation     NVARCHAR(157) COLLATE database_default,
+  wfTargetRef_targetOid    NVARCHAR(36) COLLATE database_default,
+  wfTargetRef_type         INT,
   oid                    NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -836,6 +848,18 @@ ALTER TABLE m_system_configuration
 ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm);
 
 CREATE INDEX iParent ON m_task (parent);
+
+CREATE INDEX iTaskWfProcessInstanceId ON m_task (wfProcessInstanceId);
+
+CREATE INDEX iTaskWfStartTimestamp ON m_task (wfStartTimestamp);
+
+CREATE INDEX iTaskWfEndTimestamp ON m_task (wfEndTimestamp);
+
+CREATE INDEX iTaskWfRequesterOid ON m_task (wfRequesterRef_targetOid);
+
+CREATE INDEX iTaskWfObjectOid ON m_task (wfObjectRef_targetOid);
+
+CREATE INDEX iTaskWfTargetOid ON m_task (wfTargetRef_targetOid);
 
 CREATE INDEX iTriggerTimestamp ON m_trigger (timestampValue);
 

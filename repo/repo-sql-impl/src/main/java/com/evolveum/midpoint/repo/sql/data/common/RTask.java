@@ -22,6 +22,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.*;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -45,6 +47,13 @@ import java.util.Set;
  * @author lazyman
  */
 @Entity
+@Table(name = "m_task", indexes = {
+		@javax.persistence.Index(name = "iTaskWfProcessInstanceId", columnList = "wfProcessInstanceId"),
+		@javax.persistence.Index(name = "iTaskWfStartTimestamp", columnList = "wfStartTimestamp"),
+		@javax.persistence.Index(name = "iTaskWfEndTimestamp", columnList = "wfEndTimestamp"),
+		@javax.persistence.Index(name = "iTaskWfRequesterOid", columnList = "wfRequesterRef_targetOid"),
+		@javax.persistence.Index(name = "iTaskWfObjectOid", columnList = "wfObjectRef_targetOid"),
+		@javax.persistence.Index(name = "iTaskWfTargetOid", columnList = "wfTargetRef_targetOid") })
 @ForeignKey(name = "fk_task")
 @Persister(impl = MidPointJoinedPersister.class)
 public class RTask extends RObject<TaskType> implements OperationResult {
@@ -72,6 +81,14 @@ public class RTask extends RObject<TaskType> implements OperationResult {
     private RThreadStopAction threadStopAction;
     private Set<String> dependent;
     private RTaskWaitingReason waitingReason;
+
+    // workflow-related information (note: objectRef is already present in task information)
+    private String wfProcessInstanceId;
+    private REmbeddedReference wfRequesterRef;
+    private REmbeddedReference wfObjectRef;
+    private REmbeddedReference wfTargetRef;
+    private XMLGregorianCalendar wfStartTimestamp;
+    private XMLGregorianCalendar wfEndTimestamp;
 
     @ElementCollection
     @ForeignKey(name = "fk_task_dependent")
@@ -146,6 +163,39 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         return name;
     }
 
+    @JaxbPath(itemPath = { @JaxbName(localPart = "workflowContext"), @JaxbName(localPart = "processInstanceId") })
+    public String getWfProcessInstanceId() {
+        return wfProcessInstanceId;
+    }
+
+    @JaxbPath(itemPath = { @JaxbName(localPart = "workflowContext"), @JaxbName(localPart = "requesterRef") })
+    @Embedded
+    public REmbeddedReference getWfRequesterRef() {
+        return wfRequesterRef;
+    }
+
+    @JaxbPath(itemPath = { @JaxbName(localPart = "workflowContext"), @JaxbName(localPart = "objectRef") })
+    @Embedded
+    public REmbeddedReference getWfObjectRef() {
+        return wfObjectRef;
+    }
+
+    @JaxbPath(itemPath = { @JaxbName(localPart = "workflowContext"), @JaxbName(localPart = "targetRef") })
+    @Embedded
+    public REmbeddedReference getWfTargetRef() {
+        return wfTargetRef;
+    }
+
+    @JaxbPath(itemPath = { @JaxbName(localPart = "workflowContext"), @JaxbName(localPart = "startTimestamp") })
+    public XMLGregorianCalendar getWfStartTimestamp() {
+        return wfStartTimestamp;
+    }
+
+    @JaxbPath(itemPath = { @JaxbName(localPart = "workflowContext"), @JaxbName(localPart = "endTimestamp") })
+    public XMLGregorianCalendar getWfEndTimestamp() {
+        return wfEndTimestamp;
+    }
+
     public void setName(RPolyString name) {
         this.name = name;
     }
@@ -172,6 +222,30 @@ public class RTask extends RObject<TaskType> implements OperationResult {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public void setWfProcessInstanceId(String wfProcessInstanceId) {
+        this.wfProcessInstanceId = wfProcessInstanceId;
+    }
+
+    public void setWfRequesterRef(REmbeddedReference wfRequesterRef) {
+        this.wfRequesterRef = wfRequesterRef;
+    }
+
+    public void setWfObjectRef(REmbeddedReference wfObjectRef) {
+        this.wfObjectRef = wfObjectRef;
+    }
+
+    public void setWfTargetRef(REmbeddedReference wfTargetRef) {
+        this.wfTargetRef = wfTargetRef;
+    }
+
+    public void setWfStartTimestamp(XMLGregorianCalendar wfStartTimestamp) {
+        this.wfStartTimestamp = wfStartTimestamp;
+    }
+
+    public void setWfEndTimestamp(XMLGregorianCalendar wfEndTimestamp) {
+        this.wfEndTimestamp = wfEndTimestamp;
     }
 
     public String getHandlerUri() {
@@ -289,6 +363,12 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         if (waitingReason != null ? !waitingReason.equals(rTask.waitingReason) : rTask.waitingReason != null)
             return false;
         if (status != rTask.status) return false;
+        if (wfRequesterRef != null ? !wfRequesterRef.equals(rTask.wfRequesterRef) : rTask.wfRequesterRef != null) return false;
+        if (wfObjectRef != null ? !wfObjectRef.equals(rTask.wfObjectRef) : rTask.wfObjectRef != null) return false;
+        if (wfTargetRef != null ? !wfTargetRef.equals(rTask.wfTargetRef) : rTask.wfTargetRef != null) return false;
+        if (wfProcessInstanceId != null ? !wfProcessInstanceId.equals(rTask.wfProcessInstanceId) : rTask.wfProcessInstanceId != null) return false;
+        if (wfStartTimestamp != null ? !wfStartTimestamp.equals(rTask.wfStartTimestamp) : rTask.wfStartTimestamp != null) return false;
+        if (wfEndTimestamp != null ? !wfEndTimestamp.equals(rTask.wfEndTimestamp) : rTask.wfEndTimestamp != null) return false;
 
         return true;
     }
@@ -341,6 +421,16 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         repo.setOwnerRefTask(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), prismContext));
         repo.setWaitingReason(RUtil.getRepoEnumValue(jaxb.getWaitingReason(), RTaskWaitingReason.class));
         repo.setDependent(RUtil.listToSet(jaxb.getDependent()));
+
+        WfContextType wfc = jaxb.getWorkflowContext();
+        if (wfc != null) {
+            repo.setWfProcessInstanceId(wfc.getProcessInstanceId());
+            repo.setWfRequesterRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getRequesterRef(), prismContext));
+            repo.setWfObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getObjectRef(), prismContext));
+            repo.setWfTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getTargetRef(), prismContext));
+            repo.setWfStartTimestamp(wfc.getStartTimestamp());
+            repo.setWfEndTimestamp(wfc.getEndTimestamp());
+        }
 
         RUtil.copyResultFromJAXB(taskDefinition, jaxb.F_RESULT, jaxb.getResult(), repo, prismContext);
     }

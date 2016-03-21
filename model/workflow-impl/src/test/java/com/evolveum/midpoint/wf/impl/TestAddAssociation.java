@@ -46,6 +46,7 @@ import org.testng.annotations.Test;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.File;
+import java.util.List;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
@@ -125,8 +126,8 @@ public class TestAddAssociation extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
                 IntegrationTestTools.display("model context from the root task", taskModelContext);
                 assertEquals("Wrong # of projection contexts in root task", 1, taskModelContext.getProjectionContexts().size());
                 assertTrue("There are modifications in primary focus delta", ObjectDelta.isNullOrEmpty(taskModelContext.getFocusContext().getPrimaryDelta()));
@@ -140,7 +141,7 @@ public class TestAddAssociation extends AbstractWfTest {
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 ShadowType account = getObject(ShadowType.class, jackAccountShadowOid).asObjectable();
                 IntegrationTestTools.display("jack dummy account", account);
                 assertHasAssociation(account, new QName("group"), GROUP_TESTERS_OID);
@@ -201,8 +202,8 @@ public class TestAddAssociation extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
                 IntegrationTestTools.display("model context from the root task", taskModelContext);
                 assertEquals("Wrong # of projection contexts in root task", 1, taskModelContext.getProjectionContexts().size());
                 assertTrue("There are modifications in primary focus delta", ObjectDelta.isNullOrEmpty(taskModelContext.getFocusContext().getPrimaryDelta()));
@@ -216,7 +217,7 @@ public class TestAddAssociation extends AbstractWfTest {
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 ShadowType account = getObject(ShadowType.class, elisabethAccountShadowOid).asObjectable();
                 IntegrationTestTools.display("elisabeth dummy account", account);
                 assertEquals("Unexpected associations present", 0, account.getAssociation().size());

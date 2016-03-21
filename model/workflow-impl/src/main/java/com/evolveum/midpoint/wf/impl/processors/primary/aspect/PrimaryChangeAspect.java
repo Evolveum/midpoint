@@ -17,26 +17,19 @@
 package com.evolveum.midpoint.wf.impl.processors.primary.aspect;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
-import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildJobCreationInstruction;
-import com.evolveum.midpoint.wf.impl.processors.primary.PcpJob;
+import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
+import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  *
@@ -71,9 +64,9 @@ public interface PrimaryChangeAspect {
      * @param objectTreeDeltas Change to be examined and modified by implementation of this method
      * @param taskFromModel General context of the operation - the method should not modify the task.
      * @param result Operation result - the method should report any errors here (TODO what about creating subresults?)    @return list of start process instructions
-     * @see com.evolveum.midpoint.wf.impl.jobs.JobCreationInstruction
+     * @see WfTaskCreationInstruction
      */
-    List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    List<PcpChildWfTaskCreationInstruction> prepareTasks(ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     /**
      * On process instance end, prepares deltaOut based in deltaIn and information gathered during approval process.
@@ -86,7 +79,7 @@ public interface PrimaryChangeAspect {
      * here may be more complex.
      * @throws SchemaException if there is any problem with the schema.
      */
-    ObjectTreeDeltas prepareDeltaOut(ProcessEvent event, PcpJob job, OperationResult result) throws SchemaException;
+    ObjectTreeDeltas prepareDeltaOut(ProcessEvent event, PcpWfTask job, OperationResult result) throws SchemaException;
 
     /**
      * Returns a list of users who have approved the particular request. This information is then stored in the task by the wf module,
@@ -100,47 +93,7 @@ public interface PrimaryChangeAspect {
      * @param result Operation result - the method should report any errors here.
      * @return List of references to approvers that approved this request.
      */
-    List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpJob job, OperationResult result);
-
-    /**
-     * Returns a PrismObject containing information about a work item to be processed by the user. For example, for 'approve role addition' process
-     * here is the RoleApprovalFormType prism object, having the following items:
-     * - user: to whom is a role being requested,
-     * - role: which role was requested to be added,
-     * - timeInterval: what is the validity time of the assignment that was requested,
-     * - requesterComment: a text that the requester entered when he requested the operation to be carried out,
-     * - comment - here the approver writes his comments on approving or rejecting the work item.
-     *
-     * @param task activiti task corresponding to the work item that is being displayed
-     * @param variables process instance variables at the point of invoking the work item (activiti task)
-     * @param result operation result where the operation status should be reported
-     * @return PrismObject containing the specific information about work item
-     * @throws SchemaException if any of key objects cannot be retrieved because of schema exception
-     * @throws ObjectNotFoundException if any of key objects cannot be found
-     */
-    PrismObject<? extends QuestionFormType> prepareQuestionForm(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
-
-    /**
-     * Returns a object related to the work item at hand. E.g. for 'approve role addition' process this method returns corresponding role object.
-     *
-     * @param task activiti task corresponding to the work item that is being displayed
-     * @param variables process instance variables at the point of invoking the work item (activiti task)
-     * @param result operation result where the operation status should be reported
-     * @return PrismObject containing the object related to the work item
-     * @throws SchemaException if the object cannot be retrieved because of schema exception
-     * @throws ObjectNotFoundException if the object cannot be found
-     */
-    PrismObject<? extends ObjectType> prepareRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
-
-    /**
-     * Externalizes internal state of the process instance. Typically, uninteresting (auxiliary) data elements
-     * are thrown away, internal representation suitable for workflow processing is replaced by "clean" prism
-     * object structure, and untyped Map[String,Object] is replaced by typed prism data.
-     *
-     * @param variables internal process state represented by a map
-     * @return external representation
-     */
-    ProcessSpecificState externalizeProcessInstanceState(Map<String, Object> variables);
+    List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpWfTask job, OperationResult result);
 
     /**
      * Returns true if this aspect is enabled by default, i.e. even if not listed in primary change processor configuration.

@@ -819,6 +819,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	 * E.g. they may both be MODIFY deltas even in case that the account should be created. The deltas begin to make sense
 	 * only if combined with sync decision. This method provides the deltas all combined and ready for execution.
 	 */
+	@Override
 	public ObjectDelta<ShadowType> getExecutableDelta() throws SchemaException {
 		SynchronizationPolicyDecision policyDecision = getSynchronizationPolicyDecision();
 		ObjectDelta<ShadowType> origDelta = getFixedDelta();

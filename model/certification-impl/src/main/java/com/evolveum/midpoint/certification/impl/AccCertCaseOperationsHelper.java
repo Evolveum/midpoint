@@ -161,7 +161,7 @@ public class AccCertCaseOperationsHelper {
                     new NameItemPathSegment(F_CASE),
                     new IdItemPathSegment(caseId),
                     new NameItemPathSegment(AccessCertificationCaseType.F_DECISION));
-            Collection<ItemDelta> deltaList = new ArrayList<>();
+            Collection<ItemDelta<?,?>> deltaList = new ArrayList<>();
 
             // let's remove existing decision and add the new one
             if (existingDecision != null) {
@@ -200,11 +200,11 @@ public class AccCertCaseOperationsHelper {
         }
     }
 
-    List<ItemDelta> getDeltasToCreateCases(
+    List<ItemDelta<?,?>> getDeltasToCreateCases(
             final AccessCertificationCampaignType campaign, AccessCertificationStageType stage,
             final CertificationHandler handler, final Task task, final OperationResult result) throws SchemaException, ObjectNotFoundException {
 
-        final List<ItemDelta> rv = new ArrayList<>();
+        final List<ItemDelta<?,?>> rv = new ArrayList<>();
 
         final String campaignShortName = ObjectTypeUtil.toShortString(campaign);
 
@@ -317,12 +317,12 @@ public class AccCertCaseOperationsHelper {
         return decisions;
     }
 
-    List<ItemDelta> getDeltasToAdvanceCases(AccessCertificationCampaignType campaign, AccessCertificationStageType stage, Task task, OperationResult result)
+    List<ItemDelta<?,?>> getDeltasToAdvanceCases(AccessCertificationCampaignType campaign, AccessCertificationStageType stage, Task task, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 
         LOGGER.trace("Advancing reviewers and timestamps for cases in {}", ObjectTypeUtil.toShortString(campaign));
         final List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaign.getOid(), null, null, result);
-        final List<ItemDelta> rv = new ArrayList<>(caseList.size());
+        final List<ItemDelta<?,?>> rv = new ArrayList<>(caseList.size());
 
         final int stageToBe = campaign.getStageNumber() + 1;
 
@@ -413,8 +413,8 @@ public class AccCertCaseOperationsHelper {
     }
 
     // computes outcomes at stage close (stage-level and overall) and creates appropriate deltas
-    List<ItemDelta> createOutcomeDeltas(AccessCertificationCampaignType campaign, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        final List<ItemDelta> rv = new ArrayList<>();
+    List<ItemDelta<?,?>> createOutcomeDeltas(AccessCertificationCampaignType campaign, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        final List<ItemDelta<?,?>> rv = new ArrayList<>();
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Updating current outcome for cases in {}", ObjectTypeUtil.toShortString(campaign));
@@ -472,7 +472,7 @@ public class AccCertCaseOperationsHelper {
                         new NameItemPathSegment(AccessCertificationCaseType.F_REMEDIED_TIMESTAMP)),
                 generalHelper.getCampaignObjectDefinition(), XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 
-        updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, Arrays.<ItemDelta>asList(reviewRemediedDelta), task, parentResult);
+        updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, Arrays.<ItemDelta<?,?>>asList(reviewRemediedDelta), task, parentResult);
     }
 
 

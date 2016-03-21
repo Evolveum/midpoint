@@ -103,11 +103,11 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
         }
         body.append("Notification created on: ").append(new Date()).append("\n\n");
 
-        if (techInfo) {
-            body.append("----------------------------------------\n");
-            body.append("Technical information:\n\n");
-            body.append(workflowEvent.getProcessInstanceState().debugDump());
-        }
+//        if (techInfo) {
+//            body.append("----------------------------------------\n");
+//            body.append("Technical information:\n\n");
+//            body.append(workflowEvent.getProcessInstanceState().debugDump());
+//        }
 
         return body.toString();
     }

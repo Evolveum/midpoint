@@ -25,16 +25,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.BaseProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LevelEvaluationStrategyType;
-
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.apache.commons.lang.Validate;
 
 import java.util.Date;
 import java.util.List;
+
+import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getActivitiInterface;
 
 /**
  * @author mederly
@@ -44,10 +44,6 @@ public class RecordIndividualDecision implements JavaDelegate {
     private static final Trace LOGGER = TraceManager.getTrace(RecordIndividualDecision.class);
 
     public void execute(DelegateExecution execution) {
-
-        ApprovalRequest approvalRequest = (ApprovalRequest) execution.getVariable(ProcessVariableNames.APPROVAL_REQUEST);
-        Validate.notNull(approvalRequest, "approvalRequest is null");
-        approvalRequest.setPrismContext(SpringApplicationContextHolder.getPrismContext());
 
         List<Decision> decisionList = (List<Decision>) execution.getVariable(ProcessVariableNames.DECISIONS_IN_LEVEL);
         Validate.notNull(decisionList, "decisionList is null");
@@ -103,7 +99,7 @@ public class RecordIndividualDecision implements JavaDelegate {
         }
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Logged decision '" + approved + "' for " + approvalRequest);
+            LOGGER.trace("Logged decision '" + approved + "'");
             LOGGER.trace("Resulting decision list = " + decisionList);
             LOGGER.trace("All decisions = " + allDecisions);
         }
@@ -115,7 +111,7 @@ public class RecordIndividualDecision implements JavaDelegate {
         }
         execution.setVariable(BaseProcessMidPointInterface.VARIABLE_WF_STATE, "User " + decision.getApproverName() + " decided to " + (decision.isApproved() ? "approve" : "refuse") + " the request.");
 
-        SpringApplicationContextHolder.getActivitiInterface().notifyMidpointAboutProcessEvent(execution);
+        getActivitiInterface().notifyMidpointAboutProcessEvent(execution);
     }
 
 }

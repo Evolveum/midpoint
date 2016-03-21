@@ -27,10 +27,12 @@ public interface S_ValuesEntry {
 
     S_MaybeDelete add(Object... realValues);
     S_MaybeDelete add(PrismValue... values);
+    S_MaybeDelete add(Collection<? extends PrismValue> values);
     S_ItemEntry delete(Object... realValues);
     S_ItemEntry delete(PrismValue... values);
+    S_ItemEntry delete(Collection<? extends PrismValue> values);
     S_ItemEntry replace(Object... realValues);
     S_ItemEntry replace(PrismValue... values);
-    S_ItemEntry replace(Collection<PrismValue> values);     // TODO
+    S_ItemEntry replace(Collection<? extends PrismValue> values);
 
 }

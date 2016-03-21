@@ -241,6 +241,9 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
     }
 
     public void addValues(Collection<PrismPropertyValue<T>> pValuesToAdd) {
+		if (pValuesToAdd == null) {
+			return;
+		}
     	for (PrismPropertyValue<T> pValue: pValuesToAdd) {
     		addValue(pValue);
     	}

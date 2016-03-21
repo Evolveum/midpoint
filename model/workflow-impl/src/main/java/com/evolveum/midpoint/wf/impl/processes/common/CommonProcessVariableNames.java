@@ -21,48 +21,57 @@ package com.evolveum.midpoint.wf.impl.processes.common;
  */
 public class CommonProcessVariableNames {
 
-    // Process instance name, e.g. "Approving adding Webmaster to JoeDoe". [String]
+    // [String]
+    // Process instance name, e.g. "Approving adding Webmaster to JoeDoe".
+	// Used for diagnostic purposes.
     public static final String VARIABLE_PROCESS_INSTANCE_NAME = "processInstanceName";
 
-    // When the process instance was started. [java.util.Date]
+	// [java.util.Date]
+    // When the process instance was started.
     public static final String VARIABLE_START_TIME = "startTime";
 
-    // OID of task related to the process instance. [String]
+	// [String]
+    // OID of task related to the process instance.
     public static final String VARIABLE_MIDPOINT_TASK_OID = "midPointTaskOid";
 
-    // Java class name of the change processor (the same as wf:changeProcessor task property) [String]
-    public static final String VARIABLE_MIDPOINT_CHANGE_PROCESSOR = "midPointChangeProcessor";
+	// [String]
+    // Java class name of the change processor (the same as wf:changeProcessor task property)
+    public static final String VARIABLE_CHANGE_PROCESSOR = "changeProcessor";
 
-    // OID of the user who requested the particular operation (e.g. adding of a role to another user).
-    // Used e.g. for searching for process instances requested by particular user. [String]
-    public static final String VARIABLE_MIDPOINT_REQUESTER_OID = "midPointRequesterOid";
+	// [LightweightObjectRef]
+    // Requester - OID + name + perhaps additional information
+    public static final String VARIABLE_REQUESTER_REF = "requesterRef";
 
-    // OID of the object (typically, a user) that is being changed within the operation. [String]
-    // In some cases (e.g. for PrimaryChangeProcessor) the OID is determined clearly.
-    // In other situations, e.g. for GeneralChangeProcessor there must be a code that provides
-    // this information. In some cases, there may be no OID - e.g. when an object is yet to be created.
-    //
-    // TODO think about storing also object class (currently we fetch an object from the repo as "ObjectType.class" but that's far from ideal).
-    public static final String VARIABLE_MIDPOINT_OBJECT_OID = "midPointObjectOid";
+	// [LightweightObjectRef]
+	// Object of the operation - if can be specified like this
+	public static final String VARIABLE_OBJECT_REF = "objectRef";
 
-    // Object that provides various utility methods for use in processes, e.g. getApprover(RoleType r). [ActivitiUtil]
-    public static final String VARIABLE_UTIL = "util";
+	// [LightweightObjectRef]
+	// Target of the operation - if any
+	public static final String VARIABLE_TARGET_REF = "targetRef";
 
-    // Basic decision returned from a work item.
-    // for most work items it is simple __APPROVED__ or __REJECTED__, but in principle this can be any string value
-    public static final String FORM_FIELD_DECISION = "[H]decision";
-
-    // Comment related to that decision - set by user task (form). [String]
-    // this value is put into audit record, so its advisable to use this particular name
-    public static final String FORM_FIELD_COMMENT = "comment";
-
-    public static final String FORM_BUTTON_PREFIX = "[B]";
-
+	// [Boolean]
     // A signal that the process instance is being stopped. Used e.g. to suppress propagation of exceptions
     // occurring in the process instance end listener.
-    // [Boolean]
-    public static final String VARIABLE_MIDPOINT_IS_PROCESS_INSTANCE_STOPPING = "midPointIsProcessInstanceStopping";
+    public static final String VARIABLE_PROCESS_INSTANCE_IS_STOPPING = "processInstanceIsStopping";
 
-    // Name of process interface bean (ProcessMidPointInterface implementation) that is related to this process [String]
-    public static final String VARIABLE_MIDPOINT_PROCESS_INTERFACE_BEAN_NAME = "midPointProcessInterfaceBeanName";
+	// [String]
+    // Name of process interface bean (ProcessMidPointInterface implementation) that is related to this process
+    public static final String VARIABLE_PROCESS_INTERFACE_BEAN_NAME = "processInterfaceBeanName";
+
+	// [ActivitiUtil]
+	// Object that provides various utility methods for use in processes, e.g. getApprover(RoleType r).
+	public static final String VARIABLE_UTIL = "util";
+
+	// [String]
+	// Basic decision returned from a work item.
+	// for most work items it is simple __APPROVED__ or __REJECTED__, but in principle this can be any string value
+	public static final String FORM_FIELD_DECISION = "[H]decision";
+
+	// [String]
+	// Comment related to that decision - set by user task (form).
+	// this value is put into audit record, so its advisable to use this particular name
+	public static final String FORM_FIELD_COMMENT = "comment";
+
+	public static final String FORM_BUTTON_PREFIX = "[B]";
 }
