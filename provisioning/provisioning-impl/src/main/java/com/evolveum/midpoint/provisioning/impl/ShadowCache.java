@@ -283,7 +283,10 @@ public abstract class ShadowCache {
 				LOGGER.trace("Resource object fetched from resource:\n{}", resourceShadow.debugDump());
 			}
 			
-			shadowManager.updateRepoShadow(shadowCtx, resourceShadow.asObjectable(), repositoryShadow.asObjectable(), parentResult);
+			repositoryShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repositoryShadow, parentResult);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Repository shadow after update:\n{}", repositoryShadow.debugDump());
+			}
 			// Complete the shadow by adding attributes from the resource object
 			PrismObject<ShadowType> resultShadow = completeShadow(shadowCtx, resourceShadow, repositoryShadow, parentResult);
 			
@@ -734,7 +737,7 @@ public abstract class ShadowCache {
 						// This determines the definitions exactly. How the repo shadow should have proper kind/intent
 						ProvisioningContext shadowCtx = applyAttributesDefinition(ctx, repoShadow);
 						
-						shadowManager.updateRepoShadow(shadowCtx, resourceShadow.asObjectable(), repoShadow.asObjectable(), parentResult);
+						repoShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repoShadow, parentResult);
 
 						resultShadow = completeShadow(shadowCtx, resourceShadow, repoShadow, parentResult);
 
@@ -1331,7 +1334,6 @@ public abstract class ShadowCache {
 		
 		if (oldShadow != null) {
 			applyAttributesDefinition(ctx, oldShadow);
-			ShadowType oldShadowType = oldShadow.asObjectable();
 
 			LOGGER.trace("Old shadow: {}", oldShadow);
 
@@ -1348,8 +1350,7 @@ public abstract class ShadowCache {
 				PrismObject<ShadowType> currentShadow = completeShadow(ctx, change.getCurrentShadow(), 
 						oldShadow, parentResult);
 				change.setCurrentShadow(currentShadow);
-				ShadowType currentShadowType = currentShadow.asObjectable();
-				shadowManager.updateRepoShadow(ctx, currentShadowType, oldShadowType, parentResult);
+				shadowManager.updateShadow(ctx, currentShadow, oldShadow, parentResult);
 			}
 
 			// FIXME: hack. the object delta must have oid specified.
@@ -1550,12 +1551,10 @@ public abstract class ShadowCache {
 			PrismProperty<QName> resultAuxOcProp = resultShadow.findOrCreateProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS);
 			resultAuxOcProp.addAll(PrismPropertyValue.cloneCollection(resourceAuxOcProp.getValues()));
 		}
-		
+
+		resultShadowType.setName(new PolyStringType(ShadowUtil.determineShadowName(resourceShadow)));
 		if (resultShadowType.getObjectClass() == null) {
 			resultShadowType.setObjectClass(resourceAttributesContainer.getDefinition().getTypeName());
-		}
-		if (resultShadowType.getName() == null) {
-			resultShadowType.setName(new PolyStringType(ShadowUtil.determineShadowName(resourceShadow)));
 		}
 		if (resultShadowType.getResource() == null) {
 			resultShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(ctx.getResource()));
