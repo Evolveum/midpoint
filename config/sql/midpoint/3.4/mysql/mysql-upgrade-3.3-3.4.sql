@@ -24,8 +24,6 @@ CREATE INDEX iTaskWfObjectOid ON m_task (wfObjectRef_targetOid);
 
 CREATE INDEX iTaskWfTargetOid ON m_task (wfTargetRef_targetOid);
 
-CREATE INDEX iTriggerTimestamp ON m_trigger (timestampValue);
-
 ALTER TABLE m_abstract_role
   ADD ownerRef_relation  VARCHAR(157),
   ADD ownerRef_targetOid VARCHAR(36),

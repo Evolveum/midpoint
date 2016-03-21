@@ -24,5 +24,3 @@ CREATE INDEX iTaskWfRequesterOid ON m_task (wfRequesterRef_targetOid) INITRANS 3
 CREATE INDEX iTaskWfObjectOid ON m_task (wfObjectRef_targetOid) INITRANS 30;
 
 CREATE INDEX iTaskWfTargetOid ON m_task (wfTargetRef_targetOid) INITRANS 30;
-
-CREATE INDEX iTriggerTimestamp ON m_trigger (timestampValue) INITRANS 30;
