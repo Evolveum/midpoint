@@ -48,12 +48,12 @@ public class SceneItemLineDto implements Serializable {
 		return sceneItemDto.getName();
 	}
 
-	public String getOldValue() {
-		return sceneItemOldValue != null ? sceneItemOldValue.getText() : null;
+	public SceneItemValue getOldValue() {
+		return sceneItemOldValue;
 	}
 
-	public String getNewValue() {
-		return sceneItemNewValue != null ? sceneItemNewValue.getText() : null;
+	public SceneItemValue getNewValue() {
+		return sceneItemNewValue;
 	}
 
 	public Integer getNumberOfLines() {
