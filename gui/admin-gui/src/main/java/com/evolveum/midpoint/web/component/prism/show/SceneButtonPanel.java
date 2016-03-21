@@ -16,21 +16,23 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
-import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.image.Image;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.resource.PackageResourceReference;
 
 /**
  * @author mserbak
  * @author lazyman
  */
 public class SceneButtonPanel extends Panel {
+
+    public static final String ID_MINIMIZE_BUTTON = "minimizeButton";
+    public static final String ID_ICON = "icon";
 
     public SceneButtonPanel(String id, IModel<SceneDto> model) {
         super(id);
@@ -39,7 +41,7 @@ public class SceneButtonPanel extends Panel {
     }
 
     private void initLayout(final IModel<SceneDto> model) {
-        AjaxLink minimize = new AjaxLink("minimizeButton") {
+        AjaxLink minimize = new AjaxLink(ID_MINIMIZE_BUTTON) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -48,29 +50,32 @@ public class SceneButtonPanel extends Panel {
         };
         add(minimize);
 
-        Image minimizeImg = new Image("minimizeImg", new AbstractReadOnlyModel() {
+        Label icon = new Label(ID_ICON);
+        icon.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
 
             @Override
-            public Object getObject() {
+            public String getObject() {
                 SceneDto dto = model.getObject();
                 if (dto.isMinimized()) {
-                    return new PackageResourceReference(PrismObjectPanel.class, "Maximize.png");
+                    return "fa fa-expand";
                 }
-                return new PackageResourceReference(PrismObjectPanel.class, "Minimize.png");
-            }
-        });
-        minimizeImg.add(new AttributeAppender("title", new AbstractReadOnlyModel() {
 
-			@Override
-			public Object getObject() {
-				SceneDto dto = model.getObject();
+                return "fa fa-compress";
+            }
+        }));
+        minimize.add(icon);
+
+        icon.add(new AttributeAppender("title", new AbstractReadOnlyModel() {
+
+            @Override
+            public String getObject() {
+                SceneDto dto = model.getObject();
                 if (dto.isMinimized()) {
                     return getString("prismOptionButtonPanel.maximize");
                 }
                 return getString("prismOptionButtonPanel.minimize");
-			}
-		}, ""));
-        minimize.add(minimizeImg);
+            }
+        }, ""));
     }
 
     public void minimizeOnClick(AjaxRequestTarget target) {

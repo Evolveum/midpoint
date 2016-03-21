@@ -96,7 +96,9 @@ public class ScenePanel extends BasePanel<SceneDto> {
 		});
 
 		Label headerChangeType = new Label(ID_HEADER_CHANGE_TYPE, new ChangeTypeModel());
+		headerChangeType.setRenderBodyOnly(true);
 		Label headerObjectType = new Label(ID_HEADER_OBJECT_TYPE, new ObjectTypeModel());
+		headerObjectType.setRenderBodyOnly(true);
         Label headerName = new Label(ID_HEADER_NAME, new PropertyModel<String>(model, SceneDto.F_NAME));
         Label headerDescription = new Label(ID_HEADER_DESCRIPTION, new PropertyModel<String>(model, SceneDto.F_DESCRIPTION));
         Label headerWrapperDisplayName = new Label(ID_HEADER_WRAPPER_DISPLAY_NAME,
