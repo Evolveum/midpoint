@@ -141,6 +141,7 @@ public class PageWorkItem extends PageAdminWorkItems {
                 throw new SystemException("No work item with ID of " + id);
             }
             workItemDto = new WorkItemDto(workItems.get(0));
+			workItemDto.prepareDeltaVisualization(createStringResource("pageWorkItem.delta").getObject(), getPrismContext(), getModelInteractionService(), task, result);
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get work item.", ex);
@@ -158,7 +159,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         mainForm.setMultiPart(true);
         add(mainForm);
 
-        mainForm.add(new WorkItemPanel(ID_WORK_ITEM_PANEL, workItemDtoModel));
+        mainForm.add(new WorkItemPanel(ID_WORK_ITEM_PANEL, workItemDtoModel, this));
 
         initButtons(mainForm);
     }

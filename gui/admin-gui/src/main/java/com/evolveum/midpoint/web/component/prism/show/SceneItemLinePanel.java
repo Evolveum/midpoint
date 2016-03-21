@@ -24,7 +24,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -45,7 +44,7 @@ public class SceneItemLinePanel extends BasePanel<SceneItemLineDto> {
 
     private PageBase pageBase;
 
-    public SceneItemLinePanel(String id, IModel<SceneItemLineDto> model, Form form, PageBase pageBase) {
+    public SceneItemLinePanel(String id, IModel<SceneItemLineDto> model, PageBase pageBase) {
         super(id, model);
         setOutputMarkupId(true);
 

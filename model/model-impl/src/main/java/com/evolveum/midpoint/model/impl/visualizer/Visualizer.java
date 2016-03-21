@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -150,6 +151,7 @@ public class Visualizer {
 		return rv;
 	}
 
+	@NotNull
 	public SceneImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, Task task, OperationResult parentResult) throws SchemaException {
 		OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualizeDelta");
 		try {

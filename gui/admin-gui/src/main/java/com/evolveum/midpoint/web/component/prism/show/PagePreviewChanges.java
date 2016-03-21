@@ -122,8 +122,8 @@ public class PagePreviewChanges extends PageAdminWorkItems {		// TODO extends
 		mainForm.setMultiPart(true);
 		add(mainForm);
 
-		mainForm.add(new ScenePanel(ID_PRIMARY_DELTAS_SCENE, primaryDeltasModel, mainForm, this));
-		mainForm.add(new ScenePanel(ID_SECONDARY_DELTAS_SCENE, secondaryDeltasModel, mainForm, this));
+		mainForm.add(new ScenePanel(ID_PRIMARY_DELTAS_SCENE, primaryDeltasModel, this));
+		mainForm.add(new ScenePanel(ID_SECONDARY_DELTAS_SCENE, secondaryDeltasModel, this));
 		initButtons(mainForm);
 	}
 

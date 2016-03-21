@@ -17,8 +17,16 @@
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.show.SceneDto;
+import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -43,18 +51,34 @@ public class WorkItemDto extends Selectable {
     public static final String F_APPROVER_COMMENT = "approverComment";
 
     public static final String F_WORKFLOW_CONTEXT = "workflowContext";          // use with care
+	public static final String F_DELTAS = "deltas";
 
-    // workItem may or may not contain resolved taskRef;
+	// workItem may or may not contain resolved taskRef;
     // and this task may or may not contain filled-in workflowContext -> and then requesterRef object
     //
     // Depending on expected use (work item list vs. work item details)
 
     protected WorkItemType workItem;
+	protected SceneDto deltas;
     protected String approverComment;
 
     public WorkItemDto(WorkItemType workItem) {
         this.workItem = workItem;
     }
+
+	public void prepareDeltaVisualization(String sceneName, PrismContext prismContext,
+			ModelInteractionService modelInteractionService, Task opTask, OperationResult result) throws SchemaException {
+		TaskType task = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
+		if (task == null || task.getWorkflowContext() == null) {
+			return;
+		}
+		if (!(task.getWorkflowContext().getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
+			return;
+		}
+		WfPrimaryChangeProcessorStateType state = (WfPrimaryChangeProcessorStateType) task.getWorkflowContext().getProcessorSpecificState();
+		Scene deltasScene = SceneUtil.visualizeObjectTreeDeltas(state.getDeltasToProcess(), sceneName, null, prismContext, modelInteractionService, opTask, result);
+		deltas = new SceneDto(deltasScene);
+	}
 
     public String getWorkItemId() {
         return workItem.getWorkItemId();
@@ -159,4 +183,8 @@ public class WorkItemDto extends Selectable {
     public WorkItemType getWorkItem() {
         return workItem;
     }
+
+	public SceneDto getDeltas() {
+		return deltas;
+	}
 }

@@ -424,6 +424,9 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
     private List<DeltaDto> objectTreeDeltasToDeltaDtoList(ObjectTreeDeltasType deltas, PrismContext prismContext) throws SchemaException {
         List<DeltaDto> retval = new ArrayList<DeltaDto>();
+		if (deltas == null) {
+			return retval;
+		}
         ObjectDeltaType focusDelta = deltas.getFocusPrimaryDelta();
         if (focusDelta != null) {
             retval.add(new DeltaDto(DeltaConvertor.createObjectDelta(focusDelta, prismContext)));

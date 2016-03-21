@@ -19,7 +19,6 @@ package com.evolveum.midpoint.web.component.prism.show;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -41,19 +40,19 @@ public class SceneItemPanel extends Panel {
     private boolean showHeader = true;
     private PageBase pageBase;
 
-    public SceneItemPanel(String id, IModel<SceneItemDto> model, Form form, PageBase pageBase) {
+    public SceneItemPanel(String id, IModel<SceneItemDto> model, PageBase pageBase) {
         super(id);
         setOutputMarkupId(true);
 
         this.pageBase = pageBase;
-        initLayout(model, form);
+        initLayout(model);
     }
 
-    private void initLayout(final IModel<SceneItemDto> model, final Form form) {
+    private void initLayout(final IModel<SceneItemDto> model) {
 		ListView<SceneItemLineDto> items = new ListView<SceneItemLineDto>(ID_ITEM_LINES, new PropertyModel<List<SceneItemLineDto>>(model, SceneItemDto.F_LINES)) {
 			@Override
 			protected void populateItem(ListItem<SceneItemLineDto> item) {
-				SceneItemLinePanel panel = new SceneItemLinePanel(ID_ITEM_LINE, item.getModel(), form, pageBase);
+				SceneItemLinePanel panel = new SceneItemLinePanel(ID_ITEM_LINE, item.getModel(), pageBase);
 				panel.setOutputMarkupPlaceholderTag(true);
 				item.add(panel);
 			}

@@ -30,7 +30,6 @@ import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -65,14 +64,14 @@ public class ScenePanel extends BasePanel<SceneDto> {
 
     private PageBase pageBase;
 
-    public ScenePanel(String id, IModel<SceneDto> model, Form form, PageBase pageBase) {
+    public ScenePanel(String id, IModel<SceneDto> model, PageBase pageBase) {
         super(id, model);
         setOutputMarkupId(true);
 
         LOGGER.trace("Creating object panel for {}", model.getObject());
 
         this.pageBase = pageBase;
-        initLayout(form);
+        initLayout();
     }
 
     private AjaxEventBehavior createHeaderOnClickBehaviour(final IModel<SceneDto> model) {
@@ -84,7 +83,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
         };
     }
 
-    private void initLayout(final Form form) {
+    private void initLayout() {
 		final IModel<SceneDto> model = getModel();
 
         WebMarkupContainer headerPanel = new WebMarkupContainer(ID_HEADER_PANEL);
@@ -157,7 +156,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 		ListView<SceneItemDto> items = new ListView<SceneItemDto>(ID_ITEMS, new PropertyModel<List<SceneItemDto>>(model, SceneDto.F_ITEMS)) {
 			@Override
 			protected void populateItem(ListItem<SceneItemDto> item) {
-				SceneItemPanel panel = new SceneItemPanel(ID_ITEM, item.getModel(), form, pageBase);
+				SceneItemPanel panel = new SceneItemPanel(ID_ITEM, item.getModel(), pageBase);
 				panel.setOutputMarkupPlaceholderTag(true);
 				item.add(panel);
 			}
@@ -169,7 +168,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
         ListView<SceneDto> partialScenes = new ListView<SceneDto>(ID_PARTIAL_SCENES, new PropertyModel<List<SceneDto>>(model, SceneDto.F_PARTIAL_SCENES)) {
             @Override
             protected void populateItem(ListItem<SceneDto> item) {
-                ScenePanel panel = new ScenePanel(ID_PARTIAL_SCENE, item.getModel(), form, pageBase);
+                ScenePanel panel = new ScenePanel(ID_PARTIAL_SCENE, item.getModel(), pageBase);
 				panel.setOutputMarkupPlaceholderTag(true);
 				item.add(panel);
             }

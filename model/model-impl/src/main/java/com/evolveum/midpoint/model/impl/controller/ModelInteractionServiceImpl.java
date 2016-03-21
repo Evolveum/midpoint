@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -622,6 +623,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Override
 	public List<? extends Scene> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) throws SchemaException {
 		return visualizer.visualizeDeltas(deltas, task, result);
+	}
+
+	@Override
+	@NotNull
+	public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result) throws SchemaException {
+		return visualizer.visualizeDelta(delta, task, result);
 	}
 
 }

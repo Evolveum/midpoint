@@ -16,8 +16,10 @@
 package com.evolveum.midpoint.web.page.admin.workflow;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
 import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalHistoryPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import org.apache.wicket.markup.html.basic.Label;
@@ -38,16 +40,16 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
     private static final String ID_WORK_ITEM_CREATED_ON = "workItemCreatedOn";
     private static final String ID_ASSIGNEE = "assignee";
     private static final String ID_CANDIDATES = "candidates";
-    private static final String ID_DELTA_TO_BE_APPROVED = "deltaToBeApproved";
+    private static final String ID_DELTAS_TO_BE_APPROVED = "deltasToBeApproved";
     private static final String ID_HISTORY = "history";
     private static final String ID_APPROVER_COMMENT = "approverComment";
 
-    public WorkItemPanel(String id, IModel<WorkItemDto> model) {
+    public WorkItemPanel(String id, IModel<WorkItemDto> model, PageBase pageBase) {
         super(id, model);
-        initLayout();
+        initLayout(pageBase);
     }
 
-    protected void initLayout() {
+    protected void initLayout(PageBase pageBase) {
         add(new Label(ID_REQUESTED_BY, new PropertyModel(getModel(), WorkItemDto.F_REQUESTER_NAME)));
         add(new Label(ID_REQUESTED_BY_FULL_NAME, new PropertyModel(getModel(), WorkItemDto.F_REQUESTER_FULL_NAME)));
         add(new Label(ID_REQUESTED_ON, new PropertyModel(getModel(), WorkItemDto.F_PROCESS_STARTED)));
@@ -55,7 +57,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
         add(new Label(ID_ASSIGNEE, new PropertyModel(getModel(), WorkItemDto.F_ASSIGNEE)));
         add(new Label(ID_CANDIDATES, new PropertyModel(getModel(), WorkItemDto.F_CANDIDATES)));
         add(new ItemApprovalHistoryPanel(ID_HISTORY, new PropertyModel(getModel(), WorkItemDto.F_WORKFLOW_CONTEXT)));
-        //add(new DeltaPanel(ID_DELTA_TO_BE_APPROVED, deltaModel));
+        add(new ScenePanel(ID_DELTAS_TO_BE_APPROVED, new PropertyModel(getModel(), WorkItemDto.F_DELTAS), pageBase));
         add(new TextArea(ID_APPROVER_COMMENT, new PropertyModel(getModel(), WorkItemDto.F_APPROVER_COMMENT)));
     }
 
