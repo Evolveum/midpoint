@@ -511,7 +511,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		if (selected != null) {
 			provider.setType(selected.getClassDefinition());
-//			addOrReplaceTable(provider);
+			addOrReplaceTable(provider);
 		}
 
 		// save object type category to session storage, used by back button

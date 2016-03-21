@@ -571,24 +571,29 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public Collection<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() throws SchemaException {
     	if (auxiliaryObjectClassDefinitions == null) {
-			RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
-			if (refinedSchema == null) {
-				return null;
-			}
-			List<QName> auxiliaryObjectClassQNames = new ArrayList<>();
-			addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, getObjectOld());
-			addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, getObjectNew());
-			auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
-			for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
-				RefinedObjectClassDefinition auxiliaryObjectClassDef = refinedSchema.getRefinedDefinition(auxiliaryObjectClassQName);
-				if (auxiliaryObjectClassDef == null) {
-					throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+this+" does not exist");
-				}
-				auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
-			}
+    		refreshAuxiliaryObjectClassDefinitions();
     	}
     	return auxiliaryObjectClassDefinitions;
 	}
+    
+    public void refreshAuxiliaryObjectClassDefinitions() throws SchemaException {
+    	RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
+		if (refinedSchema == null) {
+			return;
+		}
+		List<QName> auxiliaryObjectClassQNames = new ArrayList<>();
+		addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, getObjectOld());
+		addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, getObjectNew());
+		auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
+		for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
+			RefinedObjectClassDefinition auxiliaryObjectClassDef = refinedSchema.getRefinedDefinition(auxiliaryObjectClassQName);
+			if (auxiliaryObjectClassDef == null) {
+				throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+this+" does not exist");
+			}
+			auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
+		}
+		compositeObjectClassDefinition = null;
+    }
     
     public CompositeRefinedObjectClassDefinition getCompositeObjectClassDefinition() throws SchemaException {
     	if (compositeObjectClassDefinition == null) {

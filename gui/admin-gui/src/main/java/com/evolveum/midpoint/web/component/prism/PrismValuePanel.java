@@ -49,7 +49,9 @@ import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.model.delta.ModificationsPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.component.AssociationValueChoicePanel;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -434,9 +436,12 @@ public class PrismValuePanel extends Panel {
                   panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(model, baseExpression));
                   
               } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
+                  boolean showRemovePasswordButton = true;
+                  if (((PageUser)pageBase).getObjectWrapper().getObject().getOid().equals(SecurityUtils.getPrincipalUser().getOid())){
+                      showRemovePasswordButton = false;
+                  }
                   panel = new PasswordPanel(id, new PropertyModel<ProtectedStringType>(model, baseExpression),
-                          model.getObject().isReadonly());
-                  
+                          model.getObject().isReadonly(), showRemovePasswordButton);
               } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
                   panel = new TriStateComboPanel(id, new PropertyModel<Boolean>(model, baseExpression));
                   

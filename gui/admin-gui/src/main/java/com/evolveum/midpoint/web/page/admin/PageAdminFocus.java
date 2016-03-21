@@ -208,7 +208,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 					
 				}
 			}
-			goBackPage();
+			redirectBack();
 		} else {
             getProgressReporter().showBackButton(target);
             getProgressReporter().hideAbortButton(target);

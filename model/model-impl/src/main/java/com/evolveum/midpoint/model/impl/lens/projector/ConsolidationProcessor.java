@@ -18,8 +18,10 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
+import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
@@ -78,6 +80,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -229,12 +232,6 @@ public class ConsolidationProcessor {
         ResourceShadowDiscriminator discr = projCtx.getResourceShadowDiscriminator();
         ObjectDelta<ShadowType> objectDelta = new ObjectDelta<ShadowType>(ShadowType.class, ChangeType.MODIFY, prismContext);
         objectDelta.setOid(projCtx.getOid());
-
-        RefinedObjectClassDefinition rOcDef = projCtx.getCompositeObjectClassDefinition();
-        if (rOcDef == null) {
-            LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", discr, context.debugDump());
-            throw new IllegalStateException("Definition for account type " + discr + " not found in the context, but it should be there");
-        }
         
 		// Do not automatically load the full projection now. Even if we have weak mapping.
         // That may be a waste of resources if the weak mapping results in no change anyway.
@@ -268,6 +265,68 @@ public class ConsolidationProcessor {
 		boolean completeAccount = projCtx.hasFullShadow();
         
         ObjectDelta<ShadowType> existingDelta = projCtx.getDelta();
+        
+        // AUXILIARY OBJECT CLASSES
+        ItemPath auxiliaryObjectClassItemPath = new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS);
+        PrismPropertyDefinition<QName> auxiliaryObjectClassPropertyDef = projCtx.getObjectDefinition().findPropertyDefinition(auxiliaryObjectClassItemPath);
+        PropertyDelta<QName> auxiliaryObjectClassAPrioriDelta = null;
+        RefinedResourceSchema refinedSchema = projCtx.getRefinedResourceSchema();
+        List<QName> auxOcNames = new ArrayList<>(); 
+        List<RefinedObjectClassDefinition> auxOcDefs = new ArrayList<>(); 
+        ObjectDelta<ShadowType> projDelta = projCtx.getDelta();
+        if (projDelta != null) {
+        	auxiliaryObjectClassAPrioriDelta = projDelta.findPropertyDelta(auxiliaryObjectClassItemPath);
+        }
+        for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> entry : squeezedAuxiliaryObjectClasses.entrySet()) {
+        	DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>> ivwoTriple = entry.getValue();
+        	
+        	LOGGER.trace("CONSOLIDATE auxiliary object classes ({})", new Object[]{ discr });
+        	if (LOGGER.isTraceEnabled()) {
+        		LOGGER.trace("Auxiliary object class triple:\n{}",ivwoTriple.debugDump());
+        	}
+        	
+        	for (ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>> ivwo: ivwoTriple.getAllValues()) {
+	        	QName auxObjectClassName = ivwo.getItemValue().getValue();
+	        	if (auxOcNames.contains(auxObjectClassName)) {
+	        		continue;
+	        	}
+	        	auxOcNames.add(auxObjectClassName);
+	        	RefinedObjectClassDefinition auxOcDef = refinedSchema.getRefinedDefinition(auxObjectClassName);
+	        	if (auxOcDef == null) {
+	        		LOGGER.error("Auxiliary object class definition {} for {} not found in the schema, but it should be there, dumping context:\n{}",
+	        				auxObjectClassName, discr, context.debugDump());
+	                throw new IllegalStateException("Auxiliary object class definition " + auxObjectClassName + " for "+ discr + " not found in the context, but it should be there");
+	        	}
+	        	auxOcDefs.add(auxOcDef);
+        	}
+        	
+        	ItemDelta<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>> itemDelta = LensUtil.consolidateTripleToDelta(
+        			auxiliaryObjectClassItemPath, ivwoTriple, auxiliaryObjectClassPropertyDef,
+        			auxiliaryObjectClassAPrioriDelta, projCtx.getObjectNew(), null, null, addUnchangedValues, completeAccount, false, 
+        			discr.toHumanReadableString(), false);
+        	PropertyDelta<QName> propDelta = (PropertyDelta)itemDelta;
+        	
+        	if (LOGGER.isTraceEnabled()) {
+        		LOGGER.trace("Auxiliary object class delta:\n{}",propDelta.debugDump());
+        	}
+        	
+        	if (!propDelta.isEmpty()) {
+        		objectDelta.addModification(propDelta);
+        	}
+        }
+
+        RefinedObjectClassDefinition structuralObjectClassDefinition = projCtx.getStructuralObjectClassDefinition();
+        if (structuralObjectClassDefinition == null) {
+            LOGGER.error("Structural object class definition for {} not found in the context, but it should be there, dumping context:\n{}", discr, context.debugDump());
+            throw new IllegalStateException("Structural object class definition for " + discr + " not found in the context, but it should be there");
+        }
+
+        RefinedObjectClassDefinition rOcDef = new CompositeRefinedObjectClassDefinition(
+				structuralObjectClassDefinition, auxOcDefs);
+        
+        if (LOGGER.isTraceEnabled()) {
+        	LOGGER.trace("Object class definition for {} consolidation:\n{}", discr, rOcDef.debugDump());
+        }
 
         // ATTRIBUTES
         // Iterate and process each attribute separately. Now that we have squeezed the data we can process each attribute just
@@ -290,38 +349,6 @@ public class ConsolidationProcessor {
         			addUnchangedValues, completeAccount, associationName, triple);
         	if (containerDelta != null) {
         		objectDelta.addModification(containerDelta);
-        	}
-        }
-        
-        // AUXILIARY OBJECT CLASSES
-        ItemPath auxiliaryObjectClassItemPath = new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS);
-        PrismPropertyDefinition<QName> auxiliaryObjectClassPropertyDef = projCtx.getObjectDefinition().findPropertyDefinition(auxiliaryObjectClassItemPath);
-        PropertyDelta<QName> auxiliaryObjectClassAPrioriDelta = null;
-        ObjectDelta<ShadowType> projDelta = projCtx.getDelta();
-        if (projDelta != null) {
-        	auxiliaryObjectClassAPrioriDelta = projDelta.findPropertyDelta(auxiliaryObjectClassItemPath);
-        }
-        for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> entry : squeezedAuxiliaryObjectClasses.entrySet()) {
-        	DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>> ivwoTriple = entry.getValue();
-        	
-        	LOGGER.trace("CONSOLIDATE auxiliary object classes\n({})",
-            		new Object[]{ discr });
-        	if (LOGGER.isTraceEnabled()) {
-        		LOGGER.trace("Auxiliary object class triple:\n{}",ivwoTriple.debugDump());
-        	}
-        	
-        	ItemDelta<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>> itemDelta = LensUtil.consolidateTripleToDelta(
-        			auxiliaryObjectClassItemPath, ivwoTriple, auxiliaryObjectClassPropertyDef,
-        			auxiliaryObjectClassAPrioriDelta, projCtx.getObjectNew(), null, null, addUnchangedValues, completeAccount, false, 
-        			discr.toHumanReadableString(), false);
-        	PropertyDelta<QName> propDelta = (PropertyDelta)itemDelta;
-        	
-        	if (LOGGER.isTraceEnabled()) {
-        		LOGGER.trace("Auxiliary object class delta:\n{}",propDelta.debugDump());
-        	}
-        	
-        	if (!propDelta.isEmpty()) {
-        		objectDelta.addModification(propDelta);
         	}
         }
         

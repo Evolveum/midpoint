@@ -617,28 +617,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		
 	}
 	
-	// TODO: fix name, confusing. clashes with goBack()
-	// todo: we should navigate using breadcrumb stack [lazyman]
-	@Deprecated
-	public void goBackPage() {
-		StringValue orgReturn = getPageParameters().get(PARAM_RETURN_PAGE);
-        if (PageOrgTree.PARAM_ORG_RETURN.equals(orgReturn.toString())) {
-            setResponsePage(getSessionStorage().getPreviousPage());
-        } else if (getPreviousPage() != null) {
-            goBack(PageDashboard.class);        // the class parameter is not necessary, is previousPage is set
-        } else if (getSessionStorage() != null){
-        	if (getSessionStorage().getPreviousPageInstance() != null){
-        		setResponsePage(getSessionStorage().getPreviousPageInstance());
-        	} else if (getSessionStorage().getPreviousPage() != null){
-        		setResponsePage(getSessionStorage().getPreviousPage());
-        	} else {
-        		setResponsePage(getDefaultBackPage());
-        	}
-        } else {
-        	setResponsePage(getDefaultBackPage());
-        }
-    }
-	
 	public abstract PageBase getDefaultBackPage();
 	
 	public List<ObjectFormType> getObjectFormTypes() {

@@ -59,6 +59,9 @@ public class PageWorkItems extends PageAdminWorkItems {
     private static final String OPERATION_RELEASE_ITEM = DOT_CLASS + "releaseItem";
     private static final String ID_WORK_ITEMS_PANEL = "workItemsPanel";
 
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_WORK_ITEM_TABLE = "workItemTable";
+
     boolean assigned;
 
     public PageWorkItems() {
@@ -72,7 +75,7 @@ public class PageWorkItems extends PageAdminWorkItems {
     }
 
     private void initLayout() {
-        Form mainForm = new Form("mainForm");
+        Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
         WorkItemsTablePanel panel = new WorkItemsTablePanel(ID_WORK_ITEMS_PANEL, new WorkItemDtoProvider(PageWorkItems.this, assigned),
