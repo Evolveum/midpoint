@@ -116,6 +116,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	public static final String ATTRIBUTE_OBJECT_GUID_NAME = "objectGUID";
 	public static final String ATTRIBUTE_SAM_ACCOUNT_NAME_NAME = "sAMAccountName";
 	public static final String ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME = "userAccountControl";
+	public static final QName ATTRIBUTE_USER_ACCOUNT_CONTROL_QNAME = new QName(MidPointConstants.NS_RI, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME);
 	public static final String ATTRIBUTE_UNICODE_PWD_NAME = "unicodePwd";
 	
 	protected static final String ACCOUNT_JACK_SAM_ACCOUNT_NAME = "jack";
@@ -138,8 +139,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	protected String jackAccountOid;
 	protected String groupPiratesOid;
 	protected long jackLockoutTimestamp;
-	private String accountBarbossaOid;
-	private String orgMeleeIslandOid;
+	protected String accountBarbossaOid;
+	protected String orgMeleeIslandOid;
 	protected String groupMeleeOid;
 	
 	@Override
@@ -333,19 +334,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
 	}
 	
-	@Test
-    public void test050Capabilities() throws Exception {
-		final String TEST_NAME = "test050Capabilities";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        
-        Collection<Object> nativeCapabilitiesCollection = ResourceTypeUtil.getNativeCapabilitiesCollection(resourceType);
-        display("Native capabilities", nativeCapabilitiesCollection);
-        
-//        assertTrue("No native activation capability", ResourceTypeUtil.hasResourceNativeActivationCapability(resourceType));
-//        assertTrue("No native activation status capability", ResourceTypeUtil.hasResourceNativeActivationStatusCapability(resourceType));
-//        assertTrue("No native lockout capability", ResourceTypeUtil.hasResourceNativeActivationLockoutCapability(resourceType));
-        assertTrue("No native credentias capability", ResourceTypeUtil.isCredentialsCapabilityEnabled(resourceType));
-	}
+	// test050 in subclasses
 	
 	@Test
     public void test100SeachJackBySamAccountName() throws Exception {
@@ -868,8 +857,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	}
 	
 	@Test
-    public void test230DisableBarbossa() throws Exception {
-		final String TEST_NAME = "test230DisableBarbossa";
+    public void test230DisableUserBarbossa() throws Exception {
+		final String TEST_NAME = "test230DisableUserBarbossa";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -895,7 +884,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-        assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
+        assertAccountDisabled(shadow);
         
         try {
         	assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, "here.There.Be.Monsters");
@@ -904,10 +893,10 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         	// this is expected
         }
 	}
-	
+
 	@Test
-    public void test239EnableBarbossa() throws Exception {
-		final String TEST_NAME = "test239EnableBarbossa";
+    public void test239EnableUserBarbossa() throws Exception {
+		final String TEST_NAME = "test239EnableUserBarbossa";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -933,9 +922,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-        assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
+        assertAccountEnabled(shadow);
 	}
-
 
 	/**
 	 * This should create account with a group. And disabled.
@@ -974,7 +962,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
-        assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
+        assertAccountDisabled(shadow);
 	}
 	
 	@Test
@@ -1039,7 +1027,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-        assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
+        assertAccountEnabled(shadow);
         
         assertLdapPassword(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, "wanna.be.a.123");
 	}
@@ -1399,4 +1387,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		return sb.toString();
 	}
 	
+	protected abstract void assertAccountDisabled(PrismObject<ShadowType> shadow);
+	
+	protected abstract void assertAccountEnabled(PrismObject<ShadowType> shadow);
 }

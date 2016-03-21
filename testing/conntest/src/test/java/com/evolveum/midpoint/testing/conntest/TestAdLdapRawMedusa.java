@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public class TestAdLdapMedusa extends AbstractAdLdapCookedTest {
+public class TestAdLdapRawMedusa extends AbstractAdLdapRawTest {
 
 	@Override
 	protected String getResourceOid() {
@@ -37,7 +37,7 @@ public class TestAdLdapMedusa extends AbstractAdLdapCookedTest {
 	
 	@Override
 	protected File getResourceFile() {
-		return new File(getBaseDir(), "resource-medusa.xml");
+		return new File(getBaseDir(), "resource-raw-medusa.xml");
 	}
 
 	@Override
