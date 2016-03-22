@@ -18,7 +18,9 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div wicket:id="itemLines">
-        <div wicket:id="itemLine"/>
+        <wicket:enclosure child="itemLine">
+            <div wicket:id="itemLine"/>
+        </wicket:enclosure>
     </div>
 </wicket:panel>
 </html>
