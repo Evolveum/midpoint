@@ -53,6 +53,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -80,6 +81,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -159,6 +161,9 @@ public abstract class ShadowCache {
 	
 	@Autowired(required = true)
 	private ResourceObjectConverter resouceObjectConverter;
+	
+	@Autowired(required=true)
+	private MatchingRuleRegistry matchingRuleRegistry;
 	
 	@Autowired(required = true)
 	protected ShadowManager shadowManager;
@@ -578,7 +583,14 @@ public abstract class ShadowCache {
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		ProvisioningContext ctx = ctxFactory.create(shadow, null, parentResult);
 		ctx.assertDefinition();
-		applyAttributesDefinition(ctx, shadow);
+		ctx = applyAttributesDefinition(ctx, shadow);
+		
+	}
+	
+	public void setProtectedShadow(PrismObject<ShadowType> shadow, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		ProvisioningContext ctx = ctxFactory.create(shadow, null, parentResult);
+		ctx.assertDefinition();
+		ProvisioningUtil.setProtectedFlag(ctx, shadow, matchingRuleRegistry);
 	}
 
 	public void applyDefinition(final ObjectQuery query, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
@@ -857,7 +869,7 @@ public abstract class ShadowCache {
 					OperationResult parentResult) {
 				try {
 					applyAttributesDefinition(ctx, object);
-					resouceObjectConverter.setProtectedFlag(ctx, object);		// fixing MID-1640; hoping that the protected object filter uses only identifiers (that are stored in repo)
+					ProvisioningUtil.setProtectedFlag(ctx, object, matchingRuleRegistry);		// fixing MID-1640; hoping that the protected object filter uses only identifiers (that are stored in repo)
 					boolean cont = shadowHandler.handle(object.asObjectable());
 					parentResult.recordSuccess();
 					return cont;
@@ -1343,7 +1355,7 @@ public abstract class ShadowCache {
 				return;
 			}
 
-			resouceObjectConverter.setProtectedFlag(ctx, oldShadow);
+			ProvisioningUtil.setProtectedFlag(ctx, oldShadow, matchingRuleRegistry);
 			change.setOldShadow(oldShadow);
 
 			if (change.getCurrentShadow() != null) {
@@ -1577,7 +1589,7 @@ public abstract class ShadowCache {
 		resultAccountShadow.setCredentials(resourceAccountShadow.getCredentials());
 		
 		//protected
-		resouceObjectConverter.setProtectedFlag(ctx, resultShadow);
+		ProvisioningUtil.setProtectedFlag(ctx, resultShadow, matchingRuleRegistry);
 
 		// Activation
 		ActivationType resultActivationType = resultShadowType.getActivation();

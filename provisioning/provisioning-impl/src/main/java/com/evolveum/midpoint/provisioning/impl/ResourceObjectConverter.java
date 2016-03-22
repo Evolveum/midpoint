@@ -294,7 +294,7 @@ public class ResourceObjectConverter {
 
 		Collection<ResourceAttribute<?>> resourceAttributesAfterAdd = null;
 
-		if (isProtectedShadow(ctx.getObjectClassDefinition(), shadowClone)) {
+		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadowClone, matchingRuleRegistry)) {
 			LOGGER.error("Attempt to add protected shadow " + shadowType + "; ignoring the request");
 			throw new SecurityViolationException("Cannot get protected shadow " + shadowType);
 		}
@@ -371,7 +371,7 @@ public class ResourceObjectConverter {
 		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
 				.getIdentifiers(shadow);
 
-		if (isProtectedShadow(ctx.getObjectClassDefinition(), shadow)) {
+		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadow, matchingRuleRegistry)) {
 			LOGGER.error("Attempt to delete protected resource object " + ctx.getObjectClassDefinition() + ": "
 					+ identifiers + "; ignoring the request");
 			throw new SecurityViolationException("Cannot delete protected resource object "
@@ -443,7 +443,7 @@ public class ResourceObjectConverter {
 		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(repoShadow);
 		
 
-		if (isProtectedShadow(ctx.getObjectClassDefinition(), repoShadow)) {
+		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), repoShadow, matchingRuleRegistry)) {
 			if (hasChangesOnResource(itemDeltas)) {
 				LOGGER.error("Attempt to modify protected resource object " + objectClassDefinition + ": "
 						+ identifiers);
@@ -1613,7 +1613,7 @@ public class ResourceObjectConverter {
 		
 		ShadowType resourceObjectType = resourceObject.asObjectable();
 		setCachingMetadata(ctx, resourceObject);
-		setProtectedFlag(ctx, resourceObject);
+		ProvisioningUtil.setProtectedFlag(ctx, resourceObject, matchingRuleRegistry);
 		
 		// Simulated Activation
 		// FIXME??? when there are not native capabilities for activation, the
@@ -1639,12 +1639,6 @@ public class ResourceObjectConverter {
 		return resourceObject;
 	}
 	
-	public void setProtectedFlag(ProvisioningContext ctx, PrismObject<ShadowType> resourceObject) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
-		if (isProtectedShadow(ctx.getObjectClassDefinition(), resourceObject)) {
-			resourceObject.asObjectable().setProtectedObject(true);
-		}
-	}
-
 	public void setCachingMetadata(ProvisioningContext ctx, PrismObject<ShadowType> resourceObject) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 		CachingMetadataType cachingMetadata = new CachingMetadataType();
 		cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
@@ -2175,20 +2169,5 @@ public class ResourceObjectConverter {
 		}
 	}
 	
-	private boolean isProtectedShadow(RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow) throws SchemaException {
-		boolean isProtected = false;
-		if (objectClassDefinition == null) {
-			isProtected = false;
-		} else {
-			Collection<ResourceObjectPattern> protectedAccountPatterns = objectClassDefinition.getProtectedObjectPatterns();
-			if (protectedAccountPatterns == null) {
-				isProtected = false;
-			} else {
-				isProtected = ResourceObjectPattern.matches(shadow, protectedAccountPatterns, matchingRuleRegistry);
-			}
-		}
-		LOGGER.trace("isProtectedShadow: {}: {} = {}", new Object[] { objectClassDefinition,
-				shadow, isProtected });
-		return isProtected;
-	}
+	
 }
