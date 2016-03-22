@@ -80,13 +80,15 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageWorkItem.class);
 
-    private PageParameters parameters;
-
     private LoadableModel<WorkItemDto> workItemDtoModel;
 
     public PageWorkItem() {
         this(new PageParameters(), null);
     }
+
+	public PageWorkItem(PageParameters parameters) {
+		this(parameters, null);
+	}
 
     public PageWorkItem(PageParameters parameters, PageBase previousPage) {
         this(parameters, previousPage, false);
@@ -94,9 +96,9 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     public PageWorkItem(PageParameters parameters, PageBase previousPage, boolean reinitializePreviousPage) {
 
-        this.parameters = parameters;
         setPreviousPage(previousPage);
         setReinitializePreviousPages(reinitializePreviousPage);
+		getPageParameters().overwriteWith(parameters);					// TODO eliminate this hack
 
         workItemDtoModel = new LoadableModel<WorkItemDto>(false) {
             @Override
@@ -119,7 +121,12 @@ public class PageWorkItem extends PageAdminWorkItems {
         };
     }
 
-    private WorkItemDto loadWorkItemDtoIfNecessary() {
+	@Override
+	protected void createBreadcrumb() {
+		createInstanceBreadcrumb();			// to preserve page state (e.g. approver's comment)
+	}
+
+	private WorkItemDto loadWorkItemDtoIfNecessary() {
         if (workItemDtoModel.isLoaded()) {
             return workItemDtoModel.getObject();
         }
@@ -127,7 +134,10 @@ public class PageWorkItem extends PageAdminWorkItems {
         OperationResult result = task.getResult();
         WorkItemDto workItemDto = null;
         try {
-            String id = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
+            String id = getPageParameters().get(OnePageParameterEncoder.PARAMETER).toString();
+			if (id == null) {
+				throw new IllegalStateException("Work item ID not specified.");
+			}
             final ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
                     .item(F_WORK_ITEM_ID).eq(id)
                     .build();
@@ -342,7 +352,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     @Override
     public PageBase reinitialize() {
-        return new PageWorkItem(parameters, getPreviousPage(), true);
+        return new PageWorkItem(getPageParameters(), getPreviousPage(), true);
     }
 
 }

@@ -27,6 +27,7 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 
 import com.evolveum.midpoint.web.application.DescriptorLoader;
+import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 import org.apache.commons.lang.StringUtils;
@@ -279,6 +280,18 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				return getPageTitleModel().getObject();
 			}
 		}, this.getClass(), getPageParameters());
+
+		getSessionStorage().pushBreadcrumb(bc);
+	}
+
+	protected void createInstanceBreadcrumb() {
+		BreadcrumbPageInstance bc = new BreadcrumbPageInstance(new AbstractReadOnlyModel() {
+
+			@Override
+			public String getObject() {
+				return getPageTitleModel().getObject();
+			}
+		}, this);
 
 		getSessionStorage().pushBreadcrumb(bc);
 	}
