@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.input.*;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -61,9 +62,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueAutoCompleteTextPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
-import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
-import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
-import com.evolveum.midpoint.web.component.input.ThreeStateBooleanPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
@@ -437,8 +435,7 @@ public class SynchronizationStep extends WizardStep {
                 ResourceSynchronizationDto.F_SELECTED + ".reconcile"));
         editor.add(editorReconcile);
 
-        ThreeStateBooleanPanel opportunistic = new ThreeStateBooleanPanel(ID_EDITOR_OPPORTUNISTIC,
-                new PropertyModel<Boolean>(model, ResourceSynchronizationDto.F_SELECTED + ".opportunistic"));
+        TriStateComboPanel opportunistic = new TriStateComboPanel(ID_EDITOR_OPPORTUNISTIC, new PropertyModel<Boolean>(model, ResourceSynchronizationDto.F_SELECTED + ".opportunistic"));
         editor.add(opportunistic);
 
         MultiValueTextEditPanel editorCorrelation = new MultiValueTextEditPanel<ConditionalSearchFilterType>(ID_EDITOR_EDITOR_CORRELATION,
