@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.prism.show;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -74,8 +76,13 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
 		final LinkPanel<String> link = new LinkPanel<String>(ID_LINK, new LabelModel()) {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				System.out.println("Clicked on " + getModelObject().getSourceValue());
-				super.onClick(target);
+				if (!(getModelObject().getSourceValue() instanceof PrismReferenceValue)) {
+					return;
+				}
+				PrismReferenceValue refValue = (PrismReferenceValue) getModelObject().getSourceValue();
+				ObjectReferenceType ort = new ObjectReferenceType();
+				ort.setupReferenceValue(refValue);
+				WebComponentUtil.dispatchToObjectDetailsPage(ort, getPageBase());
 			}
 		};
 		link.add(visibleIfReference);
