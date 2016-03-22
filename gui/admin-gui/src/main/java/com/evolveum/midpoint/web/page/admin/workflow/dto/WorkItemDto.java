@@ -30,6 +30,8 @@ import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author lazyman
  * @author mederly
@@ -141,7 +143,15 @@ public class WorkItemDto extends Selectable {
         return WebComponentUtil.getName(workItem.getObjectRef());
     }
 
-    public String getTargetName() {
+	public ObjectReferenceType getObjectRef() {
+		return workItem.getObjectRef();
+	}
+
+	public ObjectReferenceType getTargetRef() {
+		return workItem.getTargetRef();
+	}
+
+	public String getTargetName() {
         return WebComponentUtil.getName(workItem.getTargetRef());
     }
 
@@ -186,5 +196,13 @@ public class WorkItemDto extends Selectable {
 
 	public SceneDto getDeltas() {
 		return deltas;
+	}
+
+	public QName getTargetType() {
+		return workItem.getTargetRef() != null ? workItem.getTargetRef().getType() : null;
+	}
+
+	public QName getObjectType() {
+		return workItem.getObjectRef() != null ? workItem.getObjectRef().getType() : null;
 	}
 }
