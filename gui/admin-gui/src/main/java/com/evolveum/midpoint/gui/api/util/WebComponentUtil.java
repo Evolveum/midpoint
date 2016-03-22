@@ -51,6 +51,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurA
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -997,10 +998,25 @@ public final class WebComponentUtil {
 			page.setResponsePage(new PageUser(parameters, page));
 		} else if (ResourceType.COMPLEX_TYPE.equals(type)) {
 			page.setResponsePage(new PageResource(parameters, page));
+		} else if (TaskType.COMPLEX_TYPE.equals(type)) {
+			page.setResponsePage(new PageTaskEdit(parameters, page));
 		} else {
 			// nothing to do
 		}
 	}
+
+	public static boolean hasDetailsPage(PrismObject<?> object) {
+		Class<?> clazz = object.getCompileTimeClass();
+		if (clazz == null) {
+			return false;
+		}
+
+		return AbstractRoleType.class.isAssignableFrom(clazz) ||
+				UserType.class.isAssignableFrom(clazz) ||
+				ResourceType.class.isAssignableFrom(clazz) ||
+				TaskType.class.isAssignableFrom(clazz);
+	}
+
 
 
 }

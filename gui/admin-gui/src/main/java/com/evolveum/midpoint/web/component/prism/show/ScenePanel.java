@@ -162,7 +162,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 				if (getModelObject().isWrapper()) {
 					return false;
 				}
-				return isExistingObject();
+				return isExistingViewableObject();
 			}
 		};
 		VisibleEnableBehaviour visibleIfNotWrapperAndNotExistingObject = new VisibleEnableBehaviour() {
@@ -171,7 +171,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 				if (getModelObject().isWrapper()) {
 					return false;
 				}
-				return !isExistingObject();
+				return !isExistingViewableObject();
 			}
 		};
 		headerChangeType.add(visibleIfNotWrapper);
@@ -247,11 +247,12 @@ public class ScenePanel extends BasePanel<SceneDto> {
         body.add(partialScenes);
     }
 
-	protected boolean isExistingObject() {
+	protected boolean isExistingViewableObject() {
 		final Scene scene = getModelObject().getScene();
 		final PrismContainerValue<?> value = scene.getSourceValue();
 		return value != null &&
 				value.getParent() instanceof PrismObject &&
+				WebComponentUtil.hasDetailsPage((PrismObject) value.getParent()) &&
 				((PrismObject) value.getParent()).getOid() != null &&
 				(scene.getSourceDelta() == null || !scene.getSourceDelta().isAdd());
 	}
