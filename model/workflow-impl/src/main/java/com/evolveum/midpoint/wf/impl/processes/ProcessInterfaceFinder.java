@@ -34,9 +34,9 @@ public class ProcessInterfaceFinder implements BeanFactoryAware {
     private BeanFactory beanFactory;
 
     public ProcessMidPointInterface getProcessInterface(Map<String, Object> variables) {
-        String interfaceBeanName = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_INTERFACE_BEAN_NAME);
+        String interfaceBeanName = (String) variables.get(CommonProcessVariableNames.VARIABLE_PROCESS_INTERFACE_BEAN_NAME);
         if (interfaceBeanName == null) {
-            throw new IllegalStateException("No " + CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_INTERFACE_BEAN_NAME + " variable found");
+            throw new IllegalStateException("No " + CommonProcessVariableNames.VARIABLE_PROCESS_INTERFACE_BEAN_NAME + " variable found");
         }
         return beanFactory.getBean(interfaceBeanName, ProcessMidPointInterface.class);
     }

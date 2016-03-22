@@ -89,6 +89,7 @@ import java.util.Set;
 import java.util.concurrent.Future;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_MODEL_OPERATION_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 
 /**
  * Implementation of a Task.
@@ -186,7 +187,7 @@ public class TaskQuartzImpl implements Task {
 	 */	
 	TaskQuartzImpl(TaskManagerQuartzImpl taskManager, LightweightIdentifier taskIdentifier, String operationName) {
 		this(taskManager);
-		this.repositoryService = null;
+		this.repositoryService = taskManager.getRepositoryService();
 		this.taskPrism = createPrism();
 
 		setTaskIdentifier(taskIdentifier.toString());
@@ -297,8 +298,32 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
+	public void addModification(ItemDelta<?,?> delta) throws SchemaException {
+		addPendingModification(delta);
+		delta.applyTo(taskPrism);
+	}
+
+	@Override
+	public void addModifications(Collection<ItemDelta<?,?>> deltas) throws SchemaException {
+		for (ItemDelta<?,?> delta : deltas) {
+			addPendingModification(delta);
+			delta.applyTo(taskPrism);
+		}
+	}
+
+	@Override
+	public void addModificationImmediate(ItemDelta<?, ?> delta, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+		addPendingModification(delta);
+		delta.applyTo(taskPrism);
+		savePendingModifications(parentResult);
+	}
+
+	@Override
 	public void savePendingModifications(OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		if (isTransient()) {
+			return;
+		}
 		if (pendingModifications != null) {
 			synchronized (pendingModifications) {		// todo perhaps we should put something like this at more places here...
 				if (!pendingModifications.isEmpty()) {
@@ -1978,6 +2003,57 @@ public class TaskQuartzImpl implements Task {
 					.item(F_MODEL_OPERATION_CONTEXT).replace()
 					.asItemDelta();
 		}
+	}
+	
+	/*
+	 *  Workflow context
+	 */
+
+	public void setWorkflowContext(WfContextType value) throws SchemaException {
+		processModificationBatched(setWorkflowContextAndPrepareDelta(value));
+	}
+
+	//@Override
+	public void setWorkflowContextImmediate(WfContextType value, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
+		try {
+			processModificationNow(setWorkflowContextAndPrepareDelta(value), parentResult);
+		} catch (ObjectAlreadyExistsException ex) {
+			throw new SystemException(ex);
+		}
+	}
+
+	public void setWorkflowContextTransient(WfContextType value) {
+		taskPrism.asObjectable().setWorkflowContext(value);
+	}
+
+	private ItemDelta<?, ?> setWorkflowContextAndPrepareDelta(WfContextType value) throws SchemaException {
+		setWorkflowContextTransient(value);
+		if (!isPersistent()) {
+			return null;
+		}
+		if (value != null) {
+			return DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+					.item(F_WORKFLOW_CONTEXT).replace(value.asPrismContainerValue().clone())
+					.asItemDelta();
+		} else {
+			return DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+					.item(F_WORKFLOW_CONTEXT).replace()
+					.asItemDelta();
+		}
+	}
+
+	@Override
+	public WfContextType getWorkflowContext() {
+		return taskPrism.asObjectable().getWorkflowContext();
+	}
+
+	@Override
+	public void initializeWorkflowContextImmediate(String processInstanceId, OperationResult result)
+			throws SchemaException, ObjectNotFoundException {
+		WfContextType wfContextType = new WfContextType(getPrismContext());
+		wfContextType.setProcessInstanceId(processInstanceId);
+		setWorkflowContextImmediate(wfContextType, result);
 	}
 
 	//    @Override

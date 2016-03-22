@@ -159,11 +159,18 @@ public class ObjectTypeUtil {
     }
 
     public static Object toShortString(ObjectReferenceType objectRef) {
+		return toShortString(objectRef, false);
+	}
+
+	public static Object toShortString(ObjectReferenceType objectRef, boolean withName) {
         if (objectRef == null) {
             return "null";
         }
         StringBuilder sb = new StringBuilder();
         sb.append("objectRef oid=").append(objectRef.getOid());
+		if (withName && objectRef.getTargetName() != null) {
+			sb.append(" name='").append(objectRef.getTargetName()).append("'");
+		}
         if (objectRef.getType() != null) {
             sb.append(" type=").append(SchemaDebugUtil.prettyPrint(objectRef.getType()));
         }
@@ -190,6 +197,9 @@ public class ObjectTypeUtil {
 	}
 
 	public static ObjectReferenceType createObjectRef(ObjectType objectType) {
+		if (objectType == null) {
+			return null;
+		}
         return createObjectRef(objectType.asPrismObject());
     }
 
@@ -381,11 +391,44 @@ public class ObjectTypeUtil {
         return (PrismObject) parent3;
     }
 
-	public static List<ObjectReferenceType> getAsObjectReferenceTypeList(PrismReference prismReference) throws SchemaException {
+    public static List<PrismReferenceValue> objectReferenceListToPrismReferenceValues(Collection<ObjectReferenceType> refList) throws SchemaException {
+        List<PrismReferenceValue> rv = new ArrayList<>();
+        for (ObjectReferenceType ref : refList) {
+            rv.add(ref.asReferenceValue());
+        }
+        return rv;
+    }
+
+    public static List<ObjectReferenceType> getAsObjectReferenceTypeList(PrismReference prismReference) throws SchemaException {
 		List<ObjectReferenceType> rv = new ArrayList<>();
 		for (PrismReferenceValue prv : prismReference.getValues()) {
 			rv.add(createObjectRef(prv.clone()));
 		}
 		return rv;
+	}
+
+	public static List<String> referenceValueListToOidList(Collection<PrismReferenceValue> referenceValues) {
+		List<String> oids = new ArrayList<>(referenceValues.size());
+		for (PrismReferenceValue referenceValue : referenceValues) {
+			oids.add(referenceValue.getOid());
+		}
+		return oids;
+	}
+
+	public static Objectable getObjectFromReference(ObjectReferenceType ref) {
+		if (ref == null) {
+			return null;
+		}
+		if (ref.asReferenceValue().getObject() == null) {
+			return null;
+		}
+		return ref.asReferenceValue().getObject().asObjectable();
+	}
+
+	public static PrismObject<?> getPrismObjectFromReference(ObjectReferenceType ref) {
+		if (ref == null) {
+			return null;
+		}
+		return ref.asReferenceValue().getObject();
 	}
 }

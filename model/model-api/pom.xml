@@ -72,5 +72,9 @@
 			<artifactId>audit-api</artifactId>
 			<version>3.4-SNAPSHOT</version>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations-java5</artifactId>
+        </dependency>
+    </dependencies>
 </project>

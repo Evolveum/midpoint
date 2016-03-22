@@ -35,11 +35,6 @@ public class MidPointUserManager extends UserEntityManager {
         throw new UnsupportedOperationException("MidPoint user manager doesn't support inserting a new user");
     }
 
-//    @Override
-//    public void updateUser(User updatedUser) {
-//        throw new UnsupportedOperationException("MidPoint user manager doesn't support updating a user");
-//    }
-
     @Override
     public UserEntity findUserById(String userId) {
         throw new UnsupportedOperationException("MidPoint user manager doesn't support finding a user by id");
@@ -49,65 +44,6 @@ public class MidPointUserManager extends UserEntityManager {
     public void deleteUser(String userId) {
         throw new UnsupportedOperationException("MidPoint user manager doesn't support deleting a user");
     }
-
-//    @Override
-//    public List<User> findUserByQueryCriteria(Object query, Page page) {
-//
-//        throw new UnsupportedOperationException("MidPoint user manager doesn't support finding a user by query criteria");
-
-//        List<User> userList = new ArrayList<User>();
-//
-//        // Query is a UserQueryImpl instance
-//        UserQueryImpl userQuery = (UserQueryImpl) query;
-//        StringBuilder searchQuery = new StringBuilder();
-//        if (StringUtils.isNotEmpty(userQuery.getId())) {
-//            searchQuery.append("(uid=").append(userQuery.getId()).append(")");
-//
-//        } else if (StringUtils.isNotEmpty(userQuery.getLastName())) {
-//            searchQuery.append("(sn=").append(userQuery.getLastName()).append(")");
-//
-//        } else {
-//            searchQuery.append("(uid=*)");
-//        }
-//        LdapConnection connection = LDAPConnectionUtil.openConnection(connectionParams);
-//        try {
-//            Cursor<SearchResponse> cursor = connection.search(USER_GROUP, searchQuery.toString(), SearchScope.ONELEVEL, "*");
-//            while (cursor.next()) {
-//                User user = new UserEntity();
-//                SearchResultEntry response = (SearchResultEntry) cursor.get();
-//                Iterator<EntryAttribute> itEntry = response.getEntry().iterator();
-//                while (itEntry.hasNext()) {
-//                    EntryAttribute attribute = itEntry.next();
-//                    String key = attribute.getId();
-//                    if ("uid".equalsIgnoreCase(key)) {
-//                        user.setId(attribute.getString());
-//
-//                    } else if ("sn".equalsIgnoreCase(key)) {
-//                        user.setLastName(attribute.getString());
-//
-//                    } else if ("cn".equalsIgnoreCase(key)) {
-//                        user.setFirstName(attribute.getString().substring(0, attribute.getString().indexOf(" ")));
-//                    }
-//                }
-//
-//                userList.add(user);
-//            }
-//
-//            cursor.close();
-//
-//        } catch (Exception e) {
-//            throw new ActivitiException("LDAP connection search failure", e);
-//        }
-//
-//        LDAPConnectionUtil.closeConnection(connection);
-//
-//        return userList;
-//    }
-
-//    @Override
-//    public long findUserCountByQueryCriteria(Object query) {
-//        return findUserByQueryCriteria(query, null).size();
-//    }
 
     @Override
     public Boolean checkPassword(String userId, String password) {

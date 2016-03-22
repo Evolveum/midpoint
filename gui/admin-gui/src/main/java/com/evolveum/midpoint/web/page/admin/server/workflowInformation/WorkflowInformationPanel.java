@@ -56,7 +56,6 @@ public class WorkflowInformationPanel extends SimplePanel<TaskDto> {
                 boolean finished = WorkflowInformationPanel.this.getModel().getObject().isWorkflowProcessInstanceFinished();
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, pid);
-                parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_FINISHED, finished);
                 WorkflowInformationPanel.this.setResponsePage(new PageProcessInstance(parameters, (PageBase) WorkflowInformationPanel.this.getPage()));
             }
         });

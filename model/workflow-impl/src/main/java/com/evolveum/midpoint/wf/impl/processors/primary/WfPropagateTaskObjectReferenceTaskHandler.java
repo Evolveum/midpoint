@@ -29,9 +29,9 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.jobs.Job;
-import com.evolveum.midpoint.wf.impl.jobs.JobController;
-import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
+import com.evolveum.midpoint.wf.impl.tasks.WfTask;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +62,7 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
     private TaskManager taskManager;
 
     @Autowired
-    private JobController jobController;
+    private WfTaskController wfTaskController;
 
     @Autowired
     private WfTaskUtil wfTaskUtil;
@@ -82,36 +82,29 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
 
         OperationResult result = task.getResult().createSubresult(WfPropagateTaskObjectReferenceTaskHandler.class + ".run");
 
-        Job job;
-        try {
-            job = jobController.recreateJob(task);
-        } catch (SchemaException e) {
-            return reportException("Couldn't create a job from task " + task, task, result, e);
-        } catch (ObjectNotFoundException e) {
-            return reportException("Couldn't create a job from task " + task, task, result, e);
-        }
+        WfTask wfTask = wfTaskController.recreateWfTask(task);
 
-        LOGGER.trace("WfPropagateTaskObjectReferenceTaskHandler starting... job = {}", job);
+        LOGGER.trace("WfPropagateTaskObjectReferenceTaskHandler starting... job = {}", wfTask);
 
         ModelContext modelContext;
         try {
-            modelContext = job.retrieveModelContext(result);
+            modelContext = wfTask.retrieveModelContext(result);
             if (modelContext == null) {
-                throw new IllegalStateException("There's no model context in the task; job = " + job);
+                throw new IllegalStateException("There's no model context in the task; job = " + wfTask);
             }
         } catch (SchemaException e) {
-            return reportException("Couldn't retrieve model context from job " + job, task, result, e);
+            return reportException("Couldn't retrieve model context from job " + wfTask, task, result, e);
         } catch (ObjectNotFoundException e) {
-            return reportException("Couldn't retrieve model context from job " + job, task, result, e);
+            return reportException("Couldn't retrieve model context from job " + wfTask, task, result, e);
         } catch (CommunicationException e) {
-            return reportException("Couldn't retrieve model context from job " + job, task, result, TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR, e);
+            return reportException("Couldn't retrieve model context from job " + wfTask, task, result, TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR, e);
         } catch (ConfigurationException e) {
-            return reportException("Couldn't retrieve model context from job " + job, task, result, e);
+            return reportException("Couldn't retrieve model context from job " + wfTask, task, result, e);
         }
 
         String oid = ((LensContext) modelContext).getFocusContext().getOid();
         if (oid == null) {
-            LOGGER.warn("No object OID in job " + job);
+            LOGGER.warn("No object OID in job " + wfTask);
         } else {
 
             Class typeClass = ((LensContext) modelContext).getFocusContext().getObjectTypeClass();
@@ -130,17 +123,17 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
                     LOGGER.warn("object reference in task " + task + " is already set, although it shouldn't be");
                 }
 
-                List<Job> dependents;
+                List<WfTask> dependents;
                 try {
-                    dependents = job.listDependents(result);
-                    dependents.add(job.getParentJob(result));
+                    dependents = wfTask.listDependents(result);
+                    dependents.add(wfTask.getParentJob(result));
                 } catch (SchemaException e) {
-                    return reportException("Couldn't get dependents from job " + job, task, result, e);
+                    return reportException("Couldn't get dependents from job " + wfTask, task, result, e);
                 } catch (ObjectNotFoundException e) {
-                    return reportException("Couldn't get dependents from job " + job, task, result, e);
+                    return reportException("Couldn't get dependents from job " + wfTask, task, result, e);
                 }
 
-                for (Job dependent : dependents) {
+                for (WfTask dependent : dependents) {
                     if (dependent.getTask().getObjectRef() == null) {
                         try {
                             dependent.getTask().setObjectRefImmediate(objectReferenceType, result);

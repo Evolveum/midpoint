@@ -21,15 +21,15 @@ import com.evolveum.midpoint.notifications.api.events.WorkItemEvent;
 import com.evolveum.midpoint.notifications.api.events.WorkflowEvent;
 import com.evolveum.midpoint.notifications.api.events.WorkflowEventCreator;
 import com.evolveum.midpoint.notifications.api.events.WorkflowProcessEvent;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.ProcessListener;
 import com.evolveum.midpoint.wf.api.WorkItemListener;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -67,30 +67,30 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
     }
 
     @Override
-    public void onProcessInstanceStart(PrismObject<? extends ProcessInstanceState> instanceState, OperationResult result) {
-        WorkflowEventCreator workflowEventCreator = notificationManager.getWorkflowEventCreator(instanceState);
-        WorkflowProcessEvent event = workflowEventCreator.createWorkflowProcessStartEvent(instanceState, result);
+    public void onProcessInstanceStart(Task wfTask, OperationResult result) {
+        WorkflowEventCreator workflowEventCreator = notificationManager.getWorkflowEventCreator(wfTask);
+        WorkflowProcessEvent event = workflowEventCreator.createWorkflowProcessStartEvent(wfTask, result);
         processEvent(event, result);
     }
 
     @Override
-    public void onProcessInstanceEnd(PrismObject<? extends ProcessInstanceState> instanceState, OperationResult result) {
-        WorkflowEventCreator workflowEventCreator = notificationManager.getWorkflowEventCreator(instanceState);
-        WorkflowProcessEvent event = workflowEventCreator.createWorkflowProcessEndEvent(instanceState, result);
+    public void onProcessInstanceEnd(Task wfTask, OperationResult result) {
+        WorkflowEventCreator workflowEventCreator = notificationManager.getWorkflowEventCreator(wfTask);
+        WorkflowProcessEvent event = workflowEventCreator.createWorkflowProcessEndEvent(wfTask, result);
         processEvent(event, result);
     }
 
     @Override
-    public void onWorkItemCreation(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState) {
-        WorkflowEventCreator workflowEventCreator = notificationManager.getWorkflowEventCreator(instanceState);
-        WorkItemEvent event = workflowEventCreator.createWorkItemCreateEvent(workItemName, assigneeOid, instanceState);
+    public void onWorkItemCreation(WorkItemType workItem, Task wfTask, OperationResult result) {
+        WorkflowEventCreator workflowEventCreator = notificationManager.getWorkflowEventCreator(wfTask);
+        WorkItemEvent event = workflowEventCreator.createWorkItemCreateEvent(workItem, wfTask, result);
         processEvent(event);
     }
 
     @Override
-    public void onWorkItemCompletion(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState, String decision) {
-        WorkflowEventCreator workflowEventCreator = notificationManager.getWorkflowEventCreator(instanceState);
-        WorkItemEvent event = workflowEventCreator.createWorkItemCompleteEvent(workItemName, assigneeOid, instanceState, decision);
+    public void onWorkItemCompletion(WorkItemType workItem, Task wfTask, OperationResult result) {
+        WorkflowEventCreator workflowEventCreator = notificationManager.getWorkflowEventCreator(wfTask);
+        WorkItemEvent event = workflowEventCreator.createWorkItemCompleteEvent(workItem, wfTask, result);
         processEvent(event);
     }
 

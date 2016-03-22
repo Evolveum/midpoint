@@ -531,6 +531,8 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
 			return false;
 		return true;
 	}
-    
-    
+
+	public static PolyStringType fromOrig(String name) {
+		return name != null ? new PolyStringType(name) : null;
+	}
 }

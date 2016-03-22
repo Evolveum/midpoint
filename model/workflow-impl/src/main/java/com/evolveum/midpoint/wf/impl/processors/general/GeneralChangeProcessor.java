@@ -6,45 +6,29 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.api.WorkflowException;
-import com.evolveum.midpoint.wf.impl.jobs.Job;
-import com.evolveum.midpoint.wf.impl.jobs.JobController;
-import com.evolveum.midpoint.wf.impl.jobs.JobCreationInstruction;
-import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
+import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
+import com.evolveum.midpoint.wf.impl.tasks.WfTask;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
-import com.evolveum.midpoint.wf.impl.processors.BaseAuditHelper;
-import com.evolveum.midpoint.wf.impl.processors.BaseChangeProcessor;
-import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
-import com.evolveum.midpoint.wf.impl.processors.BaseExternalizationHelper;
-import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper;
+import com.evolveum.midpoint.wf.impl.processors.*;
 import com.evolveum.midpoint.wf.impl.processors.general.scenarios.DefaultGcpScenarioBean;
 import com.evolveum.midpoint.wf.impl.processors.general.scenarios.GcpScenarioBean;
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorScenarioType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBException;
 import java.util.Map;
 
 /**
@@ -62,16 +46,13 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     private WfTaskUtil wfTaskUtil;
 
     @Autowired
-    private JobController jobController;
+    private WfTaskController wfTaskController;
 
     @Autowired
     private ActivitiEngine activitiEngine;
 
     @Autowired
     private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
-
-    @Autowired
-    private BaseExternalizationHelper baseExternalizationHelper;
 
     @Autowired
     private BaseConfigurationHelper baseConfigurationHelper;
@@ -153,22 +134,22 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         try {
             // ========== preparing root task ===========
 
-            JobCreationInstruction rootInstruction = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel);
-            Job rootJob = baseModelInvocationProcessingHelper.createRootJob(rootInstruction, taskFromModel, result);
+            WfTaskCreationInstruction rootInstruction = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel);
+            WfTask rootWfTask = baseModelInvocationProcessingHelper.submitRootTask(rootInstruction, taskFromModel, result);
 
             // ========== preparing child task, starting WF process ===========
 
-            JobCreationInstruction instruction = scenarioBean.prepareJobCreationInstruction(scenarioType, (LensContext<?>) context, rootJob, taskFromModel, result);
-            jobController.createJob(instruction, rootJob, result);
+            WfTaskCreationInstruction instruction = scenarioBean.prepareJobCreationInstruction(scenarioType, (LensContext<?>) context, rootWfTask, taskFromModel, result);
+            wfTaskController.submitWfTask(instruction, rootWfTask, result);
 
             // ========== complete the action ===========
 
-            baseModelInvocationProcessingHelper.logJobsBeforeStart(rootJob, result);
-            rootJob.startWaitingForSubtasks(result);
+            baseModelInvocationProcessingHelper.logJobsBeforeStart(rootWfTask, result);
+            rootWfTask.startWaitingForSubtasks(result);
 
             return HookOperationMode.BACKGROUND;
 
-        } catch (SchemaException|ObjectNotFoundException|CommunicationException|ConfigurationException|RuntimeException e) {
+        } catch (SchemaException|ObjectNotFoundException|CommunicationException|ConfigurationException|ObjectAlreadyExistsException|RuntimeException e) {
             LoggingUtils.logException(LOGGER, "Workflow process(es) could not be started", e);
             result.recordFatalError("Workflow process(es) could not be started: " + e, e);
             return HookOperationMode.ERROR;
@@ -179,9 +160,9 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
     //region Finalizing the processing
     @Override
-    public void onProcessEnd(ProcessEvent event, Job job, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+    public void onProcessEnd(ProcessEvent event, WfTask wfTask, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 
-        Task task = job.getTask();
+        Task task = wfTask.getTask();
         // we simply put model context back into parent task
         // (or if it is null, we set the task to skip model context processing)
 
@@ -189,7 +170,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
         Task rootTask = task.getParentTask(result);
 
-        SerializationSafeContainer<LensContextType> contextContainer = (SerializationSafeContainer<LensContextType>) event.getVariable(GcpProcessVariableNames.VARIABLE_MODEL_CONTEXT);
+        SerializationSafeContainer<LensContextType> contextContainer = event.getVariable(GcpProcessVariableNames.VARIABLE_MODEL_CONTEXT, SerializationSafeContainer.class);
         LensContextType lensContextType = null;
         if (contextContainer != null) {
             contextContainer.setPrismContext(prismContext);
@@ -209,28 +190,16 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     }
     //endregion
 
-    //region Externalization methods (including auditing)
+    //region Auditing
     @Override
-    public PrismObject<? extends WorkItemContents> externalizeWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException {
-        return getScenarioBean(processInstanceVariables).externalizeWorkItemContents(task, processInstanceVariables, result);
+    public AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, Map<String, Object> variables, OperationResult result) {
+        return getScenarioBean(variables).prepareProcessInstanceAuditRecord(variables, wfTask, stage, result);
     }
 
     @Override
-    public PrismObject<? extends ProcessInstanceState> externalizeProcessInstanceState(Map<String, Object> variables) throws JAXBException, SchemaException {
-        PrismObject<ProcessInstanceState> state = baseExternalizationHelper.externalizeState(variables);
-        ProcessSpecificState processSpecificState = getScenarioBean(variables).externalizeInstanceState(variables);
-        state.asObjectable().setProcessSpecificState(processSpecificState);
-        return state;
-    }
-
-    @Override
-    public AuditEventRecord prepareProcessInstanceAuditRecord(Map<String, Object> variables, Job job, AuditEventStage stage, OperationResult result) {
-        return getScenarioBean(variables).prepareProcessInstanceAuditRecord(variables, job, stage, result);
-    }
-
-    @Override
-    public AuditEventRecord prepareWorkItemAuditRecord(TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException {
-        return getScenarioBean(taskEvent.getVariables()).prepareWorkItemAuditRecord(taskEvent, stage, result);
+    public AuditEventRecord prepareWorkItemAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage,
+            OperationResult result) throws WorkflowException {
+        return getScenarioBean(taskEvent.getVariables()).prepareWorkItemAuditRecord(workItem, wfTask, taskEvent, stage, result);
     }
     //endregion
 }

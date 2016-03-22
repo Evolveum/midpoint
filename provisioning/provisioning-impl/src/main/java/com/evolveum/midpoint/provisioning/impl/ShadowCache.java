@@ -53,6 +53,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -80,6 +81,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -159,6 +161,9 @@ public abstract class ShadowCache {
 	
 	@Autowired(required = true)
 	private ResourceObjectConverter resouceObjectConverter;
+	
+	@Autowired(required=true)
+	private MatchingRuleRegistry matchingRuleRegistry;
 	
 	@Autowired(required = true)
 	protected ShadowManager shadowManager;
@@ -283,7 +288,10 @@ public abstract class ShadowCache {
 				LOGGER.trace("Resource object fetched from resource:\n{}", resourceShadow.debugDump());
 			}
 			
-			shadowManager.updateRepoShadow(shadowCtx, resourceShadow.asObjectable(), repositoryShadow.asObjectable(), parentResult);
+			repositoryShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repositoryShadow, parentResult);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Repository shadow after update:\n{}", repositoryShadow.debugDump());
+			}
 			// Complete the shadow by adding attributes from the resource object
 			PrismObject<ShadowType> resultShadow = completeShadow(shadowCtx, resourceShadow, repositoryShadow, parentResult);
 			
@@ -575,7 +583,14 @@ public abstract class ShadowCache {
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		ProvisioningContext ctx = ctxFactory.create(shadow, null, parentResult);
 		ctx.assertDefinition();
-		applyAttributesDefinition(ctx, shadow);
+		ctx = applyAttributesDefinition(ctx, shadow);
+		
+	}
+	
+	public void setProtectedShadow(PrismObject<ShadowType> shadow, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		ProvisioningContext ctx = ctxFactory.create(shadow, null, parentResult);
+		ctx.assertDefinition();
+		ProvisioningUtil.setProtectedFlag(ctx, shadow, matchingRuleRegistry);
 	}
 
 	public void applyDefinition(final ObjectQuery query, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
@@ -734,7 +749,7 @@ public abstract class ShadowCache {
 						// This determines the definitions exactly. How the repo shadow should have proper kind/intent
 						ProvisioningContext shadowCtx = applyAttributesDefinition(ctx, repoShadow);
 						
-						shadowManager.updateRepoShadow(shadowCtx, resourceShadow.asObjectable(), repoShadow.asObjectable(), parentResult);
+						repoShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repoShadow, parentResult);
 
 						resultShadow = completeShadow(shadowCtx, resourceShadow, repoShadow, parentResult);
 
@@ -854,7 +869,7 @@ public abstract class ShadowCache {
 					OperationResult parentResult) {
 				try {
 					applyAttributesDefinition(ctx, object);
-					resouceObjectConverter.setProtectedFlag(ctx, object);		// fixing MID-1640; hoping that the protected object filter uses only identifiers (that are stored in repo)
+					ProvisioningUtil.setProtectedFlag(ctx, object, matchingRuleRegistry);		// fixing MID-1640; hoping that the protected object filter uses only identifiers (that are stored in repo)
 					boolean cont = shadowHandler.handle(object.asObjectable());
 					parentResult.recordSuccess();
 					return cont;
@@ -1331,7 +1346,6 @@ public abstract class ShadowCache {
 		
 		if (oldShadow != null) {
 			applyAttributesDefinition(ctx, oldShadow);
-			ShadowType oldShadowType = oldShadow.asObjectable();
 
 			LOGGER.trace("Old shadow: {}", oldShadow);
 
@@ -1341,15 +1355,14 @@ public abstract class ShadowCache {
 				return;
 			}
 
-			resouceObjectConverter.setProtectedFlag(ctx, oldShadow);
+			ProvisioningUtil.setProtectedFlag(ctx, oldShadow, matchingRuleRegistry);
 			change.setOldShadow(oldShadow);
 
 			if (change.getCurrentShadow() != null) {
 				PrismObject<ShadowType> currentShadow = completeShadow(ctx, change.getCurrentShadow(), 
 						oldShadow, parentResult);
 				change.setCurrentShadow(currentShadow);
-				ShadowType currentShadowType = currentShadow.asObjectable();
-				shadowManager.updateRepoShadow(ctx, currentShadowType, oldShadowType, parentResult);
+				shadowManager.updateShadow(ctx, currentShadow, oldShadow, parentResult);
 			}
 
 			// FIXME: hack. the object delta must have oid specified.
@@ -1550,12 +1563,10 @@ public abstract class ShadowCache {
 			PrismProperty<QName> resultAuxOcProp = resultShadow.findOrCreateProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS);
 			resultAuxOcProp.addAll(PrismPropertyValue.cloneCollection(resourceAuxOcProp.getValues()));
 		}
-		
+
+		resultShadowType.setName(new PolyStringType(ShadowUtil.determineShadowName(resourceShadow)));
 		if (resultShadowType.getObjectClass() == null) {
 			resultShadowType.setObjectClass(resourceAttributesContainer.getDefinition().getTypeName());
-		}
-		if (resultShadowType.getName() == null) {
-			resultShadowType.setName(new PolyStringType(ShadowUtil.determineShadowName(resourceShadow)));
 		}
 		if (resultShadowType.getResource() == null) {
 			resultShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(ctx.getResource()));
@@ -1578,7 +1589,7 @@ public abstract class ShadowCache {
 		resultAccountShadow.setCredentials(resourceAccountShadow.getCredentials());
 		
 		//protected
-		resouceObjectConverter.setProtectedFlag(ctx, resultShadow);
+		ProvisioningUtil.setProtectedFlag(ctx, resultShadow, matchingRuleRegistry);
 
 		// Activation
 		ActivationType resultActivationType = resultShadowType.getActivation();

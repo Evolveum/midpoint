@@ -37,4 +37,6 @@ public interface ApprovalSchema {
     void setPrismContext(PrismContext prismContext);
 
     void toApprovalSchemaType(ApprovalSchemaType approvalSchemaType);           // expects empty (newly created) ApprovalSchemaType instance
+
+    ApprovalSchemaType toApprovalSchemaType();
 }

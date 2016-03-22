@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.provisioning.util;
 
+import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
@@ -262,6 +263,29 @@ public class ProvisioningUtil {
 			throw new ConfigurationException("No schema for "+resourceType);
 		}
 		return refinedSchema;
+	}
+	
+	public static boolean isProtectedShadow(RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+		boolean isProtected = false;
+		if (objectClassDefinition == null) {
+			isProtected = false;
+		} else {
+			Collection<ResourceObjectPattern> protectedAccountPatterns = objectClassDefinition.getProtectedObjectPatterns();
+			if (protectedAccountPatterns == null) {
+				isProtected = false;
+			} else {
+				isProtected = ResourceObjectPattern.matches(shadow, protectedAccountPatterns, matchingRuleRegistry);
+			}
+		}
+		LOGGER.trace("isProtectedShadow: {}: {} = {}", new Object[] { objectClassDefinition,
+				shadow, isProtected });
+		return isProtected;
+	}
+	
+	public static void setProtectedFlag(ProvisioningContext ctx, PrismObject<ShadowType> resourceObject, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+		if (isProtectedShadow(ctx.getObjectClassDefinition(), resourceObject, matchingRuleRegistry)) {
+			resourceObject.asObjectable().setProtectedObject(true);
+		}
 	}
 	
 	public static RefinedResourceSchema getRefinedSchema(PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {

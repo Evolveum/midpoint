@@ -18,13 +18,14 @@ package com.evolveum.midpoint.web.page.self;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -32,21 +33,25 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.util.CallableResult;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
+import com.evolveum.midpoint.web.component.wf.WorkItemsTablePanel;
 import com.evolveum.midpoint.web.page.admin.home.component.AsyncDashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.DashboardColor;
 import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
+import com.evolveum.midpoint.web.page.admin.workflow.WorkflowRequestsPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
-import com.evolveum.midpoint.web.page.self.component.LinksPanel;
 import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
-import com.evolveum.midpoint.web.page.self.component.MyRequestsPanel;
+import com.evolveum.midpoint.web.page.self.component.LinksPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -54,6 +59,10 @@ import org.springframework.security.core.Authentication;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_WORK_ITEM_CREATED_TIMESTAMP;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -122,7 +131,9 @@ public class PageSelfDashboard extends PageSelf {
         });
         add(linksPanel);
 
-        AsyncDashboardPanel<Object, List<WorkItemDto>> workItemsPanel =
+		final PrismContext prismContext = getPrismContext();
+
+		AsyncDashboardPanel<Object, List<WorkItemDto>> workItemsPanel =
                 new AsyncDashboardPanel<Object, List<WorkItemDto>>(ID_WORK_ITEMS_PANEL, createStringResource("PageSelfDashboard.workItems"),
                         "fa fa-fw fa-tasks", DashboardColor.RED) {
 
@@ -135,14 +146,15 @@ public class PageSelfDashboard extends PageSelf {
 
                             @Override
                             public CallableResult<List<WorkItemDto>> callWithContextPrepared() throws Exception {
-                                return loadWorkItems();
+                                return loadWorkItems(prismContext);
                             }
                         };
                     }
 
                     @Override
                     protected Component getMainComponent(String markupId) {
-                        return new WorkItemsPanel(markupId, new PropertyModel<List<WorkItemDto>>(getModel(), CallableResult.F_VALUE), false);
+						ISortableDataProvider provider = new ListDataProvider(this, new PropertyModel<List<WorkItemDto>>(getModel(), CallableResult.F_VALUE));
+						return new WorkItemsTablePanel(markupId, provider, null, 10, false);
                     }
                 };
 
@@ -167,14 +179,15 @@ public class PageSelfDashboard extends PageSelf {
 
                             @Override
                             public CallableResult<List<ProcessInstanceDto>> callWithContextPrepared() throws Exception {
-                                return loadMyRequests();
+                                return loadMyRequests(prismContext);
                             }
                         };
                     }
 
                     @Override
                     protected Component getMainComponent(String markupId) {
-                        return new MyRequestsPanel(markupId, new PropertyModel<List<ProcessInstanceDto>>(getModel(), CallableResult.F_VALUE));
+						ISortableDataProvider provider = new ListDataProvider(this, new PropertyModel<List<ProcessInstanceDto>>(getModel(), CallableResult.F_VALUE));
+                        return new WorkflowRequestsPanel(markupId, provider, null, 10);
                     }
                 };
 
@@ -188,12 +201,12 @@ public class PageSelfDashboard extends PageSelf {
 
     }
 
-    private CallableResult<List<WorkItemDto>> loadWorkItems() {
+    private CallableResult<List<WorkItemDto>> loadWorkItems(PrismContext prismContext) {
 
         LOGGER.debug("Loading work items.");
 
         AccountCallableResult callableResult = new AccountCallableResult();
-        List<WorkItemDto> list = new ArrayList<WorkItemDto>();
+        List<WorkItemDto> list = new ArrayList<>();
         callableResult.setValue(list);
 
         if (!getWorkflowManager().isEnabled()) {
@@ -205,12 +218,16 @@ public class PageSelfDashboard extends PageSelf {
             return callableResult;
         }
 
-        OperationResult result = new OperationResult(OPERATION_LOAD_WORK_ITEMS);
+        Task task = createSimpleTask(OPERATION_LOAD_WORK_ITEMS);
+        OperationResult result = task.getResult();
         callableResult.setResult(result);
 
         try {
-            List<WorkItemType> workItems = getWorkflowService().listWorkItemsRelatedToUser(user.getOid(),
-                    true, 0, MAX_WORK_ITEMS, result);
+            ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, prismContext)
+                    .item(WorkItemType.F_ASSIGNEE_REF).ref(user.getOid())
+                    .desc(F_WORK_ITEM_CREATED_TIMESTAMP)
+                    .build();
+            List<WorkItemType> workItems = getModelService().searchContainers(WorkItemType.class, query, null, task, result);
             for (WorkItemType workItem : workItems) {
                 list.add(new WorkItemDto(workItem));
             }
@@ -226,7 +243,7 @@ public class PageSelfDashboard extends PageSelf {
         return callableResult;
     }
 
-    private CallableResult<List<ProcessInstanceDto>> loadMyRequests() {
+    private CallableResult<List<ProcessInstanceDto>> loadMyRequests(PrismContext prismContext) {
 
         LOGGER.debug("Loading requests.");
 
@@ -243,31 +260,20 @@ public class PageSelfDashboard extends PageSelf {
             return callableResult;
         }
 
-        OperationResult result = new OperationResult(OPERATION_LOAD_REQUESTS);
+        Task opTask = createSimpleTask(OPERATION_LOAD_REQUESTS);
+        OperationResult result = opTask.getResult();
         callableResult.setResult(result);
 
         try {
-            List<WfProcessInstanceType> processInstanceTypes = getWorkflowService().listProcessInstancesRelatedToUser(user.getOid(),
-             true, false, false, 0, MAX_REQUESTS, result);
-            List<WfProcessInstanceType> processInstanceTypesFinished = getWorkflowService().listProcessInstancesRelatedToUser(user.getOid(),
-             true, false, true, 0, MAX_REQUESTS, result);
-            if (processInstanceTypes != null && processInstanceTypesFinished != null){
-                processInstanceTypes.addAll(processInstanceTypesFinished);
-            }
-            for (WfProcessInstanceType processInstanceType : processInstanceTypes) {
-                ProcessInstanceState processInstanceState = (ProcessInstanceState) processInstanceType.getState();
-                Task shadowTask = null;
-                if (processInstanceState != null) {
-                    String shadowTaskOid = processInstanceState.getShadowTaskOid();
-                    try {
-                        shadowTask = getTaskManager().getTask(shadowTaskOid, result);
-                    } catch (ObjectNotFoundException e) {
-                        // task is already deleted, no problem here
-                        result.muteLastSubresultError();
-                    }
-                }
+            ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+                    .item(F_WORKFLOW_CONTEXT, F_REQUESTER_REF).ref(user.getOid())
+                    .and().not().item(F_WORKFLOW_CONTEXT, F_PROCESS_INSTANCE_ID).isNull()
+					.desc(F_WORKFLOW_CONTEXT, F_START_TIMESTAMP)
+                    .build();
 
-                list.add(new ProcessInstanceDto(processInstanceType, shadowTask));
+            List<PrismObject<TaskType>> tasks = getModelService().searchObjects(TaskType.class, query, null, opTask, result);
+            for (PrismObject<TaskType> task : tasks) {
+                list.add(new ProcessInstanceDto(task.asObjectable()));
             }
         } catch (Exception e) {
             result.recordFatalError("Couldn't get list of work items.", e);
@@ -280,6 +286,7 @@ public class PageSelfDashboard extends PageSelf {
 
         return callableResult;
     }
+
 
     private PrismObject<UserType> loadUser() {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();

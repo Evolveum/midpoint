@@ -104,7 +104,7 @@ public class OutboundProcessor {
 
         LOGGER.trace("Processing outbound expressions for {} starting", discr);
 
-        RefinedObjectClassDefinition rOcDef = projCtx.getCompositeObjectClassDefinition();
+        RefinedObjectClassDefinition rOcDef = projCtx.getStructuralObjectClassDefinition();
         if (rOcDef == null) {
             LOGGER.error("Definition for {} not found in the context, but it should be there, dumping context:\n{}", discr, context.debugDump());
             throw new IllegalStateException("Definition for " + discr + " not found in the context, but it should be there");

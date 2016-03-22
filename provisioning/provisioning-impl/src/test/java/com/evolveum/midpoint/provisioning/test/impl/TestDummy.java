@@ -1113,12 +1113,11 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test101AddAccountWithoutName() throws Exception {
-		TestUtil.displayTestTile("test101AddAccountWithoutName");
+		final String TEST_NAME = "test101AddAccountWithoutName";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ ".test101AddAccountWithoutName");
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test101AddAccountWithoutName");
+		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
 		syncServiceMock.reset();
 
 		ShadowType account = parseObjectType(ACCOUNT_MORGAN_FILE, ShadowType.class);
@@ -1126,9 +1125,11 @@ public class TestDummy extends AbstractDummyTest {
 		display("Adding shadow", account.asPrismObject());
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, syncTask, result);
 
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		display("add object result", result);
 		TestUtil.assertSuccess("addObject has failed (result)", result);
@@ -1141,8 +1142,10 @@ public class TestDummy extends AbstractDummyTest {
 		
 		syncServiceMock.assertNotifySuccessOnly();
 
+		TestUtil.displayWhen(TEST_NAME);
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_MORGAN_OID, null, syncTask, result).asObjectable();
+		TestUtil.displayThen(TEST_NAME);
 		display("account from provisioning", provisioningAccountType);
 		PrismAsserts.assertEqualsPolyString("Account name was not generated (provisioning)", transformNameFromResource(ACCOUNT_MORGAN_NAME),
 				provisioningAccountType.getName());

@@ -31,7 +31,7 @@ import java.util.Map;
  *
  * @author mederly
  */
-public class TaskEvent extends ActivitiToMidPointMessage {
+public class TaskEvent {
 
     /**
      * Workflow process instance variables, merged with form properties (TODO: verify this).

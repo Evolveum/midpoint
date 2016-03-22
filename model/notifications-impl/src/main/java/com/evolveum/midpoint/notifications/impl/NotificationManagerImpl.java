@@ -22,7 +22,6 @@ import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.WorkflowEventCreator;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.impl.events.workflow.DefaultWorkflowEventCreator;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -33,13 +32,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-
-import javax.xml.bind.JAXBElement;
 
 import java.util.HashMap;
 
@@ -63,7 +58,6 @@ public class NotificationManagerImpl implements NotificationManager {
 
     private HashMap<Class<? extends EventHandlerType>,EventHandler> handlers = new HashMap<Class<? extends EventHandlerType>,EventHandler>();
     private HashMap<String,Transport> transports = new HashMap<String,Transport>();
-    private HashMap<Class<? extends ProcessInstanceState>,WorkflowEventCreator> workflowEventCreators = new HashMap<>();        // key = class of type ProcessInstanceState
 
     public void registerEventHandler(Class<? extends EventHandlerType> clazz, EventHandler handler) {
         LOGGER.trace("Registering event handler " + handler + " for " + clazz);
@@ -98,22 +92,9 @@ public class NotificationManagerImpl implements NotificationManager {
     }
 
     @Override
-    public void registerWorkflowEventCreator(Class<? extends ProcessInstanceState> clazz, WorkflowEventCreator workflowEventCreator) {
-        // TODO think again about this mechanism
-        if (workflowEventCreators.containsKey(clazz)) {
-            LOGGER.warn("Multiple registrations of workflow event creators for class {}", clazz.getName());
-        }
-        workflowEventCreators.put(clazz, workflowEventCreator);
-    }
-
-    @Override
-    public WorkflowEventCreator getWorkflowEventCreator(PrismObject<? extends ProcessInstanceState> instanceState) {
-        WorkflowEventCreator workflowEventCreator = workflowEventCreators.get(instanceState.asObjectable().getClass());
-        if (workflowEventCreator == null) {
-            return defaultWorkflowEventCreator;
-        } else {
-            return workflowEventCreator;
-        }
+    public WorkflowEventCreator getWorkflowEventCreator(Task wfTask) {
+		// TODO
+        return defaultWorkflowEventCreator;
     }
 
     // event may be null

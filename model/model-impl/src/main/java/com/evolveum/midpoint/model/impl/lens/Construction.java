@@ -831,7 +831,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	@Override
 	public String toString() {
 		return "Construction(" + (refinedObjectClassDefinition == null ? constructionType
-				: refinedObjectClassDefinition.getShadowDiscriminator()) + ")";
+				: refinedObjectClassDefinition.getShadowDiscriminator()) + " in " + source + ")";
 	}
 
 }

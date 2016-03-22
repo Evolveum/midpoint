@@ -277,7 +277,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		try {
             Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createRetrieveAttributesOptions(TaskType.F_SUBTASK, TaskType.F_NODE_AS_OBSERVED, TaskType.F_NEXT_RUN_START_TIMESTAMP);
             TaskType loadedTask = getModelService().getObject(TaskType.class, taskOid.toString(), options, operationTask, result).asObjectable();
-            taskDto = prepareTaskDto(loadedTask, result);
+            taskDto = prepareTaskDto(loadedTask, operationTask, result);
 			result.computeStatus();
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get task.", ex);
@@ -295,9 +295,9 @@ public class PageTaskEdit extends PageAdminTasks {
 		return taskDto;
 	}
 
-    private TaskDto prepareTaskDto(TaskType task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private TaskDto prepareTaskDto(TaskType task, Task operationTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
         TaskDto taskDto = new TaskDto(task, getModelService(), getTaskService(), getModelInteractionService(),
-                getTaskManager(), TaskDtoProviderOptions.fullOptions(), result, this);
+                getTaskManager(), TaskDtoProviderOptions.fullOptions(), operationTask, result, this);
         return taskDto;
     }
 

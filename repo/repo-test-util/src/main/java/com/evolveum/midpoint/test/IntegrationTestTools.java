@@ -18,15 +18,7 @@ package com.evolveum.midpoint.test;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.ScriptHistoryEntry;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -499,6 +491,13 @@ public class IntegrationTestTools {
 		System.out.println(SchemaDebugUtil.prettyPrint(value));
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n" 
 				+ SchemaDebugUtil.prettyPrint(value));
+	}
+
+	public static void display(String title, Containerable value) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+		System.out.println(SchemaDebugUtil.prettyPrint(value.asPrismContainerValue().debugDump()));
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n"
+				+ SchemaDebugUtil.prettyPrint(value.asPrismContainerValue().debugDump()));
 	}
 	
 	public static void display(String title, Throwable e) {

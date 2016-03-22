@@ -67,59 +67,5 @@ public class PcpRepoAccessHelper {
     @Autowired
     private MiscDataUtil miscDataUtil;
 
-    public PrismObject<? extends ObjectType> getObjectBefore(Map<String, Object> variables, PrismContext prismContext, OperationResult result) throws SchemaException, ObjectNotFoundException, JAXBException {
-        String objectXml = (String) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED);
-        PrismObject<? extends ObjectType> object;
-        if (objectXml != null) {
-            object = prismContext.parseObject(objectXml, PrismContext.LANG_XML);
-        } else {
-            String oid = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID);
-            if (oid == null) {
-                return null;
-            }
-            //Validate.notNull(oid, "Object OID in process variables is null");
-            object = repositoryService.getObject(ObjectType.class, oid, null, result);
-        }
-
-        if (object.asObjectable() instanceof UserType) {
-            miscDataUtil.resolveAssignmentTargetReferences((PrismObject) object, result);
-        }
-        return object;
-    }
-
-    public PrismObject<? extends ObjectType> getObjectAfter(Map<String, Object> variables, ObjectDeltaType deltaType, PrismObject<? extends ObjectType> objectBefore, PrismContext prismContext, OperationResult result) throws JAXBException, SchemaException {
-
-        ObjectDelta delta;
-        if (deltaType != null) {
-            delta = DeltaConvertor.createObjectDelta(deltaType, prismContext);
-        } else {
-            delta = miscDataUtil.getFocusPrimaryDelta(variables, true);
-        }
-
-        if (delta == null) {
-            return null;
-        }
-
-        PrismObject<? extends ObjectType> objectAfter;
-        if (delta.isAdd()) {
-            if (delta.getObjectToAdd() != null) {
-                objectAfter = delta.getObjectToAdd().clone();
-            } else {
-                return null;
-            }
-        } else if (delta.isModify()) {
-            objectAfter = objectBefore.clone();
-            delta.applyTo(objectAfter);
-        } else if (delta.isDelete()) {
-            return null;
-        } else {
-            return null;        // should not occur
-        }
-
-        if (objectAfter.asObjectable() instanceof UserType) {   // quite a hack
-            miscDataUtil.resolveAssignmentTargetReferences((PrismObject) objectAfter, result);
-        }
-        return objectAfter;
-    }
 
 }

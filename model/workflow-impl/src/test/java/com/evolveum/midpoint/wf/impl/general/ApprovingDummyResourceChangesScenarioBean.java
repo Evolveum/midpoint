@@ -16,29 +16,15 @@
 
 package com.evolveum.midpoint.wf.impl.general;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processors.general.scenarios.BaseGcpScenarioBean;
-import com.evolveum.midpoint.wf.impl.processors.general.scenarios.DefaultGcpScenarioBean;
-import com.evolveum.midpoint.wf.impl.util.JaxbValueContainer;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
-
-import java.util.Map;
 
 /**
  * This scenario bean simply puts "dummyResourceDelta" process variable into externalized state.
@@ -55,26 +41,26 @@ public class ApprovingDummyResourceChangesScenarioBean extends BaseGcpScenarioBe
     @Autowired
     private PrismContext prismContext;
 
-    @Override
-    public ProcessSpecificState externalizeInstanceState(Map<String, Object> variables) throws SchemaException {
-        PrismContainerDefinition<ProcessSpecificState> extDefinition = prismContext.getSchemaRegistry().findContainerDefinitionByType(ProcessSpecificState.COMPLEX_TYPE);
-        PrismContainer<ProcessSpecificState> extStateContainer = extDefinition.instantiate();
-        ProcessSpecificState extState = extStateContainer.createNewValue().asContainerable();
-
-        PrismPropertyDefinition deltaDefinition = new PrismPropertyDefinition(
-                DUMMY_RESOURCE_DELTA_QNAME,
-                new QName(SchemaConstantsGenerated.NS_TYPES, "ObjectDeltaType"),
-                prismContext);
-
-        JaxbValueContainer<ObjectDeltaType> deltaInProcess = (JaxbValueContainer) variables.get("dummyResourceDelta");
-        if (deltaInProcess != null) {
-            deltaInProcess.setPrismContext(prismContext);
-            PrismProperty deltaProperty = extStateContainer.getValue().findOrCreateItem(new ItemPath(DUMMY_RESOURCE_DELTA_QNAME), PrismProperty.class, deltaDefinition);
-            deltaProperty.setRealValue(deltaInProcess.getValue());
-            LOGGER.info("deltaProperty = {}", deltaProperty.debugDump());
-        } else {
-            LOGGER.warn("No dummyResourceDelta variable in process instance");
-        }
-        return extState;
-    }
+//    @Override
+//    public ProcessSpecificState externalizeInstanceState(Map<String, Object> variables) throws SchemaException {
+//        PrismContainerDefinition<ProcessSpecificState> extDefinition = prismContext.getSchemaRegistry().findContainerDefinitionByType(ProcessSpecificState.COMPLEX_TYPE);
+//        PrismContainer<ProcessSpecificState> extStateContainer = extDefinition.instantiate();
+//        ProcessSpecificState extState = extStateContainer.createNewValue().asContainerable();
+//
+//        PrismPropertyDefinition deltaDefinition = new PrismPropertyDefinition(
+//                DUMMY_RESOURCE_DELTA_QNAME,
+//                new QName(SchemaConstantsGenerated.NS_TYPES, "ObjectDeltaType"),
+//                prismContext);
+//
+//        JaxbValueContainer<ObjectDeltaType> deltaInProcess = (JaxbValueContainer) variables.get("dummyResourceDelta");
+//        if (deltaInProcess != null) {
+//            deltaInProcess.setPrismContext(prismContext);
+//            PrismProperty deltaProperty = extStateContainer.getValue().findOrCreateItem(new ItemPath(DUMMY_RESOURCE_DELTA_QNAME), PrismProperty.class, deltaDefinition);
+//            deltaProperty.setRealValue(deltaInProcess.getValue());
+//            LOGGER.info("deltaProperty = {}", deltaProperty.debugDump());
+//        } else {
+//            LOGGER.warn("No dummyResourceDelta variable in process instance");
+//        }
+//        return extState;
+//    }
 }
