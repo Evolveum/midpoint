@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationFromLinkExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowDiscriminatorExpressionEvaluatorType;
 import org.apache.commons.lang.Validate;
 
 /**
@@ -61,7 +61,7 @@ public class AssociationFromLinkExpressionEvaluatorFactory implements Expression
 	 */
 	@Override
 	public QName getElementName() {
-		return new ObjectFactory().createAssociationFromLink(new ShadowDiscriminatorExpressionEvaluatorType()).getName();
+		return new ObjectFactory().createAssociationFromLink(new AssociationFromLinkExpressionEvaluatorType()).getName();
 	}
 
 	/* (non-Javadoc)
@@ -85,11 +85,11 @@ public class AssociationFromLinkExpressionEvaluatorFactory implements Expression
         if (evaluatorElement != null) {
         	evaluatorTypeObject = evaluatorElement.getValue();
         }
-        if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof ShadowDiscriminatorExpressionEvaluatorType)) {
+        if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof AssociationFromLinkExpressionEvaluatorType)) {
             throw new SchemaException("Association expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
         AssociationFromLinkExpressionEvaluator evaluator = new AssociationFromLinkExpressionEvaluator(
-        		(ShadowDiscriminatorExpressionEvaluatorType)evaluatorTypeObject, 
+        		(AssociationFromLinkExpressionEvaluatorType)evaluatorTypeObject, 
         		(PrismContainerDefinition<ShadowAssociationType>) outputDefinition, objectResolver, prismContext);
         return (ExpressionEvaluator<V,D>) evaluator;
 	}
