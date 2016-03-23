@@ -529,8 +529,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		dummyResourcePink.addAccount(account);
 
 		PrismObject<UserType> userScrooge = createUser("scrooge", "Scrooge McDuck", true);
-		ShadowType newPinkyShadow = createShadow(resourceDummyPinkType.asPrismObject(), null, null).asObjectable();
-		userScrooge.asObjectable().getLink().add(newPinkyShadow);
+		PrismObject<ShadowType> newPinkyShadow = createShadow(resourceDummyPinkType.asPrismObject(), null, null);
+		userScrooge.asObjectable().getLink().add(newPinkyShadow.asObjectable());
 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 		deltas.add(ObjectDelta.createAddDelta(userScrooge));
@@ -577,8 +577,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		dummyAuditService.clear();
 
 		PrismObject<UserType> userJoeHacker = createUser("hacker", "Joe Hacker", true);
-		ShadowType newPinkyShadow = createShadow(resourceDummyPinkType.asPrismObject(), null, null).asObjectable();
-		userJoeHacker.asObjectable().getLink().add(newPinkyShadow);
+		PrismObject<ShadowType> newPinkyShadow = createShadow(resourceDummyPinkType.asPrismObject(), null, null);
+		userJoeHacker.asObjectable().getLink().add(newPinkyShadow.asObjectable());
 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 		deltas.add(ObjectDelta.createAddDelta(userJoeHacker));

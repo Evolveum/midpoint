@@ -133,6 +133,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 		PropertyModel<String> nameModel = new PropertyModel<>(model, SceneDto.F_NAME);
 		Label headerNameLabel = new Label(ID_HEADER_NAME_LABEL, nameModel);
 		LinkPanel<String> headerNameLink = new LinkPanel<String>(ID_HEADER_NAME_LINK, nameModel) {
+
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				PrismContainerValue<?> value = getModelObject().getScene().getSourceValue();
@@ -247,11 +248,13 @@ public class ScenePanel extends BasePanel<SceneDto> {
 			}
 		});
 		itemsTable.add(valueLabel);
-		ListView<SceneItemDto> items = new ListView<SceneItemDto>(ID_ITEMS, new PropertyModel<List<SceneItemDto>>(model, SceneDto.F_ITEMS)) {
+		ListView<SceneItemDto> items = new ListView<SceneItemDto>(ID_ITEMS,
+				new PropertyModel<List<SceneItemDto>>(model, SceneDto.F_ITEMS)) {
+
 			@Override
 			protected void populateItem(ListItem<SceneItemDto> item) {
 				SceneItemPanel panel = new SceneItemPanel(ID_ITEM, item.getModel());
-				panel.setOutputMarkupPlaceholderTag(true);
+				panel.setRenderBodyOnly(true);
 				item.add(panel);
 			}
 		};
@@ -290,6 +293,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
     }
 
 	private class ChangeTypeModel extends AbstractReadOnlyModel<String> {
+
 		@Override
 		public String getObject() {
 			ChangeType changeType = getModel().getObject().getScene().getChangeType();
@@ -301,6 +305,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 	}
 
 	private class ObjectTypeModel extends AbstractReadOnlyModel<String> {
+
 		@Override
 		public String getObject() {
 			Scene scene = getModel().getObject().getScene();
