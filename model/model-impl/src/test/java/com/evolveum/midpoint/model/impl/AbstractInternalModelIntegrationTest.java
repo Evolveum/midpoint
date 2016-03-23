@@ -108,6 +108,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	
 	protected static final File USER_GUYBRUSH_FILE = new File(COMMON_DIR, "user-guybrush.xml");
 	protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
+	protected static final String USER_GUYBRUSH_USERNAME = "guybrush";
 	
 	static final File USER_ELAINE_FILE = new File(COMMON_DIR, "user-elaine.xml");
 	protected static final String USER_ELAINE_OID = "c0c010c0-d34d-b33f-f00d-11111111111e";

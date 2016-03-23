@@ -39,6 +39,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
@@ -57,6 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik
@@ -70,6 +72,8 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "security");
 	
 	private static final Trace LOGGER = TraceManager.getTrace(TestAuthenticationEvaluator.class);
+
+	private static final String USER_GUYBRUSH_PASSWORD = "XmarksTHEspot";
 	
 	@Autowired(required=true)
 	private AuthenticationEvaluator authenticationEvaluator;
@@ -417,7 +421,161 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		assertFailedLogins(userAfter, 0);
 		assertLastSuccessfulLogin(userAfter, startTs, endTs);
 	}
+	
+	@Test
+	public void test200UserGuybrushSetPassword() throws Exception {
+		final String TEST_NAME = "test200UserGuybrushSetPassword";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
 
+		ProtectedStringType userPasswordPs = new ProtectedStringType();
+        userPasswordPs.setClearValue(USER_GUYBRUSH_PASSWORD);
+        
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		modifyUserReplace(USER_GUYBRUSH_OID, PASSWORD_VALUE_PATH,
+        		task, result, userPasswordPs);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+		
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("user after", userAfter);
+		
+		assertEncryptedPassword(userAfter, USER_GUYBRUSH_PASSWORD);
+		assertPasswordMetadata(userAfter, false, startTs, endTs, null, SchemaConstants.CHANNEL_GUI_USER_URI);
+		
+		assertFailedLogins(userAfter, 0);
+	}
+
+	@Test
+	public void test201UserGuybrushPasswordLoginGoodPassword() throws Exception {
+		final String TEST_NAME = "test201UserGuybrushPasswordLoginGoodPassword";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		MidPointPrincipal principal = getAuthorizedPrincipal(USER_GUYBRUSH_USERNAME);
+		ConnectionEnvironment connEnv = createConnectionEnvironment();
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		Authentication authentication = authenticationEvaluator.authenticateUserPassword(principal, connEnv, USER_GUYBRUSH_PASSWORD);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+		assertGoodPasswordAuthentication(authentication, principal);
+		
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("user after", userAfter);
+		assertFailedLogins(userAfter, 0);
+		assertLastSuccessfulLogin(userAfter, startTs, endTs);
+	}
+	
+	@Test
+	public void test202UserGuybrushPasswordLoginBadPassword() throws Exception {
+		final String TEST_NAME = "test202UserGuybrushPasswordLoginBadPassword";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		MidPointPrincipal principal = getAuthorizedPrincipal(USER_GUYBRUSH_USERNAME);
+		ConnectionEnvironment connEnv = createConnectionEnvironment();
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+		
+		try {
+		
+			// WHEN
+			TestUtil.displayWhen(TEST_NAME);
+			
+			authenticationEvaluator.authenticateUserPassword(principal, connEnv, "thisIsNotMyPassword");
+			
+			AssertJUnit.fail("Unexpected success");
+			
+		} catch (BadCredentialsException e) {
+			// This is expected
+			
+			// THEN
+			TestUtil.displayThen(TEST_NAME);
+			display("expected exception", e);
+			assertBadPasswordException(e, principal);
+		}
+		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+		
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("user after", userAfter);
+		assertFailedLogins(userAfter, 1);
+		assertLastFailedLogin(userAfter, startTs, endTs);
+	}
+	
+	@Test
+	public void test209UserGuybrushPasswordLoginGoodPasswordBeforeExpiration() throws Exception {
+		final String TEST_NAME = "test209UserGuybrushPasswordLoginGoodPasswordBeforeExpiration";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		clock.overrideDuration("P29D");
+		
+		MidPointPrincipal principal = getAuthorizedPrincipal(USER_GUYBRUSH_USERNAME);
+		ConnectionEnvironment connEnv = createConnectionEnvironment();
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		Authentication authentication = authenticationEvaluator.authenticateUserPassword(principal, connEnv, USER_GUYBRUSH_PASSWORD);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+		assertGoodPasswordAuthentication(authentication, principal);
+		
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("user after", userAfter);
+		assertFailedLogins(userAfter, 0);
+		assertLastSuccessfulLogin(userAfter, startTs, endTs);
+	}
+	
+	@Test
+	public void test210UserGuybrushPasswordLoginGoodPasswordExpired() throws Exception {
+		final String TEST_NAME = "test210UserGuybrushPasswordLoginGoodPasswordExpired";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		clock.overrideDuration("P2D");
+		
+		MidPointPrincipal principal = getAuthorizedPrincipal(USER_GUYBRUSH_USERNAME);
+		ConnectionEnvironment connEnv = createConnectionEnvironment();
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+		
+		try {
+		
+			// WHEN
+			TestUtil.displayWhen(TEST_NAME);
+			
+			authenticationEvaluator.authenticateUserPassword(principal, connEnv, USER_GUYBRUSH_PASSWORD);
+			
+			AssertJUnit.fail("Unexpected success");
+			
+		} catch (BadCredentialsException e) {
+			// This is expected
+			
+			// THEN
+			TestUtil.displayThen(TEST_NAME);
+			display("expected exception", e);
+			assertExpiredException(e, principal);
+		}
+		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+		
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("user after", userAfter);
+		assertFailedLogins(userAfter, 0);
+	}
 	
 	private void assertGoodPasswordAuthentication(Authentication authentication, MidPointPrincipal principal) {
 		assertNotNull("No authentication", authentication);
@@ -436,6 +594,10 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	
 	private void assertLockedException(BadCredentialsException e, MidPointPrincipal principal) {
 		assertEquals("Wrong exception meessage (key)", "web.security.provider.locked", e.getMessage());
+	}
+	
+	private void assertExpiredException(BadCredentialsException e, MidPointPrincipal principal) {
+		assertEquals("Wrong exception meessage (key)", "web.security.provider.password.bad", e.getMessage());
 	}
 	
 	private ConnectionEnvironment createConnectionEnvironment() {
@@ -467,9 +629,8 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.assertBetween("wrong last failed login timestamp", startTs, endTs, failedLoginTs);
 	}
 
-	private MidPointPrincipal getAuthorizedPrincipal(String userJackUsername) throws ObjectNotFoundException {
-		MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
-		assertPrincipalJack(principal);
+	private MidPointPrincipal getAuthorizedPrincipal(String username) throws ObjectNotFoundException {
+		MidPointPrincipal principal = userProfileService.getPrincipal(username);
 		if (principal.getAuthorities().isEmpty()) {
 			AuthorizationType authorizationType = new AuthorizationType();
 	        authorizationType.getAction().add("FAKE");

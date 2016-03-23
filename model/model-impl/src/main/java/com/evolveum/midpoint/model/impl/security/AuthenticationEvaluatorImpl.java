@@ -139,6 +139,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 			return token;
 			
 		} else {
+			logFailure(principal, "password mismatch");
 			
 			recordAuthenticationFailure(principal, connEnv, passwordType, passwordCredentialsPolicy);
 			
