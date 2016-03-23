@@ -17,6 +17,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -43,6 +44,7 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
     private static final String ID_CONFIRM_PASSWORD_LABEL = "confirmPasswordLabel";
     public static final String ID_ACCOUNTS_TABLE = "accounts";
     public static final String ID_ACCOUNTS_CONTAINER = "accountsContainer";
+    private static final String ID_BUTTON_HELP = "help";
     public static final String SELECTED_ACCOUNT_ICON_CSS = "fa fa-check-square-o";
     public static final String DESELECTED_ACCOUNT_ICON_CSS = "fa fa-square-o";
     public static final String PROPAGATED_ACCOUNT_ICON_CSS = "fa fa-sign-out";
@@ -100,6 +102,14 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
             accountContainer.setVisible(false);
         }
         accountContainer.add(accounts);
+
+        AjaxLink help = new AjaxLink(ID_BUTTON_HELP) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+            }
+        };
+        accountContainer.add(help);
+
         add(accountContainer);
     }
 
