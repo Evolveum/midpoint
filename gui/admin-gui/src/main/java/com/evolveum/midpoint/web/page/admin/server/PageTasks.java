@@ -548,7 +548,7 @@ public class PageTasks extends PageAdminTasks {
             private void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-                component.setResponsePage(new PageTaskEdit(parameters, (PageBase) component.getPage()));
+                component.setResponsePage(new PageTask2(parameters));
             }
 
             @Override
