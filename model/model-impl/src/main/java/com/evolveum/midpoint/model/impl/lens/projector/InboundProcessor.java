@@ -204,7 +204,7 @@ public class InboundProcessor {
             PropertyDelta<?> accountAttributeDelta = null;
             if (aPrioriDelta != null) {
                 accountAttributeDelta = aPrioriDelta.findPropertyDelta(new ItemPath(SchemaConstants.C_ATTRIBUTES), accountAttributeName);
-                if (accountAttributeDelta == null && !projContext.isFullShadow()) {
+                if (accountAttributeDelta == null && !projContext.isFullShadow() && !LensUtil.hasDependentContext(context, projContext)) {
 					LOGGER.trace("Skipping inbound for {} in {}: Not a full shadow and account a priori delta exists, but doesn't have change for processed property.",
 							accountAttributeName, projContext.getResourceShadowDiscriminator());
 					continue;

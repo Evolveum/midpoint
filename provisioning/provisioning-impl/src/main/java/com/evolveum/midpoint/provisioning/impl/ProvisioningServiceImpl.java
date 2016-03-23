@@ -638,13 +638,17 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				PrismObject<ResourceType> completeResource = resourceManager.getResource((PrismObject<ResourceType>) inObject, 
 						SelectorOptions.findRootOptions(options), result);
 				return (PrismObject<T>) completeResource;
-		} else {
+		} else if (ShadowType.class.equals(type)) {
 			//TODO: applyDefinition??? 
 			applyDefinition(inObject, result);
 			setProtectedShadow((PrismObject<ShadowType>) inObject, result);
 			return inObject;
 			
+		} else {
+			//TODO: connectors etc..
+			
 		}
+		return inObject;
 
 	}
 

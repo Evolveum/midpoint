@@ -20,11 +20,11 @@
     <div class="box" wicket:id="box" style="margin-bottom: 0px;">
         <div class="box-header with-border" wicket:id="headerPanel">
             <h3 class="box-title" style="margin-right: 35px;">
+            <span wicket:id="wrapperDisplayName"/>
             <span wicket:id="changeType"/>
             <span wicket:id="objectType"/>
             <small>
                 <span wicket:id="nameLabel"/><span wicket:id="nameLink"/> <span wicket:id="description"/>
-                <span wicket:id="wrapperDisplayName"/>
             </small>
             </h3>
             <div class="box-tools pull-right" wicket:id="optionButtons" />
@@ -38,13 +38,13 @@
                     <th wicket:id="newValueLabel"><wicket:message key="ScenePanel.newValue"/></th>
                     <th wicket:id="valueLabel"><wicket:message key="ScenePanel.value"/></th>
                 </tr>
-                <div wicket:id="items">
-                    <div wicket:id="item"/>
-                </div>
+                <wicket:container wicket:id="items">
+                    <span wicket:id="item"/>
+                </wicket:container>
             </table>
-            <div wicket:id="partialScenes" style="padding: 10px;">
-                <div wicket:id="partialScene"/>
-            </div>
+            <wicket:container wicket:id="partialScenes">
+                <div wicket:id="partialScene" style="padding: 10px;"/>
+            </wicket:container>
         </div>
     </div>
 </wicket:panel>

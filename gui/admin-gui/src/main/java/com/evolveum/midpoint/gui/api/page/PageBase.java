@@ -28,6 +28,7 @@ import javax.management.ObjectName;
 
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
+import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 import org.apache.commons.lang.StringUtils;
@@ -385,7 +386,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		if (owner == null) {
 			MidPointPrincipal user = SecurityUtils.getPrincipalUser();
 			if (user == null) {
-				return task;
+				throw new RestartResponseException(PageLogin.class);
 			} else {
 				owner = user.getUser().asPrismObject();
 			}
@@ -399,7 +400,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	public Task createSimpleTask(String operation) {
 		MidPointPrincipal user = SecurityUtils.getPrincipalUser();
-		return createSimpleTask(operation, user != null ? user.getUser().asPrismObject() : null);
+		if (user == null) {
+			throw new RestartResponseException(PageLogin.class);
+		}
+		return createSimpleTask(operation, user.getUser().asPrismObject());
 	}
 
 	public MidpointConfiguration getMidpointConfiguration() {
