@@ -98,7 +98,8 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
 //            }
 
             ObjectQuery query = getObjectQuery();
-            query.setPaging(ObjectPaging.createPaging(safeLongToInteger(first), safeLongToInteger(count)));
+			query.getPaging().setOffset(safeLongToInteger(first));	// we know the paging object is not null
+			query.getPaging().setMaxSize(safeLongToInteger(count));
 
             Collection<SelectorOptions<GetOperationOptions>> options = createCollection(createResolveNames());
             List<PrismObject<TaskType>> tasks = getModel().searchObjects(TaskType.class, query, options, opTask, result);
