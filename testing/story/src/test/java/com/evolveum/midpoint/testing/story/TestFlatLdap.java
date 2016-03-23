@@ -100,6 +100,7 @@ public class TestFlatLdap extends AbstractStoryTest {
 
 	private static final String ORG_ROYULA_CARPATHIA_NAME = "Royula Carpathia";
 	private static final String ORG_CORTUV_HRAD_NAME = "Čortův hrád";
+	private static final String ORG_VYSNE_VLKODLAKY_NAME = "Vyšné Vlkodlaky";
 
 	private static final String ORG_TYPE_FUNCTIONAL = "functional";
 
@@ -113,6 +114,9 @@ public class TestFlatLdap extends AbstractStoryTest {
 	private static final String USER_GORC_GIVEN_NAME = "Robert";
 	private static final String USER_GORC_FAMILY_NAME = "Gorc z Gorců";
 
+	private static final String USER_DEZI_USERNAME = "dezi";
+	private static final String USER_DEZI_GIVEN_NAME = "Vilja";
+	private static final String USER_DEZI_FAMILY_NAME = "Dézi";
 		
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
@@ -120,6 +124,8 @@ public class TestFlatLdap extends AbstractStoryTest {
 	private String orgRolyulaCarpathiaOid;
 
 	private String orgCortuvHradOid;
+
+	private String orgVysneVlkodlakyOid;
 
 	@Override
     protected void startResources() throws Exception {
@@ -274,6 +280,62 @@ public class TestFlatLdap extends AbstractStoryTest {
         TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userAfter = getAndAssertUser(USER_GORC_USERNAME, ORG_CORTUV_HRAD_NAME, ORG_ROYULA_CARPATHIA_NAME);
+        
+		dumpOrgTree();
+	}
+
+	@Test
+    public void test220AddOrgVysneVlkodlaky() throws Exception {
+		final String TEST_NAME = "test220AddOrgVysneVlkodlaky";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestFlatLdap.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<OrgType> orgBefore = createOrg(ORG_VYSNE_VLKODLAKY_NAME, orgCortuvHradOid);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        display("Adding org", orgBefore);
+        addObject(orgBefore, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_VYSNE_VLKODLAKY_NAME);
+        orgVysneVlkodlakyOid = orgAfter.getOid();
+
+		dumpOrgTree();
+
+		assertHasOrg(orgAfter, orgCortuvHradOid);
+		assertAssignedOrg(orgAfter, orgCortuvHradOid);
+		assertSubOrgs(orgAfter, 0);
+		assertSubOrgs(orgRolyulaCarpathiaOid, 1);
+		assertSubOrgs(ORG_TOP_OID, 1);
+	}
+	
+	@Test
+    public void test230AddUserViljaDezi() throws Exception {
+		final String TEST_NAME = "test230AddUserViljaDezi";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestFlatLdap.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = createUser(USER_DEZI_USERNAME, 
+        		USER_DEZI_GIVEN_NAME, USER_DEZI_FAMILY_NAME, orgVysneVlkodlakyOid);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        display("Adding user", userBefore);
+        addObject(userBefore, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getAndAssertUser(USER_DEZI_USERNAME, ORG_VYSNE_VLKODLAKY_NAME, ORG_CORTUV_HRAD_NAME, ORG_ROYULA_CARPATHIA_NAME);
         
 		dumpOrgTree();
 	}
