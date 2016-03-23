@@ -5813,8 +5813,32 @@
         	</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-	<xsd:element name="associationFromLink" type="tns:ShadowDiscriminatorExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 	<xsd:element name="assignmentFromAssociation" type="tns:ShadowDiscriminatorExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+
+	<xsd:complexType name="AssociationFromLinkExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of an expression that creates association from links (linkRefs)
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:ShadowDiscriminatorExpressionEvaluatorType">
+		        <xsd:sequence>
+		        	<xsd:element name="recurseUpOrgType" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+		        		<xsd:annotation>
+		        			<xsd:documentation>
+		        				Specifies orgType of an organization tree to recurse upward.
+		        				In case that the expression applies to an org, it will recurse the org
+		        				tree upwards and create associations for all the orgs in the hierarchy.
+		        				Only orgs with the orgType mathing this specification will be processed.
+		        			</xsd:documentation>
+		        		</xsd:annotation>
+		        	</xsd:element>
+		        </xsd:sequence>
+	        </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="associationFromLink" type="tns:AssociationFromLinkExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
 	<xsd:complexType name="PopulateObjectType">
 		<xsd:annotation>
