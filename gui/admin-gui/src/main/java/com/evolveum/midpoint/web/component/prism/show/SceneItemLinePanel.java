@@ -44,14 +44,14 @@ public class SceneItemLinePanel extends BasePanel<SceneItemLineDto> {
 
     public SceneItemLinePanel(String id, IModel<SceneItemLineDto> model) {
         super(id, model);
-        setOutputMarkupId(true);
 
         initLayout();
     }
 
 	private void initLayout() {
 		WebMarkupContainer nameCell = new WebMarkupContainer(ID_NAME_CONTAINER);
-		nameCell.add(new AttributeModifier("rowspan", new PropertyModel<Integer>(getModel(), SceneItemLineDto.F_NUMBER_OF_LINES)));
+		nameCell.add(new AttributeModifier("rowspan",
+				new PropertyModel<Integer>(getModel(), SceneItemLineDto.F_NUMBER_OF_LINES)));
 		Label label = new Label("name", new PropertyModel<String>(getModel(), SceneItemLineDto.F_NAME));
 		nameCell.add(label);
 		nameCell.add(new VisibleEnableBehaviour() {
@@ -69,11 +69,17 @@ public class SceneItemLinePanel extends BasePanel<SceneItemLineDto> {
 				return getModelObject().isDelta();
 			}
 		});
-		oldValueCell.add(new SceneItemValuePanel(ID_OLD_VALUE, new PropertyModel<SceneItemValue>(getModel(), SceneItemLineDto.F_OLD_VALUE)));
+		SceneItemValuePanel sivp = new SceneItemValuePanel(ID_OLD_VALUE,
+				new PropertyModel<SceneItemValue>(getModel(), SceneItemLineDto.F_OLD_VALUE));
+		sivp.setRenderBodyOnly(true);
+		oldValueCell.add(sivp);
 		add(oldValueCell);
 
 		WebMarkupContainer newValueCell = new WebMarkupContainer(ID_NEW_VALUE_CONTAINER);
-		newValueCell.add(new SceneItemValuePanel(ID_NEW_VALUE, new PropertyModel<SceneItemValue>(getModel(), SceneItemLineDto.F_NEW_VALUE)));
+		sivp = new SceneItemValuePanel(ID_NEW_VALUE,
+				new PropertyModel<SceneItemValue>(getModel(), SceneItemLineDto.F_NEW_VALUE));
+		sivp.setRenderBodyOnly(true);
+		newValueCell.add(sivp);
 		newValueCell.add(new AttributeModifier("colspan", new AbstractReadOnlyModel<Integer>() {
 			@Override
 			public Integer getObject() {

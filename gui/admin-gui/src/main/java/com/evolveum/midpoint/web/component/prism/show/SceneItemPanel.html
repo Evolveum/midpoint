@@ -17,10 +17,10 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div wicket:id="itemLines">
+    <wicket:container wicket:id="itemLines">
         <wicket:enclosure child="itemLine">
-            <div wicket:id="itemLine"/>
+            <tr wicket:id="itemLine"/>
         </wicket:enclosure>
-    </div>
+    </wicket:container>
 </wicket:panel>
 </html>
