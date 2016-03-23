@@ -36,6 +36,7 @@
 
     <credentials>
         <password>
+        	<!-- Simple value. No metadata. -->
         	<value>
 	            <clearValue>deadmentellnotales</clearValue>
             </value>

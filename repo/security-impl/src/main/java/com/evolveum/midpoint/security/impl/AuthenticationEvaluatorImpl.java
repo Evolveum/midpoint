@@ -236,6 +236,19 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 	private void recordAuthenticationFailure(MidPointPrincipal principal, ConnectionEnvironment connEnv,
 			PasswordType passwordType, PasswordCredentialsPolicyType passwordCredentialsPolicy) {
 		Integer failedLogins = passwordType.getFailedLogins();
+		Duration lockoutFailedAttemptsDuration = passwordCredentialsPolicy.getLockoutFailedAttemptsDuration();
+		if (lockoutFailedAttemptsDuration != null) {
+			LoginEventType lastFailedLogin = passwordType.getLastFailedLogin();
+			if (lastFailedLogin != null) {
+				XMLGregorianCalendar lastFailedLoginTs = lastFailedLogin.getTimestamp();
+				if (lastFailedLoginTs != null) {
+					XMLGregorianCalendar failedLoginsExpirationTs = XmlTypeConverter.addDuration(lastFailedLoginTs, lockoutFailedAttemptsDuration);
+					if (clock.isPast(failedLoginsExpirationTs)) {
+						failedLogins = 0;
+					}
+				}
+			}
+		}
 		if (failedLogins == null) {
 			passwordType.setFailedLogins(1);
 		} else {
