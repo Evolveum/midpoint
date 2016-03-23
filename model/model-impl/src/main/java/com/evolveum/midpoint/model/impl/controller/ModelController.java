@@ -93,6 +93,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.security.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.UserProfileService;
@@ -193,6 +194,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	@Autowired
 	private SecurityEnforcer securityEnforcer;
+	
+	@Autowired
+	private AuthenticationEvaluator authenticationEvaluator;
 
 	@Autowired
 	private UserProfileService userProfileService;
@@ -1609,6 +1613,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ModelController.class);
 
 		securityEnforcer.setUserProfileService(userProfileService);
+		authenticationEvaluator.setUserProfileService(userProfileService);
 		// TODO: initialize repository
 
 		PrismObject<SystemConfigurationType> systemConfiguration;

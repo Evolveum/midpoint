@@ -26,15 +26,18 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -53,7 +56,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author semancik
  *
  */
-public class AuthenticationEvaluatorImpl {
+@Component("authenticationEvaluator")
+public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AuthenticationEvaluatorImpl.class);
 	
@@ -63,6 +67,19 @@ public class AuthenticationEvaluatorImpl {
 	@Autowired(required = true)
 	private Clock clock;
 	
+	private UserProfileService userProfileService = null;
+	
+	@Override
+	public UserProfileService getUserProfileService() {
+		return userProfileService;
+	}
+
+	@Override
+	public void setUserProfileService(UserProfileService userProfileService) {
+		this.userProfileService = userProfileService;
+	}
+	
+	@Override
 	public Authentication authenticateUserPassword(MidPointPrincipal principal, ConnectionEnvironment connEnv, String enteredPassword) throws BadCredentialsException {		
 		if (StringUtils.isBlank(enteredPassword)) {
 			throw new BadCredentialsException("web.security.provider.access.denied");

@@ -16,4 +16,13 @@
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="integration" parallel="false" verbose="1">
+    <listeners>
+		<listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
+	</listeners>
+	<test name="security" parallel="false" verbose="10">
+		<classes>
+			<class name="com.evolveum.midpoint.security.impl.TestAuthenticationEvaluator" />
+		</classes>
+	</test>
+
 </suite>

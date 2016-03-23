@@ -14,86 +14,58 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.model.impl.security;
+package com.evolveum.midpoint.security.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
-import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
-import com.evolveum.midpoint.model.common.mapping.MappingFactory;
-import com.evolveum.midpoint.model.impl.UserComputer;
-import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensContextPlaceholder;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
- * @author lazyman
  * @author semancik
  */
-@Service(value = "userDetailsService")
-public class UserProfileServiceImpl implements UserProfileService, UserDetailsService {
+@Component
+public class UserProfileServiceMock implements UserProfileService, UserDetailsService {
 
-    private static final Trace LOGGER = TraceManager.getTrace(UserProfileServiceImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(UserProfileServiceMock.class);
     
     @Autowired(required = true)
     private transient RepositoryService repositoryService;
-    
-    @Autowired(required = true)
-    private ObjectResolver objectResolver;
-    
-    @Autowired(required = true)
-    private MappingFactory mappingFactory;
-
-    @Autowired(required = true)
-    private MappingEvaluator mappingEvaluator;
-
-    @Autowired(required = true)
-    private UserComputer userComputer;
     
     @Autowired(required = true)
 	private ActivationComputer activationComputer;
@@ -104,9 +76,6 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     @Autowired(required = true)
     private PrismContext prismContext;
     
-    @Autowired(required = true)
-    private TaskManager taskManager;
-
     @Override
     public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException {
     	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
@@ -145,7 +114,6 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			LOGGER.warn("No system configuration: {}", e.getMessage(), e);
 		}
 
-    	userComputer.recompute(user);
         MidPointPrincipal principal = new MidPointPrincipal(user.asObjectable());
         initializePrincipalFromAssignments(principal, systemConfiguration);
         return principal;
@@ -158,7 +126,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
             save(principal, result);
         } catch (Exception ex) {
             LOGGER.warn("Couldn't save user '{}, ({})', reason: {}.",
-                    new Object[]{principal.getFullName(), principal.getOid(), ex.getMessage(), ex});
+                    new Object[]{principal.getFullName(), principal.getOid(), ex.getMessage()});
         }
     }
 
@@ -178,72 +146,26 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     }
         
 	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration) {
-		UserType userType = principal.getUser();
 
-		Collection<Authorization> authorizations = principal.getAuthorities();
-		Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
+        OperationResult result = new OperationResult(UserProfileServiceMock.class.getName() + ".addAuthorizations");
 
-		Task task = taskManager.createTaskInstance(UserProfileServiceImpl.class.getName() + ".addAuthorizations");
-        OperationResult result = task.getResult();
-
-        principal.setApplicableSecurityPolicy(locateSecurityPolicy(principal, systemConfiguration, task, result));
+        principal.setApplicableSecurityPolicy(locateSecurityPolicy(principal, systemConfiguration, result));
         
-        if (userType.getAssignment().isEmpty()) {
-        	if (systemConfiguration != null) {
-        		principal.setAdminGuiConfiguration(systemConfiguration.asObjectable().getAdminGuiConfiguration());
-        	}
-            return;
+        if (systemConfiguration != null) {
+    		principal.setAdminGuiConfiguration(systemConfiguration.asObjectable().getAdminGuiConfiguration());
+    	}
+        
+        AuthorizationType authorizationType = new AuthorizationType();
+        authorizationType.getAction().add("FAKE");
+		principal.getAuthorities().add(new Authorization(authorizationType));
+       
+        ActivationType activation = principal.getUser().getActivation();
+        if (activation != null) {
+        	activationComputer.computeEffective(activation);
         }
-		
-		AssignmentEvaluator<UserType> assignmentEvaluator = new AssignmentEvaluator<>();
-        assignmentEvaluator.setRepository(repositoryService);
-        assignmentEvaluator.setFocusOdo(new ObjectDeltaObject<UserType>(userType.asPrismObject(), null, userType.asPrismObject()));
-        assignmentEvaluator.setChannel(null);
-        assignmentEvaluator.setObjectResolver(objectResolver);
-        assignmentEvaluator.setPrismContext(prismContext);
-        assignmentEvaluator.setMappingFactory(mappingFactory);
-        assignmentEvaluator.setMappingEvaluator(mappingEvaluator);
-        assignmentEvaluator.setActivationComputer(activationComputer);
-        assignmentEvaluator.setNow(clock.currentTimeXMLGregorianCalendar());
-        
-        // We do need only authorizations. Therefore we not need to evaluate constructions,
-        // so switching it off is faster. It also avoids nasty problems with resources being down,
-        // resource schema not available, etc.
-        assignmentEvaluator.setEvaluateConstructions(false);
-        
-        // We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder
-        // will need something to push on the stack. So give them context placeholder.
-        LensContext<UserType> lensContext = new LensContextPlaceholder<>(prismContext);
-		assignmentEvaluator.setLensContext(lensContext);
-		
-        for(AssignmentType assignmentType: userType.getAssignment()) {
-        	try {
-        		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-        		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-        		assignmentIdi.recompute();
-				EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, false, userType, userType.toString(), task, result);
-				if (assignment.isValid()) {
-					authorizations.addAll(assignment.getAuthorizations());
-					adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
-				}
-			} catch (SchemaException e) {
-				LOGGER.error("Schema violation while processing assignment of {}: {}; assignment: {}", 
-						new Object[]{userType, e.getMessage(), assignmentType, e});
-			} catch (ObjectNotFoundException e) {
-				LOGGER.error("Object not found while processing assignment of {}: {}; assignment: {}", 
-						new Object[]{userType, e.getMessage(), assignmentType, e});
-			} catch (ExpressionEvaluationException e) {
-				LOGGER.error("Evaluation error while processing assignment of {}: {}; assignment: {}", 
-						new Object[]{userType, e.getMessage(), assignmentType, e});
-			} catch (PolicyViolationException e) {
-				LOGGER.error("Policy violation while processing assignment of {}: {}; assignment: {}", 
-						new Object[]{userType, e.getMessage(), assignmentType, e});
-			}
-        }
-        principal.setAdminGuiConfiguration(AdminGuiConfigTypeUtil.compileAdminGuiConfiguration(adminGuiConfigurations, systemConfiguration));
 	}
 
-	private SecurityPolicyType locateSecurityPolicy(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) {
+	private SecurityPolicyType locateSecurityPolicy(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, OperationResult result) {
 		if (systemConfiguration == null) {
 			return null;
 		}
@@ -252,7 +174,8 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			return null;
 		}
 		try {
-			return objectResolver.resolve(globalSecurityPolicyRef, SecurityPolicyType.class, null, "global security policy reference in system configuration", task, result);
+			PrismObject<SecurityPolicyType> policy = repositoryService.getObject(SecurityPolicyType.class, globalSecurityPolicyRef.getOid(), null, result);
+			return policy.asObjectable();
 		} catch (ObjectNotFoundException | SchemaException e) {
 			LOGGER.error(e.getMessage(), e);
 			return null;
@@ -289,7 +212,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 		}
 		PrismObject<F> owner = null;
 		if (object.canRepresent(ShadowType.class)) {
-			owner = repositoryService.searchShadowOwner(object.getOid(), null, new OperationResult(UserProfileServiceImpl.class+".resolveOwner"));
+			owner = repositoryService.searchShadowOwner(object.getOid(), null, new OperationResult(UserProfileServiceMock.class+".resolveOwner"));
 		} else if (object.canRepresent(AbstractRoleType.class)) {
 			ObjectReferenceType ownerRef = ((AbstractRoleType)(object.asObjectable())).getOwnerRef();
 			if (ownerRef != null && ownerRef.getOid() != null && ownerRef.getType() != null) {
@@ -304,9 +227,6 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 		}
 		if (owner == null) {
 			return null;
-		}
-		if (owner.canRepresent(UserType.class)) {
-			userComputer.recompute((PrismObject<UserType>)owner);
 		}
 		return owner;
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.security.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -55,8 +57,12 @@ import java.util.*;
 public class MidPointAuthenticationProvider implements AuthenticationProvider {
 
 	private static final Trace LOGGER = TraceManager.getTrace(MidPointAuthenticationProvider.class);
+	
 	@Autowired(required = true)
 	private transient UserProfileService userProfileService;
+	
+	@Autowired(required = true)
+	private transient AuthenticationEvaluator authenticationEvaluator;
 
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -105,8 +111,9 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 	}
 
 	private Authentication authenticateUser(MidPointPrincipal principal, Authentication authentication) {
+		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		if (authentication instanceof UsernamePasswordAuthenticationToken) {
-			return authenticateUserPassword(principal, (String) authentication.getCredentials());
+			return authenticationEvaluator.authenticateUserPassword(principal, connEnv, (String) authentication.getCredentials());
 		} else if (authentication instanceof PreAuthenticatedAuthenticationToken) {
 			PreAuthenticatedAuthenticationToken token = new PreAuthenticatedAuthenticationToken(principal, null, 
 					principal.getAuthorities());
@@ -117,9 +124,13 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 		
 	}
 	
-	
+	private ConnectionEnvironment createConnectionEnvironment() {
+		ConnectionEnvironment connEnv = new ConnectionEnvironment();
+		connEnv.setRemoteHost(getRemoteHost());
+		return connEnv;
+	}
 
-	public static String getRemoteHost() {
+	private static String getRemoteHost() {
         WebRequest req = (WebRequest) RequestCycle.get().getRequest();
         HttpServletRequest httpReq = (HttpServletRequest) req.getContainerRequest();
         String remoteIp = httpReq.getRemoteHost();
