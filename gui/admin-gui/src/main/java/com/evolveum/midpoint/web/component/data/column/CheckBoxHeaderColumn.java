@@ -22,6 +22,8 @@ import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.TableHeadersToolbar;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -45,6 +47,8 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
     public CheckBoxHeaderColumn() {
         super(null);
     }
+    
+    private boolean visible = true;
 
     @Override
     public Component getHeader(String componentId) {
@@ -60,6 +64,14 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
             }
         };
         panel.setOutputMarkupId(true);
+        panel.add(new VisibleEnableBehaviour() {
+        	
+        	@Override
+        	public boolean isVisible() {
+        		return CheckBoxHeaderColumn.this.isCheckboxVisible();
+        	}
+        	
+        });
 
         return panel;
     }
@@ -67,6 +79,14 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
     @Override
     public String getCssClass() {
         return "icon";
+    }
+    
+    protected boolean isCheckboxVisible(){
+    	return visible;
+    }
+    
+    public void setCheckboxVisible(boolean visible){
+    	this.visible = visible;
     }
 
     /**

@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2010-2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.admin.resources;
 
 import java.util.ArrayList;
@@ -24,16 +39,15 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -64,8 +78,6 @@ import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
-import com.evolveum.midpoint.web.component.dialog.UserBrowserDialog;
 import com.evolveum.midpoint.web.component.input.AutoCompleteTextPanel;
 import com.evolveum.midpoint.web.component.input.TwoStateBooleanPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -410,20 +422,13 @@ public class ResourceContentTabPanel extends Panel {
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
 
-						FocusBrowserDialogPanel browser = new FocusBrowserDialogPanel(
-								parentPage.getMainPopupBodyId(), UserType.class, parentPage) {
-
-							@Override
-							public void userDetailsPerformed(AjaxRequestTarget target, FocusType user) {
-								super.userDetailsPerformed(target, user);
-								changeOwner(target, user, Operation.MODIFY);
+						FocusBrowserPanel<UserType> browser = new FocusBrowserPanel<UserType>(parentPage.getMainPopupBodyId(), UserType.class, false, parentPage){
+							protected void onClick(AjaxRequestTarget target, UserType focus) {
+								changeOwner(target, focus, Operation.MODIFY);
 							}
-
 						};
-					
-						parentPage.getMainPopup().setInitialHeight(400);
-						parentPage.getMainPopup().setInitialWidth(600);
-						parentPage.showMainPopup(browser, new Model<String>("ChangeOwner"), target);
+						
+						parentPage.showMainPopup(browser, new Model<String>("ChangeOwner"), target, 900, 500);
 
 					}
 				}));

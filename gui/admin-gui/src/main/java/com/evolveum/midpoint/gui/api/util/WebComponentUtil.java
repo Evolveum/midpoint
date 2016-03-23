@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -684,6 +685,37 @@ public final class WebComponentUtil {
 		}
 
 		return "fa fa-male";
+	}
+	
+	public static String createRoleIcon(PrismObject<RoleType> object) {
+		return "fa fa-street-view";
+	}
+	
+	public static String createOrgIcon(PrismObject<OrgType> object) {
+		return "fa fa-building";
+	}
+	
+	public static String createResourceIcon(PrismObject<ResourceType> object) {
+		return "fa fa-laptop";
+	}
+	
+	public static String createShadowIcon(PrismObject<ShadowType> object) {
+		ShadowType shadow = object.asObjectable();
+		
+		if (ShadowUtil.isProtected(object)){
+			return "fa fa-shield";
+		}
+		
+		switch (shadow.getKind()){
+			case ACCOUNT: 
+				return "fa fa-eye";
+			case GENERIC:
+				return "fa fa-institution";
+			case ENTITLEMENT:
+				return "fa fa-group";
+					
+		}
+		return "fa fa-circle-o";
 	}
 
 	public static String createUserIconTitle(PrismObject<UserType> object) {
