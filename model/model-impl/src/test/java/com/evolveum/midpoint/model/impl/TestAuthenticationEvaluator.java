@@ -53,6 +53,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
@@ -423,6 +424,75 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	}
 	
 	@Test
+	public void test120PasswordLoginDisabledGoodPassword() throws Exception {
+		final String TEST_NAME = "test120PasswordLoginDisabledGoodPassword";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
+		
+		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
+		ConnectionEnvironment connEnv = createConnectionEnvironment();
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		try {
+			
+			authenticationEvaluator.authenticateUserPassword(principal, connEnv, USER_JACK_PASSWORD);
+			
+			AssertJUnit.fail("Unexpected success");
+		} catch (BadCredentialsException e) {
+			// This is expected
+			
+			// THEN
+			TestUtil.displayThen(TEST_NAME);
+			display("expected exception", e);
+			
+			// this is important. The exception should give no indication whether the password is
+			// good or bad
+			assertDisabledException(e, principal);
+		}
+				
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("user after", userAfter);
+		assertFailedLogins(userAfter, 0);
+	}
+	
+	@Test
+	public void test122PasswordLoginEnabledGoodPassword() throws Exception {
+		final String TEST_NAME = "test122PasswordLoginEnabledGoodPassword";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
+		
+		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
+		ConnectionEnvironment connEnv = createConnectionEnvironment();
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		Authentication authentication = authenticationEvaluator.authenticateUserPassword(principal, connEnv, USER_JACK_PASSWORD);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+		assertGoodPasswordAuthentication(authentication, principal);
+		
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("user after", userAfter);
+		assertFailedLogins(userAfter, 0);
+		assertLastSuccessfulLogin(userAfter, startTs, endTs);
+	}
+	
+	// TODO: validFrom, validTo
+	
+	@Test
 	public void test200UserGuybrushSetPassword() throws Exception {
 		final String TEST_NAME = "test200UserGuybrushSetPassword";
 		TestUtil.displayTestTile(TEST_NAME);
@@ -594,6 +664,10 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	
 	private void assertLockedException(BadCredentialsException e, MidPointPrincipal principal) {
 		assertEquals("Wrong exception meessage (key)", "web.security.provider.locked", e.getMessage());
+	}
+	
+	private void assertDisabledException(BadCredentialsException e, MidPointPrincipal principal) {
+		assertEquals("Wrong exception meessage (key)", "web.security.provider.disabled", e.getMessage());
 	}
 	
 	private void assertExpiredException(BadCredentialsException e, MidPointPrincipal principal) {

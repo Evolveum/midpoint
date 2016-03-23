@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015 Evolveum
+ * Copyright (c) 2013-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class MidpointRestAuthenticationHandler implements ContainerRequestFilter, ContainerResponseFilter {
 	 
 	@Autowired(required =true)
-	private UserProfileService userDetails;
+	private UserProfileService userProfileService;
 	
 	@Autowired(required = true)
 	private SecurityEnforcer securityEnforcer;
@@ -108,7 +108,7 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         
         MidPointPrincipal principal;
 		try {
-			principal = userDetails.getPrincipal(enteredUsername);
+			principal = userProfileService.getPrincipal(enteredUsername);
 		} catch (ObjectNotFoundException e) {
 			securityHelper.auditLoginFailure(enteredUsername, "No user", SchemaConstants.CHANNEL_REST_URI);
 			requestCtx.abortWith(Response.status(401).header("WWW-Authenticate", "Basic authentication failed. Cannot authenticate user.").build());

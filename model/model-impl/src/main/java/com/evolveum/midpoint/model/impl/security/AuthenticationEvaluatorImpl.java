@@ -116,6 +116,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 			throw new BadCredentialsException("web.security.provider.password.encoding");
 		}
 		
+		// Authorizations
 		Collection<Authorization> authorizations = principal.getAuthorities();
 		if (authorizations == null || authorizations.isEmpty()){
 			logFailure(principal, "no authorizations");
@@ -129,6 +130,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 			}
 		}
 
+		// Password age
 		checkPasswordValidityAndAge(principal, passwordType, passwordCredentialsPolicy);
 		
 		if (passwordMatches(principal, passwordType, passwordCredentialsPolicy, enteredPassword)) {
