@@ -113,7 +113,7 @@ public class AssociationFromLinkExpressionEvaluator
 		// Always process the first role (myself) regardless of recursion setting
 		gatherAssociationsFromAbstractRole(thisRole, output, resourceOid, kind, intent, assocName, options, desc, params);
 		
-		if (thisRole instanceof OrgType) {
+		if (thisRole instanceof OrgType && matchesForRecursion((OrgType)thisRole)) {
 			gatherAssociationsFromAbstractRoleRecurse((OrgType)thisRole, output, resourceOid, kind, intent, assocName, options, desc, params);
 		}
 		
@@ -150,12 +150,13 @@ public class AssociationFromLinkExpressionEvaluator
 			String intent, QName assocName, Collection<SelectorOptions<GetOperationOptions>> options,
 			String desc, ExpressionEvaluationContext params) throws SchemaException, ObjectNotFoundException {
 		
-		if (!matchesForRecursion(thisOrg)) {
-			return;
-		}
+		gatherAssociationsFromAbstractRole(thisOrg, output, resourceOid, kind, intent, assocName, options, desc, params);
+		
 		for (ObjectReferenceType parentOrgRef: thisOrg.getParentOrgRef()) {
 			OrgType parent = objectResolver.resolve(parentOrgRef, OrgType.class, options, desc, params.getTask(), params.getResult());
-			gatherAssociationsFromAbstractRole(parent, output, resourceOid, kind, intent, assocName, options, desc, params);
+			if (matchesForRecursion(parent)) {
+				gatherAssociationsFromAbstractRoleRecurse(parent, output, resourceOid, kind, intent, assocName, options, desc, params);
+			}
 		}
 	}
 	
