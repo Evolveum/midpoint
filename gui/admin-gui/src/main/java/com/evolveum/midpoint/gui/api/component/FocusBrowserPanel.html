@@ -15,13 +15,14 @@
   -->
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-           
-        <form  class="clearfix" wicket:id="mainForm" style="margin: 5px;">
-            <div wicket:id="table"/>
 
-            <p align="right">
-                <a class="btn btn-sm btn-default"  wicket:id="cancelButton"/>
-                <a class="btn btn-sm btn-primary"  wicket:id="addButton"/>
-            </p>
-        </form>
+	<div class="form-inline search-form">
+
+		<div class="form-group">
+			<label><wicket:message key="roleMemberPanel.type" /></label> 
+			<select class="form-control input-sm" wicket:id="type" />
+		</div>
+	</div>
+
+	<div wicket:id="table"></div>
 </wicket:panel>

@@ -19,16 +19,23 @@ package com.evolveum.midpoint.web.component.wf;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseOrDecisionDto;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItem;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoProvider;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
@@ -36,10 +43,14 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
 
 /**
  * @author lazyman
@@ -65,9 +76,10 @@ public class WorkItemsTablePanel extends BasePanel {
         // TODO configurable
         columns.add(new CheckBoxHeaderColumn<WorkItemDto>());
 
-        // TODO clickable links and info icons
-        columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.object"), WorkItemDto.F_OBJECT_NAME));
-        columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.target"), WorkItemDto.F_TARGET_NAME));
+		columns.add(createTypeIconColumn(true));
+		columns.add(createObjectNameColumn("WorkItemsPanel.object"));
+		columns.add(createTypeIconColumn(false));
+		columns.add(createTargetNameColumn("WorkItemsPanel.target"));
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL)) {
@@ -104,8 +116,8 @@ public class WorkItemsTablePanel extends BasePanel {
         add(workItemsTable);
     }
 
-    private TablePanel getWorkItemTable() {
-        return (TablePanel) get(ID_WORK_ITEMS_TABLE);
+    private BoxedTablePanel getWorkItemTable() {
+        return (BoxedTablePanel) get(ID_WORK_ITEMS_TABLE);
     }
 
     public List<WorkItemDto> getSelectedWorkItems() {
@@ -121,5 +133,53 @@ public class WorkItemsTablePanel extends BasePanel {
 
         return selected;
     }
+
+	IColumn<WorkItemDto, String> createObjectNameColumn(final String headerKey) {
+		return new LinkColumn<WorkItemDto>(createStringResource(headerKey), WorkItemDto.F_OBJECT_NAME) {
+
+			@Override
+			public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
+				WorkItemDto dto = rowModel.getObject();
+				dispatchToObjectDetailsPage(dto.getObjectRef(), getPageBase());
+			}
+		};
+	}
+
+	IColumn<WorkItemDto, String> createTargetNameColumn(final String headerKey) {
+		return new LinkColumn<WorkItemDto>(createStringResource(headerKey), WorkItemDto.F_TARGET_NAME) {
+
+			@Override
+			public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
+				WorkItemDto dto = rowModel.getObject();
+				dispatchToObjectDetailsPage(dto.getTargetRef(), getPageBase());
+			}
+		};
+	}
+
+	public IColumn<WorkItemDto, String> createTypeIconColumn(final boolean object) {		// true = object, false = target
+		return new IconColumn<WorkItemDto>(createStringResource("")) {
+			@Override
+			protected IModel<String> createIconModel(IModel<WorkItemDto> rowModel) {
+				ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(rowModel);
+				String icon = guiDescriptor != null ? guiDescriptor.getIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
+				return new Model<>(icon);
+			}
+
+			private ObjectTypeGuiDescriptor getObjectTypeDescriptor(IModel<WorkItemDto> rowModel) {
+				QName type = object ? rowModel.getObject().getObjectType() : rowModel.getObject().getTargetType();
+				return ObjectTypeGuiDescriptor.getDescriptor(ObjectTypes.getObjectTypeFromTypeQName(type));
+			}
+
+			@Override
+			public void populateItem(Item<ICellPopulator<WorkItemDto>> item, String componentId, IModel<WorkItemDto> rowModel) {
+				super.populateItem(item, componentId, rowModel);
+				ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(rowModel);
+				if (guiDescriptor != null) {
+					item.add(AttributeModifier.replace("title", createStringResource(guiDescriptor.getLocalizationKey())));
+					item.add(new TooltipBehavior());
+				}
+			}
+		};
+	}
 
 }

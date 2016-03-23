@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -51,6 +52,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurA
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -691,6 +693,37 @@ public final class WebComponentUtil {
 
 		return "fa fa-male";
 	}
+	
+	public static String createRoleIcon(PrismObject<RoleType> object) {
+		return "fa fa-street-view";
+	}
+	
+	public static String createOrgIcon(PrismObject<OrgType> object) {
+		return "fa fa-building";
+	}
+	
+	public static String createResourceIcon(PrismObject<ResourceType> object) {
+		return "fa fa-laptop";
+	}
+	
+	public static String createShadowIcon(PrismObject<ShadowType> object) {
+		ShadowType shadow = object.asObjectable();
+		
+		if (ShadowUtil.isProtected(object)){
+			return "fa fa-shield";
+		}
+		
+		switch (shadow.getKind()){
+			case ACCOUNT: 
+				return "fa fa-eye";
+			case GENERIC:
+				return "fa fa-institution";
+			case ENTITLEMENT:
+				return "fa fa-group";
+					
+		}
+		return "fa fa-circle-o";
+	}
 
 	public static String createUserIconTitle(PrismObject<UserType> object) {
 		UserType user = object.asObjectable();
@@ -997,10 +1030,25 @@ public final class WebComponentUtil {
 			page.setResponsePage(new PageUser(parameters, page));
 		} else if (ResourceType.COMPLEX_TYPE.equals(type)) {
 			page.setResponsePage(new PageResource(parameters, page));
+		} else if (TaskType.COMPLEX_TYPE.equals(type)) {
+			page.setResponsePage(new PageTaskEdit(parameters, page));
 		} else {
 			// nothing to do
 		}
 	}
+
+	public static boolean hasDetailsPage(PrismObject<?> object) {
+		Class<?> clazz = object.getCompileTimeClass();
+		if (clazz == null) {
+			return false;
+		}
+
+		return AbstractRoleType.class.isAssignableFrom(clazz) ||
+				UserType.class.isAssignableFrom(clazz) ||
+				ResourceType.class.isAssignableFrom(clazz) ||
+				TaskType.class.isAssignableFrom(clazz);
+	}
+
 
 
 }

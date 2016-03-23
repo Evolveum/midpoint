@@ -36,7 +36,7 @@ public class SearchFormPanel extends BasePanel<Search> {
         initLayout();
     }
 
-    private void initLayout() {
+    protected void initLayout() {
         final Form searchForm = new Form(ID_SEARCH_FORM);
         add(searchForm);
         searchForm.setOutputMarkupId(true);

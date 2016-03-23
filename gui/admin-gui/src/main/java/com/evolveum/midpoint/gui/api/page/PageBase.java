@@ -571,6 +571,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         setMainPopupTitle(title);
         showMainPopup(target);
     }
+    
+    public void showMainPopup(Component body, IModel<String> title, AjaxRequestTarget target, int initialWidth, int initialHeight) {
+       getMainPopup().setInitialHeight(initialHeight);
+       getMainPopup().setInitialWidth(initialWidth);
+       showMainPopup(body, title, target);
+    }
 
     public void hideMainPopup(AjaxRequestTarget target) {
         getMainPopup().close(target);

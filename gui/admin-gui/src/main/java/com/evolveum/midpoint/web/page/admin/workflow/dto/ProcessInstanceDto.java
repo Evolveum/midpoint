@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -29,6 +30,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 import java.util.Date;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.formatDate;
@@ -85,6 +87,22 @@ public class ProcessInstanceDto extends Selectable {
 		return WebComponentUtil.getName(task.getWorkflowContext().getObjectRef());
 	}
 
+	public ObjectReferenceType getObjectRef() {
+		return task.getWorkflowContext().getObjectRef();
+	}
+
+	public ObjectReferenceType getTargetRef() {
+		return task.getWorkflowContext().getTargetRef();
+	}
+
+	public QName getObjectType() {
+		return getObjectRef() != null ? getObjectRef().getType() : null;
+	}
+
+	public QName getTargetType() {
+		return getTargetRef() != null ? getTargetRef().getType() : null;
+	}
+
 	public String getTargetName() {
 		return WebComponentUtil.getName(task.getWorkflowContext().getTargetRef());
 	}
@@ -139,4 +157,5 @@ public class ProcessInstanceDto extends Selectable {
     public String getTaskOid() {
         return task.getOid();
     }
+
 }

@@ -31,17 +31,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -49,6 +48,7 @@ import java.util.List;
  */
 public class ScenePanel extends BasePanel<SceneDto> {
 
+	private static final String ID_BOX = "box";
 	private static final String STRIPED_CLASS = "striped";
     private static final String ID_ITEMS_TABLE = "itemsTable";
     private static final String ID_ITEMS = "items";
@@ -91,8 +91,32 @@ public class ScenePanel extends BasePanel<SceneDto> {
     private void initLayout() {
 		final IModel<SceneDto> model = getModel();
 
+		WebMarkupContainer box = new WebMarkupContainer(ID_BOX);
+		box.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+
+			@Override
+			public String getObject() {
+				SceneDto dto = model.getObject();
+				if (dto.getChangeType() == null) {
+					return null;
+				}
+
+				switch (dto.getChangeType()) {
+					case ADD:
+						return "box-success";
+					case DELETE:
+						return "box-danger";
+					case MODIFY:
+						return "box-info";
+					default:
+						return null;
+				}
+			}
+		}));
+		add(box);
+
         WebMarkupContainer headerPanel = new WebMarkupContainer(ID_HEADER_PANEL);
-		add(headerPanel);
+		box.add(headerPanel);
 
 		headerPanel.add(new SceneButtonPanel(ID_OPTION_BUTTONS, model) {
 			@Override
@@ -162,7 +186,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 				if (getModelObject().isWrapper()) {
 					return false;
 				}
-				return isExistingObject();
+				return isExistingViewableObject();
 			}
 		};
 		VisibleEnableBehaviour visibleIfNotWrapperAndNotExistingObject = new VisibleEnableBehaviour() {
@@ -171,7 +195,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 				if (getModelObject().isWrapper()) {
 					return false;
 				}
-				return !isExistingObject();
+				return !isExistingViewableObject();
 			}
 		};
 		headerChangeType.add(visibleIfNotWrapper);
@@ -190,7 +214,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
                 return !wrapper.isMinimized();
             }
         });
-        add(body);
+        box.add(body);
 
 		WebMarkupContainer itemsTable = new WebMarkupContainer(ID_ITEMS_TABLE);
 		itemsTable.add(new VisibleEnableBehaviour() {
@@ -235,7 +259,9 @@ public class ScenePanel extends BasePanel<SceneDto> {
         itemsTable.add(items);
 		body.add(itemsTable);
 
-        ListView<SceneDto> partialScenes = new ListView<SceneDto>(ID_PARTIAL_SCENES, new PropertyModel<List<SceneDto>>(model, SceneDto.F_PARTIAL_SCENES)) {
+        ListView<SceneDto> partialScenes = new ListView<SceneDto>(ID_PARTIAL_SCENES,
+				new PropertyModel<List<SceneDto>>(model, SceneDto.F_PARTIAL_SCENES)) {
+
             @Override
             protected void populateItem(ListItem<SceneDto> item) {
                 ScenePanel panel = new ScenePanel(ID_PARTIAL_SCENE, item.getModel());
@@ -247,11 +273,12 @@ public class ScenePanel extends BasePanel<SceneDto> {
         body.add(partialScenes);
     }
 
-	protected boolean isExistingObject() {
+	protected boolean isExistingViewableObject() {
 		final Scene scene = getModelObject().getScene();
 		final PrismContainerValue<?> value = scene.getSourceValue();
 		return value != null &&
 				value.getParent() instanceof PrismObject &&
+				WebComponentUtil.hasDetailsPage((PrismObject) value.getParent()) &&
 				((PrismObject) value.getParent()).getOid() != null &&
 				(scene.getSourceDelta() == null || !scene.getSourceDelta().isAdd());
 	}
