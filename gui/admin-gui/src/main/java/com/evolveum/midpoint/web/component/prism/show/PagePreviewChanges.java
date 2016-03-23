@@ -117,6 +117,11 @@ public class PagePreviewChanges extends PageAdminWorkItems {		// TODO extends
 		initLayout();
 	}
 
+	@Override
+	protected void createBreadcrumb() {
+		createInstanceBreadcrumb();
+	}
+
 	private void initLayout() {
 		Form mainForm = new Form("mainForm");
 		mainForm.setMultiPart(true);

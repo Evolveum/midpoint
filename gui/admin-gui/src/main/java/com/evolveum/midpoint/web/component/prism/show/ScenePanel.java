@@ -21,22 +21,26 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -44,6 +48,7 @@ import java.util.List;
  */
 public class ScenePanel extends BasePanel<SceneDto> {
 
+	private static final String ID_BOX = "box";
 	private static final String STRIPED_CLASS = "striped";
     private static final String ID_ITEMS_TABLE = "itemsTable";
     private static final String ID_ITEMS = "items";
@@ -56,7 +61,8 @@ public class ScenePanel extends BasePanel<SceneDto> {
 	public static final String ID_HEADER_PANEL = "headerPanel";
 	public static final String ID_HEADER_DESCRIPTION = "description";
 	public static final String ID_HEADER_WRAPPER_DISPLAY_NAME = "wrapperDisplayName";
-	public static final String ID_HEADER_NAME = "name";
+	public static final String ID_HEADER_NAME_LABEL = "nameLabel";
+	public static final String ID_HEADER_NAME_LINK = "nameLink";
 	public static final String ID_HEADER_CHANGE_TYPE = "changeType";
 	public static final String ID_HEADER_OBJECT_TYPE = "objectType";
 	public static final String ID_BODY = "body";
@@ -85,8 +91,32 @@ public class ScenePanel extends BasePanel<SceneDto> {
     private void initLayout() {
 		final IModel<SceneDto> model = getModel();
 
+		WebMarkupContainer box = new WebMarkupContainer(ID_BOX);
+		box.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+
+			@Override
+			public String getObject() {
+				SceneDto dto = model.getObject();
+				if (dto.getChangeType() == null) {
+					return null;
+				}
+
+				switch (dto.getChangeType()) {
+					case ADD:
+						return "box-success";
+					case DELETE:
+						return "box-danger";
+					case MODIFY:
+						return "box-info";
+					default:
+						return null;
+				}
+			}
+		}));
+		add(box);
+
         WebMarkupContainer headerPanel = new WebMarkupContainer(ID_HEADER_PANEL);
-		add(headerPanel);
+		box.add(headerPanel);
 
 		headerPanel.add(new SceneButtonPanel(ID_OPTION_BUTTONS, model) {
 			@Override
@@ -99,7 +129,19 @@ public class ScenePanel extends BasePanel<SceneDto> {
 		headerChangeType.setRenderBodyOnly(true);
 		Label headerObjectType = new Label(ID_HEADER_OBJECT_TYPE, new ObjectTypeModel());
 		headerObjectType.setRenderBodyOnly(true);
-        Label headerName = new Label(ID_HEADER_NAME, new PropertyModel<String>(model, SceneDto.F_NAME));
+
+		PropertyModel<String> nameModel = new PropertyModel<>(model, SceneDto.F_NAME);
+		Label headerNameLabel = new Label(ID_HEADER_NAME_LABEL, nameModel);
+		LinkPanel<String> headerNameLink = new LinkPanel<String>(ID_HEADER_NAME_LINK, nameModel) {
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				PrismContainerValue<?> value = getModelObject().getScene().getSourceValue();
+				if (value != null && value.getParent() instanceof PrismObject) {
+					PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) value.getParent();
+					WebComponentUtil.dispatchToObjectDetailsPage(ObjectTypeUtil.createObjectRef(object), getPageBase());
+				}
+			}
+		};
         Label headerDescription = new Label(ID_HEADER_DESCRIPTION, new PropertyModel<String>(model, SceneDto.F_DESCRIPTION));
         Label headerWrapperDisplayName = new Label(ID_HEADER_WRAPPER_DISPLAY_NAME,
 				new AbstractReadOnlyModel<String>() {
@@ -115,13 +157,14 @@ public class ScenePanel extends BasePanel<SceneDto> {
 
 		headerPanel.add(headerChangeType);
 		headerPanel.add(headerObjectType);
-		headerPanel.add(headerName);
+		headerPanel.add(headerNameLabel);
+		headerPanel.add(headerNameLink);
 		headerPanel.add(headerDescription);
 		headerPanel.add(headerWrapperDisplayName);
 
 		headerChangeType.add(createHeaderOnClickBehaviour(model));
 		headerObjectType.add(createHeaderOnClickBehaviour(model));
-		headerName.add(createHeaderOnClickBehaviour(model));
+		headerNameLabel.add(createHeaderOnClickBehaviour(model));
 		headerDescription.add(createHeaderOnClickBehaviour(model));
 		headerWrapperDisplayName.add(createHeaderOnClickBehaviour(model));
 
@@ -137,9 +180,28 @@ public class ScenePanel extends BasePanel<SceneDto> {
 				return getModelObject().isWrapper();
 			}
 		};
+		VisibleEnableBehaviour visibleIfExistingObject = new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				if (getModelObject().isWrapper()) {
+					return false;
+				}
+				return isExistingViewableObject();
+			}
+		};
+		VisibleEnableBehaviour visibleIfNotWrapperAndNotExistingObject = new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				if (getModelObject().isWrapper()) {
+					return false;
+				}
+				return !isExistingViewableObject();
+			}
+		};
 		headerChangeType.add(visibleIfNotWrapper);
 		headerObjectType.add(visibleIfNotWrapper);
-		headerName.add(visibleIfNotWrapper);
+		headerNameLabel.add(visibleIfNotWrapperAndNotExistingObject);
+		headerNameLink.add(visibleIfExistingObject);
 		headerDescription.add(visibleIfNotWrapper);
 		headerWrapperDisplayName.add(visibleIfWrapper);
 
@@ -152,7 +214,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
                 return !wrapper.isMinimized();
             }
         });
-        add(body);
+        box.add(body);
 
 		WebMarkupContainer itemsTable = new WebMarkupContainer(ID_ITEMS_TABLE);
 		itemsTable.add(new VisibleEnableBehaviour() {
@@ -197,7 +259,9 @@ public class ScenePanel extends BasePanel<SceneDto> {
         itemsTable.add(items);
 		body.add(itemsTable);
 
-        ListView<SceneDto> partialScenes = new ListView<SceneDto>(ID_PARTIAL_SCENES, new PropertyModel<List<SceneDto>>(model, SceneDto.F_PARTIAL_SCENES)) {
+        ListView<SceneDto> partialScenes = new ListView<SceneDto>(ID_PARTIAL_SCENES,
+				new PropertyModel<List<SceneDto>>(model, SceneDto.F_PARTIAL_SCENES)) {
+
             @Override
             protected void populateItem(ListItem<SceneDto> item) {
                 ScenePanel panel = new ScenePanel(ID_PARTIAL_SCENE, item.getModel());
@@ -209,7 +273,17 @@ public class ScenePanel extends BasePanel<SceneDto> {
         body.add(partialScenes);
     }
 
-    public void headerOnClickPerformed(AjaxRequestTarget target, IModel<SceneDto> model) {
+	protected boolean isExistingViewableObject() {
+		final Scene scene = getModelObject().getScene();
+		final PrismContainerValue<?> value = scene.getSourceValue();
+		return value != null &&
+				value.getParent() instanceof PrismObject &&
+				WebComponentUtil.hasDetailsPage((PrismObject) value.getParent()) &&
+				((PrismObject) value.getParent()).getOid() != null &&
+				(scene.getSourceDelta() == null || !scene.getSourceDelta().isAdd());
+	}
+
+	public void headerOnClickPerformed(AjaxRequestTarget target, IModel<SceneDto> model) {
         SceneDto dto = model.getObject();
         dto.setMinimized(!dto.isMinimized());
         target.add(this);

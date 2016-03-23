@@ -141,7 +141,7 @@ public class PageWorkItems extends PageAdminWorkItems {
     }
 
     private WorkItemsTablePanel getWorkItemsPanel() {
-        return (WorkItemsTablePanel) get(ID_WORK_ITEMS_PANEL);
+        return (WorkItemsTablePanel) get(ID_MAIN_FORM).get(ID_WORK_ITEMS_PANEL);
     }
 
     private void approveOrRejectWorkItemsPerformed(AjaxRequestTarget target, boolean approve) {

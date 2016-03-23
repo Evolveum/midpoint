@@ -55,6 +55,12 @@ public abstract class Abstract389DsTest extends AbstractLdapConnTest {
 	}
 	
 	@Override
+	protected String getPeopleLdapSuffix() {
+		// The capitalization that 389ds is using
+		return "ou=People,"+getLdapSuffix();
+	}
+	
+	@Override
 	protected String getAccount0Cn() {
 		return "Warlaz Kunjegjul (00000000)";
 	}

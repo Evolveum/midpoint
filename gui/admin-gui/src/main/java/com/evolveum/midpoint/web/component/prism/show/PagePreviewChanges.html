@@ -19,9 +19,15 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm" class="form-horizontal">
-        <div wicket:id="primaryDeltas"/>
-        <div wicket:id="secondaryDeltas"/>
-        <p/>
+        <div class="row">
+            <div class="col-md-6">
+                <div wicket:id="primaryDeltas"/>
+            </div>
+            <div class="col-md-6">
+                <div wicket:id="secondaryDeltas"/>
+            </div>
+        </div>
+
         <div class="main-button-bar">
             <a class="btn btn-default" wicket:id="back" />
         </div>

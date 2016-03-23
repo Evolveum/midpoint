@@ -50,7 +50,13 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.page.admin.resources.PageResource;
+import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -70,6 +76,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.IRequestHandler;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 
@@ -1007,6 +1014,41 @@ public final class WebComponentUtil {
 		}
 		return (T) object;
 	}
+
+	public static void dispatchToObjectDetailsPage(ObjectReferenceType objectRef, PageBase page) {
+		if (objectRef == null) {
+			return;		// should not occur
+		}
+		QName type = objectRef.getType();
+		PageParameters parameters = new PageParameters();
+		parameters.add(OnePageParameterEncoder.PARAMETER, objectRef.getOid());
+		if (RoleType.COMPLEX_TYPE.equals(type)) {
+			page.setResponsePage(new PageRole(parameters, page));
+		} else if (OrgType.COMPLEX_TYPE.equals(type)) {
+			page.setResponsePage(new PageOrgUnit(parameters, page));
+		} else if (UserType.COMPLEX_TYPE.equals(type)) {
+			page.setResponsePage(new PageUser(parameters, page));
+		} else if (ResourceType.COMPLEX_TYPE.equals(type)) {
+			page.setResponsePage(new PageResource(parameters, page));
+		} else if (TaskType.COMPLEX_TYPE.equals(type)) {
+			page.setResponsePage(new PageTaskEdit(parameters, page));
+		} else {
+			// nothing to do
+		}
+	}
+
+	public static boolean hasDetailsPage(PrismObject<?> object) {
+		Class<?> clazz = object.getCompileTimeClass();
+		if (clazz == null) {
+			return false;
+		}
+
+		return AbstractRoleType.class.isAssignableFrom(clazz) ||
+				UserType.class.isAssignableFrom(clazz) ||
+				ResourceType.class.isAssignableFrom(clazz) ||
+				TaskType.class.isAssignableFrom(clazz);
+	}
+
 
 
 }
