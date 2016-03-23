@@ -19,8 +19,10 @@ package com.evolveum.midpoint.wf.impl.processes.common;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import javax.xml.namespace.QName;
-
 import java.io.Serializable;
+
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+import static com.evolveum.prism.xml.ns._public.types_3.PolyStringType.fromOrig;
 
 /**
  * @author mederly
@@ -31,6 +33,7 @@ public class LightweightObjectRefImpl implements LightweightObjectRef, Serializa
     private String oid;
     private QName type;
     private String description;
+    private String targetName;
 
     public LightweightObjectRefImpl(String oid, QName type, String description) {
         this.oid = oid;
@@ -42,6 +45,7 @@ public class LightweightObjectRefImpl implements LightweightObjectRef, Serializa
         this.oid = objectReferenceType.getOid();
         this.type = objectReferenceType.getType();
         this.description = objectReferenceType.getDescription();
+        this.targetName = getOrig(objectReferenceType.getTargetName());
     }
 
     public LightweightObjectRefImpl(String value) {
@@ -75,11 +79,20 @@ public class LightweightObjectRefImpl implements LightweightObjectRef, Serializa
         this.description = description;
     }
 
+    @Override public String getTargetName() {
+        return targetName;
+    }
+
+    public void setTargetName(String targetName) {
+        this.targetName = targetName;
+    }
+
     public ObjectReferenceType toObjectReferenceType() {
         ObjectReferenceType retval = new ObjectReferenceType();
         retval.setOid(oid);
         retval.setDescription(description);
         retval.setType(type);
+        retval.setTargetName(fromOrig(targetName));
         return retval;
     }
 
@@ -87,6 +100,7 @@ public class LightweightObjectRefImpl implements LightweightObjectRef, Serializa
     public String toString() {
         return "LightweightObjectRefImpl{" +
                 "oid='" + oid + '\'' +
+                ", targetName=" + targetName +
                 ", type=" + type +
                 ", description='" + description + '\'' +
                 '}';

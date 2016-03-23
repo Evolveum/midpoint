@@ -28,13 +28,7 @@ public class InitializeLoopThroughLevels implements JavaDelegate {
     private static final Trace LOGGER = TraceManager.getTrace(InitializeLoopThroughLevels.class);
 
     public void execute(DelegateExecution execution) {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Executing the delegate; execution = " + execution);
-        }
-
-//        ApprovalRequest itemToApprove = (ApprovalRequest) execution.getVariable(ProcessVariableNames.APPROVAL_REQUEST);
-//        Validate.notNull(itemToApprove, "itemToApprove is null");
-
+        LOGGER.trace("Executing the delegate; execution = {}", execution);
         execution.setVariableLocal(ProcessVariableNames.LOOP_LEVELS_STOP, Boolean.FALSE);
         execution.setVariableLocal(ProcessVariableNames.ALL_DECISIONS, new ArrayList<Decision>());
     }

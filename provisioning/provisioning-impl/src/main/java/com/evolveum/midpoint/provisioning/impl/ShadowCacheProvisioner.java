@@ -69,7 +69,9 @@ public class ShadowCacheProvisioner extends ShadowCache {
 				"Error while creating account shadow object to save in the reposiotory. AccountShadow is null.");
 	}
 
-	LOGGER.trace("Adding object with identifiers to the repository.");
+	if (LOGGER.isTraceEnabled()) {
+		LOGGER.trace("Adding repository shadow\n{}", shadow.debugDump());
+	}
 	String oid = null;
 	try {
 		ConstraintsChecker.onShadowAddOperation(shadow.asObjectable());

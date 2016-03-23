@@ -216,8 +216,8 @@ public class PageTasks extends PageAdminTasks {
             }
 
             @Override
-            public TaskDto createTaskDto(PrismObject<TaskType> task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-                TaskDto dto = super.createTaskDto(task, result);
+            public TaskDto createTaskDto(PrismObject<TaskType> task, Task opTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+                TaskDto dto = super.createTaskDto(task, opTask, result);
                 addInlineMenuToTaskRow(dto);
 
                 return dto;
@@ -613,7 +613,6 @@ public class PageTasks extends PageAdminTasks {
                     if (task.getWorkflowProcessInstanceId() != null) {
                         PageParameters parameters = new PageParameters();
                         parameters.add(OnePageParameterEncoder.PARAMETER, task.getWorkflowProcessInstanceId());
-                        parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_FINISHED, task.isWorkflowProcessInstanceFinished());
                         component.setResponsePage(new PageProcessInstance(parameters, (PageBase) component.getPage()));
                     }
                 }

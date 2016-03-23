@@ -571,24 +571,29 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public Collection<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() throws SchemaException {
     	if (auxiliaryObjectClassDefinitions == null) {
-			RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
-			if (refinedSchema == null) {
-				return null;
-			}
-			List<QName> auxiliaryObjectClassQNames = new ArrayList<>();
-			addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, getObjectOld());
-			addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, getObjectNew());
-			auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
-			for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
-				RefinedObjectClassDefinition auxiliaryObjectClassDef = refinedSchema.getRefinedDefinition(auxiliaryObjectClassQName);
-				if (auxiliaryObjectClassDef == null) {
-					throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+this+" does not exist");
-				}
-				auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
-			}
+    		refreshAuxiliaryObjectClassDefinitions();
     	}
     	return auxiliaryObjectClassDefinitions;
 	}
+    
+    public void refreshAuxiliaryObjectClassDefinitions() throws SchemaException {
+    	RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
+		if (refinedSchema == null) {
+			return;
+		}
+		List<QName> auxiliaryObjectClassQNames = new ArrayList<>();
+		addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, getObjectOld());
+		addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, getObjectNew());
+		auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
+		for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
+			RefinedObjectClassDefinition auxiliaryObjectClassDef = refinedSchema.getRefinedDefinition(auxiliaryObjectClassQName);
+			if (auxiliaryObjectClassDef == null) {
+				throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+this+" does not exist");
+			}
+			auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
+		}
+		compositeObjectClassDefinition = null;
+    }
     
     public CompositeRefinedObjectClassDefinition getCompositeObjectClassDefinition() throws SchemaException {
     	if (compositeObjectClassDefinition == null) {
@@ -814,6 +819,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	 * E.g. they may both be MODIFY deltas even in case that the account should be created. The deltas begin to make sense
 	 * only if combined with sync decision. This method provides the deltas all combined and ready for execution.
 	 */
+	@Override
 	public ObjectDelta<ShadowType> getExecutableDelta() throws SchemaException {
 		SynchronizationPolicyDecision policyDecision = getSynchronizationPolicyDecision();
 		ObjectDelta<ShadowType> origDelta = getFixedDelta();

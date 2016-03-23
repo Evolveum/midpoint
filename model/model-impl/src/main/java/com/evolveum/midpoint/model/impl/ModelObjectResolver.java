@@ -23,6 +23,8 @@ import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
 import com.evolveum.midpoint.task.api.TaskManager;
 
+import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -51,10 +53,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 /**
  * @author semancik
@@ -75,6 +73,9 @@ public class ModelObjectResolver implements ObjectResolver {
 
     @Autowired
     private transient TaskManager taskManager;
+
+	@Autowired(required = false)
+	private transient WorkflowManager workflowManager;
 
     @Autowired(required = false)
     private transient HookRegistry hookRegistry;
@@ -150,6 +151,7 @@ public class ModelObjectResolver implements ObjectResolver {
 		try {
 			PrismObject<T> object = null;
             ObjectTypes.ObjectManager manager = ObjectTypes.getObjectManagerForClass(clazz);
+			final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
             switch (manager) {
                 case PROVISIONING:
                     object = provisioning.getObject(clazz, oid, options, task, result);
@@ -164,6 +166,9 @@ public class ModelObjectResolver implements ObjectResolver {
                         throw new SystemException("Got null result from taskManager.getObject while looking for "+clazz.getSimpleName()
                                 +" with OID "+oid+"; using task manager implementation "+taskManager.getClass().getName());
                     }
+					if (workflowManager != null && TaskType.class.isAssignableFrom(clazz) && !GetOperationOptions.isRaw(rootOptions) && !GetOperationOptions.isNoFetch(rootOptions)) {
+						workflowManager.augmentTaskObject(object, options, task, result);
+					}
                     break;
                 default:
                     object = cacheRepositoryService.getObject(clazz, oid, options, result);

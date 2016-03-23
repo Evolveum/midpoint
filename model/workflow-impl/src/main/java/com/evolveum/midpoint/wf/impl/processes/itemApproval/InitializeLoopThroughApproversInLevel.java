@@ -34,11 +34,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
-import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRefImpl;
-import com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder;
-import com.evolveum.midpoint.wf.impl.processors.primary.PcpProcessVariableNames;
+import com.evolveum.midpoint.wf.impl.processes.common.*;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -51,6 +47,11 @@ import javax.xml.namespace.QName;
 
 import java.util.*;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.C_OBJECT;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.C_REQUESTER;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.C_TARGET;
+import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.*;
+
 /**
  * @author mederly
  */
@@ -62,26 +63,25 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
     public void execute(DelegateExecution execution) {
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Executing the delegate; execution = " + execution);
-        }
+        LOGGER.trace("Executing the delegate; execution = {}", execution);
 
         OperationResult result = new OperationResult("dummy");
-        Task task = null;
+        Task wfTask = ActivitiUtil.getTask(execution, result);
+		Task opTask = getTaskManager().createTaskInstance();
 
         ExpressionVariables expressionVariables = null;
 
         ApprovalLevelImpl level = (ApprovalLevelImpl) execution.getVariable(ProcessVariableNames.LEVEL);
         Validate.notNull(level, "Variable " + ProcessVariableNames.LEVEL + " is undefined");
-        level.setPrismContext(SpringApplicationContextHolder.getPrismContext());
+        level.setPrismContext(getPrismContext());
 
         List<Decision> decisionList = new ArrayList<Decision>();
         boolean preApproved = false;
 
         if (level.getAutomaticallyApproved() != null) {
             try {
-                expressionVariables = getDefaultVariables(execution, result);
-                preApproved = evaluateBooleanExpression(level.getAutomaticallyApproved(), expressionVariables, execution, task, result);
+                expressionVariables = getDefaultVariables(execution, wfTask, result);
+                preApproved = evaluateBooleanExpression(level.getAutomaticallyApproved(), expressionVariables, execution, opTask, result);
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Pre-approved = " + preApproved + " for level " + level);
                 }
@@ -97,8 +97,8 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
             if (!level.getApproverExpressions().isEmpty()) {
                 try {
-                    expressionVariables = getDefaultVariablesIfNeeded(expressionVariables, execution, result);
-                    approverRefs.addAll(evaluateExpressions(level.getApproverExpressions(), expressionVariables, execution, task, result));
+                    expressionVariables = getDefaultVariablesIfNeeded(expressionVariables, execution, wfTask, result);
+                    approverRefs.addAll(evaluateExpressions(level.getApproverExpressions(), expressionVariables, execution, opTask, result));
                 } catch (Exception e) {     // todo
                     throw new SystemException("Couldn't evaluate approvers expressions", e);
                 }
@@ -120,13 +120,13 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         }
 
         execution.setVariableLocal(ProcessVariableNames.DECISIONS_IN_LEVEL, decisionList);
-        execution.setVariableLocal(ProcessVariableNames.APPROVERS_IN_LEVEL, new ArrayList<LightweightObjectRef>(approverRefs));
+        execution.setVariableLocal(ProcessVariableNames.APPROVERS_IN_LEVEL, new ArrayList<>(approverRefs));
         execution.setVariableLocal(ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP, stop);
     }
 
     private Collection<? extends LightweightObjectRef> evaluateExpressions(List<ExpressionType> approverExpressionList, 
     		ExpressionVariables expressionVariables, DelegateExecution execution, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-        List<LightweightObjectRef> retval = new ArrayList<LightweightObjectRef>();
+        List<LightweightObjectRef> retval = new ArrayList<>();
         for (ExpressionType approverExpression : approverExpressionList) {
             retval.addAll(evaluateExpression(approverExpression, expressionVariables, execution, task, result));
         }
@@ -183,7 +183,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
     private ExpressionFactory getExpressionFactory() {
         LOGGER.trace("Getting expressionFactory");
-        ExpressionFactory ef = SpringApplicationContextHolder.getApplicationContext().getBean("expressionFactory", ExpressionFactory.class);
+        ExpressionFactory ef = getApplicationContext().getBean("expressionFactory", ExpressionFactory.class);
         if (ef == null) {
             throw new IllegalStateException("expressionFactory bean cannot be found");
         }
@@ -191,48 +191,33 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
     }
 
 
-    private ExpressionVariables getDefaultVariablesIfNeeded(ExpressionVariables variables, DelegateExecution execution, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private ExpressionVariables getDefaultVariablesIfNeeded(ExpressionVariables variables, DelegateExecution execution, Task wfTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (variables != null) {
             return variables;
         } else {
-            return getDefaultVariables(execution, result);
+            return getDefaultVariables(execution, wfTask, result);
         }
     }
 
-    private ExpressionVariables getDefaultVariables(DelegateExecution execution, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private ExpressionVariables getDefaultVariables(DelegateExecution execution, Task wfTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
-        RepositoryService repositoryService = SpringApplicationContextHolder.getCacheRepositoryService();
-        MiscDataUtil miscDataUtil = SpringApplicationContextHolder.getMiscDataUtil();
+        RepositoryService repositoryService = getCacheRepositoryService();
+        MiscDataUtil miscDataUtil = getMiscDataUtil();
 
         ExpressionVariables variables = new ExpressionVariables();
 
-        try {
-            variables.addVariableDefinition(SchemaConstants.C_REQUESTER, miscDataUtil.getRequester(execution.getVariables(), result));
-        } catch (SchemaException e) {
-            throw new SchemaException("Couldn't get requester object due to schema exception", e);  // todo do we really want to skip the whole processing? perhaps yes, otherwise we could get NPEs
-        } catch (ObjectNotFoundException e) {
-            throw new ObjectNotFoundException("Couldn't get requester object due to object not found exception", e);
-        }
+		ObjectReferenceType requesterRef = wfTask.getWorkflowContext().getRequesterRef();
+		variables.addVariableDefinition(C_REQUESTER, miscDataUtil.resolveObjectReference(requesterRef, result));
 
-        PrismObject<? extends ObjectType> objectToBeAdded = (PrismObject<? extends ObjectType>) execution.getVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED);
-        if (objectToBeAdded != null) {
-            variables.addVariableDefinition(SchemaConstants.C_OBJECT, objectToBeAdded);
-        } else {
-            String objectOid = (String) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID);
-            if (objectOid != null) {
-                try {
-                    variables.addVariableDefinition(SchemaConstants.C_OBJECT, repositoryService.getObject(ObjectType.class, objectOid, null, result));
-                } catch (SchemaException e) {
-                    throw new SchemaException("Couldn't get requester object due to schema exception", e);  // todo do we really want to skip the whole processing? perhaps yes, otherwise we could get NPEs
-                } catch (ObjectNotFoundException e) {
-                    throw new ObjectNotFoundException("Couldn't get requester object due to object not found exception", e);
-                }
-            }
-        }
+		ObjectReferenceType objectRef = wfTask.getWorkflowContext().getObjectRef();
+		variables.addVariableDefinition(C_OBJECT, miscDataUtil.resolveObjectReference(objectRef, result));
 
-        ObjectDelta objectDelta = null;
+		ObjectReferenceType targetRef = wfTask.getWorkflowContext().getTargetRef();		// might be null
+		variables.addVariableDefinition(C_TARGET, miscDataUtil.resolveObjectReference(targetRef, result));
+
+		ObjectDelta objectDelta = null;
         try {
-            objectDelta = miscDataUtil.getFocusPrimaryDelta(execution.getVariables(), true);
+            objectDelta = miscDataUtil.getFocusPrimaryDelta(wfTask.getWorkflowContext(), true);
         } catch (JAXBException e) {
             throw new SchemaException("Couldn't get object delta: " + e.getMessage(), e);
         }

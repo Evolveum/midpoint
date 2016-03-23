@@ -33,10 +33,12 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -87,13 +89,11 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.dialog.UserBrowserDialog;
+import com.evolveum.midpoint.web.component.input.ObjectTypeChoiceRenderer;
+import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
@@ -172,7 +172,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		return pageBase.getFeedbackPanel();
 	}
 
-	private <V> DropDownChoice createDropDown(String id, String field, final List<V> values) {
+	private <V> DropDownChoice createDropDown(String id, String field, final List<V> values, IChoiceRenderer renderer) {
 		DropDownChoice listSelect = new DropDownChoice(id, new PropertyModel(searchModel, field),
 				new AbstractReadOnlyModel<List<V>>() {
 
@@ -180,25 +180,8 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 					public List<V> getObject() {
 						return values;
 					}
-				},
-
-				new IChoiceRenderer<V>() {
-					
-					@Override
-					public V getObject(String id, IModel<? extends List<? extends V>> choices) {
-						return choices.getObject().get(Integer.parseInt(id));
-					}
-
-					@Override
-					public String getDisplayValue(V object) {
-						return getStringValue(object);
-					}
-
-					@Override
-					public String getIdValue(V object, int index) {
-						return String.valueOf(index);
-					};
-				});
+				}, renderer);
+		
 		listSelect.add(new OnChangeAjaxBehavior() {
 
 			@Override
@@ -254,19 +237,19 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		add(basicSearch);
 
 		DropDownChoice typeSelect = createDropDown(ID_OBJECT_TYPE, RoleMemberSearchDto.F_TYPE,
-				createTypeList());
+				WebComponentUtil.createFocusTypeList(), new QNameChoiceRenderer());
 		add(typeSelect);
 
-		DropDownChoice tenant = createDropDown(ID_TENANT, RoleMemberSearchDto.F_TENANT, createTenantList());
+		DropDownChoice tenant = createDropDown(ID_TENANT, RoleMemberSearchDto.F_TENANT, createTenantList(), new ObjectTypeChoiceRenderer<OrgType>());
 		add(tenant);
 
 		DropDownChoice project = createDropDown(ID_PROJECT, RoleMemberSearchDto.F_PROJECT,
-				createProjectList());
+				createProjectList(), new ObjectTypeChoiceRenderer<OrgType>());
 		add(project);
 
 		addOrReplace(initTable());
 
-		initDialog();
+//		initDialog();
 	}
 
 	private void clearFilterAccordingToNamePerformed(AjaxRequestTarget target) {
@@ -285,25 +268,19 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		addOrReplace(table);
 	}
 
-	private void initDialog() {
-
-		UserBrowserDialog<T> dialog = new UserBrowserDialog<T>(MODAL_ID_MEMBER, getClassFromType()) {
-
+	private void initDialog(AjaxRequestTarget target) {
+		
+		FocusBrowserPanel<T> focusBrowser = new FocusBrowserPanel<T>(pageBase.getMainPopupBodyId(), getClassFromType(), true, pageBase){
+			
 			@Override
-			public void addPerformed(AjaxRequestTarget target, List<T> selected) {
-				super.addPerformed(target, selected);
+			protected void addPerformed(AjaxRequestTarget target, List<T> selected) {
 				addMembers(selected, target);
 				target.add(getFeedbackPanel());
 			}
-
-			@Override
-			protected boolean isCheckBoxVisible() {
-				return true;
-			}
 			
-		
 		};
-		add(dialog);
+
+		pageBase.showMainPopup(focusBrowser, new Model<String>("Choose member"), target, 900, 500);
 
 	}
 	
@@ -761,9 +738,10 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 	}
 
 	private void addMembersPerformed(AjaxRequestTarget target, QueryScope scope) {
-		UserBrowserDialog window = (UserBrowserDialog) get(MODAL_ID_MEMBER);
-		window.setType(getClassFromType());
-		window.show(target);
+		initDialog(target);
+//		UserBrowserDialog window = (UserBrowserDialog) get(MODAL_ID_MEMBER);
+//		window.setType(getClassFromType());
+//		window.show(target);
 		// ObjectQuery query = createQueryForAdd(target);
 		// addMembers(query, target);
 	}
@@ -992,12 +970,6 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		return parameters;
 	}
 
-	private List<QName> createTypeList() {
-		List<QName> types = new ArrayList<>();
-		types.add(UserType.COMPLEX_TYPE);
-		types.add(RoleType.COMPLEX_TYPE);
-		types.add(OrgType.COMPLEX_TYPE);
-		return types;
-	}
+	
 
 }

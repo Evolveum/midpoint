@@ -1339,7 +1339,19 @@
                     <xsd:element name="modelOperationContext" type="tns:LensContextType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                TODO
+                                Model context of the operation that is to be executed within this task.
+                                This is NOT a live information: it is a serialized form of a model context.
+                                Currently there is a specialized task handler that takes this context,
+                                unmarshalls and executes it.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="workflowContext" type="tns:WfContextType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Workflow context of the operation that is to be executed within this task.
+                                Points to a process instance in a workflow engine, and to an externalized view
+                                of its state.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -5775,8 +5787,32 @@
         	</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-	<xsd:element name="associationFromLink" type="tns:ShadowDiscriminatorExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 	<xsd:element name="assignmentFromAssociation" type="tns:ShadowDiscriminatorExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+
+	<xsd:complexType name="AssociationFromLinkExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of an expression that creates association from links (linkRefs)
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:ShadowDiscriminatorExpressionEvaluatorType">
+		        <xsd:sequence>
+		        	<xsd:element name="recurseUpOrgType" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+		        		<xsd:annotation>
+		        			<xsd:documentation>
+		        				Specifies orgType of an organization tree to recurse upward.
+		        				In case that the expression applies to an org, it will recurse the org
+		        				tree upwards and create associations for all the orgs in the hierarchy.
+		        				Only orgs with the orgType mathing this specification will be processed.
+		        			</xsd:documentation>
+		        		</xsd:annotation>
+		        	</xsd:element>
+		        </xsd:sequence>
+	        </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="associationFromLink" type="tns:AssociationFromLinkExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
 	<xsd:complexType name="PopulateObjectType">
 		<xsd:annotation>
@@ -11511,9 +11547,9 @@
             <xsd:documentation>
                 Container for ChangesRequested (focus primary delta and/or projection primary deltas).
             </xsd:documentation>
-            <!--<xsd:appinfo>-->
-            <!--<a:container/>-->
-            <!--</xsd:appinfo>-->
+            <xsd:appinfo>       <!-- switch to container after deltas will be moved out of task extension -->
+                <!--<a:container/>-->
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="focusPrimaryDelta" type="t:ObjectDeltaType" minOccurs="0">

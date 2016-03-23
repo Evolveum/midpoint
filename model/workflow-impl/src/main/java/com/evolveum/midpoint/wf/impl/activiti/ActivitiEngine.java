@@ -21,10 +21,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.wf.impl.activiti.users.MidPointUserManagerFactory;
-
 import org.activiti.engine.*;
 import org.activiti.engine.impl.cfg.ProcessEngineConfigurationImpl;
-import org.activiti.engine.impl.cfg.StandaloneProcessEngineConfiguration;
 import org.activiti.engine.impl.history.HistoryLevel;
 import org.activiti.engine.impl.interceptor.SessionFactory;
 import org.activiti.engine.repository.Deployment;
@@ -36,10 +34,11 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.xpath.XPathExpressionException;
-
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Manages Activiti instance (starts, stops, maintains reference to it).
@@ -51,10 +50,7 @@ public class ActivitiEngine {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivitiEngine.class);
 
-    private static final String ADMINISTRATOR = "administrator";
-
     private ProcessEngine processEngine = null;
-    private static final String BPMN_URI = "http://www.omg.org/spec/BPMN/20100524/MODEL";
 
     @Autowired
     private WfConfiguration wfConfiguration;
@@ -62,25 +58,18 @@ public class ActivitiEngine {
     @PostConstruct
     public void init() {
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Attempting to create Activiti engine.");
-        }
-
-        if (wfConfiguration == null || wfConfiguration.isEnabled() == null) {
-            throw new IllegalStateException("WfConfiguration is not initialized, despite of ActivitiEngine depending on it - check Spring dependencies.");
-        }
+        LOGGER.trace("Attempting to create Activiti engine.");
 
         if (!wfConfiguration.isEnabled()) {
             LOGGER.trace("Workflows are disabled, exiting.");
             return;
         }
 
-
-        List<SessionFactory> sessionFactories = new ArrayList<SessionFactory>();
+        List<SessionFactory> sessionFactories = new ArrayList<>();
         sessionFactories.add(new MidPointUserManagerFactory());
 
         ProcessEngineConfiguration pec =
-                ((StandaloneProcessEngineConfiguration) ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration())
+                ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration()
                 .setDatabaseSchemaUpdate(wfConfiguration.isActivitiSchemaUpdate() ?
                         ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE :
                         ProcessEngineConfiguration.DB_SCHEMA_UPDATE_FALSE);
@@ -106,31 +95,6 @@ public class ActivitiEngine {
         LOGGER.info("Activiti engine successfully created.");
 
         autoDeploy();
-
-//        IdentityService identityService = getIdentityService();
-//
-//        UserQuery uq = identityService.createUserQuery().userId(ADMINISTRATOR);
-//        if (uq.count() == 0) {
-//            User admin = identityService.newUser(ADMINISTRATOR);
-//            identityService.saveUser(admin);
-//            LOGGER.info("Created workflow user '" + ADMINISTRATOR + "'");
-//
-//            GroupQuery gq = identityService.createGroupQuery();
-//            for (Group group : gq.list()) {
-//                identityService.createMembership(ADMINISTRATOR, group.getId());
-//                LOGGER.info("Created membership of user '" + ADMINISTRATOR + "' in group '" + group.getId() + "'");
-//            }
-//
-//            LOGGER.info("Finished creating workflow user '" + ADMINISTRATOR + "' and its group membership.");
-//        } else {
-//            User admin = uq.singleResult();
-//            LOGGER.info("User " + ADMINISTRATOR + " with ID " + admin.getId() + " exists.");
-//            List<Group> groups = identityService.createGroupQuery().groupMember(admin.getId()).list();
-//            for (Group g : groups) {
-//                LOGGER.info(" - member of " + g.getId());
-//            }
-//
-//        }
     }
 
     private void autoDeploy() {
@@ -151,14 +115,10 @@ public class ActivitiEngine {
             for (Resource resource : resources) {
                 try {
                     autoDeployResource(resource);
-                } catch (IOException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't deploy the resource " + resource, e);
-                } catch (XPathExpressionException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't deploy the resource " + resource, e);
-                } catch (RuntimeException e) {
+                } catch (IOException | XPathExpressionException | RuntimeException e) {
                     LoggingUtils.logException(LOGGER, "Couldn't deploy the resource " + resource, e);
                 }
-            }
+			}
         }
     }
 
@@ -186,7 +146,7 @@ public class ActivitiEngine {
         }
 
         if (existing == null || tooOld) {
-            Deployment deployment = repositoryService.createDeployment().name(name).addInputStream(name, resource.getInputStream()).deploy();
+            repositoryService.createDeployment().name(name).addInputStream(name, resource.getInputStream()).deploy();
             LOGGER.info("Successfully deployed Activiti resource " + name); // + " as deployment with id = " + deployment.getId() + ", name = " + deployment.getName());
         }
     }

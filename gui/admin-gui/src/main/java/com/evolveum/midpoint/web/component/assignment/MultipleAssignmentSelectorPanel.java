@@ -78,25 +78,25 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
     private List<OrgType> orgEditorObject = new ArrayList<>();
     private static final Trace LOGGER = TraceManager.getTrace(MultipleAssignmentSelectorPanel.class);
 
-    public MultipleAssignmentSelectorPanel(String id, LoadableModel<List<AssignmentEditorDto>> assignmentsModel, Class<F> type) {
+    public MultipleAssignmentSelectorPanel(String id, LoadableModel<List<AssignmentEditorDto>> assignmentsModel, Class<F> targetFocusClass, Class<F> type) {
         super(id, assignmentsModel);
         this.assignmentsModel = assignmentsModel;
         this.type = type;
         tenantEditorObject.add(new OrgType());
         orgEditorObject.add(new OrgType());
-        initLayout();
+        initLayout(targetFocusClass);
 
     }
 
-    private void initLayout() {
+    private void initLayout(Class<F> targetFocusClass) {
 
         IModel<List<AssignmentEditorDto>> availableAssignmentModel = createAvailableAssignmentModel();
         dataProvider = getAvailableAssignmentsDataProvider();
         final MultipleAssignmentSelector availableAssignmentsPanel = new MultipleAssignmentSelector<F>(ID_AVAILABLE_ASSIGNMENTS,
-                availableAssignmentModel, dataProvider, type);
+                availableAssignmentModel, dataProvider, targetFocusClass, type);
         currentAssignmentsProvider = getListDataProvider(null);
         final MultipleAssignmentSelector currentAssignmentsPanel = new MultipleAssignmentSelector<F>(ID_CURRENT_ASSIGNMENTS,
-                assignmentsModel, currentAssignmentsProvider, type);
+                assignmentsModel, currentAssignmentsProvider, targetFocusClass, type);
         currentAssignmentsPanel.setFilterButtonVisibility(false);
 
         AjaxButton add = new AjaxButton(ID_BUTTON_ADD) {
@@ -220,8 +220,8 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
         };
     }
 
-    public ListDataProvider getListDataProvider(final UserType user) {
-        final ListDataProvider provider = new ListDataProvider(this, new IModel<List<AssignmentEditorDto>>() {
+    public <T extends FocusType> ListDataProvider<AssignmentEditorDto> getListDataProvider(final T user) {
+        final ListDataProvider<AssignmentEditorDto> provider = new ListDataProvider<AssignmentEditorDto>(this, new IModel<List<AssignmentEditorDto>>() {
             @Override
             public List<AssignmentEditorDto> getObject() {
                 return getAvailableAssignmentsDataList(user);
@@ -442,7 +442,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
         return displayAssignmentsList;
     }
 
-    private List<AssignmentEditorDto> getAvailableAssignmentsDataList(UserType user){
+    private <T extends FocusType> List<AssignmentEditorDto> getAvailableAssignmentsDataList(T user){
         ObjectQuery query = null;
         List<AssignmentEditorDto> currentAssignments;
         if (user == null) {

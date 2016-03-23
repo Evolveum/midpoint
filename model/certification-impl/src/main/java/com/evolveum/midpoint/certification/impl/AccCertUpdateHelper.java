@@ -179,7 +179,7 @@ public class AccCertUpdateHelper {
 
     public void recordLastCampaignIdUsed(String definitionOid, int lastIdUsed, Task task, OperationResult result) {
         try {
-            List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
+            List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
                     .item(F_LAST_CAMPAIGN_ID_USED).replace(lastIdUsed)
                     .asItemDeltas();
             modifyObjectViaModel(AccessCertificationDefinitionType.class, definitionOid, modifications, task, result);
@@ -192,7 +192,7 @@ public class AccCertUpdateHelper {
 
     //region ================================ Stage open ================================
 
-    public List<ItemDelta> getDeltasForStageOpen(AccessCertificationCampaignType campaign, AccessCertificationStageType stage, CertificationHandler handler, final Task task, OperationResult result)
+    public List<ItemDelta<?,?>> getDeltasForStageOpen(AccessCertificationCampaignType campaign, AccessCertificationStageType stage, CertificationHandler handler, final Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         Validate.notNull(campaign, "certificationCampaign");
         Validate.notNull(campaign.getOid(), "certificationCampaign.oid");
@@ -204,7 +204,7 @@ public class AccCertUpdateHelper {
                     ObjectTypeUtil.toShortString(campaign), stageNumber);
         }
 
-        final List<ItemDelta> rv = new ArrayList<>();
+        final List<ItemDelta<?,?>> rv = new ArrayList<>();
         if (stageNumber == 0) {
             rv.addAll(caseHelper.getDeltasToCreateCases(campaign, stage, handler, task, result));
         } else {
@@ -220,10 +220,10 @@ public class AccCertUpdateHelper {
     }
 
     // some bureaucracy... stage#, state, start time, triggers
-    List<ItemDelta> createDeltasToRecordStageOpen(AccessCertificationCampaignType campaign, AccessCertificationStageType newStage, Task task,
+    List<ItemDelta<?,?>> createDeltasToRecordStageOpen(AccessCertificationCampaignType campaign, AccessCertificationStageType newStage, Task task,
                                                   OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
-        final List<ItemDelta> itemDeltaList = new ArrayList<>();
+        final List<ItemDelta<?,?>> itemDeltaList = new ArrayList<>();
 
         final PropertyDelta<Integer> stageNumberDelta = createStageNumberDelta(newStage.getNumber());
         itemDeltaList.add(stageNumberDelta);
@@ -312,7 +312,7 @@ public class AccCertUpdateHelper {
         }
 
         if (newStage.getNumber() == 1 && campaign.getDefinitionRef() != null) {
-            List<ItemDelta> deltas = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
+            List<ItemDelta<?,?>> deltas = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
                     .item(F_LAST_CAMPAIGN_STARTED_TIMESTAMP).replace(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
                     .asItemDeltas();
             modifyObjectViaModel(AccessCertificationDefinitionType.class, campaign.getDefinitionRef().getOid(), deltas, task, result);
@@ -332,22 +332,22 @@ public class AccCertUpdateHelper {
         ContainerDelta triggerDelta = createTriggerDeleteDelta();
         PropertyDelta<XMLGregorianCalendar> endDelta = createEndTimeDelta(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
         modifyObjectViaModel(AccessCertificationCampaignType.class, campaign.getOid(),
-                Arrays.asList(stateDelta, stageNumberDelta, triggerDelta, endDelta), task, result);
+                Arrays.<ItemDelta<?,?>>asList(stateDelta, stageNumberDelta, triggerDelta, endDelta), task, result);
 
         AccessCertificationCampaignType updatedCampaign = refreshCampaign(campaign, task, result);
         LOGGER.info("Updated campaign state: {}", updatedCampaign.getState());
         eventHelper.onCampaignEnd(updatedCampaign, task, result);
 
         if (campaign.getDefinitionRef() != null) {
-            List<ItemDelta> deltas = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
+            List<ItemDelta<?,?>> deltas = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
                     .item(F_LAST_CAMPAIGN_CLOSED_TIMESTAMP).replace(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
                     .asItemDeltas();
             modifyObjectViaModel(AccessCertificationDefinitionType.class, campaign.getDefinitionRef().getOid(), deltas, task, result);
         }
     }
 
-    List<ItemDelta> getDeltasForStageClose(AccessCertificationCampaignType campaign, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        List<ItemDelta> rv = caseHelper.createOutcomeDeltas(campaign, result);
+    List<ItemDelta<?,?>> getDeltasForStageClose(AccessCertificationCampaignType campaign, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        List<ItemDelta<?,?>> rv = caseHelper.createOutcomeDeltas(campaign, result);
 
         rv.add(createStateDelta(REVIEW_STAGE_DONE));
         rv.add(createStageEndTimeDelta(campaign));
@@ -376,8 +376,8 @@ public class AccCertUpdateHelper {
 
     //region ================================ Auxiliary methods for delta processing ================================
 
-    List<ItemDelta> createDeltasForStageNumberAndState(int number, AccessCertificationCampaignStateType state) {
-        final List<ItemDelta> rv = new ArrayList<>();
+    List<ItemDelta<?,?>> createDeltasForStageNumberAndState(int number, AccessCertificationCampaignStateType state) {
+        final List<ItemDelta<?,?>> rv = new ArrayList<>();
         rv.add(createStageNumberDelta(number));
         rv.add(createStateDelta(state));
         return rv;
@@ -433,7 +433,7 @@ public class AccCertUpdateHelper {
          */
     }
 
-    <T extends ObjectType> void modifyObjectViaModel(Class<T> objectClass, String oid, Collection<ItemDelta> itemDeltas, Task task, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+    <T extends ObjectType> void modifyObjectViaModel(Class<T> objectClass, String oid, Collection<ItemDelta<?,?>> itemDeltas, Task task, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
         ObjectDelta<T> objectDelta = ObjectDelta.createModifyDelta(oid, itemDeltas, objectClass, prismContext);
         try {
             ModelExecuteOptions options = ModelExecuteOptions.createRaw().setPreAuthorized();

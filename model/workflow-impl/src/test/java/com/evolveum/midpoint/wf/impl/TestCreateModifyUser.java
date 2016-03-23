@@ -34,6 +34,7 @@ import org.testng.annotations.Test;
 import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -77,14 +78,14 @@ public class TestCreateModifyUser extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 //assertNoObject(UserType.class, USER_ELISABETH_OID, task, result);
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 assertAssignedRole(USER_ELISABETH_OID, ROLE_R1_OID, task, result);
                 //checkDummyTransportMessages("simpleUserNotifier", 1);
                 //checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
@@ -119,14 +120,14 @@ public class TestCreateModifyUser extends AbstractWfTest {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(rootTask, result);
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
+                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 //assertNotAssignedRole(USER_ELISABETH_OID, ROLE_R3_OID, task, result);
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
                 //assertAssignedRole(USER_ELISABETH_OID, ROLE_R3_OID, task, result);
                 //checkDummyTransportMessages("simpleUserNotifier", 1);
                 //checkWorkItemAuditRecords(createResultMap(ROLE_R3_OID, WorkflowResult.APPROVED));

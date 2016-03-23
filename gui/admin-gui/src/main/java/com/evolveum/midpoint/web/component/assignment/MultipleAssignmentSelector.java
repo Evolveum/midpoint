@@ -16,23 +16,10 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
-import com.evolveum.midpoint.web.component.dialog.UserBrowserDialog;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchPanel;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -42,20 +29,32 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.feedback.FeedbackMessage;
-import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchPanel;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Created by Honchar
@@ -85,12 +84,14 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
     private IModel<Search> searchModel;
     private BaseSortableDataProvider provider;
     private Class type;
+    private Class<F> targetFocusClass;
     private String labelValue ="";
 
-    public MultipleAssignmentSelector(String id, IModel<List<AssignmentEditorDto>> selectorModel, BaseSortableDataProvider provider, Class type) {
+    public MultipleAssignmentSelector(String id, IModel<List<AssignmentEditorDto>> selectorModel, BaseSortableDataProvider provider, Class<F> targetFocusClass, Class type) {
         super(id, selectorModel);
         this.provider = provider;
         this.type = type;
+        this.targetFocusClass = targetFocusClass;
         searchModel = new LoadableModel<Search>(false) {
 
             @Override
@@ -101,7 +102,7 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
         };
 
         initLayout();
-        initUserDialog();
+//        initUserDialog();
     }
 
     private void initLayout() {
@@ -112,12 +113,14 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
             @Override
             public void onClick(AjaxRequestTarget target) {
                 labelValue = createStringResource("MultipleAssignmentSelector.filterByUser").getString();
-                if (showDialog) {
-                    UserBrowserDialog window = (UserBrowserDialog) MultipleAssignmentSelector.this.get(ID_USER_CHOOSER_DIALOG);
-                    window.setType(UserType.class);
-                    window.show(target);
-                }
-                showDialog = true;
+                initUserDialog(createStringResource("MultipleAssignmentSelector.filterByUser"), target);
+//                FocusBrowserPanel<UserType> focusBrowser = new FocusBrowserPanel<>(id, type, multiselect, parentPage)
+//                if (showDialog) {
+//                    UserBrowserDialog window = (UserBrowserDialog) MultipleAssignmentSelector.this.get(ID_USER_CHOOSER_DIALOG);
+//                    window.setType(UserType.class);
+//                    window.show(target);
+//                }
+//                showDialog = true;
             }
         };
         filterButtonContainer.add(filterByUserButton);
@@ -275,26 +278,24 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
 
     }
 
-    private void initUserDialog() {
+    private void initUserDialog(IModel<String> title, AjaxRequestTarget target) {
 
-        UserBrowserDialog<UserType> dialog = new UserBrowserDialog<UserType>(ID_USER_CHOOSER_DIALOG, UserType.class) {
+    	FocusBrowserPanel<F> focusBrowser = new FocusBrowserPanel<F>(getPageBase().getMainPopupBodyId(), targetFocusClass, false, getPageBase()){
+    		
+    		protected void onClick(AjaxRequestTarget target, F focus) {
+    			 filterByUserPerformed(focus);
+                 replaceTable(target);
 
-            @Override
-            public void userDetailsPerformed(AjaxRequestTarget target, UserType user) {
-                super.userDetailsPerformed(target, user);
-                filterByUserPerformed(user);
-                replaceTable(target);
-
-                labelValue += " " + user.getName().toString();
-                target.add(getFilterButton());
-            }
-        };
-        add(dialog);
+                 labelValue += " " + focus.getName().toString();
+                 target.add(getFilterButton());
+    		}
+    	};
+       getPageBase().showMainPopup(focusBrowser, title, target, 900, 500);
     }
 
 
-    private void filterByUserPerformed(UserType user){
-        provider =  findParent(MultipleAssignmentSelectorPanel.class).getListDataProvider(user);
+    private void filterByUserPerformed(F user){
+        provider =  ((MultipleAssignmentSelectorPanel<F>)findParent(MultipleAssignmentSelectorPanel.class)).getListDataProvider(user);
     }
 
     private void deleteFilterPerformed(AjaxRequestTarget target){
@@ -336,6 +337,6 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
     }
 
     private Component getFilterButton(){
-        return get(ID_FILTER_BY_USER_BUTTON);
+        return get(createComponentPath(ID_FILTER_BUTTON_CONTAINER, ID_FILTER_BY_USER_BUTTON));
     }
 }

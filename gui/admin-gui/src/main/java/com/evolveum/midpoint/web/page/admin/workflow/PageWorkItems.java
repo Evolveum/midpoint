@@ -16,40 +16,24 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.WorkflowService;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.*;
+import com.evolveum.midpoint.web.component.wf.WorkItemsTablePanel;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoProvider;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -73,6 +57,10 @@ public class PageWorkItems extends PageAdminWorkItems {
     private static final String OPERATION_CLAIM_ITEM = DOT_CLASS + "claimItem";
     private static final String OPERATION_RELEASE_ITEMS = DOT_CLASS + "releaseItems";
     private static final String OPERATION_RELEASE_ITEM = DOT_CLASS + "releaseItem";
+    private static final String ID_WORK_ITEMS_PANEL = "workItemsPanel";
+
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_WORK_ITEM_TABLE = "workItemTable";
 
     boolean assigned;
 
@@ -87,60 +75,16 @@ public class PageWorkItems extends PageAdminWorkItems {
     }
 
     private void initLayout() {
-        Form mainForm = new Form("mainForm");
+        Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        List<IColumn<WorkItemDto, String>> workItemColumns = initWorkItemColumns();
-        TablePanel<WorkItemDto> workItemTable = new TablePanel<>("workItemTable", new WorkItemDtoProvider(PageWorkItems.this, assigned),
-                workItemColumns, UserProfileStorage.TableId.PAGE_WORK_ITEMS, getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEMS));
-        workItemTable.setOutputMarkupId(true);
-        mainForm.add(workItemTable);
+        WorkItemsTablePanel panel = new WorkItemsTablePanel(ID_WORK_ITEMS_PANEL, new WorkItemDtoProvider(PageWorkItems.this, assigned),
+                UserProfileStorage.TableId.PAGE_WORK_ITEMS, (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEMS), true);
+
+        panel.setOutputMarkupId(true);
+        mainForm.add(panel);
 
         initItemButtons(mainForm);
-    }
-
-    private List<IColumn<WorkItemDto, String>> initWorkItemColumns() {
-        List<IColumn<WorkItemDto, String>> columns = new ArrayList<>();
-
-        IColumn column = new CheckBoxHeaderColumn<TaskType>();
-        columns.add(column);
-
-        column = new LinkColumn<WorkItemDto>(createStringResource("pageWorkItems.item.name"), "name", "name") {
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
-                WorkItemDto workItemDto = rowModel.getObject();
-                itemDetailsPerformed(target, workItemDto.getWorkItem().getWorkItemId());
-            }
-        };
-        columns.add(column);
-
-        columns.add(new AbstractColumn<WorkItemDto, String>(createStringResource("pageWorkItems.item.created")) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<WorkItemDto>> item, String componentId,
-                                     final IModel<WorkItemDto> rowModel) {
-                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
-
-                    @Override
-                    public Object getObject() {
-                        WorkItemDto pi = rowModel.getObject();
-                        Date started = XmlTypeConverter.toDate(pi.getWorkItem().getMetadata().getCreateTimestamp());
-                        if (started == null) {
-                            return "?";
-                        } else {
-                            return WebComponentUtil.formatDate(started);
-                        }
-                    }
-                }));
-            }
-        });
-
-        if (!assigned) {
-            columns.add(new PropertyColumn(createStringResource("pageWorkItems.item.candidates"), WorkItemDto.F_CANDIDATES));
-        }
-
-        return columns;
     }
 
     private void initItemButtons(Form mainForm) {
@@ -186,24 +130,6 @@ public class PageWorkItems extends PageAdminWorkItems {
         mainForm.add(reject);
     }
 
-    private TablePanel getWorkItemTable() {
-        return (TablePanel) get("mainForm:workItemTable");
-    }
-
-    private List<WorkItemDto> getSelectedWorkItems() {
-        DataTable table = getWorkItemTable().getDataTable();
-        WorkItemDtoProvider provider = (WorkItemDtoProvider) table.getDataProvider();
-
-        List<WorkItemDto> selected = new ArrayList<WorkItemDto>();
-        for (WorkItemDto row : provider.getAvailableData()) {
-            if (row.isSelected()) {
-                selected.add(row);
-            }
-        }
-
-        return selected;
-    }
-
     private boolean isSomeItemSelected(List<WorkItemDto> items, AjaxRequestTarget target) {
         if (!items.isEmpty()) {
             return true;
@@ -214,14 +140,12 @@ public class PageWorkItems extends PageAdminWorkItems {
         return false;
     }
 
-    private void itemDetailsPerformed(AjaxRequestTarget target, String taskid) {
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, taskid);
-        setResponsePage(new PageWorkItem(parameters, this));
+    private WorkItemsTablePanel getWorkItemsPanel() {
+        return (WorkItemsTablePanel) get(ID_MAIN_FORM).get(ID_WORK_ITEMS_PANEL);
     }
 
     private void approveOrRejectWorkItemsPerformed(AjaxRequestTarget target, boolean approve) {
-        List<WorkItemDto> workItemDtoList = getSelectedWorkItems();
+        List<WorkItemDto> workItemDtoList = getWorkItemsPanel().getSelectedWorkItems();
         if (!isSomeItemSelected(workItemDtoList, target)) {
             return;
         }
@@ -231,7 +155,7 @@ public class PageWorkItems extends PageAdminWorkItems {
         for (WorkItemDto workItemDto : workItemDtoList) {
             OperationResult result = mainResult.createSubresult(OPERATION_APPROVE_OR_REJECT_ITEM);
             try {
-                workflowService.approveOrRejectWorkItem(workItemDto.getWorkItem().getWorkItemId(), approve, result);
+                workflowService.approveOrRejectWorkItem(workItemDto.getWorkItemId(), approve, null, result);
                 result.computeStatus();
             } catch (Exception e) {
                 result.recordPartialError("Couldn't approve/reject work item due to an unexpected exception.", e);
@@ -247,13 +171,12 @@ public class PageWorkItems extends PageAdminWorkItems {
 
         showResult(mainResult);
 
-        //refresh feedback and table
         target.add(getFeedbackPanel());
-        target.add(getWorkItemTable());
+        target.add(getWorkItemsPanel());
     }
 
     private void claimWorkItemsPerformed(AjaxRequestTarget target) {
-        List<WorkItemDto> workItemDtoList = getSelectedWorkItems();
+        List<WorkItemDto> workItemDtoList = getWorkItemsPanel().getSelectedWorkItems();
         if (!isSomeItemSelected(workItemDtoList, target)) {
             return;
         }
@@ -263,9 +186,9 @@ public class PageWorkItems extends PageAdminWorkItems {
         for (WorkItemDto workItemDto : workItemDtoList) {
             OperationResult result = mainResult.createSubresult(OPERATION_CLAIM_ITEM);
             try {
-                workflowService.claimWorkItem(workItemDto.getWorkItem().getWorkItemId(), result);
+                workflowService.claimWorkItem(workItemDto.getWorkItemId(), result);
                 result.computeStatusIfUnknown();
-            } catch (RuntimeException e) {
+            } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException e) {
                 result.recordPartialError("Couldn't claim work item due to an unexpected exception.", e);
             }
         }
@@ -279,13 +202,12 @@ public class PageWorkItems extends PageAdminWorkItems {
 
         showResult(mainResult);
 
-        //refresh feedback and table
         target.add(getFeedbackPanel());
-        target.add(getWorkItemTable());
+        target.add(getWorkItemsPanel());
     }
 
     private void releaseWorkItemsPerformed(AjaxRequestTarget target) {
-        List<WorkItemDto> workItemDtoList = getSelectedWorkItems();
+        List<WorkItemDto> workItemDtoList = getWorkItemsPanel().getSelectedWorkItems();
         if (!isSomeItemSelected(workItemDtoList, target)) {
             return;
         }
@@ -295,9 +217,9 @@ public class PageWorkItems extends PageAdminWorkItems {
         for (WorkItemDto workItemDto : workItemDtoList) {
             OperationResult result = mainResult.createSubresult(OPERATION_RELEASE_ITEM);
             try {
-                workflowService.releaseWorkItem(workItemDto.getWorkItem().getWorkItemId(), result);
+                workflowService.releaseWorkItem(workItemDto.getWorkItemId(), result);
                 result.computeStatusIfUnknown();
-            } catch (RuntimeException e) {
+            } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException e) {
                 result.recordPartialError("Couldn't release work item due to an unexpected exception.", e);
             }
         }
@@ -311,8 +233,7 @@ public class PageWorkItems extends PageAdminWorkItems {
 
         showResult(mainResult);
 
-        //refresh feedback and table
         target.add(getFeedbackPanel());
-        target.add(getWorkItemTable());
+        target.add(getWorkItemsPanel());
     }
 }

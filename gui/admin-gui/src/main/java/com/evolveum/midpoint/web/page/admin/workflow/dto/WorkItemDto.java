@@ -17,59 +17,88 @@
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.show.SceneDto;
+import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang.StringUtils;
-
-import java.util.List;
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
+ * @author mederly
  */
 public class WorkItemDto extends Selectable {
 
     public static final String F_NAME = "name";
-    public static final String F_OWNER_OR_CANDIDATES = "ownerOrCandidates";
-    public static final String F_CANDIDATES = "candidates";
-    public static final String F_ASSIGNEE = "assignee";
     public static final String F_CREATED = "created";
+    public static final String F_PROCESS_STARTED = "processStarted";
+    public static final String F_ASSIGNEE_OR_CANDIDATES = "assigneeOrCandidates";
+    public static final String F_ASSIGNEE = "assignee";
+    public static final String F_CANDIDATES = "candidates";
 
+    public static final String F_OBJECT_NAME = "objectName";
+    public static final String F_TARGET_NAME = "targetName";
 
-    WorkItemType workItem;
+    public static final String F_REQUESTER_NAME = "requesterName";
+    public static final String F_REQUESTER_FULL_NAME = "requesterFullName";
+    public static final String F_APPROVER_COMMENT = "approverComment";
+
+    public static final String F_WORKFLOW_CONTEXT = "workflowContext";          // use with care
+	public static final String F_DELTAS = "deltas";
+
+	// workItem may or may not contain resolved taskRef;
+    // and this task may or may not contain filled-in workflowContext -> and then requesterRef object
+    //
+    // Depending on expected use (work item list vs. work item details)
+
+    protected WorkItemType workItem;
+	protected SceneDto deltas;
+    protected String approverComment;
 
     public WorkItemDto(WorkItemType workItem) {
         this.workItem = workItem;
     }
 
+	public void prepareDeltaVisualization(String sceneNameKey, PrismContext prismContext,
+			ModelInteractionService modelInteractionService, Task opTask, OperationResult result) throws SchemaException {
+		TaskType task = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
+		if (task == null || task.getWorkflowContext() == null) {
+			return;
+		}
+		if (!(task.getWorkflowContext().getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
+			return;
+		}
+		WfPrimaryChangeProcessorStateType state = (WfPrimaryChangeProcessorStateType) task.getWorkflowContext().getProcessorSpecificState();
+		Scene deltasScene = SceneUtil.visualizeObjectTreeDeltas(state.getDeltasToProcess(), sceneNameKey, prismContext, modelInteractionService, opTask, result);
+		deltas = new SceneDto(deltasScene);
+	}
+
+    public String getWorkItemId() {
+        return workItem.getWorkItemId();
+    }
+
     public String getName() {
-        return PolyString.getOrig(workItem.getName());
-    }
-
-    public String getOwner() {
-        return workItem.getAssigneeRef() != null ? workItem.getAssigneeRef().getOid() : null;
-    }
-
-    public WorkItemType getWorkItem() {
-        return workItem;
+        return workItem.getName();
     }
 
     public String getCreated() {
-        if (workItem.getMetadata() != null && workItem.getMetadata().getCreateTimestamp() != null) {
-            return WebComponentUtil.formatDate(XmlTypeConverter.toDate(workItem.getMetadata().getCreateTimestamp()));
-        } else {
-            return null;
-        }
+        return WebComponentUtil.formatDate(XmlTypeConverter.toDate(workItem.getWorkItemCreatedTimestamp()));
     }
 
-    public String getOwnerOrCandidates() {
+    public String getProcessStarted() {
+        return WebComponentUtil.formatDate(XmlTypeConverter.toDate(workItem.getProcessStartedTimestamp()));
+    }
+
+    public String getAssigneeOrCandidates() {
         String assignee = getAssignee();
         if (assignee != null) {
             return assignee;
@@ -79,61 +108,101 @@ public class WorkItemDto extends Selectable {
     }
 
     public String getAssignee() {
-        if (workItem.getAssignee() != null) {
-            if (workItem.getAssignee().getName() != null) {
-                return workItem.getAssignee().getName().getOrig();
-            } else {
-                return workItem.getAssignee().getOid();
-            }
-        } else if (workItem.getAssigneeRef() != null) {
-            return workItem.getAssigneeRef().getOid();
-        } else {
-            return null;
-        }
+        return WebComponentUtil.getName(workItem.getAssigneeRef());
     }
 
-    // what an ugly method :| TODO rework some day [also add users]
     public String getCandidates() {
-        StringBuilder retval = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
         boolean first = true;
-        boolean referenceOnly = false;
-        // we assume that either all roles have full reference information, or none of them
-        for (AbstractRoleType roleType : workItem.getCandidateRoles()) {
+        for (ObjectReferenceType roleRef : workItem.getCandidateRolesRef()) {
             if (!first) {
-                retval.append(", ");
+                sb.append(", ");
             } else {
                 first = false;
             }
-            if (roleType.getOid() == null) {        // no object information, only reference is present
-                referenceOnly = true;
-                break;
-            }
-            retval.append(PolyString.getOrig(roleType.getName()));
-            if (roleType instanceof RoleType) {
-                retval.append(" (role)");
-            } else if (roleType instanceof OrgType) {
-                retval.append(" (org)");
+            sb.append(WebComponentUtil.getName(roleRef));
+            if (RoleType.COMPLEX_TYPE.equals(roleRef.getType())) {
+                sb.append(" (role)");
+            } else if (OrgType.COMPLEX_TYPE.equals(roleRef.getType())) {
+                sb.append(" (org)");
             }
         }
-        if (referenceOnly) {
-            // start again
-            retval = new StringBuilder();
-            first = true;
-            for (ObjectReferenceType roleRef : workItem.getCandidateRolesRef()) {
-                if (!first) {
-                    retval.append(", ");
-                } else {
-                    first = false;
-                }
-                retval.append(roleRef.getOid());
-                if (RoleType.COMPLEX_TYPE.equals(roleRef.getType())) {
-                    retval.append(" (role)");
-                } else if (OrgType.COMPLEX_TYPE.equals(roleRef.getType())) {
-                    retval.append(" (org)");
-                }
+        for (ObjectReferenceType userRef : workItem.getCandidateUsersRef()) {
+            if (!first) {
+                sb.append(", ");
+            } else {
+                first = false;
             }
+            sb.append(WebComponentUtil.getName(userRef));
+            sb.append(" (user)");
         }
-        return retval.toString();
+        return sb.toString();
     }
 
+    public String getObjectName() {
+        return WebComponentUtil.getName(workItem.getObjectRef());
+    }
+
+	public ObjectReferenceType getObjectRef() {
+		return workItem.getObjectRef();
+	}
+
+	public ObjectReferenceType getTargetRef() {
+		return workItem.getTargetRef();
+	}
+
+	public String getTargetName() {
+        return WebComponentUtil.getName(workItem.getTargetRef());
+    }
+
+    public WfContextType getWorkflowContext() {
+        TaskType task = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
+        if (task == null || task.getWorkflowContext() == null) {
+            return null;
+        } else {
+            return task.getWorkflowContext();
+        }
+    }
+
+    public String getRequesterName() {
+		WfContextType workflowContext = getWorkflowContext();
+		return workflowContext != null ? WebComponentUtil.getName(workflowContext.getRequesterRef()) : null;
+    }
+
+	public String getRequesterFullName() {
+		UserType requester = getRequester();
+		return requester != null ? PolyString.getOrig(requester.getFullName()) : null;
+	}
+
+	public UserType getRequester() {
+        WfContextType wfContext = getWorkflowContext();
+        if (wfContext == null) {
+            return null;
+        }
+        return WebComponentUtil.getObjectFromReference(wfContext.getRequesterRef(), UserType.class);
+    }
+
+    public String getApproverComment() {
+        return approverComment;
+    }
+
+    public void setApproverComment(String approverComment) {
+        this.approverComment = approverComment;
+    }
+
+    public WorkItemType getWorkItem() {
+        return workItem;
+    }
+
+	public SceneDto getDeltas() {
+		return deltas;
+	}
+
+	public QName getTargetType() {
+		return workItem.getTargetRef() != null ? workItem.getTargetRef().getType() : null;
+	}
+
+	public QName getObjectType() {
+		return workItem.getObjectRef() != null ? workItem.getObjectRef().getType() : null;
+	}
 }

@@ -25,7 +25,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.MarkupContainer;
@@ -35,6 +34,7 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
@@ -380,6 +380,7 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
             IModel data = new PropertyModel(value, SearchValue.F_VALUE);
 
             final DisplayableRenderer renderer = new DisplayableRenderer(choices);
+            EnumChoiceRenderer rendered = new EnumChoiceRenderer();
             final DropDownChoice input = new DropDownChoice(ID_COMBO_INPUT, data, choices, renderer) {
 
                 @Override
@@ -447,10 +448,13 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
         public String getIdValue(DisplayableValue<T> object, int index) {
             return Integer.toString(index);
         }
-        
+
         @Override
         public DisplayableValue<T> getObject(String id, IModel<? extends List<? extends DisplayableValue<T>>> choices) {
-        	return choices.getObject().get(Integer.parseInt(id));
+            if (StringUtils.isEmpty(id)) {
+                return null;
+            }
+            return choices.getObject().get(Integer.parseInt(id));
         }
 
         @Override

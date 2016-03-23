@@ -16,6 +16,11 @@
 
 package com.evolveum.midpoint.wf.impl.messages;
 
+import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
+import org.activiti.engine.delegate.DelegateExecution;
+
+import java.util.Map;
+
 /**
  * Created with IntelliJ IDEA.
  * User: mederly
@@ -25,4 +30,7 @@ package com.evolveum.midpoint.wf.impl.messages;
  */
 public class ProcessStartedEvent extends ProcessEvent {
 
+	public ProcessStartedEvent(String pid, Map<String, Object> variables, ProcessInterfaceFinder processInterfaceFinder) {
+		super(pid, variables, processInterfaceFinder);
+	}
 }

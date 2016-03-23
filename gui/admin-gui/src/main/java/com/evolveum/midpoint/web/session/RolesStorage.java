@@ -16,28 +16,28 @@
 package com.evolveum.midpoint.web.session;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.web.page.admin.roles.dto.RolesSearchDto;
+import com.evolveum.midpoint.web.component.search.Search;
 
 /**
- *  @author shood
- * */
-public class RolesStorage extends PageStorage{
+ * @author shood
+ */
+public class RolesStorage extends PageStorage {
 
     /**
-     *  DTO used for search in {@link com.evolveum.midpoint.web.page.admin.roles.PageRoles}
-     * */
-    private RolesSearchDto rolesSearch;
+     * DTO used for search in {@link com.evolveum.midpoint.web.page.admin.roles.PageRoles}
+     */
+    private Search rolesSearch;
 
     /**
-     *  Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.roles.PageRoles}
-     * */
+     * Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.roles.PageRoles}
+     */
     private ObjectPaging rolesPaging;
 
-    public RolesSearchDto getRolesSearch() {
+    public Search getRolesSearch() {
         return rolesSearch;
     }
 
-    public void setRolesSearch(RolesSearchDto rolesSearch) {
+    public void setRolesSearch(Search rolesSearch) {
         this.rolesSearch = rolesSearch;
     }
 

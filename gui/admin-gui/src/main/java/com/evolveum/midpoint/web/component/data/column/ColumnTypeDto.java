@@ -8,22 +8,22 @@ public class ColumnTypeDto<T> implements Serializable{
 	
 	private String columnName;
 	private String columnValue;
-	private String sortableColumn;
-	
+//	private String sortableColumn;
+	private boolean sortable = false;
 	private boolean multivalue = false;
 	
 	public ColumnTypeDto(String columnName, String columnValue, String sortableColumn) {
 		super();
 		this.columnName = columnName;
 		this.columnValue = columnValue;
-		this.sortableColumn = sortableColumn;
+//		this.sortableColumn = sortableColumn;
 	}
 	
-	public ColumnTypeDto(String columnName, String columnValue, String sortableColumn, boolean multivalue) {
+	public ColumnTypeDto(String columnName, String columnValue, boolean sortable, boolean multivalue) {
 		super();
 		this.columnName = columnName;
 		this.columnValue = columnValue;
-		this.sortableColumn = sortableColumn;
+		this.sortable = sortable;
 		this.multivalue = multivalue;
 	}
 	
@@ -39,12 +39,7 @@ public class ColumnTypeDto<T> implements Serializable{
 	public void setColumnValue(String columnValue) {
 		this.columnValue = columnValue;
 	}
-	public String getSortableColumn() {
-		return sortableColumn;
-	}
-	public void setSortableColumn(String sortableColumn) {
-		this.sortableColumn = sortableColumn;
-	}
+	
 	
 	public boolean isMultivalue() {
 		return multivalue;
@@ -54,6 +49,9 @@ public class ColumnTypeDto<T> implements Serializable{
 		this.multivalue = multivalue;
 	}
 	
+	public boolean isSortable() {
+		return sortable;
+	}
 	
 
 }

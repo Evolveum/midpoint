@@ -15,16 +15,16 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -34,17 +34,11 @@ import com.evolveum.midpoint.common.refinery.LayerRefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.LayerRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
-import com.evolveum.midpoint.prism.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -127,7 +121,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	@Autowired(required = true)
 	private PrismContext prismContext;
-	
+
+	@Autowired
+	private Visualizer visualizer;
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.api.ModelInteractionService#previewChanges(com.evolveum.midpoint.prism.delta.ObjectDelta, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
@@ -135,7 +132,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	public <F extends ObjectType> ModelContext<F> previewChanges(
 			Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-		
+		return previewChanges(deltas, options, task, Collections.<ProgressListener>emptyList(), parentResult);
+	}
+
+	@Override
+	public <F extends ObjectType> ModelContext<F> previewChanges(
+			Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task,
+			Collection<ProgressListener> listeners, OperationResult parentResult)
+			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Preview changes input:\n{}", DebugUtil.debugDump(deltas));
 		}
@@ -161,7 +166,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.trace("Preview changes context:\n{}", context.debugDump());
 			}
-		
+			context.setProgressListeners(listeners);
 			
 			projector.projectAllWaves(context, "preview", task, result);
 			context.distributeResource();
@@ -613,6 +618,17 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		}
 		result.recordSuccess();
 		return cmp;
+	}
+
+	@Override
+	public List<? extends Scene> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) throws SchemaException {
+		return visualizer.visualizeDeltas(deltas, task, result);
+	}
+
+	@Override
+	@NotNull
+	public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result) throws SchemaException {
+		return visualizer.visualizeDelta(delta, task, result);
 	}
 
 }

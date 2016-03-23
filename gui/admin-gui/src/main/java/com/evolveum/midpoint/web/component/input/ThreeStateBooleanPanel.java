@@ -34,6 +34,11 @@ import org.apache.wicket.model.IModel;
  *
  *  @author shood
  * */
+/**
+ * Don't use this component, it will be gradually removed from gui.
+ * It can be easily replaced with TriStateComboPanel. [honchar]
+ */
+@Deprecated
 public class ThreeStateBooleanPanel extends BasePanel<Boolean>{
 
     private static final String ID_BUTTON_ONE = "optionOne";

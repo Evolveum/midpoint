@@ -413,6 +413,15 @@ public class ItemPath implements Serializable, Cloneable {
 		return path != null ? path.asSingleName() : null;
 	}
 
+	public static ItemPath[] asPathArray(QName... names) {
+		ItemPath[] paths = new ItemPath[names.length];
+		int i = 0;
+		for (QName name : names) {
+			paths[i++] = new ItemPath(name);
+		}
+		return paths;
+	}
+
 	public enum CompareResult {
 		EQUIVALENT,
 		SUPERPATH,

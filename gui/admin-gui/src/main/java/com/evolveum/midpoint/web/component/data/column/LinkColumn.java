@@ -23,15 +23,28 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
 /**
  * @author lazyman
  */
 public class LinkColumn<T> extends AbstractColumn<T, String> {
 
     private String propertyExpression;
+    
+    private String identifier;
+    
+    private boolean rememberId = false;
 
+    public LinkColumn(IModel<String> displayModel, boolean rememberId) {
+        super(displayModel);
+        this.rememberId = rememberId;
+    }
+
+    
     public LinkColumn(IModel<String> displayModel) {
         super(displayModel);
+//        this.rememberId = rememberId;
     }
 
     public LinkColumn(IModel<String> displayModel, String propertyExpression) {
@@ -47,14 +60,25 @@ public class LinkColumn<T> extends AbstractColumn<T, String> {
         return propertyExpression;
     }
 
-    protected IModel<String> createLinkModel(IModel<T> rowModel) {
+    protected IModel createLinkModel(IModel<T> rowModel) {
         return new PropertyModel<String>(rowModel, propertyExpression);
     }
+    
+//    protected IModel cre
 
     @Override
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId,
                              final IModel<T> rowModel) {
-        cellItem.add(new LinkPanel(componentId, createLinkModel(rowModel)) {
+    	
+    	IModel model = createLinkModel(rowModel);
+    	if (rememberId){
+    		FocusType focus = ((FocusType)model.getObject());
+    		if (focus != null){
+    			identifier = focus.getOid();
+    		}
+    		model = new PropertyModel<String>(model, FocusType.F_NAME.getLocalPart() + ".orig");
+    	}
+        cellItem.add(new LinkPanel(componentId, model) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -73,5 +97,13 @@ public class LinkColumn<T> extends AbstractColumn<T, String> {
     }
 
     public void onClick(AjaxRequestTarget target, IModel<T> rowModel) {
+    }
+    
+    public void setModelObjectIdentifier(String identifier){
+    	this.identifier = identifier;
+    }
+    
+    public String getModelObjectIdentifier(){
+    	return identifier;
     }
 }

@@ -97,7 +97,6 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 	public ResourceSchema getOriginalResourceSchema() {
 		return originalResourceSchema;
 	}
-
 	
 	public RefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, ShadowType shadow) {
 		return getRefinedDefinition(kind, ShadowUtil.getIntent(shadow));
@@ -467,6 +466,19 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 			rSchema.add(rOcDef);
 		}
 	}
+	
+public static List<String> getIntentsForKind(RefinedResourceSchema rSchema, ShadowKindType kind) {
+	List<String> intents = new ArrayList<>();
+	for (ObjectClassComplexTypeDefinition objClassDef : rSchema.getObjectClassDefinitions()) {
+		if (objClassDef.getKind() == kind){
+			intents.add(objClassDef.getIntent());
+		}
+	}
+	
+	return intents;
+		
+	}
+
 
 	private static void parseObjectTypesFromSchema(RefinedResourceSchema rSchema, ResourceType resourceType,
 			PrismContext prismContext, String contextDescription) throws SchemaException {
