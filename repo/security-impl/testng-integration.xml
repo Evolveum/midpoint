@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2015 Evolveum
+  ~ Copyright (c) 2015-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,10 +19,5 @@
     <listeners>
 		<listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
 	</listeners>
-	<test name="security" parallel="false" verbose="10">
-		<classes>
-			<class name="com.evolveum.midpoint.security.impl.TestAuthenticationEvaluator" />
-		</classes>
-	</test>
 
 </suite>

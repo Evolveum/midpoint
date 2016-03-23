@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.web.security;
 
+import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.security.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;

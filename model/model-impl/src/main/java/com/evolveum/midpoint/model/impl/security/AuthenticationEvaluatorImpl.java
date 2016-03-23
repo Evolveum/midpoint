@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.security.impl;
+package com.evolveum.midpoint.model.impl.security;
 
 import java.util.Collection;
 
@@ -29,11 +29,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.security.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
