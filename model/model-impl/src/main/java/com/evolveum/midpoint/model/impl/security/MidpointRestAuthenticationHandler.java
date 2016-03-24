@@ -28,6 +28,7 @@ import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.jaxrs.utils.JAXRSUtils;
 import org.apache.cxf.message.Message;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -46,6 +47,8 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -53,6 +56,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author Radovan Semancik
  */
 public class MidpointRestAuthenticationHandler implements ContainerRequestFilter, ContainerResponseFilter {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(MidpointRestAuthenticationHandler.class);
 	 
 	@Autowired(required=true)
 	private AuthenticationEvaluator authenticationEvaluator;
@@ -78,16 +83,20 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         	return;
         }
         
+        LOGGER.trace("Authenticating username '{}' to REST service", enteredUsername);
+        
         ConnectionEnvironment connEnv = createConnectionEnvironment();
         String enteredPassword = policy.getPassword();
         UsernamePasswordAuthenticationToken token;
         try {
         	token = authenticationEvaluator.authenticateUserPassword(connEnv, enteredUsername, enteredPassword);
         } catch (UsernameNotFoundException | BadCredentialsException e) {
+        	LOGGER.trace("Exception while authenticating username '{}' to REST service: {}", enteredUsername, e.getMessage(), e);
         	requestCtx.abortWith(Response.status(401).header("WWW-Authenticate", "Basic authentication failed. Cannot authenticate user.").build());
 			return;
-        } catch (DisabledException | LockedException | CredentialsExpiredException 
+        } catch (DisabledException | LockedException | CredentialsExpiredException | AccessDeniedException
         		| AuthenticationCredentialsNotFoundException | AuthenticationServiceException e) {
+        	LOGGER.trace("Exception while authenticating username '{}' to REST service: {}", enteredUsername, e.getMessage(), e);
         	requestCtx.abortWith(Response.status(403).build());
 			return;
         }
@@ -96,6 +105,8 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         
         m.put("authenticatedUser", user);
         securityEnforcer.setupPreAuthenticatedSecurityContext(user.asPrismObject());
+        
+        LOGGER.trace("Authenticated to REST service as {}", user);
            
         OperationResult authorizeResult = new OperationResult("Rest authentication/authorization operation.");
         
@@ -111,6 +122,8 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 			requestCtx.abortWith(Response.status(Status.BAD_REQUEST).build());
 			return;
 		}
+        
+        LOGGER.trace("Authorized to use REST service ({})", user);
         
     }
 

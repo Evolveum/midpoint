@@ -32,6 +32,7 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -254,13 +255,97 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		assertFailedLogins(userAfter, 1);
 	}
 	
+	@Test
+	public void test105PasswordLoginNullUsernameNullPassword() throws Exception {
+		final String TEST_NAME = "test105PasswordLoginNullUsernameNullPassword";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		ConnectionEnvironment connEnv = createConnectionEnvironment();
+		
+		try {
+		
+			// WHEN
+			TestUtil.displayWhen(TEST_NAME);
+			
+			authenticationEvaluator.authenticateUserPassword(connEnv, null, null);
+			
+			AssertJUnit.fail("Unexpected success");
+			
+		} catch (BadCredentialsException e) {
+			// This is expected
+			
+			// THEN
+			TestUtil.displayThen(TEST_NAME);
+			display("expected exception", e);
+			assertPasswordEncodingException(e, null);
+		}
+		
+	}
+	
+	@Test
+	public void test106PasswordLoginEmptyUsernameBadPassword() throws Exception {
+		final String TEST_NAME = "test106PasswordLoginEmptyUsernameEmptyPassword";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		ConnectionEnvironment connEnv = createConnectionEnvironment();
+		
+		try {
+		
+			// WHEN
+			TestUtil.displayWhen(TEST_NAME);
+			
+			authenticationEvaluator.authenticateUserPassword(connEnv, "", "bad Bad BAD");
+			
+			AssertJUnit.fail("Unexpected success");
+			
+		} catch (UsernameNotFoundException e) {
+			// This is expected
+			
+			// THEN
+			TestUtil.displayThen(TEST_NAME);
+			display("expected exception", e);
+			assertNoUserException(e, null);
+		}
+		
+	}
+
+	@Test
+	public void test107PasswordLoginBadUsernameBadPassword() throws Exception {
+		final String TEST_NAME = "test107PasswordLoginBadUsernameBadPassword";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		ConnectionEnvironment connEnv = createConnectionEnvironment();
+		
+		try {
+		
+			// WHEN
+			TestUtil.displayWhen(TEST_NAME);
+			
+			authenticationEvaluator.authenticateUserPassword(connEnv, "NoSuchUser", "bad Bad BAD");
+			
+			AssertJUnit.fail("Unexpected success");
+			
+		} catch (UsernameNotFoundException e) {
+			// This is expected
+			
+			// THEN
+			TestUtil.displayThen(TEST_NAME);
+			display("expected exception", e);
+			assertNoUserException(e, null);
+		}
+		
+	}
+
 	/**
 	 * Wait for 5 minutes. The failed login count should reset after 3 minutes. Therefore bad login
 	 * count should be one after we try to make a bad login.
 	 */
 	@Test
-	public void test105PasswordLoginBadPasswordJackAfterLockoutFailedAttemptsDuration() throws Exception {
-		final String TEST_NAME = "test105PasswordLoginBadPasswordJackAfterLockoutFailedAttemptsDuration";
+	public void test125PasswordLoginBadPasswordJackAfterLockoutFailedAttemptsDuration() throws Exception {
+		final String TEST_NAME = "test125PasswordLoginBadPasswordJackAfterLockoutFailedAttemptsDuration";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
@@ -296,8 +381,8 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 
 
 	@Test
-	public void test110PasswordLoginLockout() throws Exception {
-		final String TEST_NAME = "test110PasswordLoginLockout";
+	public void test130PasswordLoginLockout() throws Exception {
+		final String TEST_NAME = "test130PasswordLoginLockout";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
@@ -348,8 +433,8 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	}
 	
 	@Test
-	public void test112PasswordLoginLockedoutGoodPassword() throws Exception {
-		final String TEST_NAME = "test112PasswordLoginLockedoutGoodPassword";
+	public void test132PasswordLoginLockedoutGoodPassword() throws Exception {
+		final String TEST_NAME = "test132PasswordLoginLockedoutGoodPassword";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
@@ -377,8 +462,8 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	}
 
 	@Test
-	public void test113PasswordLoginLockedoutBadPassword() throws Exception {
-		final String TEST_NAME = "test113PasswordLoginLockedoutBadPassword";
+	public void test133PasswordLoginLockedoutBadPassword() throws Exception {
+		final String TEST_NAME = "test133PasswordLoginLockedoutBadPassword";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
@@ -410,8 +495,8 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 
 
 	@Test
-	public void test118PasswordLoginLockedoutLockExpires() throws Exception {
-		final String TEST_NAME = "test118PasswordLoginLockedoutLockExpires";
+	public void test138PasswordLoginLockedoutLockExpires() throws Exception {
+		final String TEST_NAME = "test138PasswordLoginLockedoutLockExpires";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
@@ -436,8 +521,8 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	}
 	
 	@Test
-	public void test120PasswordLoginDisabledGoodPassword() throws Exception {
-		final String TEST_NAME = "test120PasswordLoginDisabledGoodPassword";
+	public void test150PasswordLoginDisabledGoodPassword() throws Exception {
+		final String TEST_NAME = "test150PasswordLoginDisabledGoodPassword";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
@@ -473,8 +558,8 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	}
 	
 	@Test
-	public void test122PasswordLoginEnabledGoodPassword() throws Exception {
-		final String TEST_NAME = "test122PasswordLoginEnabledGoodPassword";
+	public void test152PasswordLoginEnabledGoodPassword() throws Exception {
+		final String TEST_NAME = "test152PasswordLoginEnabledGoodPassword";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
@@ -501,8 +586,8 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	}
 	
 	@Test
-	public void test124PasswordLoginNotValidYetGoodPassword() throws Exception {
-		final String TEST_NAME = "test124PasswordLoginNotValidYetGoodPassword";
+	public void test154PasswordLoginNotValidYetGoodPassword() throws Exception {
+		final String TEST_NAME = "test154PasswordLoginNotValidYetGoodPassword";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
@@ -544,8 +629,8 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	}
 	
 	@Test
-	public void test125PasswordLoginValidGoodPassword() throws Exception {
-		final String TEST_NAME = "test125PasswordLoginValidGoodPassword";
+	public void test155PasswordLoginValidGoodPassword() throws Exception {
+		final String TEST_NAME = "test155PasswordLoginValidGoodPassword";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
@@ -574,8 +659,8 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	}
 	
 	@Test
-	public void test126PasswordLoginNotValidAnyLongerGoodPassword() throws Exception {
-		final String TEST_NAME = "test126PasswordLoginNotValidAnyLongerGoodPassword";
+	public void test156PasswordLoginNotValidAnyLongerGoodPassword() throws Exception {
+		final String TEST_NAME = "test156PasswordLoginNotValidAnyLongerGoodPassword";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
@@ -794,6 +879,10 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		assertEquals("Wrong exception meessage (key)", "web.security.provider.password.bad", e.getMessage());
 	}
 	
+	private void assertNoUserException(UsernameNotFoundException e, String principal) {
+		assertEquals("Wrong exception meessage (key)", "web.security.provider.invalid", e.getMessage());
+	}
+	
 	private ConnectionEnvironment createConnectionEnvironment() {
 		ConnectionEnvironment connEnv = new ConnectionEnvironment();
 		connEnv.setRemoteHost("remote.example.com");
@@ -824,6 +913,9 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	}
 
 	private void addFakeAuthorization(MidPointPrincipal principal) {
+		if (principal == null) {
+			return;
+		}
 		if (principal.getAuthorities().isEmpty()) {
 			AuthorizationType authorizationType = new AuthorizationType();
 	        authorizationType.getAction().add("FAKE");
