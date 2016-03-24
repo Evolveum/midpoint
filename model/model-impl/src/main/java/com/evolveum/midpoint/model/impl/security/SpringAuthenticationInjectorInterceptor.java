@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,32 +15,16 @@
  */
 package com.evolveum.midpoint.model.impl.security;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
-import com.evolveum.midpoint.security.api.UserProfileService;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.xml.namespace.QName;
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPMessage;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.binding.soap.SoapMessage;
-import org.apache.cxf.binding.soap.saaj.SAAJInInterceptor;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.Phase;
@@ -49,22 +33,23 @@ import org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor;
 import org.apache.ws.commons.schema.utils.DOMUtil;
 import org.apache.wss4j.common.ext.WSSecurityException;
 import org.apache.wss4j.common.ext.WSSecurityException.ErrorCode;
-import org.apache.wss4j.dom.util.WSSecurityUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
-import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import com.evolveum.midpoint.common.ActivationComputer;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
 /**
  * Responsible to inject Spring authentication object before we call WS method
@@ -130,14 +115,16 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
         	LOGGER.error("No soap message in handler");
         	throw createFault(WSSecurityException.ErrorCode.FAILURE);
         }
+        ConnectionEnvironment connEnv = new ConnectionEnvironment();
+    	connEnv.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
         String username = null;
         try {
             username = securityHelper.getUsernameFromMessage(saajSoapMessage);
             LOGGER.trace("Attempt to authenticate user '{}'", username);
-
+        	
             if (StringUtils.isBlank(username)) {
             	message.setContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-            	securityHelper.auditLoginFailure(username, "Empty username", SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+            	securityHelper.auditLoginFailure(username, connEnv, "Empty username");
             	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
             }
             
@@ -145,16 +132,12 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
         	LOGGER.trace("Principal: {}", principal);
         	if (principal == null) {
         		message.setContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-        		securityHelper.auditLoginFailure(username, "No user", SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+        		securityHelper.auditLoginFailure(username, connEnv, "No user");
             	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
         	}
         	
-        	if (!activationComputer.isActive(principal.getUser().getActivation())) {
-        		LOGGER.trace("Refusing access to {} because the user is not active", username);
-        		message.setContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-        		securityHelper.auditLoginFailure(username, "User not active", SchemaConstants.CHANNEL_WEB_SERVICE_URI);
-            	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
-        	}
+        	// Account validity and credentials and all this stuff should be already checked
+        	// in the password callback
         	
             Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
             SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -166,7 +149,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 				LOGGER.debug("Access to web service denied for user '{}': SOAP error: {}", 
 	        			new Object[]{username, e.getMessage(), e});
 				message.setContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-				securityHelper.auditLoginFailure(username, "SOAP error: "+e.getMessage(), SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+				securityHelper.auditLoginFailure(username, connEnv, "SOAP error: "+e.getMessage());
 				throw new Fault(e);
 			}
 			
@@ -180,7 +163,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 				LOGGER.debug("Access to web service denied for user '{}': schema error: {}", 
 	        			new Object[]{username, e.getMessage(), e});
 				message.setContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-				securityHelper.auditLoginFailure(username, "Schema error: "+e.getMessage(), SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+				securityHelper.auditLoginFailure(username, connEnv, "Schema error: "+e.getMessage());
 				throw createFault(WSSecurityException.ErrorCode.FAILURE);
 			}
 			if (!isAuthorized) {
@@ -192,7 +175,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 					LOGGER.debug("Access to web service denied for user '{}': schema error: {}", 
 		        			new Object[]{username, e.getMessage(), e});
 					message.setContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-					securityHelper.auditLoginFailure(username, "Schema error: "+e.getMessage(), SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+					securityHelper.auditLoginFailure(username, connEnv, "Schema error: "+e.getMessage());
 					throw createFault(WSSecurityException.ErrorCode.FAILURE);
 				}
 			}
@@ -200,7 +183,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
             	LOGGER.debug("Access to web service denied for user '{}': not authorized", 
             			new Object[]{username});
             	message.setContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-            	securityHelper.auditLoginFailure(username, "Not authorized", SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+            	securityHelper.auditLoginFailure(username, connEnv, "Not authorized");
             	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
             }
             
@@ -208,13 +191,13 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
         	LOGGER.debug("Access to web service denied for user '{}': security exception: {}", 
         			new Object[]{username, e.getMessage(), e});
         	message.setContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-        	securityHelper.auditLoginFailure(username, "Security exception: "+e.getMessage(), SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+        	securityHelper.auditLoginFailure(username, connEnv, "Security exception: "+e.getMessage());
             throw new Fault(e, e.getFaultCode());
         } catch (ObjectNotFoundException e) {
         	LOGGER.debug("Access to web service denied for user '{}': object not found: {}", 
         			new Object[]{username, e.getMessage(), e});
         	message.setContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-        	securityHelper.auditLoginFailure(username, "No user", SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+        	securityHelper.auditLoginFailure(username, connEnv, "No user");
             throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
 		}
 

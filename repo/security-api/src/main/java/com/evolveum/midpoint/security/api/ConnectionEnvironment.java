@@ -21,7 +21,16 @@ package com.evolveum.midpoint.security.api;
  */
 public class ConnectionEnvironment {
 	
+	private String channel;
 	private String remoteHost;
+
+	public String getChannel() {
+		return channel;
+	}
+
+	public void setChannel(String channel) {
+		this.channel = channel;
+	}
 
 	public String getRemoteHost() {
 		return remoteHost;

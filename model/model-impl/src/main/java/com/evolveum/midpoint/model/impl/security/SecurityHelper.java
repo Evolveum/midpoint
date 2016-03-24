@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -56,16 +57,16 @@ public class SecurityHelper {
 	@Autowired(required = true)
 	private AuditService auditService;
 
-	public void auditLoginFailure(String username, String message, String channelUrl) {
+	public void auditLoginFailure(String username, ConnectionEnvironment connEnv, String message) {
 		Task task = taskManager.createTaskInstance();
-        task.setChannel(channelUrl);
+        task.setChannel(connEnv.getChannel());
 
-        LOGGER.debug("Login failure username={}, channel={}: {}", new Object[]{username, channelUrl, message});
+        LOGGER.debug("Login failure username={}, channel={}: {}", new Object[]{username, connEnv.getChannel(), message});
         
         AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
         record.setParameter(username);
 
-        record.setChannel(channelUrl);
+        record.setChannel(connEnv.getChannel());
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(OperationResultStatus.FATAL_ERROR);
         record.setMessage(message);

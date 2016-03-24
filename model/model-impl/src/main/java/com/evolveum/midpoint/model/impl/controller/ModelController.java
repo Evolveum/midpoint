@@ -1613,7 +1613,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ModelController.class);
 
 		securityEnforcer.setUserProfileService(userProfileService);
-		authenticationEvaluator.setUserProfileService(userProfileService);
 		// TODO: initialize repository
 
 		PrismObject<SystemConfigurationType> systemConfiguration;

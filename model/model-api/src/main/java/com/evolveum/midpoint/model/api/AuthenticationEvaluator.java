@@ -15,12 +15,19 @@
  */
 package com.evolveum.midpoint.model.api;
 
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.CredentialsExpiredException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.UserProfileService;
 
 /**
  * @author semancik
@@ -28,10 +35,10 @@ import com.evolveum.midpoint.security.api.UserProfileService;
  */
 public interface AuthenticationEvaluator {
 	
-	UserProfileService getUserProfileService();
-	
-	void setUserProfileService(UserProfileService userProfileService);
-	
-	Authentication authenticateUserPassword(MidPointPrincipal principal, ConnectionEnvironment connEnv, String enteredPassword) throws BadCredentialsException;
+	UsernamePasswordAuthenticationToken authenticateUserPassword(ConnectionEnvironment connEnv, String enteredUsername, String enteredPassword) 
+			throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException, 
+			CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
+
+	PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, String enteredUsername);
 
 }

@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.impl;
+package com.evolveum.midpoint.model.impl.security;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
@@ -27,7 +25,11 @@ import java.io.File;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.CredentialsExpiredException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.annotation.DirtiesContext;
@@ -38,6 +40,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -51,14 +54,13 @@ import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -92,6 +94,33 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+		
+		((AuthenticationEvaluatorImpl)authenticationEvaluator).userProfileService = new UserProfileService() {
+			
+			@Override
+			public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) {
+				return userProfileService.resolveOwner(object);
+			}
+			
+			@Override
+			public void updateUser(MidPointPrincipal principal) {
+				userProfileService.updateUser(principal);
+			}
+			
+			@Override
+			public MidPointPrincipal getPrincipal(PrismObject<UserType> user) {
+				MidPointPrincipal principal = userProfileService.getPrincipal(user);
+				addFakeAuthorization(principal);
+				return principal;
+			}
+			
+			@Override
+			public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException {
+				MidPointPrincipal principal = userProfileService.getPrincipal(username);
+				addFakeAuthorization(principal);
+				return principal;
+			}
+		};
 	}
 	
 	@Test
@@ -100,18 +129,9 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		assertNotNull(authenticationEvaluator);
-		assertNotNull(authenticationEvaluator.getUserProfileService());
-	}
-	
-	@Test
-	public void test020UserProfileServiceUsername() throws Exception {
-		final String TEST_NAME = "test020UserProfileServiceUsername";
-		TestUtil.displayTestTile(TEST_NAME);
-		
 		MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
 		assertPrincipalJack(principal);
 	}
-
 	
 	@Test
 	public void test100PasswordLoginGoodPasswordJack() throws Exception {
@@ -119,19 +139,17 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
-		display("principal", principal);
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(principal, connEnv, USER_JACK_PASSWORD);
+		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-		assertGoodPasswordAuthentication(authentication, principal);
+		assertGoodPasswordAuthentication(authentication, USER_JACK_USERNAME);
 		
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("user after", userAfter);
@@ -145,7 +163,6 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 		
@@ -154,7 +171,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(principal, connEnv, "thisIsNotMyPassword");
+			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "thisIsNotMyPassword");
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -164,7 +181,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// THEN
 			TestUtil.displayThen(TEST_NAME);
 			display("expected exception", e);
-			assertBadPasswordException(e, principal);
+			assertBadPasswordException(e, USER_JACK_USERNAME);
 		}
 		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 		
@@ -180,7 +197,6 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		
 		try {
@@ -188,7 +204,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(principal, connEnv, null);
+			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, null);
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -198,7 +214,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// THEN
 			TestUtil.displayThen(TEST_NAME);
 			display("expected exception", e);
-			assertDeniedException(e, principal);
+			assertPasswordEncodingException(e, USER_JACK_USERNAME);
 		}
 		
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -213,7 +229,6 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		
 		try {
@@ -221,7 +236,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(principal, connEnv, "");
+			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "");
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -231,7 +246,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// THEN
 			TestUtil.displayThen(TEST_NAME);
 			display("expected exception", e);
-			assertDeniedException(e, principal);
+			assertPasswordEncodingException(e, USER_JACK_USERNAME);
 		}
 		
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -251,7 +266,6 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		// GIVEN
 		clock.overrideDuration("PT5M");
 		
-		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 		
@@ -260,7 +274,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(principal, connEnv, "thisIsNotMyPassword");
+			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "thisIsNotMyPassword");
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -270,7 +284,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// THEN
 			TestUtil.displayThen(TEST_NAME);
 			display("expected exception", e);
-			assertBadPasswordException(e, principal);
+			assertBadPasswordException(e, USER_JACK_USERNAME);
 		}
 		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 		
@@ -287,7 +301,6 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -295,7 +308,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayWhen(TEST_NAME);
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(principal, connEnv, "not my password either");
+			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "not my password either");
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (BadCredentialsException e) {
@@ -304,7 +317,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// THEN
 			TestUtil.displayThen(TEST_NAME);
 			display("expected exception", e);
-			assertBadPasswordException(e, principal);
+			assertBadPasswordException(e, USER_JACK_USERNAME);
 		}
 		
 		PrismObject<UserType> userBetween = getUser(USER_JACK_OID);
@@ -313,7 +326,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(principal, connEnv, "absoLUTELY NOT my PASSword");
+			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "absoLUTELY NOT my PASSword");
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (BadCredentialsException e) {
@@ -322,7 +335,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// THEN
 			TestUtil.displayThen(TEST_NAME);
 			display("expected exception", e);
-			assertBadPasswordException(e, principal);
+			assertBadPasswordException(e, USER_JACK_USERNAME);
 		}
 		
 		
@@ -340,23 +353,22 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(principal, connEnv, USER_JACK_PASSWORD);
+			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
 			
 			AssertJUnit.fail("Unexpected success");
-		} catch (BadCredentialsException e) {
+		} catch (LockedException e) {
 			// This is expected
 			
 			// THEN
 			TestUtil.displayThen(TEST_NAME);
 			display("expected exception", e);
-			assertLockedException(e, principal);
+			assertLockedException(e, USER_JACK_USERNAME);
 		}
 				
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -370,17 +382,16 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(principal, connEnv, "bad bad password!");
+			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "bad bad password!");
 			
 			AssertJUnit.fail("Unexpected success");
-		} catch (BadCredentialsException e) {
+		} catch (LockedException e) {
 			// This is expected
 			
 			// THEN
@@ -389,7 +400,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			
 			// this is important. The exception should give no indication whether the password is
 			// good or bad
-			assertLockedException(e, principal);
+			assertLockedException(e, USER_JACK_USERNAME);
 		}
 				
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -406,18 +417,17 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		// GIVEN
 		clock.overrideDuration("PT30M");
 		
-		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(principal, connEnv, USER_JACK_PASSWORD);
+		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-		assertGoodPasswordAuthentication(authentication, principal);
+		assertGoodPasswordAuthentication(authentication, USER_JACK_USERNAME);
 		
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("user after", userAfter);
@@ -435,7 +445,6 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		OperationResult result = task.getResult();
 		modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 		
-		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 		
@@ -443,10 +452,10 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayWhen(TEST_NAME);
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(principal, connEnv, USER_JACK_PASSWORD);
+			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
 			
 			AssertJUnit.fail("Unexpected success");
-		} catch (BadCredentialsException e) {
+		} catch (DisabledException e) {
 			// This is expected
 			
 			// THEN
@@ -455,7 +464,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			
 			// this is important. The exception should give no indication whether the password is
 			// good or bad
-			assertDisabledException(e, principal);
+			assertDisabledException(e, USER_JACK_USERNAME);
 		}
 				
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -473,18 +482,17 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		OperationResult result = task.getResult();
 		modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 		
-		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(principal, connEnv, USER_JACK_PASSWORD);
+		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-		assertGoodPasswordAuthentication(authentication, principal);
+		assertGoodPasswordAuthentication(authentication, USER_JACK_USERNAME);
 		
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("user after", userAfter);
@@ -508,7 +516,6 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		modifyUserReplace(USER_JACK_OID, ACTIVATION_VALID_FROM_PATH, task, result, validFrom);
 		modifyUserReplace(USER_JACK_OID, ACTIVATION_VALID_TO_PATH, task, result, validTo);
 		
-		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -516,10 +523,10 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayWhen(TEST_NAME);
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(principal, connEnv, USER_JACK_PASSWORD);
+			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
 			
 			AssertJUnit.fail("Unexpected success");
-		} catch (BadCredentialsException e) {
+		} catch (DisabledException e) {
 			// This is expected
 			
 			// THEN
@@ -528,7 +535,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			
 			// this is important. The exception should give no indication whether the password is
 			// good or bad
-			assertDisabledException(e, principal);
+			assertDisabledException(e, USER_JACK_USERNAME);
 		}
 		
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -547,20 +554,18 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 				
-		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
 		display("now", clock.currentTimeXMLGregorianCalendar());
-		display("principal", principal);
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(principal, connEnv, USER_JACK_PASSWORD);
+		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-		assertGoodPasswordAuthentication(authentication, principal);
+		assertGoodPasswordAuthentication(authentication, USER_JACK_USERNAME);
 		
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("user after", userAfter);
@@ -579,9 +584,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 				
-		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
 		display("now", clock.currentTimeXMLGregorianCalendar());
-		display("principal", principal);
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -589,10 +592,10 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayWhen(TEST_NAME);
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(principal, connEnv, USER_JACK_PASSWORD);
+			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
 			
 			AssertJUnit.fail("Unexpected success");
-		} catch (BadCredentialsException e) {
+		} catch (DisabledException e) {
 			// This is expected
 			
 			// THEN
@@ -601,7 +604,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			
 			// this is important. The exception should give no indication whether the password is
 			// good or bad
-			assertDisabledException(e, principal);
+			assertDisabledException(e, USER_JACK_USERNAME);
 		}
 		
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -647,18 +650,17 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		MidPointPrincipal principal = getAuthorizedPrincipal(USER_GUYBRUSH_USERNAME);
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(principal, connEnv, USER_GUYBRUSH_PASSWORD);
+		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_PASSWORD);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-		assertGoodPasswordAuthentication(authentication, principal);
+		assertGoodPasswordAuthentication(authentication, USER_GUYBRUSH_USERNAME);
 		
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("user after", userAfter);
@@ -672,7 +674,6 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		MidPointPrincipal principal = getAuthorizedPrincipal(USER_GUYBRUSH_USERNAME);
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 		
@@ -681,7 +682,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(principal, connEnv, "thisIsNotMyPassword");
+			authenticationEvaluator.authenticateUserPassword(connEnv, USER_GUYBRUSH_USERNAME, "thisIsNotMyPassword");
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -691,7 +692,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// THEN
 			TestUtil.displayThen(TEST_NAME);
 			display("expected exception", e);
-			assertBadPasswordException(e, principal);
+			assertBadPasswordException(e, USER_GUYBRUSH_USERNAME);
 		}
 		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 		
@@ -709,18 +710,17 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		// GIVEN
 		clock.overrideDuration("P29D");
 		
-		MidPointPrincipal principal = getAuthorizedPrincipal(USER_GUYBRUSH_USERNAME);
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(principal, connEnv, USER_GUYBRUSH_PASSWORD);
+		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_PASSWORD);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-		assertGoodPasswordAuthentication(authentication, principal);
+		assertGoodPasswordAuthentication(authentication, USER_GUYBRUSH_USERNAME);
 		
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("user after", userAfter);
@@ -736,7 +736,6 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		// GIVEN
 		clock.overrideDuration("P2D");
 		
-		MidPointPrincipal principal = getAuthorizedPrincipal(USER_GUYBRUSH_USERNAME);
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 		
@@ -745,17 +744,17 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(principal, connEnv, USER_GUYBRUSH_PASSWORD);
+			authenticationEvaluator.authenticateUserPassword(connEnv, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_PASSWORD);
 			
 			AssertJUnit.fail("Unexpected success");
 			
-		} catch (BadCredentialsException e) {
+		} catch (CredentialsExpiredException e) {
 			// This is expected
 			
 			// THEN
 			TestUtil.displayThen(TEST_NAME);
 			display("expected exception", e);
-			assertExpiredException(e, principal);
+			assertExpiredException(e, USER_GUYBRUSH_USERNAME);
 		}
 		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 		
@@ -764,30 +763,34 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		assertFailedLogins(userAfter, 0);
 	}
 	
-	private void assertGoodPasswordAuthentication(Authentication authentication, MidPointPrincipal principal) {
+	private void assertGoodPasswordAuthentication(Authentication authentication, String expectedUsername) {
 		assertNotNull("No authentication", authentication);
 		assertTrue("authentication: not authenticated", authentication.isAuthenticated());
 		MidPointAsserts.assertInstanceOf("authentication", authentication, UsernamePasswordAuthenticationToken.class);
-		assertEquals("authentication: principal mismatch", principal, authentication.getPrincipal());
+		assertEquals("authentication: principal mismatch", expectedUsername, ((MidPointPrincipal)authentication.getPrincipal()).getUsername());
 	}
 
-	private void assertBadPasswordException(BadCredentialsException e, MidPointPrincipal principal) {
+	private void assertBadPasswordException(BadCredentialsException e, String username) {
 		assertEquals("Wrong exception meessage (key)", "web.security.provider.invalid", e.getMessage());
 	}
 	
-	private void assertDeniedException(BadCredentialsException e, MidPointPrincipal principal) {
+	private void assertPasswordEncodingException(BadCredentialsException e, String principal) {
+		assertEquals("Wrong exception meessage (key)", "web.security.provider.password.encoding", e.getMessage());
+	}
+	
+	private void assertDeniedException(AccessDeniedException e, String principal) {
 		assertEquals("Wrong exception meessage (key)", "web.security.provider.access.denied", e.getMessage());
 	}
 	
-	private void assertLockedException(BadCredentialsException e, MidPointPrincipal principal) {
+	private void assertLockedException(LockedException e, String principal) {
 		assertEquals("Wrong exception meessage (key)", "web.security.provider.locked", e.getMessage());
 	}
 	
-	private void assertDisabledException(BadCredentialsException e, MidPointPrincipal principal) {
+	private void assertDisabledException(DisabledException e, String principal) {
 		assertEquals("Wrong exception meessage (key)", "web.security.provider.disabled", e.getMessage());
 	}
 	
-	private void assertExpiredException(BadCredentialsException e, MidPointPrincipal principal) {
+	private void assertExpiredException(CredentialsExpiredException e, String principal) {
 		assertEquals("Wrong exception meessage (key)", "web.security.provider.password.bad", e.getMessage());
 	}
 	
@@ -820,14 +823,12 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.assertBetween("wrong last failed login timestamp", startTs, endTs, failedLoginTs);
 	}
 
-	private MidPointPrincipal getAuthorizedPrincipal(String username) throws ObjectNotFoundException {
-		MidPointPrincipal principal = userProfileService.getPrincipal(username);
+	private void addFakeAuthorization(MidPointPrincipal principal) {
 		if (principal.getAuthorities().isEmpty()) {
 			AuthorizationType authorizationType = new AuthorizationType();
 	        authorizationType.getAction().add("FAKE");
 			principal.getAuthorities().add(new Authorization(authorizationType));
 		}
-		return principal;
 	}
 
 	private void assertPrincipalJack(MidPointPrincipal principal) {
