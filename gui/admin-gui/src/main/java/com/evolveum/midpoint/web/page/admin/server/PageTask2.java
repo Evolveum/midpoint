@@ -17,11 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -37,17 +34,12 @@ import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
-import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
@@ -74,8 +66,8 @@ public class PageTask2 extends PageAdmin {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageTask2.class);
 
-	private IModel<TaskDto> model;
-	private IModel<ObjectWrapper<TaskType>> objectWrapperModel;
+	private LoadableModel<TaskDto> taskDtoModel;
+	private LoadableModel<ObjectWrapper<TaskType>> objectWrapperModel;
 	private static boolean edit = false;
 
 	public PageTask2(PageParameters parameters) {
@@ -94,16 +86,16 @@ public class PageTask2 extends PageAdmin {
 			e.printStackTrace();		// TODO
 		}
 		final TaskDto taskDtoFinal = taskDto;
-		model = new AbstractReadOnlyModel<TaskDto>() {
+		taskDtoModel = new LoadableModel<TaskDto>() {
 			@Override
-			public TaskDto getObject() {
+			protected TaskDto load() {
 				return taskDtoFinal;
 			}
 		};
 		final ObjectWrapper<TaskType> wrapper = loadObjectWrapper(taskType.asPrismObject(), result);
-		objectWrapperModel = new AbstractReadOnlyModel<ObjectWrapper<TaskType>>() {
+		objectWrapperModel = new LoadableModel<ObjectWrapper<TaskType>>() {
 			@Override
-			public ObjectWrapper<TaskType> getObject() {
+			protected ObjectWrapper<TaskType> load() {
 				return wrapper;
 			}
 		};
@@ -174,10 +166,10 @@ public class PageTask2 extends PageAdmin {
 
 	protected void initLayout() {
 		initLayoutSummaryPanel();
-//
-//		mainPanel = createMainPanel(ID_MAIN_PANEL);
-//		mainPanel.setOutputMarkupId(true);
-//		add(mainPanel);
+
+		Panel mainPanel = new TaskMainPanel(ID_MAIN_PANEL, objectWrapperModel, taskDtoModel, this);
+		mainPanel.setOutputMarkupId(true);
+		add(mainPanel);
 	}
 
 	protected void initLayoutSummaryPanel() {

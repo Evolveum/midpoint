@@ -44,6 +44,7 @@ import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptions
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -103,6 +104,14 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	
 	protected void initLayoutTabs(final PageAdminObjectDetails<O> parentPage) {
 		List<ITab> tabs = createTabs(parentPage);
+		TabbedPanel<ITab> tabPanel = createTabPanel(parentPage, tabs);
+		LOGGER.info("Adding {} to {}", tabPanel, mainForm);
+		mainForm.add(tabPanel);
+	}
+
+	// TODO move to some utility class
+	@NotNull
+	public static TabbedPanel<ITab> createTabPanel(final PageBase parentPage, final List<ITab> tabs) {
 		TabbedPanel<ITab> tabPanel = new TabbedPanel<ITab>(ID_TAB_PANEL, tabs) {
 			@Override
 			protected WebMarkupContainer newLink(String linkId, final int index) {
@@ -130,11 +139,9 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 			}
 		};
 		tabPanel.setOutputMarkupId(true);
-
-		LOGGER.info("Adding {} to {}", tabPanel, mainForm);
-		mainForm.add(tabPanel);
+		return tabPanel;
 	}
-	
+
 	protected abstract List<ITab> createTabs(PageAdminObjectDetails<O> parentPage);
 
 	protected void initLayoutOptions(PageAdminObjectDetails<O> parentPage) {

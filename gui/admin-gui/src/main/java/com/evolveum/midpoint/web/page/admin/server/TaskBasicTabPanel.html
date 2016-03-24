@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:wicket="http://wicket.apache.org">
+<body>
+	<wicket:panel>
+        <div class="box box-success">
+            <div class="box-body no-padding">
+                <table class="table table-striped">
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.name"/></td>
+                        <td>
+                            <div class="col-md-6">
+                                <div wicket:id="name"/>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.description"/></td>
+                        <td>
+                            <div class="col-md-6">
+                                <div wicket:id="description"/>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.oid"/></td>
+                        <td><span wicket:id="oid"/></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.identifier"/></td>
+                        <td><span wicket:id="identifier"/></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.category"/></td>
+                        <td><span wicket:id="category"/></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.parent"/></td>
+                        <td><span wicket:id="parent"/></td>
+                    </tr>
+                    <tr wicket:id="handlerUriList">
+                        <td><wicket:message key="pageTaskEdit.handlerUri"/></td>
+                        <td><span wicket:id="handlerUri"/></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+	</wicket:panel>
+</body>
+</html>
+
