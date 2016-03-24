@@ -39,6 +39,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -119,6 +120,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		// GIVEN
 		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
+		display("principal", principal);
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 		
@@ -490,8 +492,123 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		assertLastSuccessfulLogin(userAfter, startTs, endTs);
 	}
 	
-	// TODO: validFrom, validTo
+	@Test
+	public void test124PasswordLoginNotValidYetGoodPassword() throws Exception {
+		final String TEST_NAME = "test124PasswordLoginNotValidYetGoodPassword";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		XMLGregorianCalendar validFrom = XmlTypeConverter.addDuration(clock.currentTimeXMLGregorianCalendar(), "PT1H");
+		XMLGregorianCalendar validTo = XmlTypeConverter.addDuration(clock.currentTimeXMLGregorianCalendar(), "P2D");
+		
+		modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result);
+		modifyUserReplace(USER_JACK_OID, ACTIVATION_VALID_FROM_PATH, task, result, validFrom);
+		modifyUserReplace(USER_JACK_OID, ACTIVATION_VALID_TO_PATH, task, result, validTo);
+		
+		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
+		ConnectionEnvironment connEnv = createConnectionEnvironment();
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		try {
+			
+			authenticationEvaluator.authenticateUserPassword(principal, connEnv, USER_JACK_PASSWORD);
+			
+			AssertJUnit.fail("Unexpected success");
+		} catch (BadCredentialsException e) {
+			// This is expected
+			
+			// THEN
+			TestUtil.displayThen(TEST_NAME);
+			display("expected exception", e);
+			
+			// this is important. The exception should give no indication whether the password is
+			// good or bad
+			assertDisabledException(e, principal);
+		}
+		
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("user after", userAfter);
+		assertFailedLogins(userAfter, 0);
+	}
 	
+	@Test
+	public void test125PasswordLoginValidGoodPassword() throws Exception {
+		final String TEST_NAME = "test125PasswordLoginValidGoodPassword";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		clock.overrideDuration("PT2H");
+		
+		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+				
+		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
+		display("now", clock.currentTimeXMLGregorianCalendar());
+		display("principal", principal);
+		ConnectionEnvironment connEnv = createConnectionEnvironment();
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		Authentication authentication = authenticationEvaluator.authenticateUserPassword(principal, connEnv, USER_JACK_PASSWORD);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+		assertGoodPasswordAuthentication(authentication, principal);
+		
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("user after", userAfter);
+		assertFailedLogins(userAfter, 0);
+		assertLastSuccessfulLogin(userAfter, startTs, endTs);
+	}
+	
+	@Test
+	public void test126PasswordLoginNotValidAnyLongerGoodPassword() throws Exception {
+		final String TEST_NAME = "test126PasswordLoginNotValidAnyLongerGoodPassword";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		clock.overrideDuration("P2D");
+		
+		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+				
+		MidPointPrincipal principal = getAuthorizedPrincipal(USER_JACK_USERNAME);
+		display("now", clock.currentTimeXMLGregorianCalendar());
+		display("principal", principal);
+		ConnectionEnvironment connEnv = createConnectionEnvironment();
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		try {
+			
+			authenticationEvaluator.authenticateUserPassword(principal, connEnv, USER_JACK_PASSWORD);
+			
+			AssertJUnit.fail("Unexpected success");
+		} catch (BadCredentialsException e) {
+			// This is expected
+			
+			// THEN
+			TestUtil.displayThen(TEST_NAME);
+			display("expected exception", e);
+			
+			// this is important. The exception should give no indication whether the password is
+			// good or bad
+			assertDisabledException(e, principal);
+		}
+		
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("user after", userAfter);
+		assertFailedLogins(userAfter, 0);
+	}
+		
 	@Test
 	public void test200UserGuybrushSetPassword() throws Exception {
 		final String TEST_NAME = "test200UserGuybrushSetPassword";
