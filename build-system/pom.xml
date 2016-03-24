@@ -146,6 +146,11 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <dependency>
+				<groupId>org.aspectj</groupId>
+				<artifactId>aspectjweaver</artifactId>
+				<version>1.8.1</version>
+			</dependency>
             <dependency> <!-- Explicit version -->
                 <groupId>javax.activation</groupId>
                 <artifactId>activation</artifactId>
@@ -208,6 +213,16 @@
                 <artifactId>hibernate-c3p0</artifactId>
                 <version>${hibernate.version}</version>
             </dependency>
+            <dependency>
+	            <groupId>org.hibernate.javax.persistence</groupId>
+	            <artifactId>hibernate-jpa-2.1-api</artifactId>
+	            <version>1.0.0.Final</version>
+	        </dependency>
+	        <dependency>
+	            <groupId>com.mchange</groupId>
+	            <artifactId>c3p0</artifactId>
+	            <version>0.9.2.1</version>
+	        </dependency>
             <dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>jul-to-slf4j</artifactId>
@@ -466,6 +481,11 @@
         	<dependency>
 	            <groupId>org.apache.wss4j</groupId>
 	            <artifactId>wss4j-ws-security-common</artifactId>
+	            <version>2.0.1</version>
+	        </dependency>
+	        <dependency>
+	            <groupId>org.apache.wss4j</groupId>
+	            <artifactId>wss4j-ws-security-dom</artifactId>
 	            <version>2.0.1</version>
 	        </dependency>
             <dependency>
@@ -1276,11 +1296,20 @@
 										<ignoredUnusedDeclaredDependency>com.evolveum.midpoint.tools:test-ng</ignoredUnusedDeclaredDependency>
 										<ignoredUnusedDeclaredDependency>org.testng:testng</ignoredUnusedDeclaredDependency>
 										<ignoredUnusedDeclaredDependency>commons-lang:commons-lang</ignoredUnusedDeclaredDependency>
+										
+										<!-- There is some kind of conflict between these. TODO: clean up -->
+										<ignoredUnusedDeclaredDependency>xml-apis:xml-apis</ignoredUnusedDeclaredDependency>
+										<ignoredUnusedDeclaredDependency>stax:stax-api</ignoredUnusedDeclaredDependency>
 									
 										<!-- The xjc-plugin does not compile without dependency on this -->
 										<ignoredUnusedDeclaredDependency>org.apache.cxf:cxf-tools-common</ignoredUnusedDeclaredDependency>
 										
 									</ignoredUnusedDeclaredDependencies>
+									<ignoredUsedUndeclaredDependencies>
+										<!-- There is some kind of conflict between these. TODO: clean up -->
+										<ignoredUsedUndeclaredDependency>xml-apis:xml-apis</ignoredUsedUndeclaredDependency>
+										<ignoredUsedUndeclaredDependency>stax:stax-api</ignoredUsedUndeclaredDependency>
+									</ignoredUsedUndeclaredDependencies>
                     			</configuration>
                     		</execution>
                    		</executions>
