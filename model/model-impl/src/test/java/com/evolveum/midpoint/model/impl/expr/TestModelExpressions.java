@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ import java.util.Set;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -47,6 +49,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -66,13 +69,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * 
  * @author lazyman
  * @author mederly
+ * @author semancik
  * 
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestModelExpressions extends AbstractModelIntegrationTest {
+public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
-	private static final String TEST_DIR = "src/test/resources/expr";
+	private static final File TEST_DIR = new File("src/test/resources/expr");
 
 	private static final QName PROPERTY_NAME = new QName(SchemaConstants.NS_C, "foo");
 	
@@ -94,7 +98,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
     @Autowired(required = true)
     private TaskManager taskManager;
 
-    private static final String TEST_EXPRESSIONS_OBJECTS = "./src/test/resources/expr/orgstruct.xml";
+    private static final File TEST_EXPRESSIONS_OBJECTS_FILE = new File(TEST_DIR, "orgstruct.xml");
 
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -106,12 +110,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
-		modelService.postInit(initResult);
-		
-		// Administrator
-		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(AbstractInternalModelIntegrationTest.USER_ADMINISTRATOR_FILE, UserType.class, initResult);
-		repoAddObjectFromFile(AbstractInternalModelIntegrationTest.ROLE_SUPERUSER_FILE, RoleType.class, initResult);
-		login(userAdministrator);
+		importObjectFromFile(TEST_EXPRESSIONS_OBJECTS_FILE);
 	}
 
 	@Test
@@ -119,38 +118,14 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
 		final String TEST_NAME = "testHello";
 		TestUtil.displayTestTile(this, TEST_NAME);
 		
-		// GIVEN
-        OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
-		
-		ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-func.xml");
-		ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
-		ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
-		
-		ExpressionVariables variables = null;
-		
-		// WHEN
-		List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, null, result);
-		
-		// THEN
-		display("Script output", scriptOutputs);
-		assertEquals("Unexpected numeber of script outputs", 1, scriptOutputs.size());
-		PrismPropertyValue<String> scriptOutput = scriptOutputs.get(0);
-		assertEquals("Unexpected script output", "Hello swashbuckler", scriptOutput.getValue());
+        assertExecuteScriptExpressionString(TEST_NAME, null, "Hello swashbuckler");
 	}
 
-	private ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, IOException, JAXBException {
+    private ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, IOException, JAXBException {
 		ScriptExpressionEvaluatorType expressionType = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, fileName), ScriptExpressionEvaluatorType.COMPLEX_TYPE);
 		return expressionType;
 	}
-
-    private boolean imported = false;
-    private void importIfNeeded() throws Exception {
-        if (!imported) {
-            importObjectFromFile(TEST_EXPRESSIONS_OBJECTS);
-            imported = true;
-        }
-    }
 
     @Test
     public void testGetUserByOid() throws Exception {
@@ -159,24 +134,12 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
 
         // GIVEN
         OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
-
-        importIfNeeded();
-
         PrismObject<UserType> chef = repositoryService.getObject(UserType.class, CHEF_OID, null, result);
+        
+        ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, chef);
 
-        ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + TEST_NAME + ".xml");
-        ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
-        ExpressionVariables variables = new ExpressionVariables();
-        variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "user"), chef);
-
-        // WHEN
-        List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, null, result);
-
-        // THEN
-        display("Script output", scriptOutputs);
-        assertEquals("Unexpected number of script outputs", 1, scriptOutputs.size());
-        PrismPropertyValue<String> scriptOutput = scriptOutputs.get(0);
-        assertEquals("Unexpected script output", chef.asObjectable().getName().getOrig(), scriptOutput.getValue());
+        // WHEN, THEN
+        assertExecuteScriptExpressionString(TEST_NAME, variables, chef.asObjectable().getName().getOrig());
     }
 
     @Test
@@ -187,8 +150,6 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
         // GIVEN
         OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
 
-        importIfNeeded();
-
         PrismObject<UserType> chef = repositoryService.getObject(UserType.class, CHEF_OID, null, result);
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + TEST_NAME + ".xml");
@@ -198,17 +159,16 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
         variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "user"), chef);
 
         // WHEN
-        List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, null, result);
+        List<PrismPropertyValue<String>> scriptOutputs = evaluate(scriptExpression, variables, false, TEST_NAME, null, result);
 
         // THEN
         display("Script output", scriptOutputs);
-        assertEquals("Unexpected number of script outputs", 4, scriptOutputs.size());
+        assertEquals("Unexpected number of script outputs", 3, scriptOutputs.size());
         Set<String> oids = new HashSet<String>();
         oids.add(scriptOutputs.get(0).getValue());
         oids.add(scriptOutputs.get(1).getValue());
         oids.add(scriptOutputs.get(2).getValue());
-        oids.add(scriptOutputs.get(3).getValue());
-        Set<String> expectedOids = new HashSet<String>(Arrays.asList(new String[] { CHEESE_OID, CHEESE_JR_OID, ELAINE_OID, LECHUCK_OID }));
+        Set<String> expectedOids = new HashSet<String>(Arrays.asList(new String[] { CHEESE_OID, CHEESE_JR_OID, LECHUCK_OID }));
         assertEquals("Unexpected script output", expectedOids, oids);
     }
 
@@ -216,23 +176,143 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
     public void testGetOrgByName() throws Exception {
         final String TEST_NAME = "testGetOrgByName";
         TestUtil.displayTestTile(this, TEST_NAME);
+        assertExecuteScriptExpressionString(TEST_NAME, null, F0006_OID);
+    }
+    
+    @Test
+    public void testGetLinkedShadowName() throws Exception {
+        final String TEST_NAME = "testGetLinkedShadowName";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        rememberShadowFetchOperationCount();
+        
+        ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
+        
+        assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        
+        assertShadowFetchOperationCountIncrement(1);
+    }
 
-        // GIVEN
-        OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
+    @Test
+    public void testGetLinkedShadowKindIntentUsername() throws Exception {
+        final String TEST_NAME = "testGetLinkedShadowKindIntentUsername";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        rememberShadowFetchOperationCount();
+        
+        ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
+        
+        assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        
+        assertShadowFetchOperationCountIncrement(1);
+    }
+    
+    @Test
+    public void testGetLinkedShadowKindIntentFullname() throws Exception {
+        final String TEST_NAME = "testGetLinkedShadowKindIntentFullname";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        rememberShadowFetchOperationCount();
+        
+        ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
+        
+        assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME);
+        
+        assertShadowFetchOperationCountIncrement(1);
+    }
+    
+    @Test
+    public void testGetLinkedShadowNameRepo() throws Exception {
+        final String TEST_NAME = "testGetLinkedShadowNameRepo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        rememberShadowFetchOperationCount();
+        
+        ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
+        
+        assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        
+        assertShadowFetchOperationCountIncrement(0);
+    }
 
-        importIfNeeded();
+    @Test
+    public void testGetLinkedShadowKindIntentUsernameRepo() throws Exception {
+        final String TEST_NAME = "testGetLinkedShadowKindIntentUsernameRepo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        rememberShadowFetchOperationCount();
+        
+        ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
+        
+        assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        
+        assertShadowFetchOperationCountIncrement(0);
+    }
+    
+    @Test
+    public void testGetLinkedShadowKindIntentFullnameRepo() throws Exception {
+        final String TEST_NAME = "testGetLinkedShadowKindIntentFullnameRepo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        rememberShadowFetchOperationCount();
+        
+        ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
+        
+        assertExecuteScriptExpressionString(TEST_NAME, variables, null);
+        
+        assertShadowFetchOperationCountIncrement(0);
+    }
 
-        ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + TEST_NAME + ".xml");
-        ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
-        ExpressionVariables variables = new ExpressionVariables();
+    
+    private void assertExecuteScriptExpressionString(final String TEST_NAME, ExpressionVariables variables, String expectedOutput) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, IOException, JAXBException {
+    	String output = executeScriptExpressionString(TEST_NAME, variables);
+    	assertEquals("Unexpected script output", expectedOutput, output);
+    }
+    
+    private String executeScriptExpressionString(final String TEST_NAME, ExpressionVariables variables) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
+    	// GIVEN
+    	OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
+    	
+    	ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + TEST_NAME + ".xml");
+    	ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
+        if (variables == null) {
+        	variables = new ExpressionVariables();
+        }
 
         // WHEN
-        List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, null, result);
+        TestUtil.displayWhen(TEST_NAME);
+        List<PrismPropertyValue<String>> scriptOutputs = evaluate(scriptExpression, variables, false, TEST_NAME, null, result);
 
         // THEN
+        TestUtil.displayThen(TEST_NAME);
         display("Script output", scriptOutputs);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        if (scriptOutputs.size() == 0) {
+        	return null;
+        }
+        
         assertEquals("Unexpected number of script outputs", 1, scriptOutputs.size());
-        assertEquals("Unexpected script output", F0006_OID, scriptOutputs.get(0).getValue());
+        return scriptOutputs.get(0).getValue();
+    	
+    }
+
+    private List<PrismPropertyValue<String>> evaluate(ScriptExpression scriptExpression, ExpressionVariables variables, boolean useNew,
+                                                      String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+        if (task == null) {
+            task = taskManager.createTaskInstance();
+        }
+        try {
+            ModelExpressionThreadLocalHolder.pushCurrentResult(result);
+            ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+
+            return scriptExpression.evaluate(variables, null, useNew, contextDescription, task, result);
+        } finally {
+            ModelExpressionThreadLocalHolder.popCurrentTask();
+            ModelExpressionThreadLocalHolder.popCurrentResult();
+        }
     }
 
 }

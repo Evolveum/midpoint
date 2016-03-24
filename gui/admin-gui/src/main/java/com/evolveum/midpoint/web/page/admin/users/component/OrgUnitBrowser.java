@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -33,13 +35,9 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgUnitSearchDto;
 import com.evolveum.midpoint.web.session.UsersStorage;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 import org.apache.commons.lang.StringUtils;
@@ -70,6 +68,7 @@ public class OrgUnitBrowser extends ModalWindow {
 
     private static final String DOT_CLASS = OrgUnitBrowser.class.getName() + ".";
     private static final String OPERATION_LOAD_PARENT_ORG_REFS = DOT_CLASS + "loadParentOrgRefs";
+    private static final String OPERATION_LOAD_CHILD_ORGS = DOT_CLASS + "loadChildOrgOids";
 
     private static final String ID_BASIC_SEARCH = "basicSearch";
     private static final String ID_TABLE = "table";
@@ -143,7 +142,7 @@ public class OrgUnitBrowser extends ModalWindow {
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-    	return PageTemplate.createStringResourceStatic(this, resourceKey, objects);
+    	return PageBase.createStringResourceStatic(this, resourceKey, objects);
 //        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 
@@ -254,8 +253,8 @@ public class OrgUnitBrowser extends ModalWindow {
         List<String> oids = new ArrayList<>();
         try {
             for (OrgTableDto dto : selected) {
-                PrismObject object = WebModelUtils.loadObject(dto.getType(), dto.getOid(),
-                        WebModelUtils.createOptionsForParentOrgRefs(), getPageBase(), task, result);
+                PrismObject object = WebModelServiceUtils.loadObject(dto.getType(), dto.getOid(),
+                        WebModelServiceUtils.createOptionsForParentOrgRefs(), getPageBase(), task, result);
                 PrismReference parentRef = object.findReference(OrgType.F_PARENT_ORG_REF);
                 if (parentRef != null) {
                     for (PrismReferenceValue value : parentRef.getValues()) {
@@ -274,9 +273,27 @@ public class OrgUnitBrowser extends ModalWindow {
         for(OrgTableDto dto: selected){
             oids.add(dto.getOid());
         }
+        //exclude child org units
+        oids.addAll(getChildOrgOids());
 
         ObjectFilter oidFilter = InOidFilter.createInOid(oids);
         return ObjectQuery.createObjectQuery(NotFilter.createNot(oidFilter));
+    }
+
+    private List<String> getChildOrgOids (){
+        List<String> childOrgsList = new ArrayList<>();
+        for(OrgTableDto dto: selected){
+            OperationResult result = new OperationResult(OPERATION_LOAD_CHILD_ORGS);
+            OrgFilter orgFilter = OrgFilter.createOrg(dto.getOid(), OrgFilter.Scope.SUBTREE);
+            List<PrismObject<OrgType>> list = WebModelServiceUtils.searchObjects(OrgType.class, ObjectQuery.createObjectQuery(orgFilter),
+                    result, getPageBase());
+            if (list != null && list.size() > 0){
+                for (PrismObject<OrgType> prismObject : list){
+                    childOrgsList.add(prismObject.getOid());
+                }
+            }
+        }
+        return childOrgsList;
     }
 
     private List<IColumn<OrgTableDto, String>> initColumns() {
@@ -305,7 +322,7 @@ public class OrgUnitBrowser extends ModalWindow {
 
     }
 
-    private ObjectQuery createSearchQuery(){
+    protected ObjectQuery createSearchQuery(){
         OrgUnitSearchDto dto = searchModel.getObject();
         ObjectQuery query = null;
         ObjectQuery moveQuery;

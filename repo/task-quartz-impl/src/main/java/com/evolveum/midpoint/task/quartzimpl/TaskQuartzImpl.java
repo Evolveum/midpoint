@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualFilter;
@@ -70,26 +71,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UriStack;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UriStackEntry;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
@@ -105,6 +87,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_MODEL_OPERATION_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 
 /**
  * Implementation of a Task.
@@ -202,7 +187,7 @@ public class TaskQuartzImpl implements Task {
 	 */	
 	TaskQuartzImpl(TaskManagerQuartzImpl taskManager, LightweightIdentifier taskIdentifier, String operationName) {
 		this(taskManager);
-		this.repositoryService = null;
+		this.repositoryService = taskManager.getRepositoryService();
 		this.taskPrism = createPrism();
 
 		setTaskIdentifier(taskIdentifier.toString());
@@ -241,9 +226,7 @@ public class TaskQuartzImpl implements Task {
     }
 
 	private PrismObject<TaskType> createPrism() {
-		PrismObjectDefinition<TaskType> taskTypeDef = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
-		PrismObject<TaskType> taskPrism = taskTypeDef.instantiate();
-		return taskPrism;
+		return getPrismContext().createObject(TaskType.class);
 	}
 
 	private void setDefaults() {
@@ -315,8 +298,32 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
+	public void addModification(ItemDelta<?,?> delta) throws SchemaException {
+		addPendingModification(delta);
+		delta.applyTo(taskPrism);
+	}
+
+	@Override
+	public void addModifications(Collection<ItemDelta<?,?>> deltas) throws SchemaException {
+		for (ItemDelta<?,?> delta : deltas) {
+			addPendingModification(delta);
+			delta.applyTo(taskPrism);
+		}
+	}
+
+	@Override
+	public void addModificationImmediate(ItemDelta<?, ?> delta, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+		addPendingModification(delta);
+		delta.applyTo(taskPrism);
+		savePendingModifications(parentResult);
+	}
+
+	@Override
 	public void savePendingModifications(OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		if (isTransient()) {
+			return;
+		}
 		if (pendingModifications != null) {
 			synchronized (pendingModifications) {		// todo perhaps we should put something like this at more places here...
 				if (!pendingModifications.isEmpty()) {
@@ -1720,7 +1727,7 @@ public class TaskQuartzImpl implements Task {
 	}
 	
 	@Override
-	public PrismProperty<?> getExtensionProperty(QName propertyName) {
+	public <T> PrismProperty<T> getExtensionProperty(QName propertyName) {
         if (getExtension() != null) {
 		    return getExtension().findProperty(propertyName);
         } else {
@@ -1728,7 +1735,17 @@ public class TaskQuartzImpl implements Task {
         }
 	}
 
-    @Override
+	@Override
+	public <T> T getExtensionPropertyRealValue(QName propertyName) {
+		PrismProperty<T> property = getExtensionProperty(propertyName);
+		if (property == null || property.isEmpty()) {
+			return null;
+		} else {
+			return property.getRealValue();
+		}
+	}
+
+	@Override
     public Item<?,?> getExtensionItem(QName propertyName) {
         if (getExtension() != null) {
             return getExtension().findItem(propertyName);
@@ -1943,7 +1960,103 @@ public class TaskQuartzImpl implements Task {
         requestee = user;
     }
 
-    //    @Override
+     /*
+      * Model operation context
+      */
+
+	@Override
+	public LensContextType getModelOperationContext() {
+		return taskPrism.asObjectable().getModelOperationContext();
+	}
+
+	@Override
+	public void setModelOperationContext(LensContextType value) throws SchemaException {
+		processModificationBatched(setModelOperationContextAndPrepareDelta(value));
+	}
+
+	//@Override
+	public void setModelOperationContextImmediate(LensContextType value, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
+		try {
+			processModificationNow(setModelOperationContextAndPrepareDelta(value), parentResult);
+		} catch (ObjectAlreadyExistsException ex) {
+			throw new SystemException(ex);
+		}
+	}
+
+	public void setModelOperationContextTransient(LensContextType value) {
+		taskPrism.asObjectable().setModelOperationContext(value);
+	}
+
+	private ItemDelta<?, ?> setModelOperationContextAndPrepareDelta(LensContextType value)
+			throws SchemaException {
+		setModelOperationContextTransient(value);
+		if (!isPersistent()) {
+			return null;
+		}
+		if (value != null) {
+			return DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+					.item(F_MODEL_OPERATION_CONTEXT).replace(value.asPrismContainerValue().clone())
+					.asItemDelta();
+		} else {
+			return DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+					.item(F_MODEL_OPERATION_CONTEXT).replace()
+					.asItemDelta();
+		}
+	}
+	
+	/*
+	 *  Workflow context
+	 */
+
+	public void setWorkflowContext(WfContextType value) throws SchemaException {
+		processModificationBatched(setWorkflowContextAndPrepareDelta(value));
+	}
+
+	//@Override
+	public void setWorkflowContextImmediate(WfContextType value, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
+		try {
+			processModificationNow(setWorkflowContextAndPrepareDelta(value), parentResult);
+		} catch (ObjectAlreadyExistsException ex) {
+			throw new SystemException(ex);
+		}
+	}
+
+	public void setWorkflowContextTransient(WfContextType value) {
+		taskPrism.asObjectable().setWorkflowContext(value);
+	}
+
+	private ItemDelta<?, ?> setWorkflowContextAndPrepareDelta(WfContextType value) throws SchemaException {
+		setWorkflowContextTransient(value);
+		if (!isPersistent()) {
+			return null;
+		}
+		if (value != null) {
+			return DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+					.item(F_WORKFLOW_CONTEXT).replace(value.asPrismContainerValue().clone())
+					.asItemDelta();
+		} else {
+			return DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+					.item(F_WORKFLOW_CONTEXT).replace()
+					.asItemDelta();
+		}
+	}
+
+	@Override
+	public WfContextType getWorkflowContext() {
+		return taskPrism.asObjectable().getWorkflowContext();
+	}
+
+	@Override
+	public void initializeWorkflowContextImmediate(String processInstanceId, OperationResult result)
+			throws SchemaException, ObjectNotFoundException {
+		WfContextType wfContextType = new WfContextType(getPrismContext());
+		wfContextType.setProcessInstanceId(processInstanceId);
+		setWorkflowContextImmediate(wfContextType, result);
+	}
+
+	//    @Override
 //    public PrismReference getRequesteeRef() {
 //        return (PrismReference) getExtensionItem(SchemaConstants.C_TASK_REQUESTEE_REF);
 //    }

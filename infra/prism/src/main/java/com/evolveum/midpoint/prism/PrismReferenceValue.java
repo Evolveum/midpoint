@@ -324,7 +324,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 
 	@Override
 	public boolean isEmpty() {
-		return oid == null && object == null;
+		return oid == null && object == null && filter == null;
 	}
 	
 	/**
@@ -456,6 +456,9 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		if (filter != null) {
 			sb.append(", (filter)");
 		}
+		if (object != null) {
+			sb.append(", (object)");
+		}
 		sb.append(")");
 		return sb.toString();
 	}
@@ -536,11 +539,17 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 			sb.append(DebugUtil.formatElementName(getTargetType()));
 			sb.append(")");
 		}
+		if (targetName != null) {
+			sb.append("('").append(targetName).append("')");
+		}
         if (getRelation() != null) {
             sb.append("[");
             sb.append(getRelation().getLocalPart());
             sb.append("]");
         }
+		if (getObject() != null) {
+			sb.append('*');
+		}
 		return sb.toString();
 	}
     

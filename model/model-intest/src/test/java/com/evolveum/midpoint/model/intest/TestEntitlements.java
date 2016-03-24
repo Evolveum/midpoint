@@ -92,6 +92,16 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 	public static final File ROLE_MAPMAKER_FILE = new File(TEST_DIR, "role-mapmaker.xml");
 	public static final String ROLE_MAPMAKER_OID = "10000000-0000-0000-0000-000000001605";
 
+	public static final File ROLE_BRUTE_FILE = new File(TEST_DIR, "role-brute.xml");
+	public static final String ROLE_BRUTE_OID = "10000000-0000-0000-0000-000000001606";
+	public static final String ROLE_BRUTE_NAME = "Brute";
+	public static final String GROUP_BRUTE_NAME = "brute";
+
+	public static final File ROLE_THUG_FILE = new File(TEST_DIR, "role-thug.xml");
+	public static final String ROLE_THUG_OID = "10000000-0000-0000-0000-000000001607";
+	public static final String ROLE_THUG_NAME = "Thug";
+	public static final String GROUP_THUG_NAME = "thug";
+
 	public static final File SHADOW_GROUP_DUMMY_SWASHBUCKLERS_FILE = new File(TEST_DIR, "group-swashbucklers.xml");
 	public static final String SHADOW_GROUP_DUMMY_SWASHBUCKLERS_OID = "20000000-0000-0000-3333-000000000001";
 	public static final String GROUP_DUMMY_SWASHBUCKLERS_NAME = "swashbucklers";
@@ -375,6 +385,62 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     }
     
     @Test
+    public void test302AddRoleBrute() throws Exception {
+		final String TEST_NAME = "test302AddRoleBrute";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addObject(ROLE_BRUTE_FILE, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+                
+        DummyGroup dummyGroupBrute = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupBrute);
+        display("Group", dummyGroupBrute);
+        assertNoGroupMembers(dummyGroupBrute);
+
+        DummyGroup dummyGroupBruteWannabe = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
+        assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
+        display("Wannabe Group", dummyGroupBruteWannabe);
+        assertNoGroupMembers(dummyGroupBruteWannabe);
+    }
+    
+    @Test
+    public void test304AddRoleThug() throws Exception {
+		final String TEST_NAME = "test304AddRoleThug";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addObject(ROLE_THUG_FILE, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+                
+        DummyGroup dummyGroupThug = dummyResourceOrange.getGroupByName(GROUP_THUG_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupThug);
+        display("Group", dummyGroupThug);
+        assertNoGroupMembers(dummyGroupThug);
+
+        DummyGroup dummyGroupThugWannabe = dummyResourceOrange.getGroupByName(GROUP_THUG_NAME + "-wannabe");
+        assertNotNull("No wannabe group on orange dummy resource", dummyGroupThugWannabe);
+        display("Wannabe Group", dummyGroupThugWannabe);
+        assertNoGroupMembers(dummyGroupThugWannabe);
+    }
+    
+    @Test
     public void test310AssignRoleWimpToLargo() throws Exception {
 		final String TEST_NAME = "test310AssignRoleWimpToLargo";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -393,6 +459,76 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
                 
+        DummyGroup dummyGroupWimp = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroupWimp);
+        display("Group", dummyGroupWimp);
+//        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION, 
+//        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+        assertGroupMember(dummyGroupWimp, USER_LARGO_USERNAME);
+
+        DummyGroup dummyGroupWimpAtOrange = dummyResourceOrange.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupWimpAtOrange);
+        display("Group @orange", dummyGroupWimpAtOrange);
+        assertGroupMember(dummyGroupWimpAtOrange, USER_LARGO_USERNAME);
+	}
+
+    @Test
+    public void test312AssignRoleBruteToLargo() throws Exception {
+		final String TEST_NAME = "test312AssignRoleBruteToLargo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_LARGO_OID, ROLE_BRUTE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+                
+        DummyGroup dummyGroupBrute = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupBrute);
+        display("Group", dummyGroupBrute);
+//        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION, 
+//        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+        assertGroupMember(dummyGroupBrute, USER_LARGO_USERNAME);
+
+        DummyGroup dummyGroupBruteWannabe = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
+        assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
+        display("Wannabe Group", dummyGroupBruteWannabe);
+        assertGroupMember(dummyGroupBruteWannabe, USER_LARGO_USERNAME);
+	}
+    
+    @Test
+    public void test313UnAssignRoleBruteFromLargo() throws Exception {
+		final String TEST_NAME = "test313UnAssignRoleBruteFromLargo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_LARGO_OID, ROLE_BRUTE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        DummyGroup dummyGroupBrute = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupBrute);
+        display("Group", dummyGroupBrute);
+        assertNoGroupMembers(dummyGroupBrute);
+
+        DummyGroup dummyGroupBruteWannabe = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
+        assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
+        display("Wannabe Group", dummyGroupBruteWannabe);
+        assertNoGroupMembers(dummyGroupBruteWannabe);
+                
         DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
@@ -405,14 +541,82 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("Group @orange", dummyGroupAtOrange);
         assertGroupMember(dummyGroupAtOrange, USER_LARGO_USERNAME);
 	}
+    
+    @Test
+    public void test314AssignRoleThugToLargo() throws Exception {
+		final String TEST_NAME = "test314AssignRoleThugToLargo";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_LARGO_OID, ROLE_THUG_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+                
+        DummyGroup dummyGroupThug = dummyResourceOrange.getGroupByName(GROUP_THUG_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupThug);
+        display("Group", dummyGroupThug);
+        assertGroupMember(dummyGroupThug, USER_LARGO_USERNAME);
+
+        DummyGroup dummyGroupThugWannabe = dummyResourceOrange.getGroupByName(GROUP_THUG_NAME + "-wannabe");
+        assertNotNull("No wannabe group on orange dummy resource", dummyGroupThugWannabe);
+        display("Wannabe Group", dummyGroupThugWannabe);
+        assertGroupMember(dummyGroupThugWannabe, USER_LARGO_USERNAME);
+	}
+    
+    @Test
+    public void test315UnAssignRoleThugFromLargo() throws Exception {
+		final String TEST_NAME = "test315UnAssignRoleThugFromLargo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_LARGO_OID, ROLE_THUG_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        DummyGroup dummyGroupThug = dummyResourceOrange.getGroupByName(GROUP_THUG_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupThug);
+        display("Group", dummyGroupThug);
+        assertNoGroupMembers(dummyGroupThug);
+
+        DummyGroup dummyGroupThugWannabe = dummyResourceOrange.getGroupByName(GROUP_THUG_NAME + "-wannabe");
+        assertNotNull("No wannabe group on orange dummy resource", dummyGroupThugWannabe);
+        display("Wannabe Group", dummyGroupThugWannabe);
+        assertNoGroupMembers(dummyGroupThugWannabe);
+                
+        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroup);
+        display("Group", dummyGroup);
+//        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION, 
+//        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+        assertGroupMember(dummyGroup, USER_LARGO_USERNAME);
+
+        DummyGroup dummyGroupAtOrange = dummyResourceOrange.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupAtOrange);
+        display("Group @orange", dummyGroupAtOrange);
+        assertGroupMember(dummyGroupAtOrange, USER_LARGO_USERNAME);
+	}
+    
     /**
      * after renaming user largo it should be also propagated to the associations
      * @throws Exception
      */
     @Test
-    public void test311RenameLargo() throws Exception {
-		final String TEST_NAME = "test311RenameLargo";
+    public void test317RenameLargo() throws Exception {
+		final String TEST_NAME = "test317RenameLargo";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
@@ -426,12 +630,12 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_LARGO_USERNAME);
                 
         DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
-//        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION, 
-//        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMember(dummyGroup, USER_LARGO_USERNAME);
         assertGroupMember(dummyGroup, "newLargo");
 
@@ -458,6 +662,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_LARGO_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, "newLargo");
                 
         DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
@@ -471,6 +678,264 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertNoGroupMember(dummyGroupAtOrange, USER_LARGO_USERNAME);
         // Orange resource has explicit referential integrity switched off 
         assertGroupMember(dummyGroupAtOrange, "newLargo");
+	}
+    
+    /**
+     * Similar routine than 31x, but different ordering.
+     */
+    @Test
+    public void test320AssignRoleBruteToRapp() throws Exception {
+		final String TEST_NAME = "test320AssignRoleBruteToRapp";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        addObject(USER_RAPP_FILE);
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_RAPP_OID, ROLE_BRUTE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+                
+        DummyGroup dummyGroupBrute = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupBrute);
+        display("Group", dummyGroupBrute);
+        assertGroupMember(dummyGroupBrute, USER_RAPP_USERNAME);
+
+        DummyGroup dummyGroupBruteWannabe = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
+        assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
+        display("Wannabe Group", dummyGroupBruteWannabe);
+        assertGroupMember(dummyGroupBruteWannabe, USER_RAPP_USERNAME);
+	}
+    
+    @Test
+    public void test322AssignRoleWimpToRapp() throws Exception {
+		final String TEST_NAME = "test322AssignRoleWimpToRapp";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_RAPP_OID, ROLE_WIMP_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+                
+        DummyGroup dummyGroupWimp = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroupWimp);
+        display("Group", dummyGroupWimp);
+        assertGroupMember(dummyGroupWimp, USER_RAPP_USERNAME);
+
+        DummyGroup dummyGroupWimpAtOrange = dummyResourceOrange.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupWimpAtOrange);
+        display("Group @orange", dummyGroupWimpAtOrange);
+        assertGroupMember(dummyGroupWimpAtOrange, USER_RAPP_USERNAME);
+        
+        DummyGroup dummyGroupBrute = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupBrute);
+        display("Group", dummyGroupBrute);
+        assertGroupMember(dummyGroupBrute, USER_RAPP_USERNAME);
+
+        DummyGroup dummyGroupBruteWannabe = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
+        assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
+        display("Wannabe Group", dummyGroupBruteWannabe);
+        assertGroupMember(dummyGroupBruteWannabe, USER_RAPP_USERNAME);
+	}
+    
+    @Test
+    public void test324AssignRoleThugToRapp() throws Exception {
+		final String TEST_NAME = "test324AssignRoleThugToRapp";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_RAPP_OID, ROLE_THUG_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        DummyGroup dummyGroupThug = dummyResourceOrange.getGroupByName(GROUP_THUG_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupThug);
+        display("Group", dummyGroupThug);
+        assertGroupMember(dummyGroupThug, USER_RAPP_USERNAME);
+
+        DummyGroup dummyGroupThugWannabe = dummyResourceOrange.getGroupByName(GROUP_THUG_NAME + "-wannabe");
+        assertNotNull("No wannabe group on orange dummy resource", dummyGroupThugWannabe);
+        display("Wannabe Group", dummyGroupThugWannabe);
+        assertGroupMember(dummyGroupThugWannabe, USER_RAPP_USERNAME);
+                
+        DummyGroup dummyGroupWimp = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroupWimp);
+        display("Group", dummyGroupWimp);
+        assertGroupMember(dummyGroupWimp, USER_RAPP_USERNAME);
+
+        DummyGroup dummyGroupWimpAtOrange = dummyResourceOrange.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupWimpAtOrange);
+        display("Group @orange", dummyGroupWimpAtOrange);
+        assertGroupMember(dummyGroupWimpAtOrange, USER_RAPP_USERNAME);
+        
+        DummyGroup dummyGroupBrute = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupBrute);
+        display("Group", dummyGroupBrute);
+        assertGroupMember(dummyGroupBrute, USER_RAPP_USERNAME);
+
+        DummyGroup dummyGroupBruteWannabe = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
+        assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
+        display("Wannabe Group", dummyGroupBruteWannabe);
+        assertGroupMember(dummyGroupBruteWannabe, USER_RAPP_USERNAME);
+	}
+    
+    @Test
+    public void test327UnassignRoleWimpFromRapp() throws Exception {
+		final String TEST_NAME = "test327UnassignRoleWimpFromRapp";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_RAPP_OID, ROLE_WIMP_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+                
+        DummyGroup dummyGroupWimp = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroupWimp);
+        display("Group", dummyGroupWimp);
+        assertNoGroupMember(dummyGroupWimp, USER_RAPP_USERNAME);
+
+        DummyGroup dummyGroupWimpAtOrange = dummyResourceOrange.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupWimpAtOrange);
+        display("Group @orange", dummyGroupWimpAtOrange);
+        assertNoGroupMember(dummyGroupWimpAtOrange, USER_RAPP_USERNAME);
+        
+        DummyGroup dummyGroupThug = dummyResourceOrange.getGroupByName(GROUP_THUG_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupThug);
+        display("Group", dummyGroupThug);
+        assertGroupMember(dummyGroupThug, USER_RAPP_USERNAME);
+
+        DummyGroup dummyGroupThugWannabe = dummyResourceOrange.getGroupByName(GROUP_THUG_NAME + "-wannabe");
+        assertNotNull("No wannabe group on orange dummy resource", dummyGroupThugWannabe);
+        display("Wannabe Group", dummyGroupThugWannabe);
+        assertGroupMember(dummyGroupThugWannabe, USER_RAPP_USERNAME);
+        
+        DummyGroup dummyGroupBrute = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupBrute);
+        display("Group", dummyGroupBrute);
+        assertGroupMember(dummyGroupBrute, USER_RAPP_USERNAME);
+
+        DummyGroup dummyGroupBruteWannabe = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
+        assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
+        display("Wannabe Group", dummyGroupBruteWannabe);
+        assertGroupMember(dummyGroupBruteWannabe, USER_RAPP_USERNAME);
+	}
+    
+    @Test
+    public void test328UnassignRoleThugFromRapp() throws Exception {
+		final String TEST_NAME = "test328UnassignRoleThugFromRapp";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_RAPP_OID, ROLE_THUG_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        DummyGroup dummyGroupThug = dummyResourceOrange.getGroupByName(GROUP_THUG_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupThug);
+        display("Group", dummyGroupThug);
+        assertNoGroupMember(dummyGroupThug, USER_RAPP_USERNAME);
+
+        DummyGroup dummyGroupThugWannabe = dummyResourceOrange.getGroupByName(GROUP_THUG_NAME + "-wannabe");
+        assertNotNull("No wannabe group on orange dummy resource", dummyGroupThugWannabe);
+        display("Wannabe Group", dummyGroupThugWannabe);
+        assertNoGroupMember(dummyGroupThugWannabe, USER_RAPP_USERNAME);
+                
+        DummyGroup dummyGroupWimp = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroupWimp);
+        display("Group", dummyGroupWimp);
+        assertNoGroupMember(dummyGroupWimp, USER_RAPP_USERNAME);
+
+        DummyGroup dummyGroupWimpAtOrange = dummyResourceOrange.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupWimpAtOrange);
+        display("Group @orange", dummyGroupWimpAtOrange);
+        assertNoGroupMember(dummyGroupWimpAtOrange, USER_RAPP_USERNAME);
+        
+        DummyGroup dummyGroupBrute = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupBrute);
+        display("Group", dummyGroupBrute);
+        assertGroupMember(dummyGroupBrute, USER_RAPP_USERNAME);
+
+        DummyGroup dummyGroupBruteWannabe = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
+        assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
+        display("Wannabe Group", dummyGroupBruteWannabe);
+        assertGroupMember(dummyGroupBruteWannabe, USER_RAPP_USERNAME);
+	}
+    
+    @Test
+    public void test329UnAssignRoleBruteFromRapp() throws Exception {
+		final String TEST_NAME = "test329UnAssignRoleBruteFromRapp";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_RAPP_OID, ROLE_BRUTE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_RAPP_USERNAME);
+        
+        DummyGroup dummyGroupBrute = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupBrute);
+        display("Group", dummyGroupBrute);
+        // Orange resource has explicit referential integrity switched off 
+        assertGroupMember(dummyGroupBrute, USER_RAPP_USERNAME);
+
+        DummyGroup dummyGroupBruteWannabe = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
+        assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
+        display("Wannabe Group", dummyGroupBruteWannabe);
+        // Orange resource has explicit referential integrity switched off
+        assertGroupMember(dummyGroupBruteWannabe, USER_RAPP_USERNAME);
+                
+        DummyGroup dummyGroupWimps = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroupWimps);
+        display("Group", dummyGroupWimps);
+        assertNoGroupMembers(dummyGroupWimps);
+
+        DummyGroup dummyGroupWimpsAtOrange = dummyResourceOrange.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on orange dummy resource", dummyGroupWimpsAtOrange);
+        display("Group @orange", dummyGroupWimpsAtOrange);
+        // Orange resource has explicit referential integrity switched off
+        assertNoGroupMember(dummyGroupWimpsAtOrange, USER_RAPP_USERNAME);
 	}
     
     @Test

@@ -37,9 +37,6 @@ import java.util.Set;
 @Component
 public class AccCertEventHelper implements AccessCertificationEventListener {
 
-    @Autowired
-    private CertificationManagerImpl certificationManager;
-
     private Set<AccessCertificationEventListener> listeners = new HashSet<>();
 
     public void registerEventListener(AccessCertificationEventListener listener) {
@@ -99,7 +96,7 @@ public class AccCertEventHelper implements AccessCertificationEventListener {
         Set<String> oids = new HashSet<>();
         for (AccessCertificationCaseType aCase : caseList) {
             if (aCase.getCurrentStageNumber() == campaign.getStageNumber()) {
-                for (ObjectReferenceType reviewerRef : aCase.getReviewerRef()) {
+                for (ObjectReferenceType reviewerRef : aCase.getCurrentReviewerRef()) {
                     oids.add(reviewerRef.getOid());
                 }
             }

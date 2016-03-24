@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.web.page.admin.server.workflowInformation;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wf.WfDeltasPanel;
 import com.evolveum.midpoint.web.component.wf.WfHistoryEventDto;
 import com.evolveum.midpoint.web.component.wf.WfHistoryPanel;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -56,7 +56,6 @@ public class WorkflowInformationPanel extends SimplePanel<TaskDto> {
                 boolean finished = WorkflowInformationPanel.this.getModel().getObject().isWorkflowProcessInstanceFinished();
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, pid);
-                parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_FINISHED, finished);
                 WorkflowInformationPanel.this.setResponsePage(new PageProcessInstance(parameters, (PageBase) WorkflowInformationPanel.this.getPage()));
             }
         });

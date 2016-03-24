@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -34,12 +35,12 @@ import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.MultiButtonColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
@@ -65,7 +66,10 @@ import java.util.List;
 @PageDescriptor(url = "/admin/certification/definitions", action = {
         @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
                 label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
-                description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION)
+                description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS,
+                label = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS_LABEL,
+                description = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS_DESCRIPTION)
         })
 public class PageCertDefinitions extends PageAdminWorkItems {
 
@@ -74,7 +78,6 @@ public class PageCertDefinitions extends PageAdminWorkItems {
     private static final String DOT_CLASS = PageCertDefinitions.class.getName() + ".";
     private static final String OPERATION_CREATE_CAMPAIGN = DOT_CLASS + "createCampaign";
     private static final String OPERATION_DELETE_DEFINITION = DOT_CLASS + "deleteDefinition";
-    private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_DEFINITIONS_TABLE = "definitionsTable";
@@ -111,15 +114,6 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 
         ObjectDataProvider provider = createProvider();
         
-        add(new ConfirmationDialog(DIALOG_CONFIRM_DELETE,
-                createStringResource("PageCertDefinitions.title.confirmDelete"), createDeleteConfirmString()) {
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                close(target);
-                deleteDefinitionPerformed(target, singleDelete);
-            }
-        });
         int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_DEFINITIONS_PANEL);
         BoxedTablePanel table = new BoxedTablePanel<>(ID_DEFINITIONS_TABLE, provider, initColumns(),
                 UserProfileStorage.TableId.PAGE_CERT_DEFINITIONS_PANEL, itemsPerPage);
@@ -227,7 +221,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
         OperationResult result = new OperationResult(OPERATION_CREATE_CAMPAIGN);
         try {
             Task task = createSimpleTask(OPERATION_CREATE_CAMPAIGN);
-            getCertificationManager().createCampaign(definition.getOid(), null, task, result);
+            getCertificationService().createCampaign(definition.getOid(), task, result);
         } catch (Exception ex) {
             result.recordFatalError(ex);
         } finally {
@@ -241,8 +235,8 @@ public class PageCertDefinitions extends PageAdminWorkItems {
     private void deleteConfirmation(AjaxRequestTarget target, AccessCertificationDefinitionType definition) {
     	
     	   this.singleDelete = definition;
-           ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE);
-           dialog.show(target);
+           showMainPopup(getDeleteDefinitionConfirmationPanel(), createStringResource("PageCertDefinitions.title.confirmDelete"),
+                   target);
        }
 
     private void deleteDefinitionPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType definition) {
@@ -252,7 +246,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
             ObjectDelta<AccessCertificationDefinitionType> delta =
                     ObjectDelta.createDeleteDelta(AccessCertificationDefinitionType.class, definition.getOid(),
                             getPrismContext());
-            getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+            getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
         } catch (Exception ex) {
             result.recordPartialError("Couldn't delete campaign definition.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't delete campaign definition", ex);
@@ -285,4 +279,18 @@ public class PageCertDefinitions extends PageAdminWorkItems {
     }
 
     //endregion
+
+    private Component getDeleteDefinitionConfirmationPanel() {
+        return new ConfirmationPanel(getMainPopupBodyId(),
+                createDeleteConfirmString()) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                ModalWindow modalWindow = findParent(ModalWindow.class);
+                if (modalWindow != null) {
+                    modalWindow.close(target);
+                    deleteDefinitionPerformed(target, singleDelete);
+                }
+            }
+        };
+    }
 }

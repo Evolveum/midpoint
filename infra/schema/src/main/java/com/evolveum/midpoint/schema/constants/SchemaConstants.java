@@ -68,6 +68,7 @@ public abstract class SchemaConstants {
 	public static final QName C_ITEM = new QName(NS_C, "item");
 	public static final QName C_OBJECTS = new QName(NS_C, "objects");
 	public static final QName C_OBJECT = new QName(NS_C, "object");
+	public static final QName C_TARGET = new QName(NS_C, "target");
 	public static final QName C_ABSTRACT_ROLE = new QName(NS_C, "abstractRole");
     public static final QName C_FOCUS = new QName(NS_C, "focus");
 	public static final QName C_OBJECT_TYPE = new QName(NS_C, "ObjectType");
@@ -198,6 +199,8 @@ public abstract class SchemaConstants {
 	public static final QName MODEL_EXTENSION_DUPLICATE_SHADOWS_RESOLVER = new QName(NS_MODEL_EXTENSION, "duplicateShadowsResolver");
 	public static final QName MODEL_EXTENSION_CHECK_DUPLICATES_ON_PRIMARY_IDENTIFIERS_ONLY = new QName(NS_MODEL_EXTENSION, "checkDuplicatesOnPrimaryIdentifiersOnly");
 
+	public static final QName MODEL_EXTENSION_CLEANUP_POLICIES = new QName(NS_MODEL_EXTENSION, "cleanupPolicies");
+
     public static final String NS_GUI = NS_MIDPOINT_PUBLIC + "/gui";
 	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-3";
 	public static final QName CHANNEL_GUI_INIT_QNAME = new QName(NS_GUI_CHANNEL, "init");
@@ -226,9 +229,6 @@ public abstract class SchemaConstants {
 
     public static final String ICF_CONNECTOR_EXTENSION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-extension-3";
     public static final QName ICF_CONNECTOR_USUAL_NAMESPACE_PREFIX = new QName(ICF_CONNECTOR_EXTENSION, "usualNamespacePrefix");
-    public static final String MODEL_CONTEXT_NS = "http://midpoint.evolveum.com/xml/ns/public/model/model-context-3";
-    public static final QName SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY = new QName(MODEL_CONTEXT_NS, "skipModelContextProcessing");
-    public static final QName MODEL_CONTEXT_NAME = new QName(MODEL_CONTEXT_NS, "modelContext");
 
     public static final String SCRIPTING_EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3";
     public static final QName SE_EXECUTE_SCRIPT = new QName(SCRIPTING_EXTENSION_NS, "executeScript");

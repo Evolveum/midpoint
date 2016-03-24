@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -221,8 +221,9 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
-		TestUtil.displayTestTile("test000Integrity");
+	public void test000Integrity() throws Exception {
+		final String TEST_NAME = "test000Integrity";
+		TestUtil.displayTestTile(TEST_NAME);
 
 		display("Dummy resource instance", dummyResource.toString());
 
@@ -230,7 +231,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("ResourceType is null", resourceType);
 
 		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test000Integrity");
+				+ "." + TEST_NAME);
 
 		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result)
 				.asObjectable();
@@ -1113,12 +1114,11 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test101AddAccountWithoutName() throws Exception {
-		TestUtil.displayTestTile("test101AddAccountWithoutName");
+		final String TEST_NAME = "test101AddAccountWithoutName";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ ".test101AddAccountWithoutName");
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test101AddAccountWithoutName");
+		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
 		syncServiceMock.reset();
 
 		ShadowType account = parseObjectType(ACCOUNT_MORGAN_FILE, ShadowType.class);
@@ -1126,9 +1126,11 @@ public class TestDummy extends AbstractDummyTest {
 		display("Adding shadow", account.asPrismObject());
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, syncTask, result);
 
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		display("add object result", result);
 		TestUtil.assertSuccess("addObject has failed (result)", result);
@@ -1141,8 +1143,10 @@ public class TestDummy extends AbstractDummyTest {
 		
 		syncServiceMock.assertNotifySuccessOnly();
 
+		TestUtil.displayWhen(TEST_NAME);
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_MORGAN_OID, null, syncTask, result).asObjectable();
+		TestUtil.displayThen(TEST_NAME);
 		display("account from provisioning", provisioningAccountType);
 		PrismAsserts.assertEqualsPolyString("Account name was not generated (provisioning)", transformNameFromResource(ACCOUNT_MORGAN_NAME),
 				provisioningAccountType.getName());
@@ -1428,6 +1432,48 @@ public class TestDummy extends AbstractDummyTest {
 		display("searchObjectsIterative result", result);
 		TestUtil.assertSuccess(result);
 		assertShadowFetchOperationCountIncrement(0);
+
+		display("Found shadows", foundObjects);
+		
+		assertEquals(4, foundObjects.size());
+		checkConsistency(foundObjects);
+		assertProtected(foundObjects, 1);       // MID-1640
+		
+		assertSteadyResource();
+	}
+	
+	@Test
+	public void test112SeachIterativeKindIntent() throws Exception {
+		final String TEST_NAME = "test112SeachIterativeKindIntent";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+
+		ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_DUMMY_OID, 
+				ShadowKindType.ACCOUNT, "default", prismContext);
+		display("query", query);
+
+		final List<PrismObject<ShadowType>> foundObjects = new ArrayList<PrismObject<ShadowType>>();
+		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+
+			@Override
+			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
+				foundObjects.add(object);
+				return true;
+			}
+		};
+		
+		rememberShadowFetchOperationCount();
+		
+		// WHEN
+		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, null, result);
+
+		// THEN
+		result.computeStatus();
+		display("searchObjectsIterative result", result);
+		TestUtil.assertSuccess(result);
+		assertShadowFetchOperationCountIncrement(1);
 
 		display("Found shadows", foundObjects);
 		
@@ -2326,8 +2372,11 @@ public class TestDummy extends AbstractDummyTest {
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
 				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, prismContext,
 				XmlTypeConverter.createXMLGregorianCalendar(VALID_TO_MILLIS));
-		PrismObjectDefinition def = accountType.asPrismObject().getDefinition();
-		PropertyDelta validFromDelta = PropertyDelta.createModificationDeleteProperty(SchemaConstants.PATH_ACTIVATION_VALID_FROM, def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_VALID_FROM), VALID_FROM_MILLIS);
+		PrismObjectDefinition<ShadowType> def = accountType.asPrismObject().getDefinition();
+		PropertyDelta<XMLGregorianCalendar> validFromDelta = PropertyDelta.createModificationDeleteProperty(
+				SchemaConstants.PATH_ACTIVATION_VALID_FROM, 
+				def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_VALID_FROM), 
+				XmlTypeConverter.createXMLGregorianCalendar(VALID_FROM_MILLIS));
 		delta.addModification(validFromDelta);
 		delta.checkConsistence();
 
@@ -2343,8 +2392,8 @@ public class TestDummy extends AbstractDummyTest {
 		delta.checkConsistence();
 		// check if activation was changed
 		dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
-		assertNull("Wrong account validTo in account "+transformNameFromResource(ACCOUNT_WILL_USERNAME) + ": " + dummyAccount.getValidTo(), dummyAccount.getValidTo());
-		assertNull("Wrong account validFrom in account "+transformNameFromResource(ACCOUNT_WILL_USERNAME) + ": " + dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
+		assertNull("Unexpected account validTo in account "+transformNameFromResource(ACCOUNT_WILL_USERNAME) + ": " + dummyAccount.getValidTo(), dummyAccount.getValidTo());
+		assertNull("Unexpected account validFrom in account "+transformNameFromResource(ACCOUNT_WILL_USERNAME) + ": " + dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
 		assertTrue("Dummy account "+transformNameFromResource(ACCOUNT_WILL_USERNAME)+" is disabled, expected enabled", dummyAccount.isEnabled());
 		
 		syncServiceMock.assertNotifySuccessOnly();
@@ -3172,7 +3221,7 @@ public class TestDummy extends AbstractDummyTest {
 		}
 		
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+		assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
@@ -3209,7 +3258,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		// Just make sure nothing has changed
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+		assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
 		
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		assertSteadyResource();
@@ -3260,7 +3309,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		// Make sure that the groups is still there and will is a member
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+		assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
@@ -3314,7 +3363,7 @@ public class TestDummy extends AbstractDummyTest {
 
         // Make sure that the groups is still there and will is a member
         DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-        assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+        assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
 
         syncServiceMock.assertNotifySuccessOnly();
         
@@ -3367,7 +3416,7 @@ public class TestDummy extends AbstractDummyTest {
         assertNotNull("Privilege object (bargain) is gone!", priv2);
 
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+		assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
 		
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		assertSteadyResource();
@@ -3436,11 +3485,11 @@ public class TestDummy extends AbstractDummyTest {
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
         
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+		assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
 		
 		String foolsIcfUid = getIcfUid(foolsShadow);
 		groupFools = getDummyGroupAssert("fools", foolsIcfUid);
-		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+		assertMember(groupFools, transformNameToResource(ACCOUNT_WILL_USERNAME));
 		
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		assertSteadyResource();
@@ -3505,11 +3554,11 @@ public class TestDummy extends AbstractDummyTest {
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
         
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
-		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+		assertMember(group, transformNameToResource(ACCOUNT_WILL_USERNAME));
 		
 		String foolsIcfUid = getIcfUid(foolsShadow);
 		DummyGroup groupFools = getDummyGroupAssert("fools", foolsIcfUid);
-		assertMember(group, transformNameFromResource(getWillRepoIcfName()));
+		assertMember(groupFools, transformNameToResource(ACCOUNT_WILL_USERNAME));
 		
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		assertSteadyResource();

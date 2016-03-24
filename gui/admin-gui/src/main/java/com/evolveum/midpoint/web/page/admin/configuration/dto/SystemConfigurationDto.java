@@ -27,12 +27,12 @@ import javax.xml.datatype.Duration;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
@@ -63,6 +63,7 @@ public class SystemConfigurationDto implements Serializable {
 	public static final String F_NOTIFICATION_CONFIGURATION = "notificationConfig";
 	public static final String F_ENABLE_EXPERIMENTAL_CODE = "enableExperimentalCode";
 	public static final String F_USER_DASHBOARD_LINK = "userDashboardLink";
+	public static final String F_ADDITIONAL_MENU_LINK = "additionalMenuLink";
 
 	private AEPlevel aepLevel;
 
@@ -76,6 +77,7 @@ public class SystemConfigurationDto implements Serializable {
 	private List<ObjectPolicyConfigurationTypeDto> objectPolicyList;
 	private NotificationConfigurationDto notificationConfig;
 	private List<RichHyperlinkType> userDashboardLink;
+	private List<RichHyperlinkType> additionalMenuLink;
 
 	private LoggingDto loggingConfig;
 	private ProfilingDto profilingDto;
@@ -161,6 +163,7 @@ public class SystemConfigurationDto implements Serializable {
 		enableExperimentalCode = SystemConfigurationTypeUtil.isExperimentalCodeEnabled(config);
 
 		userDashboardLink = loadUserDashboardLink(config);
+        additionalMenuLink = loadAdditionalMenuItem(config);
 	}
 
 	public SystemConfigurationType getOldObject() {
@@ -180,7 +183,7 @@ public class SystemConfigurationDto implements Serializable {
 		if (StringUtils.isNotBlank(getSecurityPolicyDto().getOid())) {
 			ObjectReferenceType globalSecurityPolicyRef = ObjectTypeUtil.createObjectRef(
 					getSecurityPolicyDto().getOid(),
-					WebMiscUtil.createPolyFromOrigString(getSecurityPolicyDto().getName()),
+					WebComponentUtil.createPolyFromOrigString(getSecurityPolicyDto().getName()),
 					ObjectTypes.SECURITY_POLICY);
 			newObject.setGlobalSecurityPolicyRef(globalSecurityPolicyRef);
 		} else {
@@ -235,6 +238,18 @@ public class SystemConfigurationDto implements Serializable {
 		return links;
 	}
 
+	public static List<RichHyperlinkType> loadAdditionalMenuItem(SystemConfigurationType config) {
+		List<RichHyperlinkType> links = new ArrayList<>();
+		if (config == null || config.getInternals() == null
+				|| config.getInternals().isEnableExperimentalCode() == null) {
+			return links;
+		}
+		if (config.getAdminGuiConfiguration() != null) {
+			links.addAll(config.getAdminGuiConfiguration().getAdditionalMenuLink());
+		}
+		return links;
+	}
+
 	private ObjectViewDto<ValuePolicyType> loadPasswordPolicy(SystemConfigurationType config) {
 		ValuePolicyType passPolicy = config.getGlobalPasswordPolicy();
 
@@ -253,7 +268,7 @@ public class SystemConfigurationDto implements Serializable {
 
 		if (securityPolicy != null) {
 			securityPolicyDto = new ObjectViewDto<SecurityPolicyType>(securityPolicy.getOid(),
-					WebMiscUtil.getName(securityPolicy));
+					WebComponentUtil.getName(securityPolicy));
 		} else {
 			securityPolicyDto = new ObjectViewDto<SecurityPolicyType>();
 		}
@@ -349,4 +364,12 @@ public class SystemConfigurationDto implements Serializable {
 	public void setUserDashboardLink(List<RichHyperlinkType> userDashboardLink) {
 		this.userDashboardLink = userDashboardLink;
 	}
+
+    public List<RichHyperlinkType> getAdditionalMenuLink() {
+        return additionalMenuLink;
+    }
+
+    public void setAdditionalMenuLink(List<RichHyperlinkType> additionalMenuLink) {
+        this.additionalMenuLink = additionalMenuLink;
+    }
 }

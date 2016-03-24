@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 /**
  * @author lazyman
  */
-public interface ItemWrapper extends Revivable, DebugDumpable {
+public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends Revivable, DebugDumpable {
 
 	QName getName();
 	
@@ -36,9 +36,9 @@ public interface ItemWrapper extends Revivable, DebugDumpable {
 
     void setDisplayName(String name);
 
-    Item getItem();
+    I getItem();
     
-    ItemDefinition getItemDefinition();
+    ID getItemDefinition();
     
     boolean isReadonly();
 

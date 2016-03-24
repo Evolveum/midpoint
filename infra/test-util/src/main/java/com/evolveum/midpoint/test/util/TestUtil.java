@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -589,5 +589,10 @@ public class TestUtil {
 			throw new IllegalStateException("Cannot match java version string '"+javaVersionString+"'");
 		}
 		
+	}
+
+	public static void assertMessageContains(String message, String expectedSubstring) {
+		assertTrue("Expected that message will contain substring '"+expectedSubstring+"', but it did not. Message: "+message,
+				message.contains(expectedSubstring));
 	}
 }

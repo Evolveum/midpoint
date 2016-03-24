@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.server.currentState;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -32,7 +33,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -89,7 +89,7 @@ public class TaskCurrentStateDtoModel extends AbstractReadOnlyModel<TaskCurrentS
             Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createRetrieveAttributesOptions(TaskType.F_SUBTASK, TaskType.F_NODE_AS_OBSERVED);
             PrismObject<TaskType> task = page.getModelService().getObject(TaskType.class, oid, options, operationTask, result);
             TaskDto taskDto = new TaskDto(task.asObjectable(), page.getModelService(), page.getTaskService(),
-                    page.getModelInteractionService(), taskManager, TaskDtoProviderOptions.minimalOptions(), result, page);
+                    page.getModelInteractionService(), taskManager, TaskDtoProviderOptions.fullOptions(), operationTask, result, page);
             taskModel.setObject(taskDto);
         } catch (CommunicationException|ObjectNotFoundException|SchemaException|SecurityViolationException|ConfigurationException|RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't refresh task {}", e, taskModel.getObject());

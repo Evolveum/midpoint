@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package com.evolveum.midpoint.provisioning.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -26,9 +28,12 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -64,7 +69,9 @@ public class ShadowCacheProvisioner extends ShadowCache {
 				"Error while creating account shadow object to save in the reposiotory. AccountShadow is null.");
 	}
 
-	LOGGER.trace("Adding object with identifiers to the repository.");
+	if (LOGGER.isTraceEnabled()) {
+		LOGGER.trace("Adding repository shadow\n{}", shadow.debugDump());
+	}
 	String oid = null;
 	try {
 		ConstraintsChecker.onShadowAddOperation(shadow.asObjectable());
@@ -113,11 +120,23 @@ public class ShadowCacheProvisioner extends ShadowCache {
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
-		
 		Collection<ItemDelta> shadowChanges = new ArrayList<ItemDelta>();
 		for (ItemDelta itemDelta : objectChange) {
 			if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath())) {
-				if (!ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, itemDelta.getElementName())) {
+				QName attrName = itemDelta.getElementName();
+				if (objectClassDefinition.isSecondaryIdentifier(attrName)) {
+					// Change of secondary identifier means object rename. We also need to change $shadow/name
+					// TODO: change this to displayName attribute later
+					String newName = null;
+					if (itemDelta.getValuesToReplace() != null && !itemDelta.getValuesToReplace().isEmpty()) {
+						newName = ((PrismPropertyValue)itemDelta.getValuesToReplace().iterator().next()).getValue().toString();
+					} else if (itemDelta.getValuesToAdd() != null && !itemDelta.getValuesToAdd().isEmpty()) {
+						newName = ((PrismPropertyValue)itemDelta.getValuesToAdd().iterator().next()).getValue().toString();
+					}
+					PropertyDelta<PolyString> nameDelta = PropertyDelta.createReplaceDelta(shadow.getDefinition(), ShadowType.F_NAME, new PolyString(newName));
+					shadowChanges.add(nameDelta);
+				}
+				if (!ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, attrName)) {
 					continue;
 				}
 			} else if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(itemDelta.getParentPath())) {

@@ -83,6 +83,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>audit-impl</artifactId>
+            <version>3.4-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>jcl-over-slf4j</artifactId>
 			<scope>test</scope>

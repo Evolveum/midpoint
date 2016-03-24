@@ -16,14 +16,13 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
@@ -66,17 +65,17 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
             if (StringUtils.isNotEmpty(decision.getComment())) {
                 comments.add(decision.getComment());
             }
-            PrismObject<UserType> reviewerObject = WebModelUtils.resolveReference(decision.getReviewerRef(), page, task, result);
+            PrismObject<UserType> reviewerObject = WebModelServiceUtils.resolveReference(decision.getReviewerRef(), page, task, result);
             if (reviewerObject != null) {
-                reviewerNames.add(WebMiscUtil.getName(reviewerObject));
+                reviewerNames.add(WebComponentUtil.getName(reviewerObject));
             }
         }
         List<String> names = new ArrayList<>();
-        for (ObjectReferenceType reviewerRef : _case.getReviewerRef()) {
+        for (ObjectReferenceType reviewerRef : _case.getCurrentReviewerRef()) {
             // TODO optimize - don't resolve reviewers twice
-            PrismObject<UserType> reviewerObject = WebModelUtils.resolveReference(reviewerRef, page, task, result);
+            PrismObject<UserType> reviewerObject = WebModelServiceUtils.resolveReference(reviewerRef, page, task, result);
             if (reviewerObject != null) {
-                names.add(WebMiscUtil.getName(reviewerObject));
+                names.add(WebComponentUtil.getName(reviewerObject));
             }
         }
         if (names.isEmpty()) {
@@ -99,19 +98,19 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
     }
 
     public String getRemediedAt() {
-        return WebMiscUtil.formatDate(getCertCase().getRemediedTimestamp());
+        return WebComponentUtil.formatDate(getCertCase().getRemediedTimestamp());
     }
 
     public String getReviewedAt() {
-        return WebMiscUtil.formatDate(getReviewedTimestamp(getCertCase()));
+        return WebComponentUtil.formatDate(getReviewedTimestamp(getCertCase()));
     }
 
     private Date getReviewedTimestamp(AccessCertificationCaseType certCase) {
         return CertCampaignTypeUtil.getReviewedTimestamp(certCase.getDecision());
     }
 
-    public AccessCertificationResponseType getCurrentResponse() {
-        return getCertCase().getCurrentResponse();
+    public AccessCertificationResponseType getOverallOutcome() {
+        return getCertCase().getOverallOutcome();
     }
 
     public Integer getCurrentResponseStageNumber() {

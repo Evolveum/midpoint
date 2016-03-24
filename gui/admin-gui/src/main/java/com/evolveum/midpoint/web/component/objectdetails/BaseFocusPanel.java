@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -40,10 +43,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
-
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
@@ -55,7 +54,6 @@ import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -149,7 +147,7 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 	}
 
 	public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-		return PageTemplate.createStringResourceStatic(this, resourceKey, objects);
+		return PageBase.createStringResourceStatic(this, resourceKey, objects);
 //		return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
 	}
 
@@ -219,8 +217,8 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 
 	protected abstract void reviveCustomModels() throws SchemaException;
 
-	private void showResultInSession(OperationResult result) {
-		page.showResultInSession(result);
+	private void showResult(OperationResult result) {
+		page.showResult(result);
 	}
 
 	private PrismContext getPrismContext() {
@@ -231,8 +229,8 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 		return page.getPageParameters();
 	}
 
-	private void showResult(OperationResult result) {
-		page.showResult(result);
+	private void showResult(OperationResult result, boolean showSuccess) {
+		page.showResult(result, showSuccess);
 	}
 
 	private WebMarkupContainer getFeedbackPanel() {
@@ -291,10 +289,10 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 	}
 
 	protected void reviveModels() throws SchemaException {
-		WebMiscUtil.revive(focusModel, getPrismContext());
-		WebMiscUtil.revive(shadowModel, getPrismContext());
-		WebMiscUtil.revive(orgModel, getPrismContext());
-		WebMiscUtil.revive(assignmentsModel, getPrismContext());
+		WebComponentUtil.revive(focusModel, getPrismContext());
+		WebComponentUtil.revive(shadowModel, getPrismContext());
+		WebComponentUtil.revive(orgModel, getPrismContext());
+		WebComponentUtil.revive(assignmentsModel, getPrismContext());
 		reviveCustomModels();
 		// WebMiscUtil.revive(summaryUser, getPrismContext());
 	}
@@ -646,13 +644,10 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 				getPrismContext().adopt(shadow);
 
 				ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(
-						WebMiscUtil.getOrigStringFromPoly(resource.getName()), null, shadow.asPrismObject(),
+						WebComponentUtil.getOrigStringFromPoly(resource.getName()), null, shadow.asPrismObject(),
 						ContainerStatus.ADDING, page);
-				if (wrapper.getResult() != null
-						&& !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-					showResultInSession(wrapper.getResult());
-				}
-
+					showResult(wrapper.getResult(), false);
+				
 				wrapper.setShowEmpty(true);
 				wrapper.setMinimalized(false);
 				shadowModel.getObject().add(new FocusProjectionDto(wrapper, UserDtoStatus.ADD));
@@ -683,12 +678,9 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 				OrgType newOrg = (OrgType) object;
 
 				ObjectWrapper<OrgType> wrapper = ObjectWrapperUtil.createObjectWrapper(
-						WebMiscUtil.getOrigStringFromPoly(newOrg.getDisplayName()), null,
+						WebComponentUtil.getOrigStringFromPoly(newOrg.getDisplayName()), null,
 						newOrg.asPrismObject(), ContainerStatus.ADDING, page);
-				if (wrapper.getResult() != null
-						&& !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-					showResultInSession(wrapper.getResult());
-				}
+				showResult(wrapper.getResult(), false);
 
 				wrapper.setShowEmpty(false);
 				wrapper.setReadonly(true);
@@ -833,7 +825,7 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 		ResourcesSelectionPanel.Context context = new ResourcesSelectionPanel.Context(this) {
 			@Override
 			public BaseFocusPanel getRealParent() {
-				return WebMiscUtil.theSameForPage(BaseFocusPanel.this, getCallingPageReference());
+				return WebComponentUtil.theSameForPage(BaseFocusPanel.this, getCallingPageReference());
 			}
 
 			@Override
@@ -857,7 +849,7 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 		AssignableOrgSelectionPanel.Context context = new AssignableOrgSelectionPanel.Context(this) {
 			@Override
 			public BaseFocusPanel getRealParent() {
-				return WebMiscUtil.theSameForPage(BaseFocusPanel.this, getCallingPageReference());
+				return WebComponentUtil.theSameForPage(BaseFocusPanel.this, getCallingPageReference());
 			}
 
 			@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,19 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.ThreeStateBooleanPanel;
+import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.PropertyLimitationsTypeDto;
-
-import com.evolveum.midpoint.web.page.PageTemplate;
-
-import com.evolveum.midpoint.web.model.LoadableModel;
-
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
 
@@ -39,6 +41,7 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -56,6 +59,10 @@ public class LimitationsEditorDialog extends ModalWindow{
 
     private static enum ChangeState{
         SKIP, FIRST, LAST
+    }
+
+    private static enum PropertyAccess{
+        Allow, Inherit, Deny
     }
 
     private static final String ID_REPEATER = "repeater";
@@ -236,16 +243,41 @@ public class LimitationsEditorDialog extends ModalWindow{
         presentation.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(presentation);
 
-        ThreeStateBooleanPanel add = new ThreeStateBooleanPanel(ID_ACCESS_ADD, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".access.add"),
-                "LimitationsEditorDialog.allow", "LimitationsEditorDialog.inherit", "LimitationsEditorDialog.deny", null);
+        DropDownChoicePanel add = new DropDownChoicePanel(ID_ACCESS_ADD,
+                getAddPropertyAccessModel(item.getModel()),
+                WebComponentUtil.createReadonlyModelFromEnum(PropertyAccess.class), false);
+        FormComponent<PropertyAccess> addInput = add.getBaseFormComponent();
+        addInput.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        addInput.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        });
+
+        DropDownChoicePanel read = new DropDownChoicePanel(ID_ACCESS_READ,
+                getReadPropertyAccessModel(item.getModel()),
+                WebComponentUtil.createReadonlyModelFromEnum(PropertyAccess.class), false);
+        FormComponent<PropertyAccess> readInput = read.getBaseFormComponent();
+        readInput.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        readInput.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        });
+
+        DropDownChoicePanel modify = new DropDownChoicePanel(ID_ACCESS_MODIFY,
+                getModifyPropertyAccessModel(item.getModel()),
+                WebComponentUtil.createReadonlyModelFromEnum(PropertyAccess.class), false);
+        FormComponent<PropertyAccess> modifyInput = modify.getBaseFormComponent();
+        modifyInput.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        modifyInput.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        });
+
         body.add(add);
-
-        ThreeStateBooleanPanel read = new ThreeStateBooleanPanel(ID_ACCESS_READ, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".access.read"),
-                "LimitationsEditorDialog.allow", "LimitationsEditorDialog.inherit", "LimitationsEditorDialog.deny", null);
         body.add(read);
-
-        ThreeStateBooleanPanel modify = new ThreeStateBooleanPanel(ID_ACCESS_MODIFY, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".access.modify"),
-                "LimitationsEditorDialog.allow", "LimitationsEditorDialog.inherit", "LimitationsEditorDialog.deny", null);
         body.add(modify);
 
         TextFormGroup minOccurs = new TextFormGroup(ID_MIN_OCCURS, new PropertyModel<String>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".minOccurs"),
@@ -350,7 +382,7 @@ public class LimitationsEditorDialog extends ModalWindow{
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-    	return PageTemplate.createStringResourceStatic(this, resourceKey, objects);
+    	return PageBase.createStringResourceStatic(this, resourceKey, objects);
 //        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 
@@ -380,5 +412,96 @@ public class LimitationsEditorDialog extends ModalWindow{
 
         inputModel.setObject(outputList);
         close(target);
+    }
+
+    private IModel<PropertyAccess> getAddPropertyAccessModel(final IModel<PropertyLimitationsTypeDto> model){
+        return new IModel<PropertyAccess>() {
+            @Override
+            public PropertyAccess getObject() {
+                Boolean add = model.getObject().getLimitationObject().getAccess().isAdd();
+                if (add == null){
+                    return  PropertyAccess.Inherit;
+                } else if (add){
+                    return PropertyAccess.Allow;
+                } else {
+                    return PropertyAccess.Deny;
+                }
+            }
+
+            @Override
+            public void setObject(PropertyAccess propertyAccess) {
+                if (propertyAccess.equals(PropertyAccess.Allow)){
+                    model.getObject().getLimitationObject().getAccess().setAdd(true);
+                } else if (propertyAccess.equals(PropertyAccess.Deny)){
+                    model.getObject().getLimitationObject().getAccess().setAdd(false);
+                } else {
+                    model.getObject().getLimitationObject().getAccess().setAdd(null);
+                }
+            }
+
+            @Override
+            public void detach() {
+            }
+        };
+    }
+    private IModel<PropertyAccess> getReadPropertyAccessModel(final IModel<PropertyLimitationsTypeDto> model){
+        return new IModel<PropertyAccess>() {
+            @Override
+            public PropertyAccess getObject() {
+                Boolean read = model.getObject().getLimitationObject().getAccess().isRead();
+                if (read == null){
+                    return  PropertyAccess.Inherit;
+                } else if (read){
+                    return PropertyAccess.Allow;
+                } else {
+                    return PropertyAccess.Deny;
+                }
+            }
+
+            @Override
+            public void setObject(PropertyAccess propertyAccess) {
+                if (propertyAccess.equals(PropertyAccess.Allow)){
+                    model.getObject().getLimitationObject().getAccess().setRead(true);
+                } else if (propertyAccess.equals(PropertyAccess.Deny)){
+                    model.getObject().getLimitationObject().getAccess().setRead(false);
+                } else {
+                    model.getObject().getLimitationObject().getAccess().setRead(null);
+                }
+            }
+
+            @Override
+            public void detach() {
+            }
+        };
+    }
+    private IModel<PropertyAccess> getModifyPropertyAccessModel(final IModel<PropertyLimitationsTypeDto> model){
+        return new IModel<PropertyAccess>() {
+            @Override
+            public PropertyAccess getObject() {
+                Boolean modify = model.getObject().getLimitationObject().getAccess().isModify();
+                if (modify == null){
+                    return  PropertyAccess.Inherit;
+                } else if (modify){
+                    return PropertyAccess.Allow;
+                } else {
+                    return PropertyAccess.Deny;
+                }
+            }
+
+            @Override
+            public void setObject(PropertyAccess propertyAccess) {
+                if (propertyAccess.equals(PropertyAccess.Allow)){
+                    model.getObject().getLimitationObject().getAccess().setModify(true);
+                } else if (propertyAccess.equals(PropertyAccess.Deny)){
+                    model.getObject().getLimitationObject().getAccess().setModify(false);
+                } else {
+                    model.getObject().getLimitationObject().getAccess().setModify(null);
+                }
+            }
+
+            @Override
+            public void detach() {
+            }
+        };
     }
 }

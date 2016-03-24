@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.resources;
 
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -36,8 +38,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -96,7 +96,7 @@ public class PageAdminResources extends PageAdmin {
             result.recordFatalError("Couldn't get resource, reason: " + ex.getMessage(), ex);
         }
 
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             if (resource != null) {
                 showResult(result);
             } else {
@@ -128,7 +128,7 @@ public class PageAdminResources extends PageAdmin {
         query = new ObjectQuery();
         query.setFilter(AndFilter.createAnd(refFilter, filterHandleUri));
 
-        List<PrismObject<TaskType>> taskList = WebModelUtils.searchObjects(TaskType.class, query,
+        List<PrismObject<TaskType>> taskList = WebModelServiceUtils.searchObjects(TaskType.class, query,
                 result, this);
 
         if(taskList.size() != 1){
@@ -162,7 +162,7 @@ public class PageAdminResources extends PageAdmin {
         }
 
         try {
-            getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+            getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
         } catch (Exception e){
             LoggingUtils.logException(LOGGER, "Couldn't save task.", e);
             result.recordFatalError("Couldn't save task.", e);

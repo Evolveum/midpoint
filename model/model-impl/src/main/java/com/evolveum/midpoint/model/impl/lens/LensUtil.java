@@ -196,6 +196,7 @@ public class LensUtil {
 			ResourceType resource = context.getResource(rsd.getResourceOid());
 			accountSyncContext.setResource(resource);
 		}
+		accountSyncContext.setDoReconciliation(context.isDoReconciliationForAllProjections());
 		return accountSyncContext;
 	}
 	
@@ -346,7 +347,7 @@ public class LensUtil {
                 			new Object[]{value, itemPath, contextDescription});
                 	continue;
                 }
-                LOGGER.trace("Value {} added to delta for item {} in {}", new Object[]{value, itemPath, contextDescription});
+                LOGGER.trace("Value {} added to delta as ADD for item {} in {}", new Object[]{value, itemPath, contextDescription});
                 itemDelta.addValueToAdd((V)value.clone());
                 continue;
             }
@@ -396,11 +397,11 @@ public class LensUtil {
                     continue;
                 }
                 if (filterExistingValues && !hasValue(itemExisting, value, valueMatcher, comparator)) {
-                	LOGGER.trace("Value {} NOT deleted from delta for item {} the item does not have that value in {} (matcher: {})",
+                	LOGGER.trace("Value {} NOT add to delta as DELETE because item {} the item does not have that value in {} (matcher: {})",
                 			new Object[]{value, itemPath, contextDescription, valueMatcher});
                 	continue;
                 }
-                LOGGER.trace("Value {} deleted to delta for item {} in {}",
+                LOGGER.trace("Value {} added to delta as DELETE for item {} in {}",
                 		new Object[]{ value, itemPath, contextDescription});
                 itemDelta.addValueToDelete((V)value.clone());
             }

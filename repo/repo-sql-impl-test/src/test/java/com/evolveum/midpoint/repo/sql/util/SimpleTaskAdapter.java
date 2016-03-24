@@ -39,20 +39,7 @@ import com.evolveum.midpoint.task.api.TaskWaitingReason;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UriStack;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import javax.xml.namespace.QName;
@@ -213,6 +200,13 @@ public class SimpleTaskAdapter implements Task {
 
     }
 
+    @Override public LensContextType getModelOperationContext() {
+        return null;
+    }
+
+    @Override public void setModelOperationContext(LensContextType modelOperationContext) {
+    }
+
     @Override
     public String getOid() {
         return null;
@@ -308,6 +302,11 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public <T> PrismProperty<T> getExtensionProperty(QName propertyName) {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
+    public <T> T getExtensionPropertyRealValue(QName propertyName) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
@@ -777,5 +776,27 @@ public class SimpleTaskAdapter implements Task {
     @Override
     public void storeOperationStats() {
 
+    }
+
+    @Override
+    public void initializeWorkflowContextImmediate(String processInstanceId, OperationResult result) throws SchemaException {
+    }
+
+    @Override public void addModification(ItemDelta<?, ?> delta) throws SchemaException {
+    }
+
+    @Override public void addModifications(Collection<ItemDelta<?, ?>> deltas) throws SchemaException {
+
+    }
+
+    @Override public void addModificationImmediate(ItemDelta<?, ?> delta, OperationResult parentResult) throws SchemaException {
+    }
+
+    @Override
+    public WfContextType getWorkflowContext() {
+        return null;
+    }
+
+    @Override public void setWorkflowContext(WfContextType context) throws SchemaException {
     }
 }

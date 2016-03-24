@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,26 +14,13 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
+<!--
+This one is used by JAX-WS endpoints at runtime.
+By default, it looks for a file named "jax-ws-catalog.xml".
+As I haven't found a way to configure this, I'm keeping this file as a redirection.
+-->
+
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
-
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/model-3" uri="../xml/ns/public/model/model-3.wsdl" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/model/model-3" uri="../xml/ns/public/model/model-3.wsdl" />
-    
-    <!-- Report WSDL location -->
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/report/report-3" uri="../xml/ns/public/report/report-3.wsdl" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/report/report-3" uri="../xml/ns/public/report/report-3.wsdl" />
-    
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" uri="../xml/ns/public/common/fault-3.wsdl" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" uri="../xml/ns/public/common/fault-3.wsdl" />
-    
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" uri="../xml/ns/public/common/api-types-3.xsd" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" uri="../xml/ns/public/common/api-types-3.xsd" />
-
-	<public publicId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../xml/ns/public/common/common-3.xsd" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../xml/ns/public/common/common-3.xsd" />
-
-    <!--    <rewriteSystem systemIdStartString="http://midpoint.evolveum.com/xml/" rewritePrefix="main/resources/xml/"/>
-<rewriteSystem systemIdStartString="http://prism.evolveum.com/xml/" rewritePrefix="../prism/main/resources/xml/"/>  -->
-
     <nextCatalog catalog="catalog-runtime.xml"/>
 </catalog>

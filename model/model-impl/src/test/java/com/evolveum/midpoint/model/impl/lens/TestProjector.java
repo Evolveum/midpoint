@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,14 +123,6 @@ public class TestProjector extends AbstractLensTest {
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
         TestUtil.displayTestTile(this, TEST_NAME);
-
-        // WHEN
-        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceDummyType, prismContext);
-        
-        display("Dummy refined schema", refinedSchema);
-        
-        // THEN
-        dummyResourceCtl.assertRefinedSchemaSanity(refinedSchema);
         
         assertNoJackShadow();
 	}
@@ -947,7 +939,7 @@ public class TestProjector extends AbstractLensTest {
         LensContext<UserType> context = createUserAccountContext();
         context.setChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
         fillContextWithEmtptyAddUserDelta(context, result);
-        fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILENAME, result);
+        fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILE, result);
         makeImportSyncDelta(context.getProjectionContexts().iterator().next());
         context.recompute();
 
@@ -1005,7 +997,7 @@ public class TestProjector extends AbstractLensTest {
         LensContext<UserType> context = createUserAccountContext();
         context.setChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
         fillContextWithEmtptyAddUserDelta(context, result);
-        fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILENAME, result);
+        fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILE, result);
         makeImportSyncDelta(context.getProjectionContexts().iterator().next());
         context.recompute();
 
@@ -1083,7 +1075,7 @@ public class TestProjector extends AbstractLensTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         
-    	PrismObject<ValuePolicyType> passPolicy = PrismTestUtil.parseObject(new File(PASSWORD_POLICY_GLOBAL_FILENAME));
+    	PrismObject<ValuePolicyType> passPolicy = PrismTestUtil.parseObject(PASSWORD_POLICY_GLOBAL_FILE);
     	ObjectDelta delta = ObjectDelta.createAddDelta(passPolicy);
     	Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
     	deltas.add(delta);
@@ -1103,7 +1095,7 @@ public class TestProjector extends AbstractLensTest {
         // GIVEN
         LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_GUYBRUSH_OID, result);
-        fillContextWithAccountFromFile(context, ACCOUNT_GUYBRUSH_DUMMY_FILENAME, result);
+        fillContextWithAccountFromFile(context, ACCOUNT_GUYBRUSH_DUMMY_FILE, result);
         LensProjectionContext guybrushAccountContext = context.findProjectionContextByOid(ACCOUNT_SHADOW_GUYBRUSH_OID);
         guybrushAccountContext.setFullShadow(true);
         guybrushAccountContext.setDoReconciliation(true);
@@ -1206,7 +1198,7 @@ public class TestProjector extends AbstractLensTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         LensContext<UserType> context = createUserAccountContext();
-        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_LARGO_FILENAME));
+        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_LARGO_FILE);
         fillContextWithAddUserDelta(context, user);
 
         display("Input context", context);

@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 
 import org.apache.commons.lang.StringUtils;
@@ -42,7 +42,7 @@ public class ConnectorHostTypeComparator implements Comparator<PrismObject<Conne
             return null;
         }
 
-        String name = WebMiscUtil.getName(host);
+        String name = WebComponentUtil.getName(host);
 
         StringBuilder builder = new StringBuilder();
         if (StringUtils.isNotEmpty(name)) {

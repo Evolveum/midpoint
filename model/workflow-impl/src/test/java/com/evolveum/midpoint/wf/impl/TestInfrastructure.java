@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,14 +29,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.jobs.WfTaskUtil;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.JaxbValueContainer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -44,7 +39,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -106,13 +100,13 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
         OperationResult result = new OperationResult("test100SerializeContext");
 
         LensContext<UserType> context = new LensContext<UserType>(UserType.class, prismContext, provisioningService);
-        PrismObject<UserType> bill = prismContext.parseObject(new File(USER_BARBOSSA_FILENAME));
+        PrismObject<UserType> bill = prismContext.parseObject(USER_BARBOSSA_FILE);
         CryptoUtil.encryptValues(protector, bill);
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(bill);
         LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
         focusContext.setPrimaryDelta(userDelta);
 
-        LensContextType contextType = context.toPrismContainer().getValue().asContainerable();
+        LensContextType contextType = context.toLensContextType();
         JaxbValueContainer<LensContextType> container = new JaxbValueContainer<LensContextType>(contextType, prismContext);
         container.clearActualValue();
         System.out.println("XML value = " + container.getXmlValue());

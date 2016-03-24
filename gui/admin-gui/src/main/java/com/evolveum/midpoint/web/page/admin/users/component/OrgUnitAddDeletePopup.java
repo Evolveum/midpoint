@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
@@ -23,8 +23,6 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
@@ -195,7 +193,7 @@ public class OrgUnitAddDeletePopup extends ModalWindow{
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-    	return PageTemplate.createStringResourceStatic(this, resourceKey, objects);
+    	return PageBase.createStringResourceStatic(this, resourceKey, objects);
 //        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 

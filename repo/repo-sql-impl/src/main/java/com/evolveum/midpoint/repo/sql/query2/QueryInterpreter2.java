@@ -67,6 +67,7 @@ import com.evolveum.midpoint.repo.sql.query2.restriction.PropertyRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.ReferenceRestriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.Restriction;
 import com.evolveum.midpoint.repo.sql.query2.restriction.TypeRestriction;
+import com.evolveum.midpoint.repo.sql.util.GetContainerableResult;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -166,9 +167,11 @@ public class QueryInterpreter2 {
                 hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".referencesCount"));
                 hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".polysCount"));
                 hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".booleansCount"));
+                hibernateQuery.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
+            } else {
+                hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".ownerOid"));
+                hibernateQuery.setResultTransformer(GetContainerableResult.RESULT_TRANSFORMER);
             }
-
-            hibernateQuery.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
         }
 
         return hibernateQuery;

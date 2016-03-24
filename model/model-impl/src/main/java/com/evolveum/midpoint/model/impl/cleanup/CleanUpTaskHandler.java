@@ -16,24 +16,13 @@
 
 package com.evolveum.midpoint.model.impl.cleanup;
 
-import java.util.List;
-
-import javax.annotation.PostConstruct;
-import javax.xml.datatype.Duration;
-
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.report.api.ReportManager;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import com.evolveum.midpoint.model.impl.lens.ChangeExecutor;
-import com.evolveum.midpoint.model.impl.lens.Clockwork;
-import com.evolveum.midpoint.model.impl.sync.RecomputeTaskHandler;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.report.api.ReportManager;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -50,11 +39,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 public class CleanUpTaskHandler implements TaskHandler{
 
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/model/cleanup/handler-3";
+	public static final String HANDLER_URI = ModelPublicConstants.CLEANUP_TASK_HANDLER_URI;
 
     @Autowired(required=true)
 	private TaskManager taskManager;
@@ -79,35 +74,48 @@ public class CleanUpTaskHandler implements TaskHandler{
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
 
-	
 	@Override
 	public TaskRunResult run(Task task) {
+		task.startCollectingOperationStatsFromZero(true, false, false);
+		try {
+			return runInternal(task);
+		} finally {
+			task.storeOperationStats();
+		}
+	}
+
+	private TaskRunResult runInternal(Task task) {
 		LOGGER.trace("CleanUpTaskHandler.run starting");
 		
 		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(OperationConstants.CLEANUP);
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
-		
-		PrismObject<SystemConfigurationType> systemConfig = null;
-		try {
-			systemConfig = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, opResult);
-		} catch (ObjectNotFoundException ex) {
-			LOGGER.error("Cleanup: Object does not exist: {}",ex.getMessage(),ex);
-			opResult.recordFatalError("Object does not exist: "+ex.getMessage(),ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			runResult.setProgress(progress);
-			return runResult;
-		} catch (SchemaException ex) {
-			LOGGER.error("Cleanup: Error dealing with schema: {}",ex.getMessage(),ex);
-			opResult.recordFatalError("Error dealing with schema: "+ex.getMessage(),ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			runResult.setProgress(progress);
-			return runResult;
+
+		CleanupPoliciesType cleanupPolicies = task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES);
+
+		if (cleanupPolicies != null) {
+			LOGGER.info("Using task-specific cleanupPolicies: {}", cleanupPolicies);
+		} else {
+			PrismObject<SystemConfigurationType> systemConfig;
+			try {
+				systemConfig = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, opResult);
+			} catch (ObjectNotFoundException ex) {
+				LOGGER.error("Cleanup: Object does not exist: {}", ex.getMessage(), ex);
+				opResult.recordFatalError("Object does not exist: " + ex.getMessage(), ex);
+				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+				runResult.setProgress(progress);
+				return runResult;
+			} catch (SchemaException ex) {
+				LOGGER.error("Cleanup: Error dealing with schema: {}", ex.getMessage(), ex);
+				opResult.recordFatalError("Error dealing with schema: " + ex.getMessage(), ex);
+				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+				runResult.setProgress(progress);
+				return runResult;
+			}
+			SystemConfigurationType systemConfigType = systemConfig.asObjectable();
+			cleanupPolicies = systemConfigType.getCleanupPolicy();
 		}
-		SystemConfigurationType systemConfigType = systemConfig.asObjectable();		
-		
-		CleanupPoliciesType cleanupPolicies = systemConfigType.getCleanupPolicy();
 		
 		if (cleanupPolicies == null){
 			LOGGER.trace("Cleanup: No clean up polices specified. Finishing clean up task.");
@@ -185,13 +193,16 @@ public class CleanUpTaskHandler implements TaskHandler{
 
 	@Override
 	public String getCategoryName(Task task) {
-		 return TaskCategory.SYSTEM;
+		if (task != null && task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES) != null) {
+			return TaskCategory.UTIL;			// this is run on-demand just like other utility tasks (e.g. delete task handler)
+		} else {
+			return TaskCategory.SYSTEM;			// this is the default instance, always running
+		}
 	}
 
 	@Override
 	public List<String> getCategoryNames() {
-		// TODO Auto-generated method stub
-		return null;
+		return Arrays.asList(TaskCategory.UTIL, TaskCategory.SYSTEM);
 	}
 
 }

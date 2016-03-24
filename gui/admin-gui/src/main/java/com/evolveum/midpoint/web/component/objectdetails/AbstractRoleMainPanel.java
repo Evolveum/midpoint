@@ -20,16 +20,17 @@ import java.util.List;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.roles.RolePolicyPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import org.apache.wicket.model.IModel;
 
 /**
  * @author semancik
@@ -50,7 +51,7 @@ public class AbstractRoleMainPanel<R extends AbstractRoleType> extends FocusMain
 	protected List createTabs(final PageAdminObjectDetails<R> parentPage) {
 		List tabs = super.createTabs(parentPage);
 		
-		tabs.add(new AbstractTab(parentPage.createStringResource("FocusType.inducement")) {
+		tabs.add(new AbstractTab(getInducementsTabTitleModel(parentPage)) {
 
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
@@ -72,6 +73,27 @@ public class AbstractRoleMainPanel<R extends AbstractRoleType> extends FocusMain
 		return tabs;
 	}
 
-	
-	
+    private IModel<String> getInducementsTabTitleModel(final PageAdminObjectDetails<R> parentPage){
+        return new IModel<String>() {
+            @Override
+            public String getObject() {
+                return parentPage.createStringResource("FocusType.inducement").getString()
+                        + " (" + (inducementsModel.getObject() == null ? 0 : inducementsModel.getObject().size()) + ")";
+            }
+
+            @Override
+            public void setObject(String s) {
+
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
+    }
+
+
+
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
 
 /**
  * @author semancik
@@ -55,8 +56,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractLensTest extends AbstractInternalModelIntegrationTest {
 		
-	protected static final File TEST_DIR = new File("src/test/resources/lens");
-	protected static final File TEST_DIR_COMMON = new File("./src/test/resources/common");
+	protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "lens");
 	
 	protected static final File ASSIGNMENT_DIRECT_FILE = new File(TEST_DIR, "assignment-direct.xml");
 	protected static final File ASSIGNMENT_DIRECT_EXPRESSION_FILE = new File(TEST_DIR, "assignment-direct-expression.xml");

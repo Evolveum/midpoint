@@ -21,29 +21,21 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertification
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RAccessCertificationCampaignState;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -62,7 +54,7 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
     private REmbeddedReference definitionRef;
     private Set<RAccessCertificationCase> cases;
 
-    private REmbeddedReference ownerRef;
+    private REmbeddedReference ownerRefCampaign;
     private String handlerUri;
     private XMLGregorianCalendar start;
     private XMLGregorianCalendar end;
@@ -87,9 +79,15 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
         return cases;
     }
 
+    @JaxbName(localPart = "ownerRef")
     @Embedded
-    public REmbeddedReference getOwnerRef() {
-        return ownerRef;
+    @AttributeOverrides({
+            @AttributeOverride(name = "relation", column = @Column(name = "ownerRef_relation", length = RUtil.COLUMN_LENGTH_QNAME)),
+            @AttributeOverride(name = "targetOid", column = @Column(name = "ownerRef_targetOid", length = RUtil.COLUMN_LENGTH_OID)),
+            @AttributeOverride(name = "type", column = @Column(name = "ownerRef_type"))
+    })
+    public REmbeddedReference getOwnerRefCampaign() {       // name changed because of collision with RAbstractRole.ownerRef
+        return ownerRefCampaign;
     }
 
     public String getHandlerUri() {
@@ -126,8 +124,8 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
         this.cases = cases;
     }
 
-    public void setOwnerRef(REmbeddedReference ownerRef) {
-        this.ownerRef = ownerRef;
+    public void setOwnerRefCampaign(REmbeddedReference ownerRefCampaign) {
+        this.ownerRefCampaign = ownerRefCampaign;
     }
 
     public void setHandlerUri(String handlerUri) {
@@ -161,7 +159,8 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (definitionRef != null ? !definitionRef.equals(that.definitionRef) : that.definitionRef != null)
             return false;
-        if (ownerRef != null ? !ownerRef.equals(that.ownerRef) : that.ownerRef != null) return false;
+        if (ownerRefCampaign != null ? !ownerRefCampaign.equals(that.ownerRefCampaign) : that.ownerRefCampaign
+                != null) return false;
         if (handlerUri != null ? !handlerUri.equals(that.handlerUri) : that.handlerUri != null) return false;
         if (start != null ? !start.equals(that.start) : that.start != null) return false;
         if (end != null ? !end.equals(that.end) : that.end != null) return false;
@@ -200,7 +199,7 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
             }
         }
 
-        repo.setOwnerRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), prismContext));
+        repo.setOwnerRefCampaign(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), prismContext));
         repo.setHandlerUri(jaxb.getHandlerUri());
         repo.setStart(jaxb.getStart());
         repo.setEnd(jaxb.getEnd());

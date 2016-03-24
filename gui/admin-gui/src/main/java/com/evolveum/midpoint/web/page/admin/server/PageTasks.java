@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -41,17 +48,16 @@ import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
 import com.evolveum.midpoint.web.session.TasksStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -76,7 +82,6 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
@@ -100,6 +105,7 @@ public class PageTasks extends PageAdminTasks {
     private static final String OPERATION_RESUME_TASKS = DOT_CLASS + "resumeTasks";
     private static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
     private static final String OPERATION_DELETE_TASKS = DOT_CLASS + "deleteTasks";
+    private static final String OPERATION_DELETE_ALL_CLOSED_TASKS = DOT_CLASS + "deleteAllClosedTasks";
     private static final String OPERATION_SCHEDULE_TASKS = DOT_CLASS + "scheduleTasks";
     private static final String OPERATION_DELETE_NODES = DOT_CLASS + "deleteNodes";
     private static final String OPERATION_START_SCHEDULERS = DOT_CLASS + "startSchedulers";
@@ -122,12 +128,16 @@ public class PageTasks extends PageAdminTasks {
     private static final String ID_NODE_TABLE = "nodeTable";
     private static final String ID_SEARCH_CLEAR = "searchClear";
     private static final String ID_DELETE_TASKS_POPUP = "deleteTasksPopup";
+    private static final String ID_DELETE_ALL_CLOSED_TASKS_POPUP = "deleteAllClosedTasksPopup";
     private static final String ID_TABLE_HEADER = "tableHeader";
 
     public static final String SELECTED_CATEGORY = "category";
 
     private IModel<TasksSearchDto> searchModel;
     private String searchText = "";
+
+    //used for confirmation modal, cleaner implementation needed probaly :)
+    private List<TaskDto> tasksToBeDeleted = new ArrayList<>();
 
     public PageTasks() {
         this(true);
@@ -204,6 +214,14 @@ public class PageTasks extends PageAdminTasks {
                 TasksStorage storage = getSessionStorage().getTasks();
                 storage.setTasksPaging(paging);
             }
+
+            @Override
+            public TaskDto createTaskDto(PrismObject<TaskType> task, Task opTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+                TaskDto dto = super.createTaskDto(task, opTask, result);
+                addInlineMenuToTaskRow(dto);
+
+                return dto;
+            }
         };
 
         provider.setQuery(createTaskQuery());
@@ -224,7 +242,16 @@ public class PageTasks extends PageAdminTasks {
         mainForm.add(taskTable);
 
         List<IColumn<NodeDto, String>> nodeColumns = initNodeColumns();
-        BoxedTablePanel nodeTable = new BoxedTablePanel(ID_NODE_TABLE, new NodeDtoProvider(PageTasks.this), nodeColumns,
+        BoxedTablePanel nodeTable = new BoxedTablePanel(ID_NODE_TABLE, new NodeDtoProvider(PageTasks.this) {
+
+            @Override
+            public NodeDto createNodeDto(PrismObject<NodeType> node) {
+                NodeDto dto = super.createNodeDto(node);
+                addInlineMenuToNodeRow(dto);
+
+                return dto;
+            }
+        }, nodeColumns,
                 UserProfileStorage.TableId.PAGE_TASKS_NODES_PANEL,
                 (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_TASKS_NODES_PANEL));
         nodeTable.setOutputMarkupId(true);
@@ -243,14 +270,24 @@ public class PageTasks extends PageAdminTasks {
             }
         });
 
+        add(new ConfirmationDialog(ID_DELETE_ALL_CLOSED_TASKS_POPUP,
+                createStringResource("pageTasks.dialog.title.confirmDelete"),
+                createStringResource("pageTasks.message.deleteAllClosedTasksConfirm")) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                close(target);
+                deleteAllClosedTasksConfirmedPerformed(target);
+            }
+        });
 
         initDiagnosticButtons();
     }
 
     private List<IColumn<NodeDto, String>> initNodeColumns() {
-        List<IColumn<NodeDto, String>> columns = new ArrayList<IColumn<NodeDto, String>>();
+        List<IColumn<NodeDto, String>> columns = new ArrayList<>();
 
-        IColumn column = new CheckBoxHeaderColumn<NodeDto>();
+        IColumn column = new CheckBoxHeaderColumn<>();
         columns.add(column);
 
         column = new LinkColumn<NodeDto>(createStringResource("pageTasks.node.name"), "name", "name") {
@@ -305,7 +342,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private List<InlineMenuItem> createNodesInlineMenu() {
-        List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+        List<InlineMenuItem> items = new ArrayList<>();
         items.add(new InlineMenuItem(createStringResource("pageTasks.button.stopScheduler"), false,
                 new HeaderMenuAction(this) {
 
@@ -346,7 +383,7 @@ public class PageTasks extends PageAdminTasks {
     private List<IColumn<TaskDto, String>> initTaskColumns() {
         List<IColumn<TaskDto, String>> columns = new ArrayList<IColumn<TaskDto, String>>();
 
-        IColumn column = new CheckBoxHeaderColumn<TaskType>();
+        IColumn column = new CheckBoxHeaderColumn<>();
         columns.add(column);
 
         column = createTaskNameColumn(this, "pageTasks.task.name");
@@ -452,7 +489,7 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private List<InlineMenuItem> createTasksInlineMenu() {
-        List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+        List<InlineMenuItem> items = new ArrayList<>();
         items.add(new InlineMenuItem(createStringResource("pageTasks.button.suspendTask"), false,
                 new HeaderMenuAction(this) {
 
@@ -486,7 +523,14 @@ public class PageTasks extends PageAdminTasks {
                         deleteTasksPerformed(target);
                     }
                 }));
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteAllClosedTasks"), false,
+                new HeaderMenuAction(this) {
 
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        deleteAllClosedTasksPerformed(target);
+                    }
+                }));
         return items;
     }
 
@@ -569,7 +613,6 @@ public class PageTasks extends PageAdminTasks {
                     if (task.getWorkflowProcessInstanceId() != null) {
                         PageParameters parameters = new PageParameters();
                         parameters.add(OnePageParameterEncoder.PARAMETER, task.getWorkflowProcessInstanceId());
-                        parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_FINISHED, task.isWorkflowProcessInstanceFinished());
                         component.setResponsePage(new PageProcessInstance(parameters, (PageBase) component.getPage()));
                     }
                 }
@@ -626,7 +669,7 @@ public class PageTasks extends PageAdminTasks {
         String key = runnable ? "pageTasks.in" : "pageTasks.inForNotRunningTasks";
 
         //todo i18n
-        return PageTemplate.createStringResourceStatic(this, key, DurationFormatUtils.formatDurationWords(time, true, true)).getString();
+        return PageBase.createStringResourceStatic(this, key, DurationFormatUtils.formatDurationWords(time, true, true)).getString();
 //        return new StringResourceModel(key, this, null, null,
 //                DurationFormatUtils.formatDurationWords(time, true, true)).getString();
     }
@@ -750,16 +793,10 @@ public class PageTasks extends PageAdminTasks {
         return false;
     }
 
-    //region Task-level actions
-    private void suspendTasksPerformed(AjaxRequestTarget target) {
-        List<TaskDto> taskTypeList = WebMiscUtil.getSelectedData(getTaskTable());
-        if (!isSomeTaskSelected(taskTypeList, target)) {
-            return;
-        }
-
+    private void suspendTasksPerformed(AjaxRequestTarget target, List<String> oidList) {
         OperationResult result = new OperationResult(OPERATION_SUSPEND_TASKS);
         try {
-            boolean suspended = getTaskService().suspendTasks(TaskDto.getOids(taskTypeList), WAIT_FOR_TASK_STOP, result);
+            boolean suspended = getTaskService().suspendTasks(oidList, WAIT_FOR_TASK_STOP, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 if (suspended) {
@@ -777,15 +814,24 @@ public class PageTasks extends PageAdminTasks {
         refreshTables(target);
     }
 
-    private void resumeTasksPerformed(AjaxRequestTarget target) {
-        List<TaskDto> taskDtoList = WebMiscUtil.getSelectedData(getTaskTable());
-        if (!isSomeTaskSelected(taskDtoList, target)) {
+    private void suspendTaskPerformed(AjaxRequestTarget target, TaskDto dto) {
+        suspendTasksPerformed(target, Arrays.asList(dto.getOid()));
+    }
+
+    //region Task-level actions
+    private void suspendTasksPerformed(AjaxRequestTarget target) {
+        List<TaskDto> taskTypeList = WebComponentUtil.getSelectedData(getTaskTable());
+        if (!isSomeTaskSelected(taskTypeList, target)) {
             return;
         }
 
+        suspendTasksPerformed(target, TaskDto.getOids(taskTypeList));
+    }
+
+    private void resumeTasksPerformed(AjaxRequestTarget target, List<String> oids) {
         OperationResult result = new OperationResult(OPERATION_RESUME_TASKS);
         try {
-            getTaskService().resumeTasks(TaskDto.getOids(taskDtoList), result);
+            getTaskService().resumeTasks(oids, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully resumed.");
@@ -799,25 +845,50 @@ public class PageTasks extends PageAdminTasks {
         refreshTables(target);
     }
 
-    private void deleteTasksPerformed(AjaxRequestTarget target) {
-        List<TaskDto> taskDtoList = WebMiscUtil.getSelectedData(getTaskTable());
-        if (!isSomeTaskSelected(taskDtoList, target)) {
-            return;
-        }
-        ModalWindow dialog = (ModalWindow) get(ID_DELETE_TASKS_POPUP);
-        dialog.show(target);
-
+    private void resumeTaskPerformed(AjaxRequestTarget target, TaskDto dto) {
+        resumeTasksPerformed(target, Arrays.asList(dto.getOid()));
     }
 
-    private void scheduleTasksPerformed(AjaxRequestTarget target) {
-        List<TaskDto> taskDtoList = WebMiscUtil.getSelectedData(getTaskTable());
+    private void resumeTasksPerformed(AjaxRequestTarget target) {
+        List<TaskDto> taskDtoList = WebComponentUtil.getSelectedData(getTaskTable());
         if (!isSomeTaskSelected(taskDtoList, target)) {
             return;
         }
 
+        resumeTasksPerformed(target, TaskDto.getOids(taskDtoList));
+    }
+
+    private void deleteTaskPerformed(AjaxRequestTarget target, TaskDto dto) {
+        tasksToBeDeleted.clear();
+        tasksToBeDeleted.add(dto);
+
+        ModalWindow dialog = (ModalWindow) get(ID_DELETE_TASKS_POPUP);
+        dialog.show(target);
+    }
+
+    private void deleteTasksPerformed(AjaxRequestTarget target) {
+        tasksToBeDeleted.clear();
+
+        List<TaskDto> taskDtoList = WebComponentUtil.getSelectedData(getTaskTable());
+        if (!isSomeTaskSelected(taskDtoList, target)) {
+            return;
+        }
+
+        tasksToBeDeleted = taskDtoList;
+
+        ModalWindow dialog = (ModalWindow) get(ID_DELETE_TASKS_POPUP);
+        dialog.show(target);
+    }
+
+    private void deleteAllClosedTasksPerformed(AjaxRequestTarget target) {
+        ModalWindow dialog = (ModalWindow) get(ID_DELETE_ALL_CLOSED_TASKS_POPUP);
+        dialog.show(target);
+    }
+
+    private void scheduleTasksPerformed(AjaxRequestTarget target, List<String> oids) {
         OperationResult result = new OperationResult(OPERATION_SCHEDULE_TASKS);
         try {
-            getTaskService().scheduleTasksNow(TaskDto.getOids(taskDtoList), result);
+            getTaskService().scheduleTasksNow(oids, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully scheduled.");
@@ -830,6 +901,19 @@ public class PageTasks extends PageAdminTasks {
         //refresh feedback and table
         refreshTables(target);
     }
+
+    private void scheduleTaskPerformed(AjaxRequestTarget target, TaskDto dto) {
+        scheduleTasksPerformed(target, Arrays.asList(dto.getOid()));
+    }
+
+    private void scheduleTasksPerformed(AjaxRequestTarget target) {
+        List<TaskDto> taskDtoList = WebComponentUtil.getSelectedData(getTaskTable());
+        if (!isSomeTaskSelected(taskDtoList, target)) {
+            return;
+        }
+
+        scheduleTasksPerformed(target, TaskDto.getOids(taskDtoList));
+    }
     //endregion
 
     //region Node-level actions
@@ -837,21 +921,19 @@ public class PageTasks extends PageAdminTasks {
 
     }
 
-    private void stopSchedulersAndTasksPerformed(AjaxRequestTarget target) {
-        List<NodeDto> nodeDtoList = WebMiscUtil.getSelectedData(getNodeTable());
-        if (!isSomeNodeSelected(nodeDtoList, target)) {
-            return;
-        }
-
+    private void stopSchedulersAndTasksPerformed(AjaxRequestTarget target, List<String> identifiers) {
         OperationResult result = new OperationResult(OPERATION_STOP_SCHEDULERS_AND_TASKS);
         try {
-            boolean suspended = getTaskService().stopSchedulersAndTasks(NodeDto.getNodeIdentifiers(nodeDtoList), WAIT_FOR_TASK_STOP, result);
+            boolean suspended = getTaskService().stopSchedulersAndTasks(identifiers, WAIT_FOR_TASK_STOP, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 if (suspended) {
-                    result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully stopped, including tasks that were running on them.");
+                    result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been " +
+                            "successfully stopped, including tasks that were running on them.");
                 } else {
-                    result.recordWarning("Selected node scheduler(s) have been successfully paused; however, some of the tasks they were executing are still running on them. Please check their completion using task list.");
+                    result.recordWarning("Selected node scheduler(s) have been successfully paused; however, " +
+                            "some of the tasks they were executing are still running on them. Please check " +
+                            "their completion using task list.");
                 }
             }
         } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | RuntimeException e) {
@@ -863,15 +945,23 @@ public class PageTasks extends PageAdminTasks {
         refreshTables(target);
     }
 
-    private void startSchedulersPerformed(AjaxRequestTarget target) {
-        List<NodeDto> nodeDtoList = WebMiscUtil.getSelectedData(getNodeTable());
+    private void stopSchedulersAndTasksPerformed(AjaxRequestTarget target, NodeDto dto) {
+        stopSchedulersAndTasksPerformed(target, Arrays.asList(dto.getNodeIdentifier()));
+    }
+
+    private void stopSchedulersAndTasksPerformed(AjaxRequestTarget target) {
+        List<NodeDto> nodeDtoList = WebComponentUtil.getSelectedData(getNodeTable());
         if (!isSomeNodeSelected(nodeDtoList, target)) {
             return;
         }
 
+        stopSchedulersAndTasksPerformed(target, NodeDto.getNodeIdentifiers(nodeDtoList));
+    }
+
+    private void startSchedulersPerformed(AjaxRequestTarget target, List<String> identifiers) {
         OperationResult result = new OperationResult(OPERATION_START_SCHEDULERS);
         try {
-            getTaskService().startSchedulers(NodeDto.getNodeIdentifiers(nodeDtoList), result);
+            getTaskService().startSchedulers(identifiers, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully started.");
@@ -886,15 +976,23 @@ public class PageTasks extends PageAdminTasks {
         refreshTables(target);
     }
 
-    private void stopSchedulersPerformed(AjaxRequestTarget target) {
-        List<NodeDto> nodeDtoList = WebMiscUtil.getSelectedData(getNodeTable());
+    private void startSchedulersPerformed(AjaxRequestTarget target, NodeDto dto) {
+        startSchedulersPerformed(target, Arrays.asList(dto.getNodeIdentifier()));
+    }
+
+    private void startSchedulersPerformed(AjaxRequestTarget target) {
+        List<NodeDto> nodeDtoList = WebComponentUtil.getSelectedData(getNodeTable());
         if (!isSomeNodeSelected(nodeDtoList, target)) {
             return;
         }
 
+       startSchedulersPerformed(target, NodeDto.getNodeIdentifiers(nodeDtoList));
+    }
+
+    private void stopSchedulersPerformed(AjaxRequestTarget target, List<String> identifiers) {
         OperationResult result = new OperationResult(OPERATION_STOP_SCHEDULERS);
         try {
-            getTaskService().stopSchedulers(NodeDto.getNodeIdentifiers(nodeDtoList), result);
+            getTaskService().stopSchedulers(identifiers, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully stopped.");
@@ -908,17 +1006,25 @@ public class PageTasks extends PageAdminTasks {
         refreshTables(target);
     }
 
-    private void deleteNodesPerformed(AjaxRequestTarget target) {
-        List<NodeDto> nodeDtoList = WebMiscUtil.getSelectedData(getNodeTable());
+    private void stopSchedulersPerformed(AjaxRequestTarget target, NodeDto dto) {
+        stopSchedulersPerformed(target, Arrays.asList(dto.getNodeIdentifier()));
+    }
+
+    private void stopSchedulersPerformed(AjaxRequestTarget target) {
+        List<NodeDto> nodeDtoList = WebComponentUtil.getSelectedData(getNodeTable());
         if (!isSomeNodeSelected(nodeDtoList, target)) {
             return;
         }
 
+        stopSchedulersPerformed(target, NodeDto.getNodeIdentifiers(nodeDtoList));
+    }
+
+    private void deleteNodesPerformed(AjaxRequestTarget target, List<NodeDto> nodes) {
         OperationResult result = new OperationResult(OPERATION_DELETE_NODES);
 
         Task task = createSimpleTask(OPERATION_DELETE_NODES);
 
-        for (NodeDto nodeDto : nodeDtoList) {
+        for (NodeDto nodeDto : nodes) {
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
             deltas.add(ObjectDelta.createDeleteDelta(NodeType.class, nodeDto.getOid(), getPrismContext()));
             try {
@@ -939,6 +1045,19 @@ public class PageTasks extends PageAdminTasks {
 
         //refresh feedback and table
         refreshTables(target);
+    }
+
+    private void deleteNodesPerformed(AjaxRequestTarget target, NodeDto dto) {
+        deleteNodesPerformed(target, Arrays.asList(dto));
+    }
+
+    private void deleteNodesPerformed(AjaxRequestTarget target) {
+        List<NodeDto> nodeDtoList = WebComponentUtil.getSelectedData(getNodeTable());
+        if (!isSomeNodeSelected(nodeDtoList, target)) {
+            return;
+        }
+
+        deleteNodesPerformed(target, nodeDtoList);
     }
     //endregion
 
@@ -1104,30 +1223,22 @@ public class PageTasks extends PageAdminTasks {
 
             @Override
             public String getObject() {
-                Table table = getTaskTable();
-                List<TaskDto> selected = WebMiscUtil.getSelectedData(table);
-
-                switch (selected.size()) {
+                switch (tasksToBeDeleted.size()) {
                     case 1:
-                        TaskDto first = selected.get(0);
+                        TaskDto first = tasksToBeDeleted.get(0);
                         String name = first.getName();
                         return createStringResource(oneDeleteKey, name).getString();
                     default:
-                        return createStringResource(moreDeleteKey, selected.size()).getString();
+                        return createStringResource(moreDeleteKey, tasksToBeDeleted.size()).getString();
                 }
             }
         };
     }
 
     private void deleteTaskConfirmedPerformed(AjaxRequestTarget target) {
-        List<TaskDto> taskDtoList = WebMiscUtil.getSelectedData(getTaskTable());
-        if (!isSomeTaskSelected(taskDtoList, target)) {
-            return;
-        }
-
         OperationResult result = new OperationResult(OPERATION_DELETE_TASKS);
         try {
-            getTaskService().suspendAndDeleteTasks(TaskDto.getOids(taskDtoList), WAIT_FOR_TASK_STOP, true, result);
+            getTaskService().suspendAndDeleteTasks(TaskDto.getOids(tasksToBeDeleted), WAIT_FOR_TASK_STOP, true, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully deleted.");
@@ -1143,7 +1254,6 @@ public class PageTasks extends PageAdminTasks {
         //refresh feedback and table
         refreshTables(target);
     }
-
 
     private static class SearchFragment extends Fragment {
 
@@ -1262,5 +1372,135 @@ public class PageTasks extends PageAdminTasks {
 
             return categories;
         }
+    }
+
+    private void deleteAllClosedTasksConfirmedPerformed(AjaxRequestTarget target) {
+        OperationResult launchResult = new OperationResult(OPERATION_DELETE_ALL_CLOSED_TASKS);
+        Task task = createSimpleTask(OPERATION_DELETE_ALL_CLOSED_TASKS);
+
+        task.setHandlerUri(ModelPublicConstants.CLEANUP_TASK_HANDLER_URI);
+        task.setName("Closed tasks cleanup");
+
+        try {
+            CleanupPolicyType policy = new CleanupPolicyType();
+            policy.setMaxAge(XmlTypeConverter.createDuration(0));
+
+            CleanupPoliciesType policies = new CleanupPoliciesType();
+            policies.setClosedTasks(policy);
+
+            PrismProperty<CleanupPoliciesType> policiesProperty = getPrismContext().getSchemaRegistry()
+                    .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES).instantiate();
+            policiesProperty.setRealValue(policies);
+            task.setExtensionProperty(policiesProperty);
+        } catch (SchemaException e) {
+            LOGGER.error("Error dealing with schema (task {})", task, e);
+            launchResult.recordFatalError("Error dealing with schema", e);
+            throw new IllegalStateException("Error dealing with schema", e);
+        }
+
+        getTaskManager().switchToBackground(task, launchResult);
+
+        showResult(launchResult);
+        target.add(getFeedbackPanel());
+    }
+
+    private void addInlineMenuToTaskRow(TaskDto dto) {
+        addInlineMenuToTaskDto(dto);
+
+        List<TaskDto> list = new ArrayList<>();
+        if (dto.getSubtasks() != null) {
+            list.addAll(dto.getTransientSubtasks());
+        }
+        if (dto.getTransientSubtasks() != null) {
+            list.addAll(dto.getSubtasks());
+        }
+
+        for (TaskDto task : list) {
+            addInlineMenuToTaskDto(task);
+        }
+    }
+
+    private void addInlineMenuToTaskDto(final TaskDto dto) {
+        List<InlineMenuItem> items = dto.getMenuItems();
+        if (!items.isEmpty()) {
+            //menu was already added
+            return;
+        }
+
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.suspendTask"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        suspendTaskPerformed(target, dto);
+                    }
+                }));
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.resumeTask"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        resumeTaskPerformed(target, dto);
+                    }
+                }));
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.scheduleTask"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        scheduleTaskPerformed(target, dto);
+                    }
+                }));
+        items.add(new InlineMenuItem());
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteTask"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        deleteTaskPerformed(target, dto);
+                    }
+                }));
+    }
+
+    private void addInlineMenuToNodeRow(final NodeDto dto) {
+        List<InlineMenuItem> items = dto.getMenuItems();
+        if (!items.isEmpty()) {
+            //menu already added
+            return;
+        }
+
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.stopScheduler"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        stopSchedulersPerformed(target, dto);
+                    }
+                }));
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.stopSchedulerAndTasks"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        stopSchedulersAndTasksPerformed(target, dto);
+                    }
+                }));
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.startScheduler"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        startSchedulersPerformed(target, dto);
+                    }
+                }));
+        items.add(new InlineMenuItem());
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteNode"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        deleteNodesPerformed(target, dto);
+                    }
+                }));
     }
 }

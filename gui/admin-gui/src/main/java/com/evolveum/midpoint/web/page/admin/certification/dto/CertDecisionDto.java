@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
-import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;

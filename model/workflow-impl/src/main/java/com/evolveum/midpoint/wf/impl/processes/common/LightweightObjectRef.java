@@ -30,5 +30,7 @@ public interface LightweightObjectRef {
 
     String getDescription();
 
+    String getTargetName();
+
     ObjectReferenceType toObjectReferenceType();
 }

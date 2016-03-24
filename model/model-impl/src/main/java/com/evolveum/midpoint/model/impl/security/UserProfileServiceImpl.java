@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -49,6 +50,7 @@ import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -154,9 +156,9 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     	OperationResult result = new OperationResult(OPERATION_UPDATE_USER);
         try {
             save(principal, result);
-        } catch (RepositoryException ex) {
+        } catch (Exception ex) {
             LOGGER.warn("Couldn't save user '{}, ({})', reason: {}.",
-                    new Object[]{principal.getFullName(), principal.getOid(), ex.getMessage()});
+                    new Object[]{principal.getFullName(), principal.getOid(), ex.getMessage(), ex});
         }
     }
 
@@ -180,8 +182,12 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
 		Collection<Authorization> authorizations = principal.getAuthorities();
 		Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
-        CredentialsType credentials = userType.getCredentials();
 
+		Task task = taskManager.createTaskInstance(UserProfileServiceImpl.class.getName() + ".addAuthorizations");
+        OperationResult result = task.getResult();
+
+        principal.setApplicableSecurityPolicy(locateSecurityPolicy(principal, systemConfiguration, task, result));
+        
         if (userType.getAssignment().isEmpty()) {
         	if (systemConfiguration != null) {
         		principal.setAdminGuiConfiguration(systemConfiguration.asObjectable().getAdminGuiConfiguration());
@@ -210,8 +216,6 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         LensContext<UserType> lensContext = new LensContextPlaceholder<>(prismContext);
 		assignmentEvaluator.setLensContext(lensContext);
 		
-		Task task = taskManager.createTaskInstance(UserProfileServiceImpl.class.getName() + ".addAuthorizations");
-        OperationResult result = task.getResult();
         for(AssignmentType assignmentType: userType.getAssignment()) {
         	try {
         		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
@@ -239,19 +243,31 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         principal.setAdminGuiConfiguration(AdminGuiConfigTypeUtil.compileAdminGuiConfiguration(adminGuiConfigurations, systemConfiguration));
 	}
 
-	private MidPointPrincipal save(MidPointPrincipal person, OperationResult result) throws RepositoryException {
-        try {
-            UserType oldUserType = getUserByOid(person.getOid(), result);
-            PrismObject<UserType> oldUser = oldUserType.asPrismObject();
+	private SecurityPolicyType locateSecurityPolicy(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) {
+		if (systemConfiguration == null) {
+			return null;
+		}
+		ObjectReferenceType globalSecurityPolicyRef = systemConfiguration.asObjectable().getGlobalSecurityPolicyRef();
+		if (globalSecurityPolicyRef == null) {
+			return null;
+		}
+		try {
+			return objectResolver.resolve(globalSecurityPolicyRef, SecurityPolicyType.class, null, "global security policy reference in system configuration", task, result);
+		} catch (ObjectNotFoundException | SchemaException e) {
+			LOGGER.error(e.getMessage(), e);
+			return null;
+		}
+	}
 
-            PrismObject<UserType> newUser = person.getUser().asPrismObject();
+	private MidPointPrincipal save(MidPointPrincipal person, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        UserType oldUserType = getUserByOid(person.getOid(), result);
+        PrismObject<UserType> oldUser = oldUserType.asPrismObject();
 
-            ObjectDelta<UserType> delta = oldUser.diff(newUser);
-            repositoryService.modifyObject(UserType.class, delta.getOid(), delta.getModifications(),
-                    new OperationResult(OPERATION_UPDATE_USER));
-        } catch (Exception ex) {
-            throw new RepositoryException(ex.getMessage(), ex);
-        }
+        PrismObject<UserType> newUser = person.getUser().asPrismObject();
+
+        ObjectDelta<UserType> delta = oldUser.diff(newUser);
+        repositoryService.modifyObject(UserType.class, delta.getOid(), delta.getModifications(),
+                new OperationResult(OPERATION_UPDATE_USER));
 
         return person;
     }
@@ -267,11 +283,25 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     }
 
 	@Override
-	public <F extends FocusType> PrismObject<F> resolveOwner(PrismObject<ShadowType> shadow) {
-		if (shadow == null || shadow.getOid() == null) {
+	public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) {
+		if (object == null || object.getOid() == null) {
 			return null;
 		}
-		PrismObject<F> owner = repositoryService.searchShadowOwner(shadow.getOid(), null, new OperationResult(UserProfileServiceImpl.class+".resolveOwner"));
+		PrismObject<F> owner = null;
+		if (object.canRepresent(ShadowType.class)) {
+			owner = repositoryService.searchShadowOwner(object.getOid(), null, new OperationResult(UserProfileServiceImpl.class+".resolveOwner"));
+		} else if (object.canRepresent(AbstractRoleType.class)) {
+			ObjectReferenceType ownerRef = ((AbstractRoleType)(object.asObjectable())).getOwnerRef();
+			if (ownerRef != null && ownerRef.getOid() != null && ownerRef.getType() != null) {
+				OperationResult result = new OperationResult(UserProfileService.class.getName() + ".resolveOwner");
+				try {
+					owner = (PrismObject<F>) repositoryService.getObject(ObjectTypes.getObjectTypeFromTypeQName(ownerRef.getType()).getClassDefinition(),
+							ownerRef.getOid(), null, result);
+				} catch (ObjectNotFoundException | SchemaException e) {
+					LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
+				}
+			}
+		}
 		if (owner == null) {
 			return null;
 		}

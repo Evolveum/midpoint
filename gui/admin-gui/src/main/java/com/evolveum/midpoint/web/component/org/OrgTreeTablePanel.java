@@ -39,6 +39,10 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -54,8 +58,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractTreeTablePanel;
 import com.evolveum.midpoint.web.page.admin.users.component.OrgTreeProvider;
 import com.evolveum.midpoint.web.page.admin.users.component.SelectableFolderContent;
@@ -65,8 +67,6 @@ import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
@@ -185,7 +185,7 @@ public class OrgTreeTablePanel extends AbstractTreeTablePanel{
                 return createOrgChildQuery();
             }
         };
-        childTableProvider.setOptions(WebModelUtils.createMinimalOptions());
+        childTableProvider.setOptions(WebModelServiceUtils.createMinimalOptions());
 
         WebMarkupContainer childOrgUnitContainer = new WebMarkupContainer(ID_CONTAINER_CHILD_ORGS);
         childOrgUnitContainer.setOutputMarkupId(true);
@@ -267,7 +267,7 @@ public class OrgTreeTablePanel extends AbstractTreeTablePanel{
      * This method check selection in table.
      */
     public List<OrgTableDto> getSelectedOrgs(AjaxRequestTarget target) {
-        List<OrgTableDto> objects = WebMiscUtil.getSelectedData(getOrgChildTable());
+        List<OrgTableDto> objects = WebComponentUtil.getSelectedData(getOrgChildTable());
         if (objects.isEmpty()) {
             warn(getString("TreeTablePanel.message.nothingSelected"));
             target.add(getPageBase().getFeedbackPanel());
@@ -277,7 +277,7 @@ public class OrgTreeTablePanel extends AbstractTreeTablePanel{
     }
     
     public List<OrgTableDto> getSelectedOrgs() {
-        List<OrgTableDto> objects = WebMiscUtil.getSelectedData(getOrgChildTable());
+        List<OrgTableDto> objects = WebComponentUtil.getSelectedData(getOrgChildTable());
         if (objects.isEmpty()) {
 //            warn(getString("TreeTablePanel.message.nothingSelected"));
 //            target.add(getPageBase().getFeedbackPanel());
@@ -317,10 +317,10 @@ public class OrgTreeTablePanel extends AbstractTreeTablePanel{
             }
 
             OperationResult subResult = result.createSubresult(OPERATION_UPDATE_OBJECT);
-            ObjectDelta delta = WebModelUtils.createActivationAdminStatusDelta(object.getType(), object.getOid(),
+            ObjectDelta delta = WebModelServiceUtils.createActivationAdminStatusDelta(object.getType(), object.getOid(),
                     enable, page.getPrismContext());
 
-            WebModelUtils.save(delta, subResult, page);
+            WebModelServiceUtils.save(delta, subResult, page);
         }
         result.computeStatusComposite();
 

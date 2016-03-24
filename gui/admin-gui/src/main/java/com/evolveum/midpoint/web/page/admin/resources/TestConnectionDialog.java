@@ -10,6 +10,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.util.ListModel;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -18,7 +19,6 @@ import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.dialog.DeleteAllDialog;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.resources.dto.TestConnectionResultDto;
 
 public class TestConnectionDialog extends ModalWindow{

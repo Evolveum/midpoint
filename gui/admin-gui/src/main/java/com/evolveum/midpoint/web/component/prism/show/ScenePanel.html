@@ -1,0 +1,51 @@
+<!--
+  ~ Copyright (c) 2010-2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="box" wicket:id="box" style="margin-bottom: 0px;">
+        <div class="box-header with-border" wicket:id="headerPanel">
+            <h3 class="box-title" style="margin-right: 35px;">
+            <span wicket:id="wrapperDisplayName"/>
+            <span wicket:id="changeType"/>
+            <span wicket:id="objectType"/>
+            <small>
+                <span wicket:id="nameLabel"/><span wicket:id="nameLink"/> <span wicket:id="description"/>
+            </small>
+            </h3>
+            <div class="box-tools pull-right" wicket:id="optionButtons" />
+        </div>
+
+        <div wicket:id="body" class="box-body no-padding">
+            <table class="table table-striped table-hover table-bordered" wicket:id="itemsTable">
+                <tr>
+                    <th><wicket:message key="ScenePanel.item"/></th>
+                    <th wicket:id="oldValueLabel"><wicket:message key="ScenePanel.oldValue"/></th>
+                    <th wicket:id="newValueLabel"><wicket:message key="ScenePanel.newValue"/></th>
+                    <th wicket:id="valueLabel"><wicket:message key="ScenePanel.value"/></th>
+                </tr>
+                <wicket:container wicket:id="items">
+                    <span wicket:id="item"/>
+                </wicket:container>
+            </table>
+            <wicket:container wicket:id="partialScenes">
+                <div wicket:id="partialScene" style="padding: 10px;"/>
+            </wicket:container>
+        </div>
+    </div>
+</wicket:panel>
+</html>

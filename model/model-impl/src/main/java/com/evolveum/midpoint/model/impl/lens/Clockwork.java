@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
+import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.controller.ModelUtils;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.FocusConstraintsChecker;
@@ -156,6 +157,9 @@ public class Clockwork {
     @Autowired(required = true)
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService repositoryService;
+    
+    @Autowired(required = true)
+	private ModelObjectResolver objectResolver;
 
 	@Autowired
 	private transient ProvisioningService provisioningService;
@@ -952,14 +956,8 @@ public class Clockwork {
 		try {
 			
 			final LensFocusContext<F> focusContext = context.getFocusContext();
-			OwnerResolver ownerResolver = null;
+			OwnerResolver ownerResolver = new LensOwnerResolver<>(context, objectResolver, task, result);
 			if (focusContext != null) {
-				ownerResolver = new OwnerResolver() {
-					@Override
-					public <F extends FocusType> PrismObject<F> resolveOwner(PrismObject<ShadowType> shadow) {
-						return (PrismObject<F>) focusContext.getObjectCurrent();
-					}
-				};
 				authorizeElementContext(context, focusContext, ownerResolver, true, task, result);
 			}
 			for (LensProjectionContext projectionContext: context.getProjectionContexts()) {

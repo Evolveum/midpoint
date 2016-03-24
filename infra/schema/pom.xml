@@ -225,143 +225,8 @@
                             <wsdlRoot>${project.directory}/src/main/resources/xml</wsdlRoot>
                             <wsdlOptions>
                                 <wsdlOption>
-                                    <!-- Ugly hack. The fake WSDL includes the XSD file we need to compile.
-                                         This is the only way I found to skip generating java classes for included
-                                         schemas (namely, common-3); we need to use -nexclude parameter that is
-                                         available only in wsdl codegen plugin. -->
-                                    <wsdl>src/main/resources/xml/ns/private/fake/fakeWrapper-model-context.wsdl</wsdl>
-                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog-model-context.xml</catalog>
-                                    <extraargs>
-                                        <extraarg>-impl</extraarg>
-                                        <extraarg>-verbose</extraarg>
-                                        <extraarg>-validate</extraarg>
-                                        <extraarg>-xjc-nv</extraarg>
-                                        <extraarg>-xjc-Xts</extraarg>
-                                        <extraarg>-xjc-XhashCode</extraarg>
-                                        <extraarg>-xjc-Xequals</extraarg>
-                                        <extraarg>
-                                            -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
-                                        </extraarg>
-                                        <extraarg>-xjc-Xmidpoint</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-3</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://midpoint.evolveum.com/xml/ns/public/common/common-3</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://www.w3.org/2001/04/xmlenc</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://www.w3.org/2001/XMLSchema</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://www.w3.org/XML/1998/namespace</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://www.w3.org/2000/09/xmldsig</extraarg>
-                                    </extraargs>
-                                </wsdlOption>
-                                <wsdlOption>
-                                    <wsdl>src/main/resources/xml/ns/private/report/reportWrapper.wsdl</wsdl>
-                                    <wsdlLocation>classpath:xml/ns/private/report/reportWrapper.wsdl</wsdlLocation>
-                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog-report.xml</catalog>
-                                    <extraargs>
-                                        <extraarg>-impl</extraarg>
-                                        <extraarg>-verbose</extraarg>
-                                        <extraarg>-validate</extraarg>
-                                        <extraarg>-xjc-Xts</extraarg>
-                                        <extraarg>-xjc-XhashCode</extraarg>
-                                        <extraarg>-xjc-Xequals</extraarg>
-                                        <extraarg>
-                                            -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
-                                        </extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-3</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
-                                        <!-- 										<extraargs>-version</extraargs> -->
- 										<extraarg>-nexclude</extraarg>
-                                        <extraarg>http://midpoint.evolveum.com/xml/ns/public/common/common-3</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://www.w3.org/2001/04/xmlenc</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://www.w3.org/2001/XMLSchema</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://www.w3.org/XML/1998/namespace</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://www.w3.org/2000/09/xmldsig</extraarg>
-                                        <extraarg>-xjc-Xmidpoint</extraarg>
-                                    </extraargs>
-                                </wsdlOption>
-                                <wsdlOption>
-                                    <!-- Ugly hack. The fake WSDL includes the XSD file we need to compile.
-                                         This is the only way I found to skip generating java classes for included
-                                         schemas (namely, common-3); we need to use -nexclude parameter that is
-                                         available only in wsdl codegen plugin. -->
-                                    <wsdl>src/main/resources/xml/ns/private/fake/fakeWrapper-report.wsdl</wsdl>
-                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog-report.xml</catalog>
-                                    <extraargs>
-                                        <extraarg>-impl</extraarg>
-                                        <extraarg>-verbose</extraarg>
-                                        <extraarg>-validate</extraarg>
-                                        <extraarg>-xjc-Xts</extraarg>
-                                        <extraarg>-xjc-XhashCode</extraarg>
-                                        <extraarg>-xjc-Xequals</extraarg>
-                                        <extraarg>
-                                            -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
-                                        </extraarg>
-                                        <extraarg>-xjc-Xmidpoint</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-3</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://midpoint.evolveum.com/xml/ns/public/common/common-3</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://www.w3.org/2001/04/xmlenc</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://www.w3.org/2001/XMLSchema</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://www.w3.org/XML/1998/namespace</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://www.w3.org/2000/09/xmldsig</extraarg>
-                                    </extraargs>
-                                </wsdlOption>
-                                <wsdlOption>
-                                    <wsdl>src/main/resources/xml/ns/private/model/modelWrapper.wsdl</wsdl>
-                                    <wsdlLocation>classpath:xml/ns/private/model/modelWrapper.wsdl</wsdlLocation>
-                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog-compile-time.xml</catalog>
-                                    <extraargs>
-                                        <extraarg>-impl</extraarg>
-                                        <extraarg>-verbose</extraarg>
-                                        <extraarg>-validate</extraarg>
-                                        <extraarg>-xjc-Xts</extraarg>
-                                        <extraarg>-xjc-XhashCode</extraarg>
-                                        <extraarg>-xjc-Xequals</extraarg>
-                                        <extraarg>
-                                            -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
-                                        </extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-3</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
-                                        <!-- 										<extraargs>-version</extraargs> -->
-
-                                        <extraarg>-xjc-Xmidpoint</extraarg>
-                                    </extraargs>
-                                </wsdlOption>
-                                <wsdlOption>
-                                    <!-- Ugly hack. The fake WSDL includes all the XSD files we need to compile
-                                                  This is the only way I found to generate equals and hashCode methods with CXF.
-                                                  If you find anything better please correct it. -->
-                                    <wsdl>src/main/resources/xml/ns/private/fake/fakeWrapper.wsdl</wsdl>
-                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog-compile-time.xml</catalog>
+                                    <wsdl>src/main/resources/xml/ns/private/webservice/modelService.wsdl</wsdl>
+                                    <catalog>${basedir}/src/compile/resources/jax-ws-catalog.xml</catalog>
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>
@@ -382,49 +247,42 @@
                                         <extraarg>-nexclude</extraarg>
                                         <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
                                         <!-- 										<extraargs>-version</extraargs> -->
+                                        <extraarg>-xjc-Xmidpoint</extraarg>
+                                    </extraargs>
+                                </wsdlOption>
+                                <wsdlOption>
+                                    <!-- Besides generating stub for report web service, this WSDL includes all the other XSD files
+                                         we need to compile. This is the only way we found to generate equals and hashCode methods with CXF.
+                                         If you find anything better please correct it.
 
+                                         It would be nice if these two web services could be in one WSDL file. Unfortunately it's not possible,
+                                         as they are in different target namespaces. -->
+                                    <wsdl>src/main/resources/xml/ns/private/webservice/reportService.wsdl</wsdl>
+                                    <catalog>${basedir}/src/compile/resources/jax-ws-catalog.xml</catalog>
+                                    <extraargs>
+                                        <extraarg>-impl</extraarg>
+                                        <extraarg>-verbose</extraarg>
+                                        <extraarg>-validate</extraarg>
+                                        <extraarg>-xjc-Xts</extraarg>
+                                        <extraarg>-xjc-XhashCode</extraarg>
+                                        <extraarg>
+                                            -xjc-XhashCode-hashCodeStrategyClass=com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy
+                                        </extraarg>
+                                        <extraarg>-xjc-Xequals</extraarg>
+                                        <extraarg>
+                                            -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
+                                        </extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-3</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
+                                        <!-- 										<extraargs>-version</extraargs> -->
                                         <extraarg>-xjc-Xmidpoint</extraarg>
                                     </extraargs>
                                 </wsdlOption>
                             </wsdlOptions>
-                            <!--							<xsdOptions>
-                                       <xsdOption>
-                                           <xsd>src/main/resources/xml/ns/public/common/common-3.xsd</xsd>
-                                           <extensionArgs>
-                                               <extensionArg>-Xts</extensionArg>
-                                               <extensionArg>-Xequals</extensionArg>
-                                               <extensionArg>-xjc-XhashCode</extensionArg>
-                                           </extensionArgs>
-                                           <extension>true</extension>
-                                       </xsdOption>
-                                       <xsdOption>
-                                           <xsd>src/main/resources/xml/ns/public/resource/capabilities-3.xsd</xsd>
-                                           <extensionArgs>
-                                               <extensionArg>-Xts</extensionArg>
-                                               <extensionArg>-Xequals</extensionArg>
-                                               <extensionArg>-xjc-XhashCode</extensionArg>
-                                           </extensionArgs>
-                                           <extension>true</extension>
-                                       </xsdOption>
-                                       <xsdOption>
-                                           <xsd>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd</xsd>
-                                           <extensionArgs>
-                                               <extensionArg>-Xts</extensionArg>
-                                               <extensionArg>-Xequals</extensionArg>
-                                               <extensionArg>-xjc-XhashCode</extensionArg>
-                                           </extensionArgs>
-                                           <extension>true</extension>
-                                       </xsdOption>
-                                       <xsdOption>
-                                           <xsd>src/main/resources/xml/ns/public/connector/icf-1/connector-schema-3.xsd</xsd>
-                                           <extensionArgs>
-                                               <extensionArg>-Xts</extensionArg>
-                                               <extensionArg>-Xequals</extensionArg>
-                                               <extensionArg>-xjc-XhashCode</extensionArg>
-                                           </extensionArgs>
-                                           <extension>true</extension>
-                                       </xsdOption>
-                                   </xsdOptions> -->
                         </configuration>
                         <goals>
                             <goal>wsdl2java</goal>
@@ -449,37 +307,8 @@
                     </dependency>
                 </dependencies>
             </plugin>
-            <!--
-               <plugin>
-                   <groupId>org.apache.cxf</groupId>
-                   <artifactId>cxf-xjc-plugin</artifactId>
-                   <version>${cxf-xjc.version}</version>
-                   <configuration>
-                       <extensions>
-                           <extension>org.apache.cxf.xjcplugins:cxf-xjc-dv:${cxf-xjc.version}</extension>
-                       </extensions>
-                   </configuration>
-                   <executions>
-                       <execution>
-                           <id>generate-sources</id>
-                           <phase>generate-sources</phase>
-                           <goals>
-                               <goal>xsdtojava</goal>
-                           </goals>
-                           <configuration>
-                               <sourceRoot>${project.build.directory}/generated/cxf</sourceRoot>
-                               <xsdOptions>
-                               </xsdOptions>
-                               <extensions> -->
-            <!--extension>org.apache.cxf.xjcplugins:cxf-xjc-dv:${cxf.version}</extension-->
-            <!--  <extension>org.apache.cxf.xjcplugins:cxf-xjc-ts:${cxf-xjc.version}</extension>
-                               </extensions>
-                           </configuration>
-                       </execution>
-                   </executions>
-               </plugin> -->
-               <plugin>
-		<groupId>com.evolveum.midpoint.infra</groupId>
+            <plugin>
+                <groupId>com.evolveum.midpoint.infra</groupId>
                 <artifactId>prism-maven-plugin</artifactId>
                 <version>3.4-SNAPSHOT</version>
                 <configuration>
@@ -489,16 +318,20 @@
                         <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/model/scripting/scripting-3.xsd</schemaFile>
                     </schemaFiles>
+                    <catalogFiles>
+                        <catalogFile>src/compile/resources/jax-ws-catalog.xml</catalogFile>
+                        <catalogFile>src/main/resources/META-INF/schemas-in-this-module.xml</catalogFile>   <!-- nextCatalog doesn't work for unknown reason -->
+                    </catalogFiles>
                     <templateDir>src/main/schemadoc/templates</templateDir>
                 </configuration>
                 <executions>
-                  <execution>
-                    <id>schemadoc</id>
-                    <phase>package</phase>
-                    <goals>  
-                      <goal>schemadoc</goal>  
-                    </goals>
-                  </execution>
+                    <execution>
+                        <id>schemadoc</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>schemadoc</goal>
+                        </goals>
+                    </execution>
                 </executions>
             </plugin>
         </plugins>

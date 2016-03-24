@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -30,8 +32,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
@@ -39,8 +39,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-
-import javax.xml.namespace.QName;
 
 import java.io.Serializable;
 import java.util.*;
@@ -66,6 +64,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 
     private boolean showEmpty;
     private boolean minimalized;
+    private boolean sorted;
     private boolean selectable;
     private boolean selected;
 
@@ -179,7 +178,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 
     public String getDisplayName() {
         if (displayName == null) {
-            return WebMiscUtil.getName(object);
+            return WebComponentUtil.getName(object);
         }
         return displayName;
     }
@@ -198,6 +197,14 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 
     public void setMinimalized(boolean minimalized) {
         this.minimalized = minimalized;
+    }
+
+    public boolean isSorted() {
+        return sorted;
+    }
+
+    public void setSorted(boolean sorted) {
+        this.sorted = sorted;
     }
 
     public boolean isShowEmpty() {
@@ -334,6 +341,13 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
                     if (itemWrapper instanceof PropertyWrapper) {
                         ItemDelta pDelta = computePropertyDeltas((PropertyWrapper) itemWrapper, containerPath);
                         if (!pDelta.isEmpty()) {
+                            //HACK to remove a password replace delta is to be created
+                            if (containerWrapper.getName().equals(CredentialsType.F_PASSWORD)) {
+                                if (pDelta.getValuesToDelete() != null){
+                                    pDelta.resetValuesToDelete();
+                                    pDelta.setValuesToReplace(new ArrayList());
+                                }
+                            }
                             delta.addModification(pDelta);
                         }
                     } else if (itemWrapper instanceof ReferenceWrapper) {
@@ -380,7 +394,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 
     }
 
-    private void addItemDelta(ItemWrapper itemWrapper, ItemDelta pDelta, ItemDefinition propertyDef,
+    private void addItemDelta(ItemWrapper<? extends Item, ? extends ItemDefinition> itemWrapper, ItemDelta pDelta, ItemDefinition propertyDef,
                               ItemPath containerPath) {
         for (ValueWrapper valueWrapper : itemWrapper.getValues()) {
             valueWrapper.normalize(propertyDef.getPrismContext());
@@ -487,7 +501,8 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         }
     }
 
-    private PrismValue clone(PrismValue value) {
+    // TODO move to appropriate place!
+    public static PrismValue clone(PrismValue value) {
         if (value == null) {
             return null;
         }
@@ -571,34 +586,16 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
                 container = object;
             }
 
-            for (ItemWrapper propertyWrapper : (List<ItemWrapper>) containerWrapper.getItems()) {
-                if (!propertyWrapper.hasChanged()) {
+            for (ItemWrapper itemWrapper : (List<ItemWrapper>) containerWrapper.getItems()) {
+                if (!itemWrapper.hasChanged()) {
                     continue;
                 }
-
-                Item property = propertyWrapper.getItem().clone();
-                if (container.findProperty(property.getElementName()) != null) {
+                if (container.findItem(itemWrapper.getName()) != null) {
                     continue;
                 }
-                for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
-                    valueWrapper.normalize(object.getPrismContext());
-                    if (!valueWrapper.hasValueChanged()
-                            || ValueStatus.DELETED.equals(valueWrapper.getStatus())) {
-                        continue;
-                    }
-
-                    if (property.hasRealValue(valueWrapper.getValue())) {
-                        continue;
-                    }
-
-                    PrismValue cloned = clone(valueWrapper.getValue());
-                    if (cloned != null) {
-                        property.add(cloned);
-                    }
-                }
-
-                if (!property.isEmpty()) {
-                    container.add(property);
+                Item updatedItem = ((PropertyOrReferenceWrapper) itemWrapper).getUpdatedItem(object.getPrismContext());
+                if (!updatedItem.isEmpty()) {
+                    container.add(updatedItem);
                 }
             }
         }

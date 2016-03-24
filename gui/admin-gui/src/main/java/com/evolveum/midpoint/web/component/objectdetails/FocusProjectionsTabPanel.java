@@ -17,63 +17,41 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
-import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.page.admin.users.component.*;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.JavaScriptHeaderItem;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.*;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.namespace.QName;
 
@@ -198,7 +176,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		ResourcesSelectionPanel.Context context = new ResourcesSelectionPanel.Context(this) {
 			@Override
 			public FocusProjectionsTabPanel getRealParent() {
-				return WebMiscUtil.theSameForPage(FocusProjectionsTabPanel.this, getCallingPageReference());
+				return WebComponentUtil.theSameForPage(FocusProjectionsTabPanel.this, getCallingPageReference());
 			}
 
 			@Override
@@ -254,11 +232,11 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				getPrismContext().adopt(shadow);
 
 				ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(
-						WebMiscUtil.getOrigStringFromPoly(resource.getName()), null, shadow.asPrismObject(),
+						WebComponentUtil.getOrigStringFromPoly(resource.getName()), null, shadow.asPrismObject(),
 						ContainerStatus.ADDING, getPageBase());
 				if (wrapper.getResult() != null
-						&& !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-					showResultInSession(wrapper.getResult());
+						&& !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
+					showResult(wrapper.getResult(), false);
 				}
 
 				wrapper.setShowEmpty(true);
@@ -369,7 +347,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 			return;
 		}
 
-		showModalWindow(MODAL_ID_CONFIRM_DELETE_SHADOW, target);
+		showModalWindow(getDeleteProjectionPopupContent(),
+                createStringResource("pageAdminFocus.title.confirmDelete"), target);
 	}
 	
 	private boolean isAnyProjectionSelected(AjaxRequestTarget target,
@@ -444,4 +423,41 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		}
 		target.add(get(createComponentPath(componentPath)));
 	}
+
+    private Component getDeleteProjectionPopupContent(){
+        ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
+                new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        return createStringResource("pageAdminFocus.message.deleteAccountConfirm",
+                                getSelectedProjections(projectionModel).size()).getString();
+                    }
+                }) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                ModalWindow modalWindow = findParent(ModalWindow.class);
+                if (modalWindow != null) {
+                    modalWindow.close(target);
+                    deleteAccountConfirmedPerformed(target, getSelectedProjections(projectionModel));
+                }
+            }
+        };
+        return dialog;
+    }
+
+    private void deleteAccountConfirmedPerformed(AjaxRequestTarget target,
+                                                 List<FocusProjectionDto> selected) {
+        List<FocusProjectionDto> accounts = projectionModel.getObject();
+        for (FocusProjectionDto account : selected) {
+            if (UserDtoStatus.ADD.equals(account.getStatus())) {
+                accounts.remove(account);
+            } else {
+                account.setStatus(UserDtoStatus.DELETE);
+            }
+        }
+        target.add(get(createComponentPath(ID_SHADOWS)));
+    }
+
 }

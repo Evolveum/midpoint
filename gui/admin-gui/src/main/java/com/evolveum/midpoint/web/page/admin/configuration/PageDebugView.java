@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -38,10 +40,8 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.AceEditor;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -103,12 +103,12 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     @Override
-    protected IModel<String> createPageSubTitleModel() {
+    protected IModel<String> createPageTitleModel() {
         return new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
-                return createStringResource("PageDebugView.subTitle", model.getObject().getName()).getString();
+                return createStringResource("PageDebugView.title", model.getObject().getName()).getString();
             }
         };
     }
@@ -157,7 +157,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
             PrismContext context = application.getPrismContext();
             String xml = context.serializeObjectToString(object, PrismContext.LANG_XML);
-            dto = new ObjectViewDto(object.getOid(), WebMiscUtil.getName(object), object, xml);
+            dto = new ObjectViewDto(object.getOid(), WebComponentUtil.getName(object), object, xml);
 
             result.recomputeStatus();
         } catch (Exception ex) {
@@ -165,16 +165,14 @@ public class PageDebugView extends PageAdminConfiguration {
         }
 
         if (dto == null) {
-            showResultInSession(result);
+            showResult(result);
             throw new RestartResponseException(PageDebugList.class);
         }
 
-        if (!result.isSuccess()) {
-            showResult(result);
-        }
-
-        if (!WebMiscUtil.isSuccessOrHandledErrorOrWarning(result)) {
-            showResultInSession(result);
+            showResult(result, false);
+      
+        if (!WebComponentUtil.isSuccessOrHandledErrorOrWarning(result)) {
+            showResult(result, false);
             throw new RestartResponseException(PageDebugList.class);
         }
 
@@ -184,7 +182,7 @@ public class PageDebugView extends PageAdminConfiguration {
     private void initLayout() {
         add(mainForm);
 
-        final IModel<Boolean> editable = new Model<Boolean>(false);
+//        final IModel<Boolean> editable = new Model<Boolean>(false);
 
         mainForm.add(new AjaxCheckBox("encrypt", encrypt) {
 
@@ -214,14 +212,6 @@ public class PageDebugView extends PageAdminConfiguration {
 			}
         });
 
-        mainForm.add(new AjaxCheckBox("edit", editable) {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                editPerformed(target, editable.getObject());
-            }
-        });
-
         mainForm.add(new AjaxCheckBox("switchToPlainText", switchToPlainText) {
 
             @Override
@@ -240,12 +230,10 @@ public class PageDebugView extends PageAdminConfiguration {
         plainTextarea = new TextArea<>(ID_PLAIN_TEXTAREA,
                 new PropertyModel<String>(model, ObjectViewDto.F_XML));
         plainTextarea.setVisible(false);
-        plainTextarea.setEnabled(editable.getObject());
 
         mainForm.add(plainTextarea);
 
         editor = new AceEditor("aceEditor", new PropertyModel<String>(model, ObjectViewDto.F_XML));
-        editor.setReadonly(!editable.getObject());
         mainForm.add(editor);
 
         initButtons(mainForm);
@@ -272,26 +260,10 @@ public class PageDebugView extends PageAdminConfiguration {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                //target.appendJavaScript("history.go(-1)");
-                //todo wtf????
-                Page requestPage = (Page)getSession().getAttribute("requestPage");
-
-                if(requestPage != null){
-                	setResponsePage(requestPage);
-                	getSession().setAttribute("requestPage", null);
-                } else {
-                	setResponsePage(new PageDebugList(false));
-                }
+                redirectBack();
             }
         };
         mainForm.add(backButton);
-    }
-
-    public void editPerformed(AjaxRequestTarget target, boolean editable) {
-        editor.setReadonly(!editable);
-        plainTextarea.setEnabled(editable);
-        target.add(mainForm);
-        editor.refreshReadonly(target);
     }
     
     private boolean isReport(PrismObject object){
@@ -371,7 +343,7 @@ public class PageDebugView extends PageAdminConfiguration {
             showResult(result);
             target.add(getFeedbackPanel());
         } else {
-            showResultInSession(result);
+            showResult(result);
             setResponsePage(new PageDebugList(false));
         }
     }

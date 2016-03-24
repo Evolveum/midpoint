@@ -19,78 +19,8 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm" class="form-horizontal">
-        <div class="row">
-            <div class="col-md-6">
-                <h3><wicket:message key="pageWorkItem.mainInfo"/></h3>
-                <table class="table table-condensed table-striped">
-                    <tr>
-                        <td><wicket:message key="pageWorkItem.requestedBy" /></td>
-                        <td><b><span wicket:id="requestedBy" /></b> (<span
-                                wicket:id="requestedByFullName" />)</td>
-                    </tr>
-                    <tr>
-                        <td><wicket:message key="pageWorkItem.requestedOn" /></td>
-                        <td><b><span wicket:id="requestedOn" /></b></td>
-                    </tr>
-                    <tr>
-                        <td><wicket:message key="pageWorkItem.workItemCreatedOn" /></td>
-                        <td><b><span wicket:id="workItemCreatedOn" /></b></td>
-                    </tr>
-                    <tr>
-                        <td><wicket:message key="pageWorkItem.assignee" /></td>
-                        <td><b><span wicket:id="assignee" /></b></td>
-                    </tr>
-                    <tr>
-                        <td><wicket:message key="pageWorkItem.candidates" /></td>
-                        <td><b><span wicket:id="candidates" /></b></td>
-                    </tr>
-                </table>
-
-                <div wicket:id="requestSpecificForm"/>
-            </div>
-            <div class="col-md-6">
-                <div wicket:id="requesterForm"/>
-                <div wicket:id="additionalDataForm"/>
-                <div wicket:id="objectOldForm"/>
-                <div wicket:id="objectNewForm"/>
-                <div wicket:id="trackingDataForm"/>
-
-                <h3><wicket:message key="pageWorkItem.additionalInfo"/></h3>
-
-                <div wicket:id="accordion">
-                    <li wicket:id="deltaInfo">
-                        <div wicket:id="deltaPanel"/>
-                    </li>
-                    <li wicket:id="requesterAccordionInfo">
-                        <div wicket:id="requesterPanel"/>
-                    </li>
-                    <li wicket:id="objectOldAccordionInfo">
-                        <div wicket:id="objectOldPanel"/>
-                    </li>
-                    <li wicket:id="objectNewAccordionInfo">
-                        <div wicket:id="objectNewPanel"/>
-                    </li>
-                    <li wicket:id="additionalDataAccordionInfo">
-                        <div wicket:id="additionalDataPanel"/>
-                    </li>
-                    <li wicket:id="processInstanceAccordionInfo">
-                        <div wicket:id="processInstancePanel"/>
-                    </li>
-                </div>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="col-lg-2 control-label"><wicket:message key="pageWorkItem.options"/></label>
-
-            <div class="col-lg-8">
-                <label class="col-lg-4 checkbox-inline">
-                    <input type="checkbox" class="form-control" wicket:id="showTechnicalInformation" />
-                    <wicket:message key="pageWorkItem.label.showTechnicalInformation"/>
-                </label>
-            </div>
-        </div>
-
+        <div wicket:id="workItemPanel"/>
+        <p/>
         <div class="main-button-bar">
             <span class="button-group">
                 <a class="btn btn-default" wicket:id="cancel" />

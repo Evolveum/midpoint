@@ -26,6 +26,7 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.ObjectPolicyConfigurationEditor;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AEPlevel;
@@ -33,7 +34,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyConfig
 import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 
 /**
  * @author lazyman
@@ -80,7 +80,7 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
 
         DropDownChoice<AEPlevel> aepLevel = new DropDownChoice<>(ID_GLOBAL_AEP,
                 new PropertyModel<AEPlevel>(getModel(), SystemConfigurationDto.F_AEP_LEVEL),
-                WebMiscUtil.createReadonlyModelFromEnum(AEPlevel.class),
+                WebComponentUtil.createReadonlyModelFromEnum(AEPlevel.class),
                 new EnumChoiceRenderer<AEPlevel>(SystemConfigPanel.this));
         aepLevel.setOutputMarkupId(true);
         if(aepLevel.getModel().getObject() == null){
@@ -90,9 +90,9 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
         add(aepLevel);
         
 
-        TextField<String> auditRecordsField = WebMiscUtil.createAjaxTextField(ID_CLEANUP_AUDIT_RECORDS, new PropertyModel<String>(getModel(), SystemConfigurationDto.F_AUDIT_CLEANUP));
+        TextField<String> auditRecordsField = WebComponentUtil.createAjaxTextField(ID_CLEANUP_AUDIT_RECORDS, new PropertyModel<String>(getModel(), SystemConfigurationDto.F_AUDIT_CLEANUP));
         
-        TextField<String> closedTasksField = WebMiscUtil.createAjaxTextField(ID_CLEANUP_CLOSED_TASKS, new PropertyModel<String>(getModel(), SystemConfigurationDto.F_TASK_CLEANUP));
+        TextField<String> closedTasksField = WebComponentUtil.createAjaxTextField(ID_CLEANUP_CLOSED_TASKS, new PropertyModel<String>(getModel(), SystemConfigurationDto.F_TASK_CLEANUP));
         
         add(auditRecordsField);
         add(closedTasksField);
@@ -101,7 +101,7 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
         createTooltip(ID_CLEANUP_CLOSED_TASKS_TOOLTIP);
 
         
-        CheckBox experimentalCodeCheck = WebMiscUtil.createAjaxCheckBox(ID_EXPERIMENTAL_CODE_CHECKBOX, new PropertyModel<Boolean>(getModel(), SystemConfigurationDto.F_ENABLE_EXPERIMENTAL_CODE));
+        CheckBox experimentalCodeCheck = WebComponentUtil.createAjaxCheckBox(ID_EXPERIMENTAL_CODE_CHECKBOX, new PropertyModel<Boolean>(getModel(), SystemConfigurationDto.F_ENABLE_EXPERIMENTAL_CODE));
         add(experimentalCodeCheck);
        
     

@@ -16,16 +16,16 @@
 
 package com.evolveum.midpoint.web.component.search;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.PageBase;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
@@ -110,6 +110,14 @@ public class SearchPanel extends BasePanel<Search> {
                 togglePopover(target, button, popover, 14);
             }
         };
+        more.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                Search search = getModelObject();
+                return !search.getAvailableDefinitions().isEmpty();
+            }
+        });
         more.setOutputMarkupId(true);
         form.add(more);
 

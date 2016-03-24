@@ -46,6 +46,9 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.Strings;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -75,7 +78,6 @@ import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.server.dto.ScheduleValidator;
 import com.evolveum.midpoint.web.page.admin.server.dto.StartEndDateValidator;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddDto;
@@ -83,8 +85,6 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddResourcesDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TsaValidator;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -201,7 +201,7 @@ public class PageTaskAdd extends PageAdminTasks {
                 TaskAddResourcesDto resourcesDto = model.getObject().getResource();
 
                 if(resourcesDto != null){
-                    PrismObject<ResourceType> resource = WebModelUtils.loadObject(ResourceType.class, 
+                    PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class, 
                     		resourcesDto.getOid(), PageTaskAdd.this, task, result);
 
                     try {
@@ -249,7 +249,7 @@ public class PageTaskAdd extends PageAdminTasks {
         
         final DropDownChoice kind = new DropDownChoice<>(ID_KIND,
                 new PropertyModel<ShadowKindType>(model, TaskAddDto.F_KIND),
-                WebMiscUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer<ShadowKindType>());
+                WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer<ShadowKindType>());
         kind.setOutputMarkupId(true);
         kind.add(new VisibleEnableBehaviour(){
 
@@ -307,7 +307,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
                     @Override
                     public List<String> getObject() {
-                        return WebMiscUtil.createTaskCategoryList();
+                        return WebComponentUtil.createTaskCategoryList();
                     }
                 }, new StringChoiceRenderer("pageTask.category."));
         type.add(new AjaxFormComponentUpdatingBehavior("change") {
@@ -497,14 +497,14 @@ public class PageTaskAdd extends PageAdminTasks {
             public void setObject(ThreadStopActionType object) {
                 model.getObject().setThreadStop(object);
             }
-        }, WebMiscUtil.createReadonlyModelFromEnum(ThreadStopActionType.class),
+        }, WebComponentUtil.createReadonlyModelFromEnum(ThreadStopActionType.class),
                 new EnumChoiceRenderer<ThreadStopActionType>(PageTaskAdd.this));
         mainForm.add(threadStop);
 
         mainForm.add(new TsaValidator(runUntilNodeDown, threadStop));
 
         DropDownChoice misfire = new DropDownChoice<>(ID_MISFIRE_ACTION, new PropertyModel<MisfireActionType>(
-                model, TaskAddDto.F_MISFIRE_ACTION), WebMiscUtil.createReadonlyModelFromEnum(MisfireActionType.class),
+                model, TaskAddDto.F_MISFIRE_ACTION), WebComponentUtil.createReadonlyModelFromEnum(MisfireActionType.class),
                 new EnumChoiceRenderer<MisfireActionType>(PageTaskAdd.this));
         mainForm.add(misfire);
     }
@@ -581,7 +581,7 @@ public class PageTaskAdd extends PageAdminTasks {
             ResourceType item = null;
             for (PrismObject<ResourceType> resource : resources) {
                 item = resource.asObjectable();
-                resourceList.add(new TaskAddResourcesDto(item.getOid(), WebMiscUtil.getOrigStringFromPoly(item.getName())));
+                resourceList.add(new TaskAddResourcesDto(item.getOid(), WebComponentUtil.getOrigStringFromPoly(item.getName())));
             }
         }
         return resourceList;
@@ -608,7 +608,7 @@ public class PageTaskAdd extends PageAdminTasks {
             result.recordFatalError("Unable to save task.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't add new task", ex);
         }
-        showResultInSession(result);
+        showResult(result);
         target.add(getFeedbackPanel());
     }
 
@@ -642,7 +642,7 @@ public class PageTaskAdd extends PageAdminTasks {
             task.setObjectRef(objectRef);
         }
 
-        task.setName(WebMiscUtil.createPolyFromOrigString(dto.getName()));
+        task.setName(WebComponentUtil.createPolyFromOrigString(dto.getName()));
 
         task.setRecurrence(dto.getReccuring() ? TaskRecurrenceType.RECURRING : TaskRecurrenceType.SINGLE);
         task.setBinding(dto.getBound() ? TaskBindingType.TIGHT : TaskBindingType.LOOSE);

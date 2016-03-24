@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -151,7 +153,33 @@ public class InOidFilter extends ObjectFilter {
 
 	@Override
 	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-		return false;
+		if (value == null) {
+			return false;			// just for sure
+		}
+
+		// are we a prism object?
+		if (value.getParent() instanceof PrismObject) {
+			if (considerOwner) {
+				return false;
+			}
+			String oid = ((PrismObject) (value.getParent())).getOid();
+			return StringUtils.isNotBlank(oid) && oids != null && oids.contains(oid);
+		}
+
+		final PrismContainerValue pcvToConsider;
+		if (considerOwner) {
+			if (!(value.getParent() instanceof PrismContainer)) {
+				return false;
+			}
+			PrismContainer container = (PrismContainer) value.getParent();
+			if (!(container.getParent() instanceof PrismContainerValue)) {
+				return false;
+			}
+			pcvToConsider = (PrismContainerValue) container.getParent();
+		} else {
+			pcvToConsider = value;
+		}
+		return pcvToConsider.getId() != null && oids.contains(pcvToConsider.getId());
 	}
 
 	@Override

@@ -31,11 +31,11 @@
         </xsd:documentation>
     </xsd:annotation>
     
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
-    			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+    <!--<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" -->
+    			<!--schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>-->
 
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/model/scripting/scripting-2"/>
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/model/scripting/scripting-3"/>
 
     <xsd:element name="executeScript" type="s:ExecuteScriptType">
         <xsd:annotation>

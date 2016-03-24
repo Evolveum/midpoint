@@ -23,9 +23,10 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 
 import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
+
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -136,7 +137,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
             result.computeStatusIfUnknown();
         }
 
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             handleNotSuccessOrHandledErrorInIterator(result);
         }
 
@@ -145,7 +146,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
     }
 
     protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result){
-        getPage().showResultInSession(result);
+        getPage().showResult(result);
         throw new RestartResponseException(PageError.class);
     }
 
@@ -172,8 +173,8 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
             result.computeStatusIfUnknown();
         }
 
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
-            getPage().showResultInSession(result);
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+            getPage().showResult(result);
             throw new RestartResponseException(PageError.class);
         }
 

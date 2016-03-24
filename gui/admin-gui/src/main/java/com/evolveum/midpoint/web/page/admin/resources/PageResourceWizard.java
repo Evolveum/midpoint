@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -24,11 +27,8 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.wizard.Wizard;
 import com.evolveum.midpoint.web.component.wizard.resource.*;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.commons.lang.StringUtils;
@@ -76,7 +76,7 @@ public class PageResourceWizard extends PageAdminResources {
                     }
 
                     Task task = createSimpleTask("loadResource");
-                    PrismObject<ResourceType> resource = WebModelUtils.loadObject(ResourceType.class, getResourceOid(),
+                    PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class, getResourceOid(),
                             PageResourceWizard.this, task, task.getResult());
 
                     PageResourceWizard.this.getPrismContext().adopt(resource);
@@ -116,21 +116,6 @@ public class PageResourceWizard extends PageAdminResources {
     }
 
     @Override
-    protected IModel<String> createPageSubTitleModel() {
-        return new LoadableModel<String>(false) {
-
-            @Override
-            protected String load() {
-                if (!isResourceOidAvailable()) {
-                    return null;
-                }
-
-                return WebMiscUtil.getName(model.getObject());
-            }
-        };
-    }
-
-    @Override
     protected IModel<String> createPageTitleModel() {
         return new LoadableModel<String>(false) {
 
@@ -140,7 +125,8 @@ public class PageResourceWizard extends PageAdminResources {
                     return PageResourceWizard.super.createPageTitleModel().getObject();
                 }
 
-                return new StringResourceModel("page.title.editResource", PageResourceWizard.this, null).getString();
+                String name = WebComponentUtil.getName(model.getObject());
+                return createStringResource("PageResourceWizard.title.edit", name).getString();
             }
         };
     }

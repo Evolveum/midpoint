@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -32,15 +34,15 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.page.admin.users.component.*;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -76,8 +78,6 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 	private static final String ID_ROW = "assignmentEditor";
 	private static final String ID_MODAL_ASSIGN = "assignablePopup";
 	private static final String ID_MODAL_ASSIGN_ORG = "assignableOrgPopup";
-
-	private static final String ID_MODAL_DELETE_ASSIGNMENT = "deleteAssignmentPopup";
 
 	AssignableSelectionPanel.Context assignableSelectionContext;
 	AbstractAssignableSelectionPanel.Context assignableOrgSelectionContext;
@@ -148,7 +148,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 			@Override
 			public AssignmentTablePanel getRealParent() {
-				return WebMiscUtil.theSameForPage(AssignmentTablePanel.this, getCallingPageReference());
+				return WebComponentUtil.theSameForPage(AssignmentTablePanel.this, getCallingPageReference());
 			}
 
 			@Override
@@ -186,7 +186,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 			@Override
 			public AssignmentTablePanel getRealParent() {
-				return WebMiscUtil.theSameForPage(AssignmentTablePanel.this, getCallingPageReference());
+				return WebComponentUtil.theSameForPage(AssignmentTablePanel.this, getCallingPageReference());
 			}
 
 			@Override
@@ -227,25 +227,6 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		};
 		AssignableSelectionPage.prepareDialog(assignWindow, assignableSelectionContext, this, "AssignmentTablePanel.modal.title.selectAssignment", ID_ASSIGNMENTS);
 		add(assignWindow);
-
-		ModalWindow deleteDialog = new ConfirmationDialog(ID_MODAL_DELETE_ASSIGNMENT,
-				createStringResource("AssignmentTablePanel.modal.title.confirmDeletion"),
-				new AbstractReadOnlyModel<String>() {
-
-					@Override
-					public String getObject() {
-						return createStringResource("AssignmentTablePanel.modal.message.delete",
-								getSelectedAssignments().size()).getString();
-					}
-				}) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-				deleteAssignmentConfirmedPerformed(target, getSelectedAssignments());
-			}
-		};
-		add(deleteDialog);
 	}
 
 	private List<InlineMenuItem> createAssignmentMenu() {
@@ -329,7 +310,11 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		window.show(target);
 	}
 
-	private void showAssignablePopupPerformed(AjaxRequestTarget target, Class<? extends ObjectType> type,
+    protected void showModalWindow(Component body, IModel<String> title, AjaxRequestTarget target) {
+        getPageBase().showMainPopup(body, title, target);
+    }
+
+    private void showAssignablePopupPerformed(AjaxRequestTarget target, Class<? extends ObjectType> type,
 			QName searchParameter) {
 		assignableSelectionContext.setType(type);
 		assignableSelectionContext.setSearchParameter(searchParameter);
@@ -350,8 +335,30 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 			return;
 		}
 
-		showModalWindow(ID_MODAL_DELETE_ASSIGNMENT, target);
+		showModalWindow(getDeleteAssignmentPopupContent(), createStringResource("AssignmentTablePanel.modal.title.confirmDeletion"), target);
 	}
+
+    private Component getDeleteAssignmentPopupContent(){
+        return new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
+                new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        return createStringResource("AssignmentTablePanel.modal.message.delete",
+                                getSelectedAssignments().size()).getString();
+                    }
+                }) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                ModalWindow modalWindow = findParent(ModalWindow.class);
+                if (modalWindow != null) {
+                    modalWindow.close(target);
+                    deleteAssignmentConfirmedPerformed(target, getSelectedAssignments());
+                }
+            }
+        };
+    }
 
 	private void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target,
 			List<AssignmentEditorDto> toDelete) {
@@ -515,7 +522,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 			ItemPath deltaPath = delta.getPath().rest();
 			ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
 
-			delta.setParentPath(WebMiscUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
+			delta.setParentPath(WebComponentUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
 			delta.applyDefinition(deltaDef);
 
 			userDelta.addModification(delta);

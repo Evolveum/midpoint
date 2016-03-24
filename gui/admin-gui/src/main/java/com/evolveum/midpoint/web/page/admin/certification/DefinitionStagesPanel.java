@@ -109,13 +109,6 @@ public class DefinitionStagesPanel extends SimplePanel<List<StageDefinitionDto>>
         dto.setName(DEFAULT_STAGE_NAME + (getModel().getObject().size() + 1));
         //create reviewers objects
         AccessCertificationReviewerDto reviewerDto = new AccessCertificationReviewerDto();
-        ObjectViewDto defaultReviewer = new ObjectViewDto();
-        defaultReviewer.setType(UserType.class);
-        ObjectViewDto additionalReviewer = new ObjectViewDto();
-        additionalReviewer.setType(UserType.class);
-        reviewerDto.setFirstDefaultReviewerRef(defaultReviewer);
-        reviewerDto.setFirstAdditionalReviewerRef(additionalReviewer);
-
         dto.setReviewerDto(reviewerDto);
         return dto;
     }

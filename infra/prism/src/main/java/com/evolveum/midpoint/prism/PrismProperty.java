@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -241,6 +241,9 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
     }
 
     public void addValues(Collection<PrismPropertyValue<T>> pValuesToAdd) {
+		if (pValuesToAdd == null) {
+			return;
+		}
     	for (PrismPropertyValue<T> pValue: pValuesToAdd) {
     		addValue(pValue);
     	}
@@ -393,6 +396,16 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
     	}
     	return (PropertyDelta<T>)deltas.get(0);
     }
+    
+    public static <T> PropertyDelta<T> diff(PrismProperty<T> a, PrismProperty<T> b) {
+		if (a == null) {
+			PropertyDelta<T> delta = b.createDelta();
+			delta.addValuesToAdd(PrismValue.cloneCollection(b.getValues()));
+			return delta;
+		} else {
+			return a.diff(b);
+		}
+	}
 
 	@Override
 	protected void checkDefinition(PrismPropertyDefinition<T> def) {

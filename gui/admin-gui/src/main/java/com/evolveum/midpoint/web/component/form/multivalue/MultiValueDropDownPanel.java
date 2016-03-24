@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.component.form.multivalue;
 
-import com.evolveum.midpoint.web.component.util.BasePanel;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;

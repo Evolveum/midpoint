@@ -23,14 +23,14 @@ package com.evolveum.midpoint.wf.impl.processors.primary;
  */
 public class PcpProcessVariableNames {
 
-    // Java class name of the process aspect (the same as wf:primaryChangeAspect task property) [String]
-    public static final String VARIABLE_MIDPOINT_CHANGE_ASPECT = "midPointChangeAspect";
+    // Java class name of the process aspect [String]
+    public static final String VARIABLE_CHANGE_ASPECT = "changeAspect";
 
-    // Object that is about to be added (for ADD operation). [ObjectType]
-    public static final String VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED = "midPointObjectToBeAdded";
+//    // Object that is about to be added (for ADD operation). [ObjectType]
+//    public static final String VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED = "midPointObjectToBeAdded";
 
-    // XML representation of the deltas to be approved. (Note that technically a process
-    // can approve more than one focus/projection deltas; if necessary, this variable would have to be changed.)
-    // [StringHolder]
-    public static final String VARIABLE_MIDPOINT_OBJECT_TREE_DELTAS = "midPointObjectTreeDeltas";
+//    // XML representation of the deltas to be approved. (Note that technically a process
+//    // can approve more than one focus/projection deltas; if necessary, this variable would have to be changed.)
+//    // [StringHolder]
+//    public static final String VARIABLE_MIDPOINT_OBJECT_TREE_DELTAS = "midPointObjectTreeDeltas";
 }

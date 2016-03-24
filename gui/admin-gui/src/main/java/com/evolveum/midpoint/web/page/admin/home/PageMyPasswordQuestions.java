@@ -7,7 +7,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 
 import org.apache.commons.lang.StringEscapeUtils;
@@ -19,6 +18,9 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -40,12 +42,10 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.component.MyPasswordQuestionsPanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordQuestionsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -448,7 +448,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 	}
 
 	private void cancelPerformed(AjaxRequestTarget target){
-        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
                 AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
             setResponsePage(PageDashboard.class);
         } else {
@@ -474,10 +474,8 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 			LoggingUtils.logException(LOGGER, "Couldn't load user PageMyQuestions", ex);
 		}
 
-		if (!result.isSuccess()) {
-			showResultInSession(result);
-		}
-
+			showResult(result, false);
+		
 		if (user == null) {
 
 			throw new RestartResponseException(PageDashboard.class);
@@ -494,10 +492,8 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 			wrapper = owf.createObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, null, null, status, false);
 		}
 		//        ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails", null, user, status);
-		if (owf.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-			showResultInSession(wrapper.getResult());
-		}
-
+			showResult(wrapper.getResult(), false);
+		
 
 		return wrapper;
 	}

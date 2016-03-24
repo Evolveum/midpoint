@@ -120,6 +120,10 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		return options;
 	}
 
+	public static GetOperationOptions createRetrieve() {
+		return createRetrieve(RetrieveOption.INCLUDE);
+	}
+
     public static GetOperationOptions createRetrieve(RelationalValueSearchQuery query) {
         GetOperationOptions options = new GetOperationOptions();
         options.retrieve = RetrieveOption.INCLUDE;
@@ -149,6 +153,23 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		GetOperationOptions opts = new GetOperationOptions();
 		opts.setResolve(true);
 		return opts;
+	}
+
+	// TODO exact placement of this method
+	public static Collection<SelectorOptions<GetOperationOptions>> resolveItemsNamed(Object... items) {
+		Collection<SelectorOptions<GetOperationOptions>> rv = new ArrayList<>(items.length);
+		for (Object item : items) {
+			final ItemPath path;
+			if (item instanceof QName) {
+				path = new ItemPath((QName) item);
+			} else if (item instanceof ItemPath) {
+				path = ((ItemPath) item);
+			} else {
+				throw new IllegalArgumentException("item has to be QName or ItemPath but is " + item);
+			}
+			rv.add(SelectorOptions.create(path, createResolve()));
+		}
+		return rv;
 	}
 
 	public Boolean getNoFetch() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.evolveum.midpoint.provisioning.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -30,8 +31,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -45,6 +51,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -67,6 +74,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -78,6 +86,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -700,8 +709,8 @@ public class ShadowManager {
 		// Clean all repoShadow attributes and add only those that should be
 		// there
 		repoAttributesContainer.clear();
-		Collection<ResourceAttribute<?>> identifiers = attributesContainer.getIdentifiers();
-		for (PrismProperty<?> p : identifiers) {
+		Collection<ResourceAttribute<?>> primaryIdentifiers = attributesContainer.getIdentifiers();
+		for (PrismProperty<?> p : primaryIdentifiers) {
 			repoAttributesContainer.add(p.clone());
 		}
 
@@ -710,6 +719,21 @@ public class ShadowManager {
 			repoAttributesContainer.add(p.clone());
 		}
 
+		// Also add all the attributes that act as association identifiers.
+		// We will need them when the shadow is deleted (to remove the shadow from entitlements).
+		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
+		for (RefinedAssociationDefinition associationDef: objectClassDefinition.getAssociations()) {
+			if (associationDef.getResourceObjectAssociationType().getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
+				QName valueAttributeName = associationDef.getResourceObjectAssociationType().getValueAttribute();
+				if (repoAttributesContainer.findAttribute(valueAttributeName) == null) {
+					ResourceAttribute<Object> valueAttribute = attributesContainer.findAttribute(valueAttributeName);
+					if (valueAttribute != null) {
+						repoAttributesContainer.add(valueAttribute.clone());
+					}
+				}
+			}
+		}
+		
 		ShadowType repoShadowType = repoShadow.asObjectable();
 
         setKindIfNecessary(repoShadowType, ctx.getObjectClassDefinition());
@@ -750,6 +774,228 @@ public class ShadowManager {
 		ProvisioningUtil.cleanupShadowActivation(repoShadowType);
 
 		return repoShadow;
+	}
+	
+	public Collection<ItemDelta> updateShadow(ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow, 
+			Collection<? extends ItemDelta> aprioriDeltas, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, resourceShadow.getOid(), null, result);
+		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
+		Collection<ItemDelta> repoShadowChanges = new ArrayList<ItemDelta>();
+		for (RefinedAttributeDefinition attrDef: objectClassDefinition.getAttributeDefinitions()) {
+			if (ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, attrDef.getName())) {
+				ResourceAttribute<Object> resourceAttr = ShadowUtil.getAttribute(resourceShadow, attrDef.getName());
+				PrismProperty<Object> repoAttr = repoShadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()));
+				PropertyDelta attrDelta;
+				if (repoAttr == null && repoAttr == null) {
+					continue;
+				}
+				if (repoAttr == null) {
+					attrDelta = attrDef.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()));
+					attrDelta.setValuesToReplace(PrismValue.cloneCollection(resourceAttr.getValues()));
+				} else {
+					attrDelta = repoAttr.diff(resourceAttr);
+				}
+				if (attrDelta != null && !attrDelta.isEmpty()) {
+					normalizeDelta(attrDelta, attrDef);
+					repoShadowChanges.add(attrDelta);
+				}
+			}
+		}
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Updating repo shadow {}:\n{}", resourceShadow.getOid(), DebugUtil.debugDump(repoShadowChanges));
+		}
+		try {
+			repositoryService.modifyObject(ShadowType.class, resourceShadow.getOid(), repoShadowChanges, result);
+		} catch (ObjectAlreadyExistsException e) {
+			// We are not renaming the object here. This should not happen.
+			throw new SystemException(e.getMessage(), e);
+		}
+		return repoShadowChanges;
+	}
+	
+	/**
+	 * Updates repository shadow based on shadow from resource. Handles rename cases,
+	 * change of auxiliary object classes, etc.
+	 * @returns repository shadow as it should look like after the update
+	 */
+	public PrismObject<ShadowType> updateShadow(ProvisioningContext ctx, PrismObject<ShadowType> currentResourceShadow, 
+			PrismObject<ShadowType> oldRepoShadow, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, CommunicationException {
+		
+		RefinedObjectClassDefinition ocDef = ctx.getObjectClassDefinition();
+		ObjectDelta<ShadowType> shadowDelta = oldRepoShadow.createModifyDelta();
+		PrismContainer<Containerable> currentResourceAttributesContainer = currentResourceShadow.findContainer(ShadowType.F_ATTRIBUTES);
+		PrismContainer<Containerable> oldRepoAttributesContainer = oldRepoShadow.findContainer(ShadowType.F_ATTRIBUTES);
+		for (Item<?, ?> currentResourceItem: currentResourceAttributesContainer.getValue().getItems()) {
+			if (currentResourceItem instanceof PrismProperty<?>) {
+				PrismProperty<?> currentResourceAttrProperty = (PrismProperty<?>)currentResourceItem;
+				RefinedAttributeDefinition<Object> attrDef = ocDef.findAttributeDefinition(currentResourceAttrProperty.getElementName());
+				if (ProvisioningUtil.shouldStoreAtributeInShadow(ocDef, attrDef.getName())) {
+					MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(attrDef.getMatchingRuleQName(), attrDef.getTypeName());
+					PrismProperty<Object> oldRepoAttributeProperty = oldRepoAttributesContainer.findProperty(currentResourceAttrProperty.getElementName());
+					if (oldRepoAttributeProperty == null ) {
+						PropertyDelta<?> attrAddDelta = currentResourceAttrProperty.createDelta();
+						for (PrismPropertyValue pval: currentResourceAttrProperty.getValues()) {
+							Object normalizedRealValue;
+							if (matchingRule == null) {
+								normalizedRealValue = pval.getValue();
+							} else {
+								normalizedRealValue = matchingRule.normalize(pval.getValue());
+							}
+							attrAddDelta.addValueToAdd(new PrismPropertyValue(normalizedRealValue));
+						}
+						shadowDelta.addModification(attrAddDelta);
+					} else {
+						if (attrDef.isSingleValue()) {
+							Object currentResourceRealValue = currentResourceAttrProperty.getRealValue();
+							Object currentResourceNormalizedRealValue;
+							if (matchingRule == null) {
+								currentResourceNormalizedRealValue = currentResourceRealValue;
+							} else {
+								currentResourceNormalizedRealValue = matchingRule.normalize(currentResourceRealValue);
+							}
+							if (!currentResourceNormalizedRealValue.equals(oldRepoAttributeProperty.getRealValue())) {
+								shadowDelta.addModificationReplaceProperty(currentResourceAttrProperty.getPath(), currentResourceNormalizedRealValue);
+							}
+						} else {
+							PrismProperty<Object> normalizedCurrentResourceAttrProperty = (PrismProperty<Object>) currentResourceAttrProperty.clone();
+							if (matchingRule != null) {
+								for (PrismPropertyValue pval: normalizedCurrentResourceAttrProperty.getValues()) {
+									Object normalizedRealValue = matchingRule.normalize(pval.getValue());
+									pval.setValue(normalizedRealValue);
+								}
+							}
+							PropertyDelta<Object> attrDiff = normalizedCurrentResourceAttrProperty.diff(oldRepoAttributeProperty);
+							if (attrDiff != null && !attrDiff.isEmpty()) {
+								shadowDelta.addModification(attrDiff);
+							}
+							
+						}
+					}
+				}
+			}
+		}
+		for (Item<?, ?> oldRepoItem: oldRepoAttributesContainer.getValue().getItems()) {
+			if (oldRepoItem instanceof PrismProperty<?>) {
+				PrismProperty<?> oldRepoAttrProperty = (PrismProperty<?>)oldRepoItem;
+				RefinedAttributeDefinition<Object> attrDef = ocDef.findAttributeDefinition(oldRepoAttrProperty.getElementName());
+				if (attrDef == null || !ProvisioningUtil.shouldStoreAtributeInShadow(ocDef, attrDef.getName())) {
+					// No definition for this property, it should not be in the shadow
+					PropertyDelta<?> oldRepoAttrPropDelta = oldRepoAttrProperty.createDelta();
+					oldRepoAttrPropDelta.addValuesToDelete((Collection)PrismPropertyValue.cloneCollection(oldRepoAttrProperty.getValues()));
+					shadowDelta.addModification(oldRepoAttrPropDelta);
+				}
+			}
+		}
+				
+		PolyString currentShadowName = ShadowUtil.determineShadowName(currentResourceShadow);
+		PolyString oldRepoShadowName = oldRepoShadow.getName();
+		if (!currentShadowName.equalsOriginalValue(oldRepoShadowName)) {			
+			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, 
+					oldRepoShadow.getDefinition(),currentShadowName);
+			shadowDelta.addModification(shadowNameDelta);
+		}
+		
+		PropertyDelta<QName> auxOcDelta = (PropertyDelta)PrismProperty.diff(
+				oldRepoShadow.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS),
+				currentResourceShadow.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS));
+		if (auxOcDelta != null) {
+			shadowDelta.addModification(auxOcDelta);
+		}
+		
+		if (!shadowDelta.isEmpty()) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Updating shadow {} with delta:\n{}", oldRepoShadow, shadowDelta.debugDump());
+			}
+			ConstraintsChecker.onShadowModifyOperation(shadowDelta.getModifications());
+			try {
+				repositoryService.modifyObject(ShadowType.class, oldRepoShadow.getOid(), shadowDelta.getModifications(), parentResult);
+			} catch (ObjectAlreadyExistsException e) {
+				// This should not happen for shadows
+				throw new SystemException(e.getMessage(), e);
+			}
+			PrismObject<ShadowType> newRepoShadow = oldRepoShadow.clone();
+			shadowDelta.applyTo(newRepoShadow);
+			return newRepoShadow;
+			
+		} else {
+			LOGGER.trace("No need to update shadow {} (empty delta)", oldRepoShadow);
+			return oldRepoShadow;
+		}		
+	}
+
+	/**
+	 * Re-reads the shadow, re-evaluates the identifiers and stored values, updates them if necessary. Returns
+	 * fixed shadow. 
+	 */
+	public PrismObject<ShadowType> fixShadow(ProvisioningContext ctx, PrismObject<ShadowType> origRepoShadow,
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException, CommunicationException {
+		PrismObject<ShadowType> currentRepoShadow = repositoryService.getObject(ShadowType.class, origRepoShadow.getOid(), null, parentResult);
+		ProvisioningContext shadowCtx = ctx.spawn(currentRepoShadow);
+		RefinedObjectClassDefinition ocDef = shadowCtx.getObjectClassDefinition();
+		PrismContainer<Containerable> attributesContainer = currentRepoShadow.findContainer(ShadowType.F_ATTRIBUTES);
+		if (attributesContainer != null) {
+			ObjectDelta<ShadowType> shadowDelta = currentRepoShadow.createModifyDelta();
+			for (Item<?, ?> item: attributesContainer.getValue().getItems()) {
+				if (item instanceof PrismProperty<?>) {
+					PrismProperty<?> attrProperty = (PrismProperty<?>)item;
+					RefinedAttributeDefinition<Object> attrDef = ocDef.findAttributeDefinition(attrProperty.getElementName());
+					if (attrDef == null) {
+						// No definition for this property, it should not be in the shadow
+						PropertyDelta<?> oldRepoAttrPropDelta = attrProperty.createDelta();
+						oldRepoAttrPropDelta.addValuesToDelete((Collection)PrismPropertyValue.cloneCollection(attrProperty.getValues()));
+						shadowDelta.addModification(oldRepoAttrPropDelta);
+					} else {
+						MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(attrDef.getMatchingRuleQName(), attrDef.getTypeName());
+						List<PrismPropertyValue> valuesToAdd = null;
+						List<PrismPropertyValue> valuesToDelete = null;
+						for (PrismPropertyValue attrVal: attrProperty.getValues()) {
+							Object currentRealValue = attrVal.getValue();
+							Object normalizedRealValue = matchingRule.normalize(currentRealValue);
+							if (!normalizedRealValue.equals(currentRealValue)) {
+								if (attrDef.isSingleValue()) {
+									shadowDelta.addModificationReplaceProperty(attrProperty.getPath(), normalizedRealValue);
+									break;
+								} else {
+									if (valuesToAdd == null) {
+										valuesToAdd = new ArrayList<>();
+									}
+									valuesToAdd.add(new PrismPropertyValue(normalizedRealValue));
+									if (valuesToDelete == null) {
+										valuesToDelete = new ArrayList<>();
+									}
+									valuesToDelete.add(new PrismPropertyValue(currentRealValue));
+								}
+							}
+						}
+						PropertyDelta attrDelta = attrProperty.createDelta(attrProperty.getPath());
+						if (valuesToAdd != null) {
+							attrDelta.addValuesToAdd(valuesToAdd);
+						}
+						if (valuesToDelete != null) {
+							attrDelta.addValuesToDelete(valuesToDelete);
+						}
+						shadowDelta.addModification(attrDelta);
+					}
+				}
+			}
+			if (!shadowDelta.isEmpty()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Fixing shadow {} with delta:\n{}", origRepoShadow, shadowDelta.debugDump());
+				}
+				try {
+					repositoryService.modifyObject(ShadowType.class, origRepoShadow.getOid(), shadowDelta.getModifications(), parentResult);
+				} catch (ObjectAlreadyExistsException e) {
+					// This should not happen for shadows
+					throw new SystemException(e.getMessage(), e);
+				}
+				shadowDelta.applyTo(currentRepoShadow);
+			} else {
+				LOGGER.trace("No need to fixing shadow {} (empty delta)", origRepoShadow);
+			}
+		} else {
+			LOGGER.trace("No need to fixing shadow {} (no atttributes)", origRepoShadow);
+		}
+		return currentRepoShadow;
 	}
 
 	public void setKindIfNecessary(ShadowType repoShadowType, RefinedObjectClassDefinition objectClassDefinition) {
@@ -862,6 +1108,6 @@ public class ShadowManager {
 		refinedAttributeDefinition = refinedObjectClassDefinition.findAttributeDefinition(attributeA.getElementName());
 		Collection<T> valuesB = getNormalizedAttributeValues(attributeB, refinedAttributeDefinition);
 		return MiscUtil.unorderedCollectionEquals(valuesA, valuesB);
-	}	
+	}
 
 }

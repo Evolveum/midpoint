@@ -16,12 +16,26 @@
 
 package com.evolveum.midpoint.web.component.model.operationStatus;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
+import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.web.component.prism.show.WrapperScene;
+import com.evolveum.midpoint.web.component.prism.show.SceneDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
 
 /**
  * @author mederly
@@ -36,9 +50,9 @@ public class ModelOperationStatusDto implements Serializable {
     private ModelState state;
     private String focusType;
     private String focusName;
-    private DeltaDto primaryDelta;
+    private SceneDto primarySceneDto;
 
-    public ModelOperationStatusDto(ModelContext modelContext) {
+    public ModelOperationStatusDto(ModelContext<?> modelContext, ModelInteractionService modelInteractionService, Task opTask, OperationResult result) {
 
         state = modelContext.getState();
 
@@ -55,9 +69,24 @@ public class ModelOperationStatusDto implements Serializable {
             }
 
             // primaryDelta
-            if (modelContext.getFocusContext().getPrimaryDelta() != null) {
-                primaryDelta = new DeltaDto(modelContext.getFocusContext().getPrimaryDelta());
-            }
+			final List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
+//			final List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
+			final List<? extends Scene> primaryScenes;
+//			final List<? extends Scene> secondaryScenes;
+			try {
+				addIgnoreNull(primaryDeltas, modelContext.getFocusContext().getPrimaryDelta());
+//				addIgnoreNull(secondaryDeltas, modelContext.getFocusContext().getSecondaryDelta());
+				for (ModelProjectionContext projCtx : modelContext.getProjectionContexts()) {
+					addIgnoreNull(primaryDeltas, projCtx.getPrimaryDelta());
+//					addIgnoreNull(secondaryDeltas, projCtx.getExecutableDelta());
+				}
+				primaryScenes = modelInteractionService.visualizeDeltas(primaryDeltas, opTask, result);
+//				secondaryScenes = modelInteractionService.visualizeDeltas(secondaryDeltas, opTask, result);
+			} catch (SchemaException e) {
+				throw new SystemException(e);		// TODO
+			}
+			final WrapperScene primaryWrapperScene = new WrapperScene(primaryScenes, primaryDeltas.size() != 1 ? "PagePreviewChanges.primaryChangesMore" : "PagePreviewChanges.primaryChangesOne", primaryDeltas.size());
+			primarySceneDto = new SceneDto(primaryWrapperScene);
         }
     }
 
@@ -74,7 +103,7 @@ public class ModelOperationStatusDto implements Serializable {
         return focusName;
     }
 
-    public DeltaDto getPrimaryDelta() {
-        return primaryDelta;
+    public SceneDto getPrimaryDelta() {
+        return primarySceneDto;
     }
 }

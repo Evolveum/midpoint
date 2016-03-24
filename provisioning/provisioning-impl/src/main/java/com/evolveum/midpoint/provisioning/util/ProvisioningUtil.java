@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.provisioning.util;
 
+import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.common.StaticExpressionUtil;
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -59,6 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptArgumentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -262,6 +265,29 @@ public class ProvisioningUtil {
 		return refinedSchema;
 	}
 	
+	public static boolean isProtectedShadow(RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+		boolean isProtected = false;
+		if (objectClassDefinition == null) {
+			isProtected = false;
+		} else {
+			Collection<ResourceObjectPattern> protectedAccountPatterns = objectClassDefinition.getProtectedObjectPatterns();
+			if (protectedAccountPatterns == null) {
+				isProtected = false;
+			} else {
+				isProtected = ResourceObjectPattern.matches(shadow, protectedAccountPatterns, matchingRuleRegistry);
+			}
+		}
+		LOGGER.trace("isProtectedShadow: {}: {} = {}", new Object[] { objectClassDefinition,
+				shadow, isProtected });
+		return isProtected;
+	}
+	
+	public static void setProtectedFlag(ProvisioningContext ctx, PrismObject<ShadowType> resourceObject, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+		if (isProtectedShadow(ctx.getObjectClassDefinition(), resourceObject, matchingRuleRegistry)) {
+			resourceObject.asObjectable().setProtectedObject(true);
+		}
+	}
+	
 	public static RefinedResourceSchema getRefinedSchema(PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
 		if (refinedSchema == null) {
@@ -284,8 +310,19 @@ public class ProvisioningUtil {
 		opResult.recordWarning(message, ex);
 	}
 
-	public static boolean shouldStoreAtributeInShadow(ObjectClassComplexTypeDefinition objectClassDefinition, QName attributeName) {
-		return (objectClassDefinition.isIdentifier(attributeName) || objectClassDefinition.isSecondaryIdentifier(attributeName));
+	public static boolean shouldStoreAtributeInShadow(RefinedObjectClassDefinition objectClassDefinition, QName attributeName) {
+		if (objectClassDefinition.isIdentifier(attributeName) || objectClassDefinition.isSecondaryIdentifier(attributeName)) {
+			return true;
+		}
+		for (RefinedAssociationDefinition associationDef: objectClassDefinition.getAssociations()) {
+			if (associationDef.getResourceObjectAssociationType().getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
+				QName valueAttributeName = associationDef.getResourceObjectAssociationType().getValueAttribute();
+				if (QNameUtil.match(attributeName, valueAttributeName)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	public static boolean shouldStoreActivationItemInShadow(QName elementName) {	// MID-2585

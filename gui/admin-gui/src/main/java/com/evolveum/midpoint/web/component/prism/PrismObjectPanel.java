@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -23,8 +24,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -35,7 +34,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -51,7 +49,6 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
 
@@ -210,7 +207,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
             public String getObject() {
                 ObjectWrapper wrapper = model.getObject();
                 String key = wrapper.isShowEmpty() ? "PrismObjectPanel.hideEmpty" : "PrismObjectPanel.showEmpty";
-                return PageTemplate.createStringResourceStatic(PrismObjectPanel.this, key).getString();
+                return PageBase.createStringResourceStatic(PrismObjectPanel.this, key).getString();
 //                return new StringResourceModel(key, PrismObjectPanel.this, null, key).getString();
             }
         };
@@ -235,7 +232,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
             public String getObject() {
                 ObjectWrapper wrapper = model.getObject();
                 String key = wrapper.isMinimalized() ? "PrismObjectPanel.maximize" : "PrismObjectPanel.minimize";
-                return PageTemplate.createStringResourceStatic(PrismObjectPanel.this, key).getString();
+                return PageBase.createStringResourceStatic(PrismObjectPanel.this, key).getString();
 //                return new StringResourceModel(key, PrismObjectPanel.this, null, key).getString();
             }
         };
@@ -318,8 +315,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
     }
 
     protected void createContainerPanel(ListItem<ContainerWrapper> item, Form form){
-        PrismContainerPanel panel = new PrismContainerPanel("container", item.getModel(), true,
-                item.getModelObject().getObject().isShowEmpty(), form, pageBase);
+        PrismContainerPanel panel = new PrismContainerPanel("container", item.getModel(), true, form, pageBase);
         panel.setOutputMarkupPlaceholderTag(true);
         item.add(panel);
     }

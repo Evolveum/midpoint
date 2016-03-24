@@ -15,10 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -26,31 +22,32 @@ import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
+import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -60,29 +57,23 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.Transformer;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * @author semancik
@@ -392,27 +383,70 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private PrismObject<?> resolveTarget(AssignmentType assignmentType, ObjectType source, String sourceDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		ObjectReferenceType targetRef = assignmentType.getTargetRef();
 		String oid = targetRef.getOid();
-		if (oid == null) {
-			throw new SchemaException("The OID is null in assignment targetRef in "+source);
-		}
+		
 		// Target is referenced, need to fetch it
-		Class<? extends ObjectType> clazz = null;
-		if (targetRef.getType() != null) {
-			clazz = (Class) prismContext.getSchemaRegistry().determineCompileTimeClass(targetRef.getType());
-			if (clazz == null) {
-				throw new SchemaException("Cannot determine type from " + targetRef.getType() + " in target reference in " + assignmentType + " in " + sourceDescription);
+				Class<? extends ObjectType> clazz = null;
+				if (targetRef.getType() != null) {
+					clazz = (Class) prismContext.getSchemaRegistry().determineCompileTimeClass(targetRef.getType());
+					if (clazz == null) {
+						throw new SchemaException("Cannot determine type from " + targetRef.getType() + " in target reference in " + assignmentType + " in " + sourceDescription);
+					}
+				} else {
+					throw new SchemaException("Missing type in target reference in " + assignmentType + " in " + sourceDescription);
+				}
+		
+		if (oid == null) {
+			
+			if (targetRef.getFilter() == null){
+				throw new SchemaException("The OID and filter are both null in assignment targetRef in "+source);
 			}
-		} else {
-			throw new SchemaException("Missing type in target reference in " + assignmentType + " in " + sourceDescription);
+			
+			PrismObject<? extends ObjectType> target = resolveTarget(clazz, source, targetRef.getFilter(), sourceDescription, task, result);
+	        assignmentType.getTargetRef().setOid(target.getOid());
+			// Handling ObjectNotFoundException - we just pass it to the caller
+			
 		}
+		
 		PrismObject<? extends ObjectType> target = null;
-        target = repository.getObject(clazz, oid, null, result);
+		try {
+			target = repository.getObject(clazz, oid, null, result);
+        } catch (SchemaException e) {
+        	throw new SchemaException(e.getMessage() + " in " + sourceDescription, e);
+        }
         if (target == null) {
             throw new IllegalArgumentException("Got null target from repository, oid:"+oid+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
         }
         // Handling ObjectNotFoundException - we just pass it to the caller
 
 		return target;
+	}
+	
+	private PrismObject<? extends ObjectType> resolveTarget(Class clazz, ObjectType source, SearchFilterType filter, String sourceDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
+//		SearchFilterType filter = targetRef.getFilter();
+		ExpressionVariables variables = Utils.getDefaultExpressionVariables(source, null, null, LensUtil.getSystemConfiguration(lensContext, repository, result).asObjectable());
+
+		ObjectFilter origFilter = QueryConvertor.parseFilter(filter, clazz, prismContext);
+		ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables, getMappingFactory().getExpressionFactory(), prismContext, " evaluating resource filter expression ", task, result);
+		
+		if (evaluatedFilter == null){
+			throw new SchemaException("The OID is null and filter could not be evaluated in assignment targetRef in "+source);
+		}
+		
+		
+        SearchResultList<?> results = repository.searchObjects(clazz, ObjectQuery.createObjectQuery(evaluatedFilter), null, result);
+        
+        if (org.apache.commons.collections.CollectionUtils.isEmpty(results)){
+        	throw new IllegalArgumentException("Got null target from repository, filter:"+evaluatedFilter+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
+        }
+        
+        if (results.size() > 1){
+        	throw new IllegalArgumentException("Got more than one target from repository, filter:"+evaluatedFilter+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
+        }
+        
+        PrismObject<? extends ObjectType> target = (PrismObject<? extends ObjectType>) results.iterator().next();
+        
+//        assignmentType.getTargetRef().setOid(target.getOid());
+        return target;
 	}
 
 

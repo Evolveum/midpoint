@@ -1,6 +1,9 @@
 package com.evolveum.midpoint.web.page.self;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -21,19 +24,17 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
 import com.evolveum.midpoint.web.page.self.component.ChangePasswordPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -46,6 +47,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -93,6 +95,14 @@ public class PageSelfCredentials extends PageSelf {
         };
 
         initLayout();
+    }
+
+    @Override
+    protected void createBreadcrumb() {
+        super.createBreadcrumb();
+
+        Breadcrumb bc = getSessionStorage().peekBreadcrumb();
+        bc.setIcon(new Model("fa fa-shield"));
     }
 
     public PageSelfCredentials(final MyPasswordsDto myPasswordsDto) {
@@ -262,7 +272,7 @@ public class PageSelfCredentials extends PageSelf {
 
     private PasswordAccountDto createDefaultPasswordAccountDto(PrismObject<UserType> user) {
         return new PasswordAccountDto(user.getOid(), user.getName().getNorm(),
-                getString("PageSelfCredentials.resourceMidpoint"), WebMiscUtil.isActivationEnabled(user), true);
+                getString("PageSelfCredentials.resourceMidpoint"), WebComponentUtil.isActivationEnabled(user), true);
     }
 
     private PasswordAccountDto createPasswordAccountDto(PrismObject<ShadowType> account) {
@@ -271,11 +281,11 @@ public class PageSelfCredentials extends PageSelf {
         if (resourceRef == null || resourceRef.getValue() == null || resourceRef.getValue().getObject() == null) {
             resourceName = getString("PageSelfCredentials.couldntResolve");
         } else {
-            resourceName = WebMiscUtil.getName(resourceRef.getValue().getObject());
+            resourceName = WebComponentUtil.getName(resourceRef.getValue().getObject());
         }
 
-        PasswordAccountDto passwordAccountDto = new PasswordAccountDto(account.getOid(), WebMiscUtil.getName(account),
-                resourceName, WebMiscUtil.isActivationEnabled(account));
+        PasswordAccountDto passwordAccountDto = new PasswordAccountDto(account.getOid(), WebComponentUtil.getName(account),
+                resourceName, WebComponentUtil.isActivationEnabled(account));
         passwordAccountDto.setPasswordOutbound(getPasswordOutbound(account));
         return passwordAccountDto;
     }
@@ -324,7 +334,7 @@ public class PageSelfCredentials extends PageSelf {
         try {
             MyPasswordsDto dto = model.getObject();
             ProtectedStringType password = dto.getPassword();
-            WebMiscUtil.encryptProtectedString(password, true, getMidpointApplication());
+            WebComponentUtil.encryptProtectedString(password, true, getMidpointApplication());
 
             final ItemPath valuePath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
                     CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
@@ -358,12 +368,12 @@ public class PageSelfCredentials extends PageSelf {
             result.recomputeStatus();
         }
 
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             showResult(result);
             target.add(getFeedbackPanel());
         } else {
-            showResultInSession(result);
-            if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+            showResult(result);
+            if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
                     AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
                 setResponsePage(PageDashboard.class);
             } else {
@@ -388,7 +398,7 @@ public class PageSelfCredentials extends PageSelf {
         return selectedAccountList;
     }
     private void onCancelPerformed(AjaxRequestTarget target) {
-        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
                 AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
             setResponsePage(PageDashboard.class);
         } else {
@@ -410,7 +420,7 @@ public class PageSelfCredentials extends PageSelf {
                 if (reference.getOid() == null) {
                     continue;
                 }
-                PrismObject<ShadowType> shadow = WebModelUtils.loadObject(ShadowType.class, reference.getOid(), options, this, task, subResult);
+                PrismObject<ShadowType> shadow = WebModelServiceUtils.loadObject(ShadowType.class, reference.getOid(), options, this, task, subResult);
                 shadowTypeList.add(shadow.asObjectable());
             } catch (Exception ex) {
                 LoggingUtils.logException(LOGGER, "Couldn't load account", ex);

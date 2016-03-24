@@ -16,12 +16,13 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeObjectType;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.form.*;
@@ -71,7 +72,7 @@ public class DefinitionScopePanel extends SimplePanel<DefinitionScopeDto> {
 
         DropDownChoicePanel objectTypeChooser = new DropDownChoicePanel(ID_OBJECT_TYPE_CHOOSER,
                 new PropertyModel(getModel(), DefinitionScopeDto.F_OBJECT_TYPE),
-                WebMiscUtil.createReadonlyModelFromEnum(DefinitionScopeObjectType.class),
+                WebComponentUtil.createReadonlyModelFromEnum(DefinitionScopeObjectType.class),
                 new EnumChoiceRenderer<DefinitionScopeObjectType>() );
         add(objectTypeChooser);
 

@@ -16,13 +16,7 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.parser.XPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -90,6 +84,23 @@ public class ObjectTypeUtil {
 		}
 		return property.getRealValues();
 	}
+	
+	public static Collection<Referencable> getExtensionReferenceValues(ObjectType objectType, QName propertyQname) {
+		PrismObject<? extends ObjectType> object = objectType.asPrismObject();
+		PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
+		if (extensionContainer == null) {
+			return null;
+		}
+		PrismReference property = extensionContainer.findReference(propertyQname);
+		if (property == null) {
+			return null;
+		}
+		Collection<Referencable> refs = new ArrayList<Referencable>(property.getValues().size());
+		for (PrismReferenceValue refVal : property.getValues()){
+			refs.add(refVal.asReferencable());
+		}
+		return refs;
+	}
     
 
     public static ObjectReferenceType findRef(String oid, List<ObjectReferenceType> refs) {
@@ -148,11 +159,18 @@ public class ObjectTypeUtil {
     }
 
     public static Object toShortString(ObjectReferenceType objectRef) {
+		return toShortString(objectRef, false);
+	}
+
+	public static Object toShortString(ObjectReferenceType objectRef, boolean withName) {
         if (objectRef == null) {
             return "null";
         }
         StringBuilder sb = new StringBuilder();
         sb.append("objectRef oid=").append(objectRef.getOid());
+		if (withName && objectRef.getTargetName() != null) {
+			sb.append(" name='").append(objectRef.getTargetName()).append("'");
+		}
         if (objectRef.getType() != null) {
             sb.append(" type=").append(SchemaDebugUtil.prettyPrint(objectRef.getType()));
         }
@@ -172,8 +190,16 @@ public class ObjectTypeUtil {
         }
 	}
 
-    
-    public static ObjectReferenceType createObjectRef(ObjectType objectType) {
+	public static ObjectReferenceType createObjectRef(PrismReferenceValue prv) {
+		ObjectReferenceType ort = new ObjectReferenceType();
+		ort.setupReferenceValue(prv);
+		return ort;
+	}
+
+	public static ObjectReferenceType createObjectRef(ObjectType objectType) {
+		if (objectType == null) {
+			return null;
+		}
         return createObjectRef(objectType.asPrismObject());
     }
 
@@ -337,5 +363,72 @@ public class ObjectTypeUtil {
     	}
     }
 
+    public static PrismObject getParentObject(Containerable containerable) {
+        if (containerable == null) {
+            return null;
+        }
+        PrismContainerable<? extends Containerable> parent1 = containerable.asPrismContainerValue().getParent();
+        if (parent1 == null) {
+            return null;
+        }
+        if (!(parent1 instanceof PrismContainer)) {
+            throw new IllegalArgumentException("Parent of " + containerable + " is not a PrismContainer. It is " + parent1.getClass());
+        }
+        PrismValue parent2 = ((PrismContainer) parent1).getParent();
+        if (parent2 == null) {
+            return null;
+        }
+        if (!(parent2 instanceof PrismContainerValue)) {
+            throw new IllegalArgumentException("Grandparent of " + containerable + " is not a PrismContainerValue. It is " + parent2.getClass());
+        }
+        Itemable parent3 = parent2.getParent();
+        if (parent3 == null) {
+            return null;
+        }
+        if (!(parent3 instanceof PrismObject)) {
+            throw new IllegalArgumentException("Grandgrandparent of " + containerable + " is not a PrismObject. It is " + parent3.getClass());
+        }
+        return (PrismObject) parent3;
+    }
 
+    public static List<PrismReferenceValue> objectReferenceListToPrismReferenceValues(Collection<ObjectReferenceType> refList) throws SchemaException {
+        List<PrismReferenceValue> rv = new ArrayList<>();
+        for (ObjectReferenceType ref : refList) {
+            rv.add(ref.asReferenceValue());
+        }
+        return rv;
+    }
+
+    public static List<ObjectReferenceType> getAsObjectReferenceTypeList(PrismReference prismReference) throws SchemaException {
+		List<ObjectReferenceType> rv = new ArrayList<>();
+		for (PrismReferenceValue prv : prismReference.getValues()) {
+			rv.add(createObjectRef(prv.clone()));
+		}
+		return rv;
+	}
+
+	public static List<String> referenceValueListToOidList(Collection<PrismReferenceValue> referenceValues) {
+		List<String> oids = new ArrayList<>(referenceValues.size());
+		for (PrismReferenceValue referenceValue : referenceValues) {
+			oids.add(referenceValue.getOid());
+		}
+		return oids;
+	}
+
+	public static Objectable getObjectFromReference(ObjectReferenceType ref) {
+		if (ref == null) {
+			return null;
+		}
+		if (ref.asReferenceValue().getObject() == null) {
+			return null;
+		}
+		return ref.asReferenceValue().getObject().asObjectable();
+	}
+
+	public static PrismObject<?> getPrismObjectFromReference(ObjectReferenceType ref) {
+		if (ref == null) {
+			return null;
+		}
+		return ref.asReferenceValue().getObject();
+	}
 }

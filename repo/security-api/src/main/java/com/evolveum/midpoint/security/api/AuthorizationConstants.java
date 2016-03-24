@@ -224,9 +224,13 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_UI_REPORTS_REPORT_CREATE_QNAME = new QName(NS_AUTHORIZATION_UI, "reportCreate");
 	public static final String AUTZ_UI_REPORTS_REPORT_CREATE_URL = NS_AUTHORIZATION_UI + "#reportCreate";
 
-    //Reports
-    public static final QName AUTZ_UI_CERTIFICATION_QNAME = new QName(NS_AUTHORIZATION_UI, "certification");
-    public static final String AUTZ_UI_CERTIFICATION_URL = NS_AUTHORIZATION_UI + "#certification";
+    //Certification
+	public static final String AUTZ_UI_CERTIFICATION_DEFINITIONS_URL = NS_AUTHORIZATION_UI + "#certificationDefinitions";
+	public static final String AUTZ_UI_CERTIFICATION_DEFINITION_URL = NS_AUTHORIZATION_UI + "#certificationDefinition";
+	public static final String AUTZ_UI_CERTIFICATION_NEW_DEFINITION_URL = NS_AUTHORIZATION_UI + "#certificationNewDefinition";
+	public static final String AUTZ_UI_CERTIFICATION_CAMPAIGNS_URL = NS_AUTHORIZATION_UI + "#certificationCampaigns";
+	public static final String AUTZ_UI_CERTIFICATION_CAMPAIGN_URL = NS_AUTHORIZATION_UI + "#certificationCampaign";
+	public static final String AUTZ_UI_CERTIFICATION_DECISIONS_URL = NS_AUTHORIZATION_UI + "#certificationDecisions";
 
     public static final QName AUTZ_UI_CERTIFICATION_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "certificationAll");
     public static final String AUTZ_UI_CERTIFICATION_ALL_URL = NS_AUTHORIZATION_UI + "#certificationAll";

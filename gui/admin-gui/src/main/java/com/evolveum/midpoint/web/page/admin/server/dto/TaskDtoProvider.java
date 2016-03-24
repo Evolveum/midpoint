@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -23,11 +24,12 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.Component;
@@ -87,8 +89,7 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
             List<PrismObject<TaskType>> tasks = getModel().searchObjects(TaskType.class, query, searchOptions, operationTask, result);
             for (PrismObject<TaskType> task : tasks) {
                 try {
-                    TaskDto taskDto = new TaskDto(task.asObjectable(), getModel(), getTaskService(),
-                            getModelInteractionService(), getTaskManager(), options, result, (PageBase)component);
+                    TaskDto taskDto = createTaskDto(task, operationTask, result);
                     getAvailableData().add(taskDto);
                 } catch (Exception ex) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when getting task {} details", ex, task.getOid());
@@ -105,6 +106,13 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
             }
         }
         return getAvailableData().iterator();
+    }
+
+    public TaskDto createTaskDto(PrismObject<TaskType> task, Task opTask, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+
+        return new TaskDto(task.asObjectable(), getModel(), getTaskService(),
+                getModelInteractionService(), getTaskManager(), options, opTask, result, (PageBase)component);
     }
 
     @Override

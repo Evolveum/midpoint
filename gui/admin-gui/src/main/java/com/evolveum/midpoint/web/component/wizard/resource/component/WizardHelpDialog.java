@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.wizard.resource.*;
-import com.evolveum.midpoint.web.page.PageTemplate;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -59,7 +59,7 @@ public class WizardHelpDialog extends ModalWindow{
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-    	return PageTemplate.createStringResourceStatic(this, resourceKey, objects);
+    	return PageBase.createStringResourceStatic(this, resourceKey, objects);
 //        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 

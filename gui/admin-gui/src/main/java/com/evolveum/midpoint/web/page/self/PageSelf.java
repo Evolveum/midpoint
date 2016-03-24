@@ -1,7 +1,7 @@
 package com.evolveum.midpoint.web.page.self;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.page.PageBase;
 
 /**
  * @author Viliam Repan (lazyman)

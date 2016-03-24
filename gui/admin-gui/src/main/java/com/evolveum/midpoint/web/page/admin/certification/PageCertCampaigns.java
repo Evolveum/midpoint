@@ -17,6 +17,9 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.certification.api.CertificationManager;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -47,6 +50,7 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.SingleButtonColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListItemDto;
@@ -54,8 +58,6 @@ import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListIt
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
@@ -82,7 +84,15 @@ import java.util.List;
 /**
  * @author mederly
  */
-@PageDescriptor(url = "/admin/certification/campaigns", encoder = OnePageParameterEncoder.class, action = { @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL, label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL, description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION) })
+@PageDescriptor(url = "/admin/certification/campaigns", encoder = OnePageParameterEncoder.class,
+		action = {
+				@AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
+						label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
+						description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
+				@AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS,
+						label = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_LABEL,
+						description = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_DESCRIPTION)})
+
 public class PageCertCampaigns extends PageAdminCertification {
 
 	private static final Trace LOGGER = TraceManager
@@ -111,11 +121,6 @@ public class PageCertCampaigns extends PageAdminCertification {
 	public static final String OP_CLOSE_STAGE = "PageCertCampaigns.button.closeStage";
 	public static final String OP_OPEN_NEXT_STAGE = "PageCertCampaigns.button.openNextStage";
 	public static final String OP_START_REMEDIATION = "PageCertCampaigns.button.startRemediation";
-	private static final String DIALOG_CONFIRM_CLOSE_STAGE = "confirmCloseStagePopup";
-    private static final String DIALOG_CONFIRM_DELETE_CAMPAIGN ="confirmDeleteCampaignPopup";
-	private static final String DIALOG_CONFIRM_DELETE_MULTIPLE_CAMPAIGNS = "confirmDeleteMultipleCampaignsPopup";
-    private static final String DIALOG_CONFIRM_CLOSE_CAMPAIGN ="confirmCloseCampaignPopup";
-    private static final String DIALOG_CONFIRM_CLOSE_MULTIPLE_CAMPAIGNS ="confirmCloseMultipleCampaignsPopup";
 
 	// campaign on which close-stage/close-campaign/delete has to be executed (if chosen directly from row menu)
 	private CertCampaignListItemDto relevantCampaign;
@@ -176,23 +181,26 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 	// region Layout
 
+
 	@Override
-	protected IModel<String> createPageSubTitleModel() {
+	protected IModel<String> createPageTitleModel() {
 		return new AbstractReadOnlyModel<String>() {
+
 			@Override
 			public String getObject() {
 				String definitionOid = getDefinitionOid();
 				if (definitionOid == null) {
-					return null;
+					return createStringResource("PageCertCampaigns.title", "").getString();
 				}
+
 				Task task = createSimpleTask("dummy");
-				PrismObject<AccessCertificationDefinitionType> definitionPrismObject = WebModelUtils
+				PrismObject<AccessCertificationDefinitionType> definitionPrismObject = WebModelServiceUtils
 						.loadObject(AccessCertificationDefinitionType.class,
 								definitionOid, PageCertCampaigns.this, task, task.getResult());
-				if (definitionPrismObject == null) {
-					return null;
-				}
-				return definitionPrismObject.asObjectable().getName().getOrig();
+
+				String name = definitionPrismObject == null ? "" : WebComponentUtil.getName(definitionPrismObject);
+
+				return createStringResource("PageCertCampaigns.title", name).getString();
 			}
 		};
 	}
@@ -200,66 +208,6 @@ public class PageCertCampaigns extends PageAdminCertification {
 	private void initLayout() {
 		Form mainForm = new Form(ID_MAIN_FORM);
 		add(mainForm);
-
-		add(new ConfirmationDialog(
-				DIALOG_CONFIRM_CLOSE_STAGE,
-				createStringResource("PageCertCampaigns.dialog.title.confirmCloseStage"),
-				createCloseStageConfirmString()) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-				closeStageConfirmedPerformed(target, relevantCampaign);
-			}
-		});
-
-		add(new ConfirmationDialog(
-				DIALOG_CONFIRM_CLOSE_CAMPAIGN,
-				createStringResource("PageCertCampaigns.dialog.title.confirmCloseCampaign"),
-				createCloseCampaignConfirmString()) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-				closeCampaignConfirmedPerformed(target, relevantCampaign);
-			}
-		});
-		
-		add(new ConfirmationDialog(
-				DIALOG_CONFIRM_CLOSE_MULTIPLE_CAMPAIGNS,
-				createStringResource("PageCertCampaigns.dialog.title.confirmCloseCampaign"),
-				createCloseSelectedCampaignsConfirmString()) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-				closeSelectedCampaignsConfirmedPerformed(target);
-			}
-		});
-			
-		add(new ConfirmationDialog(
-				DIALOG_CONFIRM_DELETE_CAMPAIGN,
-				createStringResource("PageCertCampaigns.dialog.title.confirmDeleteCampaign"),
-				createDeleteCampaignConfirmString()) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-				deleteCampaignConfirmedPerformed(target);
-			}
-		});
-
-		add(new ConfirmationDialog(
-				DIALOG_CONFIRM_DELETE_MULTIPLE_CAMPAIGNS,
-				createStringResource("PageCertCampaigns.dialog.title.confirmDeleteCampaign"),
-				createDeleteSelectedCampaignsConfirmString()) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-				deleteSelectedCampaignsConfirmedPerformed(target);
-			}
-		});
 
 		CertCampaignListItemDtoProvider provider = createProvider();
 		int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_CAMPAIGNS_PANEL);
@@ -304,7 +252,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 			@Override
 			public String getObject() {
 
-				final List<Selectable> selectedData = WebMiscUtil.getSelectedData(getCampaignsTable());
+				final List<Selectable> selectedData = WebComponentUtil.getSelectedData(getCampaignsTable());
 				if (selectedData.size() > 1) {
 					return createStringResource(
 							"PageCertCampaigns.message.closeCampaignConfirmMultiple", selectedData.size())
@@ -337,7 +285,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 			@Override
 			public String getObject() {
-				final List<Selectable> selectedData = WebMiscUtil.getSelectedData(getCampaignsTable());
+				final List<Selectable> selectedData = WebComponentUtil.getSelectedData(getCampaignsTable());
 				if (selectedData.size() > 1) {
 					return createStringResource(
 							"PageCertCampaigns.message.deleteCampaignConfirmMultiple", selectedData.size())
@@ -562,23 +510,51 @@ public class PageCertCampaigns extends PageAdminCertification {
 		if (!ensureSomethingIsSelected(target)) {
 			return;
 		}
-		ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_CLOSE_MULTIPLE_CAMPAIGNS);
-		dialog.show(target);
-	}
+        showMainPopup(getCloseSelectedCampaignsConfirmationPanel(), createStringResource("PageCertCampaigns.dialog.title.confirmCloseCampaign"),
+                target);
+    }
 
-	private void deleteSelectedCampaignsConfirmation(AjaxRequestTarget target) {
+    private Component getCloseSelectedCampaignsConfirmationPanel() {
+        return new ConfirmationPanel(getMainPopupBodyId(),
+                createCloseSelectedCampaignsConfirmString()) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                ModalWindow modalWindow = findParent(ModalWindow.class);
+                if (modalWindow != null) {
+                    modalWindow.close(target);
+                    closeSelectedCampaignsConfirmedPerformed(target);
+                }
+            }
+        };
+    }
+
+    private void deleteSelectedCampaignsConfirmation(AjaxRequestTarget target) {
 		this.relevantCampaign = null;
 		if (!ensureSomethingIsSelected(target)) {
 			return;
 		}
-		ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE_MULTIPLE_CAMPAIGNS);
-		dialog.show(target);
-	}
+        showMainPopup(getDeleteSelectedCampaignsConfirmationPanel(), createStringResource("PageCertCampaigns.dialog.title.confirmDeleteCampaign"),
+                target);
+    }
 
-	private boolean ensureSomethingIsSelected(AjaxRequestTarget target) {
+    private Component getDeleteSelectedCampaignsConfirmationPanel() {
+        return new ConfirmationPanel(getMainPopupBodyId(),
+                createDeleteSelectedCampaignsConfirmString()) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                ModalWindow modalWindow = findParent(ModalWindow.class);
+                if (modalWindow != null) {
+                    modalWindow.close(target);
+                    deleteSelectedCampaignsConfirmedPerformed(target);
+                }
+            }
+        };
+    }
+
+    private boolean ensureSomethingIsSelected(AjaxRequestTarget target) {
 		if (relevantCampaign != null) {
 			return true;
-		} else if (!WebMiscUtil.getSelectedData(getTable()).isEmpty()) {
+		} else if (!WebComponentUtil.getSelectedData(getTable()).isEmpty()) {
 			return true;
 		} else {
 			warn(getString("PageCertCampaigns.message.noCampaignsSelected"));
@@ -591,40 +567,82 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 	private void closeStageConfirmation(AjaxRequestTarget target, CertCampaignListItemDto campaignDto) {
 		this.relevantCampaign = campaignDto;
-		ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_CLOSE_STAGE);
-		dialog.show(target);
+		showMainPopup(getCloseStageConfirmationPanel(), createStringResource("PageCertCampaigns.dialog.title.confirmCloseStage"),
+                target);
 	}
 
-	private void closeCampaignConfirmation(AjaxRequestTarget target, CertCampaignListItemDto campaignDto) {
+    private Component getCloseStageConfirmationPanel() {
+        return new ConfirmationPanel(getMainPopupBodyId(),
+                createCloseStageConfirmString()) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                ModalWindow modalWindow = findParent(ModalWindow.class);
+                if (modalWindow != null) {
+                    modalWindow.close(target);
+                    closeStageConfirmedPerformed(target, relevantCampaign);
+                }
+            }
+        };
+    }
+
+    private void closeCampaignConfirmation(AjaxRequestTarget target, CertCampaignListItemDto campaignDto) {
 		this.relevantCampaign = campaignDto;
-		ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_CLOSE_CAMPAIGN);
-		dialog.show(target);
-	}
+        showMainPopup(getCloseCampaignConfirmationPanel(), createStringResource("PageCertCampaigns.dialog.title.confirmCloseCampaign"),
+                target);
+    }
 
-	private void deleteCampaignConfirmation(AjaxRequestTarget target, CertCampaignListItemDto campaignDto) {
+    private Component getCloseCampaignConfirmationPanel() {
+        return new ConfirmationPanel(getMainPopupBodyId(),
+                createCloseCampaignConfirmString()) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                ModalWindow modalWindow = findParent(ModalWindow.class);
+                if (modalWindow != null) {
+                    modalWindow.close(target);
+                    closeCampaignConfirmedPerformed(target, relevantCampaign);
+                }
+            }
+        };
+    }
+
+    private void deleteCampaignConfirmation(AjaxRequestTarget target, CertCampaignListItemDto campaignDto) {
 		this.relevantCampaign = campaignDto;
-		ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE_CAMPAIGN);
-		dialog.show(target);
-	}
+        showMainPopup(getDeleteCampaignConfirmationPanel(), createStringResource("PageCertCampaigns.dialog.title.confirmDeleteCampaign"),
+                target);
+    }
 
-	// actions after confirmation (single and multiple versions mixed)
+    private Component getDeleteCampaignConfirmationPanel() {
+        return new ConfirmationPanel(getMainPopupBodyId(),
+                createDeleteCampaignConfirmString()) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                ModalWindow modalWindow = findParent(ModalWindow.class);
+                if (modalWindow != null) {
+                    modalWindow.close(target);
+                    deleteCampaignConfirmedPerformed(target);
+                }
+            }
+        };
+    }
+
+    // actions after confirmation (single and multiple versions mixed)
 
 	private void deleteCampaignConfirmedPerformed(AjaxRequestTarget target) {
 		deleteCampaignsPerformed(target, Arrays.asList(relevantCampaign));
 	}
 
 	private void deleteSelectedCampaignsConfirmedPerformed(AjaxRequestTarget target) {
-		deleteCampaignsPerformed(target, (List) WebMiscUtil.getSelectedData(getCampaignsTable()));
+		deleteCampaignsPerformed(target, (List) WebComponentUtil.getSelectedData(getCampaignsTable()));
 	}
 
 	private void closeSelectedCampaignsConfirmedPerformed(AjaxRequestTarget target) {
 		actOnCampaignsPerformed(target, OPERATION_CLOSE_CAMPAIGN,
-				(List) WebMiscUtil.getSelectedData(getCampaignsTable()));
+				(List) WebComponentUtil.getSelectedData(getCampaignsTable()));
 	}
 
 	private void startSelectedCampaignsPerformed(AjaxRequestTarget target) {
 		actOnCampaignsPerformed(target, OPERATION_START_CAMPAIGN,
-				(List) WebMiscUtil.getSelectedData(getCampaignsTable()));
+				(List) WebComponentUtil.getSelectedData(getCampaignsTable()));
 	}
 
 	protected String determineAction(AccessCertificationCampaignType campaign) {
@@ -655,10 +673,10 @@ public class PageCertCampaigns extends PageAdminCertification {
 	private void startRemediationPerformed(AjaxRequestTarget target, AccessCertificationCampaignType campaign) {
 		LOGGER.debug("Start remediation performed for {}", campaign.asPrismObject());
 		OperationResult result = new OperationResult(OPERATION_START_REMEDIATION);
-		CertificationManager cm = getCertificationManager();
+		AccessCertificationService acs = getCertificationService();
 		try {
 			Task task = createSimpleTask(OPERATION_START_REMEDIATION);
-			cm.startRemediation(campaign.getOid(), task, result);
+			acs.startRemediation(campaign.getOid(), task, result);
 		} catch (Exception ex) {
 			result.recordFatalError(ex);
 		} finally {
@@ -672,11 +690,11 @@ public class PageCertCampaigns extends PageAdminCertification {
 	private void openNextStagePerformed(AjaxRequestTarget target, AccessCertificationCampaignType campaign) {
 		LOGGER.debug("Start campaign / open next stage performed for {}", campaign.asPrismObject());
 		OperationResult result = new OperationResult(OPERATION_OPEN_NEXT_STAGE);
-		CertificationManager cm = getCertificationManager();
+		AccessCertificationService acs = getCertificationService();
 		try {
 			Task task = createSimpleTask(OPERATION_OPEN_NEXT_STAGE);
 			int currentStage = campaign.getStageNumber();
-			cm.openNextStage(campaign.getOid(), currentStage + 1, task, result);
+			acs.openNextStage(campaign.getOid(), currentStage + 1, task, result);
 		} catch (Exception ex) {
 			result.recordFatalError(ex);
 		} finally {
@@ -693,9 +711,9 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 		OperationResult result = new OperationResult(OPERATION_CLOSE_CAMPAIGN);
 		try {
-			CertificationManager cm = getCertificationManager();
+			AccessCertificationService acs = getCertificationService();
 			Task task = createSimpleTask(OPERATION_CLOSE_CAMPAIGN);
-			cm.closeCampaign(campaign.getOid(), task, result);
+			acs.closeCampaign(campaign.getOid(), task, result);
 		} catch (Exception ex) {
 			result.recordFatalError(ex);
 		} finally {
@@ -713,9 +731,9 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 		OperationResult result = new OperationResult(OPERATION_CLOSE_STAGE);
 		try {
-			CertificationManager cm = getCertificationManager();
+			AccessCertificationService acs = getCertificationService();
 			Task task = createSimpleTask(OPERATION_CLOSE_STAGE);
-			cm.closeCurrentStage(campaign.getOid(), campaign.getStageNumber(), task, result);
+			acs.closeCurrentStage(campaign.getOid(), campaign.getStageNumber(), task, result);
 		}catch (Exception ex) {
 			result.recordFatalError(ex);
 		} finally {
@@ -750,7 +768,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 								AccessCertificationCampaignType.class,
 								itemToDelete.getOid(), getPrismContext());
 				getModelService().executeChanges(
-						WebMiscUtil.createDeltaCollection(delta), null, task,
+						WebComponentUtil.createDeltaCollection(delta), null, task,
 						result);
 			} catch (Exception ex) {
 				result.recordPartialError("Couldn't delete campaign.", ex);
@@ -777,7 +795,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 	private void actOnCampaignsPerformed(AjaxRequestTarget target,
 			String operationName, List<CertCampaignListItemDto> items) {
 		int processed = 0;
-		CertificationManager cm = getCertificationManager();
+		AccessCertificationService acs = getCertificationService();
 
 		OperationResult result = new OperationResult(operationName);
 		for (CertCampaignListItemDto item : items) {
@@ -787,13 +805,13 @@ public class PageCertCampaigns extends PageAdminCertification {
 				switch (operationName) {
 				case OPERATION_START_CAMPAIGN:
 					if (campaign.getState() == AccessCertificationCampaignStateType.CREATED) {
-						cm.openNextStage(campaign.getOid(), 1, task, result);
+						acs.openNextStage(campaign.getOid(), 1, task, result);
 						processed++;
 					}
 					break;
 				case OPERATION_CLOSE_CAMPAIGN:
 					if (campaign.getState() != AccessCertificationCampaignStateType.CLOSED) {
-						cm.closeCampaign(campaign.getOid(), task, result);
+						acs.closeCampaign(campaign.getOid(), task, result);
 						processed++;
 					}
 					break;

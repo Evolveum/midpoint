@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.testing.conntest;
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -138,12 +138,12 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 		
 	protected static final String ACCOUNT_IDM_DN = "uid=idm,ou=Administrators,dc=example,dc=com";
 	protected static final String ACCOUNT_0_UID = "u00000000";
-	protected static final String ACCOUNT_18_UID = "u00000018";
 	protected static final String ACCOUNT_19_UID = "u00000019";
-	protected static final String ACCOUNT_67_UID = "u00000067";
+	protected static final String ACCOUNT_20_UID = "u00000020";
 	protected static final String ACCOUNT_68_UID = "u00000068";
-	protected static final String ACCOUNT_239_UID = "u00000239";
+	protected static final String ACCOUNT_69_UID = "u00000069";
 	protected static final String ACCOUNT_240_UID = "u00000240";
+	protected static final String ACCOUNT_241_UID = "u00000241";
 
 	protected static final int NUMBER_OF_GENERATED_ACCOUNTS = 4000;
 
@@ -419,8 +419,8 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
 		SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 50, task, result);
         
-        assertAccountShadow(shadows.get(0), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_18_UID:ACCOUNT_19_UID));
-        assertAccountShadow(shadows.get(49), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_67_UID:ACCOUNT_68_UID));
+        assertAccountShadow(shadows.get(0), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_19_UID:ACCOUNT_20_UID));
+        assertAccountShadow(shadows.get(49), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_68_UID:ACCOUNT_69_UID));
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
@@ -454,8 +454,8 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
 		SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 222, task, result);
         
-        assertAccountShadow(shadows.get(0), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_18_UID:ACCOUNT_19_UID));
-        assertAccountShadow(shadows.get(221), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_239_UID:ACCOUNT_240_UID));
+        assertAccountShadow(shadows.get(0), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_19_UID:ACCOUNT_20_UID));
+        assertAccountShadow(shadows.get(221), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_240_UID:ACCOUNT_241_UID));
                 
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
@@ -541,8 +541,8 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 	}
 
 	@Test
-    public void test210ModifyAccountBarbossaTitle() throws Exception {
-		final String TEST_NAME = "test210ModifyAccountBarbossaTitle";
+    public void test210ModifyAccountBarbossaReplaceTitle() throws Exception {
+		final String TEST_NAME = "test210ModifyAccountBarbossaReplaceTitle";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -553,6 +553,43 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = PropertyDelta.createModificationReplaceProperty(
+        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
+        delta.addModification(attrDelta);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "title", "Captain");
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+	}
+	
+	/**
+	 * Make a duplicate modification. Add a title value that is already there.
+	 * Normal LDAP should fail. So check that connector and midPoint handles that.
+	 */
+	@Test
+    public void test212ModifyAccountBarbossaAddTitleDuplicate() throws Exception {
+		final String TEST_NAME = "test212ModifyAccountBarbossaAddTitleDuplicate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        QName attrQName = new QName(MidPointConstants.NS_RI, "title");
+        ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        PropertyDelta<String> attrDelta = PropertyDelta.createModificationAddProperty(
         		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
         

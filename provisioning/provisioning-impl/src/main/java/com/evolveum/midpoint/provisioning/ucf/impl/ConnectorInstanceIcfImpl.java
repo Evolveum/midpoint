@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.provisioning.impl.StateReporter;
@@ -109,6 +107,10 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.DistinguishedNameMatchingRule;
+import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
+import com.evolveum.midpoint.prism.match.UuidMatchingRule;
+import com.evolveum.midpoint.prism.match.XmlMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -221,7 +223,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private Boolean legacySchema = null;
 	private boolean supportsReturnDefaultAttributes = false;
 
-	public ConnectorInstanceIcfImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
+	ConnectorInstanceIcfImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
 			String schemaNamespace, PrismSchema connectorSchema, Protector protector,
 			PrismContext prismContext) {
 		this.cinfo = connectorInfo;
@@ -469,6 +471,27 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// We consider arrays to be multi-valued
 		// ... unless it is byte[] or char[]
 		return type.isArray() && !type.equals(byte[].class) && !type.equals(char[].class);
+	}
+	
+	private QName icfAttributeInfoToMatchingRule(AttributeInfo attributeInfo) {
+		String icfSubtype = attributeInfo.getSubtype();
+		if (icfSubtype == null) {
+			return null;
+		}
+		if (AttributeInfo.Subtypes.STRING_CASE_IGNORE.toString().equals(icfSubtype)) {
+			return StringIgnoreCaseMatchingRule.NAME;
+		}
+		if (AttributeInfo.Subtypes.STRING_LDAP_DN.toString().equals(icfSubtype)) {
+			return DistinguishedNameMatchingRule.NAME;
+		}
+		if (AttributeInfo.Subtypes.STRING_XML.toString().equals(icfSubtype)) {
+			return XmlMatchingRule.NAME;
+		}
+		if (AttributeInfo.Subtypes.STRING_UUID.toString().equals(icfSubtype)) {
+			return UuidMatchingRule.NAME;
+		}
+		LOGGER.debug("Unknown subtype {} defined for attribute {}, ignoring (no matching rule definition)", icfSubtype, attributeInfo.getName());
+		return null;
 	}
 
 	@Override
@@ -750,6 +773,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				ResourceAttributeDefinition attrDef = new ResourceAttributeDefinition(
 						attrXsdName, attrXsdType, prismContext);
 
+				attrDef.setMatchingRuleQName(icfAttributeInfoToMatchingRule(attributeInfo));
 				
 				if (Name.NAME.equals(icfName)) {
 					nameDefinition = attrDef;
@@ -1076,7 +1100,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
 			SchemaException, SecurityViolationException, ConfigurationException {
 
-		Collection<? extends ResourceAttribute<?>> identifiers = resourceObjectIdentification.getIdentifiers();
+		Collection<? extends ResourceAttribute<?>> identifiers = resourceObjectIdentification.getPrimaryIdentifiers();
 		ObjectClassComplexTypeDefinition objectClassDefinition = resourceObjectIdentification.getObjectClassDefinition();
 		// Result type for this operation
 		OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName()
@@ -2291,8 +2315,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
         if (searchHierarchyConstraints != null) {
         	ResourceObjectIdentification baseContextIdentification = searchHierarchyConstraints.getBaseContext();
         	// Only LDAP connector really supports base context. And this one will work better with
-        	// DN. And DN is usually stored in icfs:name. This is ugly, but practical. It works around ConnId problems.
-        	ResourceAttribute<?> secondaryIdentifier = ShadowUtil.getSecondaryIdentifier(objectClassDefinition, baseContextIdentification.getIdentifiers());
+        	// DN. And DN is secondary identifier (__NAME__). This is ugly, but practical. It works around ConnId problems.
+        	ResourceAttribute<?> secondaryIdentifier = baseContextIdentification.getSecondaryIdentifier();
+        	if (secondaryIdentifier == null) {
+        		SchemaException e = new SchemaException("No secondary identifier in base context identification "+baseContextIdentification);
+        		result.recordFatalError(e);
+        		throw e;
+        	}
         	String secondaryIdentifierValue = secondaryIdentifier.getRealValue(String.class);
         	ObjectClass baseContextIcfObjectClass = icfNameMapper.objectClassToIcf(baseContextIdentification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
         	QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(secondaryIdentifierValue));
@@ -2301,7 +2330,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
         
         // Relax completeness requirements. This is a search, not get. So it is OK to
         // return incomplete member lists and similar attributes.
-//        optionsBuilder.setAllowPartialAttributeValues(true);
+        optionsBuilder.setAllowPartialAttributeValues(true);
         
 		OperationOptions options = optionsBuilder.build();
 

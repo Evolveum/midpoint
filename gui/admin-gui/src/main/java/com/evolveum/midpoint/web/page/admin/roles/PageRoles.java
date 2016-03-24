@@ -16,10 +16,14 @@
 
 package com.evolveum.midpoint.web.page.admin.roles;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
-import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -29,7 +33,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
@@ -38,32 +41,25 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
-import com.evolveum.midpoint.web.page.admin.roles.dto.RolesSearchDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.RolesStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -88,34 +84,29 @@ public class PageRoles extends PageAdminRoles {
     private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
     private static final String ID_TABLE = "table";
     private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_SEARCH_FORM = "searchForm";
-    private static final String ID_BASIC_SEARCH = "basicSearch";
-    private static final String ID_SEARCH_REQUESTABLE = "choice";
-    private static final String ID_TABLE_HEADER = "tableHeader";
 
-    private IModel<RolesSearchDto> searchModel;
+    private IModel<Search> searchModel;
 
     public PageRoles() {
-        this(true, "");
+        this(true);
     }
 
-    public PageRoles(String searchText) {
-        this(true, searchText);
-    }
-
-    public PageRoles(boolean clearPagingInSession, final String searchText) {
-        searchModel = new LoadableModel<RolesSearchDto>() {
+    public PageRoles(boolean clearPagingInSession) {
+        searchModel = new LoadableModel<Search>(false) {
 
             @Override
-            protected RolesSearchDto load() {
+            protected Search load() {
                 RolesStorage storage = getSessionStorage().getRoles();
-                RolesSearchDto dto = storage.getRolesSearch();
+                Search dto = storage.getRolesSearch();
 
-                if(dto == null){
-                    dto = new RolesSearchDto();
-                }
-                if (searchText != null && !searchText.trim().equals("")){
-                    dto.setText(searchText);
+                if (dto == null) {
+                    dto = SearchFactory.createSearch(RoleType.class, getPrismContext(), true);
+
+                    SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+                    PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(RoleType.class);
+                    PrismPropertyDefinition def = objDef.findPropertyDefinition(RoleType.F_REQUESTABLE);
+
+                    dto.addItem(def);
                 }
 
                 return dto;
@@ -138,7 +129,6 @@ public class PageRoles extends PageAdminRoles {
                 storage.setRolesPaging(paging);
             }
         };
-        provider.setQuery(createQuery());
 
         List<IColumn<RoleType, String>> columns = initColumns();
 
@@ -148,7 +138,13 @@ public class PageRoles extends PageAdminRoles {
 
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
-                return new SearchFragment(headerId, ID_TABLE_HEADER, PageRoles.this, searchModel);
+                return new SearchFormPanel(headerId, searchModel) {
+
+                    @Override
+                    protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+                        PageRoles.this.listRolesPerformed(query, target);
+                    }
+                };
             }
         };
         table.setOutputMarkupId(true);
@@ -269,7 +265,7 @@ public class PageRoles extends PageAdminRoles {
                 Task task = createSimpleTask(OPERATION_DELETE_ROLES);
 
                 ObjectDelta delta = ObjectDelta.createDeleteDelta(RoleType.class, role.getOid(), getPrismContext());
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
             } catch (Exception ex) {
                 result.recordPartialError("Couldn't delete role.", ex);
                 LoggingUtils.logException(LOGGER, "Couldn't delete role", ex);
@@ -298,8 +294,7 @@ public class PageRoles extends PageAdminRoles {
         setResponsePage(PageRole.class, parameters);
     }
 
-    private void listRolesPerformed(AjaxRequestTarget target) {
-        ObjectQuery query = createQuery();
+    private void listRolesPerformed(ObjectQuery query, AjaxRequestTarget target) {
         ObjectDataProvider provider = getRoleDataProvider();
         provider.setQuery(query);
 
@@ -311,114 +306,5 @@ public class PageRoles extends PageAdminRoles {
         table.setCurrentPage(null);
         target.add((Component) table);
         target.add(getFeedbackPanel());
-    }
-
-    private ObjectQuery createQuery() {
-        RolesSearchDto dto = searchModel.getObject();
-        String text = dto.getText();
-        Boolean requestable = dto.getRequestableValue();
-        ObjectQuery query = new ObjectQuery();
-        List<ObjectFilter> filters = new ArrayList<>();
-
-        if (StringUtils.isNotEmpty(text)) {
-            PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
-            String normalizedText = normalizer.normalize(text);
-
-            ObjectFilter substring = SubstringFilter.createSubstring(RoleType.F_NAME, RoleType.class, getPrismContext(),
-                    PolyStringNormMatchingRule.NAME, normalizedText);
-            filters.add(substring);
-        }
-
-        if (requestable != null) {
-            EqualFilter requestableFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
-                    null, requestable);
-
-            if (requestable) {
-                filters.add(requestableFilter);
-            } else {
-                requestableFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
-                        null, false);
-                EqualFilter nullFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
-                        null, null);
-                OrFilter or = OrFilter.createOr(requestableFilter, nullFilter);
-                filters.add(or);
-            }
-        }
-
-        if (!filters.isEmpty()) {
-            query.setFilter(AndFilter.createAnd(filters));
-        }
-
-        return query;
-    }
-
-    private void clearSearchPerformed(AjaxRequestTarget target) {
-        searchModel.setObject(new RolesSearchDto());
-
-        Table panel = getRoleTable();
-        DataTable table = panel.getDataTable();
-        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
-        provider.setQuery(null);
-
-        RolesStorage storage = getSessionStorage().getRoles();
-        storage.setRolesSearch(searchModel.getObject());
-        storage.setRolesPaging(null);
-
-        panel.setCurrentPage(storage.getRolesPaging());
-
-        target.add((Component) panel);
-    }
-
-    private static class SearchFragment extends Fragment {
-
-        public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
-                              IModel<RolesSearchDto> model) {
-            super(id, markupId, markupProvider, model);
-
-            initLayout();
-        }
-
-        private void initLayout() {
-            final Form searchForm = new Form(ID_SEARCH_FORM);
-            add(searchForm);
-            searchForm.setOutputMarkupId(true);
-
-            final IModel<RolesSearchDto> model = (IModel) getDefaultModel();
-
-            BasicSearchPanel<RolesSearchDto> basicSearch = new BasicSearchPanel<RolesSearchDto>(ID_BASIC_SEARCH, model) {
-
-                @Override
-                protected IModel<String> createSearchTextModel() {
-                    return new PropertyModel<String>(model, UsersDto.F_TEXT);
-                }
-
-                @Override
-                protected void searchPerformed(AjaxRequestTarget target) {
-                    PageRoles page = (PageRoles) getPage();
-                    page.listRolesPerformed(target);
-                }
-
-                @Override
-                protected void clearSearchPerformed(AjaxRequestTarget target) {
-                    PageRoles page = (PageRoles) getPage();
-                    page.clearSearchPerformed(target);
-                }
-            };
-            searchForm.add(basicSearch);
-
-            DropDownChoice requestable = new DropDownChoice(ID_SEARCH_REQUESTABLE,
-                    new PropertyModel(model, RolesSearchDto.F_REQUESTABLE),
-                    WebMiscUtil.createReadonlyModelFromEnum(RolesSearchDto.Requestable.class),
-                    new EnumChoiceRenderer(this));
-            requestable.add(new OnChangeAjaxBehavior() {
-
-                @Override
-                protected void onUpdate(AjaxRequestTarget target) {
-                    PageRoles page = (PageRoles) getPage();
-                    page.listRolesPerformed(target);
-                }
-            });
-            searchForm.add(requestable);
-        }
     }
 }

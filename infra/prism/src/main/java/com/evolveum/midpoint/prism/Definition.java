@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
+
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
@@ -285,7 +287,7 @@ public abstract class Definition implements Serializable, DebugDumpable, Revivab
 
 	@Override
 	public String toString() {
-		return getDebugDumpClassName() + " ("+getTypeName()+")";
+		return getDebugDumpClassName() + " ("+PrettyPrinter.prettyPrint(getTypeName())+")";
 	}
 	
 	@Override

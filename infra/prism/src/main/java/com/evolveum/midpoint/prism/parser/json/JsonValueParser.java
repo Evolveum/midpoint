@@ -5,18 +5,14 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.util.TokenBuffer;
 import org.apache.commons.lang.StringUtils;
 
 public class JsonValueParser<T> implements ValueParser<T> {
@@ -37,7 +33,7 @@ public class JsonValueParser<T> implements ValueParser<T> {
 		return parser;
 	}
 	@Override
-	public T parse(QName typeName) throws SchemaException {
+	public T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
 		ObjectMapper mapper = (ObjectMapper) parser.getCodec();
 		Class clazz = XsdTypeMapper.toJavaType(typeName);
 			
@@ -50,6 +46,7 @@ public class JsonValueParser<T> implements ValueParser<T> {
 //	    		}
 //	    	}
 			return r.readValue(node);
+			// TODO implement COMPAT mode
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			throw new SchemaException("Cannot parse value: " + e.getMessage(), e);

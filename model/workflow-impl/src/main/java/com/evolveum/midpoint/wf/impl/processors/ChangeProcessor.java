@@ -21,7 +21,6 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -29,14 +28,11 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.impl.WorkflowManagerImpl;
-import com.evolveum.midpoint.wf.impl.jobs.Job;
+import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
-
-import javax.xml.bind.JAXBException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
 import java.util.Map;
 
@@ -70,8 +66,9 @@ public interface ChangeProcessor {
      *
      * @param context Model context of the operation.
      * @param wfConfigurationType
-     *@param taskFromModel Task in context of which the operation is carried out.
-     * @param result Where to put information on operation execution.   @return non-null value if it processed the request;
+     * @param taskFromModel Task in context of which the operation is carried out.
+     * @param result Where to put information on operation execution.
+     * @return non-null value if it processed the request;
      *              BACKGROUND = the process was "caught" by the processor, and continues in background,
      *              FOREGROUND = nothing was left on background, the model operation should continue in foreground,
      *              ERROR = something wrong has happened, there's no point in continuing with this operation.
@@ -86,61 +83,37 @@ public interface ChangeProcessor {
      * Handles an event from WfMS that indicates finishing of the workflow process instance.
      * Usually, at this point we see what was approved (and what was not) and continue with model operation(s).
      *
-     * Should leave the task in saved state (if finishing successfully).
-     *
      * @param event
-     * @param task
+     * @param wfTask
      * @param result Here should be stored information about whether the finalization was successful or not
      * @throws SchemaException
      */
-    void onProcessEnd(ProcessEvent event, Job job, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
-
-    /**
-     * Externalizes internal state of the process instance. Typically, uninteresting (auxiliary) data elements
-     * are thrown away, internal representation suitable for workflow processing is replaced by "clean" prism
-     * object structure, and untyped Map[String,Object] is replaced by typed prism data.
-     *
-     * @param variables internal process state represented by a map
-     * @return external representation in the form of PrismObject
-     */
-    PrismObject<? extends ProcessInstanceState> externalizeProcessInstanceState(Map<String, Object> variables) throws JAXBException, SchemaException;
-
-    /**
-     * Prepares a displayable work item contents. For example, in case of primary change processor,
-     * it returns a GeneralChangeApprovalWorkItemContents containing original object state
-     * (objectOld), to-be object state (objectNew), delta, additional object, and a situation-specific
-     * question form.
-     *
-     * @param task activiti task corresponding to the work item for which the contents is to be prepared
-     * @param processInstanceVariables variables of the process instance of which this task is a part
-     * @param result here the method stores its result
-     * @return
-     * @throws JAXBException
-     * @throws ObjectNotFoundException
-     * @throws SchemaException
-     */
-    PrismObject<? extends WorkItemContents> externalizeWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException;
+    void onProcessEnd(ProcessEvent event, WfTask wfTask, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
 
     /**
      * Prepares a process instance-related audit record.
      *
-     * @param variables
-     * @param job
+     * @param wfTask
      * @param stage
+     * @param variables
      * @param result
      * @return
      */
-    AuditEventRecord prepareProcessInstanceAuditRecord(Map<String, Object> variables, Job job, AuditEventStage stage, OperationResult result);
+    AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, Map<String, Object> variables, OperationResult result);
 
     /**
      * Prepares a work item-related audit record.
      *
-     * @param taskEvent
-     * @param stage
-     * @param result
-     * @return
+     *
+	 * @param workItem
+	 * @param wfTask
+	 * @param taskEvent
+	 * @param stage
+	 * @param result
+	 * @return
      */
-    AuditEventRecord prepareWorkItemAuditRecord(TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException;
+	// workItem contains taskRef, assignee, candidates resolved (if possible)
+    AuditEventRecord prepareWorkItemAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException;
 
     /**
      * Auxiliary method to access autowired Spring beans from within non-spring java objects.

@@ -15,20 +15,23 @@
  */
 package com.evolveum.midpoint.web.page.self;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.PageAdminHome;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -47,11 +50,11 @@ public class PageSelfProfile extends PageUser {
 
 	@Override
 	protected String getObjectOidParameter() {
-		return WebModelUtils.getLoggedInUserOid();
+		return WebModelServiceUtils.getLoggedInUserOid();
 	}
 	
 	@Override
-	protected PageBase getDefaultBackPage() {
+	public PageBase getDefaultBackPage() {
 		return new PageSelfProfile();
 	}
 //
@@ -61,5 +64,18 @@ public class PageSelfProfile extends PageUser {
 //		optionsPanel.setVisible(false);
 //		return optionsPanel;
 //	}
-	
+
+
+	@Override
+	protected void createBreadcrumb() {
+		super.createBreadcrumb();
+
+		Breadcrumb bc = getSessionStorage().peekBreadcrumb();
+		bc.setIcon(new Model("fa fa-user"));
+	}
+
+	@Override
+	protected IModel<String> createPageTitleModel() {
+		return createStringResource("PageSelfProfile.title");
+	}
 }

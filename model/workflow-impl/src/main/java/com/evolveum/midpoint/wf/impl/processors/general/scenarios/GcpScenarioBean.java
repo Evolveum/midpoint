@@ -20,21 +20,15 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.api.WorkflowException;
-import com.evolveum.midpoint.wf.impl.jobs.Job;
-import com.evolveum.midpoint.wf.impl.jobs.JobCreationInstruction;
+import com.evolveum.midpoint.wf.impl.tasks.WfTask;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorScenarioType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
-
-import javax.xml.bind.JAXBException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
 import java.util.Map;
 
@@ -55,13 +49,9 @@ public interface GcpScenarioBean {
      */
     boolean determineActivation(GeneralChangeProcessorScenarioType scenarioType, ModelContext context, Task taskFromModel, OperationResult result);
 
-    PrismObject<? extends WorkItemContents> externalizeWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException;
+    AuditEventRecord prepareProcessInstanceAuditRecord(Map<String, Object> variables, WfTask wfTask, AuditEventStage stage, OperationResult result);
 
-    ProcessSpecificState externalizeInstanceState(Map<String, Object> variables) throws SchemaException;
+    AuditEventRecord prepareWorkItemAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException;
 
-    AuditEventRecord prepareProcessInstanceAuditRecord(Map<String, Object> variables, Job job, AuditEventStage stage, OperationResult result);
-
-    AuditEventRecord prepareWorkItemAuditRecord(TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException;
-
-    JobCreationInstruction prepareJobCreationInstruction(GeneralChangeProcessorScenarioType scenarioType, LensContext<?> context, Job rootJob, Task taskFromModel, OperationResult result) throws SchemaException;
+    WfTaskCreationInstruction prepareJobCreationInstruction(GeneralChangeProcessorScenarioType scenarioType, LensContext<?> context, WfTask rootWfTask, Task taskFromModel, OperationResult result) throws SchemaException;
 }

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -28,11 +29,12 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDtoProvider;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 
 import org.apache.commons.lang.time.DurationFormatUtils;
@@ -40,16 +42,23 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import static com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto.F_ANSWER;
+import static com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto.F_END_FORMATTED;
+import static com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto.F_START_FORMATTED;
 
 /**
  * @author mederly
@@ -58,6 +67,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 
     public static final String ID_STOP = "stop";
     public static final String ID_BACK = "back";
+    public static final String ID_PROCESS_INSTANCES_TABLE = "processInstancesTable";
 
     boolean requestedBy;        // true if we want to show process instances requested BY a user
     boolean requestedFor;       // true if we want to show instances requested FOR a user
@@ -65,7 +75,6 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
     private static final Trace LOGGER = TraceManager.getTrace(PageProcessInstances.class);
     private static final String DOT_CLASS = PageProcessInstances.class.getName() + ".";
     private static final String OPERATION_STOP_PROCESS_INSTANCES = DOT_CLASS + "stopProcessInstances";
-
 
     public PageProcessInstances(boolean requestedBy, boolean requestedFor) {
         this.requestedBy = requestedBy;
@@ -77,142 +86,13 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        List<IColumn<ProcessInstanceDto, String>> columns = initColumns();
-        TablePanel<ProcessInstanceDto> table = new TablePanel<ProcessInstanceDto>("processInstancesTable", new ProcessInstanceDtoProvider(PageProcessInstances.this, requestedBy, requestedFor, false),
-                columns);
-        table.setOutputMarkupId(true);
-        mainForm.add(table);
-
-        List<IColumn<ProcessInstanceDto, String>> finishedColumns = initFinishedColumns();
-        TablePanel<ProcessInstanceDto> finishedTable = new TablePanel<ProcessInstanceDto>("finishedProcessInstancesTable", new ProcessInstanceDtoProvider(PageProcessInstances.this, requestedBy, requestedFor, true),
-                finishedColumns);
-        finishedTable.setOutputMarkupId(true);
-        mainForm.add(finishedTable);
+		ISortableDataProvider<ProcessInstanceDto, String> provider = new ProcessInstanceDtoProvider(PageProcessInstances.this, requestedBy, requestedFor);
+		WorkflowRequestsPanel panel = new WorkflowRequestsPanel(ID_PROCESS_INSTANCES_TABLE, provider,
+				UserProfileStorage.TableId.PAGE_WORKFLOW_REQUESTS, (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_WORKFLOW_REQUESTS));
+		panel.setOutputMarkupId(true);
+		mainForm.add(panel);
 
         initItemButtons(mainForm);
-    }
-
-    private List<IColumn<ProcessInstanceDto, String>> initColumns() {
-        List<IColumn<ProcessInstanceDto, String>> columns = new ArrayList<IColumn<ProcessInstanceDto, String>>();
-
-        IColumn column = new CheckBoxHeaderColumn<ProcessInstanceDto>();
-        columns.add(column);
-
-        column = new LinkColumn<ProcessInstanceDto>(createStringResource("pageProcessInstances.item.name"), "name") {
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<ProcessInstanceDto> rowModel) {
-                ProcessInstanceDto piDto = rowModel.getObject();
-                itemDetailsPerformed(target, false, piDto.getProcessInstance().getProcessInstanceId());
-            }
-        };
-        columns.add(column);
-
-        columns.add(new AbstractColumn<ProcessInstanceDto, String>(createStringResource("pageProcessInstances.item.started")) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<ProcessInstanceDto>> item, String componentId,
-                                     final IModel<ProcessInstanceDto> rowModel) {
-                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
-
-                    @Override
-                    public Object getObject() {
-                        ProcessInstanceDto pi = rowModel.getObject();
-                        Date started = XmlTypeConverter.toDate(pi.getProcessInstance().getStartTimestamp());
-                        if (started == null) {
-                            return "?";
-                        } else {
-                            // todo i18n
-                            return DurationFormatUtils.formatDurationWords(System.currentTimeMillis() - started.getTime(), true, true) + " ago";
-                        }
-                    }
-                }));
-            }
-        });
-
-        return columns;
-    }
-
-    private List<IColumn<ProcessInstanceDto, String>> initFinishedColumns() {
-        List<IColumn<ProcessInstanceDto, String>> columns = new ArrayList<IColumn<ProcessInstanceDto, String>>();
-
-        IColumn column = new CheckBoxHeaderColumn<ProcessInstanceDto>();
-        columns.add(column);
-
-        column = new LinkColumn<ProcessInstanceDto>(createStringResource("pageProcessInstances.item.name"), "name") {
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<ProcessInstanceDto> rowModel) {
-                ProcessInstanceDto piDto = rowModel.getObject();
-                itemDetailsPerformed(target, true, piDto.getProcessInstance().getProcessInstanceId());
-            }
-        };
-        columns.add(column);
-
-        columns.add(new AbstractColumn<ProcessInstanceDto, String>(createStringResource("pageProcessInstances.item.result")) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<ProcessInstanceDto>> item, String componentId,
-                                     final IModel<ProcessInstanceDto> rowModel) {
-                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
-
-                    @Override
-                    public Object getObject() {
-                        ProcessInstanceDto pi = rowModel.getObject();
-                        Boolean result = ApprovalUtils.approvalBooleanValue(pi.getAnswer());
-                        if (result == null) {
-                            return "";
-                        } else {
-                            return result ? "APPROVED" : "REJECTED";        // todo i18n
-                        }
-                    }
-                }));
-            }
-        });
-
-        columns.add(new AbstractColumn<ProcessInstanceDto, String>(createStringResource("pageProcessInstances.item.started")) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<ProcessInstanceDto>> item, String componentId,
-                                     final IModel<ProcessInstanceDto> rowModel) {
-                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
-
-                    @Override
-                    public Object getObject() {
-                        ProcessInstanceDto pi = rowModel.getObject();
-                        Date started = XmlTypeConverter.toDate(pi.getProcessInstance().getStartTimestamp());
-                        if (started == null) {
-                            return "?";
-                        } else {
-                        	return WebMiscUtil.formatDate(started);
-                        }
-                    }
-                }));
-            }
-        });
-
-        columns.add(new AbstractColumn<ProcessInstanceDto, String>(createStringResource("pageProcessInstances.item.finished")) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<ProcessInstanceDto>> item, String componentId,
-                                     final IModel<ProcessInstanceDto> rowModel) {
-                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
-
-                    @Override
-                    public Object getObject() {
-                        ProcessInstanceDto pi = rowModel.getObject();
-                        Date finished = XmlTypeConverter.toDate(pi.getProcessInstance().getEndTimestamp());
-                        if (finished == null) {
-                            return getString("pageProcessInstances.notYet");
-                        } else {
-                            return WebMiscUtil.formatDate(finished);
-                        }
-                    }
-                }));
-            }
-        });
-
-        return columns;
     }
 
     private void initItemButtons(Form mainForm) {
@@ -246,26 +126,8 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         return (TablePanel) get("mainForm:processInstancesTable");
     }
 
-    private TablePanel getFinishedTable() {
-        return (TablePanel) get("mainForm:finishedProcessInstancesTable");
-    }
-
-//    private List<ProcessInstanceDto> getSelectedItems() {
-//        DataTable table = getTable().getDataTable();
-//        ProcessInstanceDtoProvider provider = (ProcessInstanceDtoProvider) table.getDataProvider();
-//
-//        List<ProcessInstanceDto> selected = new ArrayList<ProcessInstanceDto>();
-//        for (ProcessInstanceDto row : provider.getAvailableData()) {
-//            if (row.isSelected()) {
-//                selected.add(row);
-//            }
-//        }
-//
-//        return selected;
-//    }
-
-    private boolean isSomeItemSelected(List<ProcessInstanceDto> instances, List<ProcessInstanceDto> finished, AjaxRequestTarget target) {
-        if (!instances.isEmpty() || !finished.isEmpty()) {
+    private boolean isSomeItemSelected(List<ProcessInstanceDto> instances, AjaxRequestTarget target) {
+        if (!instances.isEmpty()) {
             return true;
         }
 
@@ -274,21 +136,19 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         return false;
     }
 
-    private void itemDetailsPerformed(AjaxRequestTarget target, boolean finished, String pid) {
+    private void itemDetailsPerformed(AjaxRequestTarget target, String taskOid) {
         PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, pid);
-        parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_FINISHED, finished);
-        setResponsePage(new PageProcessInstance(parameters, this));
+        parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
+        setResponsePage(new PageTaskEdit(parameters, this));
     }
 
     private void stopProcessInstancesPerformed(AjaxRequestTarget target) {
 
     	MidPointPrincipal user = SecurityUtils.getPrincipalUser();
 
-        List<ProcessInstanceDto> processInstanceDtoList = WebMiscUtil.getSelectedData(getTable());
-        List<ProcessInstanceDto> finishedProcessInstanceDtoList = WebMiscUtil.getSelectedData(getFinishedTable());
+        List<ProcessInstanceDto> processInstanceDtoList = WebComponentUtil.getSelectedData(getTable());
 
-        if (!isSomeItemSelected(processInstanceDtoList, finishedProcessInstanceDtoList, target)) {
+        if (!isSomeItemSelected(processInstanceDtoList, target)) {
             return;
         }
 
@@ -297,17 +157,10 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         WorkflowService workflowService = getWorkflowService();
         for (ProcessInstanceDto processInstanceDto : processInstanceDtoList) {
             try {
-                workflowService.stopProcessInstance(processInstanceDto.getInstanceId(),
-                        WebMiscUtil.getOrigStringFromPoly(user.getName()), result);
+//                workflowService.stopProcessInstance(processInstanceDto.getInstanceId(),
+//                        WebComponentUtil.getOrigStringFromPoly(user.getName()), result);
             } catch (Exception ex) {    // todo
                 result.createSubresult("stopProcessInstance").recordPartialError("Couldn't stop process instance " + processInstanceDto.getName(), ex);
-            }
-        }
-        for (ProcessInstanceDto processInstanceDto : finishedProcessInstanceDtoList) {
-            try {
-                workflowService.deleteProcessInstance(processInstanceDto.getInstanceId(), result);
-            } catch (Exception ex) {    // todo
-                result.createSubresult("deleteProcessInstance").recordPartialError("Couldn't delete process instance " + processInstanceDto.getName(), ex);
             }
         }
 
@@ -323,13 +176,10 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 
         ProcessInstanceDtoProvider provider = (ProcessInstanceDtoProvider) getTable().getDataTable().getDataProvider();
         provider.clearCache();
-        ProcessInstanceDtoProvider provider2 = (ProcessInstanceDtoProvider) getFinishedTable().getDataTable().getDataProvider();
-        provider2.clearCache();
 
         //refresh feedback and table
         target.add(getFeedbackPanel());
         target.add(getTable());
-        target.add(getFinishedTable());
 
         setReinitializePreviousPages(true);
     }

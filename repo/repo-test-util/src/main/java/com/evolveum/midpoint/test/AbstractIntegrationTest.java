@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -577,16 +578,16 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 	
 	protected void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, QName objectClass) throws SchemaException {
-		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, null);
+		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, null, false);
 	}
 
     protected void assertAccountShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) throws SchemaException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), null);
+        assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), null, false);
     }
 
     protected void assertAccountShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-                                      MatchingRule<String> nameMatchingRule) throws SchemaException {
-        assertShadowCommon(accountShadow,oid,username,resourceType,getAccountObjectClass(resourceType),nameMatchingRule);
+                                      MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers) throws SchemaException {
+        assertShadowCommon(accountShadow,oid,username,resourceType,getAccountObjectClass(resourceType),nameMatchingRule, requireNormalizedIdentfiers);
     }
 
     protected QName getAccountObjectClass(ResourceType resourceType) {
@@ -597,21 +598,23 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         return new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "GroupObjectClass");
     }
 
-    protected void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-                                      QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
-		assertShadow(accountShadow);
+    protected void assertShadowCommon(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
+                                      QName objectClass, MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers) throws SchemaException {
+		assertShadow(shadow);
 		if (oid != null) {
-			assertEquals("Account shadow OID mismatch (prism)", oid, accountShadow.getOid());
+			assertEquals("Shadow OID mismatch (prism)", oid, shadow.getOid());
 		}
-		ShadowType ResourceObjectShadowType = accountShadow.asObjectable();
+		ShadowType ResourceObjectShadowType = shadow.asObjectable();
 		if (oid != null) {
-			assertEquals("Account shadow OID mismatch (jaxb)", oid, ResourceObjectShadowType.getOid());
+			assertEquals("Shadow OID mismatch (jaxb)", oid, ResourceObjectShadowType.getOid());
 		}
-		assertEquals("Account shadow objectclass", objectClass, ResourceObjectShadowType.getObjectClass());
-		assertEquals("Account shadow resourceRef OID", resourceType.getOid(), accountShadow.asObjectable().getResourceRef().getOid());
-		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		assertEquals("Shadow objectclass", objectClass, ResourceObjectShadowType.getObjectClass());
+		assertEquals("Shadow resourceRef OID", resourceType.getOid(), shadow.asObjectable().getResourceRef().getOid());
+		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
 		assertNotNull("Null attributes in shadow for "+username, attributesContainer);
 		assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());
+		
+		PrismAsserts.assertPropertyValue(shadow, ShadowType.F_NAME, PrismTestUtil.createPolyString(username));
 		
 		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
 		ObjectClassComplexTypeDefinition ocDef = rSchema.findObjectClassDefinition(objectClass);
@@ -619,12 +622,28 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			ResourceAttributeDefinition idDef = ocDef.getIdentifiers().iterator().next();
 			PrismProperty<String> idProp = attributesContainer.findProperty(idDef.getName());
 			assertNotNull("No primary identifier ("+idDef.getName()+") attribute in shadow for "+username, idProp);
-			PrismAsserts.assertEquals("Unexpected primary identifier in shadow for "+username, nameMatchingRule, username, idProp.getRealValue());			
+			if (nameMatchingRule == null) {
+				assertEquals("Unexpected primary identifier in shadow for "+username, username, idProp.getRealValue());
+			} else {
+				if (requireNormalizedIdentfiers) {
+					assertEquals("Unexpected primary identifier in shadow for "+username, nameMatchingRule.normalize(username), idProp.getRealValue());
+				} else {
+					PrismAsserts.assertEquals("Unexpected primary identifier in shadow for "+username, nameMatchingRule, username, idProp.getRealValue());
+				}
+			}
 		} else {
 			ResourceAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();
 			PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getName());
 			assertNotNull("No secondary identifier ("+idSecDef.getName()+") attribute in shadow for "+username, idProp);
-			PrismAsserts.assertEquals("Unexpected ICF name attribute in shadow for "+username, nameMatchingRule, username, idProp.getRealValue());
+			if (nameMatchingRule == null) {
+				assertEquals("Unexpected secondary identifier in shadow for "+username, username, idProp.getRealValue());
+			} else {
+				if (requireNormalizedIdentfiers) {
+					assertEquals("Unexpected secondary identifier in shadow for "+username, nameMatchingRule.normalize(username), idProp.getRealValue());
+				} else {
+					PrismAsserts.assertEquals("Unexpected secondary identifier in shadow for "+username, nameMatchingRule, username, idProp.getRealValue());
+				}
+			}
 		}
 	}
 	
@@ -655,7 +674,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     
 	protected void assertShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
                                     QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
-		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule);
+		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, true);
 		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ShadowType.F_ATTRIBUTES);
 		List<Item<?,?>> attributes = attributesContainer.getValue().getItems();
 //		Collection secIdentifiers = ShadowUtil.getSecondaryIdentifiers(accountShadow);
@@ -1027,7 +1046,20 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected void assertShadows(int expected, OperationResult result) throws SchemaException {
 		int actual = repositoryService.countObjects(ShadowType.class, null, result);
-		assertEquals("Unexpected number of (repository) shadows", expected, actual);
+		if (expected != actual) {
+			if (actual > 20) {
+				AssertJUnit.fail("Unexpected number of (repository) shadows. Expected " + expected + " but was " + actual + " (too many to display)");
+			}
+			ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+				@Override
+				public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
+					display("found shadow", object);
+					return true;
+				}
+			};
+			repositoryService.searchObjectsIterative(ShadowType.class, null, handler, null, false, result);
+			AssertJUnit.fail("Unexpected number of (repository) shadows. Expected " + expected + " but was " + actual);
+		}
 	}
 
 	protected void assertActivationAdministrativeStatus(PrismObject<ShadowType> shadow, ActivationStatusType expectedStatus) {

@@ -18,8 +18,11 @@ package com.evolveum.midpoint.web.session;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AccountDetailsSearchDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author lazyman

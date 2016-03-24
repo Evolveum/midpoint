@@ -285,10 +285,17 @@
             
 		</objectType>
 		
+		<objectType> <!-- Another intent. Not really used. Just to confuse things a bit. -->
+			<kind>entitlement</kind>
+        	<intent>fakegroup</intent>
+        	<default>false</default>
+        	<objectClass>ri:GroupObjectClass</objectClass>
+        </objectType>
+		
 		<objectType>
 			<kind>entitlement</kind>
         	<intent>group</intent>
-        	<default>true</default>
+        	<default>false</default> <!-- set to false to test proper intent initialization in shadows -->
         	<objectClass>ri:GroupObjectClass</objectClass>
         	<attribute>
 				<ref>icfs:uid</ref>
@@ -351,7 +358,9 @@
 	</consistency>
 	
 	<synchronization>
+		
 		<objectSynchronization>
+			<name>sync account</name>
 			<objectClass>ri:AccountObjectClass</objectClass>
 			<kind>account</kind>
 			<intent>default</intent>
@@ -390,6 +399,14 @@
 	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
 	            </action>
 	        </reaction>
+        </objectSynchronization>
+
+		<objectSynchronization>
+			<name>sync group</name>
+			<objectClass>ri:GroupObjectClass</objectClass>
+			<kind>entitlement</kind>
+			<intent>group</intent>
+			<enabled>true</enabled>
         </objectSynchronization>
 
 	</synchronization>

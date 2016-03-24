@@ -16,17 +16,17 @@
 
 package com.evolveum.midpoint.web.component;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectPolicyDialog;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyConfigurationTypeDto;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 
@@ -252,7 +252,7 @@ public class ObjectPolicyConfigurationEditor extends SimplePanel<List<ObjectPoli
                     ObjectReferenceType ref = config.getTemplateRef();
 
                     if(ref != null){
-                    	sb.append(WebMiscUtil.getOrigStringFromPoly(ref.getTargetName())).append(": ");
+                    	sb.append(WebComponentUtil.getOrigStringFromPoly(ref.getTargetName())).append(": ");
                     }
 
                     if(config.getType() != null){

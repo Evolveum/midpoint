@@ -43,4 +43,16 @@ function toggleSearchPopover(buttonId, popoverId, paddingRight) {
     popover.css('left', left);
 
     popover.toggle(200);
+
+    //this will set focus to first form field on search item popup
+    popover.find('input[type=text],textarea,select').filter(':visible:first').focus();
+
+    //this will catch ESC or ENTER and fake close or update button click
+    popover.find('input[type=text],textarea,select').off('keyup.search').on('keyup.search', function(e) {
+        if (e.keyCode == 27) {
+            popover.find('[data-type="close"]').click();
+        } else if (e.keyCode == 13) {
+            popover.find('[data-type="update"]').click();
+        }
+    });
 }

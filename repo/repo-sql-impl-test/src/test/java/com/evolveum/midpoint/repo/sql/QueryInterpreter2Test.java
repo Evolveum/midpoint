@@ -45,6 +45,7 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -64,28 +65,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
@@ -110,12 +90,13 @@ import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.query.OrderDirection.ASCENDING;
 import static com.evolveum.midpoint.prism.query.OrderDirection.DESCENDING;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_OWNER_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_STAGE_NUMBER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_DECISION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_REVIEWER_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_REVIEW_DEADLINE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_REVIEW_REQUESTED_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_REVIEWER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_REVIEW_DEADLINE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_REVIEW_REQUESTED_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_STAGE_NUMBER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
@@ -127,7 +108,12 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_EXTENSION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_METADATA;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OBJECT_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESS_INSTANCE_ID;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_START_TIMESTAMP;
 
 /**
  * @author lazyman
@@ -753,6 +739,86 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test090QuerySingleAssignmentWithTargetAndTenant() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .exists(F_ASSIGNMENT)
+                    	.item(AssignmentType.F_TARGET_REF).ref("target-oid-123")
+						.and().item(AssignmentType.F_TENANT_REF).ref("tenant-oid-456")
+                    .build();
+
+            String real = getInterpretedQuery2(session, UserType.class, query);
+            String expected = "select\n"
+					+ "  u.fullObject,\n"
+					+ "  u.stringsCount,\n"
+					+ "  u.longsCount,\n"
+					+ "  u.datesCount,\n"
+					+ "  u.referencesCount,\n"
+					+ "  u.polysCount,\n"
+					+ "  u.booleansCount\n"
+					+ "from\n"
+					+ "  RUser u\n"
+					+ "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n"
+					+ "where\n"
+					+ "  (\n"
+					+ "    (\n"
+					+ "      a.targetRef.targetOid = :targetOid and\n"
+					+ "      a.targetRef.relation = :relation\n"
+					+ "    ) and\n"
+					+ "    (\n"
+					+ "      u.tenantRef.targetOid = :targetOid2 and\n"
+					+ "      u.tenantRef.relation = :relation2\n"
+					+ "    )\n"
+					+ "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+	@Test
+	public void test092QueryAssignmentsWithTargetAndTenant() throws Exception {
+		Session session = open();
+
+		try {
+			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+					.item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref("target-oid-123")
+					.and().item(UserType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF).ref("tenant-oid-456")
+					.build();
+
+			String real = getInterpretedQuery2(session, UserType.class, query);
+			String expected = "select\n"
+					+ "  u.fullObject,\n"
+					+ "  u.stringsCount,\n"
+					+ "  u.longsCount,\n"
+					+ "  u.datesCount,\n"
+					+ "  u.referencesCount,\n"
+					+ "  u.polysCount,\n"
+					+ "  u.booleansCount\n"
+					+ "from\n"
+					+ "  RUser u\n"
+					+ "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n"
+					+ "    left join u.assignments a2 with a2.assignmentOwner = :assignmentOwner2\n"
+					+ "where\n"
+					+ "  (\n"
+					+ "    (\n"
+					+ "      a.targetRef.targetOid = :targetOid and\n"
+					+ "      a.targetRef.relation = :relation\n"
+					+ "    ) and\n"
+					+ "    (\n"
+					+ "      a2.tenantRef.targetOid = :targetOid2 and\n"
+					+ "      a2.tenantRef.relation = :relation2\n"
+					+ "    )\n"
+					+ "  )\n";
+			assertEqualsIgnoreWhitespace(expected, real);
+		} finally {
+			close(session);
+		}
+	}
+
+    @Test
     public void test100QueryObjectByName() throws Exception {
         Session session = open();
 
@@ -1376,7 +1442,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
-                    "  a.fullObject\n" +
+                    "  a.fullObject, a.ownerOid\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "where\n" +
@@ -2278,30 +2344,6 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     public void test600QueryObjectypeByTypeComplex() throws Exception {
         Session session = open();
         try {
-//            Criteria main = session.createCriteria(RObject.class, "o");
-//            ProjectionList projections = Projections.projectionList();
-//            addFullObjectProjectionList("o", projections, false);
-//            main.setProjection(projections);
-//
-//            Conjunction c1 = Restrictions.conjunction();
-//            c1.add(Restrictions.eq("o." + RObject.F_OBJECT_TYPE_CLASS, RObjectType.USER));
-//            Criterion e1 = Restrictions.and(Restrictions.eq("o.localityUser.orig", "Caribbean"),
-//                    Restrictions.eq("o.localityUser.norm", "caribbean"));
-//            Criterion e2 = Restrictions.and(Restrictions.eq("o.localityUser.orig", "Adriatic"),
-//                    Restrictions.eq("o.localityUser.norm", "adriatic"));
-//            c1.add(Restrictions.or(e1, e2));
-//
-//            Conjunction c2 = Restrictions.conjunction();
-//            c2.add(Restrictions.eq("o." + RObject.F_OBJECT_TYPE_CLASS, RObjectType.ORG));
-//            Criteria o1 = main.createCriteria("o.orgType", "o1", JoinType.LEFT_OUTER_JOIN);
-//            c2.add(Restrictions.eq("o1.elements", "functional"));
-//
-//            Criterion c3 = Restrictions.eq("o." + RObject.F_OBJECT_TYPE_CLASS, RObjectType.REPORT);
-//
-//            main.add(Restrictions.or(c1, c2, c3));
-//            String expected = HibernateToSqlTranslator.toSql(main);
-
-
             EqualFilter eq1 = EqualFilter.createEqual(UserType.F_LOCALITY, UserType.class, prismContext,
                     new PolyString("Caribbean", "caribbean"));
             EqualFilter eq2 = EqualFilter.createEqual(UserType.F_LOCALITY, UserType.class, prismContext,
@@ -2348,6 +2390,108 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    ) or\n" +
                     "    o.objectTypeClass = :objectTypeClass3\n" +
                     "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test605QueryObjectypeByTypeAndReference() throws Exception {
+        Session session = open();
+        try {
+            PrismObjectDefinition<RoleType> roleDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
+            ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                    .id("c0c010c0-d34d-b33f-f00d-111111111111")
+                    .or().type(RoleType.class)
+                        .item(roleDef, RoleType.F_OWNER_REF).ref("c0c010c0-d34d-b33f-f00d-111111111111")
+                    .build();
+            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String expected = "select o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount, o.booleansCount\n"
+                    + "from\n"
+                    + "  RObject o\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    o.oid in :oid or\n"
+                    + "    (\n"
+                    + "      o.objectTypeClass = :objectTypeClass and\n"
+                    + "      (\n"
+                    + "        o.ownerRef.targetOid = :targetOid and\n"
+                    + "        o.ownerRef.relation = :relation\n"
+                    + "      )\n"
+                    + "    )\n"
+                    + "  )\n";
+
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test606QueryObjectypeByTypeAndOwnerRefOverloaded() throws Exception {
+        Session session = open();
+        try {
+            PrismObjectDefinition<RoleType> roleDef =
+                    prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
+            PrismObjectDefinition<AccessCertificationCampaignType> campaignDef =
+                    prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccessCertificationCampaignType.class);
+            PrismObjectDefinition<AccessCertificationDefinitionType> definitionDef =
+                    prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccessCertificationDefinitionType.class);
+            PrismObjectDefinition<TaskType> taskDef =
+                    prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
+
+            ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                    .id("c0c010c0-d34d-b33f-f00d-111111111111")
+                    .or().type(RoleType.class).item(roleDef, RoleType.F_OWNER_REF).ref("role-owner-oid")
+                    .or().type(AccessCertificationCampaignType.class).item(campaignDef, AccessCertificationCampaignType.F_OWNER_REF).ref("campaign-owner-oid")
+                    .or().type(AccessCertificationDefinitionType.class).item(definitionDef, AccessCertificationDefinitionType.F_OWNER_REF).ref("definition-owner-oid")
+                    .or().type(TaskType.class).item(taskDef, AccessCertificationDefinitionType.F_OWNER_REF).ref("task-owner-oid")
+                    .build();
+            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String expected = "select\n"
+                    + "  o.fullObject,\n"
+                    + "  o.stringsCount,\n"
+                    + "  o.longsCount,\n"
+                    + "  o.datesCount,\n"
+                    + "  o.referencesCount,\n"
+                    + "  o.polysCount,\n"
+                    + "  o.booleansCount\n"
+                    + "from\n"
+                    + "  RObject o\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    o.oid in :oid or\n"
+                    + "    (\n"
+                    + "      o.objectTypeClass = :objectTypeClass and\n"
+                    + "      (\n"
+                    + "        o.ownerRef.targetOid = :targetOid and\n"
+                    + "        o.ownerRef.relation = :relation\n"
+                    + "      )\n"
+                    + "    ) or\n"
+                    + "    (\n"
+                    + "      o.objectTypeClass = :objectTypeClass2 and\n"
+                    + "      (\n"
+                    + "        o.ownerRefCampaign.targetOid = :targetOid2 and\n"
+                    + "        o.ownerRefCampaign.relation = :relation2\n"
+                    + "      )\n"
+                    + "    ) or\n"
+                    + "    (\n"
+                    + "      o.objectTypeClass = :objectTypeClass3 and\n"
+                    + "      (\n"
+                    + "        o.ownerRefDefinition.targetOid = :targetOid3 and\n"
+                    + "        o.ownerRefDefinition.relation = :relation3\n"
+                    + "      )\n"
+                    + "    ) or\n"
+                    + "    (\n"
+                    + "      o.objectTypeClass = :objectTypeClass4 and\n"
+                    + "      (\n"
+                    + "        o.ownerRefTask.targetOid = :targetOid4 and\n"
+                    + "        o.ownerRefTask.relation = :relation4\n"
+                    + "      )\n"
+                    + "    )\n"
+                    + "  )\n";
+
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -2555,7 +2699,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         try {
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, (ObjectQuery) null, false);
             String expected = "select\n" +
-                    "  a.fullObject\n" +
+                    "  a.fullObject, a.ownerOid\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n";
             assertEqualsIgnoreWhitespace(expected, real);
@@ -2572,7 +2716,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
-                    "  a.fullObject\n" +
+                    "  a.fullObject, a.ownerOid\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "where\n" +
@@ -2595,7 +2739,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
-                    "  a.fullObject\n" +
+                    "  a.fullObject, a.ownerOid\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "where\n" +
@@ -2618,11 +2762,11 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         try {
             PrismContainerDefinition<AccessCertificationCaseType> caseDef =
                     prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AccessCertificationCaseType.class);
-            ObjectFilter filter = RefFilter.createReferenceEqual(new ItemPath(F_REVIEWER_REF), caseDef, "1234567890");
+            ObjectFilter filter = RefFilter.createReferenceEqual(new ItemPath(F_CURRENT_REVIEWER_REF), caseDef, "1234567890");
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
-                    "  a.fullObject\n" +
+                    "  a.fullObject, a.ownerOid\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "    left join a.reviewerRef r\n" +
@@ -2639,36 +2783,33 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
 
     @Test
-    public void test735QueryCertCaseReviewerAndEnabled() throws Exception {
+    public void test740QueryCertCasesByCampaignOwner() throws Exception {
         Session session = open();
         try {
-            PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
+            PrismReferenceValue ownerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
+            PrismObjectDefinition<AccessCertificationCampaignType> campaignDef =
+                    prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccessCertificationCampaignType.class);
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                    .item(F_REVIEWER_REF).ref(reviewerRef)
-                    .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
+                    .exists(T_PARENT)
+                    .block()
+                        .id(123456L)
+                        .or().item(campaignDef, F_OWNER_REF).ref(ownerRef)
+                    .endBlock()
                     .build();
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
-            String expected =
-                    "select\n" +
-                    "  a.fullObject\n" +
+            String expected = "select\n" +
+                    "  a.fullObject, a.ownerOid\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
-                    "    left join a.reviewerRef r\n" +
                     "    left join a.owner o\n" +
                     "where\n" +
                     "  (\n" +
+                    "    o.oid in :oid or\n" +
                     "    (\n" +
-                    "      r.targetOid = :targetOid and\n" +
-                    "      r.relation = :relation and\n" +
-                    "      r.type = :type\n" +
-                    "    ) and\n" +
-                    "    (\n" +
-                    "      a.currentStageNumber = o.stageNumber or\n" +
-                    "      (\n" +
-                    "        a.currentStageNumber is null and\n" +
-                    "        o.stageNumber is null\n" +
-                    "      )\n" +
+                    "      o.ownerRefCampaign.targetOid = :targetOid and\n" +
+                    "      o.ownerRefCampaign.relation = :relation and\n" +
+                    "      o.ownerRefCampaign.type = :type\n" +
                     "    )\n" +
                     "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
@@ -2678,21 +2819,61 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test735QueryCertCaseReviewerAndEnabled() throws Exception {
+        Session session = open();
+        try {
+            PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
+            ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+                    .item(F_CURRENT_REVIEWER_REF).ref(reviewerRef)
+                    .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
+                    .build();
+
+            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String expected =
+                    "select\n" +
+                            "  a.fullObject, a.ownerOid\n" +
+                            "from\n" +
+                            "  RAccessCertificationCase a\n" +
+                            "    left join a.reviewerRef r\n" +
+                            "    left join a.owner o\n" +
+                            "where\n" +
+                            "  (\n" +
+                            "    (\n" +
+                            "      r.targetOid = :targetOid and\n" +
+                            "      r.relation = :relation and\n" +
+                            "      r.type = :type\n" +
+                            "    ) and\n" +
+                            "    (\n" +
+                            "      a.currentStageNumber = o.stageNumber or\n" +
+                            "      (\n" +
+                            "        a.currentStageNumber is null and\n" +
+                            "        o.stageNumber is null\n" +
+                            "      )\n" +
+                            "    )\n" +
+                            "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+
+    @Test
     public void test745QueryCertCaseReviewerAndEnabledByDeadlineAndOidAsc() throws Exception {
         Session session = open();
         try {
             PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
 
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                    .item(F_REVIEWER_REF).ref(reviewerRef)
+                    .item(F_CURRENT_REVIEWER_REF).ref(reviewerRef)
                     .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
-                    .asc(F_REVIEW_DEADLINE).asc(T_ID)
+                    .asc(F_CURRENT_REVIEW_DEADLINE).asc(T_ID)
                     .build();
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected =
                     "select\n" +
-                            "  a.fullObject\n" +
+                            "  a.fullObject, a.ownerOid\n" +
                             "from\n" +
                             "  RAccessCertificationCase a\n" +
                             "    left join a.reviewerRef r\n" +
@@ -2730,15 +2911,15 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                             .findComplexTypeDefinitionByCompileTimeClass(AccessCertificationCampaignType.class)
                             .findPropertyDefinition(F_STATE);
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                    .item(F_REVIEWER_REF).ref(reviewerRef)
+                    .item(F_CURRENT_REVIEWER_REF).ref(reviewerRef)
                     .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
                     .and().item(statePath, stateDef).eq(IN_REVIEW_STAGE)
-                    .desc(F_REVIEW_REQUESTED_TIMESTAMP)
+                    .desc(F_CURRENT_REVIEW_REQUESTED_TIMESTAMP)
                     .build();
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
 
             String expected = "select\n" +
-                    "  a.fullObject\n" +
+                    "  a.fullObject, a.ownerOid\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "    left join a.reviewerRef r\n" +
@@ -2884,7 +3065,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
             String expected = "select\n" +
-                    "  a.fullObject\n" +
+                    "  a.fullObject, a.ownerOid\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "    left join a.owner o\n" +
@@ -2947,7 +3128,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
             String expected = "select\n" +
-                    "  a.fullObject\n" +
+                    "  a.fullObject, a.ownerOid\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "    left join a.owner o\n" +
@@ -2975,7 +3156,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
             String expected = "select\n" +
-                    "  a.fullObject\n" +
+                    "  a.fullObject, a.ownerOid\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "    left join a.targetRef.target t\n" +
@@ -3087,37 +3268,6 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             /*
              * ### AccCertCase: Exists (decision: reviewerRef = XYZ and stage = ../stage and response is null or response = NO_RESPONSE)
              */
-            ObjectQuery query0 = ObjectQuery.createObjectQuery(
-                    ExistsFilter.createExists(
-                            new ItemPath(F_DECISION),
-                            AccessCertificationCaseType.class,
-                            prismContext,
-                            AndFilter.createAnd(
-                                    RefFilter.createReferenceEqual(
-                                            AccessCertificationDecisionType.F_REVIEWER_REF,
-                                            AccessCertificationCaseType.class,
-                                            prismContext,
-                                            "123456"),
-                                    EqualFilter.createEqual(
-                                            new ItemPath(F_STAGE_NUMBER),
-                                            AccessCertificationDecisionType.class,
-                                            prismContext,
-                                            null,
-                                            new ItemPath(T_PARENT, F_CURRENT_STAGE_NUMBER)
-                                    ),
-                                    OrFilter.createOr(
-                                            EqualFilter.createEqual(
-                                                    AccessCertificationDecisionType.F_RESPONSE,
-                                                    AccessCertificationDecisionType.class,
-                                                    prismContext, null),
-                                            EqualFilter.createEqual(
-                                                    AccessCertificationDecisionType.F_RESPONSE,
-                                                    AccessCertificationDecisionType.class,
-                                                    prismContext, NO_RESPONSE)
-                                    )
-                            )
-                    )
-            );
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
                     .exists(F_DECISION)
                     .block()
@@ -3132,7 +3282,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
             String expected = "select\n" +
-                    "  a.fullObject\n" +
+                    "  a.fullObject, a.ownerOid\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "    left join a.decision d\n" +
@@ -3182,7 +3332,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
             String expected = "select\n" +
-                    "  a.fullObject\n" +
+                    "  a.fullObject, a.ownerOid\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "    left join a.decision d\n" +
@@ -3288,6 +3438,43 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             close(session);
         }
     }
+
+	@Test
+	public void testAdHoc100ProcessStartTimestamp() throws Exception {
+		Session session = open();
+
+		try {
+			ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+					.item(F_WORKFLOW_CONTEXT, F_REQUESTER_REF).ref("123456")
+					.and().not().item(F_WORKFLOW_CONTEXT, F_PROCESS_INSTANCE_ID).isNull()
+					.desc(F_WORKFLOW_CONTEXT, F_START_TIMESTAMP)
+					.build();
+			String real = getInterpretedQuery2(session, TaskType.class, query);
+			String expected = "select\n"
+					+ "  t.fullObject,\n"
+					+ "  t.stringsCount,\n"
+					+ "  t.longsCount,\n"
+					+ "  t.datesCount,\n"
+					+ "  t.referencesCount,\n"
+					+ "  t.polysCount,\n"
+					+ "  t.booleansCount\n"
+					+ "from\n"
+					+ "  RTask t\n"
+					+ "where\n"
+					+ "  (\n"
+					+ "    (\n"
+					+ "      t.wfRequesterRef.targetOid = :targetOid and\n"
+					+ "      t.wfRequesterRef.relation = :relation\n"
+					+ "    ) and\n"
+					+ "    not t.wfProcessInstanceId is null\n"
+					+ "  )\n"
+					+ "order by t.wfStartTimestamp desc";
+			assertEqualsIgnoreWhitespace(expected, real);
+		} finally {
+			close(session);
+		}
+
+	}
 
 //    @Test
 //    public void test930OrganizationEqualsCostCenter() throws Exception {

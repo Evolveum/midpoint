@@ -20,25 +20,19 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -46,10 +40,7 @@ import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CREATED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.REVIEW_STAGE_DONE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -64,8 +55,6 @@ import static org.testng.AssertJUnit.fail;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class RoleInducementCertificationTest extends AbstractCertificationTest {
 
-    protected static final File CERT_DEF_FILE = new File(COMMON_DIR, "certification-of-role-inducements.xml");
-
     protected AccessCertificationDefinitionType certificationDefinition;
 
     private String campaignOid;
@@ -79,13 +68,13 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        certificationDefinition = repoAddObjectFromFile(CERT_DEF_FILE,
+        certificationDefinition = repoAddObjectFromFile(ROLE_INDUCEMENT_CERT_DEF_FILE,
                 AccessCertificationDefinitionType.class, result).asObjectable();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         AccessCertificationCampaignType campaign =
-                certificationManager.createCampaign(certificationDefinition.getOid(), null, task, result);
+                certificationManager.createCampaign(certificationDefinition.getOid(), task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -98,17 +87,8 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
 
         campaign = getCampaignWithCases(campaignOid);
         display("campaign", campaign);
-        assertEquals("Unexpected certification cases", 0, campaign.getCase().size());
-        assertStateAndStage(campaign, CREATED, 0);
-        assertEquals("Unexpected # of stages", 2, campaign.getStageDefinition().size());
-        assertDefinitionAndOwner(campaign, certificationDefinition);
-        assertNull("Unexpected start time", campaign.getStart());
-        assertNull("Unexpected end time", campaign.getEnd());
-    }
-
-    protected void assertStateAndStage(AccessCertificationCampaignType campaign, AccessCertificationCampaignStateType state, int stage) {
-        assertEquals("Unexpected campaign state", state, campaign.getState());
-        assertEquals("Unexpected stage number", stage, campaign.getStageNumber());
+        assertAfterCampaignCreate(campaign, certificationDefinition);
+        assertPercentComplete(campaign, 100, 100, 100);
     }
 
     @Test
@@ -122,7 +102,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -183,25 +163,25 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
-
-        assertStateAndStage(campaign, IN_REVIEW_STAGE, 1);
-        assertDefinitionAndOwner(campaign, certificationDefinition);
-        assertApproximateTime("start time", new Date(), campaign.getStart());
-        assertNull("Unexpected end time", campaign.getEnd());
-        assertEquals("wrong # of defined stages", 2, campaign.getStageDefinition().size());
-        assertEquals("wrong # of stages", 1, campaign.getStage().size());
-        AccessCertificationStageType stage = campaign.getStage().get(0);
-        assertEquals("wrong stage #", 1, stage.getNumber());
-        assertApproximateTime("stage 1 start", new Date(), stage.getStart());
-        assertNotNull("stage 1 end", stage.getEnd());       // too lazy to compute exact datetime
+        assertAfterCampaignStart(campaign, certificationDefinition, 5);
         checkAllCases(campaign.getCase(), campaignOid);
+
+        List<AccessCertificationCaseType> caseList = campaign.getCase();
+        assertCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, null);
+        assertPercentComplete(campaign, 20, 100, 0);     // preliminary outcomes for all aases are "ACCEPT"
     }
 
-    protected void assertDefinitionAndOwner(AccessCertificationCampaignType campaign, PrismObject<? extends ObjectType> certificationDefinition) {
-        assertEquals("Unexpected ownerRef", ObjectTypeUtil.createObjectRef(USER_ADMINISTRATOR_OID, ObjectTypes.USER), campaign.getOwnerRef());
-        assertEquals("Unexpected definitionRef",
-                ObjectTypeUtil.createObjectRef(this.certificationDefinition),
-                campaign.getDefinitionRef());
+    protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid) {
+        assertEquals("Wrong number of certification cases", 5, caseList.size());
+        checkCase(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, roleCeo, campaignOid);
+        checkCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, roleCoo, campaignOid);
+        checkCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, roleCoo, campaignOid);
+        checkCase(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, roleCoo, campaignOid);
+        checkCase(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, roleSuperuser, campaignOid);
     }
 
     @Test
@@ -223,15 +203,16 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
+        // all cases are marked as ACCEPT, because the outcome strategy is acceptedIfNotDenied, with a default of Accept
         display("statistics", stat.asPrismContainerValue());
-        assertEquals(0, stat.getMarkedAsAccept());
+        assertEquals(5, stat.getMarkedAsAccept());
         assertEquals(0, stat.getMarkedAsRevoke());
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
         assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
-        assertEquals(5, stat.getWithoutResponse());
+        assertEquals(0, stat.getWithoutResponse());
     }
 
     @Test
@@ -245,7 +226,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -255,7 +236,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         display("caseList", caseList);
         checkAllCases(caseList, campaignOid);
         AccessCertificationCaseType _case = checkCase(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, roleSuperuser, campaignOid);
-        assertEquals("Unexpected number of reviewers in superuser case", 0, _case.getReviewerRef().size());
+        assertEquals("Unexpected number of reviewers in superuser case", 0, _case.getCurrentReviewerRef().size());
     }
 
     @Test
@@ -270,13 +251,13 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         List<AccessCertificationCaseType> caseList =
-                certificationManager.searchDecisions(null, USER_ADMINISTRATOR_OID, false, null, task, result);
+                queryHelper.searchDecisions(null, USER_ADMINISTRATOR_OID, false, null, task, result);
 
         /* Expected cases - phase 1:
 
-        COO-Dummy:                administrator             jack,administrator
-        COO-DummyBlack:           administrator             administrator,elaine
-        COO-Superuser:            administrator             administrator
+        COO-Dummy:                administrator
+        COO-DummyBlack:           administrator
+        COO-Superuser:            administrator
          */
 
         // THEN
@@ -303,11 +284,11 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         List<AccessCertificationCaseType> caseList =
-                certificationManager.searchDecisions(null, USER_ELAINE_OID, false, null, task, result);
+                queryHelper.searchDecisions(null, USER_ELAINE_OID, false, null, task, result);
 
         /* Expected cases - phase 1:
 
-        CEO-Dummy:                elaine                    jack,administrator
+        CEO-Dummy:                elaine
          */
 
         // THEN
@@ -332,7 +313,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         List<AccessCertificationCaseType> caseList =
-                certificationManager.searchDecisions(null, USER_JACK_OID, false, null, task, result);
+                queryHelper.searchDecisions(null, USER_JACK_OID, false, null, task, result);
 
         /* Expected cases - phase 1: NONE */
 
@@ -348,11 +329,11 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
     /*
     Entering decisions:
 
-    CEO-Dummy:                elaine          REVOKE          jack,administrator
-    COO-Dummy:                administrator   REVOKE          jack,administrator
-    COO-DummyBlack:           administrator   ACCEPT          administrator,elaine
-    COO-Superuser:            administrator   NO-DECISION     administrator
-    Superuser-Dummy:          -                               jack,administrator
+    CEO-Dummy:                elaine          REVOKE
+    COO-Dummy:                administrator   REVOKE
+    COO-DummyBlack:           administrator   ACCEPT
+    COO-Superuser:            administrator   NO-DECISION
+    Superuser-Dummy:          -
 
      */
 
@@ -365,7 +346,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -385,7 +366,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        caseList = queryHelper.searchCases(campaignOid, null, null, result);
         display("caseList", caseList);
         checkAllCases(caseList, campaignOid);
 
@@ -394,19 +375,19 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         cooDummyBlackCase = findCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID);
         cooSuperuserCase = findCase(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID);
 
-        assertDecision(ceoDummyCase, REVOKE, "no way", 1, USER_ELAINE_OID, REVOKE, true);
-        assertDecision(cooDummyCase, REVOKE, null, 1, USER_ADMINISTRATOR_OID, REVOKE, true);
-        assertDecision(cooDummyBlackCase, ACCEPT, "OK", 1, USER_ADMINISTRATOR_OID, ACCEPT, true);
-        assertDecision(cooSuperuserCase, NOT_DECIDED, "I'm so procrastinative...", 1, USER_ADMINISTRATOR_OID, ACCEPT, true);
-    }
+        assertSingleDecision(ceoDummyCase, REVOKE, "no way", 1, USER_ELAINE_OID, REVOKE, false);
+        assertSingleDecision(cooDummyCase, REVOKE, null, 1, USER_ADMINISTRATOR_OID, REVOKE, false);
+        assertSingleDecision(cooDummyBlackCase, ACCEPT, "OK", 1, USER_ADMINISTRATOR_OID, ACCEPT, false);
+        assertSingleDecision(cooSuperuserCase, NOT_DECIDED, "I'm so procrastinative...", 1, USER_ADMINISTRATOR_OID, ACCEPT, false);
 
-    protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid) {
-        assertEquals("Wrong number of certification cases", 5, caseList.size());
-        checkCase(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, roleCeo, campaignOid);
-        checkCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, roleCoo, campaignOid);
-        checkCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, roleCoo, campaignOid);
-        checkCase(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, roleCoo, campaignOid);
-        checkCase(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, roleSuperuser, campaignOid);
+        assertCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, null);
+
+        AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+        assertPercentComplete(campaign, 100, 100, 100);
     }
 
     @Test
@@ -429,14 +410,14 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         TestUtil.assertSuccess(result);
 
         display("statistics", stat.asPrismContainerValue());
-        assertEquals(2, stat.getMarkedAsAccept());
+        assertEquals(3, stat.getMarkedAsAccept());
         assertEquals(2, stat.getMarkedAsRevoke());
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
         assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
-        assertEquals(1, stat.getWithoutResponse());
+        assertEquals(0, stat.getWithoutResponse());
     }
 
 
@@ -460,29 +441,29 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
-
-        assertStateAndStage(campaign, REVIEW_STAGE_DONE, 1);
-        assertDefinitionAndOwner(campaign, certificationDefinition);
-        assertNull("Unexpected end time", campaign.getEnd());
-        assertEquals("wrong # of stages", 1, campaign.getStage().size());
-        AccessCertificationStageType stage = campaign.getStage().get(0);
-        assertEquals("wrong stage #", 1, stage.getNumber());
-        assertApproximateTime("stage 1 start", new Date(), stage.getStart());
-        //assertApproximateTime("stage 1 end", new Date(), stage.getStart());       // TODO when implemented
+        assertAfterStageClose(campaign, certificationDefinition, 1);
         checkAllCases(campaign.getCase(), campaignOid);
 
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         AccessCertificationCaseType ceoDummyCase = findCase(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID);
         AccessCertificationCaseType cooDummyCase = findCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID);
         AccessCertificationCaseType cooDummyBlackCase = findCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID);
         AccessCertificationCaseType cooSuperuserCase = findCase(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID);
         AccessCertificationCaseType superuserDummyCase = findCase(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID);
 
-        assertDecision(ceoDummyCase, REVOKE, "no way", 1, USER_ELAINE_OID, REVOKE, true);       // note: "enabled" is computed when next stage is opened
-        assertDecision(cooDummyCase, REVOKE, null, 1, USER_ADMINISTRATOR_OID, REVOKE, true);
-        assertDecision(cooDummyBlackCase, ACCEPT, "OK", 1, USER_ADMINISTRATOR_OID, ACCEPT, true);
-        assertDecision(cooSuperuserCase, NOT_DECIDED, "I'm so procrastinative...", 1, USER_ADMINISTRATOR_OID, ACCEPT, true);
-        assertNoDecision(superuserDummyCase, ACCEPT, true);
+        assertSingleDecision(ceoDummyCase, REVOKE, "no way", 1, USER_ELAINE_OID, REVOKE, true);
+        assertSingleDecision(cooDummyCase, REVOKE, null, 1, USER_ADMINISTRATOR_OID, REVOKE, true);
+        assertSingleDecision(cooDummyBlackCase, ACCEPT, "OK", 1, USER_ADMINISTRATOR_OID, ACCEPT, true);
+        assertSingleDecision(cooSuperuserCase, NOT_DECIDED, "I'm so procrastinative...", 1, USER_ADMINISTRATOR_OID, ACCEPT, true);
+        assertNoDecision(superuserDummyCase, 1, ACCEPT, true);
+
+        assertCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, 1);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, 1);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, ACCEPT, ACCEPT, 1);
+        assertCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, 1);
+        assertCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, 1);
+
+        assertPercentComplete(campaign, 100, 100, 100);
     }
 
     @Test
@@ -535,21 +516,9 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 2", campaign);
+        assertAfterStageOpen(campaign, certificationDefinition, 2);
 
-        assertStateAndStage(campaign, IN_REVIEW_STAGE, 2);
-        assertDefinitionAndOwner(campaign, certificationDefinition);
-        assertApproximateTime("start time", new Date(), campaign.getStart());
-        assertNull("Unexpected end time", campaign.getEnd());
-        assertEquals("wrong # of defined stages", 2, campaign.getStageDefinition().size());
-        assertEquals("wrong # of stages", 2, campaign.getStage().size());
-
-        AccessCertificationStageType stage = CertCampaignTypeUtil.findStage(campaign, 2);
-
-        assertEquals("wrong stage #", 2, stage.getNumber());
-        assertApproximateTime("stage 2 start", new Date(), stage.getStart());
-        assertNotNull("stage 2 end", stage.getEnd());       // too lazy to compute exact datetime
-
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         assertEquals("Wrong number of certification cases", 5, caseList.size());
         AccessCertificationCaseType ceoDummyCase = findCase(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID);
         AccessCertificationCaseType cooDummyCase = findCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID);
@@ -557,11 +526,28 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         AccessCertificationCaseType cooSuperuserCase = findCase(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID);
         AccessCertificationCaseType superuserDummyCase = findCase(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID);
 
-        assertCaseReviewers(ceoDummyCase, REVOKE, false, 1, Arrays.<String>asList());
-        assertCaseReviewers(cooDummyCase, REVOKE, false, 1, Arrays.<String>asList());
-        assertCaseReviewers(cooDummyBlackCase, null, true, 2, Arrays.asList(USER_ADMINISTRATOR_OID, USER_ELAINE_OID));
-        assertCaseReviewers(cooSuperuserCase, null, true, 2, Arrays.asList(USER_ADMINISTRATOR_OID));
-        assertCaseReviewers(superuserDummyCase, null, true, 2, Arrays.asList(USER_JACK_OID, USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(ceoDummyCase, REVOKE, 1, Arrays.asList(USER_ELAINE_OID));
+        assertCaseReviewers(cooDummyCase, REVOKE, 1, Arrays.asList(USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(cooDummyBlackCase, NO_RESPONSE, 2, Arrays.asList(USER_ADMINISTRATOR_OID, USER_ELAINE_OID));
+        assertCaseReviewers(cooSuperuserCase, NO_RESPONSE, 2, Arrays.asList(USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(superuserDummyCase, NO_RESPONSE, 2, Arrays.asList(USER_JACK_OID, USER_ADMINISTRATOR_OID));
+
+        assertCaseHistoricOutcomes(ceoDummyCase, REVOKE);
+        assertCaseHistoricOutcomes(cooDummyCase, REVOKE);
+        assertCaseHistoricOutcomes(cooDummyBlackCase, ACCEPT);
+        assertCaseHistoricOutcomes(cooSuperuserCase, ACCEPT);
+        assertCaseHistoricOutcomes(superuserDummyCase, ACCEPT);
+
+        assertCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, NO_RESPONSE, NO_RESPONSE, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, NO_RESPONSE, NO_RESPONSE, null);
+        assertCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, NO_RESPONSE, NO_RESPONSE, null);
+
+        // 40% of cases is answered (not advanced to this stage)
+        // 40% is decided ("REVOKE" in stage 1 + "NO_RESPONSE" in stage 2)
+        // 0% decisions of current stage is done
+        assertPercentComplete(campaign, 40, 40, 0);
     }
 
     @Test
@@ -633,7 +619,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -655,7 +641,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 2", campaign);
 
-        caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        caseList = queryHelper.searchCases(campaignOid, null, null, result);
         display("caseList", caseList);
 
         AccessCertificationCaseType ceoDummyCase = findCase(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID);
@@ -668,12 +654,40 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         assertDecisions(cooDummyCase, 1);
         assertDecisions(cooDummyBlackCase, 3);
         assertDecisions(cooSuperuserCase, 2);
-        assertDecisions(superuserDummyCase, 1);
+        assertDecisions(superuserDummyCase, 2);
 
-        assertDecision2(cooDummyBlackCase, ACCEPT, "OK", 2, USER_ADMINISTRATOR_OID, REVOKE, true);
-        assertDecision2(cooDummyBlackCase, REVOKE, "Sorry", 2, USER_ELAINE_OID, REVOKE, true);
-        assertDecision2(cooSuperuserCase, ACCEPT, null, 2, USER_ADMINISTRATOR_OID, ACCEPT, true);
-        assertDecision2(superuserDummyCase, ACCEPT, null, 2, USER_JACK_OID, NO_RESPONSE, true);       // decision of administrator is missing here
+        assertDecision2(cooDummyBlackCase, ACCEPT, "OK", 2, USER_ADMINISTRATOR_OID, REVOKE);
+        assertDecision2(cooDummyBlackCase, REVOKE, "Sorry", 2, USER_ELAINE_OID, REVOKE);
+        assertDecision2(cooSuperuserCase, ACCEPT, null, 2, USER_ADMINISTRATOR_OID, ACCEPT);
+        assertDecision2(superuserDummyCase, ACCEPT, null, 2, USER_JACK_OID, NO_RESPONSE);
+        assertDecision2(superuserDummyCase, null, null, 2, USER_ADMINISTRATOR_OID, NO_RESPONSE);
+
+        assertCaseHistoricOutcomes(ceoDummyCase, REVOKE);
+        assertCaseHistoricOutcomes(cooDummyCase, REVOKE);
+        assertCaseHistoricOutcomes(cooDummyBlackCase, ACCEPT);
+        assertCaseHistoricOutcomes(cooSuperuserCase, ACCEPT);
+        assertCaseHistoricOutcomes(superuserDummyCase, ACCEPT);
+
+        assertCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, REVOKE, REVOKE, null);
+        assertCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, NO_RESPONSE, NO_RESPONSE, null);
+
+        /*
+Subject-Target            Stage 1                       Stage 2                             Overall
+===================================================================================================
+CEO-Dummy:                elaine:RV -> RV               jack,administrator (skipped)        RV
+COO-Dummy:                administrator:RV -> RV        jack,administrator (skipped)        RV
+COO-DummyBlack:           administrator:A -> A          administrator:A,elaine:RV -> RV     RV
+COO-Superuser:            administrator:ND -> A         administrator:A                     A
+Superuser-Dummy:          - -> A                        jack:A,administrator:null -> NR     NR
+         */
+
+        // 80% cases has all decisions (or is not in current stage)
+        // 80% cases has an outcome
+        // 80% decisions for this stage was done
+        assertPercentComplete(campaign, 80, 80, 80);
     }
 
     @Test
@@ -726,28 +740,37 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign after closing stage 2", campaign);
+        assertAfterStageClose(campaign, certificationDefinition, 2);
 
-        assertStateAndStage(campaign, REVIEW_STAGE_DONE, 2);
-        assertDefinitionAndOwner(campaign, certificationDefinition);
-        assertNull("Unexpected end time", campaign.getEnd());
-        assertEquals("wrong # of stages", 2, campaign.getStage().size());
-        AccessCertificationStageType stage = CertCampaignTypeUtil.findStage(campaign, 2);
-        assertEquals("wrong stage #", 2, stage.getNumber());
-        assertApproximateTime("stage 2 start", new Date(), stage.getStart());
-        //assertApproximateTime("stage 1 end", new Date(), stage.getStart());       // TODO when implemented
-
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         assertEquals("wrong # of cases", 5, caseList.size());
         AccessCertificationCaseType ceoDummyCase = findCase(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID);
         AccessCertificationCaseType cooDummyCase = findCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID);
         AccessCertificationCaseType cooDummyBlackCase = findCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID);
         AccessCertificationCaseType cooSuperuserCase = findCase(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID);
         AccessCertificationCaseType superuserDummyCase = findCase(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID);
-        assertCurrentState(ceoDummyCase, REVOKE, 1, false);
-        assertCurrentState(cooDummyCase, REVOKE, 1, false);
-        assertCurrentState(cooDummyBlackCase, REVOKE, 2, true);
-        assertCurrentState(cooSuperuserCase, ACCEPT, 2, true);
-        assertCurrentState(superuserDummyCase, NO_RESPONSE, 2, true);       // decision of administrator is missing here
+        assertCurrentState(ceoDummyCase, REVOKE, 1);
+        assertCurrentState(cooDummyCase, REVOKE, 1);
+        assertCurrentState(cooDummyBlackCase, REVOKE, 2);
+        assertCurrentState(cooSuperuserCase, ACCEPT, 2);
+        assertCurrentState(superuserDummyCase, NO_RESPONSE, 2);       // decision of administrator is missing here
+
+        assertCaseHistoricOutcomes(ceoDummyCase, REVOKE);
+        assertCaseHistoricOutcomes(cooDummyCase, REVOKE);
+        assertCaseHistoricOutcomes(cooDummyBlackCase, ACCEPT, REVOKE);
+        assertCaseHistoricOutcomes(cooSuperuserCase, ACCEPT, ACCEPT);
+        assertCaseHistoricOutcomes(superuserDummyCase, ACCEPT, NO_RESPONSE);
+
+        assertCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, 1);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, REVOKE, REVOKE, 1);
+        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, REVOKE, REVOKE, 2);
+        assertCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, 2);
+        assertCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, NO_RESPONSE, NO_RESPONSE, 2);
+
+        // 80% cases has all decisions (or is not in current stage)
+        // 80% cases has an outcome
+        // 80% decisions for this stage was done
+        assertPercentComplete(campaign, 80, 80, 80);
     }
 
     @Test
@@ -779,13 +802,14 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         waitForTaskFinish(tasks.get(0).getOid(), true);
 
         campaign = getCampaignWithCases(campaignOid);
+        display("campaign after remediation finished", campaign);
         assertEquals("wrong campaign state", CLOSED, campaign.getState());
         assertEquals("wrong campaign stage", 3, campaign.getStageNumber());
         assertDefinitionAndOwner(campaign, certificationDefinition);
-        // TODO assertApproximateTime("end time", new Date(), campaign.getEnd());
+        assertApproximateTime("end time", new Date(), campaign.getEnd());
         assertEquals("wrong # of stages", 2, campaign.getStage().size());
 
-        List<AccessCertificationCaseType> caseList = certificationManager.searchCases(campaignOid, null, null, task, result);
+        List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         assertEquals("wrong # of cases", 5, caseList.size());
         AccessCertificationCaseType ceoDummyCase = findCase(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID);
         AccessCertificationCaseType cooDummyCase = findCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID);
@@ -804,6 +828,14 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         display("roleCoo", roleCoo);
         assertEquals("wrong # of COO's inducements", 1, roleCoo.getInducement().size());
         assertEquals("wrong OID of remaining COO inducement", ROLE_SUPERUSER_OID, roleCoo.getInducement().get(0).getTargetRef().getOid());
+
+        PrismObject<AccessCertificationDefinitionType> def = getObject(AccessCertificationDefinitionType.class, certificationDefinition.getOid());
+        assertApproximateTime("last campaign closed", new Date(), def.asObjectable().getLastCampaignClosedTimestamp());
+
+        // 80% cases has all decisions (or is not in current stage)
+        // 80% cases has an outcome
+        // 80% decisions for this stage was done
+        assertPercentComplete(campaign, 80, 80, 80);
     }
 
     @Test

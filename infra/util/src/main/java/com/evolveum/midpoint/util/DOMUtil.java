@@ -103,6 +103,8 @@ public class DOMUtil {
             NS_W3C_XML_SCHEMA_PREFIX);
     public static final QName XSD_IMPORT_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "import",
 			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_INCLUDE_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "include",
+			NS_W3C_XML_SCHEMA_PREFIX);
 
 	public static final QName XSD_ATTR_TARGET_NAMESPACE = new QName(W3C_XML_SCHEMA_NS_URI, "targetNamespace",
 			NS_W3C_XML_SCHEMA_PREFIX);
@@ -155,6 +157,8 @@ public class DOMUtil {
 	public static final QName WSDL_ATTR_NAMESPACE = new QName(NS_WSDL, "namespace",
 			NS_WSDL_SCHEMA_PREFIX);
 	public static final QName WSDL_ATTR_SCHEMA_LOCATION = new QName(NS_WSDL, "schemaLocation",
+			NS_WSDL_SCHEMA_PREFIX);
+	public static final QName WSDL_ATTR_LOCATION = new QName(NS_WSDL, "location",
 			NS_WSDL_SCHEMA_PREFIX);
 	
 	private static final String RANDOM_ATTR_PREFIX_PREFIX = "qn";
@@ -1045,6 +1049,10 @@ public class DOMUtil {
 	}
 
 	public static boolean compareElement(Element a, Element b, boolean considerNamespacePrefixes) {
+		return compareElement(a, b, considerNamespacePrefixes, true);
+	}
+	
+	public static boolean compareElement(Element a, Element b, boolean considerNamespacePrefixes, boolean considerWhitespaces) {
 		if (a==b) {
 			return true;
 		}
@@ -1060,20 +1068,40 @@ public class DOMUtil {
 		if (!compareAttributes(a.getAttributes(),b.getAttributes(), considerNamespacePrefixes)) {
 			return false;
 		}
-		if (!compareNodeList(a.getChildNodes(),b.getChildNodes(), considerNamespacePrefixes)) {
+		if (!compareNodeList(a.getChildNodes(),b.getChildNodes(), considerNamespacePrefixes, considerWhitespaces)) {
+			return false;
+		}
+		return true;
+	}
+	
+	public static boolean compareDocument(Document a, Document b, boolean considerNamespacePrefixes, boolean considerWhitespaces) {
+		if (a==b) {
+			return true;
+		}
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		if (!compareNodeList(a.getChildNodes(),b.getChildNodes(), considerNamespacePrefixes, considerWhitespaces)) {
 			return false;
 		}
 		return true;
 	}
 	
 	public static boolean compareElementList(List<Element> aList, List<Element> bList, boolean considerNamespacePrefixes) {
+		return compareElementList(aList, bList, considerNamespacePrefixes, true);
+	}
+	
+	public static boolean compareElementList(List<Element> aList, List<Element> bList, boolean considerNamespacePrefixes, boolean considerWhitespaces) {
 		if (aList.size() != bList.size()) {
 			return false;
 		}
 		Iterator<Element> bIterator = bList.iterator();
 		for (Element a: aList) {
 			Element b = bIterator.next();
-			if (!compareElement(a, b, considerNamespacePrefixes)) {
+			if (!compareElement(a, b, considerNamespacePrefixes, considerWhitespaces)) {
 				return false;
 			}
 		}
@@ -1133,7 +1161,7 @@ public class DOMUtil {
 		return null;
 	}
 
-	private static boolean compareNodeList(NodeList a, NodeList b, boolean considerNamespacePrefixes) {
+	private static boolean compareNodeList(NodeList a, NodeList b, boolean considerNamespacePrefixes, boolean considerWhitespaces) {
 		if (a==b) {
 			return true;
 		}
@@ -1160,11 +1188,11 @@ public class DOMUtil {
 				return false;
 			}
 			if (aItem.getNodeType() == Node.ELEMENT_NODE) {
-				if (!compareElement((Element)aItem, (Element)bItem, considerNamespacePrefixes)) {
+				if (!compareElement((Element)aItem, (Element)bItem, considerNamespacePrefixes, considerWhitespaces)) {
 					return false;
 				}
 			} else if (aItem.getNodeType() == Node.TEXT_NODE) {
-				if (!compareTextNodeValues(aItem.getTextContent(),bItem.getTextContent())) {
+				if (!compareTextNodeValues(aItem.getTextContent(), bItem.getTextContent(), considerWhitespaces)) {
 					return false;
 				}
 			}
@@ -1173,7 +1201,14 @@ public class DOMUtil {
 	}
 
 	public static boolean compareTextNodeValues(String a, String b) {
+		return compareTextNodeValues(a, b, true);
+	}
+	
+	public static boolean compareTextNodeValues(String a, String b, boolean considerWhitespaces) {
 		if (StringUtils.equals(a,b)) {
+			return true;
+		}
+		if (!considerWhitespaces && StringUtils.trimToEmpty(a).equals(StringUtils.trimToEmpty(b))) {
 			return true;
 		}
 		if (StringUtils.isBlank(a) && StringUtils.isBlank(b)) {
@@ -1182,23 +1217,41 @@ public class DOMUtil {
 		return false;
 	}
 
-	/**
-	 * Remove comments and whitespace-only text nodes
-	 */
 	private static List<Node> canonizeNodeList(NodeList nodelist) {
 		List<Node> list = new ArrayList<Node>(nodelist.getLength());
 		for (int i = 0; i < nodelist.getLength(); i++) {
 			Node aItem = nodelist.item(i);
-			if (aItem.getNodeType() == Node.COMMENT_NODE) {
-				continue;
-			} else if (aItem.getNodeType() == Node.TEXT_NODE) {
-				if (aItem.getTextContent().matches("\\s*")) {
-					continue;
+			if (aItem.getNodeType() == Node.ELEMENT_NODE || aItem.getNodeType() == Node.ATTRIBUTE_NODE) {
+				list.add(aItem);
+			} else if (aItem.getNodeType() == Node.TEXT_NODE || aItem.getNodeType() == Node.CDATA_SECTION_NODE) {
+				if (!aItem.getTextContent().matches("\\s*")) {
+					list.add(aItem);
 				}
 			}
-			list.add(aItem);
 		}
 		return list;
+	}
+	
+	public static void normalize(Node node, boolean keepWhitespaces) {
+		NodeList childNodes = node.getChildNodes();
+		for (int i = 0; i < childNodes.getLength(); i++) {
+			Node aItem = childNodes.item(i);
+			if (aItem.getNodeType() == Node.COMMENT_NODE) {
+				node.removeChild(aItem);
+				i--;
+			} else if (aItem.getNodeType() == Node.TEXT_NODE) {
+				if (aItem.getTextContent().matches("\\s*")) {
+					node.removeChild(aItem);
+					i--;
+				} else {
+					if (!keepWhitespaces) {
+						aItem.setTextContent(aItem.getTextContent().trim());
+					}
+				}
+			} else if (aItem.getNodeType() == Node.ELEMENT_NODE) {
+				normalize(aItem, keepWhitespaces);
+			}
+		}
 	}
 
 	public static boolean isJunk(Node node) {

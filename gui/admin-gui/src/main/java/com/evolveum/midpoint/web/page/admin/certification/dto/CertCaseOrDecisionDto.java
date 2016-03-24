@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.parser.XNodeSerializer;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
@@ -126,7 +125,7 @@ public class CertCaseOrDecisionDto extends Selectable {
     }
 
     public Date getReviewRequested() {
-        XMLGregorianCalendar date = certCase.getReviewRequestedTimestamp();
+        XMLGregorianCalendar date = certCase.getCurrentReviewRequestedTimestamp();
         return XmlTypeConverter.toDate(date);
     }
 
@@ -161,7 +160,7 @@ public class CertCaseOrDecisionDto extends Selectable {
     }
 
     private String computeDeadlineAsString(PageBase page) {
-        XMLGregorianCalendar deadline = certCase.getReviewDeadline();
+        XMLGregorianCalendar deadline = certCase.getCurrentReviewDeadline();
 
         if (deadline == null) {
             return "";
@@ -176,11 +175,11 @@ public class CertCaseOrDecisionDto extends Selectable {
 
             //todo i18n
             if (delta > 0) {
-            	return PageTemplate.createStringResourceStatic(page, "PageCert.in", DurationFormatUtils.formatDurationWords(delta, true, true)).getString();
+            	return PageBase.createStringResourceStatic(page, "PageCert.in", DurationFormatUtils.formatDurationWords(delta, true, true)).getString();
 //                return new StringResourceModel("PageCert.in", page, null, null,
 //                        DurationFormatUtils.formatDurationWords(delta, true, true)).getString();
             } else if (delta < 0) {
-            	return PageTemplate.createStringResourceStatic(page, "PageCert.ago", DurationFormatUtils.formatDurationWords(-delta, true, true)).getString();
+            	return PageBase.createStringResourceStatic(page, "PageCert.ago", DurationFormatUtils.formatDurationWords(-delta, true, true)).getString();
 //                return StringResourceModelMigration.of("PageCert.ago", page, null, null,
 //                        DurationFormatUtils.formatDurationWords(-delta, true, true)).getString();
             } else {

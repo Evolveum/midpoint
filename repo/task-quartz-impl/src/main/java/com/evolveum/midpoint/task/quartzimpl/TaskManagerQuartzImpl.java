@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.LessFilter;
@@ -98,6 +99,8 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.SUCCESS;
 
 /**
  * Task Manager implementation using Quartz scheduler.
@@ -247,7 +250,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
 
         executionManager.startScheduler(getNodeId(), result);
-        if (result.getLastSubresultStatus() != OperationResultStatus.SUCCESS) {
+        if (result.getLastSubresultStatus() != SUCCESS) {
             throw new SystemException("Quartz task scheduler couldn't be started.");
         }
         
@@ -1207,15 +1210,17 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 }
             }
         }
-        return new ArrayList<String>(categories);
+        return new ArrayList<>(categories);
     }
 
     @Override
     public String getHandlerUriForCategory(String category) {
         for (Map.Entry<String,TaskHandler> h : handlers.entrySet()) {
             List<String> cats = h.getValue().getCategoryNames();
-            if (cats != null && cats.contains(category)) {
-                return h.getKey();
+            if (cats != null) {
+				if (cats.contains(category)) {
+					return h.getKey();
+				}
             } else {
                 String cat = h.getValue().getCategoryName(null);
                 if (category.equals(cat)) {
@@ -1669,6 +1674,15 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             throw new SchemaException("Couldn't get the list of obsolete tasks: " + e.getMessage(), e);
         }
 
+        // enable when having enough time
+//        result.createSubresult(result.getOperation()+".count").recordStatus(SUCCESS, "Task tree(s) to be deleted: " + obsoleteTasks.size());
+//        // show the result immediately
+//        try {
+//            executionTask.setResultImmediate(executionTask.getResult(), new OperationResult("dummy"));
+//        } catch (ObjectNotFoundException e) {
+//            LoggingUtils.logUnexpectedException(LOGGER, "Task {} does not exist", e, executionTask);
+//        }
+
         LOGGER.debug("Found {} task tree(s) to be cleaned up", obsoleteTasks.size());
 
         boolean interrupted = false;
@@ -1684,36 +1698,37 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 break;
             }
 
-            // get whole tree
-            Task rootTask = createTaskInstance(rootTaskPrism, result);
-            List<Task> taskTreeMembers = rootTask.listSubtasksDeeply(result);
-            taskTreeMembers.add(rootTask);
+            final String taskName = PolyString.getOrig(rootTaskPrism.getName());
+            final String taskOid = rootTaskPrism.getOid();
+            final long started = System.currentTimeMillis();
+            executionTask.recordIterativeOperationStart(taskName, null, TaskType.COMPLEX_TYPE, taskOid);
+            try {
+                // get whole tree
+                Task rootTask = createTaskInstance(rootTaskPrism, result);
+                List<Task> taskTreeMembers = rootTask.listSubtasksDeeply(result);
+                taskTreeMembers.add(rootTask);
 
-            LOGGER.trace("Removing task {} along with its {} children.", rootTask, taskTreeMembers.size()-1);
+                LOGGER.trace("Removing task {} along with its {} children.", rootTask, taskTreeMembers.size() - 1);
 
-            boolean problem = false;
-            for (Task task : taskTreeMembers) {
-                try {
-                    deleteTask(task.getOid(), result);
-                } catch (SchemaException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't delete obsolete task {} due to schema exception", e, task);
-                    problem = true;
-                } catch (ObjectNotFoundException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't delete obsolete task {} due to object not found exception", e, task);
-                    problem = true;
-                } catch (RuntimeException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't delete obsolete task {} due to a runtime exception", e, task);
-                    problem = true;
-                }
-
-                if (problem) {
-                    problems++;
-                    if (!task.getTaskIdentifier().equals(rootTask.getTaskIdentifier())) {
-                        bigProblems++;
+                Throwable lastProblem = null;
+                for (Task task : taskTreeMembers) {
+                    try {
+                        deleteTask(task.getOid(), result);
+                        deleted++;
+                    } catch (SchemaException|ObjectNotFoundException|RuntimeException e) {
+                        LoggingUtils.logException(LOGGER, "Couldn't delete obsolete task {}", e, task);
+                        lastProblem = e;
+                        problems++;
+                        if (!task.getTaskIdentifier().equals(rootTask.getTaskIdentifier())) {
+                            bigProblems++;
+                        }
                     }
-                } else {
-                    deleted++;
                 }
+                // approximate solution (as the problem might be connected to a subtask)
+                executionTask.recordIterativeOperationEnd(taskName, null, TaskType.COMPLEX_TYPE, taskOid, started, lastProblem);
+            } catch (Throwable t) {
+                executionTask.recordIterativeOperationEnd(taskName, null, TaskType.COMPLEX_TYPE, taskOid, started, t);
+                throw t;
             }
         }
         result.computeStatusIfUnknown();
@@ -1724,7 +1739,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
         String suffix = interrupted ? " Interrupted." : "";
         if (problems == 0) {
-            parentResult.createSubresult(CLEANUP_TASKS + ".statistics").recordStatus(OperationResultStatus.SUCCESS, "Successfully deleted " + deleted + " task(s)." + suffix);
+            parentResult.createSubresult(CLEANUP_TASKS + ".statistics").recordStatus(SUCCESS, "Successfully deleted " + deleted + " task(s)." + suffix);
         } else {
             parentResult.createSubresult(CLEANUP_TASKS + ".statistics").recordPartialError("Successfully deleted " + deleted + " task(s), "
                     + "there was problems with deleting " + problems + " tasks." + suffix

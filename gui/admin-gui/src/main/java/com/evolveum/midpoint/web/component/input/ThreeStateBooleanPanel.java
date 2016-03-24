@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.web.component.input;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,6 +34,11 @@ import org.apache.wicket.model.IModel;
  *
  *  @author shood
  * */
+/**
+ * Don't use this component, it will be gradually removed from gui.
+ * It can be easily replaced with TriStateComboPanel. [honchar]
+ */
+@Deprecated
 public class ThreeStateBooleanPanel extends BasePanel<Boolean>{
 
     private static final String ID_BUTTON_ONE = "optionOne";

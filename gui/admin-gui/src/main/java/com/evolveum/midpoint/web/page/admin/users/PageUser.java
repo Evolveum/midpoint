@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.page.admin.users;
 
 import javax.xml.namespace.QName;
@@ -21,6 +20,7 @@ import javax.xml.namespace.QName;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -32,8 +32,6 @@ import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
@@ -64,7 +62,7 @@ public class PageUser extends PageAdminFocus<UserType> {
         initialize(null);
     }
 
-    public PageUser(PageParameters parameters, PageTemplate previousPage) {
+    public PageUser(PageParameters parameters, PageBase previousPage) {
         getPageParameters().overwriteWith(parameters);
         setPreviousPage(previousPage);
         initialize(null);
@@ -89,7 +87,7 @@ public class PageUser extends PageAdminFocus<UserType> {
         // !userModel.getObject().getFocusPrimaryDelta().isEmpty()){
         // showModalWindow(MODAL_ID_CONFIRM_CANCEL, target);
         // } else{
-        goBackPage();
+        redirectBack();
 
         // }
         // }catch(Exception ex){
@@ -131,7 +129,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 	}
 
 	@Override
-	protected PageBase getDefaultBackPage() {
+	public PageBase getDefaultBackPage() {
 		return new PageUsers();
 	}
 

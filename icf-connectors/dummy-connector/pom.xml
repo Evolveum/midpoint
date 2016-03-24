@@ -61,7 +61,7 @@
 					<archive>
 						<manifestEntries>
 							<Version-Number>${project.version}</Version-Number>
-							<SCM-Revision>${describe}</SCM-Revision>
+							<SCM-Revision>${git.describe}</SCM-Revision>
 							<Organization>Evolveum</Organization>
 							<Organization-URL>http://www.evolveum.com</Organization-URL>
 							<Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>

@@ -24,11 +24,15 @@ import java.util.TreeSet;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
@@ -41,7 +45,6 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
@@ -53,7 +56,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -80,13 +82,10 @@ import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentPreviewDialog;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -101,12 +100,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjectDetails<F>
-
 		implements ProgressReportingAwarePage {
 
 	public static final String AUTH_USERS_ALL = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL;
@@ -177,8 +174,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 	protected void reviveModels() throws SchemaException {
 		super.reviveModels();
-		WebMiscUtil.revive(projectionModel, getPrismContext());
-		WebMiscUtil.revive(assignmentsModel, getPrismContext());
+		WebComponentUtil.revive(projectionModel, getPrismContext());
+		WebComponentUtil.revive(assignmentsModel, getPrismContext());
 	}
 
 	protected ObjectWrapper<F> loadFocusWrapper(PrismObject<F> userToEdit) {
@@ -188,10 +185,16 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 	@Override
 	public void finishProcessing(AjaxRequestTarget target, OperationResult result) {
+
+		if (previewRequested) {
+			finishPreviewProcessing(target, result);
+			return;
+		}
+
 		boolean userAdded = getDelta() != null && getDelta().isAdd() && StringUtils.isNotEmpty(getDelta().getOid());
 		if (!isKeepDisplayingResults() && getProgressReporter().isAllSuccess()
 				&& (userAdded || !result.isFatalError())) { // TODO
-			showResultInSession(result);
+			showResult(result);
 			// todo refactor this...what is this for? why it's using some
 			// "shadow" param from result???
 			PrismObject<F> focus = getObjectWrapper().getObject();
@@ -201,15 +204,15 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				if (o != null && o instanceof ShadowType) {
 					ShadowType accountType = (ShadowType) o;
 					OperationResultType fetchResult = accountType.getFetchResult();
-					if (fetchResult != null
-							&& !OperationResultStatusType.SUCCESS.equals(fetchResult.getStatus())) {
-						showResultInSession(OperationResult.createOperationResult(fetchResult));
-					}
+						showResult(OperationResult.createOperationResult(fetchResult), false);
+					
 				}
 			}
-			goBackPage();
+			redirectBack();
 		} else {
-			showResult(result);
+            getProgressReporter().showBackButton(target);
+            getProgressReporter().hideAbortButton(target);
+            showResult(result);
 			target.add(getFeedbackPanel());
 
 			// if we only stayed on the page because of displaying results, hide
@@ -222,6 +225,13 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 //				progressReporter.hideSaveButton(target);
 			}
 		}
+	}
+
+	private void finishPreviewProcessing(AjaxRequestTarget target, OperationResult result) {
+		showResult(result);
+		target.add(getFeedbackPanel());
+		setResponsePage(new PagePreviewChanges(getProgressReporter().getPreviewResult(), getModelInteractionService(), this));
+		// TODO implement "back" functionality correctly
 	}
 
 	private List<FocusProjectionDto> loadShadowWrappers() {
@@ -259,7 +269,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 					continue;
 				}
 
-				PrismObject<P> projection = WebModelUtils.loadObject(type, reference.getOid(), options, this,
+				PrismObject<P> projection = WebModelServiceUtils.loadObject(type, reference.getOid(), options, this,
 						task, subResult);
 				if (projection == null) {
 					// No access, just skip it
@@ -273,7 +283,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				if (ShadowType.class.equals(type)) {
 					ShadowType shadowType = (ShadowType) projectionType;
 					ResourceType resource = shadowType.getResource();
-					resourceName = WebMiscUtil.getName(resource);
+					resourceName = WebComponentUtil.getName(resource);
 
 					if (shadowType.getIntent() != null) {
 						description.append(shadowType.getIntent()).append(", ");
@@ -281,9 +291,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				} else if (OrgType.class.equals(type)) {
 					OrgType orgType = (OrgType) projectionType;
 					resourceName = orgType.getDisplayName() != null
-							? WebMiscUtil.getOrigStringFromPoly(orgType.getDisplayName()) : "";
+							? WebComponentUtil.getOrigStringFromPoly(orgType.getDisplayName()) : "";
 				}
-				description.append(WebMiscUtil.getOrigStringFromPoly(projectionType.getName()));
+				description.append(WebComponentUtil.getOrigStringFromPoly(projectionType.getName()));
 
 				ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(resourceName,
 						description.toString(), projection, ContainerStatus.MODIFYING, true, this);
@@ -485,7 +495,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			ItemPath deltaPath = delta.getPath().rest();
 			ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
 
-			delta.setParentPath(WebMiscUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
+			delta.setParentPath(WebComponentUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
 			delta.applyDefinition(deltaDef);
 
 			focusDelta.addModification(delta);
@@ -503,7 +513,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				forceDeleteDelta.revive(getPrismContext());
 
 				if (forceDeleteDelta != null && !forceDeleteDelta.isEmpty()) {
-					getModelService().executeChanges(WebMiscUtil.createDeltaCollection(forceDeleteDelta),
+					getModelService().executeChanges(WebComponentUtil.createDeltaCollection(forceDeleteDelta),
 							options, task, result);
 				}
 			} catch (Exception ex) {
@@ -571,7 +581,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			ObjectWrapper projectionWrapper = projection.getObject();
 			ObjectDelta delta = projectionWrapper.getObjectDelta();
 			PrismObject<P> proj = delta.getObjectToAdd();
-			WebMiscUtil.encryptCredentials(proj, true, getMidpointApplication());
+			WebComponentUtil.encryptCredentials(proj, true, getMidpointApplication());
 
 			projectionsToAdd.add(proj.asObjectable());
 		}
@@ -618,7 +628,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				// what is this???
 				// subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
 
-				WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
+				WebComponentUtil.encryptCredentials(delta, true, getMidpointApplication());
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Modifying account:\n{}", new Object[] { delta.debugDump(3) });
 				}
@@ -670,7 +680,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				switch (accDto.getStatus()) {
 					case ADD:
 						account = delta.getObjectToAdd();
-						WebMiscUtil.encryptCredentials(account, true, getMidpointApplication());
+						WebComponentUtil.encryptCredentials(account, true, getMidpointApplication());
 						refValue.setObject(account);
 						refDelta.addValueToAdd(refValue);
 						break;
@@ -821,7 +831,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			ModelContext<UserType> modelContext = null;
 			try {
 				modelContext = getModelInteractionService()
-						.previewChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+						.previewChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
 			} catch (NoFocusNameSchemaException e) {
 				info(getString("pageAdminFocus.message.noUserName"));
 				target.add(getFeedbackPanel());

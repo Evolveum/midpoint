@@ -16,9 +16,8 @@
 
 package com.evolveum.midpoint.wf.api;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
+import com.evolveum.midpoint.task.api.Task;
 
 /**
  * An interface through which external observers can be notified about wf process related events.
@@ -35,7 +34,7 @@ public interface ProcessListener {
      * @param instanceState externalized process instance variables
      * @param result implementer should report its result here
      */
-    void onProcessInstanceStart(PrismObject<? extends ProcessInstanceState> instanceState, OperationResult result);
+    void onProcessInstanceStart(Task wfTask, OperationResult result);
 
     /**
      * This method is called by wf module when a process instance ends.
@@ -43,5 +42,5 @@ public interface ProcessListener {
      * @param instanceState externalized process instance variables
      * @param result implementer should report its result here
      */
-    void onProcessInstanceEnd(PrismObject<? extends ProcessInstanceState> instanceState, OperationResult result);
+    void onProcessInstanceEnd(Task wfTask, OperationResult result);
 }

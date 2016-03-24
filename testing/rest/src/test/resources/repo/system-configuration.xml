@@ -37,6 +37,10 @@
 			<level>DEBUG</level>
 		</classLogger>
 		<classLogger>
+			<package>com.evolveum.midpoint.model.impl.security.MidpointRestAuthenticationHandler</package>
+			<level>TRACE</level>
+		</classLogger>
+		<classLogger>
 			<package>PROFILING</package>
 			<level>TRACE</level>
 		</classLogger>

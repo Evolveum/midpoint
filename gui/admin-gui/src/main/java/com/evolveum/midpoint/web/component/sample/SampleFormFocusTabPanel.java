@@ -21,6 +21,8 @@ import java.util.List;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -36,8 +38,6 @@ import com.evolveum.midpoint.web.component.assignment.SimpleRoleSelector;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractFocusTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -45,54 +45,54 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Sample showing a custom focus form that displays semi-static form.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusTabPanel<F> {
-	
-	private static final String DOT_CLASS = SampleFormFocusTabPanel.class.getName() + ".";
-	private static final String OPERATION_SEARCH_ROLES = DOT_CLASS + "searchRoles";
-	
-	private static final String ID_HEADER = "header";
-	
-	private static final String ID_PROP_NAME = "propName";
-	private static final String ID_PROP_FULL_NAME = "propFullName";
-	
-	private static final String ID_ROLES = "roles";
-	
-	private static final Trace LOGGER = TraceManager.getTrace(SampleFormFocusTabPanel.class);
 
-	public SampleFormFocusTabPanel(String id, Form mainForm, 
-			LoadableModel<ObjectWrapper<F>> focusWrapperModel, 
-			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, 
-			LoadableModel<List<FocusProjectionDto>> projectionModel,
-			PageBase pageBase) {
-		super(id, mainForm, focusWrapperModel, assignmentsModel, projectionModel, pageBase);
-		initLayout(focusWrapperModel, assignmentsModel, pageBase);
-	}
+    private static final String DOT_CLASS = SampleFormFocusTabPanel.class.getName() + ".";
+    private static final String OPERATION_SEARCH_ROLES = DOT_CLASS + "searchRoles";
 
-	private void initLayout(final LoadableModel<ObjectWrapper<F>> focusModel, LoadableModel<List<AssignmentEditorDto>> assignmentsModel, PageBase pageBase) {
-		add(new Label(ID_HEADER, "Object details"));
-		WebMarkupContainer body = new WebMarkupContainer("body");
-		add(body);
-		
-		addPrismPropertyPanel(body, ID_PROP_NAME, FocusType.F_NAME);
-		addPrismPropertyPanel(body, ID_PROP_FULL_NAME, UserType.F_FULL_NAME);
-		
-		// TODO: create proxy for these operations
-		Task task = pageBase.createSimpleTask(OPERATION_SEARCH_ROLES);
-		List<PrismObject<RoleType>> availableRoles;
-		try {
-			availableRoles = pageBase.getModelService().searchObjects(RoleType.class, null, null, task, task.getResult());
-		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException e) {
-			task.getResult().recordFatalError(e);
-			LoggingUtils.logException(LOGGER, "Couldn't load roles", e);
-			availableRoles = new ArrayList<>();
-			// TODO: better errror reporting
-		}
-		
-		add(new SimpleRoleSelector<F,RoleType>(ID_ROLES, assignmentsModel, availableRoles));
-	}
+    private static final String ID_HEADER = "header";
+
+    private static final String ID_PROP_NAME = "propName";
+    private static final String ID_PROP_FULL_NAME = "propFullName";
+
+    private static final String ID_ROLES = "roles";
+
+    private static final Trace LOGGER = TraceManager.getTrace(SampleFormFocusTabPanel.class);
+
+    public SampleFormFocusTabPanel(String id, Form mainForm,
+                                   LoadableModel<ObjectWrapper<F>> focusWrapperModel,
+                                   LoadableModel<List<AssignmentEditorDto>> assignmentsModel,
+                                   LoadableModel<List<FocusProjectionDto>> projectionModel,
+                                   PageBase pageBase) {
+        super(id, mainForm, focusWrapperModel, assignmentsModel, projectionModel, pageBase);
+        initLayout(focusWrapperModel, assignmentsModel, pageBase);
+    }
+
+    private void initLayout(final LoadableModel<ObjectWrapper<F>> focusModel, LoadableModel<List<AssignmentEditorDto>> assignmentsModel, PageBase pageBase) {
+        add(new Label(ID_HEADER, "Object details"));
+        WebMarkupContainer body = new WebMarkupContainer("body");
+        add(body);
+
+        addPrismPropertyPanel(body, ID_PROP_NAME, FocusType.F_NAME);
+        addPrismPropertyPanel(body, ID_PROP_FULL_NAME, UserType.F_FULL_NAME);
+
+        // TODO: create proxy for these operations
+        Task task = pageBase.createSimpleTask(OPERATION_SEARCH_ROLES);
+        List<PrismObject<RoleType>> availableRoles;
+        try {
+            availableRoles = pageBase.getModelService().searchObjects(RoleType.class, null, null, task, task.getResult());
+        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException e) {
+            task.getResult().recordFatalError(e);
+            LoggingUtils.logException(LOGGER, "Couldn't load roles", e);
+            availableRoles = new ArrayList<>();
+            // TODO: better errror reporting
+        }
+
+        add(new SimpleRoleSelector<F,RoleType>(ID_ROLES, assignmentsModel, availableRoles));
+    }
 
 }

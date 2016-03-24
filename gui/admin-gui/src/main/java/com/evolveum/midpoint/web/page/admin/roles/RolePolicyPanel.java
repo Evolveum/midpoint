@@ -9,10 +9,10 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.roles.component.MultiplicityPolicyDialog;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
@@ -68,7 +68,7 @@ public class RolePolicyPanel extends SimplePanel<RoleType>{
         };
         
         GenericMultiValueLabelEditPanel minAssignments = new GenericMultiValueLabelEditPanel<MultiplicityPolicyConstraintType>(ID_MIN_ASSIGNMENTS,
-                minAssignmentModel, createStringResource("PageRoleEditor.label.minAssignments"), ID_LABEL_SIZE, ID_INPUT_SIZE){
+                minAssignmentModel, createStringResource("PageRoleEditor.label.minAssignments"), ID_LABEL_SIZE, ID_INPUT_SIZE, true){
 
             @Override
             protected void initDialog() {
@@ -104,7 +104,7 @@ public class RolePolicyPanel extends SimplePanel<RoleType>{
         add(minAssignments);
 
         GenericMultiValueLabelEditPanel maxAssignments = new GenericMultiValueLabelEditPanel<MultiplicityPolicyConstraintType>(ID_MAX_ASSIGNMENTS,
-                maxAssignmentsModel, createStringResource("PageRoleEditor.label.maxAssignments"), ID_LABEL_SIZE, ID_INPUT_SIZE){
+                maxAssignmentsModel, createStringResource("PageRoleEditor.label.maxAssignments"), ID_LABEL_SIZE, ID_INPUT_SIZE, true){
 
             @Override
             protected void initDialog() {

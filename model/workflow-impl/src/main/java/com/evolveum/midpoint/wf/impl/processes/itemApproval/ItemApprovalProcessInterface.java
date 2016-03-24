@@ -16,21 +16,18 @@
 
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.wf.impl.jobs.JobCreationInstruction;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.processes.BaseProcessMidPointInterface;
+import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemApprovalProcessStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ItemApprovalProcessState;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ItemApprovalRequestType;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -49,32 +46,25 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
     @Autowired
     private PrismContext prismContext;
 
-    public void prepareStartInstruction(JobCreationInstruction instruction, ApprovalRequest approvalRequest, String approvalTaskName) {
-        instruction.setProcessDefinitionKey(PROCESS_DEFINITION_KEY);
+    public void prepareStartInstruction(WfTaskCreationInstruction instruction) {
+        instruction.setProcessName(PROCESS_DEFINITION_KEY);
         instruction.setSimple(false);
         instruction.setSendStartConfirmation(true);
-        instruction.addProcessVariable(ProcessVariableNames.APPROVAL_REQUEST, approvalRequest);
-        instruction.addProcessVariable(ProcessVariableNames.APPROVAL_TASK_NAME, approvalTaskName);
         instruction.setProcessInterfaceBean(this);
     }
 
     @Override
-    public ProcessSpecificState externalizeProcessInstanceState(Map<String, Object> variables) {
-        PrismContainerDefinition<ItemApprovalProcessState> extDefinition = prismContext.getSchemaRegistry().findContainerDefinitionByType(ItemApprovalProcessState.COMPLEX_TYPE);
-        PrismContainer<ItemApprovalProcessState> extStateContainer = extDefinition.instantiate();
-        ItemApprovalProcessState extState = extStateContainer.createNewValue().asContainerable();
+    public ItemApprovalProcessStateType externalizeProcessSpecificState(Map<String, Object> variables) {
+        ItemApprovalProcessStateType extState = new ItemApprovalProcessStateType(prismContext);
+        com.evolveum.midpoint.xml.ns._public.common.common_3.ItemApprovalRequestType extRequestType = new com.evolveum.midpoint.xml.ns._public
+                .common.common_3.ItemApprovalRequestType(prismContext);
 
-        PrismContainer extRequestContainer = extDefinition.findContainerDefinition(ItemApprovalProcessState.F_APPROVAL_REQUEST).instantiate();
-        ItemApprovalRequestType extRequestType = (ItemApprovalRequestType) extRequestContainer.createNewValue().asContainerable();
+        ApprovalSchema intApprovalSchema = (ApprovalSchema) variables.get(ProcessVariableNames.APPROVAL_SCHEMA);
+        intApprovalSchema.setPrismContext(prismContext);
 
-        ApprovalRequest<?> intApprovalRequest = (ApprovalRequest) variables.get(ProcessVariableNames.APPROVAL_REQUEST);
-        intApprovalRequest.setPrismContext(prismContext);
-
-        ApprovalSchemaType approvalSchemaType = (ApprovalSchemaType) extRequestContainer.getDefinition().findContainerDefinition(ItemApprovalRequestType.F_APPROVAL_SCHEMA).instantiate().createNewValue().asContainerable();
-        intApprovalRequest.getApprovalSchema().toApprovalSchemaType(approvalSchemaType);
+        ApprovalSchemaType approvalSchemaType = new ApprovalSchemaType(prismContext);
+        intApprovalSchema.toApprovalSchemaType(approvalSchemaType);
         extRequestType.setApprovalSchema(approvalSchemaType);
-        extRequestType.setItemToApprove(intApprovalRequest.getItemToApprove());
-        extState.setApprovalRequest(extRequestType);
 
         List<Decision> intDecisions = (List<Decision>) variables.get(ProcessVariableNames.ALL_DECISIONS);
         if (intDecisions != null) {
@@ -83,17 +73,29 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
             }
         }
 
-        extState.asPrismContainerValue().setConcreteType(ItemApprovalProcessState.COMPLEX_TYPE);
+        extState.asPrismContainerValue().setConcreteType(ItemApprovalProcessStateType.COMPLEX_TYPE);
         return extState;
+    }
+
+    @Override public DecisionType extractDecision(Map<String, Object> variables) {
+        DecisionType decision = new DecisionType();
+
+        decision.setResultAsString((String) variables.get(CommonProcessVariableNames.FORM_FIELD_DECISION));
+        decision.setApproved(ApprovalUtils.approvalBooleanValue(decision.getResultAsString()));
+        decision.setComment((String) variables.get(CommonProcessVariableNames.FORM_FIELD_COMMENT));
+
+        // TODO - what with other fields (approver, dateTime)?
+
+        return decision;
     }
 
     @Override
     public List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event) {
         List<ObjectReferenceType> retval = new ArrayList<ObjectReferenceType>();
-        if (!ApprovalUtils.isApproved(event.getAnswer())) {
+        if (!ApprovalUtils.isApproved(getAnswer(event.getVariables()))) {
             return retval;
         }
-        List<Decision> allDecisions = (List<Decision>) event.getVariable(ProcessVariableNames.ALL_DECISIONS);
+        List<Decision> allDecisions = event.getVariable(ProcessVariableNames.ALL_DECISIONS, List.class);
         for (Decision decision : allDecisions) {
             if (decision.isApproved()) {
                 retval.add(MiscSchemaUtil.createObjectReference(decision.getApproverOid(), SchemaConstants.C_USER_TYPE));

@@ -29,30 +29,20 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.addrole.AddRoleVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
-import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildJobCreationInstruction;
+import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This is a preliminary version of 'password approval' process aspect. The idea is that in some cases, a user may request
@@ -78,10 +68,10 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
     private ItemApprovalProcessInterface itemApprovalProcessInterface;
 
     @Override
-    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException {
+    public List<PcpChildWfTaskCreationInstruction> prepareTasks(ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException {
 
-        List<ApprovalRequest<String>> approvalRequestList = new ArrayList<ApprovalRequest<String>>();
-        List<PcpChildJobCreationInstruction> instructions = new ArrayList<>();
+        List<ApprovalRequest<String>> approvalRequestList = new ArrayList<>();
+        List<PcpChildWfTaskCreationInstruction> instructions = new ArrayList<>();
 
         ObjectDelta changeRequested = objectTreeDeltas.getFocusChange();
 
@@ -110,16 +100,6 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
         return instructions;
     }
 
-    @Override
-    public PrismObject<? extends QuestionFormType> prepareQuestionForm(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
-        return null;        // todo implement this
-    }
-
-    @Override
-    public PrismObject<? extends ObjectType> prepareRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
-        return null;        // todo implement this
-    }
-
     private ApprovalRequest<String> createApprovalRequest(ItemDelta delta) {
 
         ObjectReferenceType approverRef = new ObjectReferenceType();
@@ -132,32 +112,33 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
         return new ApprovalRequestImpl("Password change", null, null, approvers, null, null, prismContext);
     }
 
-    private PcpChildJobCreationInstruction createStartProcessInstruction(ModelContext<?> modelContext, ItemDelta delta, ApprovalRequest approvalRequest, Task taskFromModel, OperationResult result) throws SchemaException {
+    private PcpChildWfTaskCreationInstruction createStartProcessInstruction(ModelContext<?> modelContext, ItemDelta delta, ApprovalRequest approvalRequest, Task taskFromModel, OperationResult result) throws SchemaException {
 
         String userName = MiscDataUtil.getFocusObjectName(modelContext);
-        String objectOid = primaryChangeAspectHelper.getObjectOid(modelContext);
+        String objectOid = MiscDataUtil.getFocusObjectOid(modelContext);
         PrismObject<UserType> requester = primaryChangeAspectHelper.getRequester(taskFromModel, result);
 
+        String approvalTaskName = "Approve changing password for " + userName;
+
         // create a JobCreateInstruction for a given change processor (primaryChangeProcessor in this case)
-        PcpChildJobCreationInstruction instruction =
-                PcpChildJobCreationInstruction.createInstruction(getChangeProcessor());
+        PcpChildWfTaskCreationInstruction instruction =
+                PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName, approvalRequest);
 
         // set some common task/process attributes
-        instruction.prepareCommonAttributes(this, modelContext, objectOid, requester);
+        instruction.prepareCommonAttributes(this, modelContext, requester);
 
         // prepare and set the delta that has to be approved
-        instruction.setDeltaProcessAndTaskVariables(itemDeltaToObjectDelta(objectOid, delta));
+        instruction.setDeltasToProcess(itemDeltaToObjectDelta(objectOid, delta));
+
+        instruction.setObjectRef(modelContext, result);
+        instruction.setTargetRef(null, result);
 
         // set the names of midPoint task and activiti process instance
         instruction.setTaskName("Workflow for approving password change for " + userName);
         instruction.setProcessInstanceName("Changing password for " + userName);
 
         // setup general item approval process
-        String approvalTaskName = "Approve changing password for " + userName;
-        itemApprovalProcessInterface.prepareStartInstruction(instruction, approvalRequest, approvalTaskName);
-
-        // set some aspect-specific variables
-        instruction.addProcessVariable(AddRoleVariableNames.FOCUS_NAME, userName);
+        itemApprovalProcessInterface.prepareStartInstruction(instruction);
 
         return instruction;
     }

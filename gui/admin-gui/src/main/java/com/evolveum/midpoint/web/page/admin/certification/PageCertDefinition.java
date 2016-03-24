@@ -17,15 +17,20 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,18 +38,14 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -54,6 +55,7 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -71,7 +73,11 @@ import java.util.List;
 		action = {
 				@AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
 						label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
-						description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION) })
+						description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
+				@AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_DEFINITION,
+						label = PageAdminCertification.AUTH_CERTIFICATION_DEFINITION_LABEL,
+						description = PageAdminCertification.AUTH_CERTIFICATION_DEFINITION_DESCRIPTION)
+				})
 public class PageCertDefinition extends PageAdminCertification {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageCertDefinition.class);
@@ -94,6 +100,8 @@ public class PageCertDefinition extends PageAdminCertification {
 //	private static final String ID_OWNER_INPUT = "ownerInput";
 	private static final String ID_OWNER_REF_CHOOSER = "ownerRefChooser";
 	private static final String ID_REMEDIATION = "remediation";
+	private static final String ID_OUTCOME_STRATEGY = "outcomeStrategy";
+	private static final String ID_STOP_REVIEW_ON = "stopReviewOn";
 
 	private static final String ID_BACK_BUTTON = "backButton";
 	private static final String ID_SAVE_BUTTON = "saveButton";
@@ -109,7 +117,7 @@ public class PageCertDefinition extends PageAdminCertification {
 		this(parameters, null);
 	}
 
-	public PageCertDefinition(PageParameters parameters, PageTemplate previousPage) {
+	public PageCertDefinition(PageParameters parameters, PageBase previousPage) {
 		setPreviousPage(previousPage);
 		getPageParameters().overwriteWith(parameters);
 		initModels();
@@ -125,7 +133,11 @@ public class PageCertDefinition extends PageAdminCertification {
 				if (definitionOid != null) {
 					return loadDefinition(definitionOid);
 				} else {
-					return createDefinition();
+					try {
+						return createDefinition();
+					} catch (SchemaException e) {
+						throw new SystemException(e.getMessage(), e);
+					}
 				}
 			}
 		};
@@ -139,12 +151,12 @@ public class PageCertDefinition extends PageAdminCertification {
 		try {
 			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
 			PrismObject<AccessCertificationDefinitionType> definitionObject =
-					WebModelUtils.loadObject(AccessCertificationDefinitionType.class, definitionOid, options,
+					WebModelServiceUtils.loadObject(AccessCertificationDefinitionType.class, definitionOid, options,
 							PageCertDefinition.this, task, result);
 			if (definitionObject != null) {
 				definition = definitionObject.asObjectable();
 			}
-			definitionDto = new CertDefinitionDto(definition, this);
+			definitionDto = new CertDefinitionDto(definition, this, getPrismContext());
 			result.recordSuccessIfUnknown();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get definition", ex);
@@ -152,13 +164,13 @@ public class PageCertDefinition extends PageAdminCertification {
 		}
 		result.recomputeStatus();
 
-		if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+		if (!WebComponentUtil.isSuccessOrHandledError(result)) {
 			showResult(result);
 		}
 		return definitionDto;
 	}
 
-	private CertDefinitionDto createDefinition() {
+	private CertDefinitionDto createDefinition() throws SchemaException {
 		AccessCertificationDefinitionType definition = getPrismContext().createObjectable(AccessCertificationDefinitionType.class);
 		definition.setHandlerUri(AccessCertificationApiConstants.DIRECT_ASSIGNMENT_HANDLER_URI);
 		AccessCertificationStageDefinitionType stage = new AccessCertificationStageDefinitionType(getPrismContext());
@@ -166,7 +178,8 @@ public class PageCertDefinition extends PageAdminCertification {
 		stage.setNumber(1);
 		stage.setReviewerSpecification(new AccessCertificationReviewerSpecificationType(getPrismContext()));
 		definition.getStageDefinition().add(stage);
-		CertDefinitionDto definitionDto = new CertDefinitionDto(definition, PageCertDefinition.this);
+		CertDefinitionDto definitionDto = new CertDefinitionDto(definition, PageCertDefinition.this,
+				getPrismContext());
 		return definitionDto;
 	}
 
@@ -283,10 +296,25 @@ public class PageCertDefinition extends PageAdminCertification {
             public void setObject(AccessCertificationRemediationStyleType object) {
                 definitionModel.getObject().setRemediationStyle(object);
             }
-        }, WebMiscUtil.createReadonlyModelFromEnum(AccessCertificationRemediationStyleType.class),
+        }, WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationRemediationStyleType.class),
                 new EnumChoiceRenderer<AccessCertificationRemediationStyleType>(this));
         mainForm.add(remediation);
 
+		DropDownChoice outcomeStrategy =
+				new DropDownChoice<>(ID_OUTCOME_STRATEGY,
+						new PropertyModel<AccessCertificationCaseOutcomeStrategyType>(definitionModel, CertDefinitionDto.F_OUTCOME_STRATEGY),
+						WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationCaseOutcomeStrategyType.class),
+				new EnumChoiceRenderer<AccessCertificationCaseOutcomeStrategyType>(this));
+		mainForm.add(outcomeStrategy);
+
+		Label stopReviewOn = new Label(ID_STOP_REVIEW_ON, new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				List<AccessCertificationResponseType> stopOn = definitionModel.getObject().getStopReviewOn();
+				return CertMiscUtil.getStopReviewOnText(stopOn, PageCertDefinition.this);
+			}
+		});
+		mainForm.add(stopReviewOn);
 
 //        mainForm.add(new Label(ID_REVIEW_STAGE_CAMPAIGNS, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
 //        mainForm.add(new Label(ID_CAMPAIGNS_TOTAL, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
@@ -371,7 +399,7 @@ public class PageCertDefinition extends PageAdminCertification {
 				getPrismContext().adopt(delta);
 				ModelExecuteOptions options = new ModelExecuteOptions();
 				options.setRaw(true);
-				getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, result);
+				getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task, result);
 			}
 			result.computeStatus();
 		} catch (Exception ex) {
@@ -382,7 +410,7 @@ public class PageCertDefinition extends PageAdminCertification {
 			showResult(result);
 			target.add(getFeedbackPanel());
 		} else {
-			showResultInSession(result);
+			showResult(result);
 			setResponsePage(PageCertDefinitions.class);
 		}
 	}

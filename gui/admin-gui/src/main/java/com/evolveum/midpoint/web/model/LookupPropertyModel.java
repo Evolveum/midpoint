@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.web.model;
 
-import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import org.apache.wicket.Application;
@@ -71,7 +71,7 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
             if (lookupTable != null) {
                 for (LookupTableRowType row : lookupTable.getRow()) {
                     if (key.equals(row.getKey())) {
-                        return (T) WebMiscUtil.getOrigStringFromPoly(row.getLabel());
+                        return (T) WebComponentUtil.getOrigStringFromPoly(row.getLabel());
                     }
                 }
             }
@@ -100,7 +100,7 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
                     PropertyResolver.setValue(expression, getInnermostModelOrObject(), label, prc);
                 }
                 for (LookupTableRowType row : lookupTable.getRow()) {
-                    if (label.equals(WebMiscUtil.getOrigStringFromPoly(row.getLabel()))) {
+                    if (label.equals(WebComponentUtil.getOrigStringFromPoly(row.getLabel()))) {
                         key = row.getKey();
                         PropertyResolver.setValue(expression, getInnermostModelOrObject(), key, prc);
                     }

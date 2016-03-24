@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -112,7 +114,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 
     @Override
     public ResourceAttributeDefinition<?> getDescriptionAttribute() {
-        return objectClassDefinition.getDescriptionAttribute();
+        return getObjectClassDefinition().getDescriptionAttribute();
     }
 
     @Override
@@ -122,17 +124,17 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 
     @Override
     public RefinedAttributeDefinition<?> getNamingAttribute() {
-        return substituteRefinedAttributeDefinition(objectClassDefinition.getNamingAttribute());
+        return substituteRefinedAttributeDefinition(getObjectClassDefinition().getNamingAttribute());
     }
     
     @Override
     public QName getTypeName() {
-        return objectClassDefinition.getTypeName();
+        return getObjectClassDefinition().getTypeName();
     }
 
 	@Override
     public String getNativeObjectClass() {
-        return objectClassDefinition.getNativeObjectClass();
+        return getObjectClassDefinition().getNativeObjectClass();
     }
 
     @Override
@@ -171,7 +173,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	@Override
     public RefinedAttributeDefinition<?> getDisplayNameAttribute() {
 		if (displayNameAttributeDefinition == null) {
-			ResourceAttributeDefinition<?> displayNameAttribute = objectClassDefinition.getDisplayNameAttribute();
+			ResourceAttributeDefinition<?> displayNameAttribute = getObjectClassDefinition().getDisplayNameAttribute();
 			if (displayNameAttribute == null) {
 				return null;
 			}
@@ -199,6 +201,17 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 			secondaryIdentifiers = createIdentifiersCollection();
 		}
 		return secondaryIdentifiers;
+	}
+	
+	public Collection<? extends RefinedAttributeDefinition<?>> getAllIdentifiers() {
+		Collection<? extends RefinedAttributeDefinition<?>> allIdentifiers = new ArrayList<>();
+		if (identifiers != null) {
+			allIdentifiers.addAll((Collection)getIdentifiers());
+		}
+		if (secondaryIdentifiers != null) {
+			allIdentifiers.addAll((Collection)getSecondaryIdentifiers());
+		}
+		return allIdentifiers;
 	}
 
 	private Collection<? extends RefinedAttributeDefinition<?>> createIdentifiersCollection() {
@@ -264,11 +277,11 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	}
     
 	public boolean hasAuxiliaryObjectClass(QName expectedObjectClassName) {
-		if (auxiliaryObjectClassDefinitions == null) {
+		if (getAuxiliaryObjectClassDefinitions() == null) {
 			return false;
 		}
-		for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
-			if (auxiliaryObjectClassDefinition.getTypeName().equals(expectedObjectClassName)) {
+		for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: getAuxiliaryObjectClassDefinitions()) {
+			if (QNameUtil.match(auxiliaryObjectClassDefinition.getTypeName(), expectedObjectClassName)) {
 				return true;
 			}
 		}
@@ -283,7 +296,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	}
 	
 	public PrismContext getPrismContext() {
-		return resourceType.asPrismObject().getPrismContext();
+		return getResourceType().asPrismObject().getPrismContext();
 	}
 
     @Override
@@ -348,7 +361,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     }
 
 	protected String getResourceNamespace() {
-		return ResourceTypeUtil.getResourceNamespace(resourceType);
+		return ResourceTypeUtil.getResourceNamespace(getResourceType());
 	}
 
 	@Override
@@ -427,7 +440,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     }
 
 	public RefinedAttributeDefinition<?> getAttributeDefinition(QName attributeName) {
-        for (RefinedAttributeDefinition<?> attrDef : attributeDefinitions) {
+        for (RefinedAttributeDefinition<?> attrDef : getAttributeDefinitions()) {
             if (QNameUtil.match(attrDef.getName(), attributeName)) {
                 return attrDef;
             }
@@ -437,7 +450,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 
 
     public void add(RefinedAttributeDefinition<?> refinedAttributeDefinition) {
-        attributeDefinitions.add(refinedAttributeDefinition);
+    	((Collection)getAttributeDefinitions()).add(refinedAttributeDefinition);
     }
 
     public boolean containsAttributeDefinition(ItemPathType pathType) {
@@ -446,7 +459,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     }
     
     public boolean containsAttributeDefinition(QName attributeName) {
-        for (RefinedAttributeDefinition<?> rAttributeDef : attributeDefinitions) {
+        for (RefinedAttributeDefinition<?> rAttributeDef : getAttributeDefinitions()) {
             if (QNameUtil.match(rAttributeDef.getName(), attributeName)) {
                 return true;
             }
@@ -517,7 +530,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		return resourceObjectPattern;
 	}
 
-	static RefinedObjectClassDefinition parseFromSchema(ObjectClassComplexTypeDefinition objectClassDef, ResourceType resourceType,
+	public static RefinedObjectClassDefinition parseFromSchema(ObjectClassComplexTypeDefinition objectClassDef, ResourceType resourceType,
                                                         RefinedResourceSchema rSchema,
                                                         PrismContext prismContext, String contextDescription) throws SchemaException {
 
@@ -641,7 +654,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 			return;
 		}
 		
-		parseAttributesFrom(rSchema, objectClassDefinition, false, contextDescription);
+		parseAttributesFrom(rSchema, getObjectClassDefinition(), false, contextDescription);
 		if (auxiliaryObjectClassDefinitions != null) {
 			for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
 				parseAttributesFrom(rSchema, auxiliaryObjectClassDefinition, true, contextDescription);
@@ -746,8 +759,8 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         
     	accountShadowType.setIntent(getIntent());
         accountShadowType.setKind(getKind());
-        accountShadowType.setObjectClass(objectClassDefinition.getTypeName());
-        accountShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(resourceType));
+        accountShadowType.setObjectClass(getObjectClassDefinition().getTypeName());
+        accountShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(getResourceType()));
         
         // Setup definition
         PrismObjectDefinition<ShadowType> newDefinition = accountShadow.getDefinition().cloneWithReplacedDefinition(
@@ -758,7 +771,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     }
 
     public ResourceShadowDiscriminator getShadowDiscriminator() {
-        return new ResourceShadowDiscriminator(resourceType.getOid(), getKind(), getIntent());
+        return new ResourceShadowDiscriminator(getResourceType().getOid(), getKind(), getIntent());
     }
 
     public Collection<? extends QName> getNamesOfAttributesWithOutboundExpressions() {
@@ -879,7 +892,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	}
     
     public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) {
-		return ResourceTypeUtil.getEffectiveCapability(resourceType, schemaHandlingObjectTypeDefinitionType, capabilityClass);
+		return ResourceTypeUtil.getEffectiveCapability(getResourceType(), schemaHandlingObjectTypeDefinitionType, capabilityClass);
 	}
 
     public PagedSearchCapabilityType getPagedSearches() {
@@ -897,14 +910,14 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     
     
 	public boolean isAuxiliary() {
-		return objectClassDefinition.isAuxiliary();
+		return getObjectClassDefinition().isAuxiliary();
 	}
 
 	public boolean matches(ShadowType shadowType) {
 		if (shadowType == null) {
 			return false;
 		}
-		if (!QNameUtil.match(objectClassDefinition.getTypeName(), shadowType.getObjectClass())) {
+		if (!QNameUtil.match(getObjectClassDefinition().getTypeName(), shadowType.getObjectClass())) {
 			return false;
 		}
 		if (shadowType.getKind() == null) {
@@ -929,6 +942,168 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	}
 
     @Override
+	public ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+		if (getKind() == null) {
+			return super.createShadowSearchQuery(resourceOid);
+		} else {
+			return ObjectQueryUtil.createResourceAndKindIntent(resourceOid, getKind(), getIntent(), getPrismContext());
+		}
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((associations == null) ? 0 : associations.hashCode());
+		result = prime * result + ((attributeDefinitions == null) ? 0 : attributeDefinitions.hashCode());
+		result = prime * result
+				+ ((auxiliaryObjectClassDefinitions == null) ? 0 : auxiliaryObjectClassDefinitions.hashCode());
+		result = prime * result + ((baseContext == null) ? 0 : baseContext.hashCode());
+		result = prime * result + ((description == null) ? 0 : description.hashCode());
+		result = prime * result + ((displayName == null) ? 0 : displayName.hashCode());
+		result = prime * result
+				+ ((displayNameAttributeDefinition == null) ? 0 : displayNameAttributeDefinition.hashCode());
+		result = prime * result + ((identifiers == null) ? 0 : identifiers.hashCode());
+		result = prime * result + ((intent == null) ? 0 : intent.hashCode());
+		result = prime * result + (isDefault ? 1231 : 1237);
+		result = prime * result + ((kind == null) ? 0 : kind.hashCode());
+		result = prime * result + ((objectClassDefinition == null) ? 0 : objectClassDefinition.hashCode());
+		result = prime * result + ((objectDefinition == null) ? 0 : objectDefinition.hashCode());
+		result = prime * result + ((protectedObjectPatterns == null) ? 0 : protectedObjectPatterns.hashCode());
+		result = prime * result + ((resourceType == null) ? 0 : resourceType.hashCode());
+		result = prime * result + ((schemaHandlingObjectTypeDefinitionType == null) ? 0
+				: schemaHandlingObjectTypeDefinitionType.hashCode());
+		result = prime * result + ((secondaryIdentifiers == null) ? 0 : secondaryIdentifiers.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!super.equals(obj)) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		RefinedObjectClassDefinition other = (RefinedObjectClassDefinition) obj;
+		if (associations == null) {
+			if (other.associations != null) {
+				return false;
+			}
+		} else if (!associations.equals(other.associations)) {
+			return false;
+		}
+		if (attributeDefinitions == null) {
+			if (other.attributeDefinitions != null) {
+				return false;
+			}
+		} else if (!attributeDefinitions.equals(other.attributeDefinitions)) {
+			return false;
+		}
+		if (auxiliaryObjectClassDefinitions == null) {
+			if (other.auxiliaryObjectClassDefinitions != null) {
+				return false;
+			}
+		} else if (!auxiliaryObjectClassDefinitions.equals(other.auxiliaryObjectClassDefinitions)) {
+			return false;
+		}
+		if (baseContext == null) {
+			if (other.baseContext != null) {
+				return false;
+			}
+		} else if (!baseContext.equals(other.baseContext)) {
+			return false;
+		}
+		if (description == null) {
+			if (other.description != null) {
+				return false;
+			}
+		} else if (!description.equals(other.description)) {
+			return false;
+		}
+		if (displayName == null) {
+			if (other.displayName != null) {
+				return false;
+			}
+		} else if (!displayName.equals(other.displayName)) {
+			return false;
+		}
+		if (displayNameAttributeDefinition == null) {
+			if (other.displayNameAttributeDefinition != null) {
+				return false;
+			}
+		} else if (!displayNameAttributeDefinition.equals(other.displayNameAttributeDefinition)) {
+			return false;
+		}
+		if (identifiers == null) {
+			if (other.identifiers != null) {
+				return false;
+			}
+		} else if (!identifiers.equals(other.identifiers)) {
+			return false;
+		}
+		if (intent == null) {
+			if (other.intent != null) {
+				return false;
+			}
+		} else if (!intent.equals(other.intent)) {
+			return false;
+		}
+		if (isDefault != other.isDefault) {
+			return false;
+		}
+		if (kind != other.kind) {
+			return false;
+		}
+		if (objectClassDefinition == null) {
+			if (other.objectClassDefinition != null) {
+				return false;
+			}
+		} else if (!objectClassDefinition.equals(other.objectClassDefinition)) {
+			return false;
+		}
+		if (objectDefinition == null) {
+			if (other.objectDefinition != null) {
+				return false;
+			}
+		} else if (!objectDefinition.equals(other.objectDefinition)) {
+			return false;
+		}
+		if (protectedObjectPatterns == null) {
+			if (other.protectedObjectPatterns != null) {
+				return false;
+			}
+		} else if (!protectedObjectPatterns.equals(other.protectedObjectPatterns)) {
+			return false;
+		}
+		if (resourceType == null) {
+			if (other.resourceType != null) {
+				return false;
+			}
+		} else if (!resourceType.equals(other.resourceType)) {
+			return false;
+		}
+		if (schemaHandlingObjectTypeDefinitionType == null) {
+			if (other.schemaHandlingObjectTypeDefinitionType != null) {
+				return false;
+			}
+		} else if (!schemaHandlingObjectTypeDefinitionType.equals(other.schemaHandlingObjectTypeDefinitionType)) {
+			return false;
+		}
+		if (secondaryIdentifiers == null) {
+			if (other.secondaryIdentifiers != null) {
+				return false;
+			}
+		} else if (!secondaryIdentifiers.equals(other.secondaryIdentifiers)) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
     public String debugDump() {
         return debugDump(0);
     }
@@ -977,8 +1152,21 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	public String getHumanReadableName() {
 		if (getDisplayName() != null) {
 			return getDisplayName();
-		} else {
+		} else if (getKind() != null) {
 			return getKind()+":"+getIntent();
+		} else if (getTypeName() != null) {
+			return getTypeName().getLocalPart();
+		} else {
+			return "null";
+		}
+	}
+	
+	@Override
+	public String toString() {
+		if (getKind() == null) {
+			return getDebugDumpClassName() + "("+PrettyPrinter.prettyPrint(getTypeName())+")";
+		} else {
+			return getDebugDumpClassName() + "("+getKind()+":"+getIntent()+"="+PrettyPrinter.prettyPrint(getTypeName())+")";
 		}
 	}
 

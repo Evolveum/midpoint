@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -222,6 +223,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File USER_RAPP_FILE = new File(COMMON_DIR, "user-rapp.xml");
 	protected static final String USER_RAPP_OID = "c0c010c0-d34d-b33f-f00d-11111111c008";
 	protected static final String USER_RAPP_USERNAME = "rapp";
+	protected static final String USER_RAPP_FULLNAME = "Rapp Scallion";
 
 	// Herman has a validity dates set in the activation part
 	protected static final File USER_HERMAN_FILE = new File(COMMON_DIR, "user-herman.xml");
@@ -303,6 +305,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public static final String GROUP_SHADOW_JOKER_DUMMY_UPCASE_NAME = "joker";
 	public static final String GROUP_JOKER_DUMMY_UPCASE_NAME = "JOKER";
 	
+	public static final String DUMMY_ORG_TOP_NAME = DummyResourceContoller.ORG_TOP_NAME;
+	
 	protected static final String PASSWORD_POLICY_GLOBAL_FILENAME = COMMON_DIR + "/password-policy-global.xml";
 	protected static final String PASSWORD_POLICY_GLOBAL_OID = "12344321-0000-0000-0000-000000000003";
 	
@@ -369,6 +373,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     protected static final String DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME = "sea";
     
     protected static final String INTENT_TEST = "test";
+    protected static final String INTENT_DUMMY_GROUP = "group";
+    protected static final String INTENT_DUMMY_PRIVILEGE = "privilege";
 	
 	// Authorizations
 	

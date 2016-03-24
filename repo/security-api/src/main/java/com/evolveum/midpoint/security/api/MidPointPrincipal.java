@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
 import org.apache.commons.lang.Validate;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -45,6 +43,7 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
     private Collection<Authorization> authorizations = new ArrayList<Authorization>();
     private ActivationStatusType effectiveActivationStatus;
     private AdminGuiConfigurationType adminGuiConfiguration;
+    private SecurityPolicyType applicableSecurityPolicy;
 
     public MidPointPrincipal(UserType user) {
         Validate.notNull(user, "User must not be null.");
@@ -109,45 +108,18 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
 	@Override
 	public boolean isEnabled() {
         if (effectiveActivationStatus == null) {
-            effectiveActivationStatus = createEffectiveActivationStatus();
+        	ActivationType activation = user.getActivation();
+            if (activation == null) {
+            	effectiveActivationStatus = ActivationStatusType.ENABLED;
+            } else {
+            	effectiveActivationStatus = activation.getEffectiveStatus();
+	            if (effectiveActivationStatus == null) {
+	            	throw new IllegalArgumentException("Null effective activation status in "+user);
+	            }
+            }
         }
 		return effectiveActivationStatus == ActivationStatusType.ENABLED;
 	}
-
-    private ActivationStatusType createEffectiveActivationStatus() {
-        //todo improve
-
-//        CredentialsType credentials = user.getCredentials();
-//        if (credentials == null || credentials.getPassword() == null){
-//            return ActivationStatusType.DISABLED;
-//        }
-
-        if (user.getActivation() == null) {
-            return ActivationStatusType.ENABLED;
-        }
-
-        ActivationType activation = user.getActivation();
-        
-        if (activation.getAdministrativeStatus() != null) {
-            return activation.getAdministrativeStatus();
-        }
-        
-        long time = System.currentTimeMillis();
-        if (activation.getValidFrom() != null) {
-            long from = MiscUtil.asDate(activation.getValidFrom()).getTime();
-            if (time < from) {
-                return ActivationStatusType.DISABLED;
-            }
-        }
-        if (activation.getValidTo() != null) {
-            long to = MiscUtil.asDate(activation.getValidTo()).getTime();
-            if (to < time) {
-                return ActivationStatusType.DISABLED;
-            }
-        }
-        
-        return ActivationStatusType.ENABLED;
-    }
 
 	public UserType getUser() {
         return user;
@@ -182,6 +154,14 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
 
 	public void setAdminGuiConfiguration(AdminGuiConfigurationType adminGuiConfiguration) {
 		this.adminGuiConfiguration = adminGuiConfiguration;
+	}
+
+	public SecurityPolicyType getApplicableSecurityPolicy() {
+		return applicableSecurityPolicy;
+	}
+
+	public void setApplicableSecurityPolicy(SecurityPolicyType applicableSecurityPolicy) {
+		this.applicableSecurityPolicy = applicableSecurityPolicy;
 	}
 
 	/* (non-Javadoc)

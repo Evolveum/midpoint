@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.ArrayList;
@@ -56,6 +55,10 @@ import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.util.time.Duration;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -92,9 +95,6 @@ import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.server.currentState.TaskCurrentStateDtoModel;
 import com.evolveum.midpoint.web.page.admin.server.currentState.TaskStatePanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.ScheduleValidator;
@@ -107,8 +107,6 @@ import com.evolveum.midpoint.web.page.admin.server.subtasks.SubtasksPanel;
 import com.evolveum.midpoint.web.page.admin.server.workflowInformation.WorkflowInformationPanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -223,7 +221,7 @@ public class PageTaskEdit extends PageAdminTasks {
         this(new PageParameters(), null);
     }
 
-    public PageTaskEdit(PageParameters parameters, PageTemplate previousPage) {
+    public PageTaskEdit(PageParameters parameters, PageBase previousPage) {
 
         this.parameters = parameters;
         setPreviousPage(previousPage);
@@ -279,7 +277,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		try {
             Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createRetrieveAttributesOptions(TaskType.F_SUBTASK, TaskType.F_NODE_AS_OBSERVED, TaskType.F_NEXT_RUN_START_TIMESTAMP);
             TaskType loadedTask = getModelService().getObject(TaskType.class, taskOid.toString(), options, operationTask, result).asObjectable();
-            taskDto = prepareTaskDto(loadedTask, result);
+            taskDto = prepareTaskDto(loadedTask, operationTask, result);
 			result.computeStatus();
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get task.", ex);
@@ -291,17 +289,15 @@ public class PageTaskEdit extends PageAdminTasks {
 
 		if (taskDto == null) {
 			getSession().error(getString("pageTaskEdit.message.cantTaskDetails"));
-			if (!result.isSuccess()) {
-				showResultInSession(result);
-			}
-            throw getRestartResponseException(PageTasks.class);
+			showResult(result, false);
+		    throw getRestartResponseException(PageTasks.class);
 		}
 		return taskDto;
 	}
 
-    private TaskDto prepareTaskDto(TaskType task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private TaskDto prepareTaskDto(TaskType task, Task operationTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
         TaskDto taskDto = new TaskDto(task, getModelService(), getTaskService(), getModelInteractionService(),
-                getTaskManager(), TaskDtoProviderOptions.fullOptions(), result, this);
+                getTaskManager(), TaskDtoProviderOptions.fullOptions(), operationTask, result, this);
         return taskDto;
     }
 
@@ -384,7 +380,7 @@ public class PageTaskEdit extends PageAdminTasks {
 			public void setObject(ThreadStopActionType object) {
 				model.getObject().setThreadStop(object);
 			}
-		}, WebMiscUtil.createReadonlyModelFromEnum(ThreadStopActionType.class),
+		}, WebComponentUtil.createReadonlyModelFromEnum(ThreadStopActionType.class),
 				new EnumChoiceRenderer<ThreadStopActionType>(PageTaskEdit.this));
 		threadStop.add(new VisibleEnableBehaviour() {
 			@Override
@@ -544,7 +540,7 @@ public class PageTaskEdit extends PageAdminTasks {
                 TaskAddResourcesDto resourcesDto = model.getObject().getResource();
 
                 if(resourcesDto != null){
-                    PrismObject<ResourceType> resource = WebModelUtils.loadObject(ResourceType.class, 
+                    PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class, 
                     		resourcesDto.getOid(), PageTaskEdit.this, task, result);
 
                     try {
@@ -570,7 +566,7 @@ public class PageTaskEdit extends PageAdminTasks {
 
         final DropDownChoice kind = new DropDownChoice<>(ID_KIND,
                 new PropertyModel<ShadowKindType>(model, TaskDto.F_KIND),
-                WebMiscUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer<ShadowKindType>());
+                WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer<ShadowKindType>());
         kind.setOutputMarkupId(true);
         kind.setNullValid(true);
         kind.add(new VisibleEnableBehaviour(){
@@ -852,7 +848,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		mainForm.add(notStartAfter);
 
 		DropDownChoice misfire = new DropDownChoice("misfireAction", new PropertyModel<MisfireActionType>(
-				model, "misfireAction"), WebMiscUtil.createReadonlyModelFromEnum(MisfireActionType.class),
+				model, "misfireAction"), WebComponentUtil.createReadonlyModelFromEnum(MisfireActionType.class),
 				new EnumChoiceRenderer<MisfireActionType>(PageTaskEdit.this));
 		misfire.add(new VisibleEnableBehaviour() {
 
@@ -872,7 +868,7 @@ public class PageTaskEdit extends PageAdminTasks {
 					return "-";
 				}
 				Date date = new Date(dto.getLastRunStartTimestampLong());
-				return WebMiscUtil.formatDate(date);
+				return WebComponentUtil.formatDate(date);
 			}
 
 		});
@@ -887,7 +883,7 @@ public class PageTaskEdit extends PageAdminTasks {
 					return "-";
 				}
 				Date date = new Date(dto.getLastRunFinishTimestampLong());
-				return WebMiscUtil.formatDate(date);
+				return WebComponentUtil.formatDate(date);
 			}
 		});
 		mainForm.add(lastFinished);
@@ -904,7 +900,7 @@ public class PageTaskEdit extends PageAdminTasks {
 					return "-";
 				}
 				Date date = new Date(dto.getNextRunStartTimeLong());
-				return WebMiscUtil.formatDate(date);
+				return WebComponentUtil.formatDate(date);
 			}
 		});
 		mainForm.add(nextRun);
@@ -1031,7 +1027,7 @@ public class PageTaskEdit extends PageAdminTasks {
             ResourceType item = null;
             for (PrismObject<ResourceType> resource : resources) {
                 item = resource.asObjectable();
-                resourceList.add(new TaskAddResourcesDto(item.getOid(), WebMiscUtil.getOrigStringFromPoly(item.getName())));
+                resourceList.add(new TaskAddResourcesDto(item.getOid(), WebComponentUtil.getOrigStringFromPoly(item.getName())));
             }
         }
         return resourceList;
@@ -1062,7 +1058,7 @@ public class PageTaskEdit extends PageAdminTasks {
 			result.recordFatalError("Couldn't save task.", ex);
 			LoggingUtils.logException(LOGGER, "Couldn't save task modifications", ex);
 		}
-		showResultInSession(result);
+		showResult(result);
 		target.add(getFeedbackPanel());
 	}
 
@@ -1076,7 +1072,7 @@ public class PageTaskEdit extends PageAdminTasks {
     private Task updateTask(TaskDto dto, Task existingTask) throws SchemaException {
 
         if (!existingTask.getName().equals(dto.getName())) {
-		    existingTask.setName(WebMiscUtil.createPolyFromOrigString(dto.getName()));
+		    existingTask.setName(WebComponentUtil.createPolyFromOrigString(dto.getName()));
         }   // if they are equal, modifyObject complains ... it's probably a bug in repo; we'll fix it later?
 
         if ((existingTask.getDescription() == null && dto.getDescription() != null) ||
@@ -1231,7 +1227,7 @@ public class PageTaskEdit extends PageAdminTasks {
             result.recordFatalError("Couldn't suspend the task", e);
         }
 
-        showResultInSession(result);
+        showResult(result);
         setResponsePage(new PageTasks(false));
     }
 
@@ -1249,7 +1245,7 @@ public class PageTaskEdit extends PageAdminTasks {
             result.recordFatalError("Couldn't resume the task", e);
         }
 
-        showResultInSession(result);
+        showResult(result);
         setResponsePage(new PageTasks(false));
     }
 
@@ -1267,7 +1263,7 @@ public class PageTaskEdit extends PageAdminTasks {
             result.recordFatalError("Couldn't schedule the task", e);
         }
 
-        showResultInSession(result);
+        showResult(result);
         setResponsePage(new PageTasks(false));
     }
 

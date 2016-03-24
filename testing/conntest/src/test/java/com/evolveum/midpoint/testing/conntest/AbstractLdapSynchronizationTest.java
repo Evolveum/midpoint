@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.testing.conntest;
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,9 +140,12 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	protected static final String ACCOUNT_HTM_UID = "htm";
 	protected static final String ACCOUNT_HTM_CN = "Horatio Torquemada Marley";
 
-	
-	private static final String GROUP_MONKEYS_CN = "monkeys";
-	private static final String GROUP_MONKEYS_DESCRIPTION = "Monkeys of Monkey Island";
+	protected static final String GROUP_MONKEYS_CN = "monkeys";
+	protected static final String GROUP_MONKEYS_DESCRIPTION = "Monkeys of Monkey Island";
+
+	protected static final String GROUP_FOOLS_CN = "fools";
+	protected static final String GROUP_FOOLS_DESCRIPTION = "not quite the shilling";
+
 	
 	protected abstract void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd) throws ObjectNotFoundException, SchemaException;
     
@@ -500,7 +503,38 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         assertUser(user, user.getOid(), ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN_MODIFIED);
 
         assertStepSyncToken(getSyncTaskOid(), 7, tsStart, tsEnd);
+	}
+	
+	/**
+	 * Add a new group. Check that this event is ignored.
+	 */
+	@Test
+    public void test830AddGroupFools() throws Exception {
+		final String TEST_NAME = "test830AddGroupFools";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        long tsStart = System.currentTimeMillis();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addLdapGroup(GROUP_FOOLS_CN, GROUP_FOOLS_DESCRIPTION, toGroupDn("nobody"));
+		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        long tsEnd = System.currentTimeMillis();
+        
+        PrismObject<RoleType> roleFools = findObjectByName(RoleType.class, GROUP_FOOLS_CN);
+        assertNull("Unexpected role "+roleFools, roleFools);
+
+        assertStepSyncToken(getSyncTaskOid(), 8, tsStart, tsEnd);
 	}
 	
 	@Test
@@ -543,7 +577,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         assertUser(user, user.getOid(), ACCOUNT_HTM_UID, getAccountHtmCnAfterRename(), ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN_MODIFIED);
         assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
 
-        assertStepSyncToken(getSyncTaskOid(), 8, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTaskOid(), 9, tsStart, tsEnd);
 
 	}
 	
@@ -583,7 +617,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         	deleteObject(UserType.class, user.getOid(), task, result);
         }
 
-        assertStepSyncToken(getSyncTaskOid(), 9, tsStart, tsEnd);
+        assertStepSyncToken(getSyncTaskOid(), 10, tsStart, tsEnd);
 	}
 
 	@Test

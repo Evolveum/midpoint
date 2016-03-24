@@ -16,21 +16,24 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
+
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -82,9 +85,19 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return application.getModel();
     }
 
+    protected RepositoryService getRepositoryService() {
+        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        return application.getRepositoryService();
+    }
+
     protected TaskManager getTaskManager() {
         MidPointApplication application = (MidPointApplication) MidPointApplication.get();
         return application.getTaskManager();
+    }
+
+    protected PrismContext getPrismContext() {
+        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        return application.getPrismContext();
     }
 
     protected TaskService getTaskService() {
@@ -164,10 +177,10 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
                 order = OrderDirection.DESCENDING;
             }
 
-            return ObjectPaging.createPaging(WebMiscUtil.safeLongToInteger(first), WebMiscUtil.safeLongToInteger(count),
+            return ObjectPaging.createPaging(WebComponentUtil.safeLongToInteger(first), WebComponentUtil.safeLongToInteger(count),
                     (String) sortParam.getProperty(), SchemaConstantsGenerated.NS_COMMON, order);
         } else {
-            return ObjectPaging.createPaging(WebMiscUtil.safeLongToInteger(first), WebMiscUtil.safeLongToInteger(count));
+            return ObjectPaging.createPaging(WebComponentUtil.safeLongToInteger(first), WebComponentUtil.safeLongToInteger(count));
         }
     }
 

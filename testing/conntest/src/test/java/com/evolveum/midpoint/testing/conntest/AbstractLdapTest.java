@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.testing.conntest;
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -233,6 +233,10 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		return new File(getBaseDir(), "task-sync.xml");
 	}
 	
+	protected String getResourceNamespace() {
+		return MidPointConstants.NS_RI;
+	}
+	
 	protected File getSyncTaskInetOrgPersonFile() {
 		return new File(getBaseDir(), "task-sync-inetorgperson.xml");
 	}
@@ -303,6 +307,10 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	
 	protected boolean allowDuplicateSearchResults() {
 		return false;
+	}
+	
+	protected boolean isGroupMemberMandatory() {
+		return true;
 	}
 	
 	@Override
@@ -655,6 +663,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	protected Entry addLdapGroup(String cn, String description, String... memberDns) throws LdapException, IOException, CursorException {
 		LdapNetworkConnection connection = ldapConnect();
 		Entry entry = createGroupEntry(cn, description, memberDns);
+		LOGGER.trace("Adding LDAP entry:\n{}", entry);
 		connection.add(entry);
 		display("Added LDAP group:"+entry);
 		ldapDisconnect(connection);
@@ -666,7 +675,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 				"objectclass", getLdapGroupObjectClass(),
 				"cn", cn,
 				"description", description);
-		if (memberDns != null && memberDns.length > 0) {
+		if (isGroupMemberMandatory() && memberDns != null && memberDns.length > 0) {
 			entry.add(getLdapGroupMemberAttribute(), memberDns);
 		}
 		return entry;
@@ -775,7 +784,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	}
 	
 	protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException {
-		assertShadowCommon(shadow, null, dn, resourceType, getAccountObjectClass(), ciMatchingRule);
+		assertShadowCommon(shadow, null, dn, resourceType, getAccountObjectClass(), ciMatchingRule, false);
 	}
 
 	protected long roundTsDown(long ts) {

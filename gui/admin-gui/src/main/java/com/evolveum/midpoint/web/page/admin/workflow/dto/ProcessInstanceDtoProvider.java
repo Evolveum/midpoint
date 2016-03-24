@@ -16,22 +16,35 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
-import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.Component;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInteger;
+import static com.evolveum.midpoint.schema.GetOperationOptions.*;
+import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OBJECT_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 
 /**
  * @author lazyman
@@ -50,8 +63,7 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
      * - false = we are interested in process instances REQUESTED FOR a user (e.g. the user is to be granted a role)
      */
 
-    boolean requestedBy;
-    private boolean finished;
+    private boolean requestedBy;
     private boolean requestedFor;
 
     public static String currentUser() {
@@ -63,19 +75,18 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
         return principal.getOid();
     }
 
-    public ProcessInstanceDtoProvider(Component component, boolean requestedBy, boolean requestedFor, boolean finished) {
+    public ProcessInstanceDtoProvider(Component component, boolean requestedBy, boolean requestedFor) {
         super(component);
-        LOGGER.trace("requestedBy = " + requestedBy + ", requestedFor = " + requestedFor + ", finished = " + finished);
         this.requestedBy = requestedBy;
         this.requestedFor = requestedFor;
-        this.finished = finished;
     }
 
     @Override
     public Iterator<? extends ProcessInstanceDto> internalIterator(long first, long count) {
         getAvailableData().clear();
 
-        OperationResult result = new OperationResult(OPERATION_LIST_ITEMS);
+        Task opTask = getTaskManager().createTaskInstance(OPERATION_LIST_ITEMS);
+        OperationResult result = opTask.getResult();
 
         try {
 //            SortParam sortParam = getSort();
@@ -86,23 +97,24 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
 //                order = OrderDirectionType.DESCENDING;
 //            }
 
-            WorkflowService wfm = getWorkflowService();
-            List<WfProcessInstanceType> items = wfm.listProcessInstancesRelatedToUser(currentUser(), requestedBy,
-                    requestedFor, finished, WebMiscUtil.safeLongToInteger(first), WebMiscUtil.safeLongToInteger(count),
-                    result);
+            ObjectQuery query = getObjectQuery();
+			query.getPaging().setOffset(safeLongToInteger(first));	// we know the paging object is not null
+			query.getPaging().setMaxSize(safeLongToInteger(count));
 
-            for (WfProcessInstanceType item : items) {
+            Collection<SelectorOptions<GetOperationOptions>> options = createCollection(createResolveNames());
+            List<PrismObject<TaskType>> tasks = getModel().searchObjects(TaskType.class, query, options, opTask, result);
+            for (PrismObject<TaskType> task : tasks) {
                 try {
-                    getAvailableData().add(new ProcessInstanceDto(item, null));
+                    getAvailableData().add(new ProcessInstanceDto(task.asObjectable()));
                 } catch (Exception e) {
-                    LoggingUtils.logException(LOGGER, "Unhandled exception when listing process instance ", e, item);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing workflow task {}", e, task);
                     result.recordPartialError("Couldn't list process instance.", e);
                 }
             }
 
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Unhandled exception when listing process instances", ex);
-            result.recordFatalError("Couldn't list process instances.", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing wf-related tasks", ex);
+            result.recordFatalError("Couldn't list wf-related tasks.", ex);
         }
 
         if (result.isUnknown()) {
@@ -116,16 +128,32 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
         return getAvailableData().iterator();
     }
 
+    private ObjectQuery getObjectQuery() throws SchemaException {
+        String currentUserOid = currentUser();
+        S_FilterEntry q = QueryBuilder.queryFor(TaskType.class, getPrismContext());
+        if (requestedBy) {
+            q = q.item(F_WORKFLOW_CONTEXT, F_REQUESTER_REF).ref(currentUserOid).and();
+        }
+        if (requestedFor) {
+            q = q.item(F_OBJECT_REF).ref(currentUserOid).and();
+        }
+        return q
+                .not().item(F_WORKFLOW_CONTEXT, F_PROCESS_INSTANCE_ID).isNull()
+                .desc(F_WORKFLOW_CONTEXT, F_START_TIMESTAMP)
+                .build();
+    }
+
     @Override
     protected int internalSize() {
         int count = 0;
-        OperationResult result = new OperationResult(OPERATION_COUNT_ITEMS);
+        Task opTask = getTaskManager().createTaskInstance(OPERATION_COUNT_ITEMS);
+        OperationResult result = opTask.getResult();
         try {
-            WorkflowService workflowService = getWorkflowService();
-            count = workflowService.countProcessInstancesRelatedToUser(currentUser(), requestedBy, requestedFor, finished, result);
+            ObjectQuery query = getObjectQuery();
+            count = getModel().countObjects(TaskType.class, query, null, opTask, result);
         } catch (Exception ex) {
-            String msg = "Couldn't list process instances";
-            LoggingUtils.logException(LOGGER, msg, ex);
+            String msg = "Couldn't count process instances";
+            LoggingUtils.logUnexpectedException(LOGGER, msg, ex);
             result.recordFatalError(msg, ex);
         }
 

@@ -33,6 +33,9 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -65,7 +68,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchPanel;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
@@ -74,8 +76,6 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
@@ -126,6 +126,7 @@ public class PageUsers extends PageAdminUsers {
     public PageUsers(boolean clearPagingInSession) {
         this(clearPagingInSession, null, null);
     }
+    
 
     public PageUsers(boolean clearPagingInSession, final UsersDto.SearchType type, final String text) {
         searchModel = new LoadableModel<Search>(false) {
@@ -135,7 +136,7 @@ public class PageUsers extends PageAdminUsers {
                 UsersStorage storage = getSessionStorage().getUsers();
                 Search search = storage.getUsersSearch();
                 if (search == null) {
-                    search = SearchFactory.createSearch(UserType.class, getPrismContext());
+                    search = SearchFactory.createSearch(UserType.class, getPrismContext(), true);
                 }
 
                 return search;
@@ -183,7 +184,7 @@ public class PageUsers extends PageAdminUsers {
             public String getObject() {
                 if (singleDelete == null) {
                     return createStringResource("pageUsers.message.deleteUserConfirm",
-                            WebMiscUtil.getSelectedData(getTable()).size()).getString();
+                            WebComponentUtil.getSelectedData(getTable()).size()).getString();
                 } else {
                     return createStringResource("pageUsers.message.deleteUserConfirmSingle",
                             singleDelete.getName()).getString();
@@ -359,16 +360,16 @@ public class PageUsers extends PageAdminUsers {
         UserType user = obj.asObjectable();
 
         UserListItemDto dto = new UserListItemDto(user.getOid(),
-                WebMiscUtil.getOrigStringFromPoly(user.getName()),
-                WebMiscUtil.getOrigStringFromPoly(user.getGivenName()),
-                WebMiscUtil.getOrigStringFromPoly(user.getFamilyName()),
-                WebMiscUtil.getOrigStringFromPoly(user.getFullName()),
+                WebComponentUtil.getOrigStringFromPoly(user.getName()),
+                WebComponentUtil.getOrigStringFromPoly(user.getGivenName()),
+                WebComponentUtil.getOrigStringFromPoly(user.getFamilyName()),
+                WebComponentUtil.getOrigStringFromPoly(user.getFullName()),
                 user.getEmailAddress());
 
         dto.setAccountCount(createAccountCount(obj));
         dto.setCredentials(obj.findContainer(UserType.F_CREDENTIALS));
-        dto.setIcon(WebMiscUtil.createUserIcon(obj));
-        dto.setIconTitle(WebMiscUtil.createUserIconTitle(obj));
+        dto.setIcon(WebComponentUtil.createUserIcon(obj));
+        dto.setIconTitle(WebComponentUtil.createUserIconTitle(obj));
 
         dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageUsers.menu.enable"),
                 new ColumnMenuAction<UserListItemDto>() {
@@ -494,7 +495,7 @@ public class PageUsers extends PageAdminUsers {
                 ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
                 ModelExecuteOptions options = executeOptions.createOptions();
                 LOGGER.debug("Using options {}.", new Object[]{executeOptions});
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, subResult);
+                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task, subResult);
                 subResult.computeStatus();
             } catch (Exception ex) {
                 subResult.recomputeStatus();
@@ -542,7 +543,7 @@ public class PageUsers extends PageAdminUsers {
                 // TODO skip the operation if the user has no password credentials specified (otherwise this would create almost-empty password container)
                 ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(),
                         new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS), getPrismContext(), 0);
-                Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
+                Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
                 getModelService().executeChanges(deltas, null, task, opResult);
                 opResult.computeStatusIfUnknown();
             } catch (Exception ex) {
@@ -572,7 +573,7 @@ public class PageUsers extends PageAdminUsers {
             try {
                 Task task = createSimpleTask(OPERATION_RECONCILE_USER + userShortString);
                 ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(UserType.class, user.getOid(), getPrismContext());
-                Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
+                Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
                 getModelService().executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, opResult);
                 opResult.computeStatusIfUnknown();
             } catch (Exception ex) {
@@ -598,7 +599,7 @@ public class PageUsers extends PageAdminUsers {
             users = new ArrayList<>();
             users.add(selectedUser);
         } else {
-            users = WebMiscUtil.getSelectedData(getTable());
+            users = WebComponentUtil.getSelectedData(getTable());
             if (users.isEmpty()) {
                 warn(getString("pageUsers.message.nothingSelected"));
                 target.add(getFeedbackPanel());
@@ -626,13 +627,13 @@ public class PageUsers extends PageAdminUsers {
             try {
                 Task task = createSimpleTask(operation);
 
-                ObjectDelta objectDelta = WebModelUtils.createActivationAdminStatusDelta(UserType.class, user.getOid(),
+                ObjectDelta objectDelta = WebModelServiceUtils.createActivationAdminStatusDelta(UserType.class, user.getOid(),
                         enabling, getPrismContext());
 
                 ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
                 ModelExecuteOptions options = executeOptions.createOptions();
                 LOGGER.debug("Using options {}.", new Object[]{executeOptions});
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(objectDelta), options, task,
+                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(objectDelta), options, task,
                         subResult);
                 subResult.recordSuccess();
             } catch (Exception ex) {
@@ -680,56 +681,4 @@ public class PageUsers extends PageAdminUsers {
             add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, false, false, false));
         }
     }
-
-//    private static class SearchFragment extends Fragment {
-//
-//        public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
-//                              IModel<Search> model, IModel<ExecuteChangeOptionsDto> executeOptionsModel) {
-//            super(id, markupId, markupProvider, model);
-//
-//            initLayout(executeOptionsModel);
-//        }
-//
-//        private void initLayout(IModel<ExecuteChangeOptionsDto> executeOptionsModel) {
-//            final Form searchForm = new Form(ID_SEARCH_FORM);
-//            add(searchForm);
-//            searchForm.setOutputMarkupId(true);
-//
-//            final IModel<UsersDto> model = (IModel) getDefaultModel();
-//
-//            IModel<Map<String, String>> options = new Model(null);
-//            DropDownMultiChoice searchType = new DropDownMultiChoice<UsersDto.SearchType>(ID_SEARCH_TYPE,
-//                    new PropertyModel<List<UsersDto.SearchType>>(model, UsersDto.F_TYPE),
-//                    WebMiscUtil.createReadonlyModelFromEnum(UsersDto.SearchType.class),
-//                    new EnumChoiceRenderer<UsersDto.SearchType>(), options);
-//            searchForm.add(searchType);
-//
-//            BasicSearchPanel<UsersDto> basicSearch = new BasicSearchPanel<UsersDto>(ID_BASIC_SEARCH, model) {
-//
-//                @Override
-//                protected IModel<String> createSearchTextModel() {
-//                    return new PropertyModel<String>(model, UsersDto.F_TEXT);
-//                }
-//
-//                @Override
-//                protected void searchPerformed(AjaxRequestTarget target) {
-//                    PageUsers page = (PageUsers) getPage();
-//                    page.searchPerformed(target);
-//                }
-//            };
-//
-//            SearchPanel search = new SearchPanel(ID_SEARCH, (IModel) getDefaultModel()) {
-//
-//
-//                @Override
-//                public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-//                    PageUsers page = (PageUsers) getPage();
-//                    page.searchPerformed(query, target);
-//                }
-//            };
-//            searchForm.add(search);
-//            
-//            add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, false, false, false));
-//        }
-//    }
 }

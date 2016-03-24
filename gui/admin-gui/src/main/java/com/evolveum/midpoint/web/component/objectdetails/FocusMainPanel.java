@@ -27,13 +27,13 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
@@ -50,8 +50,8 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	private LoadableModel<List<FocusProjectionDto>> projectionModel;
 	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
 	
-	public FocusMainPanel(String id, LoadableModel<ObjectWrapper<F>> objectModel, 
-			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, LoadableModel<List<FocusProjectionDto>> projectionModel, 
+        public FocusMainPanel(String id, LoadableModel<ObjectWrapper<F>> objectModel,
+			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, LoadableModel<List<FocusProjectionDto>> projectionModel,
 			PageAdminFocus<F> parentPage) {
 		super(id, objectModel, parentPage);
 		Validate.notNull(projectionModel, "Null projection model");
@@ -156,6 +156,10 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		return new FocusAssignmentsTabPanel<F>(panelId, getMainForm(), getObjectModel(), assignmentsModel, parentPage);
 	}
 
+	protected WebMarkupContainer createRequestAssignmentTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
+		return new RequestAssignmentTabPanel<F>(panelId, getMainForm(), getObjectModel(), assignmentsModel, parentPage);
+	}
+
 	protected void addDefaultTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
 		tabs.add(
 				new AbstractTab(parentPage.createStringResource("pageAdminFocus.basic")){
@@ -165,18 +169,65 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageAdminFocus.projections")){
+                new AbstractTab(getProjectionsTabTitleModel(parentPage)){
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
 						return createFocusProjectionsTabPanel(panelId, parentPage); 
 					}
 				});
 		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageAdminFocus.assignments")){
+				new AbstractTab(getAssignmentsTabTitleModel(parentPage)){
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
 						return createFocusAssignmentsTabPanel(panelId, parentPage); 
 					}
 				});
+		tabs.add(
+				new AbstractTab(parentPage.createStringResource("pageAdminFocus.request")){
+					@Override
+					public WebMarkupContainer getPanel(String panelId) {
+						return createRequestAssignmentTabPanel(panelId, parentPage);
+                    }
+				});
 	}
+
+    private IModel<String> getProjectionsTabTitleModel(final PageAdminObjectDetails<F> parentPage){
+        return new IModel<String>() {
+            @Override
+            public String getObject() {
+                return parentPage.createStringResource("pageAdminFocus.projections").getString()
+                        + " (" + (projectionModel.getObject() == null ? 0 : projectionModel.getObject().size()) + ")";
+            }
+
+            @Override
+            public void setObject(String s) {
+
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
+    }
+
+    private IModel<String> getAssignmentsTabTitleModel(final PageAdminObjectDetails<F> parentPage){
+        return new IModel<String>() {
+            @Override
+            public String getObject() {
+                return parentPage.createStringResource("pageAdminFocus.assignments").getString()
+                        + " (" + (assignmentsModel.getObject() == null ? 0 : assignmentsModel.getObject().size()) + ")";
+            }
+
+            @Override
+            public void setObject(String s) {
+
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
+    }
 }

@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.InOidFilter;
@@ -29,13 +31,11 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPage;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ObjectSelectionPanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.roles.component.UserOrgReferenceChoosePanel;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -167,7 +167,7 @@ public class AssociationValueChoicePanel <C extends ObjectType> extends BasePane
 
             // See analogous discussion in ChooseTypePanel
             public AssociationValueChoicePanel getRealParent() {
-                return WebMiscUtil.theSameForPage(AssociationValueChoicePanel.this, getCallingPageReference());
+                return WebComponentUtil.theSameForPage(AssociationValueChoicePanel.this, getCallingPageReference());
             }
 
             @Override
@@ -209,7 +209,7 @@ public class AssociationValueChoicePanel <C extends ObjectType> extends BasePane
 
             // See analogous discussion in ChooseTypePanel
             public AssociationValueChoicePanel getRealParent() {
-                return WebMiscUtil.theSameForPage(AssociationValueChoicePanel.this, getCallingPageReference());
+                return WebComponentUtil.theSameForPage(AssociationValueChoicePanel.this, getCallingPageReference());
             }
 
             @Override
@@ -302,10 +302,6 @@ public class AssociationValueChoicePanel <C extends ObjectType> extends BasePane
     public void editValuePerformed(AjaxRequestTarget target) {
         ModalWindow window = (ModalWindow) get(MODAL_ID_OBJECT_SELECTION_POPUP);
         window.show(target);
-//        ObjectSelectionPanel dialog = (ObjectSelectionPanel) window.get(createComponentPath(window.getContentId(), ObjectSelectionPage.ID_OBJECT_SELECTION_PANEL));
-//        if (dialog != null) {
-//            dialog.updateTablePerformed(target, createChooseQuery(values));
-//        }
     }
 
     protected void choosePerformed(AjaxRequestTarget target, C object) {

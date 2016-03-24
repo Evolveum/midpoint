@@ -31,6 +31,7 @@
 	<logger name="com.evolveum.midpoint" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.provisioning" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.impl.security.MidpointRestAuthenticationHandler" level="TRACE" />
 	<logger name="org.apache.cxf" level="TRACE" />
 	<!--<logger name="com.evolveum.midpoint.provisioning" level="TRACE" />-->
 	<!--<logger name="com.evolveum.midpoint.common" level="TRACE" />-->

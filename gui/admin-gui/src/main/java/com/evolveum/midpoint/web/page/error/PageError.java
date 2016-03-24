@@ -16,17 +16,17 @@
 
 package com.evolveum.midpoint.web.page.error;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-
+import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
@@ -46,13 +46,14 @@ import java.util.Date;
 @PageDescriptor(url = "/error")
 public class PageError extends PageBase {
 
-	private static final String ID_CODE = "code";
-	private static final String ID_LABEL = "label";
+    private static final String ID_CODE = "code";
+    private static final String ID_LABEL = "label";
     private static final String ID_MESSAGE = "message";
     private static final String ID_BACK = "back";
+    private static final String ID_HOME = "home";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageError.class);
-    
+
     private Integer code;
     private String exClass;
     private String exMessage;
@@ -71,27 +72,27 @@ public class PageError extends PageBase {
 
     public PageError(Integer code, Exception ex) {
         this.code = code;
-        
+
         if (ex == null) {
-        	// Log this on debug level, this is normal during application initialization
-        	LOGGER.debug("Creating error page for code {}, no exception", code);
+            // Log this on debug level, this is normal during application initialization
+            LOGGER.debug("Creating error page for code {}, no exception", code);
         } else {
-        	LOGGER.warn("Creating error page for code {}, exception {}: {}", ex.getClass().getName(), ex.getMessage(), ex);	
+            LOGGER.warn("Creating error page for code {}, exception {}: {}", ex.getClass().getName(), ex.getMessage(), ex);
         }
 
         Label codeLabel = new Label(ID_CODE, code);
         add(codeLabel);
-        
+
         String errorLabel = "Unexpected error";
         if (code != null) {
-        	HttpStatus httpStatus = HttpStatus.valueOf(code);
-        	if (httpStatus != null) {
-        		errorLabel = httpStatus.getReasonPhrase();
-        	}
+            HttpStatus httpStatus = HttpStatus.valueOf(code);
+            if (httpStatus != null) {
+                errorLabel = httpStatus.getReasonPhrase();
+            }
         }
         Label labelLabel = new Label(ID_LABEL, errorLabel);
         add(labelLabel);
-        
+
         if (ex != null) {
             exClass = ex.getClass().getName();
             exMessage = ex.getMessage();
@@ -124,15 +125,19 @@ public class PageError extends PageBase {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
-                        AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
-                    setResponsePage(PageDashboard.class);
-                } else {
-                    setResponsePage(PageSelfDashboard.class);
-                }
+                backPerformed(target);
             }
         };
         add(back);
+
+        AjaxButton home = new AjaxButton(ID_HOME, createStringResource("PageError.button.home")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                homePerformed(target);
+            }
+        };
+        add(home);
     }
 
     private int getCode() {
@@ -156,14 +161,19 @@ public class PageError extends PageBase {
         return true;
     }
 
-    @Override
-    protected IModel<String> createPageSubTitleModel() {
-        return new AbstractReadOnlyModel<String>() {
+    private void homePerformed(AjaxRequestTarget target) {
+        SessionStorage storage = getSessionStorage();
+        storage.clearBreadcrumbs();
 
-            @Override
-            public String getObject() {
-                return createStringResource("PageError.error." + getCode()).getString();
-            }
-        };
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+                AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
+            setResponsePage(PageDashboard.class);
+        } else {
+            setResponsePage(PageSelfDashboard.class);
+        }
+    }
+
+    private void backPerformed(AjaxRequestTarget target) {
+        redirectBack();
     }
 }

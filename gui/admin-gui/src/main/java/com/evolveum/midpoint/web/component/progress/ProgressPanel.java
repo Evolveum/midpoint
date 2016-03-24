@@ -16,15 +16,16 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.util.BasePanel;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -221,8 +222,30 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
 				target.add(page.getFeedbackPanel());
 			}
 		};
-		progressReporter.registerAbortButton(abortButton);
-		progressForm.add(abortButton);
+
+        progressReporter.registerAbortButton(abortButton);
+        progressForm.add(abortButton);
+
+		AjaxSubmitButton backButton = new AjaxSubmitButton("back",
+				createStringResource("pageAdminFocus.button.back")) {
+
+			@Override
+			protected void onSubmit(AjaxRequestTarget target,
+					org.apache.wicket.markup.html.form.Form<?> form) {
+                Page page = getPage();
+                if (page != null && page instanceof PageAdminObjectDetails){
+                    setResponsePage(((PageAdminObjectDetails) page).getDefaultBackPage());
+                }
+			}
+
+			@Override
+			protected void onError(AjaxRequestTarget target,
+					org.apache.wicket.markup.html.form.Form<?> form) {
+				target.add(page.getFeedbackPanel());
+			}
+		};
+		progressReporter.registerBackButton(backButton);
+		progressForm.add(backButton);
 
 	}
 

@@ -19,10 +19,7 @@ package com.evolveum.midpoint.web.component.search;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -46,13 +43,66 @@ public class SearchFactory {
                 new ItemPath(UserType.F_FAMILY_NAME),
                 new ItemPath(UserType.F_FULL_NAME),
                 new ItemPath(UserType.F_ADDITIONAL_NAME),
+                new ItemPath(UserType.F_COST_CENTER),
+                new ItemPath(UserType.F_EMAIL_ADDRESS),
+                new ItemPath(UserType.F_TELEPHONE_NUMBER),
+                new ItemPath(UserType.F_EMPLOYEE_NUMBER),
+                new ItemPath(UserType.F_EMPLOYEE_TYPE),
+                new ItemPath(UserType.F_ORGANIZATIONAL_UNIT),
                 new ItemPath(UserType.F_COST_CENTER)));
-
-        //todo add other object types and properties which can be used in search
+        SEARCHABLE_OBJECTS.put(RoleType.class, Arrays.asList(
+                new ItemPath(RoleType.F_NAME),
+                new ItemPath(RoleType.F_DISPLAY_NAME),
+                new ItemPath(RoleType.F_ROLE_TYPE)));
+        SEARCHABLE_OBJECTS.put(ConnectorHostType.class, Arrays.asList(
+                new ItemPath(ConnectorHostType.F_HOSTNAME)
+        ));
+        SEARCHABLE_OBJECTS.put(ConnectorType.class, Arrays.asList(
+                new ItemPath(ConnectorType.F_CONNECTOR_BUNDLE),
+                new ItemPath(ConnectorType.F_CONNECTOR_VERSION),
+                new ItemPath(ConnectorType.F_CONNECTOR_TYPE)
+        ));
+        SEARCHABLE_OBJECTS.put(AbstractRoleType.class, Arrays.asList(
+                new ItemPath(RoleType.F_REQUESTABLE)
+        ));
+        SEARCHABLE_OBJECTS.put(OrgType.class, Arrays.asList(
+                new ItemPath(OrgType.F_DISPLAY_NAME),
+                new ItemPath(OrgType.F_COST_CENTER),
+                new ItemPath(OrgType.F_IDENTIFIER),
+                new ItemPath(OrgType.F_ORG_TYPE),
+                new ItemPath(OrgType.F_TENANT),
+                new ItemPath(OrgType.F_LOCALITY)
+        ));
+        SEARCHABLE_OBJECTS.put(GenericObjectType.class, Arrays.asList(
+                new ItemPath(GenericObjectType.F_OBJECT_TYPE)
+        ));
+        SEARCHABLE_OBJECTS.put(NodeType.class, Arrays.asList(
+                new ItemPath(NodeType.F_NODE_IDENTIFIER)
+        ));
+        SEARCHABLE_OBJECTS.put(ReportType.class, Arrays.asList(
+                new ItemPath(ReportType.F_PARENT)
+        ));
+        SEARCHABLE_OBJECTS.put(ShadowType.class, Arrays.asList(
+                new ItemPath(ShadowType.F_OBJECT_CLASS),
+                new ItemPath(ShadowType.F_DEAD),
+                new ItemPath(ShadowType.F_INTENT),
+                new ItemPath(ShadowType.F_EXISTS)
+        ));
+        SEARCHABLE_OBJECTS.put(TaskType.class, Arrays.asList(
+                new ItemPath(TaskType.F_TASK_IDENTIFIER),
+                new ItemPath(TaskType.F_NODE),
+                new ItemPath(TaskType.F_CATEGORY),
+                new ItemPath(TaskType.F_RESULT_STATUS)
+        ));
     }
 
     public static <T extends ObjectType> Search createSearch(Class<T> type, PrismContext ctx) {
-        Map<ItemPath, ItemDefinition> availableDefs = getAvailableDefinitions(type, ctx);
+        return createSearch(type, ctx, true);
+    }
+
+    public static <T extends ObjectType> Search createSearch(Class<T> type, PrismContext ctx,
+                                                             boolean useDefsFromSuperclass) {
+        Map<ItemPath, ItemDefinition> availableDefs = getAvailableDefinitions(type, ctx, useDefsFromSuperclass);
 
         Search search = new Search(type, availableDefs);
 
@@ -66,7 +116,7 @@ public class SearchFactory {
     }
 
     private static <T extends ObjectType> Map<ItemPath, ItemDefinition> getAvailableDefinitions(
-            Class<T> type, PrismContext ctx) {
+            Class<T> type, PrismContext ctx, boolean useDefsFromSuperclass) {
 
         Map<ItemPath, ItemDefinition> map = new HashMap<>();
         map.putAll(createExtensionDefinitionList(type, ctx));
@@ -76,9 +126,11 @@ public class SearchFactory {
             List<ItemPath> pathList = SEARCHABLE_OBJECTS.get(typeClass);
             if (pathList != null) {
                 map.putAll(createAvailableDefinitions(typeClass, ctx, pathList));
-
-                typeClass = (Class<T>) typeClass.getSuperclass();
             }
+            if (!useDefsFromSuperclass) {
+                break;
+            }
+            typeClass = (Class<T>) typeClass.getSuperclass();
         }
 
         return map;

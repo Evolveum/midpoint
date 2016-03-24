@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefiniti
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
@@ -204,6 +206,11 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
     @Override
 	public Collection<? extends LayerRefinedAttributeDefinition<?>> getIdentifiers() {
         return substituteLayerRefinedAttributeDefinitionCollection(refinedObjectClassDefinition.getIdentifiers());
+	}
+    
+    @Override
+	public Collection<? extends LayerRefinedAttributeDefinition<?>> getAllIdentifiers() {
+        return substituteLayerRefinedAttributeDefinitionCollection(refinedObjectClassDefinition.getAllIdentifiers());
 	}
 
     @Override
@@ -580,6 +587,10 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return debugDump(indent, layer);
 	}
 
+    // Do NOT override&delegate debugDump(int indent, LayerType layer) here.
+    // We want to use code in the context of this class so things like 
+    // getDebugDumpClassName() will be correct.
+	
 	/**
      * Return a human readable name of this class suitable for logs.
      */
@@ -622,9 +633,9 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 	public Collection<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() {
 		return refinedObjectClassDefinition.getAuxiliaryObjectClassDefinitions();
 	}
-
-	@Override
-    protected String debugDump(int indent, LayerType layer) {
-        return refinedObjectClassDefinition.debugDump(indent, layer);
+    
+    @Override
+    public ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+    	return refinedObjectClassDefinition.createShadowSearchQuery(resourceOid);
     }
 }

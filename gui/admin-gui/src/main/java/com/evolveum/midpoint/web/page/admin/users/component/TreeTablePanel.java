@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
@@ -50,9 +53,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
@@ -65,8 +65,6 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -151,6 +149,8 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
                 switch (getConfirmType()) {
                     case CONFIRM_DELETE:
+                    case CONFIRM_DELETE_MANAGER:
+                    case CONFIRM_DELETE_MEMBER:
                         deleteConfirmedPerformed(target);
                         break;
                     case CONFIRM_DELETE_ROOT:
@@ -331,7 +331,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
                 return createOrgChildQuery();
             }
         };
-        childTableProvider.setOptions(WebModelUtils.createMinimalOptions());
+        childTableProvider.setOptions(WebModelServiceUtils.createMinimalOptions());
 
         WebMarkupContainer childOrgUnitContainer = new WebMarkupContainer(ID_CONTAINER_CHILD_ORGS);
         childOrgUnitContainer.setOutputMarkupId(true);
@@ -369,7 +369,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
                 return createManagerTableQuery();
             }
         };
-        managerTableProvider.setOptions(WebModelUtils.createMinimalOptions());
+        managerTableProvider.setOptions(WebModelServiceUtils.createMinimalOptions());
 
         WebMarkupContainer managerContainer = new WebMarkupContainer(ID_CONTAINER_MANAGER);
         managerContainer.setOutputMarkupId(true);
@@ -401,7 +401,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
                 return createMemberQuery();
             }
         };
-        memberTableProvider.setOptions(WebModelUtils.createMinimalOptions());
+        memberTableProvider.setOptions(WebModelServiceUtils.createMinimalOptions());
 
         WebMarkupContainer memberContainer = new WebMarkupContainer(ID_CONTAINER_MEMBER);
         memberContainer.setOutputMarkupId(true);
@@ -492,7 +492,13 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
                 switch (dialog.getConfirmType()) {
                     case CONFIRM_DELETE:
                         return createStringResource("TreeTablePanel.message.deleteObjectConfirm",
-                                WebMiscUtil.getSelectedData(getOrgChildTable()).size()).getString();
+                                WebComponentUtil.getSelectedData(getOrgChildTable()).size()).getString();
+                    case CONFIRM_DELETE_MANAGER:
+                        return createStringResource("TreeTablePanel.message.deleteObjectConfirm",
+                                WebComponentUtil.getSelectedData(getManagerTable()).size()).getString();
+                    case CONFIRM_DELETE_MEMBER:
+                        return createStringResource("TreeTablePanel.message.deleteObjectConfirm",
+                                WebComponentUtil.getSelectedData(getMemberTable()).size()).getString();
                     case CONFIRM_DELETE_ROOT:
                         OrgTreeDto dto = getRootFromProvider();
 
@@ -594,7 +600,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, dto.getOid());
                 getSession().getSessionStorage().setPreviousPage(PageOrgTree.class);
-                setResponsePage(new PageUser(parameters, (PageTemplate) target.getPage()));
+                setResponsePage(new PageUser(parameters, (PageBase) target.getPage()));
             }
         });
         columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("UserType.givenName"),
@@ -644,7 +650,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        updateActivationPerformed(target, true);
+                        updateActivationPerformed(getOrgChildTable(), target, true);
                     }
                 }));
         headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.disable"), true,
@@ -652,7 +658,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        updateActivationPerformed(target, false);
+                        updateActivationPerformed(getOrgChildTable(), target, false);
                     }
                 }));
         headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.move"), true,
@@ -660,7 +666,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        movePerformed(target, OrgUnitBrowser.Operation.MOVE);
+                        movePerformed(getOrgChildTable(), target, OrgUnitBrowser.Operation.MOVE);
                     }
                 }));
         headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.delete"), true,
@@ -668,7 +674,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        deletePerformed(target);
+                        deletePerformed(getOrgChildTable(), target);
                     }
                 }));
 
@@ -677,7 +683,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form){
-                        recomputePerformed(target, OrgUnitBrowser.Operation.RECOMPUTE);
+                        recomputePerformed(getOrgChildTable(), target, OrgUnitBrowser.Operation.RECOMPUTE);
                     }
                 }));
 
@@ -701,7 +707,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        updateActivationPerformed(target, true);
+                        updateActivationPerformed(getMemberTable(), target, true);
                     }
                 }));
         headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.disable"), true,
@@ -709,7 +715,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        updateActivationPerformed(target, false);
+                        updateActivationPerformed(getMemberTable(), target, false);
                     }
                 }));
         headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.delete"), true,
@@ -717,7 +723,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        deletePerformed(target);
+                        deletePerformed(getMemberTable(), target);
                     }
                 }));
 
@@ -726,7 +732,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form){
-                        recomputePerformed(target, OrgUnitBrowser.Operation.RECOMPUTE);
+                        recomputePerformed(getMemberTable(), target, OrgUnitBrowser.Operation.RECOMPUTE);
                     }
                 }));
 
@@ -750,7 +756,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        updateActivationPerformed(target, true);
+                        updateActivationPerformed(getManagerTable(), target, true);
                     }
                 }));
         headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.disable"), true,
@@ -758,7 +764,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        updateActivationPerformed(target, false);
+                        updateActivationPerformed(getManagerTable(), target, false);
                     }
                 }));
         headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.delete"), true,
@@ -766,7 +772,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        deletePerformed(target);
+                        deletePerformed(getManagerTable(), target);
                     }
                 }));
 
@@ -775,7 +781,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form){
-                        recomputePerformed(target, OrgUnitBrowser.Operation.RECOMPUTE);
+                        recomputePerformed(getManagerTable(),target, OrgUnitBrowser.Operation.RECOMPUTE);
                     }
                 }));
 
@@ -804,7 +810,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
     private PrismObject<OrgType> addChildOrgUnitPerformed(AjaxRequestTarget target, OrgType org) {
         PageBase page = getPageBase();
         try {
-        	ObjectReferenceType ref = WebMiscUtil.createObjectRef(selected.getObject().getOid(), selected.getObject().getName(), OrgType.COMPLEX_TYPE);
+        	ObjectReferenceType ref = WebComponentUtil.createObjectRef(selected.getObject().getOid(), selected.getObject().getName(), OrgType.COMPLEX_TYPE);
 //            ObjectReferenceType ref = new ObjectReferenceType();
 //            ref.setOid(selected.getObject().getOid());
 //            ref.setType(OrgType.COMPLEX_TYPE);
@@ -863,8 +869,8 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
     /**
      * This method check selection in table.
      */
-    private List<OrgTableDto> isAnythingSelected(AjaxRequestTarget target) {
-        List<OrgTableDto> objects = WebMiscUtil.getSelectedData(getOrgChildTable());
+    private List<OrgTableDto> isAnythingSelected(TablePanel table, AjaxRequestTarget target) {
+        List<OrgTableDto> objects = WebComponentUtil.getSelectedData(table);
         if (objects.isEmpty()) {
             warn(getString("TreeTablePanel.message.nothingSelected"));
             target.add(getPageBase().getFeedbackPanel());
@@ -873,19 +879,40 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
         return objects;
     }
 
-    private void deletePerformed(AjaxRequestTarget target) {
-        List<OrgTableDto> objects = isAnythingSelected(target);
+    private void deletePerformed(TablePanel table, AjaxRequestTarget target) {
+        List<OrgTableDto> objects = isAnythingSelected(table, target);
         if (objects.isEmpty()) {
             return;
         }
 
         ConfirmationDialog dialog = (ConfirmationDialog) get(ID_CONFIRM_DELETE_POPUP);
-        dialog.setConfirmType(CONFIRM_DELETE);
+        if (table.getId().equals(ID_CHILD_TABLE)) {
+            dialog.setConfirmType(CONFIRM_DELETE);
+        } else if (table.getId().equals(ID_MANAGER_TABLE)){
+            dialog.setConfirmType(CONFIRM_DELETE_MANAGER);
+        } else if (table.getId().equals(ID_MEMBER_TABLE)){
+            dialog.setConfirmType(CONFIRM_DELETE_MEMBER);
+        }
         dialog.show(target);
     }
 
     private void deleteConfirmedPerformed(AjaxRequestTarget target) {
-        List<OrgTableDto> objects = isAnythingSelected(target);
+        TablePanel table;
+        ConfirmationDialog dialog = (ConfirmationDialog) TreeTablePanel.this.get(ID_CONFIRM_DELETE_POPUP);
+        switch (dialog.getConfirmType()) {
+            case CONFIRM_DELETE:
+                table = getOrgChildTable();
+                break;
+            case CONFIRM_DELETE_MANAGER:
+                table = getManagerTable();
+                break;
+            case CONFIRM_DELETE_MEMBER:
+                table = getMemberTable();
+                break;
+            default:
+                table = getOrgChildTable();
+        }
+        List<OrgTableDto> objects = isAnythingSelected(table, target);
         if (objects.isEmpty()) {
             return;
         }
@@ -894,7 +921,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
         OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
         for (OrgTableDto object : objects) {
             OperationResult subResult = result.createSubresult(OPERATION_DELETE_OBJECT);
-            WebModelUtils.deleteObject(object.getType(), object.getOid(), subResult, page);
+            WebModelServiceUtils.deleteObject(object.getType(), object.getOid(), subResult, page);
             subResult.computeStatusIfUnknown();
 
             MidPointAuthWebSession session = getSession();
@@ -910,14 +937,14 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
         refreshTable(target);
     }
 
-    private void movePerformed(AjaxRequestTarget target, OrgUnitBrowser.Operation operation) {
-        movePerformed(target, operation, null, false);
+    private void movePerformed(TablePanel table, AjaxRequestTarget target, OrgUnitBrowser.Operation operation) {
+        movePerformed(table, target, operation, null, false);
     }
 
-    private void movePerformed(AjaxRequestTarget target, OrgUnitBrowser.Operation operation, OrgTableDto selected, boolean movingRoot) {
+    private void movePerformed(TablePanel table, AjaxRequestTarget target, OrgUnitBrowser.Operation operation, OrgTableDto selected, boolean movingRoot) {
         List<OrgTableDto> objects;
         if (selected == null) {
-            objects = isAnythingSelected(target);
+            objects = isAnythingSelected(table, target);
             if (objects.isEmpty()) {
                 return;
             }
@@ -989,15 +1016,15 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
         for (OrgTableDto object : objects) {
             OperationResult subResult = result.createSubresult(OPERATION_MOVE_OBJECT);
 
-            PrismObject<OrgType> orgUnit = WebModelUtils.loadObject(OrgType.class, object.getOid(),
-                    WebModelUtils.createOptionsForParentOrgRefs(), getPageBase(), task, subResult);
+            PrismObject<OrgType> orgUnit = WebModelServiceUtils.loadObject(OrgType.class, object.getOid(),
+                    WebModelServiceUtils.createOptionsForParentOrgRefs(), getPageBase(), task, subResult);
             try {
                 ObjectDelta delta = createMoveDelta(orgUnit, oldParent, newParent, operation);
 
-                model.executeChanges(WebMiscUtil.createDeltaCollection(delta), null,
+                model.executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
                         page.createSimpleTask(OPERATION_MOVE_OBJECT), subResult);
             } catch (Exception ex) {
-                subResult.recordFatalError("Couldn't move object " + null + " to " + null + ".", ex);
+                subResult.recordFatalError("Couldn't move object " + object.getName() + " to " + newParent.getName() + ".", ex);
                 LoggingUtils.logException(LOGGER, "Couldn't move object {} to {}", ex, object.getName());
             } finally {
                 subResult.computeStatusIfUnknown();
@@ -1178,11 +1205,11 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
     private void moveRootPerformed(AjaxRequestTarget target) {
         OrgTreeDto root = getRootFromProvider();
         OrgTableDto dto = new OrgTableDto(root.getOid(), root.getType());
-        movePerformed(target, OrgUnitBrowser.Operation.MOVE, dto, true);
+        movePerformed(getOrgChildTable(), target, OrgUnitBrowser.Operation.MOVE, dto, true);
     }
 
-    private void updateActivationPerformed(AjaxRequestTarget target, boolean enable) {
-        List<OrgTableDto> objects = isAnythingSelected(target);
+    private void updateActivationPerformed(TablePanel table, AjaxRequestTarget target, boolean enable) {
+        List<OrgTableDto> objects = isAnythingSelected(table, target);
         if (objects.isEmpty()) {
             return;
         }
@@ -1195,10 +1222,10 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
             }
 
             OperationResult subResult = result.createSubresult(OPERATION_UPDATE_OBJECT);
-            ObjectDelta delta = WebModelUtils.createActivationAdminStatusDelta(object.getType(), object.getOid(),
+            ObjectDelta delta = WebModelServiceUtils.createActivationAdminStatusDelta(object.getType(), object.getOid(),
                     enable, page.getPrismContext());
 
-            WebModelUtils.save(delta, subResult, page);
+            WebModelServiceUtils.save(delta, subResult, page);
         }
         result.computeStatusComposite();
 
@@ -1225,17 +1252,17 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
     private void recomputeRootPerformed(AjaxRequestTarget target, OrgUnitBrowser.Operation operation){
         OrgTreeDto root = getRootFromProvider();
         OrgTableDto dto = new OrgTableDto(root.getOid(), root.getType());
-        recomputePerformed(target, operation, dto);
+        recomputePerformed(null, target, operation, dto);
     }
 
-    private void recomputePerformed(AjaxRequestTarget target, OrgUnitBrowser.Operation operation){
-        recomputePerformed(target, operation, null);
+    private void recomputePerformed(TablePanel table, AjaxRequestTarget target, OrgUnitBrowser.Operation operation){
+        recomputePerformed(table, target, operation, null);
     }
 
-    private void recomputePerformed(AjaxRequestTarget target, OrgUnitBrowser.Operation operation, OrgTableDto orgDto){
+    private void recomputePerformed(TablePanel table, AjaxRequestTarget target, OrgUnitBrowser.Operation operation, OrgTableDto orgDto){
         List<OrgTableDto> objects;
         if (orgDto == null) {
-            objects = isAnythingSelected(target);
+            objects = isAnythingSelected(table, target);
             if (objects.isEmpty()) {
                 return;
             }
@@ -1262,7 +1289,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
                         org.getOid(), getPageBase().getPrismContext());
                 ModelExecuteOptions options = new ModelExecuteOptions();
                 options.setReconcile(true);
-                getPageBase().getModelService().executeChanges(WebMiscUtil.createDeltaCollection(emptyDelta, taskDelta), options, task, result);
+                getPageBase().getModelService().executeChanges(WebComponentUtil.createDeltaCollection(emptyDelta, taskDelta), options, task, result);
             }
 
             result.recordSuccess();
@@ -1292,7 +1319,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
         TaskType taskType = new TaskType();
 
-        taskType.setName(WebMiscUtil.createPolyFromOrigString(createStringResource("TreeTablePanel.recomputeTask", org.getName()).getString()));
+        taskType.setName(WebComponentUtil.createPolyFromOrigString(createStringResource("TreeTablePanel.recomputeTask", org.getName()).getString()));
         taskType.setBinding(TaskBindingType.LOOSE);
         taskType.setExecutionStatus(TaskExecutionStatusType.RUNNABLE);
         taskType.setRecurrence(TaskRecurrenceType.SINGLE);
@@ -1334,10 +1361,10 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
         PageBase page = getPageBase();
 
         OrgTreeDto dto = getRootFromProvider();
-        WebModelUtils.deleteObject(OrgType.class, dto.getOid(), result, page);
+        WebModelServiceUtils.deleteObject(OrgType.class, dto.getOid(), result, page);
 
         result.computeStatusIfUnknown();
-        page.showResultInSession(result);
+        page.showResult(result);
 
         refreshTabbedPanel(target);
     }

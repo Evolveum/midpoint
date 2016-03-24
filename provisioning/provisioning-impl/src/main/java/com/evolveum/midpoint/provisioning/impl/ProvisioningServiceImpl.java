@@ -23,13 +23,6 @@ import java.util.Set;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.provisioning.api.ConstraintViolationConfirmer;
-import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
-import com.evolveum.midpoint.schema.LabeledString;
-import com.evolveum.midpoint.schema.ProvisioningDiag;
-
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -38,6 +31,12 @@ import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -45,6 +44,8 @@ import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.provisioning.api.ConstraintViolationConfirmer;
+import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -54,6 +55,8 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.LabeledString;
+import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -635,11 +638,17 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				PrismObject<ResourceType> completeResource = resourceManager.getResource((PrismObject<ResourceType>) inObject, 
 						SelectorOptions.findRootOptions(options), result);
 				return (PrismObject<T>) completeResource;
-		} else {
-
+		} else if (ShadowType.class.equals(type)) {
+			//TODO: applyDefinition??? 
+			applyDefinition(inObject, result);
+			setProtectedShadow((PrismObject<ShadowType>) inObject, result);
 			return inObject;
 			
+		} else {
+			//TODO: connectors etc..
+			
 		}
+		return inObject;
 
 	}
 
@@ -736,17 +745,17 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 
 		// getting object to modify
-		PrismObject<T> object = getRepoObject(type, oid, null, result);
+		PrismObject<T> repoShadow = getRepoObject(type, oid, null, result);
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("**PROVISIONING: modifyObject: object to modify:\n{}.", object.debugDump());
+			LOGGER.trace("**PROVISIONING: modifyObject: object to modify (repository):\n{}.", repoShadow.debugDump());
 		}
 
 		try {
 			
 			if (ShadowType.class.isAssignableFrom(type)) {
 				// calling shadow cache to modify object
-				oid = getShadowCache(Mode.STANDARD).modifyShadow((PrismObject<ShadowType>)object,  oid, modifications, scripts, options, task, 
+				oid = getShadowCache(Mode.STANDARD).modifyShadow((PrismObject<ShadowType>)repoShadow,  oid, modifications, scripts, options, task, 
 					result);
 			} else {
 				cacheRepositoryService.modifyObject(type, oid, modifications, result);
@@ -1024,6 +1033,46 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 		result.cleanupResult();
 	}
+	
+	private <T extends ObjectType> boolean handleRepoObject(final Class<T> type, PrismObject<T> object,
+			  final Collection<SelectorOptions<GetOperationOptions>> options,
+			  final ResultHandler<T> handler, final OperationResult objResult){
+		PrismObject<T> completeObject;
+		try {
+			completeObject = completeObject(type, object, options, objResult);
+		} catch (SchemaException e) {
+			LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
+					object, e.getMessage(), e });
+			objResult.recordFatalError(e);
+			object.asObjectable().setFetchResult(objResult.createOperationResultType());
+			completeObject = object;
+		} catch (ObjectNotFoundException e) {
+			LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
+					object, e.getMessage(), e });
+			objResult.recordFatalError(e);
+			object.asObjectable().setFetchResult(objResult.createOperationResultType());
+			completeObject = object;
+		} catch (CommunicationException e) {
+			LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
+					object, e.getMessage(), e });
+			objResult.recordFatalError(e);
+			object.asObjectable().setFetchResult(objResult.createOperationResultType());
+			completeObject = object;
+		} catch (ConfigurationException e) {
+			LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
+					object, e.getMessage(), e });
+			objResult.recordFatalError(e);
+			object.asObjectable().setFetchResult(objResult.createOperationResultType());
+			completeObject = object;
+		}
+		validateObject(completeObject);
+		
+		objResult.computeStatus();
+		objResult.recordSuccessIfUnknown();
+		
+		return handler.handle(completeObject, objResult);
+
+	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
@@ -1068,42 +1117,17 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			return metadata;
 		}
 		
-		if (!ShadowType.class.isAssignableFrom(type)) {
+		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+		
+		if (!ShadowType.class.isAssignableFrom(type)){
+			
 			ResultHandler<T> internalHandler = new ResultHandler<T>() {
 				@Override
 				public boolean handle(PrismObject<T> object, OperationResult objResult) {
-					PrismObject<T> completeObject;
-					try {
-						completeObject = completeObject(type, object, options, objResult);
-					} catch (SchemaException e) {
-						LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
-								object, e.getMessage(), e });
-						objResult.recordFatalError(e);
-						object.asObjectable().setFetchResult(objResult.createOperationResultType());
-						completeObject = object;
-					} catch (ObjectNotFoundException e) {
-						LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
-								object, e.getMessage(), e });
-						objResult.recordFatalError(e);
-						object.asObjectable().setFetchResult(objResult.createOperationResultType());
-						completeObject = object;
-					} catch (CommunicationException e) {
-						LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
-								object, e.getMessage(), e });
-						objResult.recordFatalError(e);
-						object.asObjectable().setFetchResult(objResult.createOperationResultType());
-						completeObject = object;
-					} catch (ConfigurationException e) {
-						LOGGER.error("Error while completing {}: {}. Using non-complete object.", new Object[] {
-								object, e.getMessage(), e });
-						objResult.recordFatalError(e);
-						object.asObjectable().setFetchResult(objResult.createOperationResultType());
-						completeObject = object;
-					}
-					validateObject(completeObject);
-					return handler.handle(completeObject, objResult);
+					return handleRepoObject(type, object, options, handler, objResult);
 				}
 			};
+			
 			
 			SearchResultMetadata metadata = null;
 			try {
@@ -1123,12 +1147,21 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 			
 			return metadata;
-		}
+		} 
+		
 
 		final ShadowHandler shadowHandler = new ShadowHandler() {
 
 			@Override
 			public boolean handle(ShadowType shadowType) {
+				
+				OperationResult handleResult = result.createSubresult(ProvisioningService.class.getName()
+						+ ".searchObjectsIterative.handle");
+				
+				if (GetOperationOptions.isNoFetch(rootOptions)){
+					return handleRepoObject(type, shadowType.asPrismObject(), options, handler, handleResult);
+				}
+				
 				if (shadowType == null) {
 					throw new IllegalArgumentException("Null shadow in call to handler");
 				}
@@ -1137,8 +1170,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 							SchemaDebugUtil.prettyPrint(shadowType));
 				}
 
-				OperationResult handleResult = result.createSubresult(ProvisioningService.class.getName()
-						+ ".searchObjectsIterative.handle");
+				
 
                 boolean doContinue;
                 try {
@@ -1338,6 +1370,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			result.cleanupResult();
 		}
 	}
+    
+    private void setProtectedShadow(PrismObject<ShadowType> shdaow, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+    	getShadowCache(Mode.STANDARD).setProtectedShadow(shdaow, result);
+    }
 
     @Override
     public <T extends ObjectType> void applyDefinition(Class<T> type, ObjectQuery query, OperationResult parentResult)

@@ -21,9 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
-
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
@@ -32,6 +30,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -49,26 +51,21 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -90,6 +87,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	private static final String OPERATION_LOAD_PARENT_ORGS = DOT_CLASS + "loadParentOrgs";
 	private static final String OPERATION_LOAD_GUI_CONFIGURATION = DOT_CLASS + "loadGuiConfiguration";
 	protected static final String OPERATION_SAVE = DOT_CLASS + "save";
+	protected static final String OPERATION_PREVIEW_CHANGES = DOT_CLASS + "previewChanges";
 	protected static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
 
 	protected static final String ID_SUMMARY_PANEL = "summaryPanel";
@@ -116,34 +114,17 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			@Override
 			protected String load() {
 				if (!isEditingFocus()) {
-					return createStringResource("pageAdminObjectDetails.title.newObject").getObject();
-				}
-
-				return createStringResource("pageAdminObjectDetails.title.editObject").getObject();
-			}
-		};
-	}
-
-	@Override
-	protected IModel<String> createPageSubTitleModel() {
-		return new LoadableModel<String>() {
-
-			@Override
-			protected String load() {
-				if (!isEditingFocus()) {
-					return createStringResource(
-							"pageAdminObjectDetails.subTitle.new" + getCompileTimeClass().getSimpleName())
-									.getObject();
+					String key = "PageAdminObjectDetails.title.new" + getCompileTimeClass().getSimpleName();
+					return createStringResource(key).getObject();
 				}
 
 				String name = null;
 				if (getObjectWrapper() != null && getObjectWrapper().getObject() != null) {
-					name = WebMiscUtil.getName(getObjectWrapper().getObject());
+					name = WebComponentUtil.getName(getObjectWrapper().getObject());
 				}
 
-				return createStringResource(
-						"pageAdminObjectDetails.subTitle.edit" + getCompileTimeClass().getSimpleName(), name)
-								.getObject();
+				String key = "PageAdminObjectDetails.title.edit" + getCompileTimeClass().getSimpleName();
+				return createStringResource(key, name).getObject();
 			}
 		};
 	}
@@ -181,8 +162,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	}
 
 	protected void reviveModels() throws SchemaException {
-		WebMiscUtil.revive(objectModel, getPrismContext());
-		WebMiscUtil.revive(parentOrgModel, getPrismContext());
+		WebComponentUtil.revive(objectModel, getPrismContext());
+		WebComponentUtil.revive(parentOrgModel, getPrismContext());
 	}
 
 	protected abstract Class<O> getCompileTimeClass();
@@ -292,7 +273,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 						GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
 
 				String focusOid = getObjectOidParameter();
-				object = WebModelUtils.loadObject(getCompileTimeClass(), focusOid, options, this, task,
+				object = WebModelServiceUtils.loadObject(getCompileTimeClass(), focusOid, options, this, task,
 						result);
 
 				LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, object);
@@ -304,10 +285,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			LoggingUtils.logException(LOGGER, "Couldn't load object", ex);
 		}
 
-		if (!result.isSuccess()) {
-			showResultInSession(result);
-		}
-
+			showResult(result, false);
+	
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Loaded object:\n{}", object.debugDump());
 		}
@@ -333,10 +312,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		}
 		// ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails",
 		// null, user, status);
-		if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-			showResultInSession(wrapper.getResult());
-		}
-
+			showResult(wrapper.getResult(), false);
+	
 		loadParentOrgs(wrapper, task, result);
 
 		wrapper.setShowEmpty(!isEditingFocus());
@@ -402,12 +379,27 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		return object;
 	}
 
+	// TODO put this into correct place
+	protected boolean previewRequested;
+
 	/**
 	 * This will be called from the main form when save button is pressed.
 	 */
 	public void savePerformed(AjaxRequestTarget target) {
 		progressReporter.onSaveSubmit();
 		OperationResult result = new OperationResult(OPERATION_SAVE);
+		previewRequested = false;
+		saveOrPreviewPerformed(target, result, false);
+	}
+
+	public void previewPerformed(AjaxRequestTarget target) {
+		progressReporter.onSaveSubmit();
+		OperationResult result = new OperationResult(OPERATION_PREVIEW_CHANGES);
+		previewRequested = true;
+		saveOrPreviewPerformed(target, result, true);
+	}
+
+	public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
 		ObjectWrapper<O> objectWrapper = getObjectWrapper();
 		LOGGER.debug("Saving object {}", objectWrapper);
 		
@@ -444,7 +436,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			case ADDING:
 				try {
 					PrismObject<O> objectToAdd = delta.getObjectToAdd();
-					WebMiscUtil.encryptCredentials(objectToAdd, true, getMidpointApplication());
+					WebComponentUtil.encryptCredentials(objectToAdd, true, getMidpointApplication());
 					prepareObjectForAdd(objectToAdd);
 					getPrismContext().adopt(objectToAdd, getCompileTimeClass());
 					if (LOGGER.isTraceEnabled()) {
@@ -454,22 +446,12 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 					if (!delta.isEmpty()) {
 						delta.revive(getPrismContext());
 
-						Collection<SimpleValidationError> validationErrors = performCustomValidation(objectToAdd,
-								WebMiscUtil.createDeltaCollection(delta));
-						if (validationErrors != null && !validationErrors.isEmpty()) {
-							for (SimpleValidationError error : validationErrors) {
-								LOGGER.error("Validation error, attribute: '" + error.printAttribute()
-										+ "', message: '" + error.getMessage() + "'.");
-								error("Validation error, attribute: '" + error.printAttribute()
-										+ "', message: '" + error.getMessage() + "'.");
-							}
-
-							target.add(getFeedbackPanel());
+						final Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
+						final Collection<SimpleValidationError> validationErrors = performCustomValidation(objectToAdd, deltas);
+						if (checkValidationErrors(target, validationErrors)) {
 							return;
 						}
-
-						progressReporter.executeChanges(WebMiscUtil.createDeltaCollection(delta), options,
-								task, result, target);
+						progressReporter.executeChanges(deltas, previewOnly, options, task, result, target);
 					} else {
 						result.recordSuccess();
 					}
@@ -481,7 +463,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 			case MODIFYING:
 				try {
-					WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
+					WebComponentUtil.encryptCredentials(delta, true, getMidpointApplication());
 					prepareObjectDeltaForModify(delta);
 
 					if (LOGGER.isTraceEnabled()) {
@@ -509,37 +491,17 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 								objectWrapper.getObject().getOid(), getPrismContext());
 						deltas.add(emptyDelta);
 
-						Collection<SimpleValidationError> validationErrors = performCustomValidation(null,
-								deltas);
-						if (validationErrors != null && !validationErrors.isEmpty()) {
-							for (SimpleValidationError error : validationErrors) {
-								LOGGER.error("Validation error, attribute: '" + error.printAttribute()
-										+ "', message: '" + error.getMessage() + "'.");
-								error("Validation error, attribute: '" + error.printAttribute()
-										+ "', message: '" + error.getMessage() + "'.");
-							}
-
-							target.add(getFeedbackPanel());
+						Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);
+						if (checkValidationErrors(target, validationErrors)) {
 							return;
 						}
-
-						progressReporter.executeChanges(deltas, options, task, result, target);
+						progressReporter.executeChanges(deltas, previewOnly, options, task, result, target);
 					} else if (!deltas.isEmpty()) {
-						Collection<SimpleValidationError> validationErrors = performCustomValidation(null,
-								deltas);
-						if (validationErrors != null && !validationErrors.isEmpty()) {
-							for (SimpleValidationError error : validationErrors) {
-								LOGGER.error("Validation error, attribute: '" + error.printAttribute()
-										+ "', message: '" + error.getMessage() + "'.");
-								error("Validation error, attribute: '" + error.printAttribute()
-										+ "', message: '" + error.getMessage() + "'.");
-							}
-
-							target.add(getFeedbackPanel());
+						Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);
+						if (checkValidationErrors(target, validationErrors)) {
 							return;
 						}
-
-						progressReporter.executeChanges(deltas, options, task, result, target);
+						progressReporter.executeChanges(deltas, previewOnly, options, task, result, target);
 					} else {
 						result.recordSuccess();
 					}
@@ -565,7 +527,22 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			finishProcessing(target, result);
 		}
 		
-		LOGGER.trace("returning from savePerformed");
+		LOGGER.trace("returning from saveOrPreviewPerformed");
+	}
+
+	protected boolean checkValidationErrors(AjaxRequestTarget target, Collection<SimpleValidationError> validationErrors) {
+		if (validationErrors != null && !validationErrors.isEmpty()) {
+			for (SimpleValidationError error : validationErrors) {
+				LOGGER.error("Validation error, attribute: '" + error.printAttribute()
+						+ "', message: '" + error.getMessage() + "'.");
+				error("Validation error, attribute: '" + error.printAttribute()
+						+ "', message: '" + error.getMessage() + "'.");
+			}
+
+			target.add(getFeedbackPanel());
+			return true;
+		}
+		return false;
 	}
 
 	@Override
@@ -640,27 +617,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		
 	}
 	
-	// TODO: fix name, confusing. clashes with goBack()
-	public void goBackPage() {
-		StringValue orgReturn = getPageParameters().get(PARAM_RETURN_PAGE);
-        if (PageOrgTree.PARAM_ORG_RETURN.equals(orgReturn.toString())) {
-            setResponsePage(getSessionStorage().getPreviousPage());
-        } else if (getPreviousPage() != null) {
-            goBack(PageDashboard.class);        // the class parameter is not necessary, is previousPage is set
-        } else if (getSessionStorage() != null){
-        	if (getSessionStorage().getPreviousPageInstance() != null){
-        		setResponsePage(getSessionStorage().getPreviousPageInstance());
-        	} else if (getSessionStorage().getPreviousPage() != null){
-        		setResponsePage(getSessionStorage().getPreviousPage());
-        	} else {
-        		setResponsePage(getDefaultBackPage());
-        	}
-        } else {
-        	setResponsePage(getDefaultBackPage());
-        }
-    }
-	
-	protected abstract PageBase getDefaultBackPage();
+	public abstract PageBase getDefaultBackPage();
 	
 	public List<ObjectFormType> getObjectFormTypes() {
 		Task task = createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION);

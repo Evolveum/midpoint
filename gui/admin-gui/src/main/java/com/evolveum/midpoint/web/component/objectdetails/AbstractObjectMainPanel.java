@@ -17,6 +17,11 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -24,6 +29,7 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -33,11 +39,11 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * @author semancik
@@ -48,7 +54,10 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_TAB_PANEL = "tabPanel";
 	private static final String ID_EXECUTE_OPTIONS = "executeOptions";
-	
+	private static final String ID_BACK = "back";
+	private static final String ID_SAVE = "save";
+	private static final String ID_PREVIEW_CHANGES = "previewChanges";
+
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectMainPanel.class);
 	
 	private Form mainForm;
@@ -135,12 +144,13 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	}
 	
 	protected void initLayoutButtons(PageAdminObjectDetails<O> parentPage) {
+		initLayoutPreviewButton(parentPage);
 		initLayoutSaveButton(parentPage);
 		initLayoutBackButton(parentPage);
 	}
 
 	protected void initLayoutSaveButton(final PageAdminObjectDetails<O> parentPage) {
-		AjaxSubmitButton saveButton = new AjaxSubmitButton("save", parentPage.createStringResource("pageAdminFocus.button.save")) {
+		AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE, parentPage.createStringResource("pageAdminFocus.button.save")) {
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target,
@@ -158,12 +168,31 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 		mainForm.add(saveButton);
 	}
 
+	// TEMPORARY
+	protected void initLayoutPreviewButton(final PageAdminObjectDetails<O> parentPage) {
+		AjaxSubmitButton previewButton = new AjaxSubmitButton(ID_PREVIEW_CHANGES, parentPage.createStringResource("pageAdminFocus.button.previewChanges")) {
+
+			@Override
+			protected void onSubmit(AjaxRequestTarget target,
+					org.apache.wicket.markup.html.form.Form<?> form) {
+				getDetailsPage().previewPerformed(target);
+			}
+
+			@Override
+			protected void onError(AjaxRequestTarget target,
+					org.apache.wicket.markup.html.form.Form<?> form) {
+				target.add(parentPage.getFeedbackPanel());
+			}
+		};
+		mainForm.add(previewButton);
+	}
+
 	protected void initLayoutBackButton(PageAdminObjectDetails<O> parentPage) {
-		AjaxButton back = new AjaxButton("back", parentPage.createStringResource("pageAdminFocus.button.back")) {
+		AjaxButton back = new AjaxButton(ID_BACK, parentPage.createStringResource("pageAdminFocus.button.back")) {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				getDetailsPage().goBackPage();
+				backPerformed(target);
 			}
 			
 		};
@@ -173,10 +202,12 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	public ExecuteChangeOptionsDto getExecuteChangeOptionsDto() {
 		return executeOptionsModel.getObject();
 	}
-	
+
+	private void backPerformed(AjaxRequestTarget target) {
+		getDetailsPage().redirectBack();
+	}
 	
 	protected PageAdminObjectDetails<O> getDetailsPage() {
 		return (PageAdminObjectDetails<O>)getPage();
 	}
-
 }

@@ -15,10 +15,10 @@
  */
 package com.evolveum.midpoint.web.page.self.component;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.markup.ComponentTag;
@@ -56,7 +56,7 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
         super(id, null);
     }
 
-    public LinksPanel(String id, IModel<List<RichHyperlinkType>> model, final List<RichHyperlinkType> linksList) {
+    public LinksPanel(String id, IModel<List<RichHyperlinkType>> model) {
         super(id, model);
     }
 
@@ -74,7 +74,7 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
             boolean isRowAdded = false;
             for (int i = 0; i < linksListSize; i++) {
                 final RichHyperlinkType link = linksList.get(i);
-                if (WebMiscUtil.isAuthorized(link.getAuthorization())) {
+                if (WebComponentUtil.isAuthorized(link.getAuthorization())) {
                     if (currentColumn == 0) {
                         row = new WebMarkupContainer(rowView.newChildId());
                         isRowAdded = false;
@@ -90,6 +90,7 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
                         protected void onComponentTag(final ComponentTag tag) {
                             super.onComponentTag(tag);
                             String rootContext = "";
+                            //TODO: what is this for???
                             if (link.getTargetUrl() != null && !link.getTargetUrl().startsWith("http://") &&
                                     !link.getTargetUrl().startsWith("https://") &&
                                     !link.getTargetUrl().startsWith("www://") &&
@@ -102,7 +103,7 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
                                     }
                                 }
                             }
-                            tag.put("href", rootContext + link.getTargetUrl());
+                            tag.put("href", rootContext + (link.getTargetUrl() == null ? "#" : link.getTargetUrl()));
                         }
                     };
                     linkItem.add(new Label(ID_IMAGE) {

@@ -68,9 +68,14 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.DistinguishedNameMatchingRule;
+import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
+import com.evolveum.midpoint.prism.match.UuidMatchingRule;
+import com.evolveum.midpoint.prism.match.XmlMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -168,6 +173,10 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+		
+		openDJController.addEntry("dn: ou=specialgroups,dc=example,dc=com\n"+
+		                          "objectclass: organizationalUnit\n"+
+		                          "ou: specialgroups\n");
 	}
 	
 	@BeforeClass
@@ -381,6 +390,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertTrue("No UID read", idPrimaryDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(idPrimaryDef));
 		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, idPrimaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong primary identifier matching rule", UuidMatchingRule.NAME, idPrimaryDef.getMatchingRuleQName());
+
 
 		ResourceAttributeDefinition<String> idSecondaryDef = accountDef.findAttributeDefinition(getSecondaryIdentifierQName());
 		assertEquals(1, idSecondaryDef.getMaxOccurs());
@@ -390,6 +401,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertTrue("No NAME read", idSecondaryDef.canRead());
 		assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(idSecondaryDef));
 		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Name.NAME, idSecondaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong secondary identifier matching rule", DistinguishedNameMatchingRule.NAME, idSecondaryDef.getMatchingRuleQName());
 
 		ResourceAttributeDefinition<String> cnDef = accountDef.findAttributeDefinition("cn");
 		assertNotNull("No definition for cn", cnDef);
@@ -398,6 +410,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertTrue("No cn create", cnDef.canAdd());
 		assertTrue("No cn update", cnDef.canModify());
 		assertTrue("No cn read", cnDef.canRead());
+		assertEquals("Wrong cn matching rule", StringIgnoreCaseMatchingRule.NAME, cnDef.getMatchingRuleQName());
 		
 		ResourceAttributeDefinition<String> dsDef = accountDef.findAttributeDefinition("ds-pwp-account-disabled");
 		assertNotNull("No definition for ds-pwp-account-disabled", dsDef);
@@ -408,6 +421,33 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertTrue("No ds-pwp-account-disabled update", dsDef.canModify());
 		// TODO: MID-2358
 //		assertTrue("ds-pwp-account-disabled is NOT operational", dsDef.isOperational());
+				
+		ResourceAttributeDefinition<String> memberOfDef = accountDef.findAttributeDefinition("isMemberOf");
+		assertNotNull("No definition for isMemberOf", memberOfDef);
+		assertEquals(-1, memberOfDef.getMaxOccurs());
+		assertEquals(0, memberOfDef.getMinOccurs());
+		assertFalse("isMemberOf create", memberOfDef.canAdd());
+		assertFalse("isMemberOf update", memberOfDef.canModify());
+		assertTrue("No isMemberOf read", memberOfDef.canRead());
+		assertEquals("Wrong isMemberOf matching rule", DistinguishedNameMatchingRule.NAME, memberOfDef.getMatchingRuleQName());
+
+		ResourceAttributeDefinition<String> labeledUriDef = accountDef.findAttributeDefinition("labeledURI");
+		assertNotNull("No definition for labeledUri", labeledUriDef);
+		assertEquals(-1, labeledUriDef.getMaxOccurs());
+		assertEquals(0, labeledUriDef.getMinOccurs());
+		assertTrue("No labeledUri create", labeledUriDef.canAdd());
+		assertTrue("No labeledUri update", labeledUriDef.canModify());
+		assertTrue("No labeledUri read", labeledUriDef.canRead());
+		assertEquals("Wrong labeledUri matching rule", null, labeledUriDef.getMatchingRuleQName());
+
+		ResourceAttributeDefinition<String> secretaryDef = accountDef.findAttributeDefinition("secretary");
+		assertNotNull("No definition for secretary", secretaryDef);
+		assertEquals(-1, secretaryDef.getMaxOccurs());
+		assertEquals(0, secretaryDef.getMinOccurs());
+		assertTrue("No secretary create", secretaryDef.canAdd());
+		assertTrue("No secretary update", secretaryDef.canModify());
+		assertTrue("No secretary read", secretaryDef.canRead());
+		assertEquals("Wrong secretary matching rule", DistinguishedNameMatchingRule.NAME, secretaryDef.getMatchingRuleQName());
 		
 		ResourceAttributeDefinition<String> createTimestampDef = accountDef.findAttributeDefinition("createTimestamp");
 		assertNotNull("No definition for createTimestamp", createTimestampDef);
@@ -416,6 +456,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertTrue("No createTimestamp read", createTimestampDef.canRead());
 		assertFalse("Bad createTimestamp create", createTimestampDef.canAdd());
 		assertFalse("Bad createTimestamp update", createTimestampDef.canModify());
+		assertEquals("Wrong createTimestamp matching rule", null, createTimestampDef.getMatchingRuleQName());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",
 				accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
@@ -533,6 +574,24 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertTrue("No cn update", cnDef.canModify());
 		assertTrue("No cn read", cnDef.canRead());
 		
+		ResourceAttributeDefinition<String> memberOfDef = accountDef.findAttributeDefinition("isMemberOf");
+		assertNotNull("No definition for isMemberOf", memberOfDef);
+		assertEquals(-1, memberOfDef.getMaxOccurs());
+		assertEquals(0, memberOfDef.getMinOccurs());
+		assertFalse("isMemberOf create", memberOfDef.canAdd());
+		assertFalse("isMemberOf update", memberOfDef.canModify());
+		assertTrue("No isMemberOf read", memberOfDef.canRead());
+		assertEquals("Wrong isMemberOf matching rule", DistinguishedNameMatchingRule.NAME, memberOfDef.getMatchingRuleQName());
+		
+		ResourceAttributeDefinition<String> secretaryDef = accountDef.findAttributeDefinition("secretary");
+		assertNotNull("No definition for secretary", secretaryDef);
+		assertEquals(-1, secretaryDef.getMaxOccurs());
+		assertEquals(0, secretaryDef.getMinOccurs());
+		assertTrue("No secretary create", secretaryDef.canAdd());
+		assertTrue("No secretary update", secretaryDef.canModify());
+		assertTrue("No secretary read", secretaryDef.canRead());
+		assertEquals("Wrong secretary matching rule", XmlMatchingRule.NAME, secretaryDef.getMatchingRuleQName());
+		
 		RefinedAttributeDefinition<String> dsDef = accountDef.findAttributeDefinition("ds-pwp-account-disabled");
 		assertNotNull("No definition for cn", dsDef);
 		assertEquals(1, dsDef.getMaxOccurs());
@@ -614,8 +673,10 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertEquals(ACCOUNT1_OID, addedObjectOid);
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
+		// WHEN
 		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT1_OID, null, task, result).asObjectable();
 
+		// THEN
 		assertNotNull(shadow);
 
 		display(SchemaDebugUtil.prettyPrint(shadow));
@@ -652,7 +713,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         // must be all lowercase
         assertEquals("Wrong secondary identifier (repo)", "uid=jbond,ou=people,dc=example,dc=com", idSecondaryVal);
 
-        assertShadows(2);
+        assertShadows(2);        
 	}
 
 	/**
@@ -782,7 +843,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
 				null, task, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=will123,ou=People,dc=example,dc=com", provisioningAccountType.getName());
-		assertAttribute(provisioningAccountType, getSecondaryIdentifierQName(), "uid=will123,ou=people,dc=example,dc=com");
+		assertAttribute(provisioningAccountType, getSecondaryIdentifierQName(), "uid=will123,ou=People,dc=example,dc=com");
 		
 		repoShadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
 				null, result).asObjectable();
@@ -859,7 +920,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
             assertTrue(ex.getMessage().contains(ACCOUNT_SPARROW_OID));
 		}
 		
-		assertShadows(1);
+		// Account shadow + shadow for base context
+		assertShadows(2);
 	}
 
 	@Test
@@ -930,7 +992,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		assertEquals("First", changedSn);
 		
-		assertShadows(2);
+		assertShadows(3);
 	}
 	
 	@Test
@@ -984,8 +1046,64 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertEquals("Byte length changed (shadow)", bytesIn.length, bytesOut.length);
 		assertTrue("Bytes do not match (shadow)", Arrays.equals(bytesIn, bytesOut));
 		
-		assertShadows(2);
+		assertShadows(3);
 	}
+	
+	/**
+	 * Make a duplicate modification. Add a givenName value that is already there.
+	 * Normal LDAP should fail. So check that connector and midPoitn handles that.
+	 */
+	@Test
+	public void test147ModifyAccountJackGivenNameDuplicit() throws Exception {
+		final String TEST_NAME = "test147ModifyAccountJackGivenNameDuplicit";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+		
+		PropertyDelta<String> givenNameDelta = new PropertyDelta<>(
+				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "givenName")), 
+				null , prismContext);
+		givenNameDelta.addValueToAdd(new PrismPropertyValue<String>("Jack"));
+		
+		// Also make an ordinary non-conflicting modification. We need to make sure that
+		// the operation was not ignored as a whole
+		PropertyDelta<String> titleDelta = new PropertyDelta<>(
+				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "title")), 
+				null , prismContext);
+		titleDelta.addValueToAdd(new PrismPropertyValue<String>("Great Captain"));
+		
+		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(givenNameDelta, titleDelta);
+		
+		display("Modifications",modifications);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, ACCOUNT_JACK_OID,
+				modifications, null, null, taskManager.createTaskInstance(), result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		Entry entry = openDJController.searchByUid("rename");
+		display("LDAP Entry", entry);
+		OpenDJController.assertAttribute(entry, "givenName", "Jack");
+		OpenDJController.assertAttribute(entry, "title", "Great Captain");
+		
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_JACK_OID, null, taskManager.createTaskInstance(), result);
+		
+		display("Object after change",shadow);
+		
+		PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		PrismAsserts.assertPropertyValue(attributesContainer, new QName(RESOURCE_OPENDJ_NS, "givenName"), "Jack");
+		PrismAsserts.assertPropertyValue(attributesContainer, new QName(RESOURCE_OPENDJ_NS, "title"), "Great Captain");
+		
+		assertShadows(3);
+	}
+
 
 	@Test
 	public void test150ChangePassword() throws Exception {
@@ -1039,7 +1157,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		openDJController.assertPassword(entryAfter.getDN().toString(), "mehAbigH4X0R");
 
-		assertShadows(3);
+		assertShadows(4);
 	}
 
 	@Test
@@ -1088,7 +1206,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		openDJController.assertPassword(entryAfter.getDN().toString(), "t4k30v3rTh3W0rld");
 			
-		assertShadows(4);
+		assertShadows(5);
 	}
 	
 	@Test
@@ -1145,7 +1263,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         assertEquals("Unexpected number of shadows", 9, objects.size());
 
         // The extra shadow is a group shadow 
-        assertShadows(10);
+        assertShadows(11);
         
         // Bad things may happen, so let's check if the shadow is still there and that is has the same OID
         PrismObject<ShadowType> accountNew = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, taskManager.createTaskInstance(), result);
@@ -1520,10 +1638,12 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		rememberConnectorSimulatedPagingSearchCount();
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		List<PrismObject<ShadowType>> searchResults = 
 			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 		
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		assertSuccess(result);
 		display("Search resutls", searchResults);
@@ -1551,10 +1671,12 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		rememberConnectorSimulatedPagingSearchCount();
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		List<PrismObject<ShadowType>> searchResults = 
 			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 		
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		assertSuccess(result);
 		display("Search resutls", searchResults);
@@ -1582,17 +1704,87 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		rememberConnectorSimulatedPagingSearchCount();
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		SearchResultList<PrismObject<ShadowType>> searchResults = provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 		
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		assertSuccess(result);
 		display("Search resutls", searchResults);
 		
 		// The results should be this:
-//		assertSearchResults(searchResults, "hbarbossa", "idm", "jbeckett", "jbond", "jgibbs" );
-		// But there seems to be a VLV bug in OpenJD. So the results are like this:
-		assertSearchResults(searchResults, "drake", "hbarbossa", "idm", "jbeckett", "jbond");
+		assertSearchResults(searchResults, "hbarbossa", "idm", "jbeckett", "jbond", "jgibbs" );
+		
+		assertConnectorOperationIncrement(1);
+		assertConnectorSimulatedPagingSearchIncrement(0);
+	}
+	
+	@Test
+	public void test233SearchObjectsPagedNoOffsetSortSn() throws Exception {
+		final String TEST_NAME = "test233SearchObjectsPagedNoOffsetSortSn";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		
+		ObjectPaging paging = ObjectPaging.createPaging(null, 4);
+		paging.setOrdering(ObjectOrdering.createOrdering(
+				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
+		query.setPaging(paging);
+		
+		rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		List<PrismObject<ShadowType>> searchResults = 
+			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		assertSuccess(result);
+		display("Search resutls", searchResults);
+		
+		assertSearchResults(searchResults, "monk", "hbarbossa", "jbeckett", "jbond" );
+		
+		assertConnectorOperationIncrement(1);
+		assertConnectorSimulatedPagingSearchIncrement(0);
+	}
+	
+	@Test
+	public void test234SearchObjectsPagedOffsetSortSn() throws Exception {
+		final String TEST_NAME = "test234SearchObjectsPagedOffsetSortSn";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		
+		ObjectPaging paging = ObjectPaging.createPaging(2, 4);
+		paging.setOrdering(ObjectOrdering.createOrdering(
+				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
+		query.setPaging(paging);
+		
+		rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		List<PrismObject<ShadowType>> searchResults = 
+			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		assertSuccess(result);
+		display("Search resutls", searchResults);
+		
+		assertSearchResults(searchResults, "jbeckett", "jbond", "cook", "drake" );
 		
 		assertConnectorOperationIncrement(1);
 		assertConnectorSimulatedPagingSearchIncrement(0);
@@ -1744,7 +1936,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OpenDJController.assertAttribute(entry, "loginShell", "/bin/whisky");
 		OpenDJController.assertAttribute(entry, "homeDirectory", "/home/scotland");
 		
-		assertShadows(16);
+		assertShadows(17);
 	}
 	
 	@Test
@@ -1790,7 +1982,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OpenDJController.assertAttribute(entry, "roomNumber", "Barber Shop");
 		OpenDJController.assertAttribute(entry, "uidNumber", "1001");
 				
-		assertShadows(16);
+		assertShadows(17);
 	}
 	
 	@Test
@@ -1826,7 +2018,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
             assertTrue(ex.getMessage().contains(ACCOUNT_POSIX_MCMUTTON_OID));
 		}
 		
-		assertShadows(15);
+		assertShadows(16);
 	}
 	
 	/**
@@ -1870,7 +2062,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertConnectorOperationIncrement(1);
 		assertConnectorSimulatedPagingSearchIncrement(0);
 		
-		assertShadows(16);
+		assertShadows(17);
 	}
 	
 	// TODO: synchronization of auxiliary object classes
@@ -1917,7 +2109,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		String groupDn = ldapEntry.getDN().toString();
 		assertEquals("Wrong group DN", dnMatchingRule.normalize(GROUP_SWASHBUCKLERS_DN), dnMatchingRule.normalize(groupDn));
 		
-		assertShadows(17);
+		assertShadows(18);
 	}
 	
 	@Test
@@ -1965,7 +2157,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNotNull("No LDAP group entry");
 		openDJController.assertUniqueMember(groupEntry, accountDn);
 		
-		assertShadows(18);
+		assertShadows(19);
 	}
 	
 	@Test
@@ -1998,7 +2190,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		String groupDn = ldapEntry.getDN().toString();
 		assertEquals("Wrong group DN", dnMatchingRule.normalize(GROUP_SWASHBUCKLERS_DN), dnMatchingRule.normalize(groupDn));
 		
-		assertShadows(18);
+		assertShadows(19);
 	}
 
 	@Test
@@ -2032,7 +2224,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				"cn=swashbucklers,ou=Groups,dc=example,dc=com",
 				"cn=seadogs,ou=Groups,dc=example,dc=com");
 		
-		assertShadows(19);
+		assertShadows(20);
 	}
 	
 	@Test
@@ -2062,7 +2254,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertSuccess(result);
 		display("Account shadow after", shadow);
 		
-		assertShadows(20);
+		assertShadows(21);
 		
 		PrismObject<ShadowType> groupSailorShadow = findShadowByName(RESOURCE_OPENDJ_GROUP_OBJECTCLASS, "cn=sailor,ou=groups,dc=example,dc=com", resource, result);
 		display("Group shadow", groupSailorShadow);
@@ -2070,7 +2262,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		assertEntitlementGroup(shadow, groupSailorOid);
 		
-		assertShadows(20);
+		assertShadows(21);
 	}
 	
 
@@ -2099,7 +2291,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		// Do NOT read provisioning shadow here. We want everything to be "fresh"
 		
-		assertShadows(21);
+		assertShadows(22);
 	}
 
 	@Test
@@ -2128,7 +2320,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNotNull("No LDAP group entry");
 		openDJController.assertUniqueMember(groupEntry, ACCOUNT_MORGAN_DN);
 		
-		assertShadows(21);
+		assertShadows(22);
 	}
 	
 	@Test
@@ -2153,7 +2345,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertEntitlementGroup(shadow, groupSailorOid);
 		assertEntitlementGroup(shadow, GROUP_CORSAIRS_OID);
 		
-		assertShadows(21);
+		assertShadows(22);
 	}
 	
 	/**
@@ -2196,7 +2388,223 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNotNull("No LDAP group entry");
 		openDJController.assertNoUniqueMember(groupEntry, ACCOUNT_MORGAN_DN);
 		
-		assertShadows(20);
+		assertShadows(21);
+	}
+	
+	@Test
+	public void test450ListGroupsObjectclass() throws Exception {
+		final String TEST_NAME = "test450ListGroupsObjectclass";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID, 
+        		RESOURCE_OPENDJ_GROUP_OBJECTCLASS, prismContext);
+        display("query", query);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> objects = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		display("found objects", objects);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		assertEquals("Wrong number of objects found", 5, objects.size());
+		
+		assertShadows(21);
+	}
+	
+	@Test
+	public void test452ListLdapGroupsKindIntent() throws Exception {
+		final String TEST_NAME = "test452ListLdapGroupsKindIntent";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
+        		ShadowKindType.ENTITLEMENT, "ldapGroup", prismContext);
+        display("query", query);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> objects = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		display("found objects", objects);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		assertEquals("Wrong number of objects found", 5, objects.size());
+		
+		assertShadows(21);
+	}
+
+	@Test
+	public void test454ListSpecialGroupsKindIntent() throws Exception {
+		final String TEST_NAME = "test454ListSpecialGroupsKindIntent";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
+        		ShadowKindType.ENTITLEMENT, "specialGroup", prismContext);
+        display("query", query);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> objects = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		display("found objects", objects);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		// Check that none of the normal LDAP groups appear here ... even if they have the same objectclass
+		assertEquals("Wrong number of objects found", 0, objects.size());
+		
+		// Discovered base context for specialgroups
+		assertShadows(22);
+	}
+	
+	@Test
+	public void test456AddGroupSpecialists() throws Exception {
+		final String TEST_NAME = "test456AddGroupSpecialists";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+		
+		ShadowType object = parseObjectType(GROUP_SPECIALISTS_FILE, ShadowType.class);
+		IntegrationTestTools.display("Adding object", object);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		assertEquals(GROUP_SPECIALISTS_OID, addedObjectOid);
+
+		ShadowType shadowType =  repositoryService.getObject(ShadowType.class, GROUP_SPECIALISTS_OID,
+				null, result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", GROUP_SPECIALISTS_DN, shadowType.getName());
+
+		PrismObject<ShadowType> provisioningShadow = provisioningService.getObject(ShadowType.class, GROUP_SPECIALISTS_OID,
+				null, taskManager.createTaskInstance(), result);
+		ShadowType provisioningShadowType = provisioningShadow.asObjectable();
+		assertEquals("Wrong ICF name (provisioning)", dnMatchingRule.normalize(GROUP_SPECIALISTS_DN), 
+				dnMatchingRule.normalize(provisioningShadowType.getName().getOrig()));
+		
+		String uid = ShadowUtil.getSingleStringAttributeValue(shadowType, getPrimaryIdentifierQName());		
+		assertNotNull(uid);
+		ResourceAttribute<Object> memberAttr = ShadowUtil.getAttribute(provisioningShadow, new QName(RESOURCE_OPENDJ_NS, GROUP_MEMBER_ATTR_NAME));
+		assertNull("Member attribute sneaked in", memberAttr);
+		
+		Entry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
+		display("LDAP group", ldapEntry);
+		assertNotNull("No LDAP group entry");
+		String groupDn = ldapEntry.getDN().toString();
+		assertEquals("Wrong group DN", dnMatchingRule.normalize(GROUP_SPECIALISTS_DN), dnMatchingRule.normalize(groupDn));
+		
+		assertShadows(23);
+	}
+	
+	@Test
+	public void test457ListLdapGroupsKindIntent() throws Exception {
+		final String TEST_NAME = "test457ListLdapGroupsKindIntent";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
+        		ShadowKindType.ENTITLEMENT, "ldapGroup", prismContext);
+        display("query", query);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> objects = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		display("found objects", objects);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		assertEquals("Wrong number of objects found", 5, objects.size());
+		
+		assertShadows(23);
+	}
+
+	@Test
+	public void test458ListSpecialGroupsKindIntent() throws Exception {
+		final String TEST_NAME = "test458ListSpecialGroupsKindIntent";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
+        		ShadowKindType.ENTITLEMENT, "specialGroup", prismContext);
+        display("query", query);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> objects = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		display("found objects", objects);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		// Check that none of the normal LDAP groups appear here ... even if they have the same objectclass
+		assertEquals("Wrong number of objects found", 1, objects.size());
+		
+		// Discovered base context for specialgroups
+		assertShadows(23);
+	}
+	
+	/**
+	 * List organizationUnits with intent ou-people. There are no sub-ous in People.
+	 * But the definition has objectclass organizationalUnit and it has baseContext that
+	 * is also organizationalUnit. This test therefore makes sure this will not end up
+	 * in endless loop (stack overflow).
+	 */
+	@Test
+	public void test460ListOrganizationalUnitPeopleKindIntent() throws Exception {
+		final String TEST_NAME = "test460ListOrganizationalUnitPeopleKindIntent";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
+        		ShadowKindType.GENERIC, "ou-people", prismContext);
+        display("query", query);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> objects = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		display("found objects", objects);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		// Just the ou=People itself
+		assertEquals("Wrong number of objects found", 1, objects.size());
+		
+		assertShadows(24);
 	}
 	
 	@Test

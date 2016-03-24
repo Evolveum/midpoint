@@ -517,7 +517,7 @@ public class XNodeProcessor {
 
         } else {
             try {
-                realValue = xprim.getParsedValue(typeName);
+                realValue = xprim.getParsedValue(typeName, mode);
             } catch (SchemaException e) {
                 if (isStrict()) {
                     throw e;

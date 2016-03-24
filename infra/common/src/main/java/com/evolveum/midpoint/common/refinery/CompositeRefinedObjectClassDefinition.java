@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -158,12 +159,19 @@ public class CompositeRefinedObjectClassDefinition extends RefinedObjectClassDef
 		return structuralObjectClassDefinition.getDisplayNameAttribute();
 	}
 
+	@Override
 	public Collection<? extends RefinedAttributeDefinition<?>> getIdentifiers() {
 		return structuralObjectClassDefinition.getIdentifiers();
 	}
 
+	@Override
 	public Collection<? extends RefinedAttributeDefinition<?>> getSecondaryIdentifiers() {
 		return structuralObjectClassDefinition.getSecondaryIdentifiers();
+	}
+	
+	@Override
+	public Collection<? extends RefinedAttributeDefinition<?>> getAllIdentifiers() {
+		return structuralObjectClassDefinition.getAllIdentifiers();
 	}
 
 	public boolean isAuxiliary() {
@@ -214,8 +222,11 @@ public class CompositeRefinedObjectClassDefinition extends RefinedObjectClassDef
 		return structuralObjectClassDefinition.getResourceType();
 	}
 
-	public PrismObjectDefinition<ShadowType> getObjectDefinition() {
-		return structuralObjectClassDefinition.getObjectDefinition();
+	// Do NOT override getObjectDefinition(). It will work by itself.
+	// overriding it will just complicate things.
+
+	public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
+		return structuralObjectClassDefinition.getObjectClassDefinition();
 	}
 
 	public ResourceObjectReferenceType getBaseContext() {
@@ -293,7 +304,18 @@ public class CompositeRefinedObjectClassDefinition extends RefinedObjectClassDef
 		Collection<? extends RefinedAttributeDefinition<?>> defs = new ArrayList<>();
 		defs.addAll((Collection)structuralObjectClassDefinition.getAttributeDefinitions());
 		for(RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
-			defs.addAll((Collection)auxiliaryObjectClassDefinition.getAttributeDefinitions());
+			for (RefinedAttributeDefinition auxRAttrDef: auxiliaryObjectClassDefinition.getAttributeDefinitions()) {
+				boolean add = true;
+				for (RefinedAttributeDefinition def: defs) {
+					if (def.getName().equals(auxRAttrDef.getName())) {
+						add = false;
+						break;
+					}
+				}
+				if (add) {
+					((Collection)defs).add(auxRAttrDef);
+				}
+			}
 		}
 		return defs;
 	}
@@ -314,6 +336,46 @@ public class CompositeRefinedObjectClassDefinition extends RefinedObjectClassDef
 			}
 		}
 		return new CompositeRefinedObjectClassDefinition(structuralObjectClassDefinitionClone, auxiliaryObjectClassDefinitionsClone);
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result
+				+ ((auxiliaryObjectClassDefinitions == null) ? 0 : auxiliaryObjectClassDefinitions.hashCode());
+		result = prime * result
+				+ ((structuralObjectClassDefinition == null) ? 0 : structuralObjectClassDefinition.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!super.equals(obj)) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		CompositeRefinedObjectClassDefinition other = (CompositeRefinedObjectClassDefinition) obj;
+		if (auxiliaryObjectClassDefinitions == null) {
+			if (other.auxiliaryObjectClassDefinitions != null) {
+				return false;
+			}
+		} else if (!auxiliaryObjectClassDefinitions.equals(other.auxiliaryObjectClassDefinitions)) {
+			return false;
+		}
+		if (structuralObjectClassDefinition == null) {
+			if (other.structuralObjectClassDefinition != null) {
+				return false;
+			}
+		} else if (!structuralObjectClassDefinition.equals(other.structuralObjectClassDefinition)) {
+			return false;
+		}
+		return true;
 	}
 
 	@Override

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -63,6 +63,18 @@
 		</icfc:resultsHandlerConfiguration>
 		
     </connectorConfiguration>
+    
+    <schema>
+		<generationConstraints>
+		    <generateObjectClass>ri:inetOrgPerson</generateObjectClass>
+		    <generateObjectClass>ri:groupOfUniqueNames</generateObjectClass>
+		    <generateObjectClass>ri:groupOfNames</generateObjectClass>
+		    <generateObjectClass>ri:organizationalUnit</generateObjectClass>
+		    <generateObjectClass>ri:domain</generateObjectClass>
+		    <generateObjectClass>ri:posixAccount</generateObjectClass>
+		    <generateObjectClass>ri:posixGroup</generateObjectClass>
+		</generationConstraints>
+	</schema>
 
     <schemaHandling>
 
@@ -75,9 +87,10 @@
             <attribute>
                 <ref>ri:dn</ref>
                 <displayName>Distinguished Name</displayName>
+                <volatilityTrigger>true</volatilityTrigger> <!-- Change of DN may cause change of naming attribute -->
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
-                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
+                    <!-- Name mapping cannot be weak. Changes in name trigger object rename. -->
 					<source>
 						<path>$user/name</path>
 					</source>
@@ -177,12 +190,13 @@
             <association>
             	<ref>ri:unixGroup</ref>
             	<displayName>UNIX Group Membership</displayName>
-            	<auxiliaryObjectClass>posixAccount</auxiliaryObjectClass>
+            	<auxiliaryObjectClass>posixAccount</auxiliaryObjectClass> <!-- Strictly speaking should be ri:posixAccount. but it also should work without namespace prefix. -->
             	<kind>entitlement</kind>
             	<intent>unixGroup</intent>
             	<direction>objectToSubject</direction>
             	<associationAttribute>ri:memberUid</associationAttribute>
-            	<valueAttribute>ri:uidNumber</valueAttribute>
+            	<valueAttribute>ri:uid</valueAttribute>
+<!--                    <valueAttribute>ri:uidNumber</valueAttribute>-->
             	<explicitReferentialIntegrity>true</explicitReferentialIntegrity>
             </association>
 
@@ -222,6 +236,15 @@
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
             <objectClass>ri:groupOfUniqueNames</objectClass>
+            <baseContext>
+            	<objectClass>ri:organizationalUnit</objectClass>
+            	<filter>
+            		<q:equal>
+            			<q:path>attributes/dn</q:path>
+            			<q:value>ou=groups,dc=example,dc=com</q:value>
+            		</q:equal>
+            	</filter>
+            </baseContext>
             <attribute>
                 <ref>ri:dn</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
@@ -273,6 +296,15 @@
             <displayName>UNIX Group</displayName>
             <objectClass>ri:groupOfNames</objectClass>
             <auxiliaryObjectClass>ri:posixGroup</auxiliaryObjectClass>
+            <baseContext>
+            	<objectClass>ri:organizationalUnit</objectClass>
+            	<filter>
+            		<q:equal>
+            			<q:path>attributes/dn</q:path>
+            			<q:value>ou=unixgroups,dc=example,dc=com</q:value>
+            		</q:equal>
+            	</filter>
+            </baseContext>
             <attribute>
                 <ref>ri:dn</ref>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
@@ -337,6 +369,10 @@
 	        </cap:activation>
 		</configured>
     </capabilities>
+
+	<consistency>
+		<avoidDuplicateValues>true</avoidDuplicateValues>
+	</consistency>
 
     <synchronization>
     	<objectSynchronization>

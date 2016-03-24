@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -48,8 +48,6 @@
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
-	
-<!-- 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004</namespace> -->
 	
 	<schemaHandling>
 		<objectType>
@@ -279,7 +277,7 @@
 		<objectType>
 			<kind>entitlement</kind>
         	<intent>group</intent>
-        	<default>true</default>
+        	<default>false</default>
         	<objectClass>ri:GroupObjectClass</objectClass>
         	<attribute>
 				<ref>icfs:name</ref>
@@ -312,11 +310,38 @@
 				</inbound>
 			</attribute>
         </objectType>
+
+        <objectType>
+        	<!-- Not really used. It is here just to confuse the tests. -->
+        	<kind>entitlement</kind>
+        	<default>true</default>
+        	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
+        </objectType>
         
+        <objectType>
+        	<!-- Not really used. It is here just to confuse the tests. -->
+        	<kind>entitlement</kind>
+        	<intent>fakePrivilege</intent>
+        	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
+        </objectType>
+
+        <objectType>
+        	<!-- Not really used. It is here just to confuse the tests. -->
+        	<kind>entitlement</kind>
+        	<intent>badPrivilege</intent>
+        	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
+        </objectType>
+
         <objectType>
         	<kind>entitlement</kind>
         	<intent>privilege</intent>
-        	<default>false</default>
+        	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
+        </objectType>
+
+        <objectType>
+        	<!-- Not really used. It is here just to confuse the tests. -->
+        	<kind>entitlement</kind>
+        	<intent>uglyPrivilege</intent>
         	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
         </objectType>
 		

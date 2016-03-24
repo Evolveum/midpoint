@@ -16,30 +16,34 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.lang3.StringUtils;
 
+import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType.F_ADDITIONAL_REVIEWER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType.F_DEFAULT_REVIEWER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType.F_REVIEWER_SPECIFICATION;
 
 /**
  * @author mederly
@@ -56,16 +60,23 @@ public class CertDefinitionDto implements Serializable {
     public static final String F_STAGE_DEFINITION = "stageDefinition";
     public static final String F_LAST_STARTED = "lastStarted";
     public static final String F_LAST_CLOSED = "lastClosed";
+    public static final String F_OUTCOME_STRATEGY = "outcomeStrategy";
+    public static final String F_STOP_REVIEW_ON = "stopReviewOn";
+    //public static final String F_ADVANCE_TO_NEXT_STAGE_ON = "advanceToNextStageOn";
 
     private AccessCertificationDefinitionType oldDefinition;            // to be able to compute the delta when saving
     private AccessCertificationDefinitionType definition;               // definition that is (at least partially) dynamically updated when editing the form
     private final DefinitionScopeDto definitionScopeDto;
     private final List<StageDefinitionDto> stageDefinition;
     private AccessCertificationRemediationStyleType remediationStyle;
+    private AccessCertificationCaseOutcomeStrategyType outcomeStrategy;
+    //private List<AccessCertificationResponseType> stopReviewOn, advanceToNextStageOn;
     private String xml;
     private ObjectViewDto owner;
 
-    public CertDefinitionDto(AccessCertificationDefinitionType definition, PageBase page) {
+    public CertDefinitionDto(AccessCertificationDefinitionType definition, PageBase page,
+            PrismContext prismContext)
+            throws SchemaException {
         this.oldDefinition = definition.clone();
         this.definition = definition;
         owner = loadOwnerReference(definition.getOwnerRef());
@@ -79,12 +90,17 @@ public class CertDefinitionDto implements Serializable {
         definitionScopeDto = createDefinitionScopeDto(definition.getScopeDefinition(), page.getPrismContext());
         stageDefinition = new ArrayList<>();
         for (AccessCertificationStageDefinitionType stageDef  : definition.getStageDefinition()){
-            stageDefinition.add(createStageDefinitionDto(stageDef));
+            stageDefinition.add(createStageDefinitionDto(stageDef, prismContext));
         }
         if (definition.getRemediationDefinition() != null) {
             remediationStyle = definition.getRemediationDefinition().getStyle();
         } else {
             remediationStyle = AccessCertificationRemediationStyleType.AUTOMATED;           // TODO consider the default...
+        }
+        if (definition.getReviewStrategy() != null) {
+            outcomeStrategy = definition.getReviewStrategy().getOutcomeStrategy();
+        } else {
+            outcomeStrategy = AccessCertificationCaseOutcomeStrategyType.ONE_DENY_DENIES;   // TODO consider the default...
         }
     }
 
@@ -93,7 +109,7 @@ public class CertDefinitionDto implements Serializable {
 
         if (ref != null) {
             if (ref.getTargetName() != null) {
-                dto = new ObjectViewDto(ref.getOid(), WebMiscUtil.getOrigStringFromPoly(ref.getTargetName()));
+                dto = new ObjectViewDto(ref.getOid(), WebComponentUtil.getOrigStringFromPoly(ref.getTargetName()));
                 dto.setType(UserType.class);
                 return dto;
             } else {
@@ -113,7 +129,7 @@ public class CertDefinitionDto implements Serializable {
     }
 
     public String getName() {
-        return WebMiscUtil.getName(definition);
+        return WebComponentUtil.getName(definition);
     }
 
     public String getDescription() {
@@ -128,16 +144,27 @@ public class CertDefinitionDto implements Serializable {
         return definition;
     }
 
-    public AccessCertificationDefinitionType getUpdatedDefinition(PrismContext prismContext) {
+    public AccessCertificationDefinitionType getUpdatedDefinition(PrismContext prismContext)
+            throws SchemaException {
         updateOwner();
         updateScopeDefinition(prismContext);
-        updateStageDefinition();
+        updateStageDefinition(prismContext);
         if (remediationStyle != null) {
             AccessCertificationRemediationDefinitionType remDef = new AccessCertificationRemediationDefinitionType(prismContext);
             remDef.setStyle(remediationStyle);
             definition.setRemediationDefinition(remDef);
         } else {
             definition.setRemediationDefinition(null);
+        }
+        if (outcomeStrategy != null) {
+            if (definition.getReviewStrategy() == null) {
+                definition.setReviewStrategy(new AccessCertificationCaseReviewStrategyType());
+            }
+            definition.getReviewStrategy().setOutcomeStrategy(outcomeStrategy);
+        } else {
+            if (definition.getReviewStrategy() != null) {
+                definition.getReviewStrategy().setOutcomeStrategy(null);
+            }
         }
         return definition;
     }
@@ -221,24 +248,36 @@ public class CertDefinitionDto implements Serializable {
         return dto;
     }
 
-    private StageDefinitionDto createStageDefinitionDto(AccessCertificationStageDefinitionType stageDefObj) {
+    private StageDefinitionDto createStageDefinitionDto(AccessCertificationStageDefinitionType stageDefObj,
+            PrismContext prismContext)
+            throws SchemaException {
         StageDefinitionDto dto = new StageDefinitionDto();
         if (stageDefObj != null) {
             dto.setNumber(stageDefObj.getNumber());
             dto.setName(stageDefObj.getName());
             dto.setDescription(stageDefObj.getDescription());
-            dto.setDays(stageDefObj.getDays());
-            dto.setNotifyBeforeDeadline(convertListIntegerToString(stageDefObj.getNotifyBeforeDeadline()));
+            if (stageDefObj.getDuration() != null) {
+                dto.setDuration(stageDefObj.getDuration().toString());
+            }
+            dto.setNotifyBeforeDeadline(convertDurationListToString(stageDefObj.getNotifyBeforeDeadline()));
             dto.setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefObj.isNotifyOnlyWhenNoDecision()));
-            dto.setReviewerDto(createAccessCertificationReviewerDto(stageDefObj.getReviewerSpecification()));
+            dto.setReviewerDto(createAccessCertificationReviewerDto(stageDefObj.getReviewerSpecification(), prismContext));
+            dto.setOutcomeStrategy(stageDefObj.getOutcomeStrategy());
+            dto.setOutcomeIfNoReviewers(stageDefObj.getOutcomeIfNoReviewers());
+            dto.setStopReviewOnRaw(new ArrayList<>(stageDefObj.getStopReviewOn()));
+            dto.setAdvanceToNextStageOnRaw(new ArrayList<>(stageDefObj.getAdvanceToNextStageOn()));
         } else {
-            dto.setReviewerDto(new AccessCertificationReviewerDto());
+            dto.setReviewerDto(createAccessCertificationReviewerDto(null, prismContext));
         }
         return dto;
     }
 
-    private AccessCertificationReviewerDto createAccessCertificationReviewerDto(AccessCertificationReviewerSpecificationType reviewer) {
+    private AccessCertificationReviewerDto createAccessCertificationReviewerDto(
+            AccessCertificationReviewerSpecificationType reviewer, PrismContext prismContext)
+            throws SchemaException {
         AccessCertificationReviewerDto dto = new AccessCertificationReviewerDto();
+        final PrismReference defaultReviewersReference;
+        final PrismReference additionalReviewersReference;
         if (reviewer != null) {
             dto.setName(reviewer.getName());
             dto.setDescription(reviewer.getDescription());
@@ -247,14 +286,21 @@ public class CertDefinitionDto implements Serializable {
             dto.setUseObjectOwner(Boolean.TRUE.equals(reviewer.isUseObjectOwner()));
             dto.setUseObjectApprover(Boolean.TRUE.equals(reviewer.isUseObjectApprover()));
             dto.setUseObjectManager(createManagerSearchDto(reviewer.getUseObjectManager()));
-            dto.setDefaultReviewerRef(cloneListObjects(reviewer.getDefaultReviewerRef()));
-            dto.setAdditionalReviewerRef(cloneListObjects(reviewer.getAdditionalReviewerRef()));
-            dto.setApprovalStrategy(reviewer.getApprovalStrategy());
-            dto.setFirstDefaultReviewerRef(loadOwnerReference(reviewer.getDefaultReviewerRef() == null ? null :
-                    (reviewer.getDefaultReviewerRef().size() == 0 ? null : reviewer.getDefaultReviewerRef().get(0))));
-            dto.setFirstAdditionalReviewerRef(loadOwnerReference(reviewer.getAdditionalReviewerRef() == null ? null :
-                    (reviewer.getAdditionalReviewerRef().size() == 0 ? null : reviewer.getAdditionalReviewerRef().get(0))));
+            defaultReviewersReference = reviewer.asPrismContainerValue().findOrCreateReference(AccessCertificationReviewerSpecificationType.F_DEFAULT_REVIEWER_REF);
+            additionalReviewersReference = reviewer.asPrismContainerValue().findOrCreateReference(AccessCertificationReviewerSpecificationType.F_ADDITIONAL_REVIEWER_REF);
+        } else {
+            PrismReferenceDefinition defReviewerDef = prismContext.getSchemaRegistry().findItemDefinitionByFullPath(AccessCertificationDefinitionType.class,
+                    PrismReferenceDefinition.class,
+                    AccessCertificationDefinitionType.F_STAGE_DEFINITION, F_REVIEWER_SPECIFICATION, F_DEFAULT_REVIEWER_REF);
+            defaultReviewersReference = defReviewerDef.instantiate();
+            PrismReferenceDefinition additionalReviewerDef = prismContext.getSchemaRegistry().findItemDefinitionByFullPath(AccessCertificationDefinitionType.class,
+                    PrismReferenceDefinition.class,
+                    AccessCertificationDefinitionType.F_STAGE_DEFINITION, F_REVIEWER_SPECIFICATION, F_ADDITIONAL_REVIEWER_REF);
+            additionalReviewersReference = additionalReviewerDef.instantiate();
+
         }
+        dto.setDefaultReviewers(new ReferenceWrapper(null, defaultReviewersReference, false, ValueStatus.NOT_CHANGED));
+        dto.setAdditionalReviewers(new ReferenceWrapper(null, additionalReviewersReference, false, ValueStatus.NOT_CHANGED));
         return dto;
     }
 
@@ -313,33 +359,39 @@ public class CertDefinitionDto implements Serializable {
         definition.setScopeDefinition(scopeTypeObj);
     }
 
-    public void updateStageDefinition() {
+    public void updateStageDefinition(PrismContext prismContext) throws SchemaException {
         List<AccessCertificationStageDefinitionType> stageDefinitionTypeList = new ArrayList<>();
         if (stageDefinition != null && stageDefinition.size() > 0) {
             for (StageDefinitionDto stageDefinitionDto : stageDefinition){
-                stageDefinitionTypeList.add(createStageDefinitionType(stageDefinitionDto));
+                stageDefinitionTypeList.add(createStageDefinitionType(stageDefinitionDto, prismContext));
             }
         }
         definition.getStageDefinition().clear();
         definition.getStageDefinition().addAll(stageDefinitionTypeList);
     }
 
-    private AccessCertificationStageDefinitionType createStageDefinitionType(StageDefinitionDto stageDefDto) {
+    private AccessCertificationStageDefinitionType createStageDefinitionType(StageDefinitionDto stageDefDto, PrismContext prismContext)
+            throws SchemaException {
         AccessCertificationStageDefinitionType stageDefType = new AccessCertificationStageDefinitionType();
         if (stageDefDto != null) {
             stageDefType.setNumber(stageDefDto.getNumber());
             stageDefType.setName(stageDefDto.getName());
             stageDefType.setDescription(stageDefDto.getDescription());
-            stageDefType.setDays(stageDefDto.getDays());
+            if (StringUtils.isNotBlank(stageDefDto.getDuration())) {
+                stageDefType.setDuration(XmlTypeConverter.createDuration(stageDefDto.getDuration()));
+            }
             stageDefType.getNotifyBeforeDeadline().clear();
-            stageDefType.getNotifyBeforeDeadline().addAll(convertStringToListInteger(stageDefDto.getNotifyBeforeDeadline()));
+            stageDefType.getNotifyBeforeDeadline().addAll(convertStringToDurationList(stageDefDto.getNotifyBeforeDeadline()));
             stageDefType.setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefDto.isNotifyOnlyWhenNoDecision()));
-            stageDefType.setReviewerSpecification(createAccessCertificationReviewerType(stageDefDto.getReviewerDto()));
+            stageDefType.setReviewerSpecification(createAccessCertificationReviewerType(stageDefDto.getReviewerDto(), prismContext));
+            stageDefType.setOutcomeStrategy(stageDefDto.getOutcomeStrategy());
+            stageDefType.setOutcomeIfNoReviewers(stageDefDto.getOutcomeIfNoReviewers());
         }
         return stageDefType;
     }
 
-    private AccessCertificationReviewerSpecificationType createAccessCertificationReviewerType(AccessCertificationReviewerDto reviewerDto) {
+    private AccessCertificationReviewerSpecificationType createAccessCertificationReviewerType(
+            AccessCertificationReviewerDto reviewerDto, PrismContext prismContext) throws SchemaException {
         AccessCertificationReviewerSpecificationType reviewerObject = new AccessCertificationReviewerSpecificationType();
         if (reviewerDto != null) {
             reviewerObject.setName(reviewerDto.getName());
@@ -349,13 +401,10 @@ public class CertDefinitionDto implements Serializable {
             reviewerObject.setUseObjectOwner(Boolean.TRUE.equals(reviewerDto.isUseObjectOwner()));
             reviewerObject.setUseObjectApprover(Boolean.TRUE.equals(reviewerDto.isUseObjectApprover()));
             reviewerObject.setUseObjectManager(createManagerSearchType(reviewerDto.getUseObjectManager()));
-            updateDefaultReviewer(reviewerDto);
             reviewerObject.getDefaultReviewerRef().clear();
-            reviewerObject.getDefaultReviewerRef().addAll(cloneListObjectsForSave(reviewerDto.getDefaultReviewerRef()));
-            updateAdditionalReviewer(reviewerDto);
+            reviewerObject.getDefaultReviewerRef().addAll(reviewerDto.getDefaultReviewersAsObjectReferenceList(prismContext));
             reviewerObject.getAdditionalReviewerRef().clear();
-            reviewerObject.getAdditionalReviewerRef().addAll(cloneListObjectsForSave(reviewerDto.getAdditionalReviewerRef()));
-            reviewerObject.setApprovalStrategy(reviewerDto.getApprovalStrategy());
+            reviewerObject.getAdditionalReviewerRef().addAll(reviewerDto.getAdditionalReviewersAsObjectReferenceList(prismContext));
         }
         return reviewerObject;
     }
@@ -378,72 +427,23 @@ public class CertDefinitionDto implements Serializable {
         return managerSearchDto;
     }
 
-    private String convertListIntegerToString(List<Integer> list){
-        String result = "";
-        for (Integer listItem : list){
-            result += Integer.toString(listItem);
-            if(list.indexOf(listItem) < list.size() - 1){
-                result += ", ";
-            }
-        }
+    private String convertDurationListToString(List<Duration> list){
+        String result = StringUtils.join(list, ", ");
         return result;
     }
 
-    private List<Integer> convertStringToListInteger(String object){
-        List<Integer> list = new ArrayList<>();
+    private List<Duration> convertStringToDurationList(String object){
+        List<Duration> list = new ArrayList<>();
         if (object != null) {
             String[] values = object.split(",");
             for (String value : values) {
-                if (!value.trim().equals("")) {
-                    list.add(Integer.parseInt(value.trim()));
+                value = value.trim();
+                if (!value.equals("")) {
+                    list.add(XmlTypeConverter.createDuration(value));
                 }
             }
         }
         return list;
-    }
-
-    private void updateDefaultReviewer(AccessCertificationReviewerDto reviewerDto){
-        if (reviewerDto.getFirstDefaultReviewerRef() != null) {
-            String oid = reviewerDto.getFirstDefaultReviewerRef().getKnownOid();
-            if (reviewerDto.getDefaultReviewerRef() == null){
-                reviewerDto.setDefaultReviewerRef(new ArrayList<ObjectReferenceType>());
-            }
-            if (oid != null) {
-                if (reviewerDto.getDefaultReviewerRef().size() == 0){
-                    reviewerDto.getDefaultReviewerRef().
-                            add(ObjectTypeUtil.createObjectRef(reviewerDto.getFirstDefaultReviewerRef().getKnownOid(), ObjectTypes.USER));
-                } else {
-                    reviewerDto.getDefaultReviewerRef().
-                            set(0, ObjectTypeUtil.createObjectRef(reviewerDto.getFirstDefaultReviewerRef().getKnownOid(), ObjectTypes.USER));
-                }
-            } else {
-                if (reviewerDto.getDefaultReviewerRef().size() > 0) {
-                    reviewerDto.getDefaultReviewerRef().remove(0);
-                }
-            }
-        }
-    }
-
-    private void updateAdditionalReviewer(AccessCertificationReviewerDto reviewerDto){
-        if (reviewerDto.getFirstAdditionalReviewerRef() != null) {
-            String oid = reviewerDto.getFirstAdditionalReviewerRef().getKnownOid();
-            if (reviewerDto.getAdditionalReviewerRef() == null){
-                reviewerDto.setAdditionalReviewerRef(new ArrayList<ObjectReferenceType>());
-            }
-            if (oid != null) {
-                if (reviewerDto.getAdditionalReviewerRef().size() == 0){
-                    reviewerDto.getAdditionalReviewerRef().
-                            add(ObjectTypeUtil.createObjectRef(reviewerDto.getFirstAdditionalReviewerRef().getKnownOid(), ObjectTypes.USER));
-                } else {
-                    reviewerDto.getAdditionalReviewerRef().
-                            set(0, ObjectTypeUtil.createObjectRef(reviewerDto.getFirstAdditionalReviewerRef().getKnownOid(), ObjectTypes.USER));
-                }
-            } else {
-                if (reviewerDto.getAdditionalReviewerRef().size() > 0) {
-                    reviewerDto.getDefaultReviewerRef().remove(0);
-                }
-            }
-        }
     }
 
     public String getLastStarted() {
@@ -454,11 +454,30 @@ public class CertDefinitionDto implements Serializable {
         if (dateGc == null) {
             return "-";
         } else {
-            return WebMiscUtil.formatDate(XmlTypeConverter.toDate(dateGc));
+            return WebComponentUtil.formatDate(XmlTypeConverter.toDate(dateGc));
         }
     }
 
     public String getLastClosed() {
         return formatDate(definition.getLastCampaignClosedTimestamp());
+    }
+
+    public AccessCertificationCaseOutcomeStrategyType getOutcomeStrategy() {
+        return outcomeStrategy;
+    }
+
+    public void setOutcomeStrategy(AccessCertificationCaseOutcomeStrategyType outcomeStrategy) {
+        this.outcomeStrategy = outcomeStrategy;
+    }
+
+    public List<AccessCertificationResponseType> getStopReviewOn() {
+        if (definition.getReviewStrategy() == null) {
+            return null;
+        }
+        AccessCertificationCaseReviewStrategyType strategy = definition.getReviewStrategy();
+        if (strategy.getStopReviewOn().isEmpty() && strategy.getAdvanceToNextStageOn().isEmpty()) {
+            return null;
+        }
+        return CertCampaignTypeUtil.getOutcomesToStopOn(strategy.getStopReviewOn(), strategy.getAdvanceToNextStageOn());
     }
 }

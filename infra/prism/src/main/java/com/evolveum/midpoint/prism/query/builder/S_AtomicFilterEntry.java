@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.query.builder;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -33,6 +34,8 @@ public interface S_AtomicFilterEntry {
     S_AtomicFilterExit undefined() throws SchemaException;
     S_ConditionEntry item(QName... names) throws SchemaException;
     S_ConditionEntry item(ItemPath itemPath, ItemDefinition itemDefinition) throws SchemaException;
+    S_ConditionEntry item(PrismContainerDefinition containerDefinition, QName... names) throws SchemaException;
+    S_ConditionEntry item(PrismContainerDefinition containerDefinition, ItemPath itemPath) throws SchemaException;
     S_AtomicFilterExit id(String... identifiers) throws SchemaException;
     S_AtomicFilterExit id(long... identifiers) throws SchemaException;
     S_AtomicFilterExit ownerId(String... identifiers) throws SchemaException;

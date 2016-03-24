@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -181,7 +181,7 @@ import static org.testng.AssertJUnit.fail;
 
 /**
  * Abstract framework for an integration test that is placed on top of a model API.
- * This provides complete environment that the test should need, e.g model service instance, repository, provisionig,
+ * This provides complete environment that the test should need, e.g model service instance, repository, provisioning,
  * dummy auditing, etc. It also implements lots of useful methods to make writing the tests easier.
  *  
  * @author Radovan Semancik
@@ -208,6 +208,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			ActivationType.F_VALID_FROM);
 	protected static final ItemPath ACTIVATION_VALID_TO_PATH = new ItemPath(UserType.F_ACTIVATION, 
 			ActivationType.F_VALID_TO);
+	
+	protected static final ItemPath PASSWORD_VALUE_PATH = new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 	
 	@Autowired(required = true)
 	protected ModelService modelService;
@@ -791,6 +793,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assignOrg(userOid, orgOid, null, task, result);
 	}
 	
+	protected void assignOrg(String userOid, String orgOid, QName relation) 
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
+			CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+			PolicyViolationException, SecurityViolationException {
+		Task task = createTask(AbstractIntegrationTest.class.getName()+".assignOrg");
+		OperationResult result = task.getResult();
+		assignOrg(userOid, orgOid, relation, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+	
 	protected void assignOrg(String userOid, String orgOid, QName relation, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
@@ -984,6 +997,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		result.computeStatus();
 		TestUtil.assertSuccess("getObject(User) result not success", result);
 		return user;
+	}
+
+	protected PrismObject<UserType> getUserFromRepo(String userOid) throws ObjectNotFoundException, SchemaException {
+		return repositoryService.getObject(UserType.class, userOid, null, new OperationResult("dummy"));
 	}
 	
 	protected <O extends ObjectType> PrismObject<O> findObjectByName(Class<O> type, String name) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
@@ -1790,7 +1807,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     
 	protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
                                      QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
-		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule);
+		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, false);
 		IntegrationTestTools.assertProvisioningShadow(accountShadow, resourceType, RefinedAttributeDefinition.class, objectClass);
 	}
 	
@@ -2033,6 +2050,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				new UsernamePasswordAuthenticationToken(
 						new MidPointPrincipal(object.asObjectable()), null));
 	}
+
+	protected String getSecurityContextUserOid() {
+		return ((MidPointPrincipal) (SecurityContextHolder.getContext().getAuthentication().getPrincipal())).getOid();
+	}
 	
 	protected <F extends FocusType> void assertSideEffectiveDeltasOnly(String desc, ObjectDelta<F> focusDelta) {
 		if (focusDelta == null) {
@@ -2152,6 +2173,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return object;
 	}
 
+	protected <O extends ObjectType> PrismObject<O> getObjectViaRepo(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getObject");
+		OperationResult result = task.getResult();
+		PrismObject<O> object = repositoryService.getObject(type, oid, null, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		return object;
+	}
+
     protected <O extends ObjectType> void addObjects(File... files) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         for (File file : files) {
             addObject(file);
@@ -2185,6 +2215,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <O extends ObjectType> void deleteObject(Class<O> type, String oid, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<O> delta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
 		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+	}
+
+	protected <O extends ObjectType> void deleteObject(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".deleteObject");
+		OperationResult result = task.getResult();
+		ObjectDelta<O> delta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
+		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
 	}
 	
 	protected void addTrigger(String oid, XMLGregorianCalendar timestamp, String uri) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -2969,15 +3008,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertNotNull("No password metadata in "+user, metadataContainer);
 		MetadataType metadataType = metadataContainer.getValue().asContainerable();
 		if (create) {
-			ObjectReferenceType creatorRef = metadataType.getCreatorRef();
-			assertNotNull("No creatorRef in password metadata in "+user, creatorRef);
-			assertEquals("Wrong creatorRef OID in password metadata in "+user, actorOid, creatorRef.getOid());
+			if (actorOid != null) {
+				ObjectReferenceType creatorRef = metadataType.getCreatorRef();
+				assertNotNull("No creatorRef in password metadata in "+user, creatorRef);
+				assertEquals("Wrong creatorRef OID in password metadata in "+user, actorOid, creatorRef.getOid());
+			}
 			TestUtil.assertBetween("Wrong password create timestamp in password metadata in "+user, start, end, metadataType.getCreateTimestamp());
 			assertEquals("Wrong create channel", channel, metadataType.getCreateChannel());
 		} else {
-			ObjectReferenceType modifierRef = metadataType.getModifierRef();
-			assertNotNull("No modifierRef in password metadata in "+user, modifierRef);
-			assertEquals("Wrong modifierRef OID in password metadata in "+user, actorOid, modifierRef.getOid());
+			if (actorOid != null) {
+				ObjectReferenceType modifierRef = metadataType.getModifierRef();
+				assertNotNull("No modifierRef in password metadata in "+user, modifierRef);
+				assertEquals("Wrong modifierRef OID in password metadata in "+user, actorOid, modifierRef.getOid());
+			}
 			TestUtil.assertBetween("Wrong password modify timestamp in password metadata in "+user, start, end, metadataType.getModifyTimestamp());
 			assertEquals("Wrong modification channel", channel, metadataType.getModifyChannel());
 		}

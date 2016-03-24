@@ -1,9 +1,9 @@
 package com.evolveum.midpoint.web.component.wizard;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.*;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -147,7 +147,7 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
             if(activeStep != null){
                 OperationResult result = ((WizardStep)activeStep).getResult();
 
-                getPageBase().showResultInSession(result);
+                getPageBase().showResult(result);
             }
         }
 

@@ -304,6 +304,20 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     @Override
+    public S_ConditionEntry item(PrismContainerDefinition containerDefinition, QName... names) throws SchemaException {
+        return item(containerDefinition, new ItemPath(names));
+    }
+
+    @Override
+    public S_ConditionEntry item(PrismContainerDefinition containerDefinition, ItemPath itemPath) throws SchemaException {
+        ItemDefinition itemDefinition = containerDefinition.findItemDefinition(itemPath);
+        if (itemDefinition == null) {
+            throw new SchemaException("No definition of " + itemPath + " in " + containerDefinition);
+        }
+        return item(itemPath, itemDefinition);
+    }
+
+    @Override
     public S_AtomicFilterExit endBlock() throws SchemaException {
         if (parentFilter == null) {
             throw new SchemaException("endBlock() call without preceding block() one");
@@ -330,11 +344,27 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     @Override
+    public S_FilterExit asc(ItemPath path) throws SchemaException {
+        if (ItemPath.isNullOrEmpty(path)) {
+            throw new SchemaException("There must be non-empty path for asc(...) ordering");
+        }
+        return addOrdering(ObjectOrdering.createOrdering(path, OrderDirection.ASCENDING));
+    }
+
+    @Override
     public S_FilterExit desc(QName... names) throws SchemaException {
         if (names.length == 0) {
             throw new SchemaException("There must be at least one name for asc(...) ordering");
         }
         return addOrdering(ObjectOrdering.createOrdering(new ItemPath(names), OrderDirection.DESCENDING));
+    }
+
+    @Override
+    public S_FilterExit desc(ItemPath path) throws SchemaException {
+        if (ItemPath.isNullOrEmpty(path)) {
+            throw new SchemaException("There must be non-empty path for desc(...) ordering");
+        }
+        return addOrdering(ObjectOrdering.createOrdering(path, OrderDirection.DESCENDING));
     }
 
     @Override

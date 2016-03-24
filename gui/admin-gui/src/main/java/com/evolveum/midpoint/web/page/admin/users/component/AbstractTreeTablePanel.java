@@ -31,6 +31,8 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
@@ -47,8 +49,6 @@ import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.model.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
 import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
@@ -66,6 +66,8 @@ public abstract class AbstractTreeTablePanel extends SimplePanel<String> {
 
     protected static final int CONFIRM_DELETE = 0;
     protected static final int CONFIRM_DELETE_ROOT = 1;
+    protected static final int CONFIRM_DELETE_MANAGER = 2;
+    protected static final int CONFIRM_DELETE_MEMBER = 3;
 
     protected static final String DOT_CLASS = AbstractTreeTablePanel.class.getName() + ".";
     protected static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";

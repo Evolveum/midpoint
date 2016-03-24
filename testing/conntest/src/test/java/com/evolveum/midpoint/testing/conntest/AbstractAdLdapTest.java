@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,6 +91,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -115,6 +116,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	public static final String ATTRIBUTE_OBJECT_GUID_NAME = "objectGUID";
 	public static final String ATTRIBUTE_SAM_ACCOUNT_NAME_NAME = "sAMAccountName";
 	public static final String ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME = "userAccountControl";
+	public static final QName ATTRIBUTE_USER_ACCOUNT_CONTROL_QNAME = new QName(MidPointConstants.NS_RI, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME);
 	public static final String ATTRIBUTE_UNICODE_PWD_NAME = "unicodePwd";
 	
 	protected static final String ACCOUNT_JACK_SAM_ACCOUNT_NAME = "jack";
@@ -137,8 +139,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	protected String jackAccountOid;
 	protected String groupPiratesOid;
 	protected long jackLockoutTimestamp;
-	private String accountBarbossaOid;
-	private String orgMeleeIslandOid;
+	protected String accountBarbossaOid;
+	protected String orgMeleeIslandOid;
 	protected String groupMeleeOid;
 	
 	@Override
@@ -231,6 +233,11 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	}
 	
 	@Override
+	protected boolean isGroupMemberMandatory() {
+		return false;
+	}
+	
+	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
@@ -259,6 +266,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		cleanupDelete(toAccountDn(USER_CPTBARBOSSA_USERNAME, USER_CPTBARBOSSA_FULL_NAME));
 		cleanupDelete(toAccountDn(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME));
 		cleanupDelete(toGroupDn(GROUP_MELEE_ISLAND_NAME));
+		cleanupDelete(toGroupDn(GROUP_FOOLS_CN));
 	}
 
 	@Test
@@ -312,26 +320,21 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
         ResourceAttributeDefinition<Long> nTSecurityDescriptorDef = accountObjectClassDefinition.findAttributeDefinition("nTSecurityDescriptor");
         PrismAsserts.assertDefinition(nTSecurityDescriptorDef, new QName(MidPointConstants.NS_RI, "nTSecurityDescriptor"),
-        		DOMUtil.XSD_BASE64BINARY, 1, 1);
+        		DOMUtil.XSD_BASE64BINARY, 0, 1);
         assertTrue("nTSecurityDescriptor read", nTSecurityDescriptorDef.canRead());
         assertTrue("nTSecurityDescriptor modify", nTSecurityDescriptorDef.canModify());
         assertTrue("nTSecurityDescriptor add", nTSecurityDescriptorDef.canAdd());
         
+        ResourceAttributeDefinition<Long> lastLogonDef = accountObjectClassDefinition.findAttributeDefinition("lastLogon");
+        PrismAsserts.assertDefinition(lastLogonDef, new QName(MidPointConstants.NS_RI, "lastLogon"),
+        		DOMUtil.XSD_LONG, 0, 1);
+        assertTrue("lastLogonDef read", lastLogonDef.canRead());
+        assertTrue("lastLogonDef modify", lastLogonDef.canModify());
+        assertTrue("lastLogonDef add", lastLogonDef.canAdd());
+        
 	}
 	
-	@Test
-    public void test050Capabilities() throws Exception {
-		final String TEST_NAME = "test050Capabilities";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        
-        Collection<Object> nativeCapabilitiesCollection = ResourceTypeUtil.getNativeCapabilitiesCollection(resourceType);
-        display("Native capabilities", nativeCapabilitiesCollection);
-        
-//        assertTrue("No native activation capability", ResourceTypeUtil.hasResourceNativeActivationCapability(resourceType));
-//        assertTrue("No native activation status capability", ResourceTypeUtil.hasResourceNativeActivationStatusCapability(resourceType));
-//        assertTrue("No native lockout capability", ResourceTypeUtil.hasResourceNativeActivationLockoutCapability(resourceType));
-        assertTrue("No native credentias capability", ResourceTypeUtil.isCredentialsCapabilityEnabled(resourceType));
-	}
+	// test050 in subclasses
 	
 	@Test
     public void test100SeachJackBySamAccountName() throws Exception {
@@ -433,6 +436,13 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         jackAccountOid = shadow.getOid();
         
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
+        
+        assertAttribute(shadow, "dn", "CN=Jack Sparrow,CN=Users,DC=win,DC=evolveum,DC=com");
+        assertAttribute(shadow, "cn", ACCOUNT_JACK_FULL_NAME);
+        assertAttribute(shadow, "sn", "Sparrow");
+        assertAttribute(shadow, "info", "The best pirate the world has ever seen");
+        assertAttribute(shadow, "sAMAccountName", ACCOUNT_JACK_SAM_ACCOUNT_NAME);
+        assertAttribute(shadow, "lastLogon", 0L);
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
@@ -690,7 +700,9 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         String accountBarbossaIcfUid = (String) identifiers.iterator().next().getRealValue();
         assertNotNull("No identifier in "+shadow, accountBarbossaIcfUid);
         
-        assertEquals("Wrong ICFS UID", MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes()), accountBarbossaIcfUid);
+        assertEquals("Wrong ICFS UID", 
+        		formatGuidToDashedNotation(MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
+        		accountBarbossaIcfUid);
         
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);
         
@@ -845,8 +857,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	}
 	
 	@Test
-    public void test230DisableBarbossa() throws Exception {
-		final String TEST_NAME = "test230DisableBarbossa";
+    public void test230DisableUserBarbossa() throws Exception {
+		final String TEST_NAME = "test230DisableUserBarbossa";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -872,7 +884,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-        assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
+        assertAccountDisabled(shadow);
         
         try {
         	assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, "here.There.Be.Monsters");
@@ -881,10 +893,10 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         	// this is expected
         }
 	}
-	
+
 	@Test
-    public void test239EnableBarbossa() throws Exception {
-		final String TEST_NAME = "test239EnableBarbossa";
+    public void test239EnableUserBarbossa() throws Exception {
+		final String TEST_NAME = "test239EnableUserBarbossa";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -910,9 +922,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-        assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
+        assertAccountEnabled(shadow);
 	}
-
 
 	/**
 	 * This should create account with a group. And disabled.
@@ -951,7 +962,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
-        assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
+        assertAccountDisabled(shadow);
 	}
 	
 	@Test
@@ -1016,7 +1027,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-        assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
+        assertAccountEnabled(shadow);
         
         assertLdapPassword(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, "wanna.be.a.123");
 	}
@@ -1244,7 +1255,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		ResourceAttribute<String> primaryIdAttr = ShadowUtil.getAttribute(shadow, getPrimaryIdentifierAttributeQName());
 		assertNotNull("No primary identifier ("+getPrimaryIdentifierAttributeQName()+" in "+shadow, primaryIdAttr);
 		String primaryId = primaryIdAttr.getRealValue();
-		assertTrue("Unexpected chars in primary ID: '"+primaryId+"'", primaryId.matches("[a-z0-9]+"));
+		assertTrue("Unexpected chars in primary ID: '"+primaryId+"'", primaryId.matches("[a-z0-9\\-]+"));
 	}
 
 	@Override
@@ -1340,5 +1351,43 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		TestUtil.assertSuccess(result);
 	}
 
+	public <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
+		assertAttribute(shadow, new QName(getResourceNamespace(), attrName), expectedValues);
+	}
 	
+	public <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrQname, T... expectedValues) {
+		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
+		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);
+	}
+	
+	/**
+	 * Returns dashed GUID notation formatted from simple hex-encoded binary.
+	 * 
+	 * E.g. "2f01c06bb1d0414e9a69dd3841a13506" -> "6bc0012f-d0b1-4e41-9a69-dd3841a13506"
+	 */
+	public String formatGuidToDashedNotation(String hexValue) {
+		if (hexValue == null) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append(hexValue.substring(6, 8));
+		sb.append(hexValue.substring(4, 6));
+		sb.append(hexValue.substring(2, 4));
+		sb.append(hexValue.substring(0, 2));
+		sb.append('-');
+		sb.append(hexValue.substring(10, 12));
+		sb.append(hexValue.substring(8, 10));
+		sb.append('-');
+		sb.append(hexValue.substring(14, 16));
+		sb.append(hexValue.substring(12, 14));
+		sb.append('-');
+		sb.append(hexValue.substring(16, 20));
+		sb.append('-');
+		sb.append(hexValue.substring(20, 32));
+		return sb.toString();
+	}
+	
+	protected abstract void assertAccountDisabled(PrismObject<ShadowType> shadow);
+	
+	protected abstract void assertAccountEnabled(PrismObject<ShadowType> shadow);
 }

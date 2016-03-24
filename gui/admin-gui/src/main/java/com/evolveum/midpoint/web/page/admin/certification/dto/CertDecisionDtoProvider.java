@@ -16,7 +16,8 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
-import com.evolveum.midpoint.certification.api.CertificationManager;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -28,7 +29,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -69,16 +69,19 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
             Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
             
             ObjectQuery caseQuery = getQuery();
-            if (caseQuery == null){
+            if (caseQuery == null) {
             	caseQuery = new ObjectQuery();
+            } else {
+                caseQuery = caseQuery.clone();
             }
             caseQuery.setPaging(paging);
+            SearchingUtils.hackPaging(caseQuery);
 
             Collection<SelectorOptions<GetOperationOptions>> resolveNames =
                     SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
 
-            CertificationManager certificationManager = getPage().getCertificationManager();
-            List<AccessCertificationCaseType> caseList = certificationManager.searchDecisions(caseQuery, reviewerOid, notDecidedOnly, resolveNames, task, result);
+            AccessCertificationService acs = getPage().getCertificationService();
+            List<AccessCertificationCaseType> caseList = acs.searchDecisionsToReview(caseQuery, notDecidedOnly, resolveNames, task, result);
 
             for (AccessCertificationCaseType _case : caseList) {
                 getAvailableData().add(new CertDecisionDto(_case, getPage()));
@@ -90,7 +93,7 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
             result.computeStatusIfUnknown();
         }
 
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             handleNotSuccessOrHandledErrorInIterator(result);
         }
 
@@ -99,7 +102,7 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
     }
 
     protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result){
-        getPage().showResultInSession(result);
+        getPage().showResult(result);
         throw new RestartResponseException(PageError.class);
     }
 
@@ -111,10 +114,10 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
             Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
-            CertificationManager certificationManager = getPage().getCertificationManager();
+            AccessCertificationService acs = getPage().getCertificationService();
             ObjectQuery query = getQuery().clone();
             query.setPaging(null);          // when counting decisions we need to exclude offset+size (and sorting info is irrelevant)
-            List<AccessCertificationCaseType> caseList = certificationManager.searchDecisions(query, reviewerOid, notDecidedOnly, null, task, result);
+            List<AccessCertificationCaseType> caseList = acs.searchDecisionsToReview(query, notDecidedOnly, null, task, result);
             count = caseList.size();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);
@@ -123,8 +126,8 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
             result.computeStatusIfUnknown();
         }
 
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
-            getPage().showResultInSession(result);
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+            getPage().showResult(result);
             throw new RestartResponseException(PageError.class);
         }
 

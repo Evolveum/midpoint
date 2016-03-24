@@ -7,7 +7,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.web.component.util.BasePanel;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 
 public class CapabilitiesPanel extends BasePanel<CapabilitiesDto>{
 	

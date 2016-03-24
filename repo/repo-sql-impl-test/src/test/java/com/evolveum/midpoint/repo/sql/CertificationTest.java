@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
@@ -42,6 +39,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -62,10 +60,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CAMPAIGN_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_RESPONSE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_STAGE_NUMBER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_DECISION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_REVIEWER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_REVIEWER_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_COMMENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_STAGE_NUMBER;
@@ -74,6 +72,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NOT_DECIDED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
 
 /**
  * @author mederly
@@ -127,7 +127,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test200ModifyCampaignProperties() throws Exception {
         OperationResult result = new OperationResult("test200ModifyCampaignProperties");
 
-        List<ItemDelta> modifications = new ArrayList<>();
+        List<ItemDelta<?,?>> modifications = new ArrayList<>();
         modifications.add(createModificationReplaceProperty(F_NAME, campaignDef, new PolyString("Campaign 1+", "campaign 1")));
         modifications.add(createModificationReplaceProperty(F_STATE, campaignDef, IN_REVIEW_STAGE));
 
@@ -138,9 +138,9 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test210ModifyCaseProperties() throws Exception {
         OperationResult result = new OperationResult("test210ModifyCaseProperties");
 
-        List<ItemDelta> modifications = new ArrayList<>();
+        List<ItemDelta<?,?>> modifications = new ArrayList<>();
         ItemPath case1 = new ItemPath(F_CASE).subPath(new IdItemPathSegment(1L));
-        modifications.add(createModificationReplaceProperty(case1.subPath(F_CURRENT_RESPONSE), campaignDef, DELEGATE));
+        modifications.add(createModificationReplaceProperty(case1.subPath(F_CURRENT_STAGE_OUTCOME), campaignDef, DELEGATE));
         modifications.add(createModificationReplaceProperty(case1.subPath(F_CURRENT_STAGE_NUMBER), campaignDef, 300));
 
         executeAndCheckModification(modifications, result, 0);
@@ -150,7 +150,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test220ModifyDecisionProperties() throws Exception {
         OperationResult result = new OperationResult("test220ModifyDecisionProperties");
 
-        List<ItemDelta> modifications = new ArrayList<>();
+        List<ItemDelta<?,?>> modifications = new ArrayList<>();
         ItemPath d1 = new ItemPath(F_CASE).subPath(1L).subPath(F_DECISION).subPath(1L);
         modifications.add(createModificationReplaceProperty(d1.subPath(F_RESPONSE), campaignDef, DELEGATE));
         modifications.add(createModificationReplaceProperty(d1.subPath(F_COMMENT), campaignDef, "hi"));
@@ -162,10 +162,10 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test230ModifyAllLevels() throws Exception {
         OperationResult result = new OperationResult("test230ModifyAllLevels");
 
-        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_NAME).replace(new PolyString("Campaign 2", "campaign 2"))
                 .item(F_STATE).replace(IN_REMEDIATION)
-                .item(F_CASE, 2, F_CURRENT_RESPONSE).replace(NO_RESPONSE)
+                .item(F_CASE, 2, F_CURRENT_STAGE_OUTCOME).replace(NO_RESPONSE)
                 .item(F_CASE, 2, F_CURRENT_STAGE_NUMBER).replace(400)
                 .item(F_CASE, 1, F_DECISION, 1, F_RESPONSE).replace(NOT_DECIDED)
                 .item(F_CASE, 1, F_DECISION, 1, F_COMMENT).replace("low")
@@ -188,10 +188,10 @@ public class CertificationTest extends BaseSQLRepoTest {
         case100.setId(100L);
         case100.setObjectRef(createObjectRef("100123", ObjectTypes.USER));
         case100.setTargetRef(createObjectRef("100456", ObjectTypes.ROLE));
-        case100.getReviewerRef().add(createObjectRef("100789", ObjectTypes.USER));
+        case100.getCurrentReviewerRef().add(createObjectRef("100789", ObjectTypes.USER));
         case100.setCurrentStageNumber(1);
 
-        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE).add(caseNoId, case100)
                 .asItemDeltas();
 
@@ -205,7 +205,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         AccessCertificationCaseType case7 = new AccessCertificationCaseType();
         case7.setId(7L);
 
-        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE).delete(case7)
                 .asItemDeltas();
 
@@ -221,8 +221,8 @@ public class CertificationTest extends BaseSQLRepoTest {
 
         PrismReferenceValue reviewerToDelete = createObjectRef("100789", ObjectTypes.USER).asReferenceValue();
 
-        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
-                .item(F_CASE, 100, F_REVIEWER_REF).delete(reviewerToDelete)
+        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+                .item(F_CASE, 100, F_CURRENT_REVIEWER_REF).delete(reviewerToDelete)
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
@@ -243,13 +243,13 @@ public class CertificationTest extends BaseSQLRepoTest {
         case110.setId(110L);
         case110.setObjectRef(createObjectRef("x100123", ObjectTypes.USER));
         case110.setTargetRef(createObjectRef("x100456", ObjectTypes.ROLE));
-        case110.getReviewerRef().add(createObjectRef("x100789", ObjectTypes.USER));
+        case110.getCurrentReviewerRef().add(createObjectRef("x100789", ObjectTypes.USER));
         case110.setCurrentStageNumber(1);
 
         AccessCertificationCaseType case100 = new AccessCertificationCaseType();
         case100.setId(100L);
 
-        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE).add(caseNoId, case110).delete(case100)
                 .item(F_CASE, 3, F_CURRENT_STAGE_NUMBER).replace(400)
                 .asItemDeltas();
@@ -273,7 +273,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         AccessCertificationDecisionType dec1 = new AccessCertificationDecisionType();
         dec1.setId(1L);
 
-        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE, 6, F_DECISION).add(decNoId, dec200)
                 .item(F_CASE, 6, F_DECISION).delete(dec1)
                 .item(F_CASE, 6, F_DECISION, 2, F_RESPONSE).replace(ACCEPT)
@@ -291,7 +291,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         dec200.setStageNumber(44);
         dec200.setReviewerRef(createObjectRef("999999", ObjectTypes.USER));
 
-        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE, 6, F_DECISION).replace(dec200)
                 .asItemDeltas();
 
@@ -311,7 +311,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         dec251.setId(251L);
         dec251.setStageNumber(1);
 
-        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE, 6, F_DECISION).replace(dec250, dec251)
                 .asItemDeltas();
 
@@ -335,12 +335,12 @@ public class CertificationTest extends BaseSQLRepoTest {
         AccessCertificationCaseType caseNoId = new AccessCertificationCaseType(prismContext);
         caseNoId.setObjectRef(createObjectRef("aaa", ObjectTypes.USER));
         caseNoId.setTargetRef(createObjectRef("bbb", ObjectTypes.ROLE));
-        caseNoId.getReviewerRef().add(createObjectRef("ccc", ObjectTypes.USER));
+        caseNoId.getCurrentReviewerRef().add(createObjectRef("ccc", ObjectTypes.USER));
         caseNoId.setCurrentStageNumber(1);
         caseNoId.getDecision().add(dec777);
         caseNoId.getDecision().add(decNoId);
 
-        List<ItemDelta> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE).replace(caseNoId)
                 .asItemDeltas();
 
@@ -384,6 +384,23 @@ public class CertificationTest extends BaseSQLRepoTest {
         expectedCases.addAll(campaign1.getCase());
         expectedCases.addAll(campaign2.getCase());
         PrismAsserts.assertEqualsCollectionUnordered("list of cases is different", cases, expectedCases.toArray(new AccessCertificationCaseType[0]));
+
+        for (AccessCertificationCaseType aCase : cases) {
+            ObjectReferenceType campaignRef = aCase.getCampaignRef();
+            String campaignOid = campaignRef.getOid();
+            AccessCertificationCampaignType owner = null;
+            if (campaignOid.equals(campaign1Oid)) {
+                owner = campaign1;
+            } else if (campaignOid.equals(campaign2Oid)) {
+                owner = campaign2;
+            } else {
+                fail("Unknown campaign OID: " + campaignOid + " in case: " + aCase);
+            }
+
+            PrismObject<AccessCertificationCampaignType> campaign = getOwningCampaignChecked(aCase);
+            assertEquals("Wrong owning campaign OID", owner.getOid(), campaign.getOid());
+            assertEquals("Wrong owning campaign name", owner.getName(), campaign.asObjectable().getName());
+        }
     }
 
     @Test
@@ -450,9 +467,21 @@ public class CertificationTest extends BaseSQLRepoTest {
         List<AccessCertificationCaseType> cases = repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
         for (AccessCertificationCaseType aCase : cases) {
             AssertJUnit.assertEquals("wrong campaign ref", oid, aCase.getCampaignRef().getOid());
+            PrismObject<AccessCertificationCampaignType> campaign = getOwningCampaignChecked(aCase);
+            AssertJUnit.assertEquals("wrong parent OID", oid, campaign.getOid());
         }
         AccessCertificationCampaignType campaign = getFullCampaign(oid, result).asObjectable();
         PrismAsserts.assertEqualsCollectionUnordered("list of cases is different", cases, campaign.getCase().toArray(new AccessCertificationCaseType[0]));
+    }
+
+    private PrismObject<AccessCertificationCampaignType> getOwningCampaignChecked(AccessCertificationCaseType aCase) {
+        PrismContainer caseContainer = (PrismContainer) aCase.asPrismContainerValue().getParent();
+        AssertJUnit.assertNotNull("campaign is not fetched (case parent is null)", caseContainer);
+        PrismContainerValue campaignValue = (PrismContainerValue) caseContainer.getParent();
+        AssertJUnit.assertNotNull("campaign is not fetched (case container parent is null)", caseContainer);
+        PrismObject<AccessCertificationCampaignType> campaign = (PrismObject) campaignValue.getParent();
+        AssertJUnit.assertNotNull("campaign is not fetched (campaign PCV parent is null)", campaign);
+        return campaign;
     }
 
     @Test
@@ -463,7 +492,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         AssertJUnit.assertTrue(result.isSuccess());
     }
 
-    protected void executeAndCheckModification(List<ItemDelta> modifications, OperationResult result, int versionDelta) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
+    protected void executeAndCheckModification(List<ItemDelta<?,?>> modifications, OperationResult result, int versionDelta) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
         PrismObject<AccessCertificationCampaignType> before = getFullCampaign(campaign1Oid, result);
         int expectedVersion = Integer.parseInt(before.getVersion()) + versionDelta;
         List<ItemDelta> savedModifications = (List) CloneUtil.cloneCollectionMembers(modifications);

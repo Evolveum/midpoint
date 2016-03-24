@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -45,6 +46,8 @@ public interface ProgressReportingAwarePage {
     // things from PageBase (todo factor this out eventually)
 
     ModelService getModelService();
+
+    ModelInteractionService getModelInteractionService();
 
     SecurityEnforcer getSecurityEnforcer();
 

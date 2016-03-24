@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,7 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
     private Integer modificationPriority;
     private Boolean readReplaceMode;
     private PropertyAccessType accessOverride = new PropertyAccessType();
+    private boolean isVolatilityTrigger = false;
 
     protected RefinedAttributeDefinition(ResourceAttributeDefinition<T> attrDef, PrismContext prismContext) {
         super(attrDef.getName(), attrDef.getTypeName(), prismContext);
@@ -320,17 +321,23 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
 		this.matchingRuleQName = matchingRuleQName;
 	}
 	
-	
 	public List<String> getTolerantValuePattern(){
 		return tolerantValuePattern;
 	}
 	
 	public List<String> getIntolerantValuePattern(){
 		return intolerantValuePattern;
-		
 	}
 
-    // schemaHandlingAttrDefType may be null if we are parsing from schema only
+    public boolean isVolatilityTrigger() {
+		return isVolatilityTrigger;
+	}
+
+	public void setVolatilityTrigger(boolean isVolatilityTrigger) {
+		this.isVolatilityTrigger = isVolatilityTrigger;
+	}
+
+	// schemaHandlingAttrDefType may be null if we are parsing from schema only
     static <T> RefinedAttributeDefinition<T> parse(ResourceAttributeDefinition<T> schemaAttrDef, ResourceAttributeDefinitionType schemaHandlingAttrDefType,
                                             ObjectClassComplexTypeDefinition objectClassDef, PrismContext prismContext,
                                             String contextDescription) throws SchemaException {
@@ -353,9 +360,12 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
             }
         }
 
+        rAttrDef.matchingRuleQName = schemaAttrDef.getMatchingRuleQName();
         if (schemaHandlingAttrDefType != null) {
             rAttrDef.fetchStrategy = schemaHandlingAttrDefType.getFetchStrategy();
-            rAttrDef.matchingRuleQName = schemaHandlingAttrDefType.getMatchingRule();
+            if (schemaHandlingAttrDefType.getMatchingRule() != null) {
+            	rAttrDef.matchingRuleQName = schemaHandlingAttrDefType.getMatchingRule();
+            }
         }
 
         PropertyLimitations schemaLimitations = getOrCreateLimitations(rAttrDef.limitationsMap, LayerType.SCHEMA);
@@ -388,6 +398,7 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
             rAttrDef.intolerantValuePattern = schemaHandlingAttrDefType.getIntolerantValuePattern();
 
             rAttrDef.isExclusiveStrong = BooleanUtils.isTrue(schemaHandlingAttrDefType.isExclusiveStrong());
+            rAttrDef.isVolatilityTrigger = BooleanUtils.isTrue(schemaHandlingAttrDefType.isVolatilityTrigger());
 
             if (schemaHandlingAttrDefType.getOutbound() != null) {
                 rAttrDef.setOutboundMappingType(schemaHandlingAttrDefType.getOutbound());
@@ -503,6 +514,7 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
 		clone.inboundMappingTypes = this.inboundMappingTypes;
 		clone.intolerantValuePattern = this.intolerantValuePattern;
 		clone.isExclusiveStrong = this.isExclusiveStrong;
+		clone.isVolatilityTrigger = this.isVolatilityTrigger;
 		clone.limitationsMap = this.limitationsMap;
 		clone.matchingRuleQName = this.matchingRuleQName;
 		clone.modificationPriority = this.modificationPriority;

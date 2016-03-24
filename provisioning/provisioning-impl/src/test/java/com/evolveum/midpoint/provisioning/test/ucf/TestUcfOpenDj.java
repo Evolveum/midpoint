@@ -327,7 +327,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		cc.deleteObject(accountDefinition, null, identifiers, null, result);
 		
-		ResourceObjectIdentification identification = new ResourceObjectIdentification(accountDefinition, identifiers);
+		ResourceObjectIdentification identification = new ResourceObjectIdentification(accountDefinition, identifiers, null);
 		PrismObject<ShadowType> resObj = null;
 		try {
 			resObj = cc.fetchObject(ShadowType.class, identification, null, null,
@@ -359,7 +359,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		cc.modifyObject(accountDefinition, identifiers, changes, null, result);
 
-		ResourceObjectIdentification identification = new ResourceObjectIdentification(accountDefinition, identifiers);
+		ResourceObjectIdentification identification = new ResourceObjectIdentification(accountDefinition, identifiers, null);
 		PrismObject<ShadowType> shadow = cc.fetchObject(ShadowType.class, identification, null, null, result);
 		ResourceAttributeContainer resObj = ShadowUtil.getAttributesContainer(shadow);
 
@@ -400,7 +400,15 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		assertNotNull("No last token value", lastToken.getRealValue());
 
 		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, result);
-		AssertJUnit.assertEquals(0, changes.size());
+		display("Changes", changes);
+		
+		// Just one pseudo-change that updates the token
+		AssertJUnit.assertEquals(1, changes.size());
+		Change<ShadowType> change = changes.get(0);
+		assertNull(change.getCurrentShadow());
+		assertNull(change.getIdentifiers());
+		assertNull(change.getObjectDelta());
+		assertNotNull(change.getToken());
 	}
 
 	private PrismProperty createProperty(String propertyName, String propertyValue) {
@@ -612,7 +620,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		Collection<ResourceAttribute<?>> identifiers = resourceObject.getIdentifiers();
 		// Determine object class from the schema
 
-		ResourceObjectIdentification identification = new ResourceObjectIdentification(accountDefinition, identifiers);
+		ResourceObjectIdentification identification = new ResourceObjectIdentification(accountDefinition, identifiers, null);
 		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
 		// WHEN

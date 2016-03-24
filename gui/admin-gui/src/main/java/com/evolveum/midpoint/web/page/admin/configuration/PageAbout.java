@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.schema.RepositoryDiag;
@@ -30,9 +32,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.model.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.home.PageAdminHome;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -66,6 +66,7 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String OPERATION_GET_REPO_DIAG = DOT_CLASS + "getRepoDiag";
     private static final String OPERATION_GET_PROVISIONING_DIAG = DOT_CLASS + "getProvisioningDiag";
 
+    private static final String ID_BUILD = "build";
     private static final String ID_REVISION = "revision";
     private static final String ID_PROPERTY = "property";
     private static final String ID_VALUE = "value";
@@ -116,6 +117,10 @@ public class PageAbout extends PageAdminConfiguration {
         Label revision = new Label(ID_REVISION, createStringResource("PageAbout.midPointRevision"));
         revision.setRenderBodyOnly(true);
         add(revision);
+
+        Label build = new Label(ID_BUILD, createStringResource("PageAbout.build"));
+        build.setRenderBodyOnly(true);
+        add(build);
 
         ListView<SystemItem> listSystemItems = new ListView<SystemItem>(ID_LIST_SYSTEM_ITEMS, getItems()) {
 
@@ -249,7 +254,7 @@ public class PageAbout extends PageAdminConfiguration {
         }
         result.recomputeStatus();
 
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             showResult(result);
         }
 
@@ -270,7 +275,7 @@ public class PageAbout extends PageAdminConfiguration {
         }
         result.recomputeStatus();
 
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             showResult(result);
         }
 

@@ -16,10 +16,8 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.ProgressListener;
+import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -42,7 +40,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.time.Duration;
 import org.springframework.security.core.Authentication;
@@ -68,6 +65,7 @@ public class ProgressReporter implements Serializable {
 
     // links to wicket artefacts on parent page
     private AjaxSubmitButton abortButton;
+    private AjaxSubmitButton backButton;
     private ProgressReportingAwarePage parentPage;
     private ProgressPanel progressPanel;
     private Behavior refreshingBehavior = null;             // behavior is attached to the progress panel
@@ -82,8 +80,9 @@ public class ProgressReporter implements Serializable {
     private int refreshInterval;
     private boolean asynchronousExecution;
     private boolean abortEnabled;
-    
-    public ProgressPanel getProgressPanel() {
+	private ModelContext<? extends ObjectType> previewResult;		// Temporary - TODO rethink this...
+
+	public ProgressPanel getProgressPanel() {
 		return progressPanel;
 	}
 
@@ -131,19 +130,26 @@ public class ProgressReporter implements Serializable {
      * @param result Operation result.
      * @param target AjaxRequestTarget into which any synchronous changes are signalized.
      */
-    public void executeChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, final ModelExecuteOptions options, final Task task, final OperationResult result, AjaxRequestTarget target) {
+    public void executeChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas,
+			final boolean previewOnly, final ModelExecuteOptions options, final Task task, final OperationResult result, AjaxRequestTarget target) {
         parentPage.startProcessing(target, result);
     	ModelService modelService = parentPage.getModelService();
+		ModelInteractionService modelInteractionService = parentPage.getModelInteractionService();
         if (asynchronousExecution) {
-            executeChangesAsync(deltas, options, task, result, target, modelService);
+            executeChangesAsync(deltas, previewOnly, options, task, result, target, modelService, modelInteractionService);
         } else {
-            executeChangesSync(deltas, options, task, result, target, modelService);
+            executeChangesSync(deltas, previewOnly, options, task, result, target, modelService, modelInteractionService);
         }
     }
 
-    private void executeChangesSync(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result, AjaxRequestTarget target, ModelService modelService) {
+    private void executeChangesSync(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ModelExecuteOptions options, Task task,
+			OperationResult result, AjaxRequestTarget target, ModelService modelService, ModelInteractionService modelInteractionService) {
         try {
-            modelService.executeChanges(deltas, options, task, result);
+			if (previewOnly) {
+				previewResult = modelInteractionService.previewChanges(deltas, options, task, result);
+			} else {
+				modelService.executeChanges(deltas, options, task, result);
+			}
             result.computeStatusIfUnknown();
         } catch (CommunicationException |ObjectAlreadyExistsException |ExpressionEvaluationException |
                 PolicyViolationException |SchemaException |SecurityViolationException |
@@ -156,7 +162,9 @@ public class ProgressReporter implements Serializable {
         parentPage.finishProcessing(target, result);
     }
 
-    private void executeChangesAsync(final Collection<ObjectDelta<? extends ObjectType>> deltas, final ModelExecuteOptions options, final Task task, final OperationResult result, AjaxRequestTarget target, final ModelService modelService) {
+    private void executeChangesAsync(final Collection<ObjectDelta<? extends ObjectType>> deltas, final boolean previewOnly,
+			final ModelExecuteOptions options, final Task task, final OperationResult result, AjaxRequestTarget target,
+			final ModelService modelService, final ModelInteractionService modelInteractionService) {
         final SecurityEnforcer enforcer = parentPage.getSecurityEnforcer();
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -174,7 +182,11 @@ public class ProgressReporter implements Serializable {
                 try {
                     enforcer.setupPreAuthenticatedSecurityContext(authentication);
                     progressPanel.recordExecutionStart();
-                    modelService.executeChanges(deltas, options, task, Collections.singleton((ProgressListener) progressListener), result);
+					if (previewOnly) {
+						previewResult = modelInteractionService.previewChanges(deltas, options, task, Collections.singleton((ProgressListener) progressListener), result);
+					} else {
+						modelService.executeChanges(deltas, options, task, Collections.singleton((ProgressListener) progressListener), result);
+					}
                 } catch (CommunicationException|ObjectAlreadyExistsException|ExpressionEvaluationException|
                         PolicyViolationException|SchemaException|SecurityViolationException|
                         ConfigurationException|ObjectNotFoundException|RuntimeException e) {
@@ -191,6 +203,7 @@ public class ProgressReporter implements Serializable {
         if (abortEnabled) {
             showAbortButton(target);
         }
+        showBackButton(target);
 
         result.recordInProgress();              // to disable showing not-final results (why does it work? and why is the result shown otherwise?)
 
@@ -244,6 +257,13 @@ public class ProgressReporter implements Serializable {
         this.abortButton = abortButton;
     }
 
+    public void registerBackButton(AjaxSubmitButton backButton) {
+        backButton.setOutputMarkupId(true);
+        backButton.setOutputMarkupPlaceholderTag(true);
+        backButton.setVisible(false);
+        this.backButton = backButton;
+    }
+
     /**
      * You have to call this method when Abort button is pressed
      */
@@ -266,7 +286,7 @@ public class ProgressReporter implements Serializable {
         hideAbortButton(target);
     }
 
-    private void hideAbortButton(AjaxRequestTarget target) {
+    public void hideAbortButton(AjaxRequestTarget target) {
         abortButton.setVisible(false);
         target.add(abortButton);
     }
@@ -274,6 +294,11 @@ public class ProgressReporter implements Serializable {
     public void showAbortButton(AjaxRequestTarget target) {
         abortButton.setVisible(true);
         target.add(abortButton);
+    }
+
+    public void showBackButton(AjaxRequestTarget target) {
+        backButton.setVisible(true);
+        target.add(backButton);
     }
 
 
@@ -299,4 +324,7 @@ public class ProgressReporter implements Serializable {
         progressPanel.getModelObject().clear();
     }
 
+	public ModelContext<? extends ObjectType> getPreviewResult() {
+		return previewResult;
+	}
 }

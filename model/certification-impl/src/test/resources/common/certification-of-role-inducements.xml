@@ -42,6 +42,21 @@ COO-DummyBlack:           administrator             administrator,elaine
 COO-Superuser:            administrator             administrator
 Superuser-Dummy:          -                         jack,administrator
 
+Strategies:
+- stage 1: acceptedIfNotDenied (default: accept)
+- stage 2: allMustAccept
+- overall: allMustAccept
+
+Answers:
+
+Subject-Target            Stage 1                       Stage 2                             Overall
+===================================================================================================
+CEO-Dummy:                elaine:RV -> RV               jack,administrator (skipped)        RV
+COO-Dummy:                administrator:RV -> RV        jack,administrator (skipped)        RV
+COO-DummyBlack:           administrator:A -> A          administrator:A,elaine:RV -> RV     RV
+COO-Superuser:            administrator:ND -> A         administrator:A                     A
+Superuser-Dummy:          - -> A                        jack:A,administrator:null -> NR     NR
+
 -->
 
 <accessCertificationDefinition
@@ -61,19 +76,20 @@ Superuser-Dummy:          -                         jack,administrator
     </remediationDefinition>
     <stageDefinition>
         <number>1</number>
-        <days>14</days>
+        <duration>P14D</duration>
         <reviewerSpecification>
             <useObjectOwner>true</useObjectOwner>
-            <approvalStrategy>approvedIfNotDenied</approvalStrategy>
         </reviewerSpecification>
+        <outcomeStrategy>acceptedIfNotDenied</outcomeStrategy>
+        <outcomeIfNoReviewers>accept</outcomeIfNoReviewers>
     </stageDefinition>
     <stageDefinition>
         <number>2</number>
-        <days>7</days>
+        <duration>P7D</duration>
         <reviewerSpecification>
             <useTargetOwner>true</useTargetOwner>
             <additionalReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />    <!-- administrator -->
-            <approvalStrategy>allMustApprove</approvalStrategy>
         </reviewerSpecification>
+        <outcomeStrategy>allMustAccept</outcomeStrategy>
     </stageDefinition>
 </accessCertificationDefinition>
