@@ -126,20 +126,6 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         return (TablePanel) get("mainForm:processInstancesTable");
     }
 
-//    private List<ProcessInstanceDto> getSelectedItems() {
-//        DataTable table = getTable().getDataTable();
-//        ProcessInstanceDtoProvider provider = (ProcessInstanceDtoProvider) table.getDataProvider();
-//
-//        List<ProcessInstanceDto> selected = new ArrayList<ProcessInstanceDto>();
-//        for (ProcessInstanceDto row : provider.getAvailableData()) {
-//            if (row.isSelected()) {
-//                selected.add(row);
-//            }
-//        }
-//
-//        return selected;
-//    }
-
     private boolean isSomeItemSelected(List<ProcessInstanceDto> instances, AjaxRequestTarget target) {
         if (!instances.isEmpty()) {
             return true;
