@@ -344,7 +344,7 @@ public class PageDebugView extends PageAdminConfiguration {
             target.add(getFeedbackPanel());
         } else {
             showResult(result);
-            setResponsePage(new PageDebugList(false));
+            setResponsePage(new PageDebugList());
         }
     }
 }
