@@ -107,6 +107,7 @@ import com.evolveum.midpoint.web.page.admin.server.subtasks.SubtasksPanel;
 import com.evolveum.midpoint.web.page.admin.server.workflowInformation.WorkflowInformationPanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -179,9 +180,7 @@ public class PageTaskEdit extends PageAdminTasks {
 	private static final String DOT_CLASS = PageTaskAdd.class.getName() + ".";
 	private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadTask";
 	private static final String OPERATION_SAVE_TASK = DOT_CLASS + "saveTask";
-    private static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTask";
-    private static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
-    private static final String OPERATION_RUN_NOW_TASK = DOT_CLASS + "runNowTask";
+
     private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "createResourceList";
     private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 
@@ -1210,59 +1209,23 @@ public class PageTaskEdit extends PageAdminTasks {
 
     private void suspendPerformed(AjaxRequestTarget target) {
         String oid = model.getObject().getOid();
-        OperationResult result = new OperationResult(OPERATION_SUSPEND_TASKS);
-        try {
-            boolean suspended = getTaskService().suspendTasks(Collections.singleton(oid),
-                    PageTasks.WAIT_FOR_TASK_STOP, result);
-
-            result.computeStatus();
-            if (result.isSuccess()) {
-                if (suspended) {
-                    result.recordStatus(OperationResultStatus.SUCCESS, "The task have been successfully suspended.");
-                } else {
-                    result.recordWarning("Task suspension has been successfully requested; please check for its completion using task list.");
-                }
-            }
-        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|RuntimeException e) {
-            result.recordFatalError("Couldn't suspend the task", e);
-        }
-
+        OperationResult result = TaskOperationUtils.suspendPerformed(getTaskService(), Collections.singleton(oid));
         showResult(result);
         setResponsePage(new PageTasks(false));
     }
 
     private void resumePerformed(AjaxRequestTarget target) {
         String oid = model.getObject().getOid();
-        OperationResult result = new OperationResult(OPERATION_RESUME_TASK);
-        try {
-            getTaskService().resumeTasks(Arrays.asList(oid), result);
-            result.computeStatus();
-
-            if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "The task has been successfully resumed.");
-            }
-        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|RuntimeException e) {
-            result.recordFatalError("Couldn't resume the task", e);
-        }
-
+        OperationResult result = TaskOperationUtils.resumePerformed(getTaskService(), Arrays.asList(oid));
+        		
         showResult(result);
         setResponsePage(new PageTasks(false));
     }
 
     private void runNowPerformed(AjaxRequestTarget target) {
         String oid = model.getObject().getOid();
-        OperationResult result = new OperationResult(OPERATION_RUN_NOW_TASK);
-        try {
-            getTaskService().scheduleTasksNow(Arrays.asList(oid), result);
-            result.computeStatus();
-
-            if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "The task has been successfully scheduled to run.");
-            }
-        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|RuntimeException e) {
-            result.recordFatalError("Couldn't schedule the task", e);
-        }
-
+        OperationResult result = TaskOperationUtils.runNowPerformed(getTaskService(), Arrays.asList(oid));
+        		
         showResult(result);
         setResponsePage(new PageTasks(false));
     }

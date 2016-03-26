@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -161,9 +161,59 @@ public class PageTaskAdd extends PageAdminTasks {
         };
         initLayout();
     }
+    
+    public PageTaskAdd(final TaskType taskType) {
+        model = new LoadableModel<TaskAddDto>(false) {
+
+            @Override
+            protected TaskAddDto load() {
+                return loadTask(taskType);
+            }
+        };
+        initLayout();
+    }
 
     private TaskAddDto loadTask() {
         return new TaskAddDto();
+    }
+    
+    private TaskAddDto loadTask(TaskType taskType) {
+    	TaskAddDto taskAdd = new TaskAddDto();
+    	taskAdd.setCategory(taskType.getCategory());
+    	PrismProperty<ShadowKindType> pKind;
+		try {
+			pKind = taskType.asPrismObject().findOrCreateProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
+			taskAdd.setKind(pKind.getRealValue());
+		} catch (SchemaException e) {
+			warn("Could not set kind for new task : " + e.getMessage());
+		}
+    	
+    	PrismProperty<String> pIntent;
+		try {
+			pIntent = taskType.asPrismObject().findOrCreateProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
+			taskAdd.setIntent(pIntent.getRealValue());
+		} catch (SchemaException e) {
+			warn("Could not set intent for new task : " + e.getMessage());
+		}
+    	
+    	PrismProperty<QName> pObjectClass;
+		try {
+			pObjectClass = taskType.asPrismObject().findOrCreateProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.OBJECTCLASS_PROPERTY_NAME));
+			QName objectClass = pObjectClass.getRealValue();
+			if (objectClass != null){
+	    		taskAdd.setObjectClass(objectClass.getLocalPart());
+	    	}
+		} catch (SchemaException e) {
+			warn("Could not set obejctClass for new task : " + e.getMessage());
+		}
+    	
+    	
+    	ObjectReferenceType ref = taskType.getObjectRef();
+    	if (ref != null) {
+    	TaskAddResourcesDto resource= new TaskAddResourcesDto(ref.getOid(), WebComponentUtil.getName(ref));
+    	taskAdd.setResource(resource);
+    	}
+        return taskAdd;
     }
 
     private void initLayout() {

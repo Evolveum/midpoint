@@ -14,7 +14,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
 
@@ -28,7 +29,13 @@
 
 		<div class="form-group">
 			<label><wicket:message key="ResourceContentTabPanel.searchType" /></label>
-			<div wicket:id="searchType" />
+			<a class="btn btn-default" wicket:id="repositorySearch"> 
+				<label><wicket:message key="ResourceContentTabPanel.searchType.repository" /></label>
+			</a>
+			<a class="btn btn-default" wicket:id="resourceSearch"> 
+				<label><wicket:message key="ResourceContentTabPanel.searchType.resource" /></label>
+			</a>
+		
 		</div>
 
 
@@ -36,10 +43,12 @@
 
 </div>
 
-	<form wicket:id="mainForm">
-		<div wicket:id="table" />
-	</form>
+<form wicket:id="mainForm">
+		<div wicket:id="repositoryTable" />
+		<div wicket:id="resourceTable" />
+</form>
 
 
 
 </wicket:panel>
+</html>
