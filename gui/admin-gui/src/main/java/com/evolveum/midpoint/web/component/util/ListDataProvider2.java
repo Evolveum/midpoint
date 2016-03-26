@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,79 +16,77 @@
 
 package com.evolveum.midpoint.web.component.util;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.apache.commons.lang.Validate;
-import org.apache.wicket.Component;
-import org.apache.wicket.model.IModel;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang.Validate;
+import org.apache.wicket.Component;
+import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+
 /**
  * @author lazyman
  */
-public class ListDataProvider2<W extends Serializable, T extends Serializable> extends BaseSortableDataProvider<W> {
+public class ListDataProvider2<W extends Serializable, T extends Serializable>
+		extends BaseSortableDataProvider<W> {
 
-    private IModel<List<T>> model;
+	private IModel<List<T>> model;
 
-    public ListDataProvider2(Component Component, IModel<List<T>> model) {
-        super(Component);
+	public ListDataProvider2(Component Component, IModel<List<T>> model) {
+		super(Component);
 
-        Validate.notNull(model);
-        this.model = model;
-    }
+		Validate.notNull(model);
+		this.model = model;
+	}
 
-    @Override
-    public Iterator<W> internalIterator(long first, long count) {
-        getAvailableData().clear();
+	@Override
+	public Iterator<W> internalIterator(long first, long count) {
+		getAvailableData().clear();
 
-        List<T> list = model.getObject();
-        if (list != null) {
-            for (long i = first; i < first + count; i++) {
-                if (i < 0 || i >= list.size()) {
-                    throw new ArrayIndexOutOfBoundsException("Trying to get item on index " + i
-                            + " but list size is " + list.size());
-                }
-                getAvailableData().add(createObjectWrapper(list.get(WebComponentUtil.safeLongToInteger(i))));
-            }
-        }
+		List<T> list = model.getObject();
+		if (list != null) {
+			for (long i = first; i < first + count; i++) {
+				if (i < 0 || i >= list.size()) {
+					throw new ArrayIndexOutOfBoundsException(
+							"Trying to get item on index " + i + " but list size is " + list.size());
+				}
+				getAvailableData().add(createObjectWrapper(list.get(WebComponentUtil.safeLongToInteger(i))));
+			}
+		}
 
-        return getAvailableData().iterator();
-    }
-    
-    protected W createObjectWrapper(T object) {
-    	return (W) new SelectableBean<T>(object);
-    }
+		return getAvailableData().iterator();
+	}
 
-    @Override
-    protected int internalSize() {
-        List<T> list = model.getObject();
-        if (list == null) {
-            return 0;
-        }
+	protected W createObjectWrapper(T object) {
+		return (W) new SelectableBean<T>(object);
+	}
 
-        return list.size();
-    }
+	@Override
+	protected int internalSize() {
+		List<T> list = model.getObject();
+		if (list == null) {
+			return 0;
+		}
 
+		return list.size();
+	}
 
 	public List<W> getSelectedObjects() {
 		List<W> allSelected = new ArrayList<W>();
-		    	for (Serializable s : super.getAvailableData()){
-		    		if (s instanceof SelectableBean){
-		    			SelectableBean<W> selectable = (SelectableBean<W>) s;
-		    			if (selectable.isSelected()){
-		    				allSelected.add(selectable.getValue());
-		    			}
-		    		}
-		    	}
-		    	
-		    
-		    	return allSelected;
-		    }
-	
+		for (Serializable s : super.getAvailableData()) {
+			if (s instanceof SelectableBean) {
+				SelectableBean<W> selectable = (SelectableBean<W>) s;
+				if (selectable.isSelected()) {
+					allSelected.add(selectable.getValue());
+				}
+			}
+		}
+
+		return allSelected;
+	}
+
 }

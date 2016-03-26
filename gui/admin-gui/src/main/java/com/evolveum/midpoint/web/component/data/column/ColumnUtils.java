@@ -21,7 +21,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -36,13 +35,10 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.resources.ResourceDetailsTabPanel;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceConfigurationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -54,10 +50,6 @@ public class ColumnUtils {
 	public static List<IColumn> createColumns(List<ColumnTypeDto> columns) {
 		List<IColumn> tableColumns = new ArrayList<IColumn>();
 		for (ColumnTypeDto column : columns) {
-			// if (column.isMultivalue()) {
-			// PropertyColumn tableColumn = new PropertyColumn(displayModel,
-			// propertyExpression)
-			// } else {
 			PropertyColumn tableColumn = null;
 			if (column.isSortable()) {
 				tableColumn = createPropertyColumn(column.getColumnName(), column.getColumnValue(), column.getColumnValue(),
@@ -68,7 +60,7 @@ public class ColumnUtils {
 						column.getColumnValue());
 			}
 			tableColumns.add(tableColumn);
-			// }
+		
 		}
 		return tableColumns;
 	}
@@ -153,22 +145,6 @@ public class ColumnUtils {
 	
 	public static <T extends ObjectType> List<IColumn> getDefaultTaskColumns() {
 		List<IColumn> columns = new ArrayList<IColumn>();
-//		columns.add(new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
-//
-//			@Override
-//			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-//				return new AbstractReadOnlyModel<String>() {
-//
-//					@Override
-//					public String getObject() {
-//						T user = rowModel.getObject().getValue();
-//						return WebComponentUtil.createUserIcon(user.asPrismContainer());
-//					}
-//				};
-//			}
-//		});
-		
-		
 		
 		columns.add(new AbstractColumn<SelectableBean<TaskType>, String>(createStringResource("TaskType.kind")) {
 
@@ -324,7 +300,5 @@ public class ColumnUtils {
 
 	}
 
-	// return StringResourceModelMigration.of(resourceKey, this, new
-	// Model<String>(), resourceKey, objects);
 
 }

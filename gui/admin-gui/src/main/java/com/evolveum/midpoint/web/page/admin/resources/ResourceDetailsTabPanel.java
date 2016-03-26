@@ -140,7 +140,6 @@ public class ResourceDetailsTabPanel extends Panel{
 
 		List<IColumn> tableColumns = ColumnUtils.createColumns(columns);
 
-		// new ColumnTypeDto<>("ResourceType.tasks", "definedTasks", null, true)
 		PropertyColumn tasksColumn = new PropertyColumn(
 				PageBase.createStringResourceStatic(this, "ResourceType.tasks"), "definedTasks") {
 
@@ -604,11 +603,6 @@ public class ResourceDetailsTabPanel extends Panel{
 
 	// TODO: ####### end of move to ResourceTypeUtil ###########
 
-//	private ResourceType getResourceType() {
-//		
-//		PrismObject<ResourceType> resource = resourceModel.getObject();
-//		return resource.asObjectable();
-//	}
 
 	private enum SourceTarget {
 

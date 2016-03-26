@@ -1,33 +1,34 @@
+/*
+ * Copyright (c) 2010-2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.admin.resources;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.event.Broadcast;
-import org.apache.wicket.event.IEventSink;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
-import org.apache.wicket.request.component.IRequestablePage;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -38,25 +39,14 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.ListDataProvider2;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -77,7 +67,6 @@ public class ResourceContentResourcePanel extends ResourceContentPanel{
 	public ResourceContentResourcePanel(String id, IModel<PrismObject<ResourceType>> resourceModel,
 			ShadowKindType kind, String intent, PageBase pageBase) {
 		super(id, resourceModel, kind, intent, pageBase);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
@@ -109,7 +98,6 @@ public class ResourceContentResourcePanel extends ResourceContentPanel{
 
 	@Override
 	protected SelectorOptions<GetOperationOptions> addAdditionalOptions() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -147,33 +135,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel{
 		initButton(ID_IMPORT, "Import", " fa-download", TaskCategory.IMPORTING_ACCOUNTS, importTasks);
 		initButton(ID_RECONCILIATION, "Reconciliation", " fa-link", TaskCategory.RECONCILIATION, reconTasks);
 		initButton(ID_LIVE_SYNC, "Live Sync", " fa-refresh", TaskCategory.LIVE_SYNCHRONIZATION, syncTasks);
-//		ApplicationButtonPanel importButton = new ApplicationButtonPanel(ID_IMPORT, new Model<ApplicationButtonModel>(new ApplicationButtonModel(String.valueOf(importTasks.size()), " fa-download", "Import"))){
-//			@Override
-//			protected void onClick(AjaxRequestTarget target) {
-//				// TODO Auto-generated method stub
-//				super.onClick(target);
-//			}
-//		};
-//		add(importButton);
-//		
-//		ApplicationButtonPanel reconButton = new ApplicationButtonPanel(ID_RECONCILIATION, new Model<ApplicationButtonModel>(new ApplicationButtonModel(String.valueOf(reconTasks.size()), " fa-download", "Import"))){
-//			@Override
-//			protected void onClick(AjaxRequestTarget target) {
-//				// TODO Auto-generated method stub
-//				super.onClick(target);
-//			}
-//		};
-//		add(reconButton);
-//		
-//		ApplicationButtonPanel liveSyncButton = new ApplicationButtonPanel(ID_LIVE_SYNC, new Model<ApplicationButtonModel>(new ApplicationButtonModel(String.valueOf(syncTasks.size()), " fa-download", "Import"))){
-//			@Override
-//			protected void onClick(AjaxRequestTarget target) {
-//				// TODO Auto-generated method stub
-//				super.onClick(target);
-//			}
-//		};
-//		add(liveSyncButton);
-		
+
 	}
 	
 	private void initButton(String id, String label, String icon, final String category, final List<TaskType> tasks){
@@ -202,24 +164,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel{
 		
 		DropdownButtonPanel button = new DropdownButtonPanel(id, new DropdownButtonDto(String.valueOf(tasks.size()), icon, label, items));
 		add(button);
-//		AjaxButton button = new AjaxButton(id) {
-//
-//			@Override
-//			public void onClick(AjaxRequestTarget target) {
-//				runTask(tasks, target);
-//			}
-//		};
-//		add(button);
-//		
-//		Label infoL = new Label(ID_INFO, String.valueOf(tasks.size()));
-//		button.add(infoL);
-//		
-//		Label labelL = new Label(ID_LABEL, label);
-//		button.add(labelL);
-//		
-//		WebMarkupContainer iconL = new WebMarkupContainer(ID_ICON);
-//		iconL.add(AttributeModifier.append("class", icon));
-//		button.add(iconL);
+
 	}
 	
 	private void newTaskPerformed(String category, AjaxRequestTarget target) {
@@ -253,51 +198,6 @@ public class ResourceContentResourcePanel extends ResourceContentPanel{
 		
 		ResourceTasksPanel tasksPanel = new ResourceTasksPanel(getPageBase().getMainPopupBodyId(), new ListModel<>(tasks), getPageBase());
 		getPageBase().showMainPopup(tasksPanel, new Model<String>("Defined tasks"), target, 900, 500);
-		
-//		final ObjectListPanel<TaskType> tasksPanel = new ObjectListPanel<TaskType>(ID_TASKS_TABLE, TaskType.class, getPageBase());
-//		tasksPanel.setProvider(new ListDataProvider2(getPageBase(), new ListModel(tasks)));
-//		tasksPanel.setEditable(false);
-//		tasksPanel.setMultiSelect(true);
-//		popupContent.add(tasksPanel);
-//		
-//		AjaxButton runNow = new AjaxButton(ID_RUN_NOW, getPageBase().createStringResource("pageTaskEdit.button.runNow")) {
-//		
-//			@Override
-//			public void onClick(AjaxRequestTarget target) {
-//				List<String> oids = createOidList(getTaskListPanel().getSelectedObjects());
-//				
-//				OperationResult result = TaskOperationUtils.runNowPerformed(getPageBase().getTaskService(), oids);
-//				getPageBase().showResult(result);
-//				target.add(getPageBase().getFeedbackPanel());
-//				
-//			}
-//		};
-//		
-//		AjaxButton resume = new AjaxButton(ID_RESUME, getPageBase().createStringResource("pageTaskEdit.button.resume")) {
-//			
-//			@Override
-//			public void onClick(AjaxRequestTarget target) {
-//				List<String> oids = createOidList(getTaskListPanel().getSelectedObjects());
-//				
-//				OperationResult result = TaskOperationUtils.resumePerformed(getPageBase().getTaskService(), oids);
-//				getPageBase().showResult(result);
-//				target.add(getPageBase().getFeedbackPanel());
-//				
-//			}
-//		};
-//		
-//		AjaxButton suspend = new AjaxButton(ID_SUSPEND, getPageBase().createStringResource("pageTaskEdit.button.suspend")) {
-//			
-//			@Override
-//			public void onClick(AjaxRequestTarget target) {
-//				List<String> oids = createOidList(getTaskListPanel().getSelectedObjects());
-//				
-//				OperationResult result = TaskOperationUtils.suspendPerformed(getPageBase().getTaskService(), oids);
-//				getPageBase().showResult(result);
-//				target.add(getPageBase().getFeedbackPanel());
-//				
-//			}
-//		};
 		
 	}
 	
