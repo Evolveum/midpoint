@@ -18,15 +18,18 @@ package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
@@ -43,8 +46,15 @@ public class Search implements Serializable {
 
     public static final String F_AVAILABLE_DEFINITIONS = "availableDefinitions";
     public static final String F_ITEMS = "items";
+    public static final String F_ADVANCED_QUERY = "advancedQuery";
+    public static final String F_ADVANCED_ERROR = "advancedError";
 
     private static final Trace LOGGER = TraceManager.getTrace(Search.class);
+
+    private boolean showAdvanced = false;
+
+    private String advancedQuery;
+    private String advancedError;
 
     private Class<? extends ObjectType> type;
     private Map<ItemPath, ItemDefinition> allDefinitions;
@@ -110,6 +120,10 @@ public class Search implements Serializable {
     public ObjectQuery createObjectQuery(PrismContext ctx) {
         LOGGER.debug("Creating query from {}", this);
 
+        return showAdvanced ? createObjectQueryAdvanced(ctx) : createObjectQuerySimple(ctx);
+    }
+
+    public ObjectQuery createObjectQuerySimple(PrismContext ctx) {
         List<SearchItem> searchItems = getItems();
         if (searchItems.isEmpty()) {
             return null;
@@ -211,6 +225,77 @@ public class Search implements Serializable {
         }
 
         return null;
+    }
+
+    public boolean isShowAdvanced() {
+        return showAdvanced;
+    }
+
+    public void setShowAdvanced(boolean showAdvanced) {
+        this.showAdvanced = showAdvanced;
+    }
+
+    public String getAdvancedQuery() {
+        return advancedQuery;
+    }
+
+    public void setAdvancedQuery(String advancedQuery) {
+        this.advancedQuery = advancedQuery;
+    }
+
+    public ObjectQuery createObjectQueryAdvanced(PrismContext ctx) {
+        try {
+            advancedError = null;
+
+            ObjectFilter filter = createAdvancedObjectFilter(ctx);
+            if (filter == null) {
+                return null;
+            }
+
+            return ObjectQuery.createObjectQuery(filter);
+        } catch (Exception ex) {
+            advancedError = createErrorMessage(ex);
+        }
+
+        return null;
+    }
+
+    private ObjectFilter createAdvancedObjectFilter(PrismContext ctx) throws SchemaException {
+        if (StringUtils.isEmpty(advancedQuery)) {
+            return null;
+        }
+
+        SearchFilterType search = ctx.parseAtomicValue(advancedQuery, SearchFilterType.COMPLEX_TYPE);
+        return QueryConvertor.parseFilter(search, type, ctx);
+    }
+
+    public boolean isAdvancedQueryValid(PrismContext ctx) {
+        try {
+            advancedError = null;
+
+            createAdvancedObjectFilter(ctx);
+            return true;
+        } catch (Exception ex) {
+            advancedError = createErrorMessage(ex);
+        }
+
+        return false;
+    }
+
+    private String createErrorMessage(Exception ex) {
+        StringBuilder sb = new StringBuilder();
+
+        Throwable t = ex;
+        while (t != null) {
+            sb.append(t.getMessage()).append('\n');
+            t = t.getCause();
+        }
+
+        return sb.toString();
+    }
+
+    public String getAdvancedError() {
+        return advancedError;
     }
 
     @Override
