@@ -24,8 +24,8 @@ import org.apache.wicket.request.component.IRequestablePage;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
-import com.evolveum.midpoint.gui.api.component.button.ApplicationButtonModel;
-import com.evolveum.midpoint.gui.api.component.button.ApplicationButtonPanel;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -200,7 +200,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel{
 				});
 		items.add(item);
 		
-		ApplicationButtonPanel button = new ApplicationButtonPanel(id, new ApplicationButtonModel(String.valueOf(tasks.size()), icon, label, items));
+		DropdownButtonPanel button = new DropdownButtonPanel(id, new DropdownButtonDto(String.valueOf(tasks.size()), icon, label, items));
 		add(button);
 //		AjaxButton button = new AjaxButton(id) {
 //
