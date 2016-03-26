@@ -193,7 +193,6 @@ public class PageDebugList extends PageAdminConfiguration {
 			}
 		};
 
-		getSessionStorage().clearPagingInSession(clearPagingInSession);
 		initLayout();
 	}
 

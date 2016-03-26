@@ -43,6 +43,12 @@ public class SearchFactory {
                 new ItemPath(UserType.F_FAMILY_NAME),
                 new ItemPath(UserType.F_FULL_NAME),
                 new ItemPath(UserType.F_ADDITIONAL_NAME),
+                new ItemPath(UserType.F_COST_CENTER),
+                new ItemPath(UserType.F_EMAIL_ADDRESS),
+                new ItemPath(UserType.F_TELEPHONE_NUMBER),
+                new ItemPath(UserType.F_EMPLOYEE_NUMBER),
+                new ItemPath(UserType.F_EMPLOYEE_TYPE),
+                new ItemPath(UserType.F_ORGANIZATIONAL_UNIT),
                 new ItemPath(UserType.F_COST_CENTER)));
         SEARCHABLE_OBJECTS.put(RoleType.class, Arrays.asList(
                 new ItemPath(RoleType.F_NAME),

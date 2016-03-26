@@ -168,7 +168,8 @@ public class WebModelServiceUtils {
         	// point to an object that the current user cannot read. This is no big deal.
         	// Just do not display that object.
         	subResult.recordHandledError(e);
-        	LOGGER.debug("User {} is not authorized to read {} {}", task.getOwner().getName(), type.getSimpleName(), oid);
+        	LOGGER.debug("User {} is not authorized to read {} {}",
+                    task.getOwner() != null ? task.getOwner().getName() : null, type.getSimpleName(), oid);
         	return null;
         } catch (Exception ex) {
             subResult.recordFatalError("WebModelUtils.couldntLoadObject", ex);

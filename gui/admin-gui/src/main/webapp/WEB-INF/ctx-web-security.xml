@@ -83,12 +83,6 @@ http://www.springframework.org/schema/security/spring-security-3.2.xsd">
 
     <beans:bean id="midPointAuthenticationProvider"
                 class="com.evolveum.midpoint.web.security.MidPointAuthenticationProvider">
-        <beans:property name="loginTimeout">
-            <beans:value type="java.lang.Integer">15</beans:value>
-        </beans:property>
-        <beans:property name="maxFailedLogins">
-            <beans:value type="java.lang.Integer">3</beans:value>
-        </beans:property>
     </beans:bean>
     
     <!-- Following bean is used with pre-authentication based on HTTP headers (e.g. for SSO integration) -->

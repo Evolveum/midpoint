@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
+import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
@@ -193,6 +194,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	@Autowired
 	private SecurityEnforcer securityEnforcer;
+	
+	@Autowired
+	private AuthenticationEvaluator authenticationEvaluator;
 
 	@Autowired
 	private UserProfileService userProfileService;

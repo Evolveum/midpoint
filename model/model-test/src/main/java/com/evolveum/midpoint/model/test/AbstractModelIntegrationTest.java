@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -208,6 +208,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			ActivationType.F_VALID_FROM);
 	protected static final ItemPath ACTIVATION_VALID_TO_PATH = new ItemPath(UserType.F_ACTIVATION, 
 			ActivationType.F_VALID_TO);
+	
+	protected static final ItemPath PASSWORD_VALUE_PATH = new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 	
 	@Autowired(required = true)
 	protected ModelService modelService;
@@ -3006,15 +3008,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertNotNull("No password metadata in "+user, metadataContainer);
 		MetadataType metadataType = metadataContainer.getValue().asContainerable();
 		if (create) {
-			ObjectReferenceType creatorRef = metadataType.getCreatorRef();
-			assertNotNull("No creatorRef in password metadata in "+user, creatorRef);
-			assertEquals("Wrong creatorRef OID in password metadata in "+user, actorOid, creatorRef.getOid());
+			if (actorOid != null) {
+				ObjectReferenceType creatorRef = metadataType.getCreatorRef();
+				assertNotNull("No creatorRef in password metadata in "+user, creatorRef);
+				assertEquals("Wrong creatorRef OID in password metadata in "+user, actorOid, creatorRef.getOid());
+			}
 			TestUtil.assertBetween("Wrong password create timestamp in password metadata in "+user, start, end, metadataType.getCreateTimestamp());
 			assertEquals("Wrong create channel", channel, metadataType.getCreateChannel());
 		} else {
-			ObjectReferenceType modifierRef = metadataType.getModifierRef();
-			assertNotNull("No modifierRef in password metadata in "+user, modifierRef);
-			assertEquals("Wrong modifierRef OID in password metadata in "+user, actorOid, modifierRef.getOid());
+			if (actorOid != null) {
+				ObjectReferenceType modifierRef = metadataType.getModifierRef();
+				assertNotNull("No modifierRef in password metadata in "+user, modifierRef);
+				assertEquals("Wrong modifierRef OID in password metadata in "+user, actorOid, modifierRef.getOid());
+			}
 			TestUtil.assertBetween("Wrong password modify timestamp in password metadata in "+user, start, end, metadataType.getModifyTimestamp());
 			assertEquals("Wrong modification channel", channel, metadataType.getModifyChannel());
 		}

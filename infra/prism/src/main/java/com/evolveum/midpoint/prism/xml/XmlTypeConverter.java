@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -584,6 +584,12 @@ public class XmlTypeConverter {
 	public static XMLGregorianCalendar addDuration(XMLGregorianCalendar now, Duration duration) {
 		XMLGregorianCalendar later = createXMLGregorianCalendar(toMillis(now));
 		later.add(duration);
+		return later;
+	}
+	
+	public static XMLGregorianCalendar addDuration(XMLGregorianCalendar now, String duration) {
+		XMLGregorianCalendar later = createXMLGregorianCalendar(toMillis(now));
+		later.add(createDuration(duration));
 		return later;
 	}
 

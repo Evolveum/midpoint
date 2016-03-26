@@ -127,8 +127,6 @@ public class PageResources extends PageAdminResources {
     }
 
     public PageResources(boolean clearSessionPaging, final String searchText) {
-        getSessionStorage().clearPagingInSession(clearSessionPaging);
-
         searchModel = new LoadableModel<Search>(false) {
 
             @Override
