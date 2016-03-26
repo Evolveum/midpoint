@@ -22,6 +22,7 @@ import java.util.List;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider2;
 import com.evolveum.midpoint.web.component.data.Table;
@@ -44,6 +46,7 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchFormPanel;
+import com.evolveum.midpoint.web.component.util.ListDataProvider2;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
@@ -58,9 +61,8 @@ public class ObjectListPanel<T extends ObjectType> extends BasePanel<T> {
 	// private static final String ID_SEARCH_FORM = "searchForm";
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_BUTTON_CANCEL = "cancelButton";
-	private static final String ID_BUTTON_ADD = "addButton";
+
 	private static final String ID_TABLE = "table";
-	
 
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectListPanel.class);
 
@@ -74,8 +76,8 @@ public class ObjectListPanel<T extends ObjectType> extends BasePanel<T> {
 
 	private List<ColumnTypeDto> columnDefinitions;
 
-	
-	
+	private BaseSortableDataProvider<SelectableBean<T>> provider;
+
 	private int pageSize = 10;
 
 	private TableId tableId = TableId.TABLE_USERS;
@@ -84,8 +86,12 @@ public class ObjectListPanel<T extends ObjectType> extends BasePanel<T> {
 		super(id);
 		this.type = type;
 		this.parentPage = parentPage;
-		
+
 		initLayout();
+	}
+
+	public void setProvider(BaseSortableDataProvider<SelectableBean<T>> provider) {
+		this.provider = provider;
 	}
 
 	public void setMultiSelect(boolean multiSelect) {
@@ -115,22 +121,28 @@ public class ObjectListPanel<T extends ObjectType> extends BasePanel<T> {
 	public void setTableId(TableId tableId) {
 		this.tableId = tableId;
 	}
-
 	
-	
+	public List<T> getSelectedObjects(){
+		BaseSortableDataProvider dataProvider = getDataProvider();
+		if (dataProvider instanceof ObjectDataProvider2){
+			return ((ObjectDataProvider2) dataProvider).getSelectedData();
+		} else if (dataProvider instanceof ListDataProvider2) {
+			return ((ListDataProvider2) dataProvider).getSelectedObjects();
+		}
+		return new ArrayList<>();
+	}
 
 	private void initLayout() {
 		Form mainForm = new Form(ID_MAIN_FORM);
 		add(mainForm);
-		
-			
+
 		searchModel = new LoadableModel<Search>(false) {
 
 			@Override
 			public Search load() {
-				 
-					Search search = SearchFactory.createSearch(type, parentPage.getPrismContext(), true);
-			
+
+				Search search = SearchFactory.createSearch(type, parentPage.getPrismContext(), true);
+
 				return search;
 			}
 		};
@@ -148,29 +160,33 @@ public class ObjectListPanel<T extends ObjectType> extends BasePanel<T> {
 		};
 		mainForm.add(cancelButton);
 
-		AjaxButton addButton = new AjaxButton(ID_BUTTON_ADD,
-				createStringResource("userBrowserDialog.button.addButton")) {
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				List<T> selected = ((ObjectDataProvider2) getDataProvider()).getSelectedData();
-				addPerformed(target, selected);
-			}
-		};
-		addButton.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return ObjectListPanel.this.isMultiSelect();
-			}
-		});
-		mainForm.add(addButton);
+//		AjaxButton addButton = new AjaxButton(ID_BUTTON_ADD,
+//				createStringResource("userBrowserDialog.button.addButton")) {
+//
+//			@Override
+//			public void onClick(AjaxRequestTarget target) {
+//				List<T> selected = ((BaseSortableDataProvider) getDataProvider()).getSelectedData();
+//				addPerformed(target, selected);
+//			}
+//		};
+//		addButton.add(new VisibleEnableBehaviour() {
+//			@Override
+//			public boolean isVisible() {
+//				return ObjectListPanel.this.isMultiSelect();
+//			}
+//		});
+//		mainForm.add(addButton);
+	}
+	
+	protected BaseSortableDataProvider<SelectableBean<T>> getProvider() {
+		return new ObjectDataProvider2<SelectableBean<T>, T>(parentPage, type);
 	}
 
 	private BoxedTablePanel createTable() {
 		List<IColumn<SelectableBean<T>, String>> columns = initColumns();
-		ObjectDataProvider2<SelectableBean<T>, T> provider = new ObjectDataProvider2<SelectableBean<T>, T>(
-				parentPage, type);
+		provider = getProvider();
 		provider.setQuery(getQuery());
+
 		BoxedTablePanel<SelectableBean<T>> table = new BoxedTablePanel<SelectableBean<T>>(ID_TABLE, provider,
 				columns, tableId, pageSize) {
 
@@ -190,9 +206,9 @@ public class ObjectListPanel<T extends ObjectType> extends BasePanel<T> {
 		return table;
 	}
 
-	private ObjectDataProvider2<SelectableBean<T>, T> getDataProvider() {
+	private BaseSortableDataProvider<SelectableBean<T>> getDataProvider() {
 		BoxedTablePanel<SelectableBean<T>> table = getTable();
-		ObjectDataProvider2<SelectableBean<T>, T> provider = (ObjectDataProvider2<SelectableBean<T>, T>) table
+		BaseSortableDataProvider<SelectableBean<T>> provider = (BaseSortableDataProvider<SelectableBean<T>>) table
 				.getDataTable().getDataProvider();
 		return provider;
 
@@ -203,7 +219,7 @@ public class ObjectListPanel<T extends ObjectType> extends BasePanel<T> {
 	}
 
 	private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-		ObjectDataProvider2 provider = getDataProvider();
+		BaseSortableDataProvider<SelectableBean<T>> provider = getDataProvider();
 		provider.setQuery(query);
 
 		// RolesStorage storage = getSessionStorage().getRoles();
@@ -265,7 +281,7 @@ public class ObjectListPanel<T extends ObjectType> extends BasePanel<T> {
 	}
 
 	private void clearSearchPerformed(AjaxRequestTarget target) {
-		ObjectDataProvider2 provider = getDataProvider();
+		BaseSortableDataProvider<SelectableBean<T>> provider = getDataProvider();
 		provider.setQuery(null);
 
 		target.add(getTable());

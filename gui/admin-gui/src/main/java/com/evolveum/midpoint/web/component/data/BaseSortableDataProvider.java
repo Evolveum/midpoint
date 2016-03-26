@@ -241,6 +241,8 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     }
 
     protected abstract int internalSize();
+    
+//    protected abstract List<T> getSelectedObjects();
 
     protected CachedSize getCachedSize(Map<Serializable, CachedSize> cache) {
         return cache.get(query);
