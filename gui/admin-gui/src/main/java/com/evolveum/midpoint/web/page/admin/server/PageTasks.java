@@ -170,7 +170,6 @@ public class PageTasks extends PageAdminTasks {
             }
         };
 
-        getSessionStorage().clearPagingInSession(clearSessionStorage);
         initLayout();
     }
 

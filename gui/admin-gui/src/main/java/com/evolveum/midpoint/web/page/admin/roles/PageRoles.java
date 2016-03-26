@@ -113,7 +113,6 @@ public class PageRoles extends PageAdminRoles {
             }
         };
 
-        getSessionStorage().clearPagingInSession(clearPagingInSession);
         initLayout();
     }
 
