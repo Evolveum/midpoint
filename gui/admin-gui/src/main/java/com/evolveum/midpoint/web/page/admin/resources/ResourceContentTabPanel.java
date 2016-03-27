@@ -55,8 +55,8 @@ public class ResourceContentTabPanel extends Panel {
 	private static final String ID_REPO_SEARCH = "repositorySearch";
 	private static final String ID_RESOURCE_SEARCH = "resourceSearch";
 
-	private static final String ID_REPOSITORY_TABLE = "repositoryTable";
-	private static final String ID_RESOURCE_TABLE = "resourceTable";
+	private static final String ID_TABLE = "table";
+//	private static final String ID_RESOURCE_TABLE = "resourceTable";
 
 
 	private PageBase parentPage;
@@ -106,8 +106,9 @@ public class ResourceContentTabPanel extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				target.add(initRepoContent(model));
-				target.add(initResourceContent(model));
+				Form mainForm = (Form) get(ID_MAIN_FORM);
+				mainForm.addOrReplace(initTable(model));
+				target.add(addOrReplace(mainForm));
 
 			}
 		});
@@ -121,7 +122,7 @@ public class ResourceContentTabPanel extends Panel {
 			public void onClick(AjaxRequestTarget target) {
 				resourceSearchModel.setObject(Boolean.FALSE);
 				Form mainForm = (Form) getParent().get(ID_MAIN_FORM);
-				mainForm.addOrReplace(initResourceContent(model));
+//				mainForm.addOrReplace(initResourceContent(model));
 				mainForm.addOrReplace(initRepoContent(model));
 				target.add(getParent().addOrReplace(mainForm));
 				target.add(this);
@@ -144,7 +145,7 @@ public class ResourceContentTabPanel extends Panel {
 				Form mainForm = (Form) getParent().get(ID_MAIN_FORM);
 				
 				mainForm.addOrReplace(initResourceContent(model));
-				mainForm.addOrReplace(initRepoContent(model));
+//				mainForm.addOrReplace(initRepoContent(model));
 				target.add(getParent().addOrReplace(mainForm));
 				target.add(this.add(AttributeModifier.append("class", " active")));
 				target.add(getParent().get(ID_REPO_SEARCH).add(AttributeModifier.replace("class", "btn btn-default")));
@@ -161,16 +162,23 @@ public class ResourceContentTabPanel extends Panel {
 		
 		Form mainForm = new Form(ID_MAIN_FORM);
 		mainForm.setOutputMarkupId(true);
-		mainForm.addOrReplace(initResourceContent(model));
-		mainForm.addOrReplace(initRepoContent(model));
+		mainForm.addOrReplace(initTable(model));
 		add(mainForm);
 		
 		
 
 	}
+	
+	private ResourceContentPanel initTable(IModel<PrismObject<ResourceType>> model){
+		if (resourceSearchModel.getObject()){
+			return initResourceContent(model);
+		} else {
+			return initRepoContent(model);
+		}
+	}
 
 	private ResourceContentResourcePanel initResourceContent(IModel<PrismObject<ResourceType>> model) {
-		ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_RESOURCE_TABLE, model, kind, intentModel.getObject(), parentPage);
+		ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_TABLE, model, kind, intentModel.getObject(), parentPage);
 		resourceContent.add(new VisibleEnableBehaviour() {
 			
 			@Override
@@ -184,7 +192,7 @@ public class ResourceContentTabPanel extends Panel {
 	}
 	
 	private ResourceContentRepositoryPanel initRepoContent(IModel<PrismObject<ResourceType>> model) {
-		ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_REPOSITORY_TABLE, model, kind, intentModel.getObject(), parentPage);
+		ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_TABLE, model, kind, intentModel.getObject(), parentPage);
 		repositoryContent.add(new VisibleEnableBehaviour() {
 			
 			@Override

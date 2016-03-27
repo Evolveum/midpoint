@@ -20,14 +20,16 @@
 
 
     <div class="clearfix">
+    <div class="box">
 	<div class="form-inline search-form">
 		<!--         <row class="form-inline pull-right search-form"> -->
-		<div class="form-group">
+		<div class="form-group col-md-4">
 			<label><wicket:message key="ShadowType.intent" /></label>
-			<div wicket:id="intent" />
+			<span wicket:id="intent" />
 		</div>
+		
 
-		<div class="form-group">
+		<div class="form-group col-md-4">
 			<label><wicket:message key="ResourceContentTabPanel.searchType" /></label>
 			<a class="btn btn-default" wicket:id="repositorySearch"> 
 				<label><wicket:message key="ResourceContentTabPanel.searchType.repository" /></label>
@@ -40,12 +42,13 @@
 
 
 	</div>
+	</div>
 
 </div>
 
 <form wicket:id="mainForm">
-		<div wicket:id="repositoryTable" />
-		<div wicket:id="resourceTable" />
+		<div wicket:id="table" />
+		
 </form>
 
 

@@ -20,6 +20,8 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
@@ -59,7 +61,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel{
 	private static final String ID_RECONCILIATION = "reconciliation";
 	private static final String ID_LIVE_SYNC = "liveSync";
 
-	private static final String ID_INFO = "info";
+	private static final String ID_OBJECT_CLASS = "objectClass";
 	private static final String ID_LABEL = "label";
 	private static final String ID_ICON = "icon";
 	
@@ -69,50 +71,26 @@ public class ResourceContentResourcePanel extends ResourceContentPanel{
 		super(id, resourceModel, kind, intent, pageBase);
 	}
 
-	@Override
-	protected ObjectQuery createQuery(IModel<PrismObject<ResourceType>> resourceModel)
-			throws SchemaException {
-		ObjectQuery baseQuery = null;
-		
-		RefinedObjectClassDefinition rOcDef = getDefinitionByKind(resourceModel);
-		if (rOcDef != null) {
-			if (rOcDef.getKind() != null) {
-				baseQuery = ObjectQueryUtil.createResourceAndKindIntent(
-						resourceModel.getObject().getOid(), rOcDef.getKind(), rOcDef.getIntent(),
-						getPageBase().getPrismContext());
-			} else {
-				baseQuery = ObjectQueryUtil.createResourceAndObjectClassQuery(
-						resourceModel.getObject().getOid(), rOcDef.getTypeName(),
-						getPageBase().getPrismContext());
-			}
-		}
-		return baseQuery;
-	}
 	
-	private RefinedObjectClassDefinition getDefinitionByKind(IModel<PrismObject<ResourceType>> resourceModel) throws SchemaException{
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema
-					.getRefinedSchema(resourceModel.getObject(), getPageBase().getPrismContext());
-			return refinedSchema.getRefinedDefinition(getKind(), getIntent());
 	
-	}
-
+	
 	@Override
 	protected SelectorOptions<GetOperationOptions> addAdditionalOptions() {
 		return null;
 	}
 
 	@Override
-	protected boolean isUseObjectCounting(IModel<PrismObject<ResourceType>> resourceModel) {
+	protected boolean isUseObjectCounting() {
 		return false;
 	}
 
 	@Override
-	protected void initCustomLayout(IModel<PrismObject<ResourceType>> resource) {
+	protected void initCustomLayout() {
 		OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
 	
 		List<PrismObject<TaskType>> tasks = WebModelServiceUtils.searchObjects(TaskType.class,
 				ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class,
-						getPageBase().getPrismContext(), resource.getObject().getOid())),
+						getPageBase().getPrismContext(), getResourceModel().getObject().getOid())),
 				result, getPageBase());
 		
 		
@@ -135,6 +113,24 @@ public class ResourceContentResourcePanel extends ResourceContentPanel{
 		initButton(ID_IMPORT, "Import", " fa-download", TaskCategory.IMPORTING_ACCOUNTS, importTasks);
 		initButton(ID_RECONCILIATION, "Reconciliation", " fa-link", TaskCategory.RECONCILIATION, reconTasks);
 		initButton(ID_LIVE_SYNC, "Live Sync", " fa-refresh", TaskCategory.LIVE_SYNCHRONIZATION, syncTasks);
+		
+		Label objectClass = new Label(ID_OBJECT_CLASS, new AbstractReadOnlyModel<String>() {
+			
+			@Override
+			public String getObject() {
+				RefinedObjectClassDefinition ocDef;
+				try {
+					ocDef = getDefinitionByKind();
+					if (ocDef != null){
+						return ocDef.getObjectClassDefinition().getTypeName().getLocalPart();
+					} 
+				} catch (SchemaException e) {
+				}
+				
+				return "NOT FOUND";
+			}
+		});
+		add(objectClass);
 
 	}
 	

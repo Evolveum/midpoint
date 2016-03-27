@@ -121,10 +121,10 @@ public class ObjectListPanel<T extends ObjectType> extends BasePanel<T> {
 	public void setTableId(TableId tableId) {
 		this.tableId = tableId;
 	}
-	
-	public List<T> getSelectedObjects(){
+
+	public List<T> getSelectedObjects() {
 		BaseSortableDataProvider dataProvider = getDataProvider();
-		if (dataProvider instanceof ObjectDataProvider2){
+		if (dataProvider instanceof ObjectDataProvider2) {
 			return ((ObjectDataProvider2) dataProvider).getSelectedData();
 		} else if (dataProvider instanceof ListDataProvider2) {
 			return ((ListDataProvider2) dataProvider).getSelectedObjects();
@@ -160,24 +160,25 @@ public class ObjectListPanel<T extends ObjectType> extends BasePanel<T> {
 		};
 		mainForm.add(cancelButton);
 
-//		AjaxButton addButton = new AjaxButton(ID_BUTTON_ADD,
-//				createStringResource("userBrowserDialog.button.addButton")) {
-//
-//			@Override
-//			public void onClick(AjaxRequestTarget target) {
-//				List<T> selected = ((BaseSortableDataProvider) getDataProvider()).getSelectedData();
-//				addPerformed(target, selected);
-//			}
-//		};
-//		addButton.add(new VisibleEnableBehaviour() {
-//			@Override
-//			public boolean isVisible() {
-//				return ObjectListPanel.this.isMultiSelect();
-//			}
-//		});
-//		mainForm.add(addButton);
+		// AjaxButton addButton = new AjaxButton(ID_BUTTON_ADD,
+		// createStringResource("userBrowserDialog.button.addButton")) {
+		//
+		// @Override
+		// public void onClick(AjaxRequestTarget target) {
+		// List<T> selected = ((BaseSortableDataProvider)
+		// getDataProvider()).getSelectedData();
+		// addPerformed(target, selected);
+		// }
+		// };
+		// addButton.add(new VisibleEnableBehaviour() {
+		// @Override
+		// public boolean isVisible() {
+		// return ObjectListPanel.this.isMultiSelect();
+		// }
+		// });
+		// mainForm.add(addButton);
 	}
-	
+
 	protected BaseSortableDataProvider<SelectableBean<T>> getProvider() {
 		return new ObjectDataProvider2<SelectableBean<T>, T>(parentPage, type);
 	}
@@ -251,9 +252,9 @@ public class ObjectListPanel<T extends ObjectType> extends BasePanel<T> {
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
 
 		CheckBoxHeaderColumn checkboxColumn = new CheckBoxHeaderColumn();
-		checkboxColumn.setCheckboxVisible(isMultiSelect());
-		columns.add(checkboxColumn);
-
+		if (isMultiSelect()) {
+			columns.add(checkboxColumn);
+		}
 		String nameColumnName = SelectableBean.F_VALUE + ".name";
 		if (isEditable()) {
 			columns.add(new LinkColumn<SelectableBean<T>>(createStringResource("ObjectType.name"),

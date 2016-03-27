@@ -37,24 +37,24 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel{
 	}
 
 	@Override
-	protected void initCustomLayout(IModel<PrismObject<ResourceType>> resource) {
+	protected void initCustomLayout() {
 		// TODO Auto-generated method stub
 		
 	}
-
-	@Override
-	protected ObjectQuery createQuery(IModel<PrismObject<ResourceType>> resourceModel)
-			throws SchemaException {
-		ObjectQuery baseQuery = null;
-		if (StringUtils.isNotBlank(getIntent())) {
-			baseQuery = ObjectQueryUtil.createResourceAndKindIntent(resourceModel.getObject().getOid(),
-					getKind(), getIntent(), getPageBase().getPrismContext());
-		} else {
-			baseQuery = ObjectQueryUtil.createResourceAndKind(resourceModel.getObject().getOid(), getKind(),
-					getPageBase().getPrismContext());
-		}
-		return baseQuery;
-	}
+//
+//	@Override
+//	protected ObjectQuery createQuery()
+//			throws SchemaException {
+//		ObjectQuery baseQuery = null;
+//		if (StringUtils.isNotBlank(getIntent())) {
+//			baseQuery = ObjectQueryUtil.createResourceAndKindIntent(resourceModel.getObject().getOid(),
+//					getKind(), getIntent(), getPageBase().getPrismContext());
+//		} else {
+//			baseQuery = ObjectQueryUtil.createResourceAndKind(resourceModel.getObject().getOid(), getKind(),
+//					getPageBase().getPrismContext());
+//		}
+//		return baseQuery;
+//	}
 
 	@Override
 	protected SelectorOptions<GetOperationOptions> addAdditionalOptions() {
@@ -62,7 +62,7 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel{
 	}
 
 	@Override
-	protected boolean isUseObjectCounting(IModel<PrismObject<ResourceType>> resourceModel) {
+	protected boolean isUseObjectCounting() {
 		return true;
 	}
 

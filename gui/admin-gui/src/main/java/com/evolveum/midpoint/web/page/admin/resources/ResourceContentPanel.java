@@ -36,6 +36,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -51,6 +53,7 @@ import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -103,7 +106,7 @@ public abstract class ResourceContentPanel extends Panel {
 	private PageBase pageBase;
 	private ShadowKindType kind;
 	private String intent;
-	
+
 	IModel<PrismObject<ResourceType>> resourceModel;
 
 	public PageBase getPageBase() {
@@ -117,9 +120,16 @@ public abstract class ResourceContentPanel extends Panel {
 	public String getIntent() {
 		return intent;
 	}
-	
+
 	public IModel<PrismObject<ResourceType>> getResourceModel() {
 		return resourceModel;
+	}
+
+	public RefinedObjectClassDefinition getDefinitionByKind() throws SchemaException {
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema
+				.getRefinedSchema(resourceModel.getObject(), getPageBase().getPrismContext());
+		return refinedSchema.getRefinedDefinition(getKind(), getIntent());
+
 	}
 
 	public ResourceContentPanel(String id, IModel<PrismObject<ResourceType>> resourceModel,
@@ -129,49 +139,75 @@ public abstract class ResourceContentPanel extends Panel {
 		this.kind = kind;
 		this.resourceModel = resourceModel;
 		this.intent = intent;
-		initLayout(resourceModel);
+		initLayout();
 	}
 
-	private void initLayout(IModel<PrismObject<ResourceType>> resourceModel) {
+	private void initLayout() {
 		ObjectDataProvider2<SelectableBean<ShadowType>, ShadowType> provider = new ObjectDataProvider2<SelectableBean<ShadowType>, ShadowType>(
 				this, ShadowType.class);
 
 		try {
-			provider.setQuery(createQuery(resourceModel));
+
+			ObjectQuery query = createQuery();
+			provider.setQuery(query);
+			RefinedObjectClassDefinition ocDef = getDefinitionByKind();
+			if (ocDef == null) {
+				Label label = new Label(ID_TABLE, "Nothing to show. Select intent to search");
+				add(label);
+				initCustomLayout();
+				return;
+
+			}
 
 		} catch (SchemaException e) {
 			Label label = new Label(ID_TABLE, "Nothing to show. Select intent to search");
 			add(label);
+			initCustomLayout();
 			return;
 		}
 
 		provider.setEmptyListOnNullQuery(true);
-		createSearchOptions(provider, resourceModel);
+		createSearchOptions(provider);
 		List<IColumn> columns = initColumns();
 		final BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns,
 				UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL, 10); // parentPage.getItemsPerPage(UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL)
 		table.setOutputMarkupId(true);
 		add(table);
-		
-		initCustomLayout(resourceModel);
+
+		initCustomLayout();
 	}
 
-	protected abstract void initCustomLayout(IModel<PrismObject<ResourceType>> resource);
-	
-	protected abstract ObjectQuery createQuery(IModel<PrismObject<ResourceType>> resourceModel)
-			throws SchemaException;
+	protected abstract void initCustomLayout();
 
-	private void createSearchOptions(ObjectDataProvider2 provider,
-			IModel<PrismObject<ResourceType>> resourceModel) {
+	protected ObjectQuery createQuery() throws SchemaException {
+		ObjectQuery baseQuery = null;
+
+		RefinedObjectClassDefinition rOcDef = getDefinitionByKind();
+		if (rOcDef != null) {
+			if (rOcDef.getKind() != null) {
+				baseQuery = ObjectQueryUtil.createResourceAndKindIntent(resourceModel.getObject().getOid(),
+						rOcDef.getKind(), rOcDef.getIntent(), getPageBase().getPrismContext());
+			} else {
+				baseQuery = ObjectQueryUtil.createResourceAndObjectClassQuery(
+						resourceModel.getObject().getOid(), rOcDef.getTypeName(),
+						getPageBase().getPrismContext());
+			}
+		}
+		return baseQuery;
+	}
+
+	private void createSearchOptions(ObjectDataProvider2 provider) {
+
 		Collection<SelectorOptions<GetOperationOptions>> opts = SelectorOptions.createCollection(
 				ShadowType.F_ASSOCIATION, GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
 
-		if (addAdditionalOptions() != null){
-			opts.add(addAdditionalOptions()); // new SelectorOptions<GetOperationOptions>(GetOperationOptions.createNoFetch()));
+		if (addAdditionalOptions() != null) {
+			opts.add(addAdditionalOptions()); // new
+												// SelectorOptions<GetOperationOptions>(GetOperationOptions.createNoFetch()));
 		}
-			provider.setUseObjectCounting(isUseObjectCounting(resourceModel));
-			provider.setOptions(opts);
-	
+		provider.setUseObjectCounting(isUseObjectCounting());
+		provider.setOptions(opts);
+
 	}
 
 	private StringResourceModel createStringResource(String key) {
@@ -260,8 +296,6 @@ public abstract class ResourceContentPanel extends Panel {
 
 		return columns;
 	}
-	
-	
 
 	private void ownerDetailsPerformed(AjaxRequestTarget target, String ownerOid) {
 		if (StringUtils.isEmpty(ownerOid)) {
@@ -362,7 +396,8 @@ public abstract class ResourceContentPanel extends Panel {
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						// updateAccountStatusPerformed(target, null, true); TODO
+						// updateAccountStatusPerformed(target, null, true);
+						// TODO
 					}
 				}));
 
@@ -371,7 +406,8 @@ public abstract class ResourceContentPanel extends Panel {
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						// updateAccountStatusPerformed(target, null, false); TODO
+						// updateAccountStatusPerformed(target, null, false);
+						// TODO
 					}
 				}));
 
@@ -528,6 +564,6 @@ public abstract class ResourceContentPanel extends Panel {
 
 	protected abstract SelectorOptions<GetOperationOptions> addAdditionalOptions();
 
-	protected abstract boolean isUseObjectCounting(IModel<PrismObject<ResourceType>> resourceModel);
+	protected abstract boolean isUseObjectCounting();
 
 }

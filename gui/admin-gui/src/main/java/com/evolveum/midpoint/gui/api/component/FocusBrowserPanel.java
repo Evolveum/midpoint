@@ -31,6 +31,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -85,10 +86,18 @@ public class FocusBrowserPanel<T extends FocusType> extends BasePanel<T> {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				List<T> selected = ((ObjectListPanel) get(ID_TABLE)).getSelectedObjects();
-				addPerformed(target, selected);
+				List<T> selected = ((ObjectListPanel) getParent().get(ID_TABLE)).getSelectedObjects();
+				FocusBrowserPanel.this.addPerformed(target, selected);
 			}
 		};
+		
+		addButton.add(new VisibleEnableBehaviour() {
+			
+			@Override
+			public boolean isVisible() {
+				return multiselect;
+			}
+		});
 
 		add(addButton);
 	}
@@ -97,7 +106,7 @@ public class FocusBrowserPanel<T extends FocusType> extends BasePanel<T> {
 
 	}
 
-	private ObjectListPanel<T> createObjectListPanel(Class<T> type, boolean multiselect) {
+	private ObjectListPanel<T> createObjectListPanel(Class<T> type, final boolean multiselect) {
 		ObjectListPanel<T> listPanel = new ObjectListPanel<T>(ID_TABLE, type, parentPage) {
 
 			@Override
@@ -111,8 +120,13 @@ public class FocusBrowserPanel<T extends FocusType> extends BasePanel<T> {
 				super.addPerformed(target, selected);
 				FocusBrowserPanel.this.addPerformed(target, selected);
 			}
+			
+			@Override
+			public boolean isMultiSelect() {
+				return multiselect;
+			}
 		};
-		listPanel.setMultiSelect(multiselect);
+//		listPanel.setMultiSelect(multiselect);
 		listPanel.setOutputMarkupId(true);
 		return listPanel;
 	}
