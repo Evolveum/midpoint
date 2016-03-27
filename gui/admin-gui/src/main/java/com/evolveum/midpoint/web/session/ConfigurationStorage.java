@@ -36,10 +36,6 @@ public class ConfigurationStorage extends PageStorage {
     private ObjectPaging accountDetailsPaging;
 
     public DebugSearchDto getDebugSearchDto() {
-        if (debugSearchDto == null) {
-            debugSearchDto = new DebugSearchDto();
-            debugSearchDto.setType(ObjectTypes.SYSTEM_CONFIGURATION);
-        }
         return debugSearchDto;
     }
 

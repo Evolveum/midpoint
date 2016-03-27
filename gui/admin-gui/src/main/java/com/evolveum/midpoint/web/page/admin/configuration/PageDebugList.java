@@ -160,10 +160,6 @@ public class PageDebugList extends PageAdminConfiguration {
 	private IModel<List<ObjectViewDto>> resourcesModel;
 
 	public PageDebugList() {
-		this(true);
-	}
-
-	public PageDebugList(boolean clearPagingInSession) {
 		searchModel = new LoadableModel<DebugSearchDto>(false) {
 
 			@Override
@@ -171,7 +167,11 @@ public class PageDebugList extends PageAdminConfiguration {
 				ConfigurationStorage storage = getSessionStorage().getConfiguration();
 
 				DebugSearchDto dto = storage.getDebugSearchDto();
-				setupSearchDto(dto);
+				if (dto == null) {
+					dto = new DebugSearchDto();
+					dto.setType(ObjectTypes.SYSTEM_CONFIGURATION);
+					setupSearchDto(dto);
+				}
 
 				return dto;
 			}
@@ -185,7 +185,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			}
 		};
 
-		resourcesModel = new LoadableModel<List<ObjectViewDto>>() {
+		resourcesModel = new LoadableModel<List<ObjectViewDto>>(false) {
 
 			@Override
 			protected List<ObjectViewDto> load() {
