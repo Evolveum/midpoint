@@ -192,6 +192,13 @@ public class PageResource extends PageAdminResources {
 				return new ResourceContentTabPanel(panelId, ShadowKindType.GENERIC, resourceModel, PageResource.this);
 			}
 		});
+		
+		tabs.add(new AbstractTab(createStringResource("PageResource.tab.content.others")) {
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return new ResourceContentTabPanel(panelId, null, resourceModel, PageResource.this);
+			}
+		});
 
 		TabbedPanel resourceTabs = new TabbedPanel(ID_TAB_PANEL, tabs);
 

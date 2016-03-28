@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 
@@ -25,14 +27,22 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class ResourceContentRepositoryPanel extends ResourceContentPanel{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	public ResourceContentRepositoryPanel(String id, IModel<PrismObject<ResourceType>> resourceModel,
-			ShadowKindType kind, String intent, PageBase pageBase) {
-		super(id, resourceModel, kind, intent, pageBase);
+			QName objectClass, ShadowKindType kind, String intent, PageBase pageBase) {
+		super(id, resourceModel, objectClass, kind, intent, pageBase);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -64,6 +74,11 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel{
 	@Override
 	protected boolean isUseObjectCounting() {
 		return true;
+	}
+
+	@Override
+	protected Search createSearch() {
+		return SearchFactory.createSearch(ShadowType.class, getPageBase().getPrismContext());
 	}
 
 }

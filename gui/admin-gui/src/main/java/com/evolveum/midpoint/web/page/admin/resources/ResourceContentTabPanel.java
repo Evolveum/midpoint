@@ -16,25 +16,35 @@
 package com.evolveum.midpoint.web.page.admin.resources;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+
+import javax.xml.namespace.QName;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.util.ListModel;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.AutoCompleteTextPanel;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -50,6 +60,9 @@ public class ResourceContentTabPanel extends Panel {
 	private static final String DOT_CLASS = ResourceContentTabPanel.class.getName() + ".";
 
 	private static final String ID_INTENT = "intent";
+	private static final String ID_OBJECT_CLASS = "objectClass";
+	private static final String ID_INTENT_LABEL = "intentLabel";
+	private static final String ID_OBJECT_CLASS_LABEL = "objectClassLabel";
 	private static final String ID_MAIN_FORM = "mainForm";
 
 	private static final String ID_REPO_SEARCH = "repositorySearch";
@@ -61,20 +74,30 @@ public class ResourceContentTabPanel extends Panel {
 
 	private PageBase parentPage;
 	private ShadowKindType kind;
+	
+	private boolean useObjectClass;
 
 	
 	private Model<Boolean> resourceSearchModel = new Model<Boolean>(false);
 
 	private IModel<String> intentModel;
+	
+	private IModel<QName> objectClassModel;
 
 
 	public ResourceContentTabPanel(String id, ShadowKindType kind,
 			final IModel<PrismObject<ResourceType>> model, PageBase parentPage) {
 		super(id, model);
 		this.parentPage = parentPage;
-		this.kind = kind;
+		
+		if (kind == null){
+			useObjectClass = true;
+		} else {
+			this.kind = kind;
+		}
 
-		intentModel = new Model();
+		intentModel = new Model<String>();
+		objectClassModel = new Model<QName>();
 	
 		initLayout(model);
 	}
@@ -84,8 +107,20 @@ public class ResourceContentTabPanel extends Panel {
 			
 		setOutputMarkupId(true);
 
+		Label intentLabel = new Label(ID_INTENT_LABEL, parentPage.createStringResource("ShadowType.intent"));
+		intentLabel.add(new VisibleEnableBehaviour() {
+			
+			@Override
+			public boolean isVisible() {
+				return !useObjectClass;
+			}
+		});
+		add(intentLabel);
 		AutoCompleteTextPanel<String> intent = new AutoCompleteTextPanel<String>(ID_INTENT, intentModel,
 				String.class) {
+
+		
+					private static final long serialVersionUID = 1L;
 
 			@Override
 			public Iterator<String> getIterator(String input) {
@@ -95,14 +130,18 @@ public class ResourceContentTabPanel extends Panel {
 							parentPage.getPrismContext());
 
 				} catch (SchemaException e) {
-					return new ArrayList().iterator();
+					return new ArrayList<String>().iterator();
 				}
 				return RefinedResourceSchema.getIntentsForKind(refinedSchema, kind).iterator();
 
 			}
+			
+			
 
 		};
-		intent.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+		intent.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+			
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
@@ -113,7 +152,44 @@ public class ResourceContentTabPanel extends Panel {
 			}
 		});
 		intent.setOutputMarkupId(true);
+		intent.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return !useObjectClass;
+			}
+		});
 		add(intent);
+		
+		DropDownChoicePanel<QName> objectClass = new DropDownChoicePanel<QName>(ID_OBJECT_CLASS, objectClassModel, createObjectClassChoices(model), new QNameChoiceRenderer());
+		objectClass.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+			
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				Form mainForm = (Form) get(ID_MAIN_FORM);
+				mainForm.addOrReplace(initTable(model));
+				target.add(addOrReplace(mainForm));
+				
+			}
+		});
+		
+		objectClass.add(new VisibleEnableBehaviour() {
+			
+			@Override
+			public boolean isVisible() {
+				return useObjectClass;
+			}
+		});
+		add(objectClass);
+		
+		Label objectClassLabel = new Label(ID_OBJECT_CLASS_LABEL, parentPage.createStringResource("ShadowType.objectClass"));
+		objectClassLabel.add(new VisibleEnableBehaviour() {
+			
+			@Override
+			public boolean isVisible() {
+				return useObjectClass;
+			}
+		});
+		add(objectClassLabel);
 		
 
 		AjaxButton repoSearch = new AjaxButton(ID_REPO_SEARCH) {
@@ -169,6 +245,25 @@ public class ResourceContentTabPanel extends Panel {
 
 	}
 	
+	
+	private ListModel<QName> createObjectClassChoices(IModel<PrismObject<ResourceType>> model) {
+		RefinedResourceSchema refinedSchema;
+		try {
+			refinedSchema = RefinedResourceSchema
+					.getRefinedSchema(model.getObject(),parentPage.getPrismContext());
+		} catch (SchemaException e) {
+			warn("Could not determine defined obejct classes for resource");
+			return new ListModel<QName>(new ArrayList<QName>());
+		}
+		Collection<ObjectClassComplexTypeDefinition> defs = refinedSchema.getObjectClassDefinitions();
+		List<QName> objectClasses = new ArrayList<QName>(defs.size());
+		for (ObjectClassComplexTypeDefinition def : defs ) { 
+			objectClasses.add(def.getTypeName());
+		}
+		return new ListModel<>(objectClasses);
+	}
+
+
 	private ResourceContentPanel initTable(IModel<PrismObject<ResourceType>> model){
 		if (resourceSearchModel.getObject()){
 			return initResourceContent(model);
@@ -178,28 +273,14 @@ public class ResourceContentTabPanel extends Panel {
 	}
 
 	private ResourceContentResourcePanel initResourceContent(IModel<PrismObject<ResourceType>> model) {
-		ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_TABLE, model, kind, intentModel.getObject(), parentPage);
-		resourceContent.add(new VisibleEnableBehaviour() {
-			
-			@Override
-			public boolean isVisible() {
-				return ResourceContentTabPanel.this.resourceSearchModel.getObject();
-			}
-		});
+		ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_TABLE, model, objectClassModel.getObject(), kind, intentModel.getObject(), parentPage);
 		resourceContent.setOutputMarkupId(true);
 		return resourceContent;
 		
 	}
 	
 	private ResourceContentRepositoryPanel initRepoContent(IModel<PrismObject<ResourceType>> model) {
-		ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_TABLE, model, kind, intentModel.getObject(), parentPage);
-		repositoryContent.add(new VisibleEnableBehaviour() {
-			
-			@Override
-			public boolean isVisible() {
-				return !ResourceContentTabPanel.this.resourceSearchModel.getObject();
-			}
-		});
+		ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_TABLE, model, objectClassModel.getObject(), kind, intentModel.getObject(), parentPage);
 		repositoryContent.setOutputMarkupId(true);
 		return repositoryContent;
 	}

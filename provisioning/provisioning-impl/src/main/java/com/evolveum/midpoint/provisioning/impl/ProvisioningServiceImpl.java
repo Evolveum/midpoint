@@ -1176,7 +1176,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
                 try {
                     PrismObject shadow = shadowType.asPrismObject();
                     validateObject(shadow);
-                	
+                    
                 	doContinue = handler.handle(shadow, handleResult);
                 	
                     handleResult.computeStatus();

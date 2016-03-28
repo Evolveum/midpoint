@@ -20,11 +20,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -39,6 +43,10 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
+import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -47,6 +55,8 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
@@ -67,14 +77,19 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider2;
+import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentTabPanel.Operation;
@@ -82,7 +97,9 @@ import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -106,7 +123,10 @@ public abstract class ResourceContentPanel extends Panel {
 	private PageBase pageBase;
 	private ShadowKindType kind;
 	private String intent;
-
+	private QName objectClass;
+	
+	private LoadableModel<Search> searchModel;
+	
 	IModel<PrismObject<ResourceType>> resourceModel;
 
 	public PageBase getPageBase() {
@@ -125,24 +145,47 @@ public abstract class ResourceContentPanel extends Panel {
 		return resourceModel;
 	}
 
+	public QName getObjectClass() {
+		return objectClass;
+	}
+	
 	public RefinedObjectClassDefinition getDefinitionByKind() throws SchemaException {
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema
 				.getRefinedSchema(resourceModel.getObject(), getPageBase().getPrismContext());
 		return refinedSchema.getRefinedDefinition(getKind(), getIntent());
 
 	}
+	
+	public RefinedObjectClassDefinition getDefinitionByObjectClass() throws SchemaException {
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema
+				.getRefinedSchema(resourceModel.getObject(), getPageBase().getPrismContext());
+		return refinedSchema.getRefinedDefinition(getObjectClass());
+
+	}
 
 	public ResourceContentPanel(String id, IModel<PrismObject<ResourceType>> resourceModel,
-			ShadowKindType kind, String intent, PageBase pageBase) {
+			QName objectClass, ShadowKindType kind, String intent, PageBase pageBase) {
 		super(id);
 		this.pageBase = pageBase;
 		this.kind = kind;
 		this.resourceModel = resourceModel;
 		this.intent = intent;
+		this.objectClass = objectClass;
 		initLayout();
 	}
 
 	private void initLayout() {
+		
+		searchModel = new LoadableModel<Search>(false) {
+
+			@Override
+			public Search load() {
+
+				return ResourceContentPanel.this.createSearch();
+			}
+		};
+
+		
 		ObjectDataProvider2<SelectableBean<ShadowType>, ShadowType> provider = new ObjectDataProvider2<SelectableBean<ShadowType>, ShadowType>(
 				this, ShadowType.class);
 
@@ -150,8 +193,8 @@ public abstract class ResourceContentPanel extends Panel {
 
 			ObjectQuery query = createQuery();
 			provider.setQuery(query);
-			RefinedObjectClassDefinition ocDef = getDefinitionByKind();
-			if (ocDef == null) {
+			
+			if (query == null) {
 				Label label = new Label(ID_TABLE, "Nothing to show. Select intent to search");
 				add(label);
 				initCustomLayout();
@@ -169,19 +212,78 @@ public abstract class ResourceContentPanel extends Panel {
 		provider.setEmptyListOnNullQuery(true);
 		createSearchOptions(provider);
 		List<IColumn> columns = initColumns();
-		final BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns,
-				UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL, 10); // parentPage.getItemsPerPage(UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL)
+//		ObjectListPanel<ShadowType> table = new ObjectListPanel<ShadowType>(ID_TABLE, ShadowType.class, getPageBase()){
+//			@Override
+//			protected List<IColumn<SelectableBean<ShadowType>, String>> initColumns() {
+//				return (List) ResourceContentPanel.this.initColumns();
+//			}
+//		};
+		final BoxedTablePanel<SelectableBean<ShadowType>> table = new BoxedTablePanel(ID_TABLE, provider, columns,
+				UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL, 10) {
+			
+			@Override
+			protected WebMarkupContainer createHeader(String headerId) {
+				return new SearchFormPanel(headerId, searchModel) {
+
+					@Override
+					protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+						ResourceContentPanel.this.searchPerformed(query, target);
+					}
+				};
+			}
+		}; // parentPage.getItemsPerPage(UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL)
 		table.setOutputMarkupId(true);
 		add(table);
 
 		initCustomLayout();
 	}
 
+	private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+		BoxedTablePanel<SelectableBean<ShadowType>> table = getTable();
+		ObjectDataProvider2<SelectableBean<ShadowType>, ShadowType> provider = (ObjectDataProvider2<SelectableBean<ShadowType>, ShadowType>) table
+				.getDataTable().getDataProvider();
+//		BaseSortableDataProvider<SelectableBean<T>> provider = getDataProvider();
+		ObjectQuery baseQuery;
+		try {
+			baseQuery = createQuery();
+			if (baseQuery == null){
+				warn("Could not search objects if either kind/intet or object class is set.");
+				return;
+			}
+		} catch (SchemaException e) {
+			warn("Could not create query.");
+			return;
+		}
+		
+		
+		ObjectQuery customQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(baseQuery.getFilter(), query.getFilter()));
+		provider.setQuery(customQuery);
+
+		// RolesStorage storage = getSessionStorage().getRoles();
+		// storage.setRolesSearch(searchModel.getObject());
+		// storage.setRolesPaging(null);
+
+		table = getTable();
+		table.setCurrentPage(null);
+		target.add((Component) table);
+		target.add(getPageBase().getFeedbackPanel());
+
+	}
+	
 	protected abstract void initCustomLayout();
 
 	protected ObjectQuery createQuery() throws SchemaException {
 		ObjectQuery baseQuery = null;
 
+		if (kind == null) { 
+			if (objectClass == null){
+				return null;
+			}
+			return ObjectQueryUtil.createResourceAndObjectClassQuery(
+					resourceModel.getObject().getOid(), objectClass,
+					getPageBase().getPrismContext());
+		}
+		
 		RefinedObjectClassDefinition rOcDef = getDefinitionByKind();
 		if (rOcDef != null) {
 			if (rOcDef.getKind() != null) {
@@ -195,6 +297,9 @@ public abstract class ResourceContentPanel extends Panel {
 		}
 		return baseQuery;
 	}
+	
+	protected abstract Search createSearch();
+	
 
 	private void createSearchOptions(ObjectDataProvider2 provider) {
 
@@ -290,12 +395,71 @@ public abstract class ResourceContentPanel extends Panel {
 			}
 		};
 		columns.add(column);
+		
+		columns.add(new LinkColumn<SelectableBean<ShadowType>>(createStringResource("PageAccounts.accounts.result")){
+
+            @Override
+            protected IModel<String> createLinkModel(final IModel<SelectableBean<ShadowType>> rowModel){
+                return new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                    	return getResultLabel(rowModel);
+                    }
+                };
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ShadowType>> rowModel) {
+            	OperationResultType resultType = getResult(rowModel);
+            	OperationResult result = OperationResult.createOperationResult(resultType);
+            	
+            	OperationResultPanel body = new OperationResultPanel(ResourceContentPanel.this.getPageBase().getMainPopupBodyId(), new Model<OpResult>(OpResult.getOpResult(pageBase, result)));
+            	body.setOutputMarkupId(true);
+            	ResourceContentPanel.this.getPageBase().showMainPopup(body, new Model<String>("Result"), target, 900, 500);
+                
+            }
+        });
 
 		column = new InlineMenuHeaderColumn(createHeaderMenuItems());
 		columns.add(column);
 
 		return columns;
 	}
+	
+	private OperationResultType getResult(IModel<SelectableBean<ShadowType>> model) {
+		 ShadowType shadow = getShadow(model);
+	        if (shadow == null){
+	        	return null;
+	        }
+	        OperationResultType result = shadow.getResult();
+	        if (result == null) {
+	        	return null;
+	        }
+	        return result;
+	}
+	
+	private String getResultLabel(IModel<SelectableBean<ShadowType>> model){
+   	 
+		OperationResultType result = getResult(model);
+        if (result == null){
+        	return "";
+        }
+        
+        StringBuilder b = new StringBuilder(createStringResource("FailedOperationTypeType." + getShadow(model).getFailedOperationType()).getObject());
+        b.append(":");
+        b.append(createStringResource("OperationResultStatusType." + result.getStatus()).getObject());
+        
+        return b.toString();
+   }
+   
+   private ShadowType getShadow(IModel<SelectableBean<ShadowType>> model){
+   	 if(model == null || model.getObject() == null || model.getObject().getValue() == null){
+            return null;
+        }
+   	 
+   	 return (ShadowType) model.getObject().getValue();
+   }
 
 	private void ownerDetailsPerformed(AjaxRequestTarget target, String ownerOid) {
 		if (StringUtils.isEmpty(ownerOid)) {

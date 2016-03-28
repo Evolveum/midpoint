@@ -89,6 +89,7 @@ public class ObjectListPanel<T extends ObjectType> extends BasePanel<T> {
 
 		initLayout();
 	}
+	
 
 	public void setProvider(BaseSortableDataProvider<SelectableBean<T>> provider) {
 		this.provider = provider;
@@ -248,7 +249,7 @@ public class ObjectListPanel<T extends ObjectType> extends BasePanel<T> {
 		return PageBase.createStringResourceStatic(this, resourceKey, objects);
 	}
 
-	private List<IColumn<SelectableBean<T>, String>> initColumns() {
+	protected List<IColumn<SelectableBean<T>, String>> initColumns() {
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
 
 		CheckBoxHeaderColumn checkboxColumn = new CheckBoxHeaderColumn();
