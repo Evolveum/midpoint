@@ -20,17 +20,26 @@ import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.util.ListModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.util.ListDataProvider2;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class ResourceTasksPanel extends Panel{
@@ -40,6 +49,10 @@ public class ResourceTasksPanel extends Panel{
 	 */
 	private static final long serialVersionUID = 1L;
 
+	private static final String DOT_CLASS = ResourceTasksPanel.class.getName() + ".";
+
+	private static final String OPERATION_LOAD_TASKS = DOT_CLASS + "loadTasks";
+	
 	private static final String ID_TASKS_TABLE = "taskTable";
 	
 	private static final String ID_RUN_NOW = "runNow";
@@ -49,11 +62,43 @@ public class ResourceTasksPanel extends Panel{
 	
 	private PageBase pageBase;
 	
+	private boolean editable;
 	
-	public ResourceTasksPanel(String id, ListModel<TaskType> tasks, PageBase pageBase) {
+//	private ListModel<TaskType> model;
+	
+	
+	public ResourceTasksPanel(String id, boolean editable, ListModel<TaskType> tasks, PageBase pageBase) {
 		super(id);
 		this.pageBase = pageBase;
+		this.editable = editable;
+		
+		
 		initLayout(tasks);
+	}
+	
+	public ResourceTasksPanel(String id, boolean editable, final IModel<PrismObject<ResourceType>> resourceModel, PageBase pageBase) {
+		super(id);
+		this.pageBase = pageBase;
+		this.editable = editable;
+		
+		ListModel<TaskType> model = createTaskModel(resourceModel.getObject());
+		initLayout(model);
+	}
+	
+	private ListModel<TaskType> createTaskModel(PrismObject<ResourceType> object) {
+		OperationResult result = new OperationResult(OPERATION_LOAD_TASKS);
+		List<PrismObject<TaskType>> tasks = WebModelServiceUtils
+				.searchObjects(TaskType.class,
+						ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF,
+								TaskType.class, pageBase.getPrismContext(),
+								object.getOid())),
+						result, pageBase);
+		List<TaskType> tasksType = new ArrayList<TaskType>();
+		for (PrismObject<TaskType> task : tasks) {
+			tasksType.add(task.asObjectable());
+		}
+		return new ListModel<>(tasksType);
+		
 	}
 	
 	private void initLayout(final ListModel<TaskType> tasks){
@@ -63,9 +108,22 @@ public class ResourceTasksPanel extends Panel{
 			protected BaseSortableDataProvider<SelectableBean<TaskType>> getProvider() {
 				return new ListDataProvider2(pageBase, tasks);
 			}
+			
+			@Override
+			public boolean isEditable() {
+				return ResourceTasksPanel.this.editable;
+			}
+			
+			@Override
+			public void objectDetailsPerformed(AjaxRequestTarget target, TaskType task) {
+				// TODO Auto-generated method stub
+				super.objectDetailsPerformed(target, task);
+				PageParameters parameters = new PageParameters();
+		        parameters.add(OnePageParameterEncoder.PARAMETER, task.getOid());
+		        setResponsePage(new PageTaskEdit(parameters, new PageResource()));
+			}
 		};
 		tasksPanel.setEditable(false);
-		tasksPanel.setMultiSelect(true);
 		add(tasksPanel);
 		
 		AjaxButton runNow = new AjaxButton(ID_RUN_NOW, pageBase.createStringResource("pageTaskEdit.button.runNow")) {

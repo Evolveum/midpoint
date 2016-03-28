@@ -206,7 +206,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 
 	private void runTask(List<TaskType> tasks, AjaxRequestTarget target) {
 
-		ResourceTasksPanel tasksPanel = new ResourceTasksPanel(getPageBase().getMainPopupBodyId(),
+		ResourceTasksPanel tasksPanel = new ResourceTasksPanel(getPageBase().getMainPopupBodyId(), false, 
 				new ListModel<>(tasks), getPageBase());
 		getPageBase().showMainPopup(tasksPanel, new Model<String>("Defined tasks"), target, 900, 500);
 

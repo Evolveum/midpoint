@@ -177,7 +177,7 @@ public class ResourceDetailsTabPanel extends Panel{
 	
 	private List<ResourceConfigurationDto> createResourceConfigList(ResourceType resource) {
 		OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
-		Task task = parentPage.createSimpleTask(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
+		
 		List<PrismObject<TaskType>> tasks = WebModelServiceUtils.searchObjects(TaskType.class,
 				ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class,
 						parentPage.getPrismContext(), resource.getOid())),
