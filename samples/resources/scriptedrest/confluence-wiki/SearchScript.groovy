@@ -78,12 +78,9 @@ case "__ACCOUNT__":
             if (jsonDetail && jsonDetail.result && jsonDetail.result[0].thumbnailLink && jsonDetail.result[0].thumbnailLink.href) {
                 thumbnail = jsonDetail.result[0].thumbnailLink.href;
             }
-            if (thumbnail.contains("/profilepics/")) { // default images
-                thumbnail = null;
-            }
 
             byte[] avatar = null; // send only not default profile pictures
-            if (thumbnail != null) {
+            if (thumbnail != null && !thumbnail.contains("/profilepics/")) {
                 thumbnailPrefix = thumbnail.split("\\?");
                 connection.setUri(thumbnailPrefix[0]);
                 log.ok("JSON GET profile picture url: {0}", thumbnailPrefix[0]);
