@@ -145,3 +145,37 @@ function initPageSizePopover(buttonId, popoverId, positionId) {
         popover.toggle();
     });
 }
+
+/**
+ * Used in SearchPanel for advanced search, if we want to store resized textarea dimensions.
+ * 
+ * @param textAreaId
+ */
+function storeTextAreaSize(textAreaId) {
+    console.log("storeTextAreaSize('" + textAreaId + "')");
+
+    var area = $('#' + textAreaId);
+    $.textAreaSize = [];
+    $.textAreaSize[textAreaId] = {
+        height: area.height(), 
+        width: area.width(),
+        position: area.prop('selectionStart')
+    }
+}
+
+/**
+ * Used in SearchPanel for advanced search, if we want to store resized textarea dimensions.
+ * 
+ * @param textAreaId
+ */
+function restoreTextAreaSize(textAreaId, key) {
+    console.log("restoreTextAreaSize('" + textAreaId + "')");
+
+    var area = $('#' + textAreaId);
+
+    var value = $.textAreaSize[textAreaId];
+
+    area.height(value.height);
+    area.width(value.width);
+    area.prop('selectionStart', value.position);
+}

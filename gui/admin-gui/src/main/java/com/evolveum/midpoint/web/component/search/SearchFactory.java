@@ -86,7 +86,8 @@ public class SearchFactory {
                 new ItemPath(ShadowType.F_OBJECT_CLASS),
                 new ItemPath(ShadowType.F_DEAD),
                 new ItemPath(ShadowType.F_INTENT),
-                new ItemPath(ShadowType.F_EXISTS)
+                new ItemPath(ShadowType.F_EXISTS),
+                new ItemPath(ShadowType.F_FAILED_OPERATION_TYPE)
         ));
         SEARCHABLE_OBJECTS.put(TaskType.class, Arrays.asList(
                 new ItemPath(TaskType.F_TASK_IDENTIFIER),

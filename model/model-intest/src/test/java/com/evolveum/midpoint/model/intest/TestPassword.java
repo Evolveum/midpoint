@@ -72,9 +72,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	private static final String USER_PASSWORD_3_CLEAR = "wh3r3sTheRum?";
 	private static final String USER_PASSWORD_4_CLEAR = "sh1v3rM3T1mb3rs";
 	private static final String USER_PASSWORD_5_CLEAR = "s3tSa1al";
-	
-	private static final ItemPath PASSWORD_VALUE_PATH = new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE); 
-	
+		
 	private String accountOid;
 	private String accountRedOid;
 	private XMLGregorianCalendar lastPasswordChangeStart;

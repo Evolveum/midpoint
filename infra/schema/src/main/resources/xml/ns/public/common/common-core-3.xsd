@@ -177,6 +177,7 @@
                     <xsd:appinfo>
                     	<a:displayName>Name</a:displayName>
                     	<a:displayOrder>0</a:displayOrder>
+                    	<a:emphasized>true</a:emphasized>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1996,6 +1997,7 @@
                             <xsd:appinfo>
 		                    	<a:displayName>Full Name</a:displayName>
 		                    	<a:displayOrder>100</a:displayOrder>
+		                    	<a:emphasized>true</a:emphasized>
 		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2023,6 +2025,7 @@
                             <xsd:appinfo>
 		                    	<a:displayName>Given Name</a:displayName>
 		                    	<a:displayOrder>110</a:displayOrder>
+		                    	<a:emphasized>true</a:emphasized>
 		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2050,6 +2053,7 @@
                             <xsd:appinfo>
 		                    	<a:displayName>Family Name</a:displayName>
 		                    	<a:displayOrder>120</a:displayOrder>
+		                    	<a:emphasized>true</a:emphasized>
 		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2515,6 +2519,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <!-- TODO: lockoutTimestamp -->
             <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -3889,6 +3894,15 @@
 
                         This element is currently supported only in resource object type definitions.
                         Support in object templates is planned.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="emphasized" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Set true for definitions that are more important than others and that should be emphasized
+     					during presentation. E.g. the emphasized definitions will always be displayed in the user
+     					interfaces (even if they are empty), they will always be included in the dumps, etc.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -9556,6 +9570,13 @@
             <xsd:enumeration value="WEB">
                 <xsd:annotation>
                     <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WEB"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="GUI">
+                <xsd:annotation>
+                    <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="GUI"/>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -9700,6 +9721,57 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="maxAge" type="xsd:duration" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Maximum age of the credential, counted from the last credential value update.
+						The credential must not be used after the age is exceeded (it is expired).
+						Any authentication with such credential must fail.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="minAge" type="xsd:duration" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Minimum age of the credential, counted from the last credential value update.
+						The credential cannot be changed before its minimal age is reached.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="warningBeforeExpirationDuration" type="xsd:duration" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						The time interval before credential expiration (exceeded maxAge) that the user will be
+						warned that the credential is about to expire.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="lockoutMaxFailedAttempts" type="xsd:int" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Maximum number of failed authentication attempts that can be tried before the credential
+						is locked-out.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="lockoutFailedAttemptsDuration" type="xsd:duration" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						The duration in which the failed attemps must happen for the credential to be locked-out.
+						The failed attempt counter is re-set after this duration (counted from the last failed attempt).
+						The credential is NOT locked-out during this duration.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="lockoutDuration" type="xsd:duration" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						The duration for which the credential remains locked-out. The credential is automatically
+						unlocked after this duration.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- TODO: historyLength, similarity criteria (history vs new password) -->
 		</xsd:sequence>
 	</xsd:complexType>
 	

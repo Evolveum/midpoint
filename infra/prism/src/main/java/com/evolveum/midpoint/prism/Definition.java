@@ -66,7 +66,11 @@ public abstract class Definition implements Serializable, DebugDumpable, Revivab
 	protected String help;
     protected String documentation;
     protected boolean deprecated = false;
-    protected boolean inherited = false;            // whether an item is inherited from a supertype (experimental feature)
+    
+    /**
+     * whether an item is inherited from a supertype (experimental feature)
+     */
+    protected boolean inherited = false;
 	
 	/**
      * This means that the property container is not defined by fixed (compile-time) schema.
@@ -74,6 +78,13 @@ public abstract class Definition implements Serializable, DebugDumpable, Revivab
      * processing of DOM that much, as that does not really depend on compile-time/run-time distinction.
      */
     protected boolean isRuntimeSchema;
+    
+    /**
+     * Set true for definitions that are more important than others and that should be emphasized
+     * during presentation. E.g. the emphasized definitions will always be displayed in the user
+     * interfaces (even if they are empty), they will always be included in the dumps, etc.
+     */
+    protected boolean emphasized = false;
     
 	protected transient PrismContext prismContext;
 
@@ -138,6 +149,19 @@ public abstract class Definition implements Serializable, DebugDumpable, Revivab
     }
 
     /**
+     * Set true for definitions that are more important than others and that should be emphasized
+     * during presentation. E.g. the emphasized definitions will always be displayed in the user
+     * interfaces (even if they are empty), they will always be included in the dumps, etc.
+     */
+    public boolean isEmphasized() {
+		return emphasized;
+	}
+
+	public void setEmphasized(boolean emphasized) {
+		this.emphasized = emphasized;
+	}
+
+	/**
 	 * Returns display name.
 	 * 
 	 * Specifies the printable name of the object class or attribute. It must
@@ -255,6 +279,7 @@ public abstract class Definition implements Serializable, DebugDumpable, Revivab
         clone.isAbstract = this.isAbstract;
         clone.deprecated = this.deprecated;
 		clone.isRuntimeSchema = this.isRuntimeSchema;
+		clone.emphasized = this.emphasized;
     }
 	
 	@Override

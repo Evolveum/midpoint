@@ -109,8 +109,16 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 	public void setIgnored(boolean ignored) {
 		refinedObjectClassDefinition.setIgnored(ignored);
 	}
+    
+    public boolean isEmphasized() {
+		return refinedObjectClassDefinition.isEmphasized();
+	}
 
-    @Override
+	public void setEmphasized(boolean emphasized) {
+		refinedObjectClassDefinition.setEmphasized(emphasized);
+	}
+
+	@Override
     public ResourceAttributeDefinition<?> getDescriptionAttribute() {
         return substituteLayerRefinedAttributeDefinition(refinedObjectClassDefinition.getDescriptionAttribute());
     }

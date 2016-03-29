@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2065 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import static com.evolveum.midpoint.prism.PrismConstants.A_EXTENSION;
 import static com.evolveum.midpoint.prism.PrismConstants.A_EXTENSION_REF;
 import static com.evolveum.midpoint.prism.PrismConstants.A_HELP;
 import static com.evolveum.midpoint.prism.PrismConstants.A_IGNORE;
+import static com.evolveum.midpoint.prism.PrismConstants.A_EMPHASIZED;
 import static com.evolveum.midpoint.prism.PrismConstants.A_INDEXED;
 import static com.evolveum.midpoint.prism.PrismConstants.A_MATCHING_RULE;
 import static com.evolveum.midpoint.prism.PrismConstants.A_MAX_OCCURS;
@@ -981,6 +982,12 @@ class DomToSchemaProcessor {
 		Element help = SchemaProcessorUtil.getAnnotationElement(annotation, A_HELP);
 		if (help != null) {
 			itemDef.setHelp(help.getTextContent());
+		}
+		
+		// emphasized
+		Boolean emphasized = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_EMPHASIZED);
+		if (emphasized != null) {
+			itemDef.setEmphasized(emphasized);
 		}
 
         // documentation

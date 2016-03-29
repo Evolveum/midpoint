@@ -17,11 +17,19 @@
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <form wicket:id="form" class="form-inline pull-right search-form">
 
+        <div class="form-group has-feedback" wicket:id="advancedGroup">
+            <label class="control-label" style="vertical-align: top;">
+                <i class="fa fa-lg" wicket:id="advancedCheck"/>
+            </label>
+            <textarea class="form-control input-sm" rows="1" wicket:id="advancedArea"
+                style="height: 30px; overflow: hidden;"></textarea>
+        </div>
+
         <wicket:container wicket:id="items">
             <div wicket:id="item" class="form-group"/>
         </wicket:container>
 
-        <div class="form-group">
+        <div class="form-group" wicket:id="moreGroup">
             <a wicket:id="more" class="btn btn-sm btn-default">
                 <wicket:message key="SearchPanel.more"/>
                 &nbsp;
@@ -29,10 +37,14 @@
             </a>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" style="vertical-align: top;">
             <a wicket:id="search" class="btn btn-sm btn-primary">
                 <i class="fa fa-search fa-lg"/>
             </a>
+        </div>
+
+        <div class="form-group" style="vertical-align: top;">
+            <a class="btn btn-sm btn-link" wicket:id="advanced"/>
         </div>
     </form>
 

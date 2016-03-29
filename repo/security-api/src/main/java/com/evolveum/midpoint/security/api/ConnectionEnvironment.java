@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2010-2013 Evolveum
+/**
+ * Copyright (c) 2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.evolveum.midpoint.model.impl.security;
+package com.evolveum.midpoint.security.api;
 
 /**
- * 
- * @author Vilo Repan
+ * @author semancik
+ *
  */
-public class RepositoryException extends Exception {
+public class ConnectionEnvironment {
+	
+	private String channel;
+	private String remoteHost;
 
-	private static final long serialVersionUID = 7335486790057885990L;
-
-	public RepositoryException(String message) {
-		super(message);
+	public String getChannel() {
+		return channel;
 	}
 
-	public RepositoryException(String message, Throwable throwable) {
-		super(message, throwable);
+	public void setChannel(String channel) {
+		this.channel = channel;
 	}
+
+	public String getRemoteHost() {
+		return remoteHost;
+	}
+
+	public void setRemoteHost(String remoteHost) {
+		this.remoteHost = remoteHost;
+	}
+
 }

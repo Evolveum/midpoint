@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -237,20 +238,31 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						showAssignablePopupPerformed(target, ResourceType.class, ResourceType.F_NAME);
+						TypedAssignablePanel panel = new TypedAssignablePanel(getPageBase().getMainPopupBodyId(), RoleType.class, true, getPageBase()) {
+							 
+							@Override
+							protected void addPerformed(AjaxRequestTarget target, List selected) {
+								super.addPerformed(target, selected);
+								addSelectedAssignablePerformed(target, selected, getPageBase().getMainPopup().getId());
+							}
+							
+						};
+						panel.setOutputMarkupId(true);
+						getPageBase().showMainPopup(panel, new Model<String>("Select"), target, 900, 500);
+//						showAssignablePopupPerformed(target, ResourceType.class, ResourceType.F_NAME);
 					}
 				});
 		items.add(item);
 
-		item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assignRole"),
-				new InlineMenuItemAction() {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						showAssignablePopupPerformed(target, RoleType.class, RoleType.F_NAME);
-					}
-				});
-		items.add(item);
+//		item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assignRole"),
+//				new InlineMenuItemAction() {
+//
+//					@Override
+//					public void onClick(AjaxRequestTarget target) {
+//						showAssignablePopupPerformed(target, RoleType.class, RoleType.F_NAME);
+//					}
+//				});
+//		items.add(item);
 
 		item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assignOrg"),
 				new InlineMenuItemAction() {
@@ -379,8 +391,9 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 	private void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments,
 			String popupId) {
 		ModalWindow window = (ModalWindow) get(popupId);
+		if (window != null) {
 		window.close(target);
-
+		}
 		if (newAssignments.isEmpty()) {
 			warn(getString("AssignmentTablePanel.message.noAssignmentSelected"));
 			//target.add(getPageBase().getFeedbackPanel());
@@ -406,7 +419,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 			}
 		}
 
-		//target.add(getPageBase().getFeedbackPanel(), get(ID_ASSIGNMENTS));
+		target.add(getPageBase().getFeedbackPanel(), get(ID_ASSIGNMENTS));
 	}
 
 	private void addSelectedResourceAssignPerformed(ResourceType resource) {

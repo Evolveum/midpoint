@@ -59,8 +59,9 @@ import java.util.List;
  * @author lazyman
  */
 public class PrismObjectPanel<O extends ObjectType> extends Panel {
-
-    private static final String STRIPED_CLASS = "striped";
+	private static final long serialVersionUID = 1L;
+	
+	private static final String STRIPED_CLASS = "striped";
     private static final String ID_HEADER = "header";
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismObjectPanel.class);
@@ -68,7 +69,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
     private boolean showHeader = true;
     private PageBase pageBase;
 
-    public PrismObjectPanel(String id, IModel<ObjectWrapper<O>> model, ResourceReference image, Form form, PageBase pageBase) {
+    public PrismObjectPanel(String id, IModel<ObjectWrapper<O>> model, ResourceReference image, Form<ObjectWrapper<O>> form, PageBase pageBase) {
         super(id);
         setOutputMarkupId(true);
 
@@ -77,6 +78,82 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
         this.pageBase = pageBase;
         initLayout(model, image, form);
     }
+    
+    private void initLayout(final IModel<ObjectWrapper<O>> model, ResourceReference image, final Form<ObjectWrapper<O>> form) {
+        Component headerComponent = createHeader(ID_HEADER, model);
+        if (headerComponent instanceof H3Header) {
+            headerComponent.setVisible(false);
+        }
+        add(headerComponent);
+
+        WebMarkupContainer headerPanel = new WebMarkupContainer("headerPanel");
+        headerPanel.add(new AttributeAppender("class", createHeaderClassModel(model), " "));
+//        TODO - attempt to fix row color application when certain actions performed, similar to AssignmentEditorPanel.
+//        headerPanel.add(AttributeModifier.append("class", createHeaderClassModel(model)));
+//        headerPanel.setOutputMarkupId(true);
+        add(headerPanel);
+        headerPanel.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            public boolean isVisible() {
+                return isShowHeader();
+            }
+        });
+
+        Image shield = new Image("shield", new PackageResourceReference(ImgResources.class, ImgResources.SHIELD));
+        shield.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            public boolean isVisible() {
+                ObjectWrapper<O> wrapper = model.getObject();
+                return wrapper.isProtectedAccount();
+            }
+        });
+        headerPanel.add(shield);
+
+        Label header = new Label("header", createDisplayName(model));
+        header.add(new AttributeAppender("class", createHeaderNameClassModel(model), " "));
+        header.add(createHeaderOnClickBehaviour(model));
+        headerPanel.add(header);
+        Label description = new Label("description", createDescription(model));
+        description.add(new AttributeModifier("title", createDescription(model)));
+
+        description.add(createHeaderOnClickBehaviour(model));
+        headerPanel.add(description);
+
+        Image headerImg = new Image("headerImg", image);
+        headerImg.add(createHeaderOnClickBehaviour(model));
+        headerPanel.add(headerImg);
+
+        initButtons(headerPanel, model);
+
+        WebMarkupContainer body = new WebMarkupContainer("body");
+        body.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            public boolean isVisible() {
+                ObjectWrapper<O> wrapper = model.getObject();
+                return !wrapper.isMinimalized();
+            }
+        });
+        add(body);
+
+        ListView<ContainerWrapper> containers = new ListView<ContainerWrapper>("containers",
+                createContainerModel(model)) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            protected void populateItem(ListItem<ContainerWrapper> item) {
+                createContainerPanel(item, form);
+            }
+        };
+        containers.setReuseItems(true);
+        body.add(containers);
+    }
+
 
     @Override
     public void renderHead(IHeaderResponse response) {
@@ -236,78 +313,6 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
 //                return new StringResourceModel(key, PrismObjectPanel.this, null, key).getString();
             }
         };
-    }
-
-    private void initLayout(final IModel<ObjectWrapper<O>> model, ResourceReference image, final Form form) {
-        Component headerComponent = createHeader(ID_HEADER, model);
-        if (headerComponent instanceof H3Header) {
-            headerComponent.setVisible(false);
-        }
-        add(headerComponent);
-
-        WebMarkupContainer headerPanel = new WebMarkupContainer("headerPanel");
-        headerPanel.add(new AttributeAppender("class", createHeaderClassModel(model), " "));
-//        TODO - attempt to fix row color application when certain actions performed, similar to AssignmentEditorPanel.
-//        headerPanel.add(AttributeModifier.append("class", createHeaderClassModel(model)));
-//        headerPanel.setOutputMarkupId(true);
-        add(headerPanel);
-        headerPanel.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return isShowHeader();
-
-            }
-        });
-
-        Image shield = new Image("shield", new PackageResourceReference(ImgResources.class, ImgResources.SHIELD));
-        shield.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                ObjectWrapper<O> wrapper = model.getObject();
-                return wrapper.isProtectedAccount();
-            }
-        });
-        headerPanel.add(shield);
-
-        Label header = new Label("header", createDisplayName(model));
-        header.add(new AttributeAppender("class", createHeaderNameClassModel(model), " "));
-        header.add(createHeaderOnClickBehaviour(model));
-        headerPanel.add(header);
-        Label description = new Label("description", createDescription(model));
-        description.add(new AttributeModifier("title", createDescription(model)));
-
-        description.add(createHeaderOnClickBehaviour(model));
-        headerPanel.add(description);
-
-        Image headerImg = new Image("headerImg", image);
-        headerImg.add(createHeaderOnClickBehaviour(model));
-        headerPanel.add(headerImg);
-
-        initButtons(headerPanel, model);
-
-        WebMarkupContainer body = new WebMarkupContainer("body");
-        body.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                ObjectWrapper wrapper = model.getObject();
-                return !wrapper.isMinimalized();
-            }
-        });
-        add(body);
-
-        ListView<ContainerWrapper> containers = new ListView<ContainerWrapper>("containers",
-                createContainerModel(model)) {
-
-            @Override
-            protected void populateItem(ListItem<ContainerWrapper> item) {
-                createContainerPanel(item, form);
-            }
-        };
-        containers.setReuseItems(true);
-        body.add(containers);
     }
 
     protected IModel<List<ContainerWrapper>> createContainerModel(IModel<ObjectWrapper<O>> model){
