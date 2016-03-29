@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -27,7 +28,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.BootstrapLabel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -47,7 +47,8 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
+public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrapper<O>> {
+	private static final long serialVersionUID = 1L;
 
     private static final String ID_CHECK = "check";
     private static final String ID_ICON = "icon";
@@ -60,18 +61,20 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
     private static final String ID_TRIGGER = "trigger";
     private static final String ID_PROTECTED = "protected";
 
-    public CheckTableHeader(String id, IModel<ObjectWrapper> model) {
+    public CheckTableHeader(String id, IModel<ObjectWrapper<O>> model) {
         super(id, model);
 
-        add(AttributeModifier.append("class", "check-table-header"));
+        initLayout();
     }
 
-    @Override
-    protected void initLayout() {
+    private void initLayout() {
+    	add(AttributeModifier.append("class", "check-table-header"));
+    	
         AjaxCheckBox check = new AjaxCheckBox(ID_CHECK,
                 new PropertyModel<Boolean>(getModel(), ObjectWrapper.F_SELECTED)) {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             protected void onUpdate(AjaxRequestTarget target) {
             }
         };
@@ -79,8 +82,9 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
 
         Label icon = new Label(ID_ICON);
         icon.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public String getObject() {
                 return createAccountIcon();
             }
@@ -89,16 +93,18 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
 
         Label trigger = new Label(ID_TRIGGER);
         trigger.add(AttributeModifier.replace("title", new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public String getObject() {
                 return createTriggerTooltip();
             }
         }));
         trigger.add(new TooltipBehavior());
         trigger.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public boolean isVisible() {
                 return hasTriggers();
             }
@@ -107,22 +113,24 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
 
         Label protectedIcon = new Label(ID_PROTECTED);
         protectedIcon.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public boolean isVisible() {
-                ObjectWrapper wrapper = getModelObject();
+                ObjectWrapper<O> wrapper = getModelObject();
                 return wrapper.isProtectedAccount();
             }
         });
         add(protectedIcon);
 
         BootstrapLabel status = new BootstrapLabel(ID_STATUS, createStringResource("CheckTableHeader.label.error"),
-                new Model(BootstrapLabel.State.DANGER));
+                new Model<>(BootstrapLabel.State.DANGER));
         status.add(createFetchErrorVisibleBehaviour());
         add(status);
         AjaxLink showMore = new AjaxLink(ID_SHOW_MORE) {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public void onClick(AjaxRequestTarget target) {
                 onShowMorePerformed(target);
             }
@@ -140,8 +148,9 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
         add(link);
 
         Label name = new Label(ID_NAME, new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public String getObject() {
                 return getDisplayName();
             }
@@ -149,8 +158,9 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
         link.add(name);
 
         Label description = new Label(ID_DESCRIPTION, new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public String getObject() {
                 return getDescription();
             }
@@ -160,8 +170,9 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
         final IModel<List<InlineMenuItem>> items = new Model((Serializable) createMenuItems());
         InlineMenu menu = new InlineMenu(ID_MENU, items, true);
         menu.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public boolean isVisible() {
                 List<InlineMenuItem> list = items.getObject();
                 return list != null && !list.isEmpty();
@@ -171,11 +182,11 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
     }
 
     private String createAccountIcon() {
-        ObjectWrapper wrapper = getModelObject();
-        PrismObject object = wrapper.getObject();
-        PrismProperty status = object.findProperty(new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS));
+        ObjectWrapper<O> wrapper = getModelObject();
+        PrismObject<O> object = wrapper.getObject();
+        PrismProperty<ActivationStatusType> status = object.findProperty(new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS));
         if (status != null && status.getRealValue() != null) {
-            ActivationStatusType value = (ActivationStatusType) status.getRealValue();
+            ActivationStatusType value = status.getRealValue();
             if (ActivationStatusType.DISABLED.equals(value)) {
                 return "fa fa-male text-muted";
             }
@@ -185,17 +196,16 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
     }
 
     private String createTriggerTooltip() {
-        ObjectWrapper wrapper = getModelObject();
-        PrismObject obj = wrapper.getObject();
-        PrismContainer container = obj.findContainer(ObjectType.F_TRIGGER);
+        ObjectWrapper<O> wrapper = getModelObject();
+        PrismObject<O> obj = wrapper.getObject();
+        PrismContainer<TriggerType> container = obj.findContainer(ObjectType.F_TRIGGER);
         if (container == null || container.isEmpty()) {
             return null;
         }
 
         List<String> triggers = new ArrayList<>();
-        for (PrismContainerValue val : (List<PrismContainerValue>) container.getValues()) {
-            XMLGregorianCalendar time = (XMLGregorianCalendar) val.getPropertyRealValue(TriggerType.F_TIMESTAMP,
-                    XMLGregorianCalendar.class);
+        for (PrismContainerValue<TriggerType> val : container.getValues()) {
+            XMLGregorianCalendar time = val.getPropertyRealValue(TriggerType.F_TIMESTAMP, XMLGregorianCalendar.class);
 
             if (time == null) {
                 triggers.add(getString("CheckTableHeader.triggerUnknownTime"));
@@ -208,16 +218,17 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
     }
 
     private boolean hasTriggers() {
-        ObjectWrapper wrapper = getModelObject();
-        PrismObject obj = wrapper.getObject();
-        PrismContainer container = obj.findContainer(ObjectType.F_TRIGGER);
+        ObjectWrapper<O> wrapper = getModelObject();
+        PrismObject<O> obj = wrapper.getObject();
+        PrismContainer<TriggerType> container = obj.findContainer(ObjectType.F_TRIGGER);
         return container != null && !container.isEmpty();
     }
 
     private VisibleEnableBehaviour createFetchErrorVisibleBehaviour() {
         return new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public boolean isVisible() {
                 OperationResult fetchResult = getModelObject().getFetchResult();
                 if (fetchResult != null && !WebComponentUtil.isSuccessOrHandledError(fetchResult)) {
@@ -235,13 +246,13 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
     }
 
     private String getDisplayName() {
-        ObjectWrapper wrapper = getModel().getObject();
+        ObjectWrapper<O> wrapper = getModel().getObject();
         String key = wrapper.getDisplayName();
         return translate(key);
     }
 
     private String getDescription() {
-        ObjectWrapper wrapper = getModel().getObject();
+        ObjectWrapper<O> wrapper = getModel().getObject();
         String key = wrapper.getDescription();
         return translate(key);
     }
@@ -259,7 +270,7 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
     }
 
     protected void onClickPerformed(AjaxRequestTarget target) {
-        ObjectWrapper wrapper = getModelObject();
+        ObjectWrapper<O> wrapper = getModelObject();
         wrapper.setMinimalized(!wrapper.isMinimalized());
 
         target.add(findParent(PrismObjectPanel.class));

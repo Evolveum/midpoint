@@ -734,6 +734,18 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         }
         return null;
     }
+    
+	public void copyRuntimeStateTo(ObjectWrapper<O> newWrapper) {
+		newWrapper.setMinimalized(this.isMinimalized());
+		newWrapper.setShowEmpty(this.isShowEmpty());
+		newWrapper.setSorted(this.isSorted());
+		newWrapper.setSelectable(this.isSelectable());
+		newWrapper.setSelected(this.isSelected());
+		newWrapper.setShowAssignments(this.isShowAssignments());
+		newWrapper.setShowInheritedObjectAttributes(this.isShowInheritedObjectAttributes());
+		newWrapper.setReadonly(this.isReadonly());
+	}
+
 
     @Override
     public String debugDump() {

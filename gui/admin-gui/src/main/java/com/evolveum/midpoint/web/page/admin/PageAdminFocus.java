@@ -235,7 +235,18 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	}
 
 	private List<FocusSubwrapperDto<ShadowType>> loadShadowWrappers() {
-		return loadSubwrappers(ShadowType.class, UserType.F_LINK_REF, false);
+		// Load the projects with noFetch by default. Only load the full projection on-denand.
+		// The full projection load happens when loadFullShadow() is explicitly invoked.
+		return loadSubwrappers(ShadowType.class, UserType.F_LINK_REF, true);
+	}
+	
+	public void loadFullShadow(FocusSubwrapperDto<ShadowType> shadowWrapperDto) {
+		ObjectWrapper<ShadowType> shadowWrapperOld = shadowWrapperDto.getObject();
+		Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
+		FocusSubwrapperDto<ShadowType> shadowWrapperDtoNew = loadSubWrapperDto(ShadowType.class, shadowWrapperOld.getObject().getOid(), false, task);
+		ObjectWrapper<ShadowType> shadowWrapperNew = shadowWrapperDtoNew.getObject();
+		shadowWrapperOld.copyRuntimeStateTo(shadowWrapperNew);
+		shadowWrapperDto.setObject(shadowWrapperNew);
 	}
 
 	@Override
@@ -247,9 +258,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			QName propertyToLoad, boolean noFetch) {
 		List<FocusSubwrapperDto<S>> list = new ArrayList<>();
 
-		ObjectWrapper<F> focus = getObjectModel().getObject();
-		PrismObject<F> prismUser = focus.getObject();
-		PrismReference prismReference = prismUser.findReference(new ItemPath(propertyToLoad));
+		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
+		PrismObject<F> focus = focusWrapper.getObject();
+		PrismReference prismReference = focus.findReference(new ItemPath(propertyToLoad));
 		if (prismReference == null) {
 			return new ArrayList<>();
 		}
@@ -257,77 +268,81 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 		Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
 		for (PrismReferenceValue reference : references) {
-			OperationResult subResult = new OperationResult(OPERATION_LOAD_SHADOW);
-			String resourceName = null;
-			try {
-				Collection<SelectorOptions<GetOperationOptions>> loadOptions = null;
-				if (ShadowType.class.equals(type)) {
-					loadOptions = SelectorOptions.createCollection(ShadowType.F_RESOURCE,
-							GetOperationOptions.createResolve());
-				} 
-				
-				if (reference.getOid() == null) {
-					continue;
-				}
-				
-				if (noFetch) {
-					GetOperationOptions rootOptions = SelectorOptions.findRootOptions(loadOptions);
-					if (rootOptions == null) {
-						loadOptions.add(new SelectorOptions<GetOperationOptions>(GetOperationOptions.createNoFetch()));
-					} else {
-						rootOptions.setNoFetch(true);
-					}
-				}
-
-				PrismObject<S> projection = WebModelServiceUtils.loadObject(type, reference.getOid(), loadOptions, this,
-						task, subResult);
-				if (projection == null) {
-					// No access, just skip it
-					continue;
-				}
-				S projectionType = projection.asObjectable();
-
-				OperationResultType fetchResult = projectionType.getFetchResult();
-
-				StringBuilder description = new StringBuilder();
-				if (ShadowType.class.equals(type)) {
-					ShadowType shadowType = (ShadowType) projectionType;
-					ResourceType resource = shadowType.getResource();
-					resourceName = WebComponentUtil.getName(resource);
-
-					if (shadowType.getIntent() != null) {
-						description.append(shadowType.getIntent()).append(", ");
-					}
-				} else if (OrgType.class.equals(type)) {
-					OrgType orgType = (OrgType) projectionType;
-					resourceName = orgType.getDisplayName() != null
-							? WebComponentUtil.getOrigStringFromPoly(orgType.getDisplayName()) : "";
-				}
-				description.append(WebComponentUtil.getOrigStringFromPoly(projectionType.getName()));
-
-				ObjectWrapper<S> wrapper = ObjectWrapperUtil.createObjectWrapper(resourceName,
-						description.toString(), projection, ContainerStatus.MODIFYING, true, this);
-				wrapper.setLoadOptions(loadOptions);
-				wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
-				wrapper.setSelectable(true);
-				wrapper.setMinimalized(true);
-
-				wrapper.initializeContainers(this);
-
-				list.add(new FocusSubwrapperDto<S>(wrapper, UserDtoStatus.MODIFY));
-
-				subResult.recomputeStatus();
-
-			} catch (Exception ex) {
-				subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
-				LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
-				list.add(new FocusSubwrapperDto<S>(false, resourceName, subResult));
-			} finally {
-				subResult.computeStatus();
+			FocusSubwrapperDto<S> subWrapper = loadSubWrapperDto(type, reference.getOid(), noFetch, task);
+			if (subWrapper != null) {
+				list.add(subWrapper);
 			}
 		}
 
 		return list;
+	}
+
+	private <S extends ObjectType> FocusSubwrapperDto<S> loadSubWrapperDto(Class<S> type, String oid, boolean noFetch, Task task) {
+		if (oid == null) {
+			return null;
+		}
+		OperationResult subResult = task.getResult().createMinorSubresult(OPERATION_LOAD_SHADOW);
+		String resourceName = null;
+		try {
+			Collection<SelectorOptions<GetOperationOptions>> loadOptions = null;
+			if (ShadowType.class.equals(type)) {
+				loadOptions = SelectorOptions.createCollection(ShadowType.F_RESOURCE,
+						GetOperationOptions.createResolve());
+			} 
+			
+			if (noFetch) {
+				GetOperationOptions rootOptions = SelectorOptions.findRootOptions(loadOptions);
+				if (rootOptions == null) {
+					loadOptions.add(new SelectorOptions<GetOperationOptions>(GetOperationOptions.createNoFetch()));
+				} else {
+					rootOptions.setNoFetch(true);
+				}
+			}
+
+			PrismObject<S> projection = WebModelServiceUtils.loadObject(type, oid, loadOptions, this,
+					task, subResult);
+			if (projection == null) {
+				// No access, just skip it
+				return null;
+			}
+			S projectionType = projection.asObjectable();
+
+			OperationResultType fetchResult = projectionType.getFetchResult();
+
+			StringBuilder description = new StringBuilder();
+			if (ShadowType.class.equals(type)) {
+				ShadowType shadowType = (ShadowType) projectionType;
+				ResourceType resource = shadowType.getResource();
+				resourceName = WebComponentUtil.getName(resource);
+
+				if (shadowType.getIntent() != null) {
+					description.append(shadowType.getIntent()).append(", ");
+				}
+			} else if (OrgType.class.equals(type)) {
+				OrgType orgType = (OrgType) projectionType;
+				resourceName = orgType.getDisplayName() != null
+						? WebComponentUtil.getOrigStringFromPoly(orgType.getDisplayName()) : "";
+			}
+			description.append(WebComponentUtil.getOrigStringFromPoly(projectionType.getName()));
+
+			ObjectWrapper<S> wrapper = ObjectWrapperUtil.createObjectWrapper(resourceName,
+					description.toString(), projection, ContainerStatus.MODIFYING, true, this);
+			wrapper.setLoadOptions(loadOptions);
+			wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
+			wrapper.setSelectable(true);
+			wrapper.setMinimalized(true);
+
+			wrapper.initializeContainers(this);
+
+			subResult.computeStatus();
+			
+			return new FocusSubwrapperDto<S>(wrapper, UserDtoStatus.MODIFY);
+
+		} catch (Exception ex) {
+			subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
+			LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
+			return new FocusSubwrapperDto<S>(false, resourceName, subResult);
+		}
 	}
 
 	private List<AssignmentEditorDto> loadAssignments() {

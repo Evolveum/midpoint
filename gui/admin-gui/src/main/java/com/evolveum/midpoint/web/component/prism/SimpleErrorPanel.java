@@ -32,8 +32,9 @@ import org.apache.wicket.model.IModel;
  *  @author shood
  * */
 public class SimpleErrorPanel<O extends ObjectType> extends SimplePanel<FocusSubwrapperDto<O>>{
+	private static final long serialVersionUID = 1L;
 
-//    private static final String ID_CHECK = "check";
+	//    private static final String ID_CHECK = "check";
     private static final String ID_ICON = "icon";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_LINK = "link";
