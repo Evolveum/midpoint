@@ -74,6 +74,7 @@ public class PrismConstants {
 	public static final QName A_DEPRECATED = new QName(NS_ANNOTATION, "deprecated");
 	public static final QName A_LABEL = new QName(NS_ANNOTATION, "label");
 	public static final QName A_MATCHING_RULE = new QName(NS_ANNOTATION, "matchingRule");
+	public static final QName A_EMPHASIZED = new QName(NS_ANNOTATION, "emphasized");
 	
 	public static final QName SCHEMA_DOCUMENTATION = new QName(W3C_XML_SCHEMA_NS_URI, "documentation");
 	public static final QName SCHEMA_APP_INFO = new QName(W3C_XML_SCHEMA_NS_URI, "appinfo");

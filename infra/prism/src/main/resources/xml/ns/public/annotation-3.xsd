@@ -171,6 +171,16 @@
         </xsd:annotation>
     </xsd:element>
     
+    <xsd:element name="emphasized" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+     			Set true for definitions that are more important than others and that should be emphasized
+     			during presentation. E.g. the emphasized definitions will always be displayed in the user
+     			interfaces (even if they are empty), they will always be included in the dumps, etc.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
     <xsd:element name="expensive" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>

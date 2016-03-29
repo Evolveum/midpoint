@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -413,7 +413,7 @@ public abstract class TestPrismParsing {
 		assertVisitor(user,55);
 	}
 	
-private void assertUserWillExtension(PrismObject<UserType> user) {
+	private void assertUserWillExtension(PrismObject<UserType> user) {
 		
 		PrismContainer<?> extension = user.getExtension();
 		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);

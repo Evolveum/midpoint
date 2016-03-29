@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -162,10 +162,14 @@ public class TestPrismContext {
 		PrismAsserts.assertPropertyDefinition(userDefinition, USER_NAME_QNAME, PolyStringType.COMPLEX_TYPE, 0, 1);
 		PrismAsserts.assertItemDefinitionDisplayName(userDefinition, USER_NAME_QNAME, "Name");
 		PrismAsserts.assertItemDefinitionDisplayOrder(userDefinition, USER_NAME_QNAME, 0);
+		PrismAsserts.assertEmphasized(userDefinition, USER_NAME_QNAME, true);
 		PrismAsserts.assertItemDefinitionHelp(userDefinition, USER_NAME_QNAME, "Short unique name of the object");
 		PrismAsserts.assertPropertyDefinition(userDefinition, USER_DESCRIPTION_QNAME, DOMUtil.XSD_STRING, 0, 1);
+		PrismAsserts.assertEmphasized(userDefinition, USER_DESCRIPTION_QNAME, false);
 		PrismAsserts.assertPropertyDefinition(userDefinition, USER_FULLNAME_QNAME, DOMUtil.XSD_STRING, 1, 1);
+		PrismAsserts.assertEmphasized(userDefinition, USER_FULLNAME_QNAME, true);
 		PrismAsserts.assertPropertyDefinition(userDefinition, USER_GIVENNAME_QNAME, DOMUtil.XSD_STRING, 0, 1);
+		PrismAsserts.assertEmphasized(userDefinition, USER_GIVENNAME_QNAME, false);
 		PrismAsserts.assertPropertyDefinition(userDefinition, USER_FAMILYNAME_QNAME, DOMUtil.XSD_STRING, 0, 1);
 		PrismAsserts.assertPropertyDefinition(userDefinition, USER_ADDITIONALNAMES_QNAME, DOMUtil.XSD_STRING, 0, -1);
 		assertFalse("User definition is marked as runtime", userDefinition.isRuntimeSchema());
