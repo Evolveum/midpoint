@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -249,10 +250,24 @@ public class ObjectListPanel<T extends ObjectType> extends BasePanel<T> {
 		return PageBase.createStringResourceStatic(this, resourceKey, objects);
 	}
 
+	protected void onCheckboxUpdate(AjaxRequestTarget target){
+		
+	}
+	
 	protected List<IColumn<SelectableBean<T>, String>> initColumns() {
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
 
-		CheckBoxHeaderColumn checkboxColumn = new CheckBoxHeaderColumn();
+		CheckBoxHeaderColumn checkboxColumn = new CheckBoxHeaderColumn() {
+			
+			@Override
+			protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel rowModel) {
+				// TODO Auto-generated method stub
+				super.onUpdateRow(target, table, rowModel);
+				ObjectListPanel.this.onCheckboxUpdate(target);
+			}
+			
+
+		};
 		if (isMultiSelect()) {
 			columns.add(checkboxColumn);
 		}
