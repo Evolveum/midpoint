@@ -104,7 +104,7 @@ class EntitlementConverter {
 	public void postProcessEntitlementsRead(ProvisioningContext subjectCtx,
 			PrismObject<ShadowType> resourceObject, OperationResult parentResult) throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
 		ResourceType resourceType = subjectCtx.getResource();
-		LOGGER.info("Starting postProcessEntitlementRead");
+		LOGGER.trace("Starting postProcessEntitlementRead");
 		RefinedObjectClassDefinition objectClassDefinition = subjectCtx.getObjectClassDefinition();
 		Collection<RefinedAssociationDefinition> entitlementAssociationDefs = objectClassDefinition.getEntitlementAssociations();
 		if (entitlementAssociationDefs != null) {
@@ -115,9 +115,8 @@ class EntitlementConverter {
 			PrismContainer<ShadowAssociationType> associationContainer = associationDef.instantiate();
 			
 			for (RefinedAssociationDefinition assocDefType: entitlementAssociationDefs) {
-				LOGGER.info("Start resolving for association definition {} ", assocDefType.getName());
 				for (String intent: assocDefType.getIntents()) {
-					LOGGER.info("Resolving association for intent: {} ", intent);
+					LOGGER.trace("Resolving association {} for intent {}", assocDefType.getName(), intent);
 					ProvisioningContext entitlementCtx = subjectCtx.spawn(ShadowKindType.ENTITLEMENT, intent);
 					RefinedObjectClassDefinition entitlementDef = entitlementCtx.getObjectClassDefinition();
 					if (entitlementDef == null) {
@@ -128,7 +127,6 @@ class EntitlementConverter {
 						postProcessEntitlementSubjectToEntitlement(resourceType, resourceObject, objectClassDefinition, assocDefType, entitlementDef, attributesContainer, associationContainer, parentResult);					
 					} else if (direction == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
 						if (assocDefType.getResourceObjectAssociationType().getShortcutAssociationAttribute() != null) {
-							LOGGER.info("Resolving association with shortcut attribute");
 							postProcessEntitlementSubjectToEntitlement(resourceType, resourceObject, objectClassDefinition, 
 									assocDefType, entitlementDef, attributesContainer, associationContainer, 
 									assocDefType.getResourceObjectAssociationType().getShortcutAssociationAttribute(),
@@ -171,7 +169,6 @@ class EntitlementConverter {
 		if (associationName == null) {
 			throw new SchemaException("No name in entitlement association "+assocDefType+" in "+resourceType);
 		}
-		LOGGER.info("Association name {}", associationName);
 
 		if (assocAttrName == null) {
 			throw new SchemaException("No association attribute defined in entitlement association '"+associationName+"' in "+resourceType);
@@ -180,23 +177,19 @@ class EntitlementConverter {
 		if (assocAttrDef == null) {
 			throw new SchemaException("Association attribute '"+assocAttrName+"'defined in entitlement association '"+associationName+"' was not found in schema for "+resourceType);
 		}
-		LOGGER.info("Association attribute definition {}", assocAttrDef);
 		ResourceAttribute<T> assocAttr = attributesContainer.findAttribute(assocAttrName);
 		if (assocAttr == null || assocAttr.isEmpty()) {
 			// Nothing to do. No attribute to base the association on.
 			return;
 		}
-		LOGGER.info("Association attribute  {}", assocAttr);
 
 		if (valueAttrName == null) {
 			throw new SchemaException("No value attribute defined in entitlement association '"+associationName+"' in "+resourceType);
 		}
-		LOGGER.info("Association attribute value {}", valueAttrName);
 		
 		RefinedAttributeDefinition valueAttrDef = entitlementDef.findAttributeDefinition(valueAttrName);
 
         for (PrismPropertyValue<T> assocAttrPVal : assocAttr.getValues()) {
-        	LOGGER.info("Resolving assocciation attribute value {} ", assocAttrPVal);
 
             ResourceAttribute<T> valueAttribute = valueAttrDef.instantiate();
             valueAttribute.add(assocAttrPVal.clone());
@@ -206,7 +199,7 @@ class EntitlementConverter {
             ResourceAttributeContainer identifiersContainer = new ResourceAttributeContainer(
                     ShadowAssociationType.F_IDENTIFIERS, entitlementDef.toResourceAttributeContainerDefinition(), prismContext);
             associationCVal.add(identifiersContainer);
-            LOGGER.info("Assocciation attribute value resolved to valueAtrribute {}  and identifiers container {}", valueAttribute, identifiersContainer);
+            LOGGER.trace("Assocciation attribute value resolved to valueAtrribute {}  and identifiers container {}", valueAttribute, identifiersContainer);
             identifiersContainer.add(valueAttribute);
         }
     }
