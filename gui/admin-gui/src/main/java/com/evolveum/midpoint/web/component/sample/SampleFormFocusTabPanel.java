@@ -38,9 +38,10 @@ import com.evolveum.midpoint.web.component.assignment.SimpleRoleSelector;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractFocusTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -66,7 +67,7 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
     public SampleFormFocusTabPanel(String id, Form mainForm,
                                    LoadableModel<ObjectWrapper<F>> focusWrapperModel,
                                    LoadableModel<List<AssignmentEditorDto>> assignmentsModel,
-                                   LoadableModel<List<FocusProjectionDto>> projectionModel,
+                                   LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
                                    PageBase pageBase) {
         super(id, mainForm, focusWrapperModel, assignmentsModel, projectionModel, pageBase);
         initLayout(focusWrapperModel, assignmentsModel, pageBase);

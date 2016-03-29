@@ -35,7 +35,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.page.admin.users.component.*;
-import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
@@ -62,7 +62,7 @@ import java.util.List;
 /**
  * @author semancik
  */
-public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjectTabPanel {
+public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
 	private static final long serialVersionUID = 1L;
 	
 	private static final String ID_SHADOW_LIST = "shadowList";
@@ -76,10 +76,10 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 	
 	private static final Trace LOGGER = TraceManager.getTrace(FocusProjectionsTabPanel.class);
 	
-	private LoadableModel<List<FocusProjectionDto>> projectionModel;
+	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
 
 	public FocusProjectionsTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel, 
-			LoadableModel<List<FocusProjectionDto>> projectionModel, PageBase page) {
+			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel, PageBase page) {
 		super(id, mainForm, focusModel, page);
 		Validate.notNull(projectionModel, "Null projection model");
 		this.projectionModel = projectionModel;
@@ -95,13 +95,13 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		InlineMenu accountMenu = new InlineMenu(ID_SHADOW_MENU, new Model((Serializable) createShadowMenu()));
 		shadows.add(accountMenu);
 
-		final ListView<FocusProjectionDto> accountList = new ListView<FocusProjectionDto>(ID_SHADOW_LIST,
+		final ListView<FocusSubwrapperDto<ShadowType>> accountList = new ListView<FocusSubwrapperDto<ShadowType>>(ID_SHADOW_LIST,
 				projectionModel) {
 
 			@Override
-			protected void populateItem(final ListItem<FocusProjectionDto> item) {
+			protected void populateItem(final ListItem<FocusSubwrapperDto<ShadowType>> item) {
 				PackageResourceReference packageRef;
-				final FocusProjectionDto dto = item.getModelObject();
+				final FocusSubwrapperDto dto = item.getModelObject();
 
 				Panel panel;
 
@@ -146,7 +146,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				for (FocusProjectionDto dto : accountList.getModelObject()) {
+				for (FocusSubwrapperDto dto : accountList.getModelObject()) {
 					if (dto.isLoadedOK()) {
 						ObjectWrapper accModel = dto.getObject();
 						accModel.setSelected(getModelObject());
@@ -241,7 +241,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
 				wrapper.setShowEmpty(true);
 				wrapper.setMinimalized(false);
-				projectionModel.getObject().add(new FocusProjectionDto(wrapper, UserDtoStatus.ADD));
+				projectionModel.getObject().add(new FocusSubwrapperDto(wrapper, UserDtoStatus.ADD));
 			} catch (Exception ex) {
 				error(getString("pageAdminFocus.message.couldntCreateAccount", resource.getName(),
 						ex.getMessage()));
@@ -329,11 +329,11 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		return items;
 	}
 	
-	private List<FocusProjectionDto> getSelectedProjections(IModel<List<FocusProjectionDto>> model) {
-		List<FocusProjectionDto> selected = new ArrayList<FocusProjectionDto>();
+	private List<FocusSubwrapperDto<ShadowType>> getSelectedProjections(IModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel) {
+		List<FocusSubwrapperDto<ShadowType>> selected = new ArrayList<>();
 
-		List<FocusProjectionDto> all = model.getObject();
-		for (FocusProjectionDto shadow : all) {
+		List<FocusSubwrapperDto<ShadowType>> all = projectionModel.getObject();
+		for (FocusSubwrapperDto<ShadowType> shadow : all) {
 			if (shadow.isLoadedOK() && shadow.getObject().isSelected()) {
 				selected.add(shadow);
 			}
@@ -342,7 +342,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		return selected;
 	}
 	
-	private void deleteProjectionPerformed(AjaxRequestTarget target, IModel<List<FocusProjectionDto>> model) {
+	private void deleteProjectionPerformed(AjaxRequestTarget target, IModel<List<FocusSubwrapperDto<ShadowType>>> model) {
 		if (!isAnyProjectionSelected(target, model)) {
 			return;
 		}
@@ -352,8 +352,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 	}
 	
 	private boolean isAnyProjectionSelected(AjaxRequestTarget target,
-			IModel<List<FocusProjectionDto>> model) {
-		List<FocusProjectionDto> selected = getSelectedProjections(model);
+			IModel<List<FocusSubwrapperDto<ShadowType>>> model) {
+		List<FocusSubwrapperDto<ShadowType>> selected = getSelectedProjections(model);
 		if (selected.isEmpty()) {
 			warn(getString("pageAdminFocus.message.noAccountSelected"));
 			target.add(getFeedbackPanel());
@@ -363,13 +363,13 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		return true;
 	}
 
-	private void updateShadowActivation(AjaxRequestTarget target, List<FocusProjectionDto> accounts,
+	private void updateShadowActivation(AjaxRequestTarget target, List<FocusSubwrapperDto<ShadowType>> accounts,
 			boolean enabled) {
 		if (!isAnyProjectionSelected(target, projectionModel)) {
 			return;
 		}
 
-		for (FocusProjectionDto account : accounts) {
+		for (FocusSubwrapperDto account : accounts) {
 			if (!account.isLoadedOK()) {
 				continue;
 			}
@@ -398,24 +398,24 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		target.add(getFeedbackPanel(), get(createComponentPath(ID_SHADOWS)));
 	}
 	
-	private void unlockShadowPerformed(AjaxRequestTarget target, IModel<List<FocusProjectionDto>> model,
-			List<FocusProjectionDto> selected) {
+	private void unlockShadowPerformed(AjaxRequestTarget target, IModel<List<FocusSubwrapperDto<ShadowType>>> model,
+			List<FocusSubwrapperDto<ShadowType>> selected) {
 		if (!isAnyProjectionSelected(target, model)) {
 			return;
 		}
 
-		for (FocusProjectionDto account : selected) {
+		for (FocusSubwrapperDto<ShadowType> account : selected) {
 			// TODO: implement unlock
 		}
 	}
 	
-	private void unlinkProjectionPerformed(AjaxRequestTarget target, IModel<List<FocusProjectionDto>> model,
-			List<FocusProjectionDto> selected, String componentPath) {
+	private void unlinkProjectionPerformed(AjaxRequestTarget target, IModel<List<FocusSubwrapperDto<ShadowType>>> model,
+			List<FocusSubwrapperDto<ShadowType>> selected, String componentPath) {
 		if (!isAnyProjectionSelected(target, model)) {
 			return;
 		}
 
-		for (FocusProjectionDto projection : selected) {
+		for (FocusSubwrapperDto projection : selected) {
 			if (UserDtoStatus.ADD.equals(projection.getStatus())) {
 				continue;
 			}
@@ -448,9 +448,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
     }
 
     private void deleteAccountConfirmedPerformed(AjaxRequestTarget target,
-                                                 List<FocusProjectionDto> selected) {
-        List<FocusProjectionDto> accounts = projectionModel.getObject();
-        for (FocusProjectionDto account : selected) {
+                                                 List<FocusSubwrapperDto<ShadowType>> selected) {
+        List<FocusSubwrapperDto<ShadowType>> accounts = projectionModel.getObject();
+        for (FocusSubwrapperDto<ShadowType> account : selected) {
             if (UserDtoStatus.ADD.equals(account.getStatus())) {
                 accounts.remove(account);
             } else {

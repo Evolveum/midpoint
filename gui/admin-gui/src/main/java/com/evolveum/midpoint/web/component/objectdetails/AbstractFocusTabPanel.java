@@ -24,8 +24,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
@@ -36,12 +37,12 @@ public abstract class AbstractFocusTabPanel<F extends FocusType> extends Abstrac
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractFocusTabPanel.class);
 	
 	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
-	private LoadableModel<List<FocusProjectionDto>> projectionModel;
+	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
 
 	public AbstractFocusTabPanel(String id, Form mainForm, 
 			LoadableModel<ObjectWrapper<F>> focusWrapperModel, 
 			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, 
-			LoadableModel<List<FocusProjectionDto>> projectionModel,
+			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
 			PageBase pageBase) {
 		super(id, mainForm, focusWrapperModel, pageBase);
 		this.assignmentsModel = assignmentsModel;
@@ -52,7 +53,7 @@ public abstract class AbstractFocusTabPanel<F extends FocusType> extends Abstrac
 		return assignmentsModel;
 	}
 
-	public LoadableModel<List<FocusProjectionDto>> getProjectionModel() {
+	public LoadableModel<List<FocusSubwrapperDto<ShadowType>>> getProjectionModel() {
 		return projectionModel;
 	}
 

@@ -9557,6 +9557,13 @@
             <xsd:enumeration value="WEB">
                 <xsd:annotation>
                     <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WEB"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="GUI">
+                <xsd:annotation>
+                    <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="GUI"/>
                     </xsd:appinfo>
                 </xsd:annotation>

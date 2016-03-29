@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package com.evolveum.midpoint.web.page.admin.users.dto;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.prism.HeaderStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.commons.lang.Validate;
 
 import java.io.Serializable;
@@ -26,21 +28,21 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class FocusProjectionDto implements Serializable {
+public class FocusSubwrapperDto<O extends ObjectType> implements Serializable {
 
-    private ObjectWrapper object;
+    private ObjectWrapper<O> object;
     private UserDtoStatus status;
 
     private boolean loadedOK = true;
     private String description;
     private OperationResult result;
 
-    public FocusProjectionDto(ObjectWrapper object, UserDtoStatus status) {
+    public FocusSubwrapperDto(ObjectWrapper<O> object, UserDtoStatus status) {
         setObject(object);
         setStatus(status);
     }
 
-    public FocusProjectionDto(boolean loaded, String description, OperationResult result){
+    public FocusSubwrapperDto(boolean loaded, String description, OperationResult result){
         setLoadedOK(loaded);
         setDescription(description);
         this.result = result;
@@ -66,11 +68,11 @@ public class FocusProjectionDto implements Serializable {
         this.loadedOK = loadedOK;
     }
 
-    public ObjectWrapper getObject() {
+    public ObjectWrapper<O> getObject() {
         return object;
     }
 
-    public void setObject(ObjectWrapper object) {
+    public void setObject(ObjectWrapper<O> object) {
         Validate.notNull(object, "Object wrapper must not be null.");
         this.object = object;
     }

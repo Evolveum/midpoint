@@ -182,7 +182,7 @@ public class WebModelServiceUtils {
             page.showResult(subResult);
         }
 
-        LOGGER.debug("Loaded with result {}", new Object[]{subResult});
+        LOGGER.debug("Loaded {} with result {}", object, subResult);
 
         return object;
     }

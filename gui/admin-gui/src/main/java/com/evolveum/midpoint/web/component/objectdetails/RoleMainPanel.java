@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,9 @@ import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.roles.RoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.roles.RolePolicyPanel;
-import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -41,7 +42,8 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 	private LoadableModel<List<AssignmentEditorDto>> inducementsModel;
 
 	public RoleMainPanel(String id, LoadableModel<ObjectWrapper<RoleType>> objectModel, 
-			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, LoadableModel<List<FocusProjectionDto>> projectionModel, 
+			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, 
+			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel, 
 			LoadableModel<List<AssignmentEditorDto>> inducementsModel, PageAdminFocus<RoleType> parentPage) {
 		super(id, objectModel, assignmentsModel, projectionModel, inducementsModel, parentPage);
 	}
