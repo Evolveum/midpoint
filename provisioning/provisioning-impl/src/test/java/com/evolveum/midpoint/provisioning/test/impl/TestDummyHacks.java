@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -96,10 +95,7 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 	private SynchornizationServiceMock syncServiceMock; 
 	
 
-	/**
-	 * @throws JAXBException
-	 */
-	public TestDummyHacks() throws JAXBException {
+	public TestDummyHacks() {
 		super();
 	}
 
