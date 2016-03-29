@@ -276,6 +276,10 @@ public class PrismAsserts {
 		assertEquals("Wrong value of 'indexed' in property '"+PrettyPrinter.prettyPrint(itemQName)+" in "+containerDef, expected, propertyDefinition.isIndexed());
 	}
 
+	public static void assertEmphasized(ItemDefinition itemDef, Boolean expected) {
+		assertEquals("Wrong value of 'emphasized' in "+itemDef, expected, itemDef.isEmphasized());
+	}
+	
 	public static void assertEmphasized(PrismContainerDefinition<? extends Containerable> containerDef, QName itemQName,
 			Boolean expected) {
 		PrismPropertyDefinition propertyDefinition = containerDef.findPropertyDefinition(itemQName);
