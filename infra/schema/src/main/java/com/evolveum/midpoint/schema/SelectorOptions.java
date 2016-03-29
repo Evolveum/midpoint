@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,14 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
  *
  */
-public class SelectorOptions<T> implements Serializable {
+public class SelectorOptions<T> implements Serializable, DebugDumpable {
 	
 	private ObjectSelector selector;
 	private T options;
@@ -273,6 +274,16 @@ public class SelectorOptions<T> implements Serializable {
     @Override
 	public String toString() {
 		return "ObjectOperationOptions(" + selector + ": " + options + ")";
+	}
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		return toString();
 	}
 
 	//endregion

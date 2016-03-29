@@ -36,10 +36,11 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
@@ -47,11 +48,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
  */
 public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel<F> {
 
-	private LoadableModel<List<FocusProjectionDto>> projectionModel;
+	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
 	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
 	
         public FocusMainPanel(String id, LoadableModel<ObjectWrapper<F>> objectModel,
-			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, LoadableModel<List<FocusProjectionDto>> projectionModel,
+			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, 
+			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
 			PageAdminFocus<F> parentPage) {
 		super(id, objectModel, parentPage);
 		Validate.notNull(projectionModel, "Null projection model");

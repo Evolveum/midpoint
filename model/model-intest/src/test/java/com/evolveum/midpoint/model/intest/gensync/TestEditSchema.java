@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1017,15 +1017,24 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
         
+		
+		PrismAsserts.assertEmphasized(editDef, UserType.F_NAME, true);
+		PrismAsserts.assertEmphasized(editDef, UserType.F_GIVEN_NAME, false);
+		PrismAsserts.assertEmphasized(editDef, UserType.F_FAMILY_NAME, true);
+		PrismAsserts.assertEmphasized(editDef, UserType.F_FULL_NAME, true);
+		PrismAsserts.assertEmphasized(editDef, UserType.F_DESCRIPTION, false);
+		
 		PrismPropertyDefinition<PolyString> additionalNameDef = editDef.findPropertyDefinition(UserType.F_ADDITIONAL_NAME);
 		assertNotNull("No definition for additionalName in user", additionalNameDef);
 		assertEquals("Wrong additionalName displayName", "Middle Name", additionalNameDef.getDisplayName());
 		assertTrue("additionalName not readable", additionalNameDef.canRead());
+		PrismAsserts.assertEmphasized(additionalNameDef, false);
 		
 		PrismPropertyDefinition<String> costCenterDef = editDef.findPropertyDefinition(UserType.F_COST_CENTER);
 		assertNotNull("No definition for costCenter in user", costCenterDef);
 		assertEquals("Wrong costCenter displayOrder", (Integer)123, costCenterDef.getDisplayOrder());
 		assertTrue("costCenter not readable", costCenterDef.canRead());
+		PrismAsserts.assertEmphasized(costCenterDef, true);
 		
 		PrismPropertyDefinition<String> preferredLanguageDef = editDef.findPropertyDefinition(UserType.F_PREFERRED_LANGUAGE);
 		assertNotNull("No definition for preferredLanguage in user", preferredLanguageDef);

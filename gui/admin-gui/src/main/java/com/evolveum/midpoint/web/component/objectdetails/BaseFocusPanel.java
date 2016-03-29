@@ -49,7 +49,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.page.admin.users.component.*;
-import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
@@ -94,8 +94,8 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 	public static final String AUTH_ORG_ALL_DESCRIPTION = "PageAdminUsers.auth.orgAll.description";
 
 	private LoadableModel<ObjectWrapper<F>> focusModel;
-	private LoadableModel<List<FocusProjectionDto>> shadowModel;
-	private LoadableModel<List<FocusProjectionDto>> orgModel;
+	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> shadowModel;
+	private LoadableModel<List<FocusSubwrapperDto<OrgType>>> orgModel;
 	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
 
 	protected static final String ID_MAIN_FORM = "mainForm";
@@ -133,8 +133,8 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 	private Form mainForm;
 
 	public BaseFocusPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel,
-			LoadableModel<List<FocusProjectionDto>> shadowModel,
-			LoadableModel<List<FocusProjectionDto>> orgModel,
+			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> shadowModel,
+			LoadableModel<List<FocusSubwrapperDto<OrgType>>> orgModel,
 			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, PageBase page) {
 		super(id);
 		this.page = page;
@@ -207,7 +207,7 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 		return focusModel.getObject();
 	}
 
-	public List<FocusProjectionDto> getFocusShadows() {
+	public List<FocusSubwrapperDto<ShadowType>> getFocusShadows() {
 		return shadowModel.getObject();
 	}
 
@@ -323,13 +323,13 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 		InlineMenu accountMenu = new InlineMenu(ID_SHADOW_MENU, new Model((Serializable) createShadowMenu()));
 		accounts.add(accountMenu);
 
-		final ListView<FocusProjectionDto> accountList = new ListView<FocusProjectionDto>(ID_SHADOW_LIST,
+		final ListView<FocusSubwrapperDto<ShadowType>> accountList = new ListView<FocusSubwrapperDto<ShadowType>>(ID_SHADOW_LIST,
 				shadowModel) {
 
 			@Override
-			protected void populateItem(final ListItem<FocusProjectionDto> item) {
+			protected void populateItem(final ListItem<FocusSubwrapperDto<ShadowType>> item) {
 				PackageResourceReference packageRef;
-				final FocusProjectionDto dto = item.getModelObject();
+				final FocusSubwrapperDto dto = item.getModelObject();
 
 				Panel panel;
 
@@ -374,7 +374,7 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				for (FocusProjectionDto dto : accountList.getModelObject()) {
+				for (FocusSubwrapperDto dto : accountList.getModelObject()) {
 					if (dto.isLoadedOK()) {
 						ObjectWrapper accModel = dto.getObject();
 						accModel.setSelected(getModelObject());
@@ -393,12 +393,12 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 		InlineMenu orgtMenu = new InlineMenu(ID_ORG_MENU, new Model((Serializable) createOrgMenu()));
 		orgs.add(orgtMenu);
 
-		final ListView<FocusProjectionDto> orgList = new ListView<FocusProjectionDto>(ID_ORG_LIST, orgModel) {
+		final ListView<FocusSubwrapperDto<OrgType>> orgList = new ListView<FocusSubwrapperDto<OrgType>>(ID_ORG_LIST, orgModel) {
 
 			@Override
-			protected void populateItem(final ListItem<FocusProjectionDto> item) {
+			protected void populateItem(final ListItem<FocusSubwrapperDto<OrgType>> item) {
 				PackageResourceReference packageRef;
-				final FocusProjectionDto dto = item.getModelObject();
+				final FocusSubwrapperDto dto = item.getModelObject();
 
 				Panel panel;
 
@@ -443,7 +443,7 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				for (FocusProjectionDto dto : orgList.getModelObject()) {
+				for (FocusSubwrapperDto dto : orgList.getModelObject()) {
 					if (dto.isLoadedOK()) {
 						ObjectWrapper orgModel = dto.getObject();
 						orgModel.setSelected(getModelObject());
@@ -580,11 +580,11 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 		return items;
 	}
 
-	private List<FocusProjectionDto> getSelectedProjections(IModel<List<FocusProjectionDto>> model) {
-		List<FocusProjectionDto> selected = new ArrayList<FocusProjectionDto>();
+	private <P extends ObjectType> List<FocusSubwrapperDto<P>> getSelectedProjections(IModel<List<FocusSubwrapperDto<P>>> model) {
+		List<FocusSubwrapperDto<P>> selected = new ArrayList<>();
 
-		List<FocusProjectionDto> all = model.getObject();
-		for (FocusProjectionDto shadow : all) {
+		List<FocusSubwrapperDto<P>> all = model.getObject();
+		for (FocusSubwrapperDto<P> shadow : all) {
 			if (shadow.isLoadedOK() && shadow.getObject().isSelected()) {
 				selected.add(shadow);
 			}
@@ -650,7 +650,7 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 				
 				wrapper.setShowEmpty(true);
 				wrapper.setMinimalized(false);
-				shadowModel.getObject().add(new FocusProjectionDto(wrapper, UserDtoStatus.ADD));
+				shadowModel.getObject().add(new FocusSubwrapperDto(wrapper, UserDtoStatus.ADD));
 			} catch (Exception ex) {
 				error(getString("pageAdminFocus.message.couldntCreateAccount", resource.getName(),
 						ex.getMessage()));
@@ -685,7 +685,7 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 				wrapper.setShowEmpty(false);
 				wrapper.setReadonly(true);
 				wrapper.setMinimalized(true);
-				orgModel.getObject().add(new FocusProjectionDto(wrapper, UserDtoStatus.ADD));
+				orgModel.getObject().add(new FocusSubwrapperDto(wrapper, UserDtoStatus.ADD));
 				//setResponsePage(getPage());
 			} catch (Exception ex) {
 				error(getString("pageAdminFocus.message.couldntAssignObject", object.getName(),
@@ -697,13 +697,13 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 		//target.add(getFeedbackPanel(), get(createComponentPath(ID_ORGS)));
 	}
 
-	private void updateShadowActivation(AjaxRequestTarget target, List<FocusProjectionDto> accounts,
+	private void updateShadowActivation(AjaxRequestTarget target, List<FocusSubwrapperDto<ShadowType>> accounts,
 			boolean enabled) {
 		if (!isAnyProjectionSelected(target, shadowModel)) {
 			return;
 		}
 
-		for (FocusProjectionDto account : accounts) {
+		for (FocusSubwrapperDto<ShadowType> account : accounts) {
 			if (!account.isLoadedOK()) {
 				continue;
 			}
@@ -733,8 +733,8 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 	}
 
 	private boolean isAnyProjectionSelected(AjaxRequestTarget target,
-			IModel<List<FocusProjectionDto>> model) {
-		List<FocusProjectionDto> selected = getSelectedProjections(model);
+			IModel<List<FocusSubwrapperDto<ShadowType>>> model) {
+		List<FocusSubwrapperDto<ShadowType>> selected = getSelectedProjections(model);
 		if (selected.isEmpty()) {
 			warn(getString("pageAdminFocus.message.noAccountSelected"));
 			target.add(getFeedbackPanel());
@@ -744,7 +744,7 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 		return true;
 	}
 
-	private void deleteProjectionPerformed(AjaxRequestTarget target, IModel<List<FocusProjectionDto>> model) {
+	private void deleteProjectionPerformed(AjaxRequestTarget target, IModel<List<FocusSubwrapperDto<ShadowType>>> model) {
 		if (!isAnyProjectionSelected(target, model)) {
 			return;
 		}
@@ -759,9 +759,9 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 	}
 
 	private void deleteAccountConfirmedPerformed(AjaxRequestTarget target,
-			List<FocusProjectionDto> selected) {
-		List<FocusProjectionDto> accounts = shadowModel.getObject();
-		for (FocusProjectionDto account : selected) {
+			List<FocusSubwrapperDto<ShadowType>> selected) {
+		List<FocusSubwrapperDto<ShadowType>> accounts = shadowModel.getObject();
+		for (FocusSubwrapperDto<ShadowType> account : selected) {
 			if (UserDtoStatus.ADD.equals(account.getStatus())) {
 				accounts.remove(account);
 			} else {
@@ -786,13 +786,13 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 		target.add(getFeedbackPanel(), get(createComponentPath(ID_ASSIGNMENTS)));
 	}
 
-	private void unlinkProjectionPerformed(AjaxRequestTarget target, IModel<List<FocusProjectionDto>> model,
-			List<FocusProjectionDto> selected, String componentPath) {
+	private void unlinkProjectionPerformed(AjaxRequestTarget target, IModel<List<FocusSubwrapperDto<ShadowType>>> model,
+			List<FocusSubwrapperDto<ShadowType>> selected, String componentPath) {
 		if (!isAnyProjectionSelected(target, model)) {
 			return;
 		}
 
-		for (FocusProjectionDto projection : selected) {
+		for (FocusSubwrapperDto projection : selected) {
 			if (UserDtoStatus.ADD.equals(projection.getStatus())) {
 				continue;
 			}
@@ -801,13 +801,13 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 		target.add(get(createComponentPath(componentPath)));
 	}
 
-	private void unlockShadowPerformed(AjaxRequestTarget target, IModel<List<FocusProjectionDto>> model,
-			List<FocusProjectionDto> selected) {
+	private void unlockShadowPerformed(AjaxRequestTarget target, IModel<List<FocusSubwrapperDto<ShadowType>>> model,
+			List<FocusSubwrapperDto<ShadowType>> selected) {
 		if (!isAnyProjectionSelected(target, model)) {
 			return;
 		}
 
-		for (FocusProjectionDto account : selected) {
+		for (FocusSubwrapperDto account : selected) {
 			// TODO: implement unlock
 		}
 	}

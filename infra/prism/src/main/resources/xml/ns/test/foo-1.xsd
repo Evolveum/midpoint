@@ -103,6 +103,7 @@
             			<a:displayName>Name</a:displayName>
             			<a:displayOrder>0</a:displayOrder>
             			<a:help>Short unique name of the object</a:help>
+            			<a:emphasized>true</a:emphasized>
             		</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
@@ -147,11 +148,18 @@
                     			<a:displayName>Full Name</a:displayName>
                     			<a:displayOrder>10</a:displayOrder>
 		            			<a:help>User full name</a:help>
+		            			<a:emphasized>true</a:emphasized>
                     		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
                     <xsd:element name="givenName" type="xsd:string" minOccurs="0"/>
-                    <xsd:element name="familyName" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="familyName" type="xsd:string" minOccurs="0">
+                    	<xsd:annotation>
+                    		<xsd:appinfo>
+		            			<a:emphasized>true</a:emphasized>
+                    		</xsd:appinfo>
+                    	</xsd:annotation>
+                    </xsd:element>
                     <!-- Multi-valued property -->
                     <xsd:element name="additionalNames" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="polyName" type="t:PolyStringType" minOccurs="0"/>
