@@ -61,9 +61,9 @@ avatarUrlAIB.setUpdateable(false);
 //avatar -- 48x48
 avatarAIB = new AttributeInfoBuilder("avatar", byte[].class);
 avatarAIB.setUpdateable(true); // only push, not to read
-// at this moment only avatarUrl is avaliable, if you need, you can implement it
-// but when avatar picture is pushed to jira it is cropped and image in jira is smaller then what we resized (see updateScript)
-avatarAIB.setReadable(false);
+
+// read only custom avatars, default.png is ignored
+avatarAIB.setReadable(true); // returned only in findByUID/Name
 avatarAIB.setReturnedByDefault(false);
 
 //displayName
