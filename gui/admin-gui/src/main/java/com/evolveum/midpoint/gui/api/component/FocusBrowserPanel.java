@@ -103,7 +103,7 @@ public class FocusBrowserPanel<T extends FocusType> extends BasePanel<T> {
 	}
 
 	protected void onClick(AjaxRequestTarget target, T focus) {
-
+		parentPage.hideMainPopup(target);
 	}
 
 	private ObjectListPanel<T> createObjectListPanel(Class<T> type, final boolean multiselect) {
@@ -132,7 +132,7 @@ public class FocusBrowserPanel<T extends FocusType> extends BasePanel<T> {
 	}
 
 	protected void addPerformed(AjaxRequestTarget target, List<T> selected) {
-
+		parentPage.hideMainPopup(target);
 	}
 
 	private Class qnameToCompileTimeClass(QName typeName) {

@@ -41,6 +41,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -99,6 +100,8 @@ public class ColumnUtils {
 			return getDefaultAbstractRoleColumns();
 		} else if (type.equals(TaskType.class)){
 			return getDefaultTaskColumns();
+		} else if (type.equals(ResourceType.class)){
+			return getDefaultResourceColumns();
 		} else {
 			throw new UnsupportedOperationException("Will be implemented eventually");
 		}
@@ -229,6 +232,7 @@ public class ColumnUtils {
 
 		return columns;
 	}
+	
 
 	public static <T extends ObjectType> List<IColumn> getDefaultOrgColumns() {
 		List<IColumn> columns = new ArrayList<IColumn>();
@@ -285,12 +289,12 @@ public class ColumnUtils {
 		});
 
 		List<ColumnTypeDto> columnsDefs = Arrays.asList(
-				new ColumnTypeDto("AbstractRoleType.displayName", SelectableBean.F_VALUE + ".displayName",
-						true, false),
+//				new ColumnTypeDto("AbstractRoleType.displayName", SelectableBean.F_VALUE + ".displayName",
+//						true, false),
 				new ColumnTypeDto("AbstractRoleType.description", SelectableBean.F_VALUE + ".description",
-						true, false),
-				new ColumnTypeDto("AbstractRoleType.identifier", SelectableBean.F_VALUE + ".identifier", true,
-						false)
+						true, false)
+//				new ColumnTypeDto("AbstractRoleType.identifier", SelectableBean.F_VALUE + ".identifier", true,
+//						false)
 
 		);
 
