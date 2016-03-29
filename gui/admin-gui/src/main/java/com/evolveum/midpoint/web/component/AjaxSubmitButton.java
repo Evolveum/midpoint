@@ -37,6 +37,10 @@ public abstract class AjaxSubmitButton extends AjaxSubmitLink {
     protected void onComponentTag(ComponentTag tag) {
         super.onComponentTag(tag);
 
+        if (!isEnabled()) {
+            tag.put("disabled", "disabled");
+        }
+
         if (tag.isOpenClose()) {
             tag.setType(XmlTag.TagType.OPEN);
         }

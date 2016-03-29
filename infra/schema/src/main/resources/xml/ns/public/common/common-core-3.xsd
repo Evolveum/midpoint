@@ -177,6 +177,7 @@
                     <xsd:appinfo>
                     	<a:displayName>Name</a:displayName>
                     	<a:displayOrder>0</a:displayOrder>
+                    	<a:emphasized>true</a:emphasized>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1996,6 +1997,7 @@
                             <xsd:appinfo>
 		                    	<a:displayName>Full Name</a:displayName>
 		                    	<a:displayOrder>100</a:displayOrder>
+		                    	<a:emphasized>true</a:emphasized>
 		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2023,6 +2025,7 @@
                             <xsd:appinfo>
 		                    	<a:displayName>Given Name</a:displayName>
 		                    	<a:displayOrder>110</a:displayOrder>
+		                    	<a:emphasized>true</a:emphasized>
 		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2050,6 +2053,7 @@
                             <xsd:appinfo>
 		                    	<a:displayName>Family Name</a:displayName>
 		                    	<a:displayOrder>120</a:displayOrder>
+		                    	<a:emphasized>true</a:emphasized>
 		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -3890,6 +3894,15 @@
 
                         This element is currently supported only in resource object type definitions.
                         Support in object templates is planned.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="emphasized" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Set true for definitions that are more important than others and that should be emphasized
+     					during presentation. E.g. the emphasized definitions will always be displayed in the user
+     					interfaces (even if they are empty), they will always be included in the dumps, etc.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -9555,6 +9568,13 @@
                 </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="WEB">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WEB"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="GUI">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="GUI"/>

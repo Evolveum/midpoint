@@ -146,12 +146,6 @@ public class SessionStorage implements Serializable {
         userProfile = profile;
     }
 
-    public void clearPagingInSession(boolean clearPaging){
-        if(clearPaging){
-            pageStorageMap.clear();
-        }
-    }
-
     public List<Breadcrumb> getBreadcrumbs() {
         if (breadcrumbs == null) {
             breadcrumbs = new Stack<>();

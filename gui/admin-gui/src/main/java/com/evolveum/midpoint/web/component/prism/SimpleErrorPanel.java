@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -29,15 +31,16 @@ import org.apache.wicket.model.IModel;
 /**
  *  @author shood
  * */
-public class SimpleErrorPanel extends SimplePanel<FocusProjectionDto>{
+public class SimpleErrorPanel<O extends ObjectType> extends SimplePanel<FocusSubwrapperDto<O>>{
+	private static final long serialVersionUID = 1L;
 
-//    private static final String ID_CHECK = "check";
+	//    private static final String ID_CHECK = "check";
     private static final String ID_ICON = "icon";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_LINK = "link";
     private static final String ID_SHOW_MORE = "showMore";
 
-    public SimpleErrorPanel(String id, IModel<FocusProjectionDto> model){
+    public SimpleErrorPanel(String id, IModel<FocusSubwrapperDto<O>> model){
         super(id, model);
 
         add(AttributeModifier.append("class", "check-table-header"));

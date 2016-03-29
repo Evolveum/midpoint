@@ -14,32 +14,48 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
 
     <div class="clearfix">
+    <div class="box">
 	<div class="form-inline search-form">
 		<!--         <row class="form-inline pull-right search-form"> -->
-		<div class="form-group">
-			<label><wicket:message key="ShadowType.intent" /></label>
-			<div wicket:id="intent" />
+		<div class="form-group col-md-4">
+			<label wicket:id="intentLabel"></label>
+			<span wicket:id="intent" />
 		</div>
+		<div class="form-group col-md-4">
+			<label wicket:id="objectClassLabel"></label>
+			<span wicket:id="objectClass" />
+		</div>
+		
 
-		<div class="form-group">
+		<div class="form-group col-md-4">
 			<label><wicket:message key="ResourceContentTabPanel.searchType" /></label>
-			<div wicket:id="searchType" />
+			<a class="btn btn-default" wicket:id="repositorySearch"> 
+				<label><wicket:message key="ResourceContentTabPanel.searchType.repository" /></label>
+			</a>
+			<a class="btn btn-default" wicket:id="resourceSearch"> 
+				<label><wicket:message key="ResourceContentTabPanel.searchType.resource" /></label>
+			</a>
+		
 		</div>
 
 
 	</div>
+	</div>
 
 </div>
 
-	<form wicket:id="mainForm">
+<form wicket:id="mainForm">
 		<div wicket:id="table" />
-	</form>
+		
+</form>
 
 
 
 </wicket:panel>
+</html>

@@ -182,11 +182,21 @@ public class WebModelServiceUtils {
             page.showResult(subResult);
         }
 
-        LOGGER.debug("Loaded with result {}", new Object[]{subResult});
+        LOGGER.debug("Loaded {} with result {}", object, subResult);
 
         return object;
     }
 
+    public static boolean isNoFetch(Collection<SelectorOptions<GetOperationOptions>> options) {
+    	if (options == null) {
+    		return false;
+    	}
+    	GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+    	if (rootOptions == null) {
+    		return false;
+    	}
+    	return GetOperationOptions.isNoFetch(rootOptions);
+    }
 
     public static <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
                                                                             OperationResult result, PageBase page) {

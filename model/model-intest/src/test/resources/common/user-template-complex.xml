@@ -26,6 +26,11 @@
     <includeRef oid="10000000-0000-0000-0000-000000000223"/>
     
     <item>
+    	<ref>givenName</ref>
+    	<emphasized>false</emphasized>
+    </item>
+    
+    <item>
     	<ref>additionalName</ref>
     	<displayName>Middle Name</displayName>
     </item>
@@ -38,6 +43,7 @@
     <item>
     	<ref>costCenter</ref>
     	<displayOrder>123</displayOrder>
+    	<emphasized>true</emphasized>
     	<mapping>
 	    	<strength>weak</strength>
 	    	<expression>

@@ -457,6 +457,11 @@ public class SchemaTransformer {
 			itemDef.setDisplayOrder(displayOrder);
 		}
 		
+		Boolean emphasized = templateItemDefType.isEmphasized();
+		if (emphasized != null) {
+			itemDef.setEmphasized(emphasized);
+		}
+		
 		List<PropertyLimitationsType> limitations = templateItemDefType.getLimitations();
 		if (limitations != null) {
 			PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsType(limitations, LayerType.PRESENTATION);
