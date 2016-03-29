@@ -28,7 +28,6 @@ import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,10 +61,10 @@ public class TaskMainPanel extends Panel {
 	private void initLayout(PageTask2 parentPage) {
 		mainForm = new Form<>(ID_MAIN_FORM, true);
 		add(mainForm);
-		initLayoutTabs(parentPage);
+		initTabPanel(parentPage);
 	}
 
-	protected void initLayoutTabs(final PageTask2 parentPage) {
+	protected void initTabPanel(final PageTask2 parentPage) {
 		List<ITab> tabs = createTabs(parentPage);
 		TabbedPanel<ITab> tabPanel = AbstractObjectMainPanel.createTabPanel(parentPage, tabs);
 		mainForm.add(tabPanel);
@@ -73,11 +72,6 @@ public class TaskMainPanel extends Panel {
 
 	protected List<ITab> createTabs(final PageTask2 parentPage) {
 		List<ITab> tabs = new ArrayList<>();
-		addDefaultTabs(parentPage, tabs);
-		return tabs;
-	}
-
-	protected void addDefaultTabs(final PageTask2 parentPage, List<ITab> tabs) {
 		tabs.add(
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.basic")){
 					@Override
@@ -92,29 +86,36 @@ public class TaskMainPanel extends Panel {
 						return new TaskSchedulingTabPanel(panelId, mainForm, objectModel, parentPage);
 					}
 				});
-//		tabs.add(
-//				new AbstractTab(getProjectionsTabTitleModel(parentPage)){
-//					@Override
-//					public WebMarkupContainer getPanel(String panelId) {
-//						return createFocusProjectionsTabPanel(panelId, parentPage);
-//					}
-//				});
-//		tabs.add(
-//				new AbstractTab(getAssignmentsTabTitleModel(parentPage)){
-//					@Override
-//					public WebMarkupContainer getPanel(String panelId) {
-//						return createFocusAssignmentsTabPanel(panelId, parentPage);
-//					}
-//				});
-//		tabs.add(
-//				new AbstractTab(parentPage.createStringResource("pageAdminFocus.request")){
-//					@Override
-//					public WebMarkupContainer getPanel(String panelId) {
-//						return createRequestAssignmentTabPanel(panelId, parentPage);
-//					}
-//				});
+		tabs.add(
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.progress")){
+					@Override
+					public WebMarkupContainer getPanel(String panelId) {
+						return new TaskProgressTabPanel(panelId, mainForm, objectModel, parentPage);
+					}
+				});
+		tabs.add(
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.performance")){
+					@Override
+					public WebMarkupContainer getPanel(String panelId) {
+						return new TaskPerformanceTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
+					}
+				});
+		tabs.add(
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.approvals")){
+					@Override
+					public WebMarkupContainer getPanel(String panelId) {
+						return new TaskApprovalsTabPanel(panelId, mainForm, objectModel, parentPage);
+					}
+				});
+		tabs.add(
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.result")){
+					@Override
+					public WebMarkupContainer getPanel(String panelId) {
+						return new TaskResultTabPanel(panelId, mainForm, objectModel, parentPage);
+					}
+				});
+		return tabs;
 	}
-
 
 	protected PageTask2 getDetailsPage() {
 		return (PageTask2) getPage();
