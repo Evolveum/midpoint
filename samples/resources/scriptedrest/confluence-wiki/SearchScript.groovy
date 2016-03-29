@@ -64,8 +64,39 @@ case "__ACCOUNT__":
         log.ok("JSON response:\n" + json);
 
         if (json.name) { // exists
+            // need to replace configured endpoint to other endpoint
+            restEndpoint = "https://wiki.evolveum.com/rest/prototype/1";
+            path = restEndpoint+"/search/user";
+            connection.setUri(restEndpoint)
+            log.ok("JSON GET detail url: {0}", path);
+            respDetail = connection.get(path: path,
+                    headers: ['Content-Type': 'application/json'],
+                    query: ['query': json.name])
+            jsonDetail = respDetail.getData();
+            log.ok("JSON response detail:\n {0}", jsonDetail);
+            thumbnail = "";
+            if (jsonDetail && jsonDetail.result && jsonDetail.result[0].thumbnailLink && jsonDetail.result[0].thumbnailLink.href) {
+                thumbnail = jsonDetail.result[0].thumbnailLink.href;
+            }
+
+            byte[] avatar = null; // send only not default profile pictures
+            if (thumbnail != null && !thumbnail.contains("/profilepics/")) {
+                thumbnailPrefix = thumbnail.split("\\?");
+                connection.setUri(thumbnailPrefix[0]);
+                log.ok("JSON GET profile picture url: {0}", thumbnailPrefix[0]);
+                respImage = connection.get(path: thumbnailPrefix[0],
+                        headers: ['Content-Type': 'image/png'],
+                        contentType: 'application/octet-stream',
+                    )
+                ByteArrayInputStream bais = respImage.getData();
+                avatar = new byte[bais.available()];
+                bais.read(avatar);
+            }
+
             user = [__UID__ : json.name,
-                    __NAME__: json.name
+                    __NAME__: json.name,
+                    thumbnailLink : thumbnail,
+                    avatar : avatar
             ];
 
             result.add(user);
@@ -80,9 +111,9 @@ case "__ACCOUNT__":
                 body: viewAll)
 
         data = resp.getData();
-        log.ok("JSON response:\n" + data);
+        log.ok("JSON response:\n {0}", data);
         data.each {
-            log.ok("JSON LINE:\n" + it);
+            log.ok("JSON LINE:\n {0}", it);
 
             user = [__UID__ : it,
                     __NAME__: it

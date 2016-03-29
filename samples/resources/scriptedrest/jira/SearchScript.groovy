@@ -61,7 +61,7 @@ case "__ACCOUNT__":
         json = resp.getData();
         log.ok("JSON response:\n" + json);
 
-        res = parseUser(json);
+        res = parseUser(json, true);
         result.add(res);
     }
     else {
@@ -96,7 +96,7 @@ case "__ACCOUNT__":
                     else {
                         // has only 1 account
                         if (data.capacity == null) {
-                            res = parseUser(data);
+                            res = parseUser(data, false);
                             if (!uniqueUsers.contains(res.__NAME__)) {
                                 result.add(res);
                                 uniqueUsers.add(res.__NAME__);
@@ -104,7 +104,7 @@ case "__ACCOUNT__":
                         } else {
                             // has more accounts need to iterate
                             data.each {
-                                res = parseUser(it);
+                                res = parseUser(it, false);
                                 if (!uniqueUsers.contains(res.__NAME__)) {
                                     result.add(res);
                                     uniqueUsers.add(res.__NAME__);
@@ -130,7 +130,7 @@ log.info("result: \n" + result);
 return result;
 
 
-def parseUser(it) {
+def parseUser(it, readImage) {
     log.ok("user: "+it);
     id = it."name";
 
@@ -140,6 +140,38 @@ def parseUser(it) {
 
 //    log.ok("name: "+id+", avatarUrl: "+avatarUrl);
 
+    byte[] avatar = null; // send only not default profile pictures
+    if (readImage && avatarUrl != null && avatarUrl.contains("ownerId")) {
+        thumbnailPrefix = avatarUrl.split("\\?");
+
+        thumbnailQuerys = thumbnailPrefix[1].split("&");
+
+        ownerId = null;
+        avatarId = null;
+        for (int i=0; i<thumbnailQuerys.size(); i++) {
+            p = thumbnailQuerys[i].split("=");
+            key = p[0];
+            if ("ownerId".equals(key)){
+                ownerId = p[1];
+            }
+            else if ("avatarId".equals(key)) {
+                avatarId = p[1];
+            }
+        }
+
+        log.ok("JSON GET profile picture url: {0}, ownerId: {1}, avatarId: {2}", thumbnailPrefix[0], ownerId, avatarId);
+
+        connection.setUri(thumbnailPrefix[0]);
+        respImage = connection.get(path: thumbnailPrefix[0],
+                headers: ['Content-Type': 'image/png'],
+                contentType: 'application/octet-stream',
+                query: [avatarId : avatarId, ownerId : ownerId]
+            )
+        ByteArrayInputStream bais = respImage.getData();
+        avatar = new byte[bais.available()];
+        bais.read(avatar);
+    }
+
     // self, timeZone, locale
     return [__UID__         : id,
             __NAME__        : id,
@@ -147,6 +179,7 @@ def parseUser(it) {
             emailAddress    : it.emailAddress,
             avatarUrl       : avatarUrl,
             displayName     : it.displayName,
-            active          : it.active
+            active          : it.active,
+            avatar          : avatar
     ];
 }
