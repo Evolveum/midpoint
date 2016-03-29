@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -32,6 +32,21 @@
         <url>https://fisheye.evolveum.com/browse/midPoint</url>
     </scm>
     <dependencies>
+    	<dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>util</artifactId>
+            <version>3.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>prism</artifactId>
+            <version>3.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>schema</artifactId>
+            <version>3.4-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>certification-api</artifactId>
@@ -49,7 +64,7 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>notifications-api</artifactId>
+            <artifactId>model-common</artifactId>
             <version>3.4-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -59,12 +74,7 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-cache</artifactId>
-            <version>3.4-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.provisioning</groupId>
-            <artifactId>provisioning-api</artifactId>
+            <artifactId>security-api</artifactId>
             <version>3.4-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -72,25 +82,44 @@
             <artifactId>task-api</artifactId>
             <version>3.4-SNAPSHOT</version>
         </dependency>
+        
         <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>system-init</artifactId>
-            <version>3.4-SNAPSHOT</version>
-        </dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
         <dependency>
-            <groupId>org.activiti</groupId>
-            <artifactId>activiti-engine</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.activiti</groupId>
-            <artifactId>activiti-spring</artifactId>
-        </dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>javax.annotation</groupId>
+			<artifactId>javax.annotation-api</artifactId>
+		</dependency>
+        
         <!-- Test -->
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-impl</artifactId>
             <version>3.4-SNAPSHOT</version>
             <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>test-util</artifactId>
+            <version>3.4-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -108,6 +137,12 @@
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>report-impl</artifactId>
+            <version>3.4-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.icf</groupId>
+            <artifactId>dummy-resource</artifactId>
             <version>3.4-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>

@@ -365,6 +365,11 @@
                 <version>1.0</version>
             </dependency>
             <dependency>
+                <groupId>javax.annotation</groupId>
+                <artifactId>javax.annotation-api</artifactId>
+                <version>1.2</version>
+            </dependency>
+            <dependency>
                 <groupId>javax.inject</groupId>
                 <artifactId>javax.inject</artifactId>
                 <version>1</version>
@@ -380,6 +385,11 @@
                 <artifactId>servlet-api</artifactId>
                 <version>2.5</version>
                 <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>javax.ws.rs</groupId>
+                <artifactId>javax.ws.rs-api</artifactId>
+                <version>2.0</version>
             </dependency>
             <dependency>
                 <groupId>net.sf.saxon</groupId>
@@ -458,6 +468,11 @@
                 <artifactId>cxf-rt-management</artifactId>
                 <version>${cxf.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-bindings-soap</artifactId>
+                <version>${cxf.version}</version>
+            </dependency>
 <!--             <dependency> -->
 <!--                 <groupId>org.apache.cxf</groupId> -->
 <!--                 <artifactId>cxf-common-utilities</artifactId> -->
@@ -502,6 +517,12 @@
 	            <groupId>org.apache.wss4j</groupId>
 	            <artifactId>wss4j-ws-security-common</artifactId>
 	            <version>2.0.1</version>
+	            <exclusions>
+	            	<exclusion> <!-- conflict with javax.mail:mail -->
+                        <groupId>org.apache.geronimo.specs</groupId>
+	            		<artifactId>geronimo-javamail_1.4_spec</artifactId>
+                    </exclusion>
+                </exclusions>
 	        </dependency>
 	        <dependency>
 	            <groupId>org.apache.wss4j</groupId>
@@ -998,6 +1019,11 @@
 	                </exclusion>
 	            </exclusions>
 			</dependency>
+			<dependency>
+	            <groupId>javax.mail</groupId>
+	            <artifactId>mail</artifactId>
+	            <version>1.4.5</version>
+	        </dependency>
 			<dependency>
 				<groupId>javax.mail</groupId>
 				<artifactId>javax.mail-api </artifactId>

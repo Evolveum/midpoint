@@ -58,6 +58,21 @@
 			<version>3.4-SNAPSHOT</version>
 		</dependency>
 		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>prism</artifactId>
+			<version>3.4-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>schema</artifactId>
+			<version>3.4-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>common</artifactId>
+			<version>3.4-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-api</artifactId>
 			<version>3.4-SNAPSHOT</version>
@@ -74,6 +89,11 @@
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>security-api</artifactId>
+			<version>3.4-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-api</artifactId>
 			<version>3.4-SNAPSHOT</version>
 		</dependency>
@@ -81,6 +101,7 @@
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-cache</artifactId>
 			<version>3.4-SNAPSHOT</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
@@ -91,11 +112,13 @@
 			<groupId>com.evolveum.icf</groupId>
 			<artifactId>dummy-connector</artifactId>
 			<version>3.4-SNAPSHOT</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.icf</groupId>
 			<artifactId>dummy-connector-fake</artifactId>
 			<version>3.4-SNAPSHOT</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.icf</groupId>
@@ -107,17 +130,42 @@
 			<artifactId>repo-test-util</artifactId>
 			<version>3.4-SNAPSHOT</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
 		</dependency>
 		<dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+        </dependency>
+		<dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+        </dependency>
+		<dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj</artifactId>
         </dependency>
 		
 		<dependency>
