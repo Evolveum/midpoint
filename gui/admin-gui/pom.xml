@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -102,40 +102,48 @@
             <groupId>org.webjars.bower</groupId>
             <artifactId>adminlte</artifactId>
             <version>2.3.0</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>respond</artifactId>
             <version>1.4.2</version>
+            <scope>runtime</scope> <!-- TODO: review if we need this dependency -->
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>html5shiv</artifactId>
             <version>3.7.2</version>
+            <scope>runtime</scope> <!-- TODO: review if we need this dependency -->
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>font-awesome</artifactId>
             <version>4.3.0-2</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>ionicons</artifactId>
             <version>2.0.1</version>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- WRO4J-->
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>
             <artifactId>wro4j-core</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
         	<groupId>org.webjars</groupId>
     		<artifactId>webjars-locator</artifactId>
+    		<scope>runtime</scope> <!-- TODO: review if we need this dependency -->
         </dependency>
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>
             <artifactId>wro4j-extensions</artifactId>
+            <scope>runtime</scope> <!-- TODO: review if we need this dependency -->
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -207,9 +215,25 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- MIDPOINT -->
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>util</artifactId>
+            <version>3.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>prism</artifactId>
+            <version>3.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>schema</artifactId>
+            <version>3.4-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-api</artifactId>
@@ -240,11 +264,6 @@
             <version>3.4-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>certification-api</artifactId>
-            <version>3.4-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-api</artifactId>
             <version>3.4-SNAPSHOT</version>
@@ -256,7 +275,17 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>notifications-api</artifactId>
+            <artifactId>certification-api</artifactId>
+            <version>3.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>audit-api</artifactId>
+            <version>3.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>task-api</artifactId>
             <version>3.4-SNAPSHOT</version>
         </dependency>
         <!-- MIDPOINT RUNTIME DEPENDENCIES -->
@@ -274,6 +303,7 @@
 		<dependency>
 			<groupId>org.codehaus.groovy.modules.http-builder</groupId>
 			<artifactId>http-builder</artifactId>
+			<scope>runtime</scope> <!-- TODO: review if we need this dependency -->
 		</dependency>
 		<dependency>
 				<groupId>joda-time</groupId>
@@ -359,7 +389,7 @@
             <version>3.4-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
-	<dependency>
+		<dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>report-impl</artifactId>
             <version>3.4-SNAPSHOT</version>
@@ -374,7 +404,7 @@
             		<groupId>asm</groupId>
             	</exclusion>
             </exclusions>
-        </dependency>
+	</dependency>
        
 	<dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -397,8 +427,24 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-aspects</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
 
         <!-- SPRING SECURITY -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
@@ -406,12 +452,25 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
+            <scope>runtime</scope> <!-- TODO: review if we need this dependency -->
         </dependency>
 
         <!--  WICKET DEPENDENCIES -->
         <dependency>
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.wicket</groupId>
+            <artifactId>wicket-request</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.wicket</groupId>
+            <artifactId>wicket-ioc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.wicket</groupId>
+            <artifactId>wicket-util</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.wicket</groupId>
@@ -445,18 +504,21 @@
 		<groupId>org.wicketstuff</groupId>
 		<artifactId>wicketstuff-jwicket-ui-dragdrop</artifactId>
 		<version>6.11.0</version>
+		<scope>runtime</scope> <!-- TODO: review if we need this dependency -->
 	</dependency>
 
 	<dependency>
 		<groupId>org.wicketstuff</groupId>
 		<artifactId>wicketstuff-jwicket-ui-effects</artifactId>
 		<version>6.11.0</version>
+		<scope>runtime</scope> <!-- TODO: review if we need this dependency -->
 	</dependency>
 	
 	<dependency>
 		<groupId>org.wicketstuff</groupId>
 		<artifactId>wicketstuff-jwicket-ui-tooltip</artifactId>
 		<version>6.11.0</version>
+		<scope>runtime</scope> <!-- TODO: review if we need this dependency -->
 	</dependency>
 
 
@@ -497,15 +559,54 @@
             <version>2.5.1</version>
             <scope>runtime</scope>
         </dependency>
+        
         -->
-
+        
+        <dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+		</dependency>
 		<dependency>
-			<groupId>javax.jws</groupId>
-			<artifactId>jsr181-api</artifactId>
-			<version>1.0-MR1</version>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-javaflow</groupId>
+			<artifactId>commons-javaflow</artifactId>
+			<scope>runtime</scope> <!-- TODO: review if we need this dependency -->
+		</dependency>
+		<dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations-java5</artifactId>
+        </dependency>
+        <dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
 		</dependency>
 
         <!-- TEST -->
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>test-util</artifactId>
+            <version>3.4-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-test-util</artifactId>
@@ -533,6 +634,17 @@
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
             <version>3.4-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.icf</groupId>
+            <artifactId>dummy-resource</artifactId>
+            <version>3.4-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -597,25 +709,11 @@
 				<artifactId>poi</artifactId>
 				<version>3.10.1</version>
 			</dependency>
-		<dependency>
-	<groupId>commons-javaflow</groupId>
-	<artifactId>commons-javaflow</artifactId>
-	<version>20060411</version>
-</dependency>
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-core</artifactId>
-			<scope>compile</scope>
-		</dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>javax.mail-api </artifactId>
-		</dependency>
 		
 		<!-- Uncomment following if you want midpoint to be a part of SSO using CAS server-->
 		<!-- SSO CAS Client dependencies -->
@@ -692,6 +790,7 @@
 		<dependency>
                         <artifactId>jaxb-impl</artifactId>
                         <groupId>com.sun.xml.bind</groupId>
+                        <scope>runtime</scope>
                 </dependency>
                 <dependency>
                         <artifactId>jaxb-api</artifactId>
@@ -700,6 +799,7 @@
                 <dependency>
                         <artifactId>jaxb-core</artifactId>
                         <groupId>com.sun.xml.bind</groupId>
+                        <scope>runtime</scope>
 		</dependency>
 	    </dependencies>
 
