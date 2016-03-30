@@ -45,6 +45,7 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -107,7 +108,12 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_EXTENSION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_METADATA;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OBJECT_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESS_INSTANCE_ID;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_START_TIMESTAMP;
 
 /**
  * @author lazyman
@@ -3432,6 +3438,43 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             close(session);
         }
     }
+
+	@Test
+	public void testAdHoc100ProcessStartTimestamp() throws Exception {
+		Session session = open();
+
+		try {
+			ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+					.item(F_WORKFLOW_CONTEXT, F_REQUESTER_REF).ref("123456")
+					.and().not().item(F_WORKFLOW_CONTEXT, F_PROCESS_INSTANCE_ID).isNull()
+					.desc(F_WORKFLOW_CONTEXT, F_START_TIMESTAMP)
+					.build();
+			String real = getInterpretedQuery2(session, TaskType.class, query);
+			String expected = "select\n"
+					+ "  t.fullObject,\n"
+					+ "  t.stringsCount,\n"
+					+ "  t.longsCount,\n"
+					+ "  t.datesCount,\n"
+					+ "  t.referencesCount,\n"
+					+ "  t.polysCount,\n"
+					+ "  t.booleansCount\n"
+					+ "from\n"
+					+ "  RTask t\n"
+					+ "where\n"
+					+ "  (\n"
+					+ "    (\n"
+					+ "      t.wfRequesterRef.targetOid = :targetOid and\n"
+					+ "      t.wfRequesterRef.relation = :relation\n"
+					+ "    ) and\n"
+					+ "    not t.wfProcessInstanceId is null\n"
+					+ "  )\n"
+					+ "order by t.wfStartTimestamp desc";
+			assertEqualsIgnoreWhitespace(expected, real);
+		} finally {
+			close(session);
+		}
+
+	}
 
 //    @Test
 //    public void test930OrganizationEqualsCostCenter() throws Exception {

@@ -43,6 +43,12 @@ public class SearchFactory {
                 new ItemPath(UserType.F_FAMILY_NAME),
                 new ItemPath(UserType.F_FULL_NAME),
                 new ItemPath(UserType.F_ADDITIONAL_NAME),
+                new ItemPath(UserType.F_COST_CENTER),
+                new ItemPath(UserType.F_EMAIL_ADDRESS),
+                new ItemPath(UserType.F_TELEPHONE_NUMBER),
+                new ItemPath(UserType.F_EMPLOYEE_NUMBER),
+                new ItemPath(UserType.F_EMPLOYEE_TYPE),
+                new ItemPath(UserType.F_ORGANIZATIONAL_UNIT),
                 new ItemPath(UserType.F_COST_CENTER)));
         SEARCHABLE_OBJECTS.put(RoleType.class, Arrays.asList(
                 new ItemPath(RoleType.F_NAME),
@@ -80,7 +86,8 @@ public class SearchFactory {
                 new ItemPath(ShadowType.F_OBJECT_CLASS),
                 new ItemPath(ShadowType.F_DEAD),
                 new ItemPath(ShadowType.F_INTENT),
-                new ItemPath(ShadowType.F_EXISTS)
+                new ItemPath(ShadowType.F_EXISTS),
+                new ItemPath(ShadowType.F_FAILED_OPERATION_TYPE)
         ));
         SEARCHABLE_OBJECTS.put(TaskType.class, Arrays.asList(
                 new ItemPath(TaskType.F_TASK_IDENTIFIER),

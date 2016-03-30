@@ -87,6 +87,10 @@ public class CompositeRefinedObjectClassDefinition extends RefinedObjectClassDef
 		return structuralObjectClassDefinition.isIgnored();
 	}
 
+	public boolean isEmphasized() {
+		return structuralObjectClassDefinition.isEmphasized();
+	}
+
 	public boolean isAbstract() {
 		return structuralObjectClassDefinition.isAbstract();
 	}

@@ -54,9 +54,9 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 
 	private LoadableModel<ObjectWrapper<O>> objectWrapperModel;
 	private PageBase pageBase;
-	private Form mainForm;
+	private Form<ObjectWrapper<O>> mainForm;
 
-	public AbstractObjectTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<O>> objectWrapperModel, PageBase pageBase) {
+	public AbstractObjectTabPanel(String id, Form<ObjectWrapper<O>> mainForm, LoadableModel<ObjectWrapper<O>> objectWrapperModel, PageBase pageBase) {
 		super(id);
 		this.objectWrapperModel = objectWrapperModel;
 		this.mainForm = mainForm;
@@ -83,7 +83,7 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 		return pageBase;
 	}
 
-	public Form getMainForm() {
+	public Form<ObjectWrapper<O>> getMainForm() {
 		return mainForm;
 	}
 

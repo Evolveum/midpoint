@@ -52,7 +52,8 @@ public class LoggingDto implements Serializable {
 		componentMap.put("com.evolveum.midpoint.model", LoggingComponentType.MODEL);
 		componentMap.put("com.evolveum.midpoint.provisioning", LoggingComponentType.PROVISIONING);
 		componentMap.put("com.evolveum.midpoint.repo", LoggingComponentType.REPOSITORY);
-		componentMap.put("com.evolveum.midpoint.web", LoggingComponentType.GUI);
+		componentMap.put("com.evolveum.midpoint.web", LoggingComponentType.WEB);
+		componentMap.put("com.evolveum.midpoint.gui", LoggingComponentType.GUI);
 		componentMap.put("com.evolveum.midpoint.task", LoggingComponentType.TASKMANAGER);
 		componentMap.put("com.evolveum.midpoint.model.sync",
 				LoggingComponentType.RESOURCEOBJECTCHANGELISTENER);

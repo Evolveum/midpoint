@@ -25,23 +25,31 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.util.time.Duration;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -67,6 +75,11 @@ public class SearchPanel extends BasePanel<Search> {
     private static final String ID_CHECK = "check";
     private static final String ID_PROP_NAME = "propName";
     private static final String ID_PROP_LIST = "propList";
+    private static final String ID_ADVANCED = "advanced";
+    private static final String ID_ADVANCED_GROUP = "advancedGroup";
+    private static final String ID_MORE_GROUP = "moreGroup";
+    private static final String ID_ADVANCED_AREA = "advancedArea";
+    private static final String ID_ADVANCED_CHECK = "advancedCheck";
 
     private LoadableModel<MoreDialogDto> moreDialogModel;
 
@@ -99,13 +112,18 @@ public class SearchPanel extends BasePanel<Search> {
                 item.add(searchItem);
             }
         };
+        items.add(createAdvancedVisibleBehaviour(false));
         form.add(items);
+
+        WebMarkupContainer moreGroup = new WebMarkupContainer(ID_MORE_GROUP);
+        moreGroup.add(createAdvancedVisibleBehaviour(false));
+        form.add(moreGroup);
 
         AjaxLink more = new AjaxLink(ID_MORE) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                Component button = SearchPanel.this.get(createComponentPath(ID_FORM, ID_MORE));
+                Component button = SearchPanel.this.get(createComponentPath(ID_FORM, ID_MORE_GROUP, ID_MORE));
                 Component popover = SearchPanel.this.get(createComponentPath(ID_POPOVER));
                 togglePopover(target, button, popover, 14);
             }
@@ -119,9 +137,9 @@ public class SearchPanel extends BasePanel<Search> {
             }
         });
         more.setOutputMarkupId(true);
-        form.add(more);
+        moreGroup.add(more);
 
-        AjaxSubmitLink search = new AjaxSubmitLink(ID_SEARCH) {
+        AjaxSubmitButton search = new AjaxSubmitButton(ID_SEARCH) {
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
@@ -133,9 +151,113 @@ public class SearchPanel extends BasePanel<Search> {
                 searchPerformed(target);
             }
         };
+        search.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isEnabled() {
+                Search search = getModelObject();
+                if (!search.isShowAdvanced()) {
+                    return true;
+                }
+
+                PrismContext ctx = getPageBase().getPrismContext();
+                return search.isAdvancedQueryValid(ctx);
+            }
+        });
+        search.setOutputMarkupId(true);
         form.add(search);
 
+        AjaxButton advanced = new AjaxButton(ID_ADVANCED, createAdvancedModel()) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                advancedPerformed(target);
+            }
+        };
+        form.add(advanced);
+
         initPopover();
+
+        WebMarkupContainer advancedGroup = new WebMarkupContainer(ID_ADVANCED_GROUP);
+        advancedGroup.add(createAdvancedVisibleBehaviour(true));
+        advancedGroup.add(AttributeAppender.append("class", createAdvancedGroupStyle()));
+        advancedGroup.setOutputMarkupId(true);
+        form.add(advancedGroup);
+
+        Label advancedCheck = new Label(ID_ADVANCED_CHECK);
+        advancedCheck.add(AttributeAppender.append("class", createAdvancedGroupLabelStyle()));
+        advancedCheck.add(AttributeModifier.append("title",
+                new PropertyModel<String>(getModel(), Search.F_ADVANCED_ERROR)));
+        advancedGroup.add(advancedCheck);
+
+        final TextArea advancedArea = new TextArea(ID_ADVANCED_AREA,
+                new PropertyModel(getModel(), Search.F_ADVANCED_QUERY));
+        advancedArea.add(new AjaxFormComponentUpdatingBehavior("keyup") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                updateAdvancedArea(advancedArea, target);
+            }
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+
+                attributes.setThrottlingSettings(
+                        new ThrottlingSettings(ID_ADVANCED_AREA, Duration.milliseconds(500), true));
+            }
+        });
+        advancedGroup.add(advancedArea);
+    }
+
+    private IModel<String> createAdvancedGroupLabelStyle() {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                Search search = getModelObject();
+                PrismContext ctx = getPageBase().getPrismContext();
+
+                return search.isAdvancedQueryValid(ctx) ? "fa-check-circle-o" : "fa-exclamation-triangle";
+            }
+        };
+    }
+
+    private IModel<String> createAdvancedGroupStyle() {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                Search search = getModelObject();
+                PrismContext ctx = getPageBase().getPrismContext();
+
+                return search.isAdvancedQueryValid(ctx) ? "has-success" : "has-error";
+            }
+        };
+    }
+
+    private IModel<String> createAdvancedModel() {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                Search search = getModelObject();
+                String key = search.isShowAdvanced() ? "SearchPanel.basic" : "SearchPanel.advanced";
+
+                return createStringResource(key).getString();
+            }
+        };
+    }
+
+    private VisibleEnableBehaviour createAdvancedVisibleBehaviour(final boolean showAdvanced) {
+        return new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                Search search = getModelObject();
+                return showAdvanced ? search.isShowAdvanced() : !search.isShowAdvanced();
+            }
+        };
     }
 
     private void initPopover() {
@@ -284,5 +406,21 @@ public class SearchPanel extends BasePanel<Search> {
         script.append(paddingRight).append(");");
 
         target.appendJavaScript(script.toString());
+    }
+
+    private void advancedPerformed(AjaxRequestTarget target) {
+        Search search = getModelObject();
+        search.setShowAdvanced(!search.isShowAdvanced());
+
+        refreshSearchForm(target);
+    }
+
+    private void updateAdvancedArea(Component area, AjaxRequestTarget target) {
+        target.prependJavaScript("storeTextAreaSize('" + area.getMarkupId() + "');");
+        target.appendJavaScript("restoreTextAreaSize('" + area.getMarkupId() + "');");
+
+        target.add(
+                get(createComponentPath(ID_FORM, ID_ADVANCED_GROUP)),
+                get(createComponentPath(ID_FORM, ID_SEARCH)));
     }
 }

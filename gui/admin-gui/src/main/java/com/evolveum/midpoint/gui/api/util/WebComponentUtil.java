@@ -172,6 +172,16 @@ public final class WebComponentUtil {
 
 		return focusTypeList;
 	}
+	
+	public static List<QName> createAssignableTypesList() {
+		List<QName> focusTypeList = new ArrayList<>();
+
+		focusTypeList.add(ResourceType.COMPLEX_TYPE);
+		focusTypeList.add(OrgType.COMPLEX_TYPE);
+		focusTypeList.add(RoleType.COMPLEX_TYPE);
+
+		return focusTypeList;
+	}
 
 	public static <T extends Enum> IModel<String> createLocalizedModelForEnum(T value, Component comp) {
 		String key = value != null ? value.getClass().getSimpleName() + "." + value.name() : "";

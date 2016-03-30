@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,9 +44,9 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
     private static final String OPERATION_COUNT_RESOURCES = DOT_CLASS + "countResources";
 
     private ObjectDataProvider resourceProvider;
-    private IModel<List<FocusProjectionDto>> accountsModel;
+    private IModel<List<FocusSubwrapperDto<ShadowType>>> accountsModel;
 
-    public SimpleUserResourceProvider(Component component, IModel<List<FocusProjectionDto>> accountsModel) {
+    public SimpleUserResourceProvider(Component component, IModel<List<FocusSubwrapperDto<ShadowType>>> accountsModel) {
         super(component);
         Validate.notNull(accountsModel, "Accounts model must not be null.");
         this.accountsModel = accountsModel;
@@ -99,12 +99,12 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
     private Set<String> createUsedResourceOidSet() {
         Set<String> set = new HashSet<>();
 
-        List<FocusProjectionDto> accounts = accountsModel.getObject();
+        List<FocusSubwrapperDto<ShadowType>> accounts = accountsModel.getObject();
         if (accounts == null) {
             return set;
         }
 
-        for (FocusProjectionDto account : accounts) {
+        for (FocusSubwrapperDto account : accounts) {
             if(account.isLoadedOK()){
                 PrismObject<ShadowType> prismAccount = account.getObject().getObject();
                 PrismReference resourceRef = prismAccount.findReference(ShadowType.F_RESOURCE_REF);

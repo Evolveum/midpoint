@@ -151,7 +151,6 @@ public class PageUsers extends PageAdminUsers {
             }
         };
 
-        getSessionStorage().clearPagingInSession(clearPagingInSession);
         initLayout();
     }
 

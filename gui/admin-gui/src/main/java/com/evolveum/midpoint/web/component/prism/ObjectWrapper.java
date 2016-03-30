@@ -24,6 +24,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -73,8 +75,8 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
     private boolean showInheritedObjectAttributes = true;
     private boolean readonly = false;
 
+    private Collection<SelectorOptions<GetOperationOptions>> loadOptions;
     private OperationResult result;
-    private boolean protectedAccount;
 
     private Collection<PrismObject<OrgType>> parentOrgs = new ArrayList<>();
 
@@ -149,7 +151,15 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         result = null;
     }
 
-    public HeaderStatus getHeaderStatus() {
+    public Collection<SelectorOptions<GetOperationOptions>> getLoadOptions() {
+		return loadOptions;
+	}
+
+	public void setLoadOptions(Collection<SelectorOptions<GetOperationOptions>> loadOptions) {
+		this.loadOptions = loadOptions;
+	}
+
+	public HeaderStatus getHeaderStatus() {
         if (headerStatus == null) {
             headerStatus = HeaderStatus.NORMAL;
         }
@@ -724,6 +734,18 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         }
         return null;
     }
+    
+	public void copyRuntimeStateTo(ObjectWrapper<O> newWrapper) {
+		newWrapper.setMinimalized(this.isMinimalized());
+		newWrapper.setShowEmpty(this.isShowEmpty());
+		newWrapper.setSorted(this.isSorted());
+		newWrapper.setSelectable(this.isSelectable());
+		newWrapper.setSelected(this.isSelected());
+		newWrapper.setShowAssignments(this.isShowAssignments());
+		newWrapper.setShowInheritedObjectAttributes(this.isShowInheritedObjectAttributes());
+		newWrapper.setReadonly(this.isReadonly());
+	}
+
 
     @Override
     public String debugDump() {
@@ -750,6 +772,8 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         DebugUtil.debugDumpWithLabel(sb, "headerStatus", headerStatus == null ? null : headerStatus.toString(), indent + 1);
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "containers", containers, indent + 1);
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "loadOptions", loadOptions, indent + 1);
         sb.append("\n");
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(")");

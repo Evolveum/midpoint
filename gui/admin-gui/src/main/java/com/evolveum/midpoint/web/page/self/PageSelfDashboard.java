@@ -41,6 +41,7 @@ import com.evolveum.midpoint.web.page.admin.home.component.DashboardColor;
 import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkflowRequestsPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDtoProvider;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.page.self.component.LinksPanel;
@@ -50,7 +51,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.Application;
 import org.apache.wicket.Component;
+import org.apache.wicket.ThreadContext;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -96,6 +99,8 @@ public class PageSelfDashboard extends PageSelf {
         initLayout();
     }
 
+	private transient Application application;
+
     @Override
     protected void createBreadcrumb() {
         super.createBreadcrumb();
@@ -131,7 +136,7 @@ public class PageSelfDashboard extends PageSelf {
         });
         add(linksPanel);
 
-		final PrismContext prismContext = getPrismContext();
+		application = getApplication();
 
 		AsyncDashboardPanel<Object, List<WorkItemDto>> workItemsPanel =
                 new AsyncDashboardPanel<Object, List<WorkItemDto>>(ID_WORK_ITEMS_PANEL, createStringResource("PageSelfDashboard.workItems"),
@@ -146,7 +151,10 @@ public class PageSelfDashboard extends PageSelf {
 
                             @Override
                             public CallableResult<List<WorkItemDto>> callWithContextPrepared() throws Exception {
-                                return loadWorkItems(prismContext);
+								if (!Application.exists()) {
+									ThreadContext.setApplication(application);
+								}
+                                return loadWorkItems();
                             }
                         };
                     }
@@ -179,7 +187,10 @@ public class PageSelfDashboard extends PageSelf {
 
                             @Override
                             public CallableResult<List<ProcessInstanceDto>> callWithContextPrepared() throws Exception {
-                                return loadMyRequests(prismContext);
+								if (!Application.exists()) {
+									ThreadContext.setApplication(application);
+								}
+                                return loadMyRequests();
                             }
                         };
                     }
@@ -201,7 +212,7 @@ public class PageSelfDashboard extends PageSelf {
 
     }
 
-    private CallableResult<List<WorkItemDto>> loadWorkItems(PrismContext prismContext) {
+    private CallableResult<List<WorkItemDto>> loadWorkItems() {
 
         LOGGER.debug("Loading work items.");
 
@@ -223,7 +234,7 @@ public class PageSelfDashboard extends PageSelf {
         callableResult.setResult(result);
 
         try {
-            ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, prismContext)
+            ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
                     .item(WorkItemType.F_ASSIGNEE_REF).ref(user.getOid())
                     .desc(F_WORK_ITEM_CREATED_TIMESTAMP)
                     .build();
@@ -243,11 +254,11 @@ public class PageSelfDashboard extends PageSelf {
         return callableResult;
     }
 
-    private CallableResult<List<ProcessInstanceDto>> loadMyRequests(PrismContext prismContext) {
+    private CallableResult<List<ProcessInstanceDto>> loadMyRequests() {
 
         LOGGER.debug("Loading requests.");
 
-        AccountCallableResult callableResult = new AccountCallableResult();
+        AccountCallableResult<List<ProcessInstanceDto>> callableResult = new AccountCallableResult<>();
         List<ProcessInstanceDto> list = new ArrayList<ProcessInstanceDto>();
         callableResult.setValue(list);
 
@@ -255,32 +266,9 @@ public class PageSelfDashboard extends PageSelf {
             return callableResult;
         }
 
-        PrismObject<UserType> user = principalModel.getObject();
-        if (user == null) {
-            return callableResult;
-        }
-
-        Task opTask = createSimpleTask(OPERATION_LOAD_REQUESTS);
-        OperationResult result = opTask.getResult();
-        callableResult.setResult(result);
-
-        try {
-            ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
-                    .item(F_WORKFLOW_CONTEXT, F_REQUESTER_REF).ref(user.getOid())
-                    .and().not().item(F_WORKFLOW_CONTEXT, F_PROCESS_INSTANCE_ID).isNull()
-					.desc(F_WORKFLOW_CONTEXT, F_START_TIMESTAMP)
-                    .build();
-
-            List<PrismObject<TaskType>> tasks = getModelService().searchObjects(TaskType.class, query, null, opTask, result);
-            for (PrismObject<TaskType> task : tasks) {
-                list.add(new ProcessInstanceDto(task.asObjectable()));
-            }
-        } catch (Exception e) {
-            result.recordFatalError("Couldn't get list of work items.", e);
-        }
-
-        result.recordSuccessIfUnknown();
-        result.recomputeStatus();
+		ProcessInstanceDtoProvider provider = new ProcessInstanceDtoProvider(this, true, false);
+		provider.iterator(0, Integer.MAX_VALUE);
+		callableResult.setValue(provider.getAvailableData());
 
         LOGGER.debug("Finished requests loading.");
 

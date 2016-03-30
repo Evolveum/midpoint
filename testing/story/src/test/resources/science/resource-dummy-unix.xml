@@ -121,13 +121,13 @@
                   <modify>false</modify>
                </access>
             </limitations>
-            <outbound>
-               <strength>weak</strength>
-               <source>
-                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                          xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">extension/ext:aixUserId</c:path>
-               </source>
-            </outbound>
+<!--             <outbound> -->
+<!--                <strength>weak</strength> -->
+<!--                <source> -->
+<!--                   <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" -->
+<!--                           xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">extension/ext:aixUserId</c:path> -->
+<!--                </source> -->
+<!--             </outbound> -->
             <inbound>
             <strength>strong</strength>
                <target>
@@ -148,7 +148,7 @@
          </attribute>
          <dependency>
             <resourceRef oid="10000000-0000-0000-0000-0000000001ad"/>
-            <strictness>strict</strictness>
+            <strictness>relaxed</strictness>
          </dependency>
           
          <activation>

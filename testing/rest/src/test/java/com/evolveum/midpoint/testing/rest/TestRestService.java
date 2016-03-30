@@ -281,8 +281,8 @@ public class TestRestService {
 	}
 
 	@Test
-	public void test004GetAuthBadUsername() {
-		final String TEST_NAME = "test004GetAuthBadUsername";
+	public void test004GetAuthBadUsernameNullPassword() {
+		final String TEST_NAME = "test004GetAuthBadUsernameNullPassword";
 		displayTestTile(this, TEST_NAME);
 
 		WebClient client = prepareClient("NoSUCHuser", null);
@@ -300,10 +300,52 @@ public class TestRestService {
 		dummyAuditService.assertRecords(1);
 		dummyAuditService.assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
 	}
-	
+
 	@Test
-	public void test005GetAuthNoPassword() {
-		final String TEST_NAME = "test005GetAuthNoPassword";
+	public void test005GetAuthBadUsernameEmptyPassword() {
+		final String TEST_NAME = "test005GetAuthBadUsernameEmptyPassword";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient("NoSUCHuser", "");
+		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.get();
+
+		TestUtil.displayThen(TEST_NAME);
+		assertStatus(response, 401);
+
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(1);
+		dummyAuditService.assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
+	}
+
+	@Test
+	public void test006GetAuthBadUsernameBadPassword() {
+		final String TEST_NAME = "test006GetAuthBadUsernameBadPassword";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient("NoSUCHuser", "NoSuchPassword");
+		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.get();
+
+		TestUtil.displayThen(TEST_NAME);
+		assertStatus(response, 401);
+
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(1);
+		dummyAuditService.assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
+	}
+
+	@Test
+	public void test007GetAuthNoPassword() {
+		final String TEST_NAME = "test007GetAuthNoPassword";
 		displayTestTile(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_ADMINISTRATOR_USERNAME, null);
@@ -323,8 +365,8 @@ public class TestRestService {
 	}
 
 	@Test
-	public void test006GetAuthBadPassword() {
-		final String TEST_NAME = "test006GetAuthBadPassword";
+	public void test016GetAuthBadPassword() {
+		final String TEST_NAME = "test016GetAuthBadPassword";
 		displayTestTile(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_ADMINISTRATOR_USERNAME, "forgot");
@@ -344,8 +386,8 @@ public class TestRestService {
 	}
 	
 	@Test
-	public void test007GetUnauthorizedUser() {
-		final String TEST_NAME = "test007GetUnauthorizedUser";
+	public void test017GetUnauthorizedUser() {
+		final String TEST_NAME = "test017GetUnauthorizedUser";
 		displayTestTile(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_NOBODY_USERNAME, USER_NOBODY_PASSWORD);
@@ -365,8 +407,8 @@ public class TestRestService {
 	}
 	
 	@Test
-	public void test008GetUserAdministratorByCyclops() {
-		final String TEST_NAME = "test008GetUserAdministratorByCyclops";
+	public void test018GetUserAdministratorByCyclops() {
+		final String TEST_NAME = "test018GetUserAdministratorByCyclops";
 		displayTestTile(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_CYCLOPS_USERNAME, USER_CYCLOPS_PASSWORD);
@@ -386,8 +428,8 @@ public class TestRestService {
 	}
 	
 	@Test
-	public void test009GetUserAdministratorBySomebody() {
-		final String TEST_NAME = "test009GetUserAdministratorBySomebody";
+	public void test019GetUserAdministratorBySomebody() {
+		final String TEST_NAME = "test019GetUserAdministratorBySomebody";
 		displayTestTile(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_SOMEBODY_USERNAME, USER_SOMEBODY_PASSWORD);

@@ -38,6 +38,8 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
@@ -68,6 +70,7 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.TestConnectionResultDt
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 
 @PageDescriptor(url = "/admin/resource", encoder = OnePageParameterEncoder.class, action = {
@@ -172,6 +175,13 @@ public class PageResource extends PageAdminResources {
 			}
 		});
 		
+		tabs.add(new AbstractTab(createStringResource("PageResource.tab.content.tasks")) {
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return new ResourceTasksPanel(panelId, true, resourceModel, PageResource.this);
+			}
+		});
+		
 		tabs.add(new AbstractTab(createStringResource("PageResource.tab.content.account")) {
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
@@ -190,6 +200,13 @@ public class PageResource extends PageAdminResources {
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
 				return new ResourceContentTabPanel(panelId, ShadowKindType.GENERIC, resourceModel, PageResource.this);
+			}
+		});
+		
+		tabs.add(new AbstractTab(createStringResource("PageResource.tab.content.others")) {
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return new ResourceContentTabPanel(panelId, null, resourceModel, PageResource.this);
 			}
 		});
 

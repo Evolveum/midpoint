@@ -27,9 +27,11 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.roles.RolePolicyPanel;
-import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.apache.wicket.model.IModel;
 
 /**
@@ -41,7 +43,8 @@ public class AbstractRoleMainPanel<R extends AbstractRoleType> extends FocusMain
 	private LoadableModel<List<AssignmentEditorDto>> inducementsModel;
 
 	public AbstractRoleMainPanel(String id, LoadableModel<ObjectWrapper<R>> objectModel, 
-			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, LoadableModel<List<FocusProjectionDto>> projectionModel, 
+			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, 
+			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel, 
 			LoadableModel<List<AssignmentEditorDto>> inducementsModel, PageAdminFocus<R> parentPage) {
 		super(id, objectModel, assignmentsModel, projectionModel, parentPage);
 		this.inducementsModel = inducementsModel;

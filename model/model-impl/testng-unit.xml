@@ -69,9 +69,10 @@
             <class name="com.evolveum.midpoint.model.impl.lens.TestReconScript"/>
         </classes>
     </test>
-    <test name="Model Web service" preserve-order="true" parallel="false" verbose="10">
+    <test name="Misc" preserve-order="true" parallel="false" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.impl.ModelWebServiceTest"/>
+            <class name="com.evolveum.midpoint.model.impl.security.TestAuthenticationEvaluator"/>
         </classes>
     </test>
 </suite>

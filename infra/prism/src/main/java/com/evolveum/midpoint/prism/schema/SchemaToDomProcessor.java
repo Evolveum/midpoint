@@ -489,6 +489,10 @@ public class SchemaToDomProcessor {
 		if (definition.getHelp() != null) {
 			addAnnotation(A_HELP, definition.getHelp(), appinfoElement);
 		}
+		
+		if (definition.isEmphasized()) {
+			addAnnotation(A_EMPHASIZED, "true", appinfoElement);
+		}
 	}
 	
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.evolveum.midpoint.test.util;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import java.util.Collection;
 import java.util.List;
@@ -261,5 +262,11 @@ public class MidPointAsserts {
 	public static void assertObjectClass(ShadowType shadow, QName expectedStructuralObjectClass, QName... expectedAuxiliaryObjectClasses) {
 		assertEquals("Wrong object class in "+shadow, expectedStructuralObjectClass, shadow.getObjectClass());
 		PrismAsserts.assertEqualsCollectionUnordered("Wrong auxiliary object classes in "+shadow, shadow.getAuxiliaryObjectClass(), expectedAuxiliaryObjectClasses);
+	}
+
+	public static void assertInstanceOf(String message, Object object, Class<?> expectedClass) {
+		assertNotNull(message+" is null", object);
+		assertTrue(message+" is not instance of "+expectedClass+", it is "+object.getClass(),
+				expectedClass.isAssignableFrom(object.getClass()));
 	}
 }

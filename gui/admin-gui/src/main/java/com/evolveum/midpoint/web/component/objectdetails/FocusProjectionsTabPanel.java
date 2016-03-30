@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -34,8 +35,9 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
+import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.*;
-import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
@@ -62,7 +64,7 @@ import java.util.List;
 /**
  * @author semancik
  */
-public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjectTabPanel {
+public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
 	private static final long serialVersionUID = 1L;
 	
 	private static final String ID_SHADOW_LIST = "shadowList";
@@ -72,21 +74,20 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 	private static final String ID_SHADOW_CHECK_ALL = "shadowCheckAll";
 	
 	private static final String MODAL_ID_RESOURCE = "resourcePopup";
-	private static final String MODAL_ID_CONFIRM_DELETE_SHADOW = "confirmDeleteShadowPopup";
 	
 	private static final Trace LOGGER = TraceManager.getTrace(FocusProjectionsTabPanel.class);
 	
-	private LoadableModel<List<FocusProjectionDto>> projectionModel;
+	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
 
 	public FocusProjectionsTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel, 
-			LoadableModel<List<FocusProjectionDto>> projectionModel, PageBase page) {
+			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel, PageBase page) {
 		super(id, mainForm, focusModel, page);
 		Validate.notNull(projectionModel, "Null projection model");
 		this.projectionModel = projectionModel;
-		initLayout();
+		initLayout(page );
 	}
 	
-	private void initLayout() {
+	private void initLayout(final PageBase page) {
 
 		final WebMarkupContainer shadows = new WebMarkupContainer(ID_SHADOWS);
 		shadows.setOutputMarkupId(true);
@@ -95,13 +96,14 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		InlineMenu accountMenu = new InlineMenu(ID_SHADOW_MENU, new Model((Serializable) createShadowMenu()));
 		shadows.add(accountMenu);
 
-		final ListView<FocusProjectionDto> accountList = new ListView<FocusProjectionDto>(ID_SHADOW_LIST,
+		final ListView<FocusSubwrapperDto<ShadowType>> projectionList = new ListView<FocusSubwrapperDto<ShadowType>>(ID_SHADOW_LIST,
 				projectionModel) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(final ListItem<FocusProjectionDto> item) {
+			protected void populateItem(final ListItem<FocusSubwrapperDto<ShadowType>> item) {
 				PackageResourceReference packageRef;
-				final FocusProjectionDto dto = item.getModelObject();
+				final FocusSubwrapperDto<ShadowType> dto = item.getModelObject();
 
 				Panel panel;
 
@@ -111,27 +113,31 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 					panel = new PrismObjectPanel<F>(ID_SHADOW,
 							new PropertyModel<ObjectWrapper<F>>(item.getModel(), "object"), packageRef,
 							getMainForm(), getPageBase()) {
+								private static final long serialVersionUID = 1L;
 
-						@Override
-						protected Component createHeader(String id, IModel<ObjectWrapper<F>> model) {
-							return new CheckTableHeader(id, (IModel) model) {
+								@Override
+								protected Component createHeader(String id, IModel<ObjectWrapper<F>> model) {
+									return new CheckTableHeader(id, (IModel) model) {
+										private static final long serialVersionUID = 1L;
 
-//								@Override
-//								protected List<InlineMenuItem> createMenuItems() {
-//									return createDefaultMenuItems(getModel());
-//								}
-							};
-						}
+										@Override
+										protected void onClickPerformed(AjaxRequestTarget target) {
+											super.onClickPerformed(target);
+											onExpandCollapse(target, item.getModel());
+										}
+									};
+								}
 					};
 				} else {
-					panel = new SimpleErrorPanel(ID_SHADOW, item.getModel()) {
+					panel = new SimpleErrorPanel<ShadowType>(ID_SHADOW, item.getModel()) {
+						private static final long serialVersionUID = 1L;
 
 						@Override
 						public void onShowMorePerformed(AjaxRequestTarget target) {
 							OperationResult fetchResult = dto.getResult();
 							if (fetchResult != null) {
 								showResult(fetchResult);
-								target.add(getPageBase().getFeedbackPanel());
+								target.add(page.getFeedbackPanel());
 							}
 						}
 					};
@@ -143,12 +149,13 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		};
 
 		AjaxCheckBox accountCheckAll = new AjaxCheckBox(ID_SHADOW_CHECK_ALL, new Model()) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				for (FocusProjectionDto dto : accountList.getModelObject()) {
+				for (FocusSubwrapperDto<ShadowType> dto : projectionList.getModelObject()) {
 					if (dto.isLoadedOK()) {
-						ObjectWrapper accModel = dto.getObject();
+						ObjectWrapper<ShadowType> accModel = dto.getObject();
 						accModel.setSelected(getModelObject());
 					}
 				}
@@ -158,7 +165,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		};
 		shadows.add(accountCheckAll);
 
-		shadows.add(accountList);
+		shadows.add(projectionList);
 
 		initResourceModal();
 	}
@@ -167,6 +174,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		ModalWindow window = new ModalWindow(MODAL_ID_RESOURCE);
 
 		final SimpleUserResourceProvider provider = new SimpleUserResourceProvider(this, projectionModel) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected void handlePartialError(OperationResult result) {
 				showResult(result);
@@ -174,8 +183,10 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		};
 
 		ResourcesSelectionPanel.Context context = new ResourcesSelectionPanel.Context(this) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
-			public FocusProjectionsTabPanel getRealParent() {
+			public FocusProjectionsTabPanel<F> getRealParent() {
 				return WebComponentUtil.theSameForPage(FocusProjectionsTabPanel.this, getCallingPageReference());
 			}
 
@@ -192,6 +203,17 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		ResourcesSelectionPage.prepareDialog(window, context, this, "pageAdminFocus.title.selectResource", ID_SHADOWS);
 
 		add(window);
+	}
+	
+	private void onExpandCollapse(AjaxRequestTarget target, IModel<FocusSubwrapperDto<ShadowType>> dtoModel) {
+		FocusSubwrapperDto<ShadowType> shadowWrapperDto = dtoModel.getObject();
+		ObjectWrapper<ShadowType> shadowWrapper = shadowWrapperDto.getObject();
+		if (shadowWrapper.isMinimalized()) {
+			return;
+		}
+		if (WebModelServiceUtils.isNoFetch(shadowWrapper.getLoadOptions())) {
+			((PageAdminFocus)getPage()).loadFullShadow(shadowWrapperDto);
+		}
 	}
 
 	private void addSelectedAccountPerformed(AjaxRequestTarget target, List<ResourceType> newResources) {
@@ -231,7 +253,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
 				getPrismContext().adopt(shadow);
 
-				ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(
+				ObjectWrapper<ShadowType> wrapper = ObjectWrapperUtil.createObjectWrapper(
 						WebComponentUtil.getOrigStringFromPoly(resource.getName()), null, shadow.asPrismObject(),
 						ContainerStatus.ADDING, getPageBase());
 				if (wrapper.getResult() != null
@@ -241,7 +263,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
 				wrapper.setShowEmpty(true);
 				wrapper.setMinimalized(false);
-				projectionModel.getObject().add(new FocusProjectionDto(wrapper, UserDtoStatus.ADD));
+				projectionModel.getObject().add(new FocusSubwrapperDto(wrapper, UserDtoStatus.ADD));
 			} catch (Exception ex) {
 				error(getString("pageAdminFocus.message.couldntCreateAccount", resource.getName(),
 						ex.getMessage()));
@@ -259,8 +281,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
         if (ref.canRead() && ref.canAdd()){
             item = new InlineMenuItem(createStringResource("pageAdminFocus.button.addShadow"),
                     new InlineMenuItemAction() {
+						private static final long serialVersionUID = 1L;
 
-                        @Override
+						@Override
                         public void onClick(AjaxRequestTarget target) {
                             showModalWindow(MODAL_ID_RESOURCE, target);
                         }
@@ -272,8 +295,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
         if (prop.canRead() && prop.canModify()) {
             item = new InlineMenuItem(createStringResource("pageAdminFocus.button.enable"),
                     new InlineMenuItemAction() {
+						private static final long serialVersionUID = 1L;
 
-                        @Override
+						@Override
                         public void onClick(AjaxRequestTarget target) {
                             updateShadowActivation(target, getSelectedProjections(projectionModel), true);
                         }
@@ -282,7 +306,12 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
             item = new InlineMenuItem(createStringResource("pageAdminFocus.button.disable"),
                     new InlineMenuItemAction() {
 
-                        @Override
+                        /**
+						 * 
+						 */
+						private static final long serialVersionUID = 1L;
+
+						@Override
                         public void onClick(AjaxRequestTarget target) {
                             updateShadowActivation(target, getSelectedProjections(projectionModel), false);
                         }
@@ -292,8 +321,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
         if (ref.canRead() && ref.canAdd()) {
             item = new InlineMenuItem(createStringResource("pageAdminFocus.button.unlink"),
                     new InlineMenuItemAction() {
+						private static final long serialVersionUID = 1L;
 
-                        @Override
+						@Override
                         public void onClick(AjaxRequestTarget target) {
                             unlinkProjectionPerformed(target, projectionModel, getSelectedProjections(projectionModel), ID_SHADOWS);
                         }
@@ -304,8 +334,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
         if (prop.canRead() && prop.canModify()) {
             item = new InlineMenuItem(createStringResource("pageAdminFocus.button.unlock"),
                     new InlineMenuItemAction() {
+						private static final long serialVersionUID = 1L;
 
-                        @Override
+						@Override
                         public void onClick(AjaxRequestTarget target) {
                             unlockShadowPerformed(target, projectionModel, getSelectedProjections(projectionModel));
                         }
@@ -317,8 +348,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
             items.add(new InlineMenuItem());
             item = new InlineMenuItem(createStringResource("pageAdminFocus.button.delete"),
                     new InlineMenuItemAction() {
+						private static final long serialVersionUID = 1L;
 
-                        @Override
+						@Override
                         public void onClick(AjaxRequestTarget target) {
                             deleteProjectionPerformed(target, projectionModel);
                         }
@@ -329,11 +361,11 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		return items;
 	}
 	
-	private List<FocusProjectionDto> getSelectedProjections(IModel<List<FocusProjectionDto>> model) {
-		List<FocusProjectionDto> selected = new ArrayList<FocusProjectionDto>();
+	private List<FocusSubwrapperDto<ShadowType>> getSelectedProjections(IModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel) {
+		List<FocusSubwrapperDto<ShadowType>> selected = new ArrayList<>();
 
-		List<FocusProjectionDto> all = model.getObject();
-		for (FocusProjectionDto shadow : all) {
+		List<FocusSubwrapperDto<ShadowType>> all = projectionModel.getObject();
+		for (FocusSubwrapperDto<ShadowType> shadow : all) {
 			if (shadow.isLoadedOK() && shadow.getObject().isSelected()) {
 				selected.add(shadow);
 			}
@@ -342,7 +374,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		return selected;
 	}
 	
-	private void deleteProjectionPerformed(AjaxRequestTarget target, IModel<List<FocusProjectionDto>> model) {
+	private void deleteProjectionPerformed(AjaxRequestTarget target, IModel<List<FocusSubwrapperDto<ShadowType>>> model) {
 		if (!isAnyProjectionSelected(target, model)) {
 			return;
 		}
@@ -352,8 +384,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 	}
 	
 	private boolean isAnyProjectionSelected(AjaxRequestTarget target,
-			IModel<List<FocusProjectionDto>> model) {
-		List<FocusProjectionDto> selected = getSelectedProjections(model);
+			IModel<List<FocusSubwrapperDto<ShadowType>>> model) {
+		List<FocusSubwrapperDto<ShadowType>> selected = getSelectedProjections(model);
 		if (selected.isEmpty()) {
 			warn(getString("pageAdminFocus.message.noAccountSelected"));
 			target.add(getFeedbackPanel());
@@ -363,19 +395,19 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		return true;
 	}
 
-	private void updateShadowActivation(AjaxRequestTarget target, List<FocusProjectionDto> accounts,
+	private void updateShadowActivation(AjaxRequestTarget target, List<FocusSubwrapperDto<ShadowType>> accounts,
 			boolean enabled) {
 		if (!isAnyProjectionSelected(target, projectionModel)) {
 			return;
 		}
 
-		for (FocusProjectionDto account : accounts) {
+		for (FocusSubwrapperDto<ShadowType> account : accounts) {
 			if (!account.isLoadedOK()) {
 				continue;
 			}
 
-			ObjectWrapper wrapper = account.getObject();
-			ContainerWrapper activation = wrapper.findContainerWrapper(new ItemPath(ShadowType.F_ACTIVATION));
+			ObjectWrapper<ShadowType> wrapper = account.getObject();
+			ContainerWrapper<ActivationType> activation = wrapper.findContainerWrapper(new ItemPath(ShadowType.F_ACTIVATION));
 			if (activation == null) {
 				warn(getString("pageAdminFocus.message.noActivationFound", wrapper.getDisplayName()));
 				continue;
@@ -398,24 +430,24 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		target.add(getFeedbackPanel(), get(createComponentPath(ID_SHADOWS)));
 	}
 	
-	private void unlockShadowPerformed(AjaxRequestTarget target, IModel<List<FocusProjectionDto>> model,
-			List<FocusProjectionDto> selected) {
+	private void unlockShadowPerformed(AjaxRequestTarget target, IModel<List<FocusSubwrapperDto<ShadowType>>> model,
+			List<FocusSubwrapperDto<ShadowType>> selected) {
 		if (!isAnyProjectionSelected(target, model)) {
 			return;
 		}
 
-		for (FocusProjectionDto account : selected) {
+		for (FocusSubwrapperDto<ShadowType> account : selected) {
 			// TODO: implement unlock
 		}
 	}
 	
-	private void unlinkProjectionPerformed(AjaxRequestTarget target, IModel<List<FocusProjectionDto>> model,
-			List<FocusProjectionDto> selected, String componentPath) {
+	private void unlinkProjectionPerformed(AjaxRequestTarget target, IModel<List<FocusSubwrapperDto<ShadowType>>> model,
+			List<FocusSubwrapperDto<ShadowType>> selected, String componentPath) {
 		if (!isAnyProjectionSelected(target, model)) {
 			return;
 		}
 
-		for (FocusProjectionDto projection : selected) {
+		for (FocusSubwrapperDto projection : selected) {
 			if (UserDtoStatus.ADD.equals(projection.getStatus())) {
 				continue;
 			}
@@ -427,15 +459,17 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
     private Component getDeleteProjectionPopupContent(){
         ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
                 new AbstractReadOnlyModel<String>() {
+					private static final long serialVersionUID = 1L;
 
-                    @Override
+					@Override
                     public String getObject() {
                         return createStringResource("pageAdminFocus.message.deleteAccountConfirm",
                                 getSelectedProjections(projectionModel).size()).getString();
                     }
                 }) {
+					private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public void yesPerformed(AjaxRequestTarget target) {
                 ModalWindow modalWindow = findParent(ModalWindow.class);
                 if (modalWindow != null) {
@@ -448,9 +482,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
     }
 
     private void deleteAccountConfirmedPerformed(AjaxRequestTarget target,
-                                                 List<FocusProjectionDto> selected) {
-        List<FocusProjectionDto> accounts = projectionModel.getObject();
-        for (FocusProjectionDto account : selected) {
+                                                 List<FocusSubwrapperDto<ShadowType>> selected) {
+        List<FocusSubwrapperDto<ShadowType>> accounts = projectionModel.getObject();
+        for (FocusSubwrapperDto<ShadowType> account : selected) {
             if (UserDtoStatus.ADD.equals(account.getStatus())) {
                 accounts.remove(account);
             } else {

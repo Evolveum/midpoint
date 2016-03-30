@@ -40,17 +40,17 @@ public class SceneItemPanel extends Panel {
 
     public SceneItemPanel(String id, IModel<SceneItemDto> model) {
         super(id);
-        setOutputMarkupId(true);
 
         initLayout(model);
     }
 
     private void initLayout(final IModel<SceneItemDto> model) {
-		ListView<SceneItemLineDto> items = new ListView<SceneItemLineDto>(ID_ITEM_LINES, new PropertyModel<List<SceneItemLineDto>>(model, SceneItemDto.F_LINES)) {
+		ListView<SceneItemLineDto> items = new ListView<SceneItemLineDto>(ID_ITEM_LINES,
+                new PropertyModel<List<SceneItemLineDto>>(model, SceneItemDto.F_LINES)) {
+
 			@Override
 			protected void populateItem(ListItem<SceneItemLineDto> item) {
 				SceneItemLinePanel panel = new SceneItemLinePanel(ID_ITEM_LINE, item.getModel());
-				panel.setOutputMarkupPlaceholderTag(true);
 				item.add(panel);
 			}
 		};

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentPreviewDialog;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
@@ -114,7 +114,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	public static final String AUTH_ORG_ALL_LABEL = "PageAdminUsers.auth.orgAll.label";
 	public static final String AUTH_ORG_ALL_DESCRIPTION = "PageAdminUsers.auth.orgAll.description";
 
-	private LoadableModel<List<FocusProjectionDto>> projectionModel;
+	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
 	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;	
 
 	private static final String DOT_CLASS = PageAdminFocus.class.getName() + ".";
@@ -138,10 +138,10 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	protected void initializeModel(final PrismObject<F> objectToEdit) {
 		super.initializeModel(objectToEdit);
 		
-		projectionModel = new LoadableModel<List<FocusProjectionDto>>(false) {
+		projectionModel = new LoadableModel<List<FocusSubwrapperDto<ShadowType>>>(false) {
 
 			@Override
-			protected List<FocusProjectionDto> load() {
+			protected List<FocusSubwrapperDto<ShadowType>> load() {
 				return loadShadowWrappers();
 			}
 		};
@@ -156,7 +156,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 	}
 
-	public LoadableModel<List<FocusProjectionDto>> getProjectionModel() {
+	public LoadableModel<List<FocusSubwrapperDto<ShadowType>>> getProjectionModel() {
 		return projectionModel;
 	}
 
@@ -164,7 +164,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return assignmentsModel;
 	}
 
-	public List<FocusProjectionDto> getFocusShadows() {
+	public List<FocusSubwrapperDto<ShadowType>> getFocusShadows() {
 		return projectionModel.getObject();
 	}
 	
@@ -234,21 +234,33 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		// TODO implement "back" functionality correctly
 	}
 
-	private List<FocusProjectionDto> loadShadowWrappers() {
-		return loadProjectionWrappers(ShadowType.class, UserType.F_LINK_REF);
+	private List<FocusSubwrapperDto<ShadowType>> loadShadowWrappers() {
+		// Load the projects with noFetch by default. Only load the full projection on-denand.
+		// The full projection load happens when loadFullShadow() is explicitly invoked.
+		return loadSubwrappers(ShadowType.class, UserType.F_LINK_REF, true);
+	}
+	
+	public void loadFullShadow(FocusSubwrapperDto<ShadowType> shadowWrapperDto) {
+		ObjectWrapper<ShadowType> shadowWrapperOld = shadowWrapperDto.getObject();
+		Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
+		FocusSubwrapperDto<ShadowType> shadowWrapperDtoNew = loadSubWrapperDto(ShadowType.class, shadowWrapperOld.getObject().getOid(), false, task);
+		ObjectWrapper<ShadowType> shadowWrapperNew = shadowWrapperDtoNew.getObject();
+		shadowWrapperOld.copyRuntimeStateTo(shadowWrapperNew);
+		shadowWrapperDto.setObject(shadowWrapperNew);
 	}
 
-	protected List<FocusProjectionDto> loadOrgWrappers() {
-		return loadProjectionWrappers(OrgType.class, UserType.F_PARENT_ORG_REF);
+	@Override
+	protected List<FocusSubwrapperDto<OrgType>> loadOrgWrappers() {
+		return loadSubwrappers(OrgType.class, UserType.F_PARENT_ORG_REF, false);
 	}
 
-	private <P extends ObjectType> List<FocusProjectionDto> loadProjectionWrappers(Class<P> type,
-			QName propertyToLoad) {
-		List<FocusProjectionDto> list = new ArrayList<FocusProjectionDto>();
+	private <S extends ObjectType> List<FocusSubwrapperDto<S>> loadSubwrappers(Class<S> type,
+			QName propertyToLoad, boolean noFetch) {
+		List<FocusSubwrapperDto<S>> list = new ArrayList<>();
 
-		ObjectWrapper focus = getObjectModel().getObject();
-		PrismObject<F> prismUser = focus.getObject();
-		PrismReference prismReference = prismUser.findReference(new ItemPath(propertyToLoad));
+		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
+		PrismObject<F> focus = focusWrapper.getObject();
+		PrismReference prismReference = focus.findReference(new ItemPath(propertyToLoad));
 		if (prismReference == null) {
 			return new ArrayList<>();
 		}
@@ -256,67 +268,81 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 		Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
 		for (PrismReferenceValue reference : references) {
-			OperationResult subResult = new OperationResult(OPERATION_LOAD_SHADOW);
-			String resourceName = null;
-			try {
-				Collection<SelectorOptions<GetOperationOptions>> options = null;
-				if (ShadowType.class.equals(type)) {
-					options = SelectorOptions.createCollection(ShadowType.F_RESOURCE,
-							GetOperationOptions.createResolve());
-				} 
-				
-				if (reference.getOid() == null) {
-					continue;
-				}
-
-				PrismObject<P> projection = WebModelServiceUtils.loadObject(type, reference.getOid(), options, this,
-						task, subResult);
-				if (projection == null) {
-					// No access, just skip it
-					continue;
-				}
-				P projectionType = projection.asObjectable();
-
-				OperationResultType fetchResult = projectionType.getFetchResult();
-
-				StringBuilder description = new StringBuilder();
-				if (ShadowType.class.equals(type)) {
-					ShadowType shadowType = (ShadowType) projectionType;
-					ResourceType resource = shadowType.getResource();
-					resourceName = WebComponentUtil.getName(resource);
-
-					if (shadowType.getIntent() != null) {
-						description.append(shadowType.getIntent()).append(", ");
-					}
-				} else if (OrgType.class.equals(type)) {
-					OrgType orgType = (OrgType) projectionType;
-					resourceName = orgType.getDisplayName() != null
-							? WebComponentUtil.getOrigStringFromPoly(orgType.getDisplayName()) : "";
-				}
-				description.append(WebComponentUtil.getOrigStringFromPoly(projectionType.getName()));
-
-				ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(resourceName,
-						description.toString(), projection, ContainerStatus.MODIFYING, true, this);
-				wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
-				wrapper.setSelectable(true);
-				wrapper.setMinimalized(true);
-
-				wrapper.initializeContainers(this);
-
-				list.add(new FocusProjectionDto(wrapper, UserDtoStatus.MODIFY));
-
-				subResult.recomputeStatus();
-
-			} catch (Exception ex) {
-				subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
-				LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
-				list.add(new FocusProjectionDto(false, resourceName, subResult));
-			} finally {
-				subResult.computeStatus();
+			FocusSubwrapperDto<S> subWrapper = loadSubWrapperDto(type, reference.getOid(), noFetch, task);
+			if (subWrapper != null) {
+				list.add(subWrapper);
 			}
 		}
 
 		return list;
+	}
+
+	private <S extends ObjectType> FocusSubwrapperDto<S> loadSubWrapperDto(Class<S> type, String oid, boolean noFetch, Task task) {
+		if (oid == null) {
+			return null;
+		}
+		OperationResult subResult = task.getResult().createMinorSubresult(OPERATION_LOAD_SHADOW);
+		String resourceName = null;
+		try {
+			Collection<SelectorOptions<GetOperationOptions>> loadOptions = null;
+			if (ShadowType.class.equals(type)) {
+				loadOptions = SelectorOptions.createCollection(ShadowType.F_RESOURCE,
+						GetOperationOptions.createResolve());
+			} 
+			
+			if (noFetch) {
+				GetOperationOptions rootOptions = SelectorOptions.findRootOptions(loadOptions);
+				if (rootOptions == null) {
+					loadOptions.add(new SelectorOptions<GetOperationOptions>(GetOperationOptions.createNoFetch()));
+				} else {
+					rootOptions.setNoFetch(true);
+				}
+			}
+
+			PrismObject<S> projection = WebModelServiceUtils.loadObject(type, oid, loadOptions, this,
+					task, subResult);
+			if (projection == null) {
+				// No access, just skip it
+				return null;
+			}
+			S projectionType = projection.asObjectable();
+
+			OperationResultType fetchResult = projectionType.getFetchResult();
+
+			StringBuilder description = new StringBuilder();
+			if (ShadowType.class.equals(type)) {
+				ShadowType shadowType = (ShadowType) projectionType;
+				ResourceType resource = shadowType.getResource();
+				resourceName = WebComponentUtil.getName(resource);
+
+				if (shadowType.getIntent() != null) {
+					description.append(shadowType.getIntent()).append(", ");
+				}
+			} else if (OrgType.class.equals(type)) {
+				OrgType orgType = (OrgType) projectionType;
+				resourceName = orgType.getDisplayName() != null
+						? WebComponentUtil.getOrigStringFromPoly(orgType.getDisplayName()) : "";
+			}
+			description.append(WebComponentUtil.getOrigStringFromPoly(projectionType.getName()));
+
+			ObjectWrapper<S> wrapper = ObjectWrapperUtil.createObjectWrapper(resourceName,
+					description.toString(), projection, ContainerStatus.MODIFYING, true, this);
+			wrapper.setLoadOptions(loadOptions);
+			wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
+			wrapper.setSelectable(true);
+			wrapper.setMinimalized(true);
+
+			wrapper.initializeContainers(this);
+
+			subResult.computeStatus();
+			
+			return new FocusSubwrapperDto<S>(wrapper, UserDtoStatus.MODIFY);
+
+		} catch (Exception ex) {
+			subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
+			LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
+			return new FocusSubwrapperDto<S>(false, resourceName, subResult);
+		}
 	}
 
 	private List<AssignmentEditorDto> loadAssignments() {
@@ -367,13 +393,13 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		F focusType = focus.asObjectable();
 		// handle added accounts
 		
-		List<ShadowType> shadowsToAdd = prepareProjection(getFocusShadows());
+		List<ShadowType> shadowsToAdd = prepareSubobject(getFocusShadows());
 		if (!shadowsToAdd.isEmpty()){
 			focusType.getLink().addAll(shadowsToAdd);
 		}
 		
 		
-		List<OrgType> orgsToAdd = prepareProjection(getParentOrgs());
+		List<OrgType> orgsToAdd = prepareSubobject(getParentOrgs());
 		if (!orgsToAdd.isEmpty()){
 			focusType.getParentOrg().addAll(orgsToAdd);
 		}
@@ -531,10 +557,10 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	
 	private ObjectDelta getForceDeleteDelta(ObjectWrapper focusWrapper) throws SchemaException {
 
-		List<FocusProjectionDto> accountDtos = getFocusShadows();
+		List<FocusSubwrapperDto<ShadowType>> accountDtos = getFocusShadows();
 		List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
 		ObjectDelta<F> forceDeleteDelta = null;
-		for (FocusProjectionDto accDto : accountDtos) {
+		for (FocusSubwrapperDto<ShadowType> accDto : accountDtos) {
 			if (!accDto.isLoadedOK()) {
 				continue;
 			}
@@ -566,9 +592,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return forceDeleteDelta;
 	}
 	
-	private <P extends ObjectType> List<P> prepareProjection(List<FocusProjectionDto> projections) throws SchemaException{
+	private <P extends ObjectType> List<P> prepareSubobject(List<FocusSubwrapperDto<P>> projections) throws SchemaException{
 		List<P> projectionsToAdd = new ArrayList<>();
-		for (FocusProjectionDto projection : projections) {
+		for (FocusSubwrapperDto<P> projection : projections) {
 			if (!projection.isLoadedOK()) {
 				continue;
 			}
@@ -578,8 +604,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				continue;
 			}
 
-			ObjectWrapper projectionWrapper = projection.getObject();
-			ObjectDelta delta = projectionWrapper.getObjectDelta();
+			ObjectWrapper<P> projectionWrapper = projection.getObject();
+			ObjectDelta<P> delta = projectionWrapper.getObjectDelta();
 			PrismObject<P> proj = delta.getObjectToAdd();
 			WebComponentUtil.encryptCredentials(proj, true, getMidpointApplication());
 
@@ -597,9 +623,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	private List<ObjectDelta<? extends ObjectType>> getShadowModifyDeltas(OperationResult result) {
 		List<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 
-		List<FocusProjectionDto> accounts = getFocusShadows();
+		List<FocusSubwrapperDto<ShadowType>> accounts = getFocusShadows();
 		OperationResult subResult = null;
-		for (FocusProjectionDto account : accounts) {
+		for (FocusSubwrapperDto<ShadowType> account : accounts) {
 			if (!account.isLoadedOK()) {
 				continue;
 			}
@@ -668,8 +694,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			throws SchemaException {
 		ReferenceDelta refDelta = new ReferenceDelta(refDef, getPrismContext());
 
-		List<FocusProjectionDto> accounts = getFocusShadows();
-		for (FocusProjectionDto accDto : accounts) {
+		List<FocusSubwrapperDto<ShadowType>> accounts = getFocusShadows();
+		for (FocusSubwrapperDto<ShadowType> accDto : accounts) {
 			if (accDto.isLoadedOK()) {
 				ObjectWrapper accountWrapper = accDto.getObject();
 				accountWrapper.revive(getPrismContext());
@@ -712,15 +738,14 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			throws SchemaException {
 		ReferenceDelta refDelta = new ReferenceDelta(refDef, getPrismContext());
 
-		List<FocusProjectionDto> orgs = getParentOrgs();
-		for (FocusProjectionDto orgDto : orgs) {
+		List<FocusSubwrapperDto<OrgType>> orgs = getParentOrgs();
+		for (FocusSubwrapperDto<OrgType> orgDto : orgs) {
 			if (orgDto.isLoadedOK()) {
-				ObjectWrapper orgWrapper = orgDto.getObject();
+				ObjectWrapper<OrgType> orgWrapper = orgDto.getObject();
 				orgWrapper.revive(getPrismContext());
-				ObjectDelta delta = orgWrapper.getObjectDelta();
+				ObjectDelta<OrgType> delta = orgWrapper.getObjectDelta();
 				PrismReferenceValue refValue = new PrismReferenceValue(null, OriginType.USER_ACTION, null);
 
-				PrismObject<OrgType> account;
 				switch (orgDto.getStatus()) {
 					case ADD:
 						refValue.setOid(delta.getOid());
@@ -950,11 +975,11 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return dto;
 	}
 
-	private List<FocusProjectionDto> getSelectedAccounts() {
-		List<FocusProjectionDto> selected = new ArrayList<FocusProjectionDto>();
+	private List<FocusSubwrapperDto<ShadowType>> getSelectedProjections() {
+		List<FocusSubwrapperDto<ShadowType>> selected = new ArrayList<>();
 
-		List<FocusProjectionDto> all = projectionModel.getObject();
-		for (FocusProjectionDto shadow : all) {
+		List<FocusSubwrapperDto<ShadowType>> all = projectionModel.getObject();
+		for (FocusSubwrapperDto<ShadowType> shadow : all) {
 			if (shadow.isLoadedOK() && shadow.getObject().isSelected()) {
 				selected.add(shadow);
 			}
@@ -1043,13 +1068,13 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_PANEL, ID_ASSIGNMENTS)));
 	}
 
-	private void updateShadowActivation(AjaxRequestTarget target, List<FocusProjectionDto> accounts,
+	private void updateShadowActivation(AjaxRequestTarget target, List<FocusSubwrapperDto> accounts,
 			boolean enabled) {
 		if (!isAnyAccountSelected(target)) {
 			return;
 		}
 
-		for (FocusProjectionDto account : accounts) {
+		for (FocusSubwrapperDto account : accounts) {
 			if (!account.isLoadedOK()) {
 				continue;
 			}
@@ -1079,7 +1104,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	}
 
 	private boolean isAnyAccountSelected(AjaxRequestTarget target) {
-		List<FocusProjectionDto> selected = getSelectedAccounts();
+		List<FocusSubwrapperDto<ShadowType>> selected = getSelectedProjections();
 		if (selected.isEmpty()) {
 			warn(getString("pageAdminFocus.message.noAccountSelected"));
 			target.add(getFeedbackPanel());
@@ -1104,9 +1129,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	}
 
 	private void deleteAccountConfirmedPerformed(AjaxRequestTarget target,
-			List<FocusProjectionDto> selected) {
-		List<FocusProjectionDto> accounts = projectionModel.getObject();
-		for (FocusProjectionDto account : selected) {
+			List<FocusSubwrapperDto<ShadowType>> selected) {
+		List<FocusSubwrapperDto<ShadowType>> accounts = projectionModel.getObject();
+		for (FocusSubwrapperDto<ShadowType> account : selected) {
 			if (UserDtoStatus.ADD.equals(account.getStatus())) {
 				accounts.remove(account);
 			} else {
@@ -1131,12 +1156,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_PANEL, ID_ASSIGNMENTS)));
 	}
 
-	private void unlinkShadowPerformed(AjaxRequestTarget target, List<FocusProjectionDto> selected) {
+	private void unlinkShadowPerformed(AjaxRequestTarget target, List<FocusSubwrapperDto<ShadowType>> selected) {
 		if (!isAnyAccountSelected(target)) {
 			return;
 		}
 
-		for (FocusProjectionDto account : selected) {
+		for (FocusSubwrapperDto account : selected) {
 			if (UserDtoStatus.ADD.equals(account.getStatus())) {
 				continue;
 			}
@@ -1145,12 +1170,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		target.add(get(createComponentPath(ID_MAIN_PANEL, ID_SHADOWS)));
 	}
 
-	private void unlockShadowPerformed(AjaxRequestTarget target, List<FocusProjectionDto> selected) {
+	private void unlockShadowPerformed(AjaxRequestTarget target, List<FocusSubwrapperDto> selected) {
 		if (!isAnyAccountSelected(target)) {
 			return;
 		}
 
-		for (FocusProjectionDto account : selected) {
+		for (FocusSubwrapperDto account : selected) {
 			// TODO: implement unlock
 		}
 	}
@@ -1174,14 +1199,14 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 					@Override
 					public String getObject() {
 						return createStringResource("pageAdminFocus.message.deleteAccountConfirm",
-								getSelectedAccounts().size()).getString();
+								getSelectedProjections().size()).getString();
 					}
 				}) {
 
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
 				close(target);
-				deleteAccountConfirmedPerformed(target, getSelectedAccounts());
+				deleteAccountConfirmedPerformed(target, getSelectedProjections());
 			}
 		};
 		add(dialog);

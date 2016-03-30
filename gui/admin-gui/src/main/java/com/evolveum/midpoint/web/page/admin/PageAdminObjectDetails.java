@@ -61,7 +61,7 @@ import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
-import com.evolveum.midpoint.web.page.admin.users.dto.FocusProjectionDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
@@ -96,7 +96,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	private static final Trace LOGGER = TraceManager.getTrace(PageAdminObjectDetails.class);
 
 	private LoadableModel<ObjectWrapper<O>> objectModel;
-	private LoadableModel<List<FocusProjectionDto>> parentOrgModel;
+	private LoadableModel<List<FocusSubwrapperDto<OrgType>>> parentOrgModel;
 	
 	private ProgressReporter progressReporter;
 	
@@ -133,7 +133,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		return objectModel;
 	}
 
-	public LoadableModel<List<FocusProjectionDto>> getParentOrgModel() {
+	public LoadableModel<List<FocusSubwrapperDto<OrgType>>> getParentOrgModel() {
 		return parentOrgModel;
 	}
 
@@ -145,7 +145,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		return objectModel.getObject();
 	}
 	
-	public List<FocusProjectionDto> getParentOrgs() {
+	public List<FocusSubwrapperDto<OrgType>> getParentOrgs() {
 		return parentOrgModel.getObject();
 	}
 
@@ -183,16 +183,16 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			}
 		};
 
-		parentOrgModel = new LoadableModel<List<FocusProjectionDto>>(false) {
+		parentOrgModel = new LoadableModel<List<FocusSubwrapperDto<OrgType>>>(false) {
 
 			@Override
-			protected List<FocusProjectionDto> load() {
+			protected List<FocusSubwrapperDto<OrgType>> load() {
 				return loadOrgWrappers();
 			}
 		};
 	}
 
-	protected List<FocusProjectionDto> loadOrgWrappers() {
+	protected List<FocusSubwrapperDto<OrgType>> loadOrgWrappers() {
 		// WRONG!! TODO: fix
 		return null;
 	}
@@ -256,6 +256,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
 		OperationResult result = task.getResult();
 		PrismObject<O> object = null;
+		Collection<SelectorOptions<GetOperationOptions>> loadOptions = null;
 		try {
 			if (!isEditingFocus()) {
 				if (objectToEdit == null) {
@@ -269,11 +270,11 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 				}
 			} else {
 
-				Collection options = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
+				loadOptions = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
 						GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
 
 				String focusOid = getObjectOidParameter();
-				object = WebModelServiceUtils.loadObject(getCompileTimeClass(), focusOid, options, this, task,
+				object = WebModelServiceUtils.loadObject(getCompileTimeClass(), focusOid, loadOptions, this, task,
 						result);
 
 				LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, object);
@@ -285,7 +286,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			LoggingUtils.logException(LOGGER, "Couldn't load object", ex);
 		}
 
-			showResult(result, false);
+		showResult(result, false);
 	
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Loaded object:\n{}", object.debugDump());
@@ -310,9 +311,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
 			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, status, false);
 		}
-		// ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails",
-		// null, user, status);
-			showResult(wrapper.getResult(), false);
+		wrapper.setLoadOptions(loadOptions);
+		
+		showResult(wrapper.getResult(), false);
 	
 		loadParentOrgs(wrapper, task, result);
 

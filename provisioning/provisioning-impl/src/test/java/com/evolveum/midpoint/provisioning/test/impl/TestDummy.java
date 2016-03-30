@@ -221,8 +221,9 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
-		TestUtil.displayTestTile("test000Integrity");
+	public void test000Integrity() throws Exception {
+		final String TEST_NAME = "test000Integrity";
+		TestUtil.displayTestTile(TEST_NAME);
 
 		display("Dummy resource instance", dummyResource.toString());
 
@@ -230,7 +231,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("ResourceType is null", resourceType);
 
 		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test000Integrity");
+				+ "." + TEST_NAME);
 
 		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result)
 				.asObjectable();
