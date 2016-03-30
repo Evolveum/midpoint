@@ -284,6 +284,7 @@ public class Search implements Serializable {
 
     private String createErrorMessage(Exception ex) {
         StringBuilder sb = new StringBuilder();
+        sb.append("Error: ");
 
         Throwable t = ex;
         while (t != null) {
