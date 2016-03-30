@@ -15,16 +15,32 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
+import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author semancik
@@ -32,25 +48,45 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> {
 	private static final long serialVersionUID = 1L;
 
-	protected static final String ID_RECURRENCE = "recurrence";
+	private static final String ID_OPERATION_RESULT = "operationResult";
+	private static final String ID_SHOW_RESULT = "showResult";
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskResultTabPanel.class);
 
 	public TaskResultTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
-			PageBase pageBase) {
+			LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		super(id, mainForm, taskWrapperModel, pageBase);
-		initLayout(pageBase);
+		initLayout(taskDtoModel, pageBase);
 	}
 	
-	private void initLayout(PageBase pageBase) {
+	private void initLayout(final LoadableModel<TaskDto> taskDtoModel, final PageBase pageBase) {
+		SortableDataProvider<OperationResult, String> provider = new ListDataProvider<>(this,
+				new PropertyModel<List<OperationResult>>(taskDtoModel, TaskDto.F_OP_RESULT));
+		TablePanel resultTablePanel = new TablePanel<>(ID_OPERATION_RESULT, provider, initResultColumns());
+		resultTablePanel.setStyle("padding-top: 0px;");
+		resultTablePanel.setShowPaging(false);
+		resultTablePanel.setOutputMarkupId(true);
+		add(resultTablePanel);
 
-		PrismPropertyPanel recurrencePanel = new PrismPropertyPanel<>(ID_RECURRENCE,
-				new PropertyWrapperFromObjectWrapperModel(getObjectWrapperModel(), TaskType.F_RECURRENCE),
-				null, pageBase);
-		recurrencePanel.setLabelContainerVisible(false);
-		add(recurrencePanel);
-
+		add(new AjaxFallbackLink(ID_SHOW_RESULT) {
+			public void onClick(AjaxRequestTarget target) {
+				OperationResult opResult = taskDtoModel.getObject().getTaskOperationResult();
+				OperationResultPanel body = new OperationResultPanel(pageBase.getMainPopupBodyId(), new Model<OpResult>(OpResult.getOpResult(pageBase, opResult)));
+				body.setOutputMarkupId(true);
+				pageBase.showMainPopup(body, new Model<String>("Result"), target, 900, 500);
+			}
+		});
 	}
+
+	private List<IColumn<OperationResult, String>> initResultColumns() {
+		List<IColumn<OperationResult, String>> columns = new ArrayList<IColumn<OperationResult, String>>();
+		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.token"), "token"));
+		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.operation"), "operation"));
+		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.status"), "status"));
+		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.message"), "message"));
+		return columns;
+	}
+
 
 }

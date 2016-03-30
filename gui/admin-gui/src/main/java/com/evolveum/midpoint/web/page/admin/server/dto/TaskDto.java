@@ -50,8 +50,10 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
+import com.evolveum.midpoint.web.component.prism.show.WrapperScene;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.wf.WfHistoryEventDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -79,6 +81,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public static final String F_PARENT_TASK_OID = "parentTaskOid";
     public static final String F_WORKFLOW_LAST_DETAILS = "workflowLastDetails";
     public static final String F_WORKFLOW_DELTAS_IN = "workflowDeltasIn";
+    public static final String F_WORKFLOW_DELTA_IN = "workflowDeltaIn";
     public static final String F_WORKFLOW_DELTAS_OUT = "workflowDeltasOut";
     public static final String F_IDENTIFIER = "identifier";
     public static final String F_HANDLER_URI_LIST = "handlerUriList";
@@ -91,8 +94,11 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public static final String F_OBJECT_CLASS = "objectClass";
     public static final String F_WORKER_THREADS = "workerThreads";
     public static final String F_RESOURCE_REFERENCE = "resourceRef";
+    public static final String F_OP_RESULT = "opResult";
+	public static final String F_WORKFLOW_CONTEXT = "workflowContext";
+	public static final String F_WORK_ITEMS = "workItems";
 
-    private List<InlineMenuItem> menuItems;
+	private List<InlineMenuItem> menuItems;
 
     private List<String> handlerUriList;
     private String parentTaskName;
@@ -132,6 +138,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
     private List<SceneDto> workflowDeltasIn, workflowDeltasOut;
     private List<WfHistoryEventDto> workflowHistory;
+
+	private SceneDto workflowDeltaIn;
 
     private boolean dryRun;
     private ShadowKindType kind;
@@ -411,6 +419,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 //        }
 
         workflowDeltasIn = retrieveDeltasToProcess(taskType, modelInteractionService, opTask, thisOpResult);
+        workflowDeltaIn = retrieveDeltaToProcess(taskType, modelInteractionService, opTask, thisOpResult);
         workflowDeltasOut = retrieveResultingDeltas(taskType, modelInteractionService, opTask, thisOpResult);
         workflowHistory = prepareWorkflowHistory(taskType);
     }
@@ -424,6 +433,18 @@ public class TaskDto extends Selectable implements InlineMenuable {
         WfPrimaryChangeProcessorStateType pcps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
         return objectTreeDeltasToDeltaDtoList(pcps.getDeltasToProcess(), taskType.asPrismObject().getPrismContext(), modelInteractionService, opTask, thisOpResult);
     }
+
+	private SceneDto retrieveDeltaToProcess(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask,
+			OperationResult thisOpResult) throws SchemaException {
+		WfContextType wfc = taskType.getWorkflowContext();
+		if (wfc == null || !(wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
+			return null;
+		}
+		WfPrimaryChangeProcessorStateType pcps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
+		Scene scene = SceneUtil.visualizeObjectTreeDeltas(pcps.getDeltasToProcess(), "", taskType.asPrismObject().getPrismContext(),
+				modelInteractionService, opTask, thisOpResult);
+		return new SceneDto(scene);
+	}
 
     private List<SceneDto> objectTreeDeltasToDeltaDtoList(ObjectTreeDeltasType deltas, PrismContext prismContext,
 			ModelInteractionService modelInteractionService, Task opTask, OperationResult thisOpResult) throws SchemaException {
@@ -748,6 +769,10 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return workflowDeltasIn;
     }
 
+	public SceneDto getWorkflowDeltaIn() {
+        return workflowDeltaIn;
+    }
+
     public List<SceneDto> getWorkflowDeltasOut() {
         return workflowDeltasOut;
     }
@@ -851,6 +876,20 @@ public class TaskDto extends Selectable implements InlineMenuable {
         this.objectClassList = objectClassList;
     }
 
+	public WfContextType getWorkflowContext() {
+		return taskType.getWorkflowContext();
+	}
+
+	public List<WorkItemDto> getWorkItems() {
+		List<WorkItemDto> rv = new ArrayList<>();
+		if (taskType.getWorkflowContext() != null) {
+			for (WorkItemType workItemType : taskType.getWorkflowContext().getWorkItem()) {
+				rv.add(new WorkItemDto(workItemType));
+			}
+		}
+		return rv;
+	}
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -905,6 +944,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
             return false;
         if (workflowDeltasIn != null ? !workflowDeltasIn.equals(taskDto.workflowDeltasIn) : taskDto.workflowDeltasIn != null)
             return false;
+		if (workflowDeltaIn != null ? !workflowDeltaIn.equals(taskDto.workflowDeltaIn) : taskDto.workflowDeltaIn != null)
+			return false;
         if (workflowDeltasOut != null ? !workflowDeltasOut.equals(taskDto.workflowDeltasOut) : taskDto.workflowDeltasOut != null)
             return false;
         if (workflowHistory != null ? !workflowHistory.equals(taskDto.workflowHistory) : taskDto.workflowHistory != null)

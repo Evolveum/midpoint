@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.TabbedPanel;
@@ -23,6 +24,7 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.*;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -87,10 +89,39 @@ public class TaskMainPanel extends Panel {
 					}
 				});
 		tabs.add(
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.subtasksAndThreads")){
+					@Override
+					public WebMarkupContainer getPanel(String panelId) {
+						return new TaskSubtasksAndThreadsTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
+					}
+					@Override
+					public boolean isVisible() {
+						return true;
+					}
+				});
+		tabs.add(
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.progress")){
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskProgressTabPanel(panelId, mainForm, objectModel, parentPage);
+						return new TaskProgressTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
+					}
+
+					@Override
+					public boolean isVisible() {
+						final OperationStatsType operationStats = taskDtoModel.getObject().getTaskType().getOperationStats();
+						return operationStats != null && operationStats.getIterativeTaskInformation() != null;
+					}
+				});
+		tabs.add(
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.statesAndActions")){
+					@Override
+					public WebMarkupContainer getPanel(String panelId) {
+						return new TaskStatesAndActionsTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
+					}
+					@Override
+					public boolean isVisible() {
+						final OperationStatsType operationStats = taskDtoModel.getObject().getTaskType().getOperationStats();
+						return operationStats != null && (operationStats.getSynchronizationInformation() != null || operationStats.getActionsExecutedInformation() != null);
 					}
 				});
 		tabs.add(
@@ -99,19 +130,41 @@ public class TaskMainPanel extends Panel {
 					public WebMarkupContainer getPanel(String panelId) {
 						return new TaskPerformanceTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
 					}
+
+					@Override
+					public boolean isVisible() {
+						final OperationStatsType operationStats = taskDtoModel.getObject().getTaskType().getOperationStats();
+						return operationStats != null && !StatisticsUtil.isEmpty(operationStats.getEnvironmentalPerformanceInformation());
+					}
 				});
 		tabs.add(
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.approvals")){
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskApprovalsTabPanel(panelId, mainForm, objectModel, parentPage);
+						return new TaskApprovalsTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
+					}
+					@Override
+					public boolean isVisible() {
+						return taskDtoModel.getObject().getTaskType().getWorkflowContext() != null
+								&& taskDtoModel.getObject().getWorkflowDeltaIn() != null;
+					}
+				});
+		tabs.add(
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.operation")){
+					@Override
+					public WebMarkupContainer getPanel(String panelId) {
+						return new TaskOperationTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
+					}
+					@Override
+					public boolean isVisible() {
+						return taskDtoModel.getObject().getTaskType().getModelOperationContext() != null;
 					}
 				});
 		tabs.add(
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.result")){
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskResultTabPanel(panelId, mainForm, objectModel, parentPage);
+						return new TaskResultTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
 					}
 				});
 		return tabs;

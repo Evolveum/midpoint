@@ -20,13 +20,13 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
+import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
-import com.evolveum.midpoint.web.component.progress.StatisticsDtoModel;
-import com.evolveum.midpoint.web.component.progress.StatisticsPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
-import com.evolveum.midpoint.web.page.admin.server.currentState.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.model.PropertyModel;
@@ -34,23 +34,32 @@ import org.apache.wicket.model.PropertyModel;
 /**
  * @author semancik
  */
-public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> {
+public class TaskOperationTabPanel extends AbstractObjectTabPanel<TaskType> {
 	private static final long serialVersionUID = 1L;
 
-	private static final String ID_ITERATIVE_INFORMATION_PANEL = "iterativeInformationPanel";
+	private static final String ID_MODEL_OPERATION_STATUS_PANEL = "modelOperationStatusPanel";
 
-	private static final Trace LOGGER = TraceManager.getTrace(TaskProgressTabPanel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(TaskOperationTabPanel.class);
 
-	public TaskProgressTabPanel(String id, Form mainForm,
+	public TaskOperationTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
 			LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		super(id, mainForm, taskWrapperModel, pageBase);
 		initLayout(taskDtoModel, pageBase);
 	}
+	
+	private void initLayout(final LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
 
-	private void initLayout(LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
-		TaskCurrentStateDtoModel model = new TaskCurrentStateDtoModel(taskDtoModel);
-		add(new IterativeInformationPanel(ID_ITERATIVE_INFORMATION_PANEL, model, pageBase));
+		final PropertyModel<ModelOperationStatusDto> operationStatusModel = new PropertyModel<>(taskDtoModel, TaskDto.F_MODEL_OPERATION_STATUS);
+		VisibleEnableBehaviour modelOpBehaviour = new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return operationStatusModel.getObject() != null;
+			}
+		};
+		ModelOperationStatusPanel panel = new ModelOperationStatusPanel(ID_MODEL_OPERATION_STATUS_PANEL, operationStatusModel);
+		panel.add(modelOpBehaviour);
+		add(panel);
 	}
 
 }

@@ -27,6 +27,7 @@ import org.apache.commons.lang.Validate;
 /**
  * @author mederly
  */
+@Deprecated
 public class ProcessInstanceNewDto extends Selectable {
 
     public static final String F_SHADOW_TASK = "shadowTask";

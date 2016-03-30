@@ -162,7 +162,7 @@ public class PageSelfDashboard extends PageSelf {
                     @Override
                     protected Component getMainComponent(String markupId) {
 						ISortableDataProvider provider = new ListDataProvider(this, new PropertyModel<List<WorkItemDto>>(getModel(), CallableResult.F_VALUE));
-						return new WorkItemsTablePanel(markupId, provider, null, 10, false);
+						return new WorkItemsTablePanel(markupId, provider, null, 10, WorkItemsTablePanel.View.INFO_ONLY);
                     }
                 };
 

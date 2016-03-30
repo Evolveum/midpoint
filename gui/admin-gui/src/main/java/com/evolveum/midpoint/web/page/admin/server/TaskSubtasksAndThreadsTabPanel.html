@@ -19,9 +19,11 @@
 	xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div wicket:id="operationResult"/>
-    <p></p>
-    <a href="#" wicket:id="showResult"><wicket:message key="pageTaskEdit.displayResultInteractive"/></a>
+    <h3><span wicket:id="subtasksLabel" /></h3>
+    <div wicket:id="subtasksPanel"/>
+
+    <h3><div wicket:id="workerThreadsTableLabel"/></h3>
+    <div wicket:id="workerThreadsTable"/>
 </wicket:panel>
 </body>
 </html>

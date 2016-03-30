@@ -22,9 +22,19 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
-import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.wf.WorkItemsTablePanel;
+import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalHistoryPanel;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.model.PropertyModel;
+
+import java.util.List;
 
 /**
  * @author semancik
@@ -32,24 +42,30 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 public class TaskApprovalsTabPanel extends AbstractObjectTabPanel<TaskType> {
 	private static final long serialVersionUID = 1L;
 
-	protected static final String ID_RECURRENCE = "recurrence";
+	private static final String ID_DELTAS_TO_BE_APPROVED = "deltasToBeApproved";
+	private static final String ID_HISTORY = "history";
+	private static final String ID_CURRENT_WORK_ITEMS = "currentWorkItems";
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskApprovalsTabPanel.class);
 
 	public TaskApprovalsTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
-			PageBase pageBase) {
+			LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		super(id, mainForm, taskWrapperModel, pageBase);
-		initLayout(pageBase);
+		initLayout(taskDtoModel, pageBase);
 	}
 	
-	private void initLayout(PageBase pageBase) {
+	private void initLayout(LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
 
-		PrismPropertyPanel recurrencePanel = new PrismPropertyPanel<>(ID_RECURRENCE,
-				new PropertyWrapperFromObjectWrapperModel(getObjectWrapperModel(), TaskType.F_RECURRENCE),
-				null, pageBase);
-		recurrencePanel.setLabelContainerVisible(false);
-		add(recurrencePanel);
+		add(new ScenePanel(ID_DELTAS_TO_BE_APPROVED, new PropertyModel(taskDtoModel, TaskDto.F_WORKFLOW_DELTA_IN)));
+		add(new ItemApprovalHistoryPanel(ID_HISTORY, new PropertyModel<WfContextType>(taskDtoModel, TaskDto.F_WORKFLOW_CONTEXT),
+				UserProfileStorage.TableId.PAGE_TASK_HISTORY_PANEL, (int) pageBase.getItemsPerPage(UserProfileStorage.TableId.PAGE_TASK_HISTORY_PANEL)));
+
+		ISortableDataProvider<WorkItemDto, String> provider = new ListDataProvider(this, new PropertyModel<List<WorkItemDto>>(taskDtoModel, TaskDto.F_WORK_ITEMS));
+		add(new WorkItemsTablePanel(ID_CURRENT_WORK_ITEMS, provider,
+				UserProfileStorage.TableId.PAGE_TASK_CURRENT_WORK_ITEMS_PANEL,
+				(int) pageBase.getItemsPerPage(UserProfileStorage.TableId.PAGE_TASK_CURRENT_WORK_ITEMS_PANEL),
+				WorkItemsTablePanel.View.ITEMS_FOR_PROCESS));
 
 	}
 

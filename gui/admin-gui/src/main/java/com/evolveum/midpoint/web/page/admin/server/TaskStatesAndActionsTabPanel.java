@@ -22,10 +22,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
-import com.evolveum.midpoint.web.component.progress.StatisticsDtoModel;
-import com.evolveum.midpoint.web.component.progress.StatisticsPanel;
-import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.currentState.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -34,14 +31,15 @@ import org.apache.wicket.model.PropertyModel;
 /**
  * @author semancik
  */
-public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> {
+public class TaskStatesAndActionsTabPanel extends AbstractObjectTabPanel<TaskType> {
 	private static final long serialVersionUID = 1L;
 
-	private static final String ID_ITERATIVE_INFORMATION_PANEL = "iterativeInformationPanel";
+	private static final String ID_SYNCHRONIZATION_INFORMATION_PANEL = "synchronizationInformationPanel";
+	private static final String ID_ACTIONS_EXECUTED_INFORMATION_PANEL = "actionsExecutedInformationPanel";
 
-	private static final Trace LOGGER = TraceManager.getTrace(TaskProgressTabPanel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(TaskStatesAndActionsTabPanel.class);
 
-	public TaskProgressTabPanel(String id, Form mainForm,
+	public TaskStatesAndActionsTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
 			LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		super(id, mainForm, taskWrapperModel, pageBase);
@@ -49,8 +47,26 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> {
 	}
 
 	private void initLayout(LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
-		TaskCurrentStateDtoModel model = new TaskCurrentStateDtoModel(taskDtoModel);
-		add(new IterativeInformationPanel(ID_ITERATIVE_INFORMATION_PANEL, model, pageBase));
+		final TaskCurrentStateDtoModel model = new TaskCurrentStateDtoModel(taskDtoModel);
+		SynchronizationInformationPanel synchronizationInformationPanel = new SynchronizationInformationPanel(ID_SYNCHRONIZATION_INFORMATION_PANEL,
+				new PropertyModel<SynchronizationInformationDto>(model, TaskCurrentStateDto.F_SYNCHRONIZATION_INFORMATION_DTO));
+		synchronizationInformationPanel.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return model.getObject().getSynchronizationInformationType() != null;
+			}
+		});
+		add(synchronizationInformationPanel);
+
+		ActionsExecutedInformationPanel actionsExecutedInformationPanel = new ActionsExecutedInformationPanel(ID_ACTIONS_EXECUTED_INFORMATION_PANEL,
+				new PropertyModel<ActionsExecutedInformationDto>(model, TaskCurrentStateDto.F_ACTIONS_EXECUTED_INFORMATION_DTO));
+		actionsExecutedInformationPanel.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return model.getObject().getActionsExecutedInformationType() != null;
+			}
+		});
+		add(actionsExecutedInformationPanel);
 	}
 
 }

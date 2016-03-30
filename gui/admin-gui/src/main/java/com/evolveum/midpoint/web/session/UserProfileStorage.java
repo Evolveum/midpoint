@@ -55,7 +55,10 @@ public class UserProfileStorage implements Serializable {
         PAGE_CERT_CAMPAIGN_OUTCOMES_PANEL,
         PAGE_CERT_CAMPAIGNS_PANEL,
         PAGE_CERT_DECISIONS_PANEL,
-        PAGE_CERT_DEFINITIONS_PANEL
+        PAGE_CERT_DEFINITIONS_PANEL,
+		PAGE_WORK_ITEM_HISTORY_PANEL,
+		PAGE_TASK_HISTORY_PANEL,
+		PAGE_TASK_CURRENT_WORK_ITEMS_PANEL
     }
 
     private Map<TableId, Integer> tables = new HashMap<TableId, Integer>();

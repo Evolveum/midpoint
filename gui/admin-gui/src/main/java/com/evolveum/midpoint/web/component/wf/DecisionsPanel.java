@@ -16,10 +16,13 @@
 
 package com.evolveum.midpoint.web.component.wf;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.DecisionDto;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -32,17 +35,17 @@ import java.util.List;
  * @author lazyman
  * @author mederly
  */
-public class DecisionsPanel extends SimplePanel<List<DecisionDto>> {
+public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
 
     private static final String ID_DECISIONS_TABLE = "decisionsTable";
 
     // todo options to select which columns will be shown
-    public DecisionsPanel(String id, IModel<List<DecisionDto>> model) {
+    public DecisionsPanel(String id, IModel<List<DecisionDto>> model, UserProfileStorage.TableId tableId, int pageSize) {
         super(id, model);
+		initLayout(tableId, pageSize);
     }
 
-    @Override
-    protected void initLayout() {
+    protected void initLayout(UserProfileStorage.TableId tableId, int pageSize) {
         List<IColumn<DecisionDto, String>> columns = new ArrayList<IColumn<DecisionDto, String>>();
         columns.add(new PropertyColumn(createStringResource("DecisionsPanel.user"), DecisionDto.F_USER));
         columns.add(new PropertyColumn(createStringResource("DecisionsPanel.result"), DecisionDto.F_RESULT));
@@ -50,7 +53,7 @@ public class DecisionsPanel extends SimplePanel<List<DecisionDto>> {
         columns.add(new PropertyColumn(createStringResource("DecisionsPanel.when"), DecisionDto.F_TIME));
 
         ISortableDataProvider provider = new ListDataProvider(this, getModel());
-        TablePanel decisionsTable = new TablePanel<>(ID_DECISIONS_TABLE, provider, columns);
+        BoxedTablePanel decisionsTable = new BoxedTablePanel<>(ID_DECISIONS_TABLE, provider, columns, tableId, pageSize);
         add(decisionsTable);
     }
 }
