@@ -24,8 +24,8 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -41,9 +41,12 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.apache.wicket.util.time.Duration;
 
 import java.util.Collection;
 
@@ -70,7 +73,7 @@ public class PageTask2 extends PageAdmin {
 
 	private LoadableModel<TaskDto> taskDtoModel;
 	private LoadableModel<ObjectWrapper<TaskType>> objectWrapperModel;
-	private static boolean edit = false;
+	private boolean edit = false;
 
 	public PageTask2(PageParameters parameters) {
 
@@ -78,7 +81,8 @@ public class PageTask2 extends PageAdmin {
 
 		final OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
 		final Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
-		final TaskType taskType = loadTaskType(operationTask, result);
+		final String taskOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER).toString();
+		final TaskType taskType = loadTaskType(taskOid, operationTask, result);
 		TaskDto taskDto = null;
 		try {
 			taskDto = prepareTaskDto(taskType, operationTask, result);
@@ -106,9 +110,7 @@ public class PageTask2 extends PageAdmin {
 		initLayout();
 	}
 
-	private TaskType loadTaskType(Task operationTask, OperationResult result) {
-
-		final StringValue taskOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+	private TaskType loadTaskType(String taskOid, Task operationTask, OperationResult result) {
 		TaskType taskType = null;
 
 		try {
@@ -116,7 +118,7 @@ public class PageTask2 extends PageAdmin {
 					GetOperationOptions.createRetrieveAttributesOptions(
 							TaskType.F_SUBTASK, TaskType.F_NODE_AS_OBSERVED, TaskType.F_NEXT_RUN_START_TIMESTAMP);
 			options.add(SelectorOptions.create(new ItemPath(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM), GetOperationOptions.createRetrieve()));
-			taskType = getModelService().getObject(TaskType.class, taskOid.toString(), options, operationTask, result).asObjectable();
+			taskType = getModelService().getObject(TaskType.class, taskOid, options, operationTask, result).asObjectable();
 			result.computeStatus();
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get task.", ex);
@@ -170,17 +172,45 @@ public class PageTask2 extends PageAdmin {
 
 
 	protected void initLayout() {
-		initLayoutSummaryPanel();
-
-		Panel mainPanel = new TaskMainPanel(ID_MAIN_PANEL, objectWrapperModel, taskDtoModel, this);
-		mainPanel.setOutputMarkupId(true);
-		add(mainPanel);
-	}
-
-	protected void initLayoutSummaryPanel() {
-		FocusSummaryPanel<TaskType> summaryPanel = new TaskSummaryPanel(ID_SUMMARY_PANEL, objectWrapperModel);
+		final FocusSummaryPanel<TaskType> summaryPanel = new TaskSummaryPanel(ID_SUMMARY_PANEL, objectWrapperModel);
 		summaryPanel.setOutputMarkupId(true);
 		add(summaryPanel);
+
+		final TaskMainPanel mainPanel = new TaskMainPanel(ID_MAIN_PANEL, objectWrapperModel, taskDtoModel, this);
+		mainPanel.setOutputMarkupId(true);
+		add(mainPanel);
+
+		AjaxSelfUpdatingTimerBehavior refreshingBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(1000)) {
+			@Override
+			protected void onPostProcessTarget(AjaxRequestTarget target) {
+				refreshModel();
+				target.add(summaryPanel);
+			}
+		};
+
+		mainPanel.add(refreshingBehavior);
+	}
+
+	public void refreshModel() {
+		TaskDto oldTaskDto = taskDtoModel.getObject();
+		if (oldTaskDto == null) {
+			LOGGER.warn("Null or empty taskModel");
+			return;
+		}
+		TaskManager taskManager = getTaskManager();
+		OperationResult result = new OperationResult("refresh");
+		Task operationTask = taskManager.createTaskInstance("refresh");
+
+		try {
+			LOGGER.debug("Refreshing task {}", oldTaskDto);
+			TaskType taskType = loadTaskType(oldTaskDto.getOid(), operationTask, result);
+			TaskDto newTaskDto = prepareTaskDto(taskType, operationTask, result);
+			final ObjectWrapper<TaskType> newWrapper = loadObjectWrapper(taskType.asPrismObject(), result);
+			taskDtoModel.setObject(newTaskDto);
+			objectWrapperModel.setObject(newWrapper);
+		} catch (ObjectNotFoundException|SchemaException|RuntimeException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't refresh task {}", e, oldTaskDto);
+		}
 	}
 
 	protected ObjectWrapper<TaskType> loadObjectWrapper(PrismObject<TaskType> object, OperationResult result) {

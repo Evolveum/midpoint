@@ -16,7 +16,16 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.TabbedPanel;
@@ -24,6 +33,7 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.*;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -32,6 +42,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -106,11 +117,11 @@ public class TaskMainPanel extends Panel {
 						return new TaskProgressTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
 					}
 
-					@Override
-					public boolean isVisible() {
-						final OperationStatsType operationStats = taskDtoModel.getObject().getTaskType().getOperationStats();
-						return operationStats != null && operationStats.getIterativeTaskInformation() != null;
-					}
+//					@Override
+//					public boolean isVisible() {
+//						final OperationStatsType operationStats = taskDtoModel.getObject().getTaskType().getOperationStats();
+//						return operationStats != null && operationStats.getIterativeTaskInformation() != null;
+//					}
 				});
 		tabs.add(
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.statesAndActions")){

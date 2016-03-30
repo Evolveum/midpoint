@@ -100,7 +100,7 @@ public class TaskSummaryPanel extends FocusSummaryPanel<TaskType> {
 		return new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
-				TaskType taskType = getModelObject().getObject().asObjectable();
+				TaskType taskType = getModelObject().asObjectable();
 				if (taskType.getExpectedTotal() != null) {
 					return createStringResource("TaskSummaryPanel.progressWithTotalKnown", taskType.getProgress(), taskType.getExpectedTotal()).getString();
 				} else {
@@ -115,7 +115,7 @@ public class TaskSummaryPanel extends FocusSummaryPanel<TaskType> {
 		return new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
-				TaskType taskType = getModelObject().getObject().asObjectable();
+				TaskType taskType = getModelObject().asObjectable();
 				if (taskType.getOperationStats() != null && taskType.getOperationStats().getIterativeTaskInformation() != null &&
 						taskType.getOperationStats().getIterativeTaskInformation().getLastSuccessObjectName() != null) {
 					return createStringResource("TaskSummaryPanel.lastProcessed", taskType.getOperationStats().getIterativeTaskInformation().getLastSuccessObjectName()).getString();
