@@ -31,6 +31,7 @@ public abstract class AbstractSummaryPanel<O extends ObjectType> extends BasePan
     protected static final String ID_IDENTIFIER_PANEL = "summaryIdentifierPanel";
     protected static final String ID_TITLE = "summaryTitle";
     protected static final String ID_TITLE2 = "summaryTitle2";
+    protected static final String ID_TITLE3 = "summaryTitle3";
 
     protected static final String ID_PHOTO = "summaryPhoto";                  // perhaps useful only for focal objects but it was simpler to include it here
     protected static final String ID_ORGANIZATION = "summaryOrganization";    // similar (requires ObjectWrapper to get parent organizations so hard to use in ObjectSummaryPanel)
@@ -82,6 +83,16 @@ public abstract class AbstractSummaryPanel<O extends ObjectType> extends BasePan
             label.setVisible(false);
             box.add(label);
         }
+
+		if (getTitle3PropertyName() != null) {
+			box.add(new Label(ID_TITLE3, new PrismPropertyRealValueFromPrismObjectModel<>(getModel(), getTitle3PropertyName())));
+		} else if (getTitle3Model() != null) {
+			box.add(new Label(ID_TITLE3, getTitle3Model()));
+		} else {
+			Label label = new Label(ID_TITLE3, " ");
+			label.setVisible(false);
+			box.add(label);
+		}
 
         Label parentOrgLabel = new Label(ID_ORGANIZATION, getParentOrgModel());
         parentOrgLabel.add(new VisibleEnableBehaviour() {
@@ -146,11 +157,19 @@ public abstract class AbstractSummaryPanel<O extends ObjectType> extends BasePan
         return null;
     }
 
-    protected IModel<String> getTitle2Model() {
-        return null;
-    }
+	protected IModel<String> getTitle2Model() {
+		return null;
+	}
 
-    protected boolean isIdentifierVisible() {
+	protected QName getTitle3PropertyName() {
+		return null;
+	}
+
+	protected IModel<String> getTitle3Model() {
+		return null;
+	}
+
+	protected boolean isIdentifierVisible() {
         return true;
     }
 

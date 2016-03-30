@@ -16,17 +16,23 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import java.util.Date;
 
 /**
  * @author mederly
@@ -125,5 +131,40 @@ public class TaskSummaryPanel extends FocusSummaryPanel<TaskType> {
 			}
 		};
 	}
+
+	@Override
+	protected IModel<String> getTitle3Model() {
+		return new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				TaskType taskType = getModel().getObject().asObjectable();
+				if (taskType == null) {
+					return null;
+				}
+				long started = XmlTypeConverter.toMillis(taskType.getLastRunStartTimestamp());
+				long finished = XmlTypeConverter.toMillis(taskType.getLastRunFinishTimestamp());
+				if (started == 0) {
+					return null;
+				}
+				if ((TaskExecutionStatus.RUNNABLE.equals(taskType.getExecutionStatus()) && taskType.getNodeAsObserved() != null)
+						|| finished == 0 || finished < started) {
+					return getString("TaskStatePanel.message.executionTime.notFinished", formatDate(new Date(started)),
+							DurationFormatUtils.formatDurationHMS(System.currentTimeMillis() - started));
+				} else {
+					return getString("TaskStatePanel.message.executionTime.finished",
+							formatDate(new Date(started)), formatDate(new Date(finished)),
+							DurationFormatUtils.formatDurationHMS(finished - started));
+				}
+			}
+		};
+	}
+
+	private String formatDate(Date date) {
+		if (date == null) {
+			return null;
+		}
+		return date.toLocaleString();
+	}
+
 
 }

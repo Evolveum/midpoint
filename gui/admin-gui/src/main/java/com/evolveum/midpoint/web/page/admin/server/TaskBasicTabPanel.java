@@ -16,21 +16,24 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
-import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromObjectWrapperModel;
-import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.RequiredTextField;
+import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.PropertyModel;
@@ -41,9 +44,11 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
  */
 public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> {
 	private static final long serialVersionUID = 1L;
-	
-	protected static final String ID_NAME = "name";
-	protected static final String ID_DESCRIPTION = "description";
+
+	private static final String ID_NAME = "name";
+	private static final String ID_NAME_LABEL = "nameLabel";
+	private static final String ID_DESCRIPTION = "description";
+	private static final String ID_DESCRIPTION_LABEL = "descriptionLabel";
 	private static final String ID_OID = "oid";
 	private static final String ID_IDENTIFIER = "identifier";
 	private static final String ID_CATEGORY = "category";
@@ -54,34 +59,57 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> {
 	private static final Trace LOGGER = TraceManager.getTrace(TaskBasicTabPanel.class);
 
 	private LoadableModel<TaskDto> taskDtoModel;
+	private PageTask2 parentPage;
 
 	public TaskBasicTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
-			LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
-		super(id, mainForm, taskWrapperModel, pageBase);
+			LoadableModel<TaskDto> taskDtoModel, PageTask2 parentPage) {
+		super(id, mainForm, taskWrapperModel, parentPage);
 		this.taskDtoModel = taskDtoModel;
-		initLayout(pageBase);
+		this.parentPage = parentPage;
+		initLayout();
 	}
 	
-	private void initLayout(final PageBase pageBase) {
+	private void initLayout() {
 
-		PrismPropertyPanel taskNamePanel = new PrismPropertyPanel<>(ID_NAME,
-				new PropertyWrapperFromObjectWrapperModel(getObjectWrapperModel(), TaskType.F_NAME),
-				null, pageBase);
-		taskNamePanel.setLabelContainerVisible(false);
-		add(taskNamePanel);
+		final VisibleEnableBehaviour visibleIfEdit = new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return parentPage.isEdit();
+			}
+		};
+		final VisibleEnableBehaviour visibleIfView = new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return !parentPage.isEdit();
+			}
+		};
 
-		PrismPropertyPanel taskDescriptionPanel = new PrismPropertyPanel<>(ID_DESCRIPTION,
-				new PropertyWrapperFromObjectWrapperModel(getObjectWrapperModel(), TaskType.F_DESCRIPTION),
-				null, pageBase);
-		taskDescriptionPanel.setLabelContainerVisible(false);
-		add(taskDescriptionPanel);
+		RequiredTextField<String> name = new RequiredTextField<>(ID_NAME, new PropertyModel<String>(taskDtoModel, TaskDto.F_NAME));
+		name.add(visibleIfEdit);
+		name.add(new AttributeModifier("style", "width: 100%"));
+		name.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		add(name);
 
-		Label oid = new Label(ID_OID, new PropertyModel(getObjectWrapperModel(), "oid"));
+		Label nameLabel = new Label(ID_NAME_LABEL, new PropertyModel(taskDtoModel, TaskDto.F_NAME));
+		nameLabel.add(visibleIfView);
+		add(nameLabel);
+
+		TextArea<String> description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(taskDtoModel, TaskDto.F_DESCRIPTION));
+		description.add(visibleIfEdit);
+		//        description.add(new AttributeModifier("style", "width: 100%"));
+		//        description.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		add(description);
+
+		Label descriptionLabel = new Label(ID_DESCRIPTION_LABEL, new PropertyModel(taskDtoModel, TaskDto.F_DESCRIPTION));
+		descriptionLabel.add(visibleIfView);
+		add(descriptionLabel);
+
+		Label oid = new Label(ID_OID, new PropertyModel(getObjectWrapperModel(), ID_OID));
 		add(oid);
 
-		add(new Label(ID_IDENTIFIER, new PrismPropertyRealValueFromObjectWrapperModel<>(getObjectWrapperModel(), TaskType.F_TASK_IDENTIFIER)));
-		add(new Label(ID_CATEGORY, new PrismPropertyRealValueFromObjectWrapperModel<>(getObjectWrapperModel(), TaskType.F_CATEGORY)));
+		add(new Label(ID_IDENTIFIER, new PropertyModel(taskDtoModel, TaskDto.F_IDENTIFIER)));
+		add(new Label(ID_CATEGORY, new PropertyModel(taskDtoModel, TaskDto.F_CATEGORY)));
 
 		LinkPanel parent = new LinkPanel(ID_PARENT, new PropertyModel<>(taskDtoModel, TaskDto.F_PARENT_TASK_NAME)) {
 			@Override
@@ -90,7 +118,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> {
 				if (oid != null) {
 					PageParameters parameters = new PageParameters();
 					parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-					setResponsePage(new PageTaskEdit(parameters, pageBase));
+					setResponsePage(new PageTaskEdit(parameters, parentPage));
 				}
 			}
 		};

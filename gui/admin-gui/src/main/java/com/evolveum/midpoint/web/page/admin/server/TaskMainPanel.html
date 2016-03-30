@@ -19,6 +19,19 @@
 <wicket:panel>
 	<form wicket:id="mainForm" class="form-horizontal">
 		<div wicket:id="tabPanel" class="nav-tabs-custom" />
+        <div class="main-button-bar">
+            <span class="button-group">
+                <a class="btn btn-default" wicket:id="back" />
+            </span>
+            <span class="button-group">
+                <a class="btn btn-primary" wicket:id="save"/>
+                <a class="btn btn-primary" wicket:id="edit"/>
+            </span>
+
+            <a class="btn btn-danger" wicket:id="suspend" />
+            <a class="btn btn-success" wicket:id="resume" />
+            <a class="btn btn-success" wicket:id="runNow" />
+        </div>
 	</form>
 </wicket:panel>
 </body>

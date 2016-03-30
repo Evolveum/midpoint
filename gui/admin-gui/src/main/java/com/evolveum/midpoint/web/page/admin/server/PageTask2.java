@@ -25,7 +25,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -43,9 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.time.Duration;
 
 import java.util.Collection;
@@ -65,6 +64,7 @@ public class PageTask2 extends PageAdmin {
 
 	private static final String DOT_CLASS = PageTask2.class.getName() + ".";
 	private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadTask";
+	static final String OPERATION_SAVE_TASK = DOT_CLASS + "saveTask";
 
 	private static final String ID_SUMMARY_PANEL = "summaryPanel";
 	private static final String ID_MAIN_PANEL = "mainPanel";
@@ -74,6 +74,11 @@ public class PageTask2 extends PageAdmin {
 	private LoadableModel<TaskDto> taskDtoModel;
 	private LoadableModel<ObjectWrapper<TaskType>> objectWrapperModel;
 	private boolean edit = false;
+
+	private PageTaskController controller = new PageTaskController(this);
+
+	private TaskMainPanel mainPanel;
+	private AjaxSelfUpdatingTimerBehavior refreshingBehavior;
 
 	public PageTask2(PageParameters parameters) {
 
@@ -136,34 +141,6 @@ public class PageTask2 extends PageAdmin {
 		return taskType;
 	}
 
-	private TaskDto loadTask() {
-		OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
-		Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
-
-		StringValue taskOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-
-		TaskDto taskDto = null;
-		try {
-			Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createRetrieveAttributesOptions(TaskType.F_SUBTASK, TaskType.F_NODE_AS_OBSERVED, TaskType.F_NEXT_RUN_START_TIMESTAMP);
-			TaskType loadedTask = getModelService().getObject(TaskType.class, taskOid.toString(), options, operationTask, result).asObjectable();
-			taskDto = prepareTaskDto(loadedTask, operationTask, result);
-			result.computeStatus();
-		} catch (Exception ex) {
-			result.recordFatalError("Couldn't get task.", ex);
-		}
-
-		if (!result.isSuccess()) {
-			showResult(result);
-		}
-
-		if (taskDto == null) {
-			getSession().error(getString("pageTaskEdit.message.cantTaskDetails"));
-			showResult(result, false);
-			throw getRestartResponseException(PageTasks.class);
-		}
-		return taskDto;
-	}
-
 	private TaskDto prepareTaskDto(TaskType task, Task operationTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		TaskDto taskDto = new TaskDto(task, getModelService(), getTaskService(), getModelInteractionService(),
 				getTaskManager(), TaskDtoProviderOptions.fullOptions(), operationTask, result, this);
@@ -176,11 +153,11 @@ public class PageTask2 extends PageAdmin {
 		summaryPanel.setOutputMarkupId(true);
 		add(summaryPanel);
 
-		final TaskMainPanel mainPanel = new TaskMainPanel(ID_MAIN_PANEL, objectWrapperModel, taskDtoModel, this);
+		mainPanel = new TaskMainPanel(ID_MAIN_PANEL, objectWrapperModel, taskDtoModel, this);
 		mainPanel.setOutputMarkupId(true);
 		add(mainPanel);
 
-		AjaxSelfUpdatingTimerBehavior refreshingBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(1000)) {
+		refreshingBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(1000)) {
 			@Override
 			protected void onPostProcessTarget(AjaxRequestTarget target) {
 				refreshModel();
@@ -227,5 +204,29 @@ public class PageTask2 extends PageAdmin {
 		showResult(wrapper.getResult(), false);
 
 		return wrapper;
+	}
+
+	public boolean isEdit() {
+		return edit;
+	}
+
+	public void setEdit(boolean edit) {
+		this.edit = edit;
+	}
+
+	public LoadableModel<TaskDto> getTaskDtoModel() {
+		return taskDtoModel;
+	}
+
+	public TaskDto getTaskDto() {
+		return taskDtoModel.getObject();
+	}
+
+	public PageTaskController getController() {
+		return controller;
+	}
+
+	public void stopRefresh() {
+		mainPanel.remove(refreshingBehavior);
 	}
 }

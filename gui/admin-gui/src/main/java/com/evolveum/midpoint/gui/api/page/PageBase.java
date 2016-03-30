@@ -820,7 +820,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	// experimental -- go to previous page (either with reinitialization e.g.
 	// when something changed, or without - typically when 'back' button is
 	// pressed)
-	protected void goBack(Class<? extends Page> defaultBackPageClass) {
+	public void goBack(Class<? extends Page> defaultBackPageClass) {
 		LOGGER.trace("goBack called; page = {}, previousPage = {}, reinitializePreviousPages = {}",
 				new Object[] { this, previousPage, reinitializePreviousPages });
 		if (previousPage != null) {
