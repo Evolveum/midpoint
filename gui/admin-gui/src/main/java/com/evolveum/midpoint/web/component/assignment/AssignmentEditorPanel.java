@@ -120,8 +120,9 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     private static final String ID_ERROR_ICON = "errorIcon";
 
     private IModel<List<ACAttributeDto>> attributesModel;
+    private boolean isReadOnly;
 
-    public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model) {
+    public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model, boolean isReadOnly) {
         super(id, model);
 
         attributesModel = new LoadableModel<List<ACAttributeDto>>(false) {
@@ -130,6 +131,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 return loadAttributes();
             }
         };
+        this.isReadOnly = isReadOnly;
 
         initLayout();
     }
@@ -324,6 +326,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     private void initBodyLayout(WebMarkupContainer body) {
         TextArea description = new TextArea<>(ID_DESCRIPTION,
                 new PropertyModel<String>(getModel(), AssignmentEditorDto.F_DESCRIPTION));
+        description.setEnabled(!isReadOnly);
         body.add(description);
 
         WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
@@ -349,6 +352,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 "AssignmentEditorPanel.member", "AssignmentEditorPanel.manager", null);
         relation.setOutputMarkupId(true);
         relation.setOutputMarkupPlaceholderTag(true);
+        relation.setPanelEnabled(!isReadOnly);
         relation.add(new VisibleEnableBehaviour(){
 
             @Override
@@ -401,14 +405,17 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         DropDownChoicePanel administrativeStatus = WebComponentUtil.createEnumPanel(ActivationStatusType.class, ID_ADMINISTRATIVE_STATUS,
                 new PropertyModel<ActivationStatusType>(getModel(), AssignmentEditorDto.F_ACTIVATION + "."
                         + ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart()), this);
+        administrativeStatus.setEnabled(!isReadOnly);
         activationBlock.add(administrativeStatus);
 
         DateInput validFrom = new DateInput(ID_VALID_FROM, createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
                 AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
+        validFrom.setEnabled(!isReadOnly);
         activationBlock.add(validFrom);
 
         DateInput validTo = new DateInput(ID_VALID_TO, createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
                 AssignmentEditorDto.F_ACTIVATION + ".validTo")));
+        validTo.setEnabled(!isReadOnly);
         activationBlock.add(validTo);
         WebMarkupContainer targetContainer = new WebMarkupContainer(ID_TARGET_CONTAINER);
         targetContainer.add(new VisibleEnableBehaviour() {
@@ -479,6 +486,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 return OrgType.F_NAME;
             }
         };
+        tenantRef.setPanelEnabled(!isReadOnly);
         tenantRefContainer.add(tenantRef);
         tenantRefContainer.add(new VisibleEnableBehaviour(){
 
@@ -525,6 +533,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             }
         };
         tenantRefContainer.add(tenantRef);
+        tenantRef.setEnabled(!isReadOnly);
         tenantRefContainer.add(new VisibleEnableBehaviour(){
 
             @Override
@@ -575,6 +584,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 return AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION.equals(dto.getType());
             }
         });
+        attributes.setEnabled(isReadOnly);
         constructionContainer.add(attributes);
 
         ListView<ACAttributeDto> attribute = new ListView<ACAttributeDto>(ID_ATTRIBUTE, attributesModel){
