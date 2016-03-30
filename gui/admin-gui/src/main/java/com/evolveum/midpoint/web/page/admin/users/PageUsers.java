@@ -328,7 +328,10 @@ public class PageUsers extends PageAdminUsers {
                         return createRowDto(obj);
                     }
                 };
-        provider.setQuery(null);
+
+        Search search = searchModel.getObject();
+        ObjectQuery query = search.createObjectQuery(getPrismContext());
+        provider.setQuery(query);
 
         Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
         options.add(SelectorOptions.create(UserType.F_LINK_REF,

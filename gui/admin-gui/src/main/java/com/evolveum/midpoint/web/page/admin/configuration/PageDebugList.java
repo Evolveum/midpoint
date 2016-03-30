@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
@@ -241,14 +242,19 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		DebugSearchDto dto = searchModel.getObject();
 		Class type = dto.getType().getClassDefinition();
-		addOrReplaceTable(new RepositoryObjectDataProvider(this, type) {
+		RepositoryObjectDataProvider provider = new RepositoryObjectDataProvider(this, type) {
 
 			@Override
 			protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
 				ConfigurationStorage storage = getSessionStorage().getConfiguration();
 				storage.setDebugSearchPaging(paging);
 			}
-		});
+		};
+		DebugSearchDto search = searchModel.getObject();
+		ObjectQuery query = search.getSearch().createObjectQuery(getPrismContext());
+		provider.setQuery(query);
+
+		addOrReplaceTable(provider);
 
 		PageDebugDownloadBehaviour ajaxDownloadBehavior = new PageDebugDownloadBehaviour();
 		main.add(ajaxDownloadBehavior);

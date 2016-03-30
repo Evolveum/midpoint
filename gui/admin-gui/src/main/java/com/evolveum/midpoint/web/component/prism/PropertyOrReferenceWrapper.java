@@ -81,7 +81,9 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	}
 
 	public boolean isVisible() {
-		if (item.getDefinition().isOperational()) {			// TODO ...or use itemDefinition instead?
+        if (item.getDefinition().isEmphasized()){
+            return true;
+        } else if (item.getDefinition().isOperational()) {			// TODO ...or use itemDefinition instead?
 			return false;
 		} else if (container != null) {
 			return container.isItemVisible(this);

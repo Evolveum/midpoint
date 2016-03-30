@@ -80,6 +80,7 @@ public class SearchPanel extends BasePanel<Search> {
     private static final String ID_MORE_GROUP = "moreGroup";
     private static final String ID_ADVANCED_AREA = "advancedArea";
     private static final String ID_ADVANCED_CHECK = "advancedCheck";
+    private static final String ID_ADVANCED_ERROR= "advancedError";
 
     private LoadableModel<MoreDialogDto> moreDialogModel;
 
@@ -186,8 +187,6 @@ public class SearchPanel extends BasePanel<Search> {
 
         Label advancedCheck = new Label(ID_ADVANCED_CHECK);
         advancedCheck.add(AttributeAppender.append("class", createAdvancedGroupLabelStyle()));
-        advancedCheck.add(AttributeModifier.append("title",
-                new PropertyModel<String>(getModel(), Search.F_ADVANCED_ERROR)));
         advancedGroup.add(advancedCheck);
 
         final TextArea advancedArea = new TextArea(ID_ADVANCED_AREA,
@@ -208,6 +207,23 @@ public class SearchPanel extends BasePanel<Search> {
             }
         });
         advancedGroup.add(advancedArea);
+
+        Label advancedError = new Label(ID_ADVANCED_ERROR,
+                new PropertyModel<String>(getModel(), Search.F_ADVANCED_ERROR));
+        advancedError.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                Search search = getModelObject();
+
+                if (!search.isShowAdvanced()) {
+                    return false;
+                }
+
+                return StringUtils.isNotEmpty(search.getAdvancedError());
+            }
+        });
+        advancedGroup.add(advancedError);
     }
 
     private IModel<String> createAdvancedGroupLabelStyle() {
@@ -216,9 +232,8 @@ public class SearchPanel extends BasePanel<Search> {
             @Override
             public String getObject() {
                 Search search = getModelObject();
-                PrismContext ctx = getPageBase().getPrismContext();
 
-                return search.isAdvancedQueryValid(ctx) ? "fa-check-circle-o" : "fa-exclamation-triangle";
+                return StringUtils.isEmpty(search.getAdvancedError()) ? "fa-check-circle-o" : "fa-exclamation-triangle";
             }
         };
     }
@@ -229,9 +244,8 @@ public class SearchPanel extends BasePanel<Search> {
             @Override
             public String getObject() {
                 Search search = getModelObject();
-                PrismContext ctx = getPageBase().getPrismContext();
 
-                return search.isAdvancedQueryValid(ctx) ? "has-success" : "has-error";
+                return StringUtils.isEmpty(search.getAdvancedError()) ? "has-success" : "has-error";
             }
         };
     }
@@ -416,6 +430,11 @@ public class SearchPanel extends BasePanel<Search> {
     }
 
     private void updateAdvancedArea(Component area, AjaxRequestTarget target) {
+        Search search = getModelObject();
+        PrismContext ctx = getPageBase().getPrismContext();
+
+        search.isAdvancedQueryValid(ctx);
+
         target.prependJavaScript("storeTextAreaSize('" + area.getMarkupId() + "');");
         target.appendJavaScript("restoreTextAreaSize('" + area.getMarkupId() + "');");
 

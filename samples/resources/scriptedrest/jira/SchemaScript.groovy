@@ -44,7 +44,7 @@ log.info("Entering "+action+" Script");
 nameAIB = new AttributeInfoBuilder(Name.NAME);
 nameAIB.setRequired(true);
 nameAIB.setUpdateable(false);
-nameAIB.setCreateable(false);
+nameAIB.setCreateable(true); // only detect existence
 
 // key
 keyAIB = new AttributeInfoBuilder("key");

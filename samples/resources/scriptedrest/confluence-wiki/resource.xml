@@ -65,6 +65,13 @@
                             <c:path>$user/name</c:path>
                         </target>
                     </inbound>
+                    <!-- to detect existing users as AlreadyExistsException over CreateScript -->
+                    <outbound>
+                       <strength>normal</strength>
+                       <source>
+                          <c:path>$user/name</c:path>
+                       </source>
+                    </outbound>
                 </attribute>
 
                 <attribute>

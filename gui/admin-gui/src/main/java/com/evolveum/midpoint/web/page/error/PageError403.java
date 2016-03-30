@@ -11,4 +11,9 @@ public class PageError403 extends PageError {
     public PageError403() {
         super(403);
     }
+
+    @Override
+    protected String getErrorMessageKey(){
+        return "PageError403.message";
+    }
 }
