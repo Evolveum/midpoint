@@ -1,3 +1,5 @@
+import org.identityconnectors.framework.common.exceptions.AlreadyExistsException
+
 /*
  * Copyright (c) 2010-2016 Evolveum
  *
@@ -31,6 +33,17 @@
 // Returns: Create must return UID.
 
 log.info("Entering "+action+" Script, attributes: "+attributes);
+
+// detect if user already exists
+resp = connection.get(path: "https://jira.evolveum.com/rest/api/latest/user",
+        query: ['username' : id]);
+json = resp.getData();
+log.ok("JSON create search response:\n" + json);
+
+//userName = json."name";
+if (json && json."name" && id.equals(json."name")) {
+    throw new AlreadyExistsException("User "+id+" already exists");
+}
 
 
 throw new UnsupportedOperationException("not supported operation, only update/delete avatar is implemented");
