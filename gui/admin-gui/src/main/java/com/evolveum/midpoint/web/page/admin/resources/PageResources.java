@@ -247,6 +247,10 @@ public class PageResources extends PageAdminResources {
             }
         };
 
+        Search search = searchModel.getObject();
+        ObjectQuery query = search.createObjectQuery(getPrismContext());
+        provider.setQuery(query);
+
         return provider;
     }
 
