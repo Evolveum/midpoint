@@ -185,4 +185,9 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
     public Class<T> getObjectTypeClass(){
         return ChooseTypePanel.this.getModelObject().getType();
     }
+
+    public void setPanelEnabled(boolean isEnabled){
+        get(ID_LINK_CHOOSE).setEnabled(isEnabled);
+        get(ID_LINK_REMOVE).setEnabled(isEnabled);
+    }
 }

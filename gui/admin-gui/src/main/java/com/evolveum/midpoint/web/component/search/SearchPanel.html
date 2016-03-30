@@ -21,8 +21,10 @@
             <label class="control-label" style="vertical-align: top;">
                 <i class="fa fa-lg" wicket:id="advancedCheck"/>
             </label>
-            <textarea class="form-control input-sm" rows="1" wicket:id="advancedArea"
-                style="height: 30px; overflow: hidden;"></textarea>
+            <textarea class="form-control input-sm" rows="2" wicket:id="advancedArea"
+                      style="width: 220px; height: 60px; overflow: hidden;"
+                      wicket:message="placeholder:SearchPanel.insertFilterXml"></textarea>
+            <span class="help-block" wicket:id="advancedError"/>
         </div>
 
         <wicket:container wicket:id="items">

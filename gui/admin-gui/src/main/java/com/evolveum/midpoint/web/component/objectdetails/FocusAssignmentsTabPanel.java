@@ -108,9 +108,8 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 		WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
 		assignments.setOutputMarkupId(true);
 		add(assignments);
-		
 		AssignmentTablePanel panel = new AssignmentTablePanel(ID_ASSIGNMENTS_PANEL,
-				createStringResource("FocusType.assignment"), assignmentsModel) {
+				createStringResource("FocusType.assignment"), assignmentsModel, ((ObjectWrapper)getObjectWrapperModel().getObject()).isReadonly()) {
 
 			@Override
 			protected void showAllAssignments(AjaxRequestTarget target) {
