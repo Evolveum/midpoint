@@ -15,6 +15,7 @@
  */
 
 import groovy.json.JsonSlurper
+import org.apache.commons.codec.binary.Hex
 
 import static java.awt.RenderingHints.*
 import java.awt.image.BufferedImage
@@ -104,43 +105,48 @@ switch ( objectClass ) {
                         //connection.setProxy('localhost', 8888, 'http');
 
 
-//                        body = '--------------------------d9644f1fd52e712e\n' +
-//                                'Content-Disposition: form-data; name="avatar"; filename="gusto.png"\n' +
-//                                'Content-Type: application/octet-stream\n\n' +
-//                                ' PNG';
-//
-//                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
-//                        outputStream.write(body.getBytes());
-//                        outputStream.write(avatar);
-//
-//                        byte bodyBytes = outputStream.toByteArray( );
-//
-//                        ByteArrayInputStream inputStream = new ByteArrayInputStream(body.getBytes()) //as byte[]
-//
-//                        resp = connection.post(path: "http://localhost:7990/rest/api/1.0/users/"+userName+"/avatar.png",
-//                                headers: ['X-Atlassian-Token': 'no-check', 'Accept': '*/*', 'Content-Type': 'multipart/form-data; boundary=------------------------d9644f1fd52e712e'],
-//                                contentType: 'application/octet-stream',
-//                                body: body.getBytes());
+                        String hexNewLine = "0D0A";
+                        byte[] byteNewLine = Hex.decodeHex(hexNewLine.toCharArray());
+                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
 
-                        ContentDisposition content = new ContentDisposition("form-data; name=\"avatar\"; filename=\"gusto.png\"");
-                        ByteArrayInputStream bisResized = new ByteArrayInputStream(avatar) //as byte[]
-                        Attachment avatarAtt = new Attachment("d9644f1fd52e712e", bisResized, content)
+                        // avatar as JPG  - no conversion to PNG
+//                        outputStream.write('--------------------------86c9c0934f0c28c5'.getBytes());
+//                        outputStream.write(byteNewLine);
+//                        outputStream.write('Content-Disposition: form-data; name="avatar"; filename="gusto.jpg'.getBytes());
+//                        outputStream.write(byteNewLine);
+//                        outputStream.write('Content-Type: image/jpeg'.getBytes());
+//                        outputStream.write(byteNewLine);
+//                        outputStream.write(byteNewLine);
+//
+//                        outputStream.write(avatarOrig); //avatar as JPG
+//
+//                        outputStream.write(byteNewLine);
+//                        outputStream.write('--------------------------86c9c0934f0c28c5--'.getBytes());
+//                        outputStream.write(byteNewLine);
 
-                        List<Attachment> atts = new LinkedList<Attachment>();
-                        atts.add(avatarAtt);
+                        // avatar as converted PNG
+                        outputStream.write('--------------------------86c9c0934f0c28c5'.getBytes());
+                        outputStream.write(byteNewLine);
+                        outputStream.write('Content-Disposition: form-data; name="avatar"; filename="avatar.png"'.getBytes());
+                        outputStream.write(byteNewLine);
+                        outputStream.write('Content-Type: application/octet-stream'.getBytes());
+                        outputStream.write(byteNewLine);
+                        outputStream.write(byteNewLine);
 
-                        def body = new MultipartBody(atts, MediaType.APPLICATION_OCTET_STREAM_TYPE, false)
+                        outputStream.write(avatar); //avatar as PNG
+
+                        outputStream.write(byteNewLine);
+                        outputStream.write('--------------------------86c9c0934f0c28c5--'.getBytes());
+                        outputStream.write(byteNewLine);
+
+                        byte[] bodyBytes = outputStream.toByteArray();
 
                         resp = connection.post(path: "http://localhost:7990/rest/api/1.0/users/"+userName+"/avatar.png",
-                                headers: ['X-Atlassian-Token': 'no-check', 'Accept': '*/*', 'Content-Type': 'multipart/form-data'],
-//                                contentType: 'application/octet-stream',
-                                body: body);
+                                headers: ['X-Atlassian-Token': 'no-check', 'Accept': '*/*', 'Content-Type': 'multipart/form-data; boundary=------------------------86c9c0934f0c28c5'],
+                                contentType: 'application/octet-stream',
+                                body: bodyBytes);
 
-//                                requestContentType: 'multipart/form-data',
-
-                        def slurper = new JsonSlurper();
-                        def respJson = slurper.parseText(resp.getData().text) // need to manually convert
-                        log.ok("response: {0}", respJson /* resp.getData()==null ? resp : resp.getData().text*/);
+                        log.ok("response: {0}", resp.getData()==null ? resp : resp.getData());
                     }
                 }
 
