@@ -132,7 +132,7 @@ public class ProjectionValuesProcessor {
     		// We can do this only for focus types.
     		return;
     	}
-    	OperationResult processorResult = result.createSubresult(ProjectionValuesProcessor.class.getName()+".processAccountsValues");
+    	OperationResult processorResult = result.createMinorSubresult(ProjectionValuesProcessor.class.getName()+".processAccountsValues");
     	processorResult.recordSuccessIfUnknown();
     	processProjections((LensContext<? extends FocusType>) context, projectionContext,
     			activityDescription, task, processorResult);
@@ -446,7 +446,7 @@ public class ProjectionValuesProcessor {
 		}
 		
 		addIterationTokenDeltas(projContext);
-		
+		result.cleanupResult();
 		if (consistencyChecks) context.checkConsistence();
 		
 					

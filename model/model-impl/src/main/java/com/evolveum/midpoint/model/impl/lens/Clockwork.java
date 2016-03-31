@@ -337,7 +337,8 @@ public class Clockwork {
 					}
 					return mode;
 			}		
-			
+			result.recomputeStatus();
+			result.cleanupResult();
 			return invokeHooks(context, task, result);
 			
 		} catch (CommunicationException e) {

@@ -126,7 +126,7 @@ public class ReconciliationProcessor {
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
-		OperationResult subResult = result.createSubresult(PROCESS_RECONCILIATION);
+		OperationResult subResult = result.createMinorSubresult(PROCESS_RECONCILIATION);
 
 		try {
 			// Reconcile even if it was not explicitly requested and if we have

@@ -86,7 +86,7 @@ public class WfHook implements ChangeHook {
         Validate.notNull(task);
         Validate.notNull(parentResult);
 
-        OperationResult result = parentResult.createSubresult(OPERATION_INVOKE);
+        OperationResult result = parentResult.createMinorSubresult(OPERATION_INVOKE);
         result.addParam("taskFromModel", task.toString());
         result.addContext("model state", context.getState());
 
