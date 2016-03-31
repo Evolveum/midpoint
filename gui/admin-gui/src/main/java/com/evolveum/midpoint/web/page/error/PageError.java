@@ -49,6 +49,7 @@ public class PageError extends PageBase {
     private static final String ID_CODE = "code";
     private static final String ID_LABEL = "label";
     private static final String ID_MESSAGE = "message";
+    private static final String ID_ERROR_MESSAGE = "errorMessage";
     private static final String ID_BACK = "back";
     private static final String ID_HOME = "home";
 
@@ -57,6 +58,7 @@ public class PageError extends PageBase {
     private Integer code;
     private String exClass;
     private String exMessage;
+    protected String errorMessageKey;
 
     public PageError() {
         this(500);
@@ -82,6 +84,9 @@ public class PageError extends PageBase {
 
         Label codeLabel = new Label(ID_CODE, code);
         add(codeLabel);
+
+        Label errorMessage = new Label(ID_ERROR_MESSAGE, createStringResource(getErrorMessageKey()));
+        add(errorMessage);
 
         String errorLabel = "Unexpected error";
         if (code != null) {
@@ -175,5 +180,9 @@ public class PageError extends PageBase {
 
     private void backPerformed(AjaxRequestTarget target) {
         redirectBack();
+    }
+
+    protected String getErrorMessageKey() {
+        return "PageError.message";
     }
 }

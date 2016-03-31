@@ -131,4 +131,9 @@ public class TwoStateBooleanPanel extends BasePanel<Boolean>{
      *  Override to provide custom action on change state event
      * */
     protected void onStateChanged(AjaxRequestTarget target, Boolean newValue){}
+
+    public void setPanelEnabled(boolean isEnabled){
+        get(ID_BUTTON_ONE).setEnabled(isEnabled);
+        get(ID_BUTTON_TWO).setEnabled(isEnabled);
+    }
 }

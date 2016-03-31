@@ -103,7 +103,7 @@ def updatePicture(avatarOrig, userName, avatarFileName) {
             dispose()
         }
         ImageIO.write(i, 'png', bos)
-        ImageIO.write(i, 'png', new File("D://gusto.png") )
+        //ImageIO.write(i, 'png', new File("D://gusto.png") )
     }
 
     byte[] avatar = bos.toByteArray();

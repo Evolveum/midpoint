@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder
 import org.identityconnectors.framework.common.objects.Name;
@@ -46,44 +47,26 @@ nameAIB.setRequired(true);
 nameAIB.setUpdateable(false);
 nameAIB.setCreateable(true); // only detect existence
 
-// key
-keyAIB = new AttributeInfoBuilder("key");
-keyAIB.setUpdateable(false);
-
-//emailAddress
-emailAddressAIB = new AttributeInfoBuilder("emailAddress");
-emailAddressAIB.setUpdateable(false);
-
-//avatarUrl -- 48x48, smaller sizes are ignored
-avatarUrlAIB = new AttributeInfoBuilder("avatarUrl");
-avatarUrlAIB.setUpdateable(false);
-
-//avatar -- 48x48
+//avatar -- 256x256
 avatarAIB = new AttributeInfoBuilder("avatar", byte[].class);
-avatarAIB.setUpdateable(true); // only push, not to read
-
+avatarAIB.setUpdateable(true);
 // read only custom avatars, default.png is ignored
 avatarAIB.setReadable(true); // returned only in findByUID/Name
 avatarAIB.setReturnedByDefault(false);
 
-//displayName
-displayNameAIB = new AttributeInfoBuilder("displayName");
-displayNameAIB.setUpdateable(false);
+avatarLinkAIB = new AttributeInfoBuilder("avatarLink");
+avatarLinkAIB.setUpdateable(false); // only read, not to send
+avatarLinkAIB.setReadable(true);
+avatarLinkAIB.setReturnedByDefault(true);
 
-//active
-activeAIB = new AttributeInfoBuilder("active");
-activeAIB.setUpdateable(false);
+// if needed: emailAddress, id, displayName, active, slug, ...
 
-// also available if needed: self, timeZone, locale, groups
+
 
 accAttrsInfo = new HashSet<AttributeInfo>();
 accAttrsInfo.add(nameAIB.build());
-accAttrsInfo.add(keyAIB.build());
-accAttrsInfo.add(emailAddressAIB.build());
-accAttrsInfo.add(avatarUrlAIB.build());
 accAttrsInfo.add(avatarAIB.build());
-accAttrsInfo.add(displayNameAIB.build());
-accAttrsInfo.add(activeAIB.build());
+accAttrsInfo.add(avatarLinkAIB.build());
 
 // Create the __ACCOUNT__ Object class
 final ObjectClassInfo ociAccount = new ObjectClassInfoBuilder().setType("__ACCOUNT__").addAllAttributeInfo(accAttrsInfo).build();
