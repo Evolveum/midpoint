@@ -168,7 +168,7 @@ function storeTextAreaSize(textAreaId) {
  * 
  * @param textAreaId
  */
-function restoreTextAreaSize(textAreaId, key) {
+function restoreTextAreaSize(textAreaId) {
     console.log("restoreTextAreaSize('" + textAreaId + "')");
 
     var area = $('#' + textAreaId);
@@ -178,4 +178,8 @@ function restoreTextAreaSize(textAreaId, key) {
     area.height(value.height);
     area.width(value.width);
     area.prop('selectionStart', value.position);
+
+    // resize also error message span
+    var areaPadding = 70;
+    area.siblings('.help-block').width(value.width + areaPadding);
 }

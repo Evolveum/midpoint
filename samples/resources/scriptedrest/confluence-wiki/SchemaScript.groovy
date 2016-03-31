@@ -45,19 +45,28 @@ log.info("Entering "+action+" Script");
 nameAIB = new AttributeInfoBuilder(Name.NAME);
 nameAIB.setRequired(true);
 nameAIB.setUpdateable(false);
-nameAIB.setCreateable(false);
+nameAIB.setCreateable(true); // only detect existence
 
 //avatar -- 256x256
 avatarAIB = new AttributeInfoBuilder("avatar", byte[].class);
-avatarAIB.setUpdateable(true); // only send, not to read
-avatarAIB.setReadable(false);
+avatarAIB.setUpdateable(true);
+// read only custom avatars, default.png is ignored
+avatarAIB.setReadable(true); // returned only in findByUID/Name
 avatarAIB.setReturnedByDefault(false);
 
 // if needed: email, url, fullname, can get by method getUser
 
+
+// returned only in findByUID/Name
+thumbnailLinkAIB = new AttributeInfoBuilder("thumbnailLink");
+thumbnailLinkAIB.setUpdateable(false); // only read, not to send
+thumbnailLinkAIB.setReadable(true);
+thumbnailLinkAIB.setReturnedByDefault(false);
+
 accAttrsInfo = new HashSet<AttributeInfo>();
 accAttrsInfo.add(nameAIB.build());
 accAttrsInfo.add(avatarAIB.build());
+accAttrsInfo.add(thumbnailLinkAIB.build());
 
 // Create the __ACCOUNT__ Object class
 final ObjectClassInfo ociAccount = new ObjectClassInfoBuilder().setType("__ACCOUNT__").addAllAttributeInfo(accAttrsInfo).build();

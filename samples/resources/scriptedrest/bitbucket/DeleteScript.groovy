@@ -1,5 +1,3 @@
-import org.identityconnectors.framework.common.exceptions.AlreadyExistsException
-
 /*
  * Copyright (c) 2010-2016 Evolveum
  *
@@ -17,33 +15,17 @@ import org.identityconnectors.framework.common.exceptions.AlreadyExistsException
  */
 
 // Parameters:
-// The connector sends us the following:
-// connection : handler to the REST Client
+// The connector sends the following:
+// connection: handler to the REST Client 
 // (see: http://groovy.codehaus.org/modules/http-builder/apidocs/groovyx/net/http/RESTClient.html)
 // configuration : handler to the connector's configuration object
-// action: String correponding to the action ("CREATE" here)
+// action: a string describing the action ("DELETE" here)
 // log: a handler to the Log facility
 // objectClass: a String describing the Object class (__ACCOUNT__ / __GROUP__ / other)
-// id: The entry identifier (OpenICF "Name" atribute. (most often matches the uid) - IF action = CREATE
-// attributes: an Attribute Map, containg the <String> attribute name as a key
-// and the <List> attribute value(s) as value.
-// password: password string, clear text
 // options: a handler to the OperationOptions Map
-//
-// Returns: Create must return UID.
+// uid: String for the unique id that specifies the object to delete
 
-log.info("Entering "+action+" Script, attributes: "+attributes);
-
-// detect if user already exists
-resp = connection.get(path: "https://jira.evolveum.com/rest/api/latest/user",
-        query: ['username' : id]);
-json = resp.getData();
-log.ok("JSON create search response:\n" + json);
-
-//userName = json."name";
-if (json && json."name" && id.equals(json."name")) {
-    throw new AlreadyExistsException("User "+id+" already exists");
-}
-
+log.info("Entering "+action+" Script, uid: "+uid);
 
 throw new UnsupportedOperationException("not supported operation, only update/delete avatar is implemented");
+

@@ -36,15 +36,13 @@ import org.identityconnectors.framework.common.exceptions.AlreadyExistsException
 log.info("Entering "+action+" Script, attributes: "+attributes);
 
 // detect if user already exists
-def body = '[ "'+id+'" ]';
-resp = connection.post(path: "https://wiki.evolveum.com/rpc/json-rpc/confluenceservice-v2/getUser",
-        headers: ['Accept': '*/*', 'Content-Type': 'application/json'],
-        body: body)
+
+resp = connection.get(path: "http://localhost:7990/rest/api/1.0/admin/users",
+        query: ['start': 0, 'limit': 1, 'filter' : id]);
 json = resp.getData();
 log.ok("JSON create search response:\n" + json);
 
-//userName = json."name";
-if (json && json.name && id.equals(json.name)) {
+if (json && json.values && id.equals(json.values[0].name)) {
     throw new AlreadyExistsException("User "+id+" already exists");
 }
 

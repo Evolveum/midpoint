@@ -59,6 +59,13 @@
                         <minOccurs>0</minOccurs>
                     </limitations>
                     <matchingRule>mr:stringIgnoreCase</matchingRule>
+                    <!-- to detect existing users as AlreadyExistsException over CreateScript -->
+                    <outbound>
+                       <strength>normal</strength>
+                       <source>
+                          <c:path>$user/name</c:path>
+                       </source>
+                    </outbound>
                     <inbound>
                         <strength>normal</strength>
                         <target>
