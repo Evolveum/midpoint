@@ -39,6 +39,7 @@ import org.apache.wicket.util.string.StringValue;
  * @author mserbak
  * @author mederly
  */
+@Deprecated
 @PageDescriptor(url = "/admin/workItems/processInstance", encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL,
                 label = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_LABEL,

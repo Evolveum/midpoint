@@ -33,8 +33,6 @@ public interface ProcessMidPointInterface {
 
     String getState(Map<String, Object> variables);
 
-    WfProcessSpecificStateType externalizeProcessSpecificState(Map<String, Object> variables);
-
     DecisionType extractDecision(Map<String, Object> variables);
 
     String getBeanName();

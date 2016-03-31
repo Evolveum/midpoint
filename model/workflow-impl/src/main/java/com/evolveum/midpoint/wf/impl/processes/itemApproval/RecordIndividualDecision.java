@@ -16,17 +16,25 @@
 
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.BaseProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemApprovalProcessStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LevelEvaluationStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.apache.commons.lang.Validate;
@@ -35,6 +43,10 @@ import java.util.Date;
 import java.util.List;
 
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getActivitiInterface;
+import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getCacheRepositoryService;
+import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getPrismContext;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESS_SPECIFIC_STATE;
 
 /**
  * @author mederly
@@ -44,6 +56,9 @@ public class RecordIndividualDecision implements JavaDelegate {
     private static final Trace LOGGER = TraceManager.getTrace(RecordIndividualDecision.class);
 
     public void execute(DelegateExecution execution) {
+
+		String taskOid = execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID, String.class);
+		Validate.notNull(taskOid, CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID + " is null");
 
         List<Decision> decisionList = (List<Decision>) execution.getVariable(ProcessVariableNames.DECISIONS_IN_LEVEL);
         Validate.notNull(decisionList, "decisionList is null");
@@ -111,7 +126,20 @@ public class RecordIndividualDecision implements JavaDelegate {
         }
         execution.setVariable(BaseProcessMidPointInterface.VARIABLE_WF_STATE, "User " + decision.getApproverName() + " decided to " + (decision.isApproved() ? "approve" : "refuse") + " the request.");
 
-        getActivitiInterface().notifyMidpointAboutProcessEvent(execution);
+		try {
+			ItemPath itemPath = new ItemPath(F_WORKFLOW_CONTEXT, F_PROCESS_SPECIFIC_STATE, ItemApprovalProcessStateType.F_DECISIONS);		// assuming it already exists!
+			ItemDefinition<?> itemDefinition = getPrismContext().getSchemaRegistry()
+					.findContainerDefinitionByCompileTimeClass(ItemApprovalProcessStateType.class)
+					.findItemDefinition(ItemApprovalProcessStateType.F_DECISIONS);
+			getCacheRepositoryService().modifyObject(TaskType.class, taskOid,
+					DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+							.item(itemPath, itemDefinition).add(decision.toDecisionType())
+							.asItemDeltas(),
+					new OperationResult("dummy"));
+		} catch (ObjectNotFoundException|SchemaException|ObjectAlreadyExistsException e) {
+			throw new SystemException("Couldn't record decision to the task " + taskOid + ": " + e.getMessage(), e);
+		}
+		getActivitiInterface().notifyMidpointAboutProcessEvent(execution);
     }
 
 }

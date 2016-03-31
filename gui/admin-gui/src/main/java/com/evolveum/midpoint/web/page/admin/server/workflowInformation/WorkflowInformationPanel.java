@@ -36,6 +36,7 @@ import java.util.List;
 /**
  * @author mederly
  */
+@Deprecated
 public class WorkflowInformationPanel extends SimplePanel<TaskDto> {
 
     private static final String ID_DELTAS_PANEL = "deltasPanel";

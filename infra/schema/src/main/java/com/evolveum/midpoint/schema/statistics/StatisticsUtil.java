@@ -21,11 +21,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;
 
@@ -76,4 +72,27 @@ public class StatisticsUtil {
         }
         return def.getTypeName();
     }
+
+	public static boolean isEmpty(EnvironmentalPerformanceInformationType info) {
+		return info == null ||
+				(isEmpty(info.getProvisioningStatistics())
+				&& isEmpty(info.getMappingsStatistics())
+				&& isEmpty(info.getNotificationsStatistics())
+				&& info.getLastMessage() == null
+				&& info.getLastMessageTimestamp() == null);
+	}
+
+	public static boolean isEmpty(NotificationsStatisticsType notificationsStatistics) {
+		return notificationsStatistics == null || notificationsStatistics.getEntry().isEmpty();
+	}
+
+	public static boolean isEmpty(MappingsStatisticsType mappingsStatistics) {
+		return mappingsStatistics == null || mappingsStatistics.getEntry().isEmpty();
+	}
+
+	public static boolean isEmpty(ProvisioningStatisticsType provisioningStatistics) {
+		return provisioningStatistics == null || provisioningStatistics.getEntry().isEmpty();
+	}
+
+
 }

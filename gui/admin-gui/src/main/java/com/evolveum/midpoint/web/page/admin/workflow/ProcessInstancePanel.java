@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceNewDto;
 import org.apache.wicket.model.IModel;
 
+@Deprecated
 public class ProcessInstancePanel extends BasePanel<ProcessInstanceNewDto> {
     public ProcessInstancePanel(String id) {
         super(id);
