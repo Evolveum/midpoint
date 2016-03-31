@@ -24,31 +24,64 @@
     <name>Org Metarole</name>
 
     <inducement>
+    	<description>OM-I1</description>
         <construction>
+        	<description>OM-I1</description>
             <resourceRef oid="10000000-0000-0000-0000-000000000003"/>
             <kind>entitlement</kind>
             <intent>group</intent>
         </construction>
     </inducement>
-    
+        
     <inducement>
-    	<description>RM-I2</description>
+    	<description>OM-I2O</description>
     	<construction>
-    		<description>RM-I2</description>
+    		<description>OM-I2O</description>
     		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
-    		<kind>account</kind>
-    		<intent>default</intent>
+    		<kind>entitlement</kind>
+    		<intent>group</intent>
     		<association>
             	<ref>ri:group</ref>
             	<outbound>
-            		<strength>strong</strength>
             		<expression>
             			<associationFromLink>
             				<projectionDiscriminator>
 	            				<kind>entitlement</kind>
 	            				<intent>group</intent>
             				</projectionDiscriminator>
-            				<recurseUpOrgType>functional</recurseUpOrgType>
+            			</associationFromLink>
+            		</expression>
+            	</outbound>
+            </association>
+    	</construction>
+    	<order>2</order>
+    	<condition>
+	    <expression>
+	      <script>
+	        <code>
+	          focus.getClass() == com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType.class
+	        </code>
+	      </script>
+	    </expression>
+	  </condition> 
+    </inducement>
+
+    <inducement>
+    	<description>OM-I2U</description>
+    	<construction>
+    		<description>OM-I2U</description>
+    		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+    		<kind>account</kind>
+    		<intent>default</intent>
+    		<association>
+            	<ref>ri:group</ref>
+            	<outbound>
+            		<expression>
+            			<associationFromLink>
+            				<projectionDiscriminator>
+	            				<kind>entitlement</kind>
+	            				<intent>group</intent>
+            				</projectionDiscriminator>
             			</associationFromLink>
             		</expression>
             	</outbound>

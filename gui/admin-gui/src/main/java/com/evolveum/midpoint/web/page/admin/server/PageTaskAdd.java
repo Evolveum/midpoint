@@ -331,6 +331,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
         AutoCompleteSettings autoCompleteSettings = new AutoCompleteSettings();
         autoCompleteSettings.setShowListOnEmptyInput(true);
+        autoCompleteSettings.setMaxHeightInPx(200);
         final AutoCompleteTextField<String> objectClass = new AutoCompleteTextField<String>(ID_OBJECT_CLASS,
                 new PropertyModel<String>(model, TaskAddDto.F_OBJECT_CLASS), autoCompleteSettings) {
 

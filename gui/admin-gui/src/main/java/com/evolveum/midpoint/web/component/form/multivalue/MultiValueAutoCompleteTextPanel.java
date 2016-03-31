@@ -102,6 +102,7 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Bas
             protected void populateItem(final ListItem<T> item) {
                 AutoCompleteSettings autoCompleteSettings = new AutoCompleteSettings();
                 autoCompleteSettings.setShowListOnEmptyInput(true);
+                autoCompleteSettings.setMaxHeightInPx(200);
                 AutoCompleteTextField<String> autoCompleteEditor = new AutoCompleteTextField<String>(ID_TEXT,
                         createTextModel(item.getModel()), autoCompleteSettings) {
 

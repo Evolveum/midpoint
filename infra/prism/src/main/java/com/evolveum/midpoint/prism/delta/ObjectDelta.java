@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -781,6 +781,26 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.MODIFY, prismContext);
     	objectDelta.setOid(oid);
     	fillInModificationDeleteProperty(objectDelta, propertyPath, propertyValues);
+    	return objectDelta;
+    }
+    
+    /**
+     * Convenience method for quick creation of object deltas that replace a single object reference.
+     */
+    public static <O extends Objectable, X> ObjectDelta<O> createModificationReplaceReference(Class<O> type, String oid, QName referenceName,
+    		PrismContext prismContext, PrismReferenceValue... refValues) {
+    	ItemPath propertyPath = new ItemPath(referenceName);
+    	return createModificationReplaceReference(type, oid, propertyPath, prismContext, refValues);
+    }
+    
+    /**
+     * Convenience method for quick creation of object deltas that replace a single object reference.
+     */
+    public static <O extends Objectable, X> ObjectDelta<O> createModificationReplaceReference(Class<O> type, String oid, 
+    		ItemPath refPath, PrismContext prismContext, PrismReferenceValue... refValues) {
+    	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.MODIFY, prismContext);
+    	objectDelta.setOid(oid);
+    	fillInModificationReplaceReference(objectDelta, refPath, refValues);
     	return objectDelta;
     }
     

@@ -45,11 +45,11 @@
    </connectorConfiguration>
    <schemaHandling>
       <objectType>
+         <kind>account</kind>
+         <intent>account</intent>
          <displayName>Default Account</displayName>
          <default>true</default>
          <objectClass>ri:AccountObjectClass</objectClass>
-          <kind>account</kind>
-          <intent>account</intent>
          <attribute>
             <c:ref>icfs:name</c:ref>
             <displayName>userName</displayName>
@@ -126,9 +126,9 @@
 
         <synchronization>
             <objectSynchronization>
-                <enabled>true</enabled>
                 <kind>account</kind>
                 <intent>account</intent>
+                <enabled>true</enabled>
                 <correlation>
                     <q:equal>
                         <q:path>name</q:path>
