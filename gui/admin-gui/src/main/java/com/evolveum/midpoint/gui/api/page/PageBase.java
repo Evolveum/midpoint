@@ -29,6 +29,7 @@ import javax.management.ObjectName;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.web.page.self.PageRequestRole;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 import org.apache.commons.lang.StringUtils;
@@ -1248,6 +1249,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		// menu.getItems().add(item);
 		item = new MainMenuItem("fa fa-shield", createStringResource("PageAdmin.menu.credentials"),
 				PageSelfCredentials.class);
+		menu.getItems().add(item);
+		item = new MainMenuItem("fa  fa-pencil-square-o", createStringResource("PageAdmin.menu.request"),
+                PageRequestRole.class);
 		menu.getItems().add(item);
 	}
 

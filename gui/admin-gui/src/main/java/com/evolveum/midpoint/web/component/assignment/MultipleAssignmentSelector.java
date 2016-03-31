@@ -295,7 +295,7 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
 
 
     private void filterByUserPerformed(F user){
-        provider =  ((MultipleAssignmentSelectorPanel<F>)findParent(MultipleAssignmentSelectorPanel.class)).getListDataProvider(user);
+        provider =  findParent(MultipleAssignmentSelectorPanel.class).getListDataProvider(user);
     }
 
     private void deleteFilterPerformed(AjaxRequestTarget target){

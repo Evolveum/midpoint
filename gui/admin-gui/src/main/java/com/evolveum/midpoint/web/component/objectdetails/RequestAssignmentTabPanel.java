@@ -49,7 +49,7 @@ public class RequestAssignmentTabPanel<F extends FocusType> extends AbstractObje
 
     private void initLayout() {
     	Class targetFocusClass = getObjectWrapper().getObject().getCompileTimeClass();
-        MultipleAssignmentSelectorPanel<RoleType> panel = new MultipleAssignmentSelectorPanel<>(ID_MAIN_PANEL, assignmentsModel, targetFocusClass, RoleType.class);
+        MultipleAssignmentSelectorPanel<RoleType, UserType> panel = new MultipleAssignmentSelectorPanel<>(ID_MAIN_PANEL, assignmentsModel, targetFocusClass, RoleType.class);
         add(panel);
     }
 }
