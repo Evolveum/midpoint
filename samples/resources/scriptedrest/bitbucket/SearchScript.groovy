@@ -136,7 +136,6 @@ def parseUser(it, readImage, defaultAvatar) {
     }
 
     byte[] avatar = null; // send only not default profile pictures
-    byte[] avatarJpg = null;
     if (readImage && avatarUrl != null) {
         respImage = connection.get(path: avatarUrl,
                 headers: ['Content-Type': 'image/png'],
@@ -149,21 +148,11 @@ def parseUser(it, readImage, defaultAvatar) {
         if (Arrays.equals(avatar, defaultAvatar)) {
             avatar = null;
         }
-        else { // convert it to JPG for midPoint
-            ByteArrayInputStream bis = new ByteArrayInputStream(avatar);
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-
-            BufferedImage img = ImageIO.read(bis);
-            ImageIO.write(img, "jpg", bos);
-            //ImageIO.write(img, 'jpg', new File("D://gusto.jpg") )
-            avatarJpg = bos.toByteArray();
-        }
-
     }
 
     return [__UID__         : id,
             __NAME__        : id,
             avatarLink      : avatarUrl,
-            avatar          : avatarJpg
+            avatar          : avatar
     ];
 }

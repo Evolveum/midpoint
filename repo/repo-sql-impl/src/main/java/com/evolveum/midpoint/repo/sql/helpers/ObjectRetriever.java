@@ -686,6 +686,8 @@ main:       while (remaining > 0) {
             if (result != null && result.isUnknown()) {
                 result.computeStatus();
             }
+            result.setSummarizeSuccesses(true);
+            result.summarize();
         }
     }
 

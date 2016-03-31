@@ -136,7 +136,7 @@ public class InboundProcessor {
     		return;
     	}
 
-    	OperationResult subResult = result.createSubresult(PROCESS_INBOUND_HANDLING);
+    	OperationResult subResult = result.createMinorSubresult(PROCESS_INBOUND_HANDLING);
 
         ObjectDelta<F> userSecondaryDelta = focusContext.getProjectionWaveSecondaryDelta();
 
