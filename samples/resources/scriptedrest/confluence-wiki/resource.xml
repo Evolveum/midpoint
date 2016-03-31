@@ -86,6 +86,12 @@
                             <c:path>$user/jpegPhoto</c:path>
                         </source>
                     </outbound>
+                    <inbound>
+                       <strength>strong</strength>
+                       <target>
+                          <c:path>$user/jpegPhoto</c:path>
+                       </target>
+                    </inbound>
                 </attribute>
 
                 <protected>
