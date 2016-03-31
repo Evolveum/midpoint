@@ -109,7 +109,7 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 		assignments.setOutputMarkupId(true);
 		add(assignments);
 		AssignmentTablePanel panel = new AssignmentTablePanel(ID_ASSIGNMENTS_PANEL,
-				createStringResource("FocusType.assignment"), assignmentsModel, ((ObjectWrapper)getObjectWrapperModel().getObject()).isReadonly()) {
+				createStringResource("FocusType.assignment"), assignmentsModel) {
 
 			@Override
 			protected void showAllAssignments(AjaxRequestTarget target) {
