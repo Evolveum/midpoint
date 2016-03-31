@@ -360,7 +360,6 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 			// parentResult is worker-thread-specific result (because of concurrency issues)
 			// or parentResult as obtained in handle(..) method in single-thread scenario
-			result.summarize();
 			parentResult.summarize();
 
 			synchronized (coordinatorTask) {
