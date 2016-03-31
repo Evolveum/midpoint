@@ -59,12 +59,6 @@
                         <minOccurs>0</minOccurs>
                     </limitations>
                     <matchingRule>mr:stringIgnoreCase</matchingRule>
-                    <inbound>
-                        <strength>normal</strength>
-                        <target>
-                            <c:path>$user/name</c:path>
-                        </target>
-                    </inbound>
                     <!-- to detect existing users as AlreadyExistsException over CreateScript -->
                     <outbound>
                        <strength>normal</strength>
@@ -72,6 +66,12 @@
                           <c:path>$user/name</c:path>
                        </source>
                     </outbound>
+                    <inbound>
+                        <strength>normal</strength>
+                        <target>
+                            <c:path>$user/name</c:path>
+                        </target>
+                    </inbound>
                 </attribute>
                 <attribute>
                     <c:ref>ri:emailAddress</c:ref>
