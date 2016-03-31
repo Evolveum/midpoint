@@ -18,6 +18,7 @@ package com.evolveum.midpoint.testing.story;
 
 
 import static org.testng.AssertJUnit.assertNotNull;
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.io.File;
 
@@ -27,15 +28,21 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -80,6 +87,28 @@ public class TestLdapFlat extends AbstractLdapHierarchyTest {
 		}
 		
 		return user;
+	}
+	
+	@Override
+	protected void recomputeUsersIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		final Task task = createTask("recomputeUsersIfNeeded");
+		OperationResult result = task.getResult();
+		ResultHandler<UserType> handler = new ResultHandler<UserType>() {
+			@Override
+			public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {
+				try {
+					display("reconciling "+object);
+					reconcileUser(object.getOid(), task, parentResult);
+				} catch (SchemaException | PolicyViolationException | ExpressionEvaluationException
+						| ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException
+						| ConfigurationException | SecurityViolationException e) {
+					throw new SystemException(e.getMessage(), e);
+				}
+				return true;
+			}
+		};
+		display("Reconciling all users");
+		modelService.searchObjectsIterative(UserType.class, null, handler, null, task, result);
 	}
 	
 }
