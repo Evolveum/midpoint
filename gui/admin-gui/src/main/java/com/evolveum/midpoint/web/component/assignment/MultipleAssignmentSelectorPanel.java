@@ -54,7 +54,7 @@ import java.util.List;
  * the list of assigned items of the same type with the
  * possibility of editing the list of assignments.
  */
-public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePanel<List<AssignmentEditorDto>> {
+public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends FocusType> extends BasePanel<List<AssignmentEditorDto>> {
     private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
     private static final String ID_BUTTON_REMOVE = "remove";
     private static final String ID_BUTTON_ADD = "add";
@@ -78,7 +78,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
     private List<OrgType> orgEditorObject = new ArrayList<>();
     private static final Trace LOGGER = TraceManager.getTrace(MultipleAssignmentSelectorPanel.class);
 
-    public MultipleAssignmentSelectorPanel(String id, LoadableModel<List<AssignmentEditorDto>> assignmentsModel, Class<F> targetFocusClass, Class<F> type) {
+    public MultipleAssignmentSelectorPanel(String id, LoadableModel<List<AssignmentEditorDto>> assignmentsModel, Class<H> targetFocusClass, Class<F> type) {
         super(id, assignmentsModel);
         this.assignmentsModel = assignmentsModel;
         this.type = type;
@@ -88,14 +88,14 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType> extends BasePa
 
     }
 
-    private void initLayout(Class<F> targetFocusClass) {
+    private void initLayout(Class<H> targetFocusClass) {
 
         IModel<List<AssignmentEditorDto>> availableAssignmentModel = createAvailableAssignmentModel();
         dataProvider = getAvailableAssignmentsDataProvider();
-        final MultipleAssignmentSelector availableAssignmentsPanel = new MultipleAssignmentSelector<F>(ID_AVAILABLE_ASSIGNMENTS,
+        final MultipleAssignmentSelector availableAssignmentsPanel = new MultipleAssignmentSelector<H>(ID_AVAILABLE_ASSIGNMENTS,
                 availableAssignmentModel, dataProvider, targetFocusClass, type);
         currentAssignmentsProvider = getListDataProvider(null);
-        final MultipleAssignmentSelector currentAssignmentsPanel = new MultipleAssignmentSelector<F>(ID_CURRENT_ASSIGNMENTS,
+        final MultipleAssignmentSelector currentAssignmentsPanel = new MultipleAssignmentSelector<H>(ID_CURRENT_ASSIGNMENTS,
                 assignmentsModel, currentAssignmentsProvider, targetFocusClass, type);
         currentAssignmentsPanel.setFilterButtonVisibility(false);
 

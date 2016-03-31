@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.gui.api.page;
 
+import com.evolveum.midpoint.web.page.self.PageRequestRole;
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.validator.EventHandler;
@@ -293,7 +294,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return workflowService;
 	}
 
-	public WorkflowManager getWorkflowManager() {
+	protected WorkflowManager getWorkflowManager() {
 		return workflowManager;
 	}
 
@@ -1219,6 +1220,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		// menu.getItems().add(item);
 		item = new MainMenuItem("fa fa-shield", createStringResource("PageAdmin.menu.credentials"),
 				PageSelfCredentials.class);
+		menu.getItems().add(item);
+		item = new MainMenuItem("fa  fa-pencil-square-o", createStringResource("PageAdmin.menu.request"),
+                PageRequestRole.class);
 		menu.getItems().add(item);
 	}
 
