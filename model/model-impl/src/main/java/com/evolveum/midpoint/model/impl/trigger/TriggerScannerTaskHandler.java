@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.trigger;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.impl.util.AbstractScannerResultHandler;
 import com.evolveum.midpoint.model.impl.util.AbstractScannerTaskHandler;
@@ -64,7 +65,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	// Therefore it must not have task-specific fields. It can only contain fields specific to
 	// all tasks of a specified type
 	
-	public static final String HANDLER_URI = SchemaConstants.NS_MODEL + "/trigger/scanner/handler-3";
+	public static final String HANDLER_URI = ModelPublicConstants.TRIGGER_SCANNER_TASK_HANDLER_URI;
         	
 	private static final transient Trace LOGGER = TraceManager.getTrace(TriggerScannerTaskHandler.class);
 	

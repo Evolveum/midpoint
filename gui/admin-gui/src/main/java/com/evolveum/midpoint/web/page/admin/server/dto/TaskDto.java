@@ -16,10 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -50,17 +46,23 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
-import com.evolveum.midpoint.web.component.prism.show.WrapperScene;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.wf.WfHistoryEventDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.Application;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -104,6 +106,12 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	public static final String F_NOT_START_BEFORE = "notStartBefore";
 	public static final String F_NOT_START_AFTER = "notStartAfter";
 	public static final String F_MISFIRE_ACTION = "misfireAction";
+	public static final String F_OBJECT_REF_NAME = "objectRefName";
+	public static final String F_OBJECT_TYPE = "objectType";
+	public static final String F_OBJECT_QUERY = "objectQuery";
+	public static final String F_OBJECT_DELTA = "objectDelta";
+	public static final String F_SCRIPT = "script";
+	public static final String F_EXECUTE_IN_RAW_MODE = "executeInRawMode";
 
 	private List<InlineMenuItem> menuItems;
 
@@ -809,6 +817,11 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return taskType.asPrismObject().findProperty(new ItemPath(TaskType.F_EXTENSION, propertyName));
     }
 
+	private <T> T getExtensionPropertyRealValue(QName propertyName, Class<T> clazz) {
+		PrismProperty<T> property = taskType.asPrismObject().findProperty(new ItemPath(TaskType.F_EXTENSION, propertyName));
+		return property != null ? property.getRealValue() : null;
+	}
+
     public void setThreadStop(ThreadStopActionType value) {
         taskType.setThreadStopAction(value);
     }
@@ -895,6 +908,45 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			}
 		}
 		return rv;
+	}
+
+	public String getObjectType() {
+		QName type = getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, QName.class);
+		return type != null ? type.getLocalPart() : null;
+	}
+
+	public String getObjectQuery() {
+		QueryType queryType = getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.class);
+		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
+		try {
+			return prismContext.serializeAnyData(queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, PrismContext.LANG_XML);
+		} catch (SchemaException e) {
+			throw new SystemException("Couldn't serialize query: " + e.getMessage(), e);
+		}
+	}
+
+	public String getObjectDelta() {
+		ObjectDeltaType objectDeltaType = getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, ObjectDeltaType.class);
+		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
+		try {
+			return prismContext.serializeAnyData(objectDeltaType, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, PrismContext.LANG_XML);
+		} catch (SchemaException e) {
+			throw new SystemException("Couldn't serialize delta: " + e.getMessage(), e);
+		}
+	}
+
+	public String getScript() {
+		ExecuteScriptType script = getExtensionPropertyRealValue(SchemaConstants.SE_EXECUTE_SCRIPT, ExecuteScriptType.class);
+		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
+		try {
+			return prismContext.serializeAnyData(script, SchemaConstants.SE_EXECUTE_SCRIPT, PrismContext.LANG_XML);
+		} catch (SchemaException e) {
+			throw new SystemException("Couldn't serialize script: " + e.getMessage(), e);
+		}
+	}
+
+	public Boolean isExecuteInRawMode() {
+		return getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OPTION_RAW, Boolean.class);
 	}
 
     @Override

@@ -80,10 +80,7 @@ public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskT
 		threadsConfigurationPanel.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				TaskDto dto = taskDtoModel.getObject();
-				return TaskCategory.RECONCILIATION.equals(dto.getCategory()) ||
-						TaskCategory.IMPORTING_ACCOUNTS.equals(dto.getCategory()) ||
-						TaskCategory.RECOMPUTATION.equals(dto.getCategory());
+				return parentPage.configuresWorkerThreads();
 			}
 		});
 

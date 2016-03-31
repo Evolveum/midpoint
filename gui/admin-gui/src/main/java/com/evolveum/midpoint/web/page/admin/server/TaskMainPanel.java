@@ -83,44 +83,55 @@ public class TaskMainPanel extends Panel {
 	protected List<ITab> createTabs() {
 		List<ITab> tabs = new ArrayList<>();
 		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.basic")){
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.basic")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
 						return new TaskBasicTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
 					}
 				});
 		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.objects")){
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskObjectsTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
-					}
-				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.scheduleTitle")){
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.scheduleTitle")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
 						return new TaskSchedulingTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
 					}
 				});
 		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.subtasksAndThreads")){
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.subtasksAndThreads")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
 						return new TaskSubtasksAndThreadsTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
 					}
 					@Override
 					public boolean isVisible() {
-						return true;//!parentPage.isEdit() && (!taskDtoModel.getObject().getSubtasks().isEmpty() || !taskDtoModel.getObject().getTransientSubtasks().isEmpty());
+						if (parentPage.isEdit()) {
+							return parentPage.configuresWorkerThreads();
+						} else {
+							return parentPage.configuresWorkerThreads() || !taskDtoModel.getObject().getSubtasks().isEmpty() || !taskDtoModel.getObject().getTransientSubtasks().isEmpty();
+						}
 					}
 				});
 		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.progress")){
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.work")) {
+					@Override
+					public WebMarkupContainer getPanel(String panelId) {
+						return new TaskWorkTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
+					}
+					@Override
+					public boolean isVisible() {
+						if (parentPage.isEdit()) {
+							return parentPage.configuresWorkToDo();
+						} else {
+							return parentPage.configuresWorkToDo() || parentPage.getTaskDto().getObjectRef() != null;
+						}
+					}
+				});
+		tabs.add(
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.progress")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
 						return new TaskProgressTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
 					}
-
 					@Override
 					public boolean isVisible() {
 						final OperationStatsType operationStats = taskDtoModel.getObject().getTaskType().getOperationStats();
@@ -128,7 +139,7 @@ public class TaskMainPanel extends Panel {
 					}
 				});
 		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.statesAndActions")){
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.statesAndActions")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
 						return new TaskStatesAndActionsTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
@@ -142,12 +153,11 @@ public class TaskMainPanel extends Panel {
 					}
 				});
 		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.performance")){
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.performance")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
 						return new TaskPerformanceTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
 					}
-
 					@Override
 					public boolean isVisible() {
 						final OperationStatsType operationStats = taskDtoModel.getObject().getTaskType().getOperationStats();
@@ -155,7 +165,7 @@ public class TaskMainPanel extends Panel {
 					}
 				});
 		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.approvals")){
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.approvals")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
 						return new TaskApprovalsTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
@@ -168,7 +178,7 @@ public class TaskMainPanel extends Panel {
 					}
 				});
 		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.operation")){
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.operation")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
 						return new TaskOperationTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
@@ -179,7 +189,7 @@ public class TaskMainPanel extends Panel {
 					}
 				});
 		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.result")){
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.result")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
 						return new TaskResultTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
@@ -244,7 +254,6 @@ public class TaskMainPanel extends Panel {
 		mainForm.add(editButton);
 
 		AjaxButton suspend = new AjaxButton(ID_SUSPEND, parentPage.createStringResource("pageTaskEdit.button.suspend")) {
-
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				parentPage.getController().suspendPerformed(target);
@@ -260,7 +269,6 @@ public class TaskMainPanel extends Panel {
 		mainForm.add(suspend);
 
 		AjaxButton resume = new AjaxButton(ID_RESUME, parentPage.createStringResource("pageTaskEdit.button.resume")) {
-
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				parentPage.getController().resumePerformed(target);
@@ -276,7 +284,6 @@ public class TaskMainPanel extends Panel {
 		mainForm.add(resume);
 
 		AjaxButton runNow = new AjaxButton(ID_RUN_NOW, parentPage.createStringResource("pageTaskEdit.button.runNow")) {
-
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				parentPage.getController().runNowPerformed(target);

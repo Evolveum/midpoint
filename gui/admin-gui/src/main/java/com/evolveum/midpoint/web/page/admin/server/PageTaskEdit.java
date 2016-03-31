@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -252,6 +254,46 @@ public class PageTaskEdit extends PageAdmin {
 		return exec == TaskDtoExecutionStatus.SUSPENDED;
 	}
 
+	boolean isReconciliation() {
+		return TaskCategory.RECONCILIATION.equals(getTaskDto().getCategory());
+	}
+
+	boolean isImportAccounts() {
+		return TaskCategory.IMPORTING_ACCOUNTS.equals(getTaskDto().getCategory());
+	}
+
+	boolean isRecomputation() {
+		return TaskCategory.RECOMPUTATION.equals(getTaskDto().getCategory());
+	}
+
+	boolean isExecuteChanges() {
+		return TaskCategory.EXECUTE_CHANGES.equals(getTaskDto().getCategory());
+	}
+
+	boolean isLiveSync() {
+		return TaskCategory.LIVE_SYNCHRONIZATION.equals(getTaskDto().getCategory());
+	}
+
+	boolean isShadowIntegrityCheck() {
+		return getTaskDto().getHandlerUriList().contains(ModelPublicConstants.SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI);
+	}
+
+	boolean isFocusValidityScanner() {
+		return getTaskDto().getHandlerUriList().contains(ModelPublicConstants.FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI);
+	}
+
+	boolean isTriggerScanner() {
+		return getTaskDto().getHandlerUriList().contains(ModelPublicConstants.TRIGGER_SCANNER_TASK_HANDLER_URI);
+	}
+
+	boolean isDelete() {
+		return getTaskDto().getHandlerUriList().contains(ModelPublicConstants.DELETE_TASK_HANDLER_URI);
+	}
+
+	boolean isBulkAction() {
+		return TaskCategory.BULK_ACTIONS.equals(getTaskDto().getCategory());
+	}
+
 	boolean isRecurring() {
 		return getTaskDto().getRecurring();
 	}
@@ -267,5 +309,41 @@ public class PageTaskEdit extends PageAdmin {
 	public void refreshRefreshing() {		// necessary for some strange reason
 		mainPanel.remove(refreshingBehavior);
 		mainPanel.add(refreshingBehavior);
+	}
+
+	public boolean configuresWorkerThreads() {
+		return isReconciliation() || isImportAccounts() || isRecomputation() || isExecuteChanges() || isShadowIntegrityCheck() || isFocusValidityScanner() || isTriggerScanner();
+	}
+
+	public boolean configuresWorkToDo() {
+		return isLiveSync() || isReconciliation() || isImportAccounts() || isRecomputation() || isExecuteChanges() || isBulkAction() || isDelete() || isShadowIntegrityCheck();
+	}
+
+	public boolean configuresResourceCoordinates() {
+		return isLiveSync() || isReconciliation() || isImportAccounts();
+	}
+
+	public boolean configuresObjectType() {
+		return isRecomputation() || isExecuteChanges() || isDelete();
+	}
+
+	public boolean configuresObjectQuery() {
+		return isRecomputation() || isExecuteChanges() || isDelete() || isShadowIntegrityCheck();
+	}
+
+	public boolean configuresObjectDelta() {
+		return isExecuteChanges();
+	}
+
+	public boolean configuresScript() {
+		return isBulkAction();
+	}
+
+	public boolean configuresDryRun() {
+		return isLiveSync() || isReconciliation() || isImportAccounts() || isShadowIntegrityCheck();
+	}
+
+	public boolean configuresExecuteInRawMode() {
+		return isExecuteChanges();
 	}
 }
