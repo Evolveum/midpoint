@@ -18,32 +18,18 @@ package com.evolveum.midpoint.web.page.admin.server.currentState;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.progress.StatisticsDtoModel;
-import com.evolveum.midpoint.web.component.progress.StatisticsPanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEditOld;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import org.apache.commons.lang.time.DurationFormatUtils;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.ResourceModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
@@ -420,7 +406,7 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
         return (finished - started) / objectsTotal;
     }
 
-    public void refreshModel(PageTaskEdit page) {
+    public void refreshModel(PageTaskEditOld page) {
         IModel<TaskCurrentStateDto> model = getModel();
         if (!(model instanceof TaskCurrentStateDtoModel)) {
             LOGGER.warn("Unexpected or null model for TaskCurrentStateDto object: {}", model);

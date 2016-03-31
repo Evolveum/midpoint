@@ -76,11 +76,11 @@ public class TaskObjectsTabPanel extends AbstractObjectTabPanel<TaskType> {
 	private static final Trace LOGGER = TraceManager.getTrace(TaskObjectsTabPanel.class);
 
 	private LoadableModel<TaskDto> taskDtoModel;
-	private PageTask2 parentPage;
+	private PageTaskEdit parentPage;
 
 	public TaskObjectsTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
-			LoadableModel<TaskDto> taskDtoModel, PageTask2 parentPage) {
+			LoadableModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
 		super(id, mainForm, taskWrapperModel, parentPage);
 		this.taskDtoModel = taskDtoModel;
 		this.parentPage = parentPage;

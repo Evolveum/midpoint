@@ -50,7 +50,6 @@ import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
 import com.evolveum.midpoint.web.session.TasksStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -547,7 +546,7 @@ public class PageTasks extends PageAdminTasks {
             private void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-                component.setResponsePage(new PageTask2(parameters));
+                component.setResponsePage(new PageTaskEdit(parameters));
             }
 
             @Override

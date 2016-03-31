@@ -51,18 +51,18 @@ public class PageTaskController implements Serializable {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageTaskController.class);
 
-	private PageTask2 parentPage;
+	private PageTaskEdit parentPage;
 
-	public PageTaskController(PageTask2 parentPage) {
+	public PageTaskController(PageTaskEdit parentPage) {
 		this.parentPage = parentPage;
 	}
 
 	void savePerformed(AjaxRequestTarget target) {
 		LOGGER.debug("Saving new task.");
-		OperationResult result = new OperationResult(PageTask2.OPERATION_SAVE_TASK);
+		OperationResult result = new OperationResult(PageTaskEdit.OPERATION_SAVE_TASK);
 
 		TaskDto dto = parentPage.getTaskDto();
-		Task operationTask = parentPage.createSimpleTask(PageTask2.OPERATION_SAVE_TASK);
+		Task operationTask = parentPage.createSimpleTask(PageTaskEdit.OPERATION_SAVE_TASK);
 		TaskManager manager = parentPage.getTaskManager();
 
 		try {
@@ -252,8 +252,8 @@ public class PageTaskController implements Serializable {
 		parentPage.refreshRefreshing();
 
 		target.add(parentPage.getFeedbackPanel());
-		target.add(parentPage.get(PageTask2.ID_SUMMARY_PANEL));
-		target.add(parentPage.get(PageTask2.ID_MAIN_PANEL));
+		target.add(parentPage.get(PageTaskEdit.ID_SUMMARY_PANEL));
+		target.add(parentPage.get(PageTaskEdit.ID_MAIN_PANEL));
 
 		//parentPage.startRefreshing();
 		//parentPage.setResponsePage(new PageTasks(false));
@@ -265,8 +265,8 @@ public class PageTaskController implements Serializable {
 		parentPage.refreshModel();
 		parentPage.startRefreshing();
 		target.add(parentPage.getFeedbackPanel());
-		target.add(parentPage.get(PageTask2.ID_SUMMARY_PANEL));
-		target.add(parentPage.get(PageTask2.ID_MAIN_PANEL));
+		target.add(parentPage.get(PageTaskEdit.ID_SUMMARY_PANEL));
+		target.add(parentPage.get(PageTaskEdit.ID_MAIN_PANEL));
 		//parentPage.setResponsePage(new PageTasks(false));
 	}
 
@@ -278,8 +278,8 @@ public class PageTaskController implements Serializable {
 			parentPage.refreshModel();
 			parentPage.startRefreshing();
 			target.add(parentPage.getFeedbackPanel());
-			target.add(parentPage.get(PageTask2.ID_SUMMARY_PANEL));
-			target.add(parentPage.get(PageTask2.ID_MAIN_PANEL));
+			target.add(parentPage.get(PageTaskEdit.ID_SUMMARY_PANEL));
+			target.add(parentPage.get(PageTaskEdit.ID_MAIN_PANEL));
 		}
 	}
 

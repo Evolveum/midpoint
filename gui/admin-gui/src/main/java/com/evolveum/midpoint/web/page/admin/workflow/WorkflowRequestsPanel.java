@@ -5,13 +5,11 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -34,9 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
-import static com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon.FATAL_ERROR;
-import static com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon.IN_PROGRESS;
-import static com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon.SUCCESS;
+import static com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon.*;
 import static com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto.*;
 
 /**
@@ -135,7 +131,7 @@ public class WorkflowRequestsPanel extends BasePanel {
 	private void itemDetailsPerformed(AjaxRequestTarget target, String pid) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, pid);
-        setResponsePage(new PageTaskEdit(parameters, this.getPageBase()));
+        setResponsePage(new PageTaskEdit(parameters));
     }
 
 	// copied and adapted from WorkItemsTablePanel - TODO deduplicate

@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
@@ -34,7 +33,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -65,11 +63,11 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> {
 	private static final Trace LOGGER = TraceManager.getTrace(TaskBasicTabPanel.class);
 
 	private LoadableModel<TaskDto> taskDtoModel;
-	private PageTask2 parentPage;
+	private PageTaskEdit parentPage;
 
 	public TaskBasicTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
-			LoadableModel<TaskDto> taskDtoModel, PageTask2 parentPage) {
+			LoadableModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
 		super(id, mainForm, taskWrapperModel, parentPage);
 		this.taskDtoModel = taskDtoModel;
 		this.parentPage = parentPage;
@@ -124,7 +122,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> {
 				if (oid != null) {
 					PageParameters parameters = new PageParameters();
 					parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-					setResponsePage(new PageTaskEdit(parameters, parentPage));			// TODO new page task
+					setResponsePage(new PageTaskEdit(parameters));
 				}
 			}
 		};

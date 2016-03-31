@@ -57,9 +57,9 @@ public class TaskMainPanel extends Panel {
 	private LoadableModel<ObjectWrapper<TaskType>> objectModel;
 	private LoadableModel<TaskDto> taskDtoModel;
 	private Form mainForm;
-	private PageTask2 parentPage;
+	private PageTaskEdit parentPage;
 
-	public TaskMainPanel(String id, LoadableModel<ObjectWrapper<TaskType>> objectModel, LoadableModel<TaskDto> taskDtoModel, PageTask2 parentPage) {
+	public TaskMainPanel(String id, LoadableModel<ObjectWrapper<TaskType>> objectModel, LoadableModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
 		super(id, objectModel);
 		this.objectModel = objectModel;
 		this.taskDtoModel = taskDtoModel;

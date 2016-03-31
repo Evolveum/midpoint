@@ -18,10 +18,6 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -30,7 +26,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -43,7 +38,6 @@ import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
 /**

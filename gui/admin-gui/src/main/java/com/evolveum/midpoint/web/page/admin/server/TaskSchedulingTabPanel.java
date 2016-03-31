@@ -76,12 +76,12 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> {
 	public static final String ID_LAST_FINISHED = "lastFinished";
 	public static final String ID_NEXT_RUN = "nextRun";
 
-	private PageTask2 parentPage;
+	private PageTaskEdit parentPage;
 	private IModel<TaskDto> taskDtoModel;
 
 	public TaskSchedulingTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
-			LoadableModel<TaskDto> taskDtoModel, PageTask2 parentPage) {
+			LoadableModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
 		super(id, mainForm, taskWrapperModel, parentPage);
 		this.taskDtoModel = taskDtoModel;
 		this.parentPage = parentPage;
