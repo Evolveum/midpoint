@@ -20,7 +20,6 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -34,9 +33,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import java.util.ArrayList;
@@ -75,6 +72,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
 	private boolean showEmpty = false;
 	private boolean minimized = true;
+    private boolean editable = true;
 
 	private Boolean isOrgUnitManager = Boolean.FALSE;
 	private AssignmentType newAssignment;
@@ -102,6 +100,13 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		// ConstructionType construction = oldAssignment.getConstruction();
 		// newAssignment.setConstruction(construction.clone());
 		// }
+        List<Item> itemsList = newValue.getItems();
+        if (itemsList != null && itemsList.size() > 0){
+            Item item = itemsList.get(0);
+            if (item != null && item.getDefinition() != null) {
+                this.editable = item.getDefinition().canAdd() || item.getDefinition().canModify();
+            }
+        }
 
 		this.tenantRef = loadTenantOrgReference(assignment, assignment.getTenantRef());
 		this.orgRef = loadTenantOrgReference(assignment, assignment.getOrgRef());
@@ -378,7 +383,15 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		this.showEmpty = showEmpty;
 	}
 
-	public UserDtoStatus getStatus() {
+    public boolean isEditable() {
+        return editable;
+    }
+
+    public void setEditable(boolean editable) {
+        this.editable = editable;
+    }
+
+    public UserDtoStatus getStatus() {
 		return status;
 	}
 
@@ -570,6 +583,8 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		if (minimized != that.minimized)
 			return false;
 		if (showEmpty != that.showEmpty)
+			return false;
+		if (editable != that.editable)
 			return false;
 		if (altName != null ? !altName.equals(that.altName) : that.altName != null)
 			return false;

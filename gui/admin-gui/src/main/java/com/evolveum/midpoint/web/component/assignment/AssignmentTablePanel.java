@@ -85,14 +85,9 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 	public AssignmentTablePanel(String id, IModel<String> label,
 			IModel<List<AssignmentEditorDto>> assignmentModel) {
-		this(id, label, assignmentModel, false);
-	}
-
-	public AssignmentTablePanel(String id, IModel<String> label,
-			IModel<List<AssignmentEditorDto>> assignmentModel, boolean isReadOnly) {
 		super(id, assignmentModel);
 
-		initLayout(label, isReadOnly);
+		initLayout(label);
 	}
 
 	public List<AssignmentType> getAssignmentTypeList() {
@@ -107,7 +102,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		return getModel();
 	}
 
-	private void initLayout(IModel<String> labelText, final boolean isReadOnly) {
+	private void initLayout(IModel<String> labelText) {
 		final WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
 		assignments.setOutputMarkupId(true);
 		add(assignments);
@@ -122,7 +117,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 			@Override
 			protected void populateItem(ListItem<AssignmentEditorDto> item) {
-				AssignmentEditorPanel editor = new AssignmentEditorPanel(ID_ROW, item.getModel(), isReadOnly);
+				AssignmentEditorPanel editor = new AssignmentEditorPanel(ID_ROW, item.getModel());
 				item.add(editor);
 			}
 		};

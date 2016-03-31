@@ -128,6 +128,9 @@ public class PageRoles extends PageAdminRoles {
                 storage.setRolesPaging(paging);
             }
         };
+        Search search = searchModel.getObject();
+        ObjectQuery query = search.createObjectQuery(getPrismContext());
+        provider.setQuery(query);
 
         List<IColumn<RoleType, String>> columns = initColumns();
 
