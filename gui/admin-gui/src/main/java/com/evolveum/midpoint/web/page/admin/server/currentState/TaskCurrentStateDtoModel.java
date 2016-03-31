@@ -62,9 +62,9 @@ public class TaskCurrentStateDtoModel extends AbstractReadOnlyModel<TaskCurrentS
 
     @Override
     public TaskCurrentStateDto getObject() {
-        if (object == null) {
+//        if (object == null) {
             object = getObjectInternal();
-        }
+//        }
         return object;
     }
 

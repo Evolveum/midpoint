@@ -2,6 +2,7 @@ package com.evolveum.midpoint.web.page.admin.resources;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.AbstractSummaryPanel;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -19,8 +20,8 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType>{
 		super(id, model);
 		
 		boolean down = ResourceTypeUtil.isDown(model.getObject().asObjectable());
-		Label summaryTag  = new Label("summaryTag", down ? "DOWN" : "UP");
-		((WebMarkupContainer) get("summaryBox")).add(summaryTag);
+		Label summaryTag  = new Label(ID_FIRST_SUMMARY_TAG, down ? "DOWN" : "UP");
+		((WebMarkupContainer) get(ID_BOX)).add(summaryTag);
 	}
 	
 	@Override

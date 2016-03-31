@@ -53,30 +53,6 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
         instruction.setProcessInterfaceBean(this);
     }
 
-    @Override
-    public ItemApprovalProcessStateType externalizeProcessSpecificState(Map<String, Object> variables) {
-        ItemApprovalProcessStateType extState = new ItemApprovalProcessStateType(prismContext);
-        com.evolveum.midpoint.xml.ns._public.common.common_3.ItemApprovalRequestType extRequestType = new com.evolveum.midpoint.xml.ns._public
-                .common.common_3.ItemApprovalRequestType(prismContext);
-
-        ApprovalSchema intApprovalSchema = (ApprovalSchema) variables.get(ProcessVariableNames.APPROVAL_SCHEMA);
-        intApprovalSchema.setPrismContext(prismContext);
-
-        ApprovalSchemaType approvalSchemaType = new ApprovalSchemaType(prismContext);
-        intApprovalSchema.toApprovalSchemaType(approvalSchemaType);
-        extRequestType.setApprovalSchema(approvalSchemaType);
-
-        List<Decision> intDecisions = (List<Decision>) variables.get(ProcessVariableNames.ALL_DECISIONS);
-        if (intDecisions != null) {
-            for (Decision intDecision : intDecisions) {
-                extState.getDecisions().add(intDecision.toDecisionType());
-            }
-        }
-
-        extState.asPrismContainerValue().setConcreteType(ItemApprovalProcessStateType.COMPLEX_TYPE);
-        return extState;
-    }
-
     @Override public DecisionType extractDecision(Map<String, Object> variables) {
         DecisionType decision = new DecisionType();
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2065 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -73,7 +73,6 @@
             <attribute>
                 <ref>ri:dn</ref>
                 <displayName>Distinguished Name</displayName>
-                <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
 					<source>
@@ -137,7 +136,6 @@
 
             <attribute>
                 <ref>ri:uid</ref>
-                <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                 	<!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
                 	     as a side-effect as it is a naming attribute. -->
@@ -205,7 +203,6 @@
 			<attribute>
 				<c:ref>ri:dn</c:ref>
 				<displayName>Distinguished Name</displayName>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<source>
 						<c:path>$focus/name</c:path>
@@ -222,7 +219,6 @@
 			<attribute>
 				<c:ref>ri:cn</c:ref>
 				<displayName>Common Name</displayName>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<source>
 						<c:path>$focus/name</c:path>

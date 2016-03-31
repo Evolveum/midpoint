@@ -16,12 +16,6 @@
 
 package com.evolveum.midpoint.wf.impl.processes;
 
-import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
 
 import java.util.Map;

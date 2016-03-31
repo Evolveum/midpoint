@@ -34,11 +34,6 @@ import java.util.Map;
 @Component
 public class DefaultProcessMidPointInterface extends BaseProcessMidPointInterface {
 
-    @Override
-    public WfProcessSpecificStateType externalizeProcessSpecificState(Map<String, Object> variables) {
-        return null;
-    }
-
     @Override public DecisionType extractDecision(Map<String, Object> variables) {
         return null;
     }

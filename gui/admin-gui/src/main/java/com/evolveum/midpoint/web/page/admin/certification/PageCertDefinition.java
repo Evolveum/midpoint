@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeDto;
@@ -228,35 +229,7 @@ public class PageCertDefinition extends PageAdminCertification {
 				return new DefinitionXmlPanel(panelId, definitionModel);
 			}
 		});
-
-		TabbedPanel tabPanel = new TabbedPanel(ID_TAB_PANEL, tabs) {
-			@Override
-			protected WebMarkupContainer newLink(String linkId, final int index) {
-				return new AjaxSubmitLink(linkId) {
-
-					@Override
-					protected void onError(AjaxRequestTarget target,
-										   org.apache.wicket.markup.html.form.Form<?> form) {
-						super.onError(target, form);
-						target.add(getFeedbackPanel());
-					}
-
-					@Override
-					protected void onSubmit(AjaxRequestTarget target,
-											org.apache.wicket.markup.html.form.Form<?> form) {
-						super.onSubmit(target, form);
-
-						setSelectedTab(index);
-						if (target != null) {
-							target.add(findParent(TabbedPanel.class));
-						}
-					}
-
-				};
-			}
-		};
-		tabPanel.setOutputMarkupId(true);
-
+		TabbedPanel tabPanel = AbstractObjectMainPanel.createTabPanel(this, tabs);
 		mainForm.add(tabPanel);
 	}
 

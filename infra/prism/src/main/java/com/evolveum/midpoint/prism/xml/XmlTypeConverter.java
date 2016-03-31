@@ -488,7 +488,7 @@ public class XmlTypeConverter {
     	}
         return xmlCal.toGregorianCalendar().getTimeInMillis();
     }
-    
+
 	public static Date toDate(XMLGregorianCalendar xmlCal) {
 		return xmlCal != null ? new Date(xmlCal.toGregorianCalendar().getTimeInMillis()) : null;
 	}

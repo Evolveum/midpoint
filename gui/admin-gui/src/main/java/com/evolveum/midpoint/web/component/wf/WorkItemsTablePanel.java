@@ -45,12 +45,15 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
+import static com.evolveum.midpoint.web.component.wf.WorkItemsTablePanel.View.FULL_LIST;
+import static com.evolveum.midpoint.web.component.wf.WorkItemsTablePanel.View.ITEMS_FOR_PROCESS;
 
 /**
  * @author lazyman
@@ -60,63 +63,81 @@ public class WorkItemsTablePanel extends BasePanel {
 
     private static final String ID_WORK_ITEMS_TABLE = "workItemsTable";
 
+	public enum View {
+		FULL_LIST,				// selectable, full information
+		INFO_ONLY, 				// not selectable (e.g. on dashboard)
+		ITEMS_FOR_PROCESS		// work items for a process
+	};
+
     private ISortableDataProvider<WorkItemDto, String> provider;
 
     public WorkItemsTablePanel(String id, ISortableDataProvider<WorkItemDto, String> provider,
-            UserProfileStorage.TableId tableId, int pageSize, boolean showAssigned) {
+            UserProfileStorage.TableId tableId, int pageSize, View view) {
         super(id);
         this.provider = provider;
-        initLayout(tableId, pageSize, showAssigned);
+        initLayout(tableId, pageSize, view);
     }
 
     // this is called locally in order to take showAssigned into account
-    private void initLayout(UserProfileStorage.TableId tableId, int pageSize, boolean showAssigned) {
+    private void initLayout(UserProfileStorage.TableId tableId, int pageSize, View view) {
         List<IColumn<WorkItemDto, String>> columns = new ArrayList<>();
 
-        // TODO configurable
-        columns.add(new CheckBoxHeaderColumn<WorkItemDto>());
-
-		columns.add(createTypeIconColumn(true));
-		columns.add(createObjectNameColumn("WorkItemsPanel.object"));
-		columns.add(createTypeIconColumn(false));
-		columns.add(createTargetNameColumn("WorkItemsPanel.target"));
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL)) {
-            columns.add(new LinkColumn<WorkItemDto>(createStringResource("WorkItemsPanel.name"), WorkItemDto.F_NAME, WorkItemDto.F_NAME) {
-                @Override
-                public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
-                    PageParameters parameters = new PageParameters();
-                    parameters.add(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getWorkItemId());
-                    setResponsePage(new PageWorkItem(parameters, (PageBase) WorkItemsTablePanel.this.getPage()));
-                }
-            });
-        } else {
-            columns.add(new AbstractColumn<WorkItemDto, String>(createStringResource("WorkItemsPanel.name")) {
-                @Override
-                public void populateItem(Item<ICellPopulator<WorkItemDto>> item, String componentId,
-                                         final IModel<WorkItemDto> rowModel) {
-                    item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
-                        @Override
-                        public Object getObject() {
-                            return rowModel.getObject().getName();
-                        }
-                    }));
-                }
-            });
-        }
-
-        columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.started"), WorkItemDto.F_PROCESS_STARTED));
-        columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.created"), WorkItemDto.F_CREATED));
-        if (showAssigned) {
-            columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.assigned"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
-        }
+		if (view != ITEMS_FOR_PROCESS) {
+			if (view == FULL_LIST) {
+				columns.add(new CheckBoxHeaderColumn<WorkItemDto>());
+			}
+			columns.add(createTypeIconColumn(true));
+			columns.add(createObjectNameColumn("WorkItemsPanel.object"));
+			columns.add(createTypeIconColumn(false));
+			columns.add(createTargetNameColumn("WorkItemsPanel.target"));
+			columns.add(createNameColumn());
+			columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.started"), WorkItemDto.F_PROCESS_STARTED));
+			columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.created"), WorkItemDto.F_CREATED));
+			if (view == FULL_LIST) {
+				columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.assigned"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
+			}
+		} else {
+			columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.assigned"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
+			columns.add(createNameColumn());
+			columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.created"), WorkItemDto.F_CREATED));
+		}
 
         BoxedTablePanel<WorkItemDto> workItemsTable = new BoxedTablePanel<>(ID_WORK_ITEMS_TABLE, provider, columns, tableId, pageSize);
         add(workItemsTable);
     }
 
-    private BoxedTablePanel getWorkItemTable() {
+	@NotNull
+	private AbstractColumn<WorkItemDto, String> createNameColumn() {
+		AbstractColumn<WorkItemDto, String> nameColumn;
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
+				AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL)) {
+			nameColumn = new LinkColumn<WorkItemDto>(createStringResource("WorkItemsPanel.name"), WorkItemDto.F_NAME,
+					WorkItemDto.F_NAME) {
+				@Override
+				public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
+					PageParameters parameters = new PageParameters();
+					parameters.add(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getWorkItemId());
+					setResponsePage(new PageWorkItem(parameters, (PageBase) WorkItemsTablePanel.this.getPage()));
+				}
+			};
+        } else {
+			nameColumn = new AbstractColumn<WorkItemDto, String>(createStringResource("WorkItemsPanel.name")) {
+				@Override
+				public void populateItem(Item<ICellPopulator<WorkItemDto>> item, String componentId,
+						final IModel<WorkItemDto> rowModel) {
+					item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+						@Override
+						public Object getObject() {
+							return rowModel.getObject().getName();
+						}
+					}));
+				}
+			};
+        }
+		return nameColumn;
+	}
+
+	private BoxedTablePanel getWorkItemTable() {
         return (BoxedTablePanel) get(ID_WORK_ITEMS_TABLE);
     }
 

@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.WorkflowService;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -26,8 +25,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
@@ -35,30 +32,12 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDtoProvi
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
-
-import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-
-import static com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto.F_ANSWER;
-import static com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto.F_END_FORMATTED;
-import static com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto.F_START_FORMATTED;
 
 /**
  * @author mederly
@@ -139,7 +118,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
     private void itemDetailsPerformed(AjaxRequestTarget target, String taskOid) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
-        setResponsePage(new PageTaskEdit(parameters, this));
+        setResponsePage(new PageTaskEdit(parameters));
     }
 
     private void stopProcessInstancesPerformed(AjaxRequestTarget target) {

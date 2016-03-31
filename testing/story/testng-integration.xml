@@ -29,7 +29,8 @@
             <class name="com.evolveum.midpoint.testing.story.TestUniversity"/>
             <class name="com.evolveum.midpoint.testing.story.TestUnix"/>
             <class name="com.evolveum.midpoint.testing.story.TestUuid"/>
-            <class name="com.evolveum.midpoint.testing.story.TestFlatLdap"/>
+            <class name="com.evolveum.midpoint.testing.story.TestLdapFlat"/>
+            <class name="com.evolveum.midpoint.testing.story.TestLdapNested"/>
         </classes>
     </test>
 </suite>

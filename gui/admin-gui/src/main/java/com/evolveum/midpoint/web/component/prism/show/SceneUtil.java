@@ -40,13 +40,15 @@ public class SceneUtil {
 			PrismContext prismContext, ModelInteractionService modelInteractionService,
 			Task task, OperationResult result) throws SchemaException {
 		List<Scene> scenes = new ArrayList<>();
-		if (deltas.getFocusPrimaryDelta() != null) {
-			ObjectDelta<? extends ObjectType> delta = DeltaConvertor.createObjectDelta(deltas.getFocusPrimaryDelta(), prismContext);
-			scenes.add(modelInteractionService.visualizeDelta(delta, task, result));
-		}
-		for (ProjectionObjectDeltaType projectionObjectDelta : deltas.getProjectionPrimaryDelta()) {
-			ObjectDelta<? extends ObjectType> delta = DeltaConvertor.createObjectDelta(projectionObjectDelta.getPrimaryDelta(), prismContext);
-			scenes.add(modelInteractionService.visualizeDelta(delta, task, result));
+		if (deltas != null) {
+			if (deltas.getFocusPrimaryDelta() != null) {
+				ObjectDelta<? extends ObjectType> delta = DeltaConvertor.createObjectDelta(deltas.getFocusPrimaryDelta(), prismContext);
+				scenes.add(modelInteractionService.visualizeDelta(delta, task, result));
+			}
+			for (ProjectionObjectDeltaType projectionObjectDelta : deltas.getProjectionPrimaryDelta()) {
+				ObjectDelta<? extends ObjectType> delta = DeltaConvertor.createObjectDelta(projectionObjectDelta.getPrimaryDelta(), prismContext);
+				scenes.add(modelInteractionService.visualizeDelta(delta, task, result));
+			}
 		}
 		return new WrapperScene(scenes, displayNameKey);
 	}
