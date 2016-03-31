@@ -24,6 +24,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -35,13 +36,21 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -82,6 +91,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	protected static final String ORG_CORTUV_HRAD_NAME = "Čortův hrád";
 	protected static final String ORG_CORTUV_HRAD_NAME2 = "ani zblo";
 	protected static final String ORG_VYSNE_VLKODLAKY_NAME = "Vyšné Vlkodlaky";
+	protected static final String ORG_ROYULA_DIABOLICA_NAME = "Royula Diábolica";
 
 	protected static final String ORG_TYPE_FUNCTIONAL = "functional";
 
@@ -106,6 +116,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	protected String orgRolyulaCarpathiaOid;
 	protected String orgCortuvHradOid;
 	protected String orgVysneVlkodlakyOid;
+	protected String orgRolyulaDiabolicaOid;
 	protected String userGorcOid;
 	
 	protected abstract File getTestDir();
@@ -353,6 +364,8 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 
 		dumpOrgTree();
 		dumpLdap();
+		
+		getAndAssertUser(USER_DEZI_USERNAME, ORG_VYSNE_VLKODLAKY_NAME, ORG_CORTUV_HRAD_NAME2, ORG_ROYULA_CARPATHIA_NAME);
 
 		assertSubOrgs(orgAfter, 1);
 		assertSubOrgs(orgRolyulaCarpathiaOid, 1);
@@ -385,6 +398,91 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 		dumpLdap();
 	}
 	
+	@Test
+    public void test320AddOrgRoyulaDiabolica() throws Exception {
+		final String TEST_NAME = "test320AddOrgRoyulaDiabolica";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<OrgType> orgBefore = createOrg(ORG_ROYULA_DIABOLICA_NAME, ORG_TOP_OID);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        display("Adding org", orgBefore);
+        addObject(orgBefore, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_ROYULA_DIABOLICA_NAME, ORG_TOP_OID);
+        orgRolyulaDiabolicaOid = orgAfter.getOid();
+
+		dumpOrgTree();
+
+		assertSubOrgs(orgAfter, 0);
+		assertSubOrgs(ORG_TOP_OID, 2);
+		assertSubOrgs(orgRolyulaDiabolicaOid, 0);
+		assertSubOrgs(orgRolyulaCarpathiaOid, 1);
+	}
+	
+	@Test
+    public void test322MoveOrgZblo() throws Exception {
+		final String TEST_NAME = "test322MoveOrgZblo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<OrgType> orgBefore = getOrg(ORG_CORTUV_HRAD_NAME2);
+        ObjectDelta<OrgType> delta = orgBefore.createModifyDelta();
+        PrismContainerValue<AssignmentType> oldAssignment = null;
+        for (PrismContainerValue aval: orgBefore.findContainer(OrgType.F_ASSIGNMENT).getValues()) {
+        	oldAssignment = (PrismContainerValue<AssignmentType>)aval;
+        	if (OrgType.COMPLEX_TYPE.equals(oldAssignment.asContainerable().getTargetRef().getType())) {
+        		break;
+        	}
+        }
+        delta.addModificationDeleteContainer(OrgType.F_ASSIGNMENT, oldAssignment.clone());
+        AssignmentType newAssignmentType = new AssignmentType();
+        ObjectReferenceType targetRef = new ObjectReferenceType();
+        targetRef.setOid(orgRolyulaDiabolicaOid);
+        targetRef.setType(OrgType.COMPLEX_TYPE);
+		newAssignmentType.setTargetRef(targetRef);
+		delta.addModificationAddContainer(OrgType.F_ASSIGNMENT, newAssignmentType);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        display("Modifying "+orgBefore+"with delta", delta);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_CORTUV_HRAD_NAME2, orgRolyulaDiabolicaOid);
+        assertEquals("Cortuv hrad org OID changed after rename", orgCortuvHradOid, orgAfter.getOid());
+
+		recomputeUsersIfNeeded(orgCortuvHradOid);
+        
+		dumpOrgTree();
+		dumpLdap();
+		
+		getAndAssertUser(USER_GORC_USERNAME2, ORG_CORTUV_HRAD_NAME2, ORG_ROYULA_DIABOLICA_NAME);
+		getAndAssertUser(USER_DEZI_USERNAME, ORG_VYSNE_VLKODLAKY_NAME, ORG_CORTUV_HRAD_NAME2, ORG_ROYULA_DIABOLICA_NAME);
+
+		assertSubOrgs(orgAfter, 1);
+		assertSubOrgs(orgRolyulaCarpathiaOid, 0);
+		assertSubOrgs(orgRolyulaDiabolicaOid, 1);
+		assertSubOrgs(ORG_TOP_OID, 2);
+		assertSubOrgs(orgVysneVlkodlakyOid, 0);
+	}
+	
+	protected void recomputeUsersIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException  {
+		// nothing to do by default
+	}
 
 	private PrismObject<UserType> createUser(String username, String givenName,
 			String familyName, String parentOrgOid) {
