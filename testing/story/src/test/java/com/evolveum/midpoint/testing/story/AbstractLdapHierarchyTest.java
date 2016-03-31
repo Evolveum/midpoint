@@ -92,6 +92,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	protected static final String USER_TELEKE_FAMILY_NAME = "Teleke z Tölökö";
 	
 	protected static final String USER_GORC_USERNAME = "gorc";
+	protected static final String USER_GORC_USERNAME2 = "obluda";
 	protected static final String USER_GORC_GIVEN_NAME = "Robert";
 	protected static final String USER_GORC_FAMILY_NAME = "Gorc z Gorců";
 
@@ -103,10 +104,9 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	protected PrismObject<ResourceType> resourceOpenDj;
 
 	protected String orgRolyulaCarpathiaOid;
-
 	protected String orgCortuvHradOid;
-
 	protected String orgVysneVlkodlakyOid;
+	protected String userGorcOid;
 	
 	protected abstract File getTestDir();
 	
@@ -269,6 +269,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
         TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userAfter = getAndAssertUser(USER_GORC_USERNAME, ORG_CORTUV_HRAD_NAME, ORG_ROYULA_CARPATHIA_NAME);
+        userGorcOid = userAfter.getOid();
         
 		dumpOrgTree();
 	}
@@ -357,6 +358,31 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 		assertSubOrgs(orgRolyulaCarpathiaOid, 1);
 		assertSubOrgs(ORG_TOP_OID, 1);
 		assertSubOrgs(orgVysneVlkodlakyOid, 0);
+	}
+	
+	@Test
+    public void test310RenameUserGorc() throws Exception {
+		final String TEST_NAME = "test310RenameUserGorc";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = createUser(USER_GORC_USERNAME, 
+        		USER_GORC_GIVEN_NAME, USER_GORC_FAMILY_NAME, orgCortuvHradOid);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyObjectReplaceProperty(UserType.class, userGorcOid, UserType.F_NAME, task, result, new PolyString(USER_GORC_USERNAME2));
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getAndAssertUser(USER_GORC_USERNAME2, ORG_CORTUV_HRAD_NAME2, ORG_ROYULA_CARPATHIA_NAME);
+        
+		dumpOrgTree();
+		dumpLdap();
 	}
 	
 
