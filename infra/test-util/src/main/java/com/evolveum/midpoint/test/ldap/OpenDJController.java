@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -549,6 +549,10 @@ public class OpenDJController extends AbstractResourceController {
 		assertEquals("Too many attributes for name "+name+": ",
 				1, attrs.size());
 		Attribute attribute = attrs.get(0);
+		return getAttributeValue(attribute);
+	}
+	
+	public static String getAttributeValue(Attribute attribute) {
 		return attribute.iterator().next().getValue().toString();
 	}
 	
@@ -801,14 +805,28 @@ public class OpenDJController extends AbstractResourceController {
 
 		StringBuilder sb = new StringBuilder();
 		for (SearchResultEntry searchEntry: op.getSearchEntries()) {
-			sb.append(searchEntry.toLDIFString());
+			sb.append(toHumanReadableLdifoid(searchEntry));
 			sb.append("\n");
 		}
 		
 		return sb.toString();
 	}
 
-    public Collection<String> getGroupUniqueMembers(String groupDn) throws DirectoryException {
+    private String toHumanReadableLdifoid(Entry entry) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("dn: ").append(entry.getDN()).append("\n");
+		for (Attribute attribute: entry.getAttributes()) {
+			for (AttributeValue val: attribute) {
+				sb.append(attribute.getName());
+				sb.append(": ");
+				sb.append(val);
+				sb.append("\n");
+			}
+		}
+		return sb.toString();
+	}
+
+	public Collection<String> getGroupUniqueMembers(String groupDn) throws DirectoryException {
     	Entry groupEntry = fetchEntry(groupDn);
         if (groupEntry == null) {
             throw new IllegalArgumentException(groupDn + " was not found");

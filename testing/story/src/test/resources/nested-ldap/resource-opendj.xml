@@ -225,6 +225,17 @@
 					</source>
 				</outbound>
 			</attribute>
+			<association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>group</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            	<shortcutAssociationAttribute>ri:isMemberOf</shortcutAssociationAttribute>
+            	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+            </association>
 		</objectType>
 	</schemaHandling>
 	
