@@ -26,6 +26,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.AttributeModifier;
@@ -36,8 +37,11 @@ import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import java.util.Date;
 
 /**
  * @author semancik
@@ -55,6 +59,8 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> {
 	private static final String ID_PARENT = "parent";
 	private static final String ID_HANDLER_URI_LIST = "handlerUriList";
 	private static final String ID_HANDLER_URI = "handlerUri";
+	private static final String ID_EXECUTION = "execution";
+	private static final String ID_NODE = "node";
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskBasicTabPanel.class);
 
@@ -111,14 +117,14 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> {
 		add(new Label(ID_IDENTIFIER, new PropertyModel(taskDtoModel, TaskDto.F_IDENTIFIER)));
 		add(new Label(ID_CATEGORY, new PropertyModel(taskDtoModel, TaskDto.F_CATEGORY)));
 
-		LinkPanel parent = new LinkPanel(ID_PARENT, new PropertyModel<>(taskDtoModel, TaskDto.F_PARENT_TASK_NAME)) {
+		final LinkPanel parent = new LinkPanel(ID_PARENT, new PropertyModel<>(taskDtoModel, TaskDto.F_PARENT_TASK_NAME)) {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				String oid = taskDtoModel.getObject().getParentTaskOid();
 				if (oid != null) {
 					PageParameters parameters = new PageParameters();
 					parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-					setResponsePage(new PageTaskEdit(parameters, parentPage));
+					setResponsePage(new PageTaskEdit(parameters, parentPage));			// TODO new page task
 				}
 			}
 		};
@@ -131,6 +137,43 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> {
 			}
 		};
 		add(handlerUriList);
+
+		Label execution = new Label(ID_EXECUTION, new AbstractReadOnlyModel<String>() {
+
+			@Override
+			public String getObject() {
+				TaskDtoExecutionStatus executionStatus = taskDtoModel.getObject().getExecution();
+				if (executionStatus != TaskDtoExecutionStatus.CLOSED) {
+					return getString(TaskDtoExecutionStatus.class.getSimpleName() + "." + executionStatus.name());
+				} else {
+					return getString(TaskDtoExecutionStatus.class.getSimpleName() + "." + executionStatus.name() + ".withTimestamp",
+							new AbstractReadOnlyModel<String>() {
+								@Override
+								public String getObject() {
+									if (taskDtoModel.getObject().getCompletionTimestamp() != null) {
+										return new Date(taskDtoModel.getObject().getCompletionTimestamp()).toLocaleString();   // todo correct formatting
+									} else {
+										return "?";
+									}
+								}
+							});
+				}
+			}
+		});
+		add(execution);
+
+		Label node = new Label(ID_NODE, new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				TaskDto dto = taskDtoModel.getObject();
+				if (!TaskDtoExecutionStatus.RUNNING.equals(dto.getExecution())) {
+					return null;
+				}
+				return parentPage.getString("pageTaskEdit.message.node", dto.getExecutingAt());
+			}
+		});
+		add(node);
+
 	}
 
 }

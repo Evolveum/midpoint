@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -26,8 +26,6 @@ import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.currentState.IterativeInformationPanel;
-import com.evolveum.midpoint.web.page.admin.server.currentState.TaskCurrentStateDtoModel;
 import com.evolveum.midpoint.web.page.admin.server.currentState.WorkerThreadDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.subtasks.SubtasksPanel;
@@ -35,7 +33,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
@@ -51,6 +51,9 @@ import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceSt
 public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskType> {
 	private static final long serialVersionUID = 1L;
 
+	private static final String ID_WORKER_THREADS = "workerThreads";
+	private static final String ID_THREADS_CONFIGURATION_PANEL = "threadsConfigurationPanel";
+
 	private static final String ID_WORKER_THREADS_TABLE = "workerThreadsTable";
 	private static final String ID_WORKER_THREADS_TABLE_LABEL = "workerThreadsTableLabel";
 
@@ -59,25 +62,52 @@ public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskT
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskSubtasksAndThreadsTabPanel.class);
 
+	private PageTask2 parentPage;
+
 	public TaskSubtasksAndThreadsTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
-			LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
-		super(id, mainForm, taskWrapperModel, pageBase);
-		initLayout(taskDtoModel, pageBase);
+			LoadableModel<TaskDto> taskDtoModel, PageTask2 parentPage) {
+		super(id, mainForm, taskWrapperModel, parentPage);
+		this.parentPage = parentPage;
+		initLayout(taskDtoModel);
 	}
 
-	private void initLayout(final LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
+	private void initLayout(final LoadableModel<TaskDto> taskDtoModel) {
+
+		WebMarkupContainer threadsConfigurationPanel = new WebMarkupContainer(ID_THREADS_CONFIGURATION_PANEL);
+		add(threadsConfigurationPanel);
+
+		threadsConfigurationPanel.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				TaskDto dto = taskDtoModel.getObject();
+				return TaskCategory.RECONCILIATION.equals(dto.getCategory()) ||
+						TaskCategory.IMPORTING_ACCOUNTS.equals(dto.getCategory()) ||
+						TaskCategory.RECOMPUTATION.equals(dto.getCategory());
+			}
+		});
+
+		final TextField<Integer> workerThreads = new TextField<>(ID_WORKER_THREADS, new PropertyModel<Integer>(taskDtoModel, TaskDto.F_WORKER_THREADS));
+		workerThreads.setOutputMarkupId(true);
+		workerThreads.add(new VisibleEnableBehaviour(){
+			@Override
+			public boolean isEnabled() {
+				return parentPage.isEdit();
+			}
+		});
+		threadsConfigurationPanel.add(workerThreads);
+
 		VisibleEnableBehaviour hiddenWhenEditingOrNoSubtasks = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return !taskDtoModel.getObject().getSubtasks().isEmpty();
+				return !parentPage.isEdit() && !taskDtoModel.getObject().getSubtasks().isEmpty();
 			}
 		};
 
 		Label subtasksLabel = new Label(ID_SUBTASKS_LABEL, new ResourceModel("pageTaskEdit.subtasksLabel"));
 		subtasksLabel.add(hiddenWhenEditingOrNoSubtasks);
 		add(subtasksLabel);
-		SubtasksPanel subtasksPanel = new SubtasksPanel(ID_SUBTASKS_PANEL, new PropertyModel<List<TaskDto>>(taskDtoModel, TaskDto.F_SUBTASKS), pageBase.getWorkflowManager().isEnabled());
+		SubtasksPanel subtasksPanel = new SubtasksPanel(ID_SUBTASKS_PANEL, new PropertyModel<List<TaskDto>>(taskDtoModel, TaskDto.F_SUBTASKS), parentPage.getWorkflowManager().isEnabled());
 		subtasksPanel.add(hiddenWhenEditingOrNoSubtasks);
 		add(subtasksPanel);
 

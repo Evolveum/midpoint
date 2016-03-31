@@ -27,6 +27,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -62,12 +64,14 @@ import java.util.Collection;
 
 public class PageTask2 extends PageAdmin {
 
+	private static final long REFRESH_INTERVAL = 2000L;
+
 	private static final String DOT_CLASS = PageTask2.class.getName() + ".";
 	private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadTask";
 	static final String OPERATION_SAVE_TASK = DOT_CLASS + "saveTask";
 
-	private static final String ID_SUMMARY_PANEL = "summaryPanel";
-	private static final String ID_MAIN_PANEL = "mainPanel";
+	public static final String ID_SUMMARY_PANEL = "summaryPanel";
+	public static final String ID_MAIN_PANEL = "mainPanel";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageTask2.class);
 
@@ -88,19 +92,16 @@ public class PageTask2 extends PageAdmin {
 		final Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
 		final String taskOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER).toString();
 		final TaskType taskType = loadTaskType(taskOid, operationTask, result);
-		TaskDto taskDto = null;
+		final TaskDto taskDto;
 		try {
 			taskDto = prepareTaskDto(taskType, operationTask, result);
-		} catch (SchemaException e) {
-			e.printStackTrace();		// TODO
-		} catch (ObjectNotFoundException e) {
-			e.printStackTrace();		// TODO
+		} catch (SchemaException|ObjectNotFoundException e) {
+			throw new SystemException("Couldn't prepare task DTO: " + e.getMessage(), e);
 		}
-		final TaskDto taskDtoFinal = taskDto;
 		taskDtoModel = new LoadableModel<TaskDto>() {
 			@Override
 			protected TaskDto load() {
-				return taskDtoFinal;
+				return taskDto;
 			}
 		};
 		final ObjectWrapper<TaskType> wrapper = loadObjectWrapper(taskType.asPrismObject(), result);
@@ -157,14 +158,13 @@ public class PageTask2 extends PageAdmin {
 		mainPanel.setOutputMarkupId(true);
 		add(mainPanel);
 
-		refreshingBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(1000)) {
+		refreshingBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(REFRESH_INTERVAL)) {
 			@Override
 			protected void onPostProcessTarget(AjaxRequestTarget target) {
 				refreshModel();
 				target.add(summaryPanel);
 			}
 		};
-
 		mainPanel.add(refreshingBehavior);
 	}
 
@@ -226,7 +226,46 @@ public class PageTask2 extends PageAdmin {
 		return controller;
 	}
 
-	public void stopRefresh() {
+	boolean isRunnableOrRunning() {
+		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
+		//System.out.println(this + ": state = " + exec);
+		return exec == TaskDtoExecutionStatus.RUNNABLE || exec == TaskDtoExecutionStatus.RUNNING;
+	}
+
+	boolean isRunnable() {
+		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
+		return exec == TaskDtoExecutionStatus.RUNNABLE;
+	}
+
+	boolean isRunning() {
+		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
+		return exec == TaskDtoExecutionStatus.RUNNING;
+	}
+
+	boolean isClosed() {
+		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
+		return exec == TaskDtoExecutionStatus.CLOSED;
+	}
+
+	boolean isSuspended() {
+		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
+		return exec == TaskDtoExecutionStatus.SUSPENDED;
+	}
+
+	boolean isRecurring() {
+		return getTaskDto().getRecurring();
+	}
+
+	public void startRefreshing() {
+		refreshingBehavior.restart(null);
+	}
+
+	public void stopRefreshing() {
+		refreshingBehavior.stop(null);
+	}
+
+	public void refreshRefreshing() {		// necessary for some strange reason
 		mainPanel.remove(refreshingBehavior);
+		mainPanel.add(refreshingBehavior);
 	}
 }

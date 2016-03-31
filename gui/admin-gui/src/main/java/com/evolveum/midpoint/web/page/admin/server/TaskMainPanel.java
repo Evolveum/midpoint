@@ -27,7 +27,6 @@ import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -91,10 +90,17 @@ public class TaskMainPanel extends Panel {
 					}
 				});
 		tabs.add(
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.objects")){
+					@Override
+					public WebMarkupContainer getPanel(String panelId) {
+						return new TaskObjectsTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
+					}
+				});
+		tabs.add(
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.scheduleTitle")){
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskSchedulingTabPanel(panelId, mainForm, objectModel, parentPage);
+						return new TaskSchedulingTabPanel(panelId, mainForm, objectModel, taskDtoModel, parentPage);
 					}
 				});
 		tabs.add(
@@ -105,7 +111,7 @@ public class TaskMainPanel extends Panel {
 					}
 					@Override
 					public boolean isVisible() {
-						return !parentPage.isEdit() && (!taskDtoModel.getObject().getSubtasks().isEmpty() || !taskDtoModel.getObject().getTransientSubtasks().isEmpty());
+						return true;//!parentPage.isEdit() && (!taskDtoModel.getObject().getSubtasks().isEmpty() || !taskDtoModel.getObject().getTransientSubtasks().isEmpty());
 					}
 				});
 		tabs.add(
@@ -192,8 +198,7 @@ public class TaskMainPanel extends Panel {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				parentPage.setEdit(false);
-				parentPage.goBack(PageTasks.class);
+				parentPage.getController().backPerformed(target);
 			}
 		};
 		mainForm.add(backButton);
@@ -225,7 +230,8 @@ public class TaskMainPanel extends Panel {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				parentPage.setEdit(true);
-				parentPage.stopRefresh();
+				parentPage.stopRefreshing();
+				parentPage.refreshModel();
 				target.add(mainForm);
 			}
 		};
@@ -248,7 +254,7 @@ public class TaskMainPanel extends Panel {
 
 			@Override
 			public boolean isVisible() {
-				return !parentPage.isEdit() && isRunnableOrRunning();
+				return !parentPage.isEdit() && parentPage.isRunnableOrRunning();
 			}
 		});
 		mainForm.add(suspend);
@@ -264,7 +270,7 @@ public class TaskMainPanel extends Panel {
 
 			@Override
 			public boolean isVisible() {
-				return !parentPage.isEdit() && (isSuspended() || (isClosed() && isRecurring()));
+				return !parentPage.isEdit() && (parentPage.isSuspended() || (parentPage.isClosed() && parentPage.isRecurring()));
 			}
 		});
 		mainForm.add(resume);
@@ -280,39 +286,10 @@ public class TaskMainPanel extends Panel {
 
 			@Override
 			public boolean isVisible() {
-				return !parentPage.isEdit() && (isRunnable() || (isClosed() && !isRecurring()));
+				return !parentPage.isEdit() && (parentPage.isRunnable() || (parentPage.isClosed() && !parentPage.isRecurring()));
 			}
 		});
 		mainForm.add(runNow);
-	}
-
-	private boolean isRunnableOrRunning() {
-		TaskDtoExecutionStatus exec = parentPage.getTaskDto().getExecution();
-		return TaskDtoExecutionStatus.RUNNABLE.equals(exec) || TaskDtoExecutionStatus.RUNNING.equals(exec);
-	}
-
-	private boolean isRunnable() {
-		TaskDtoExecutionStatus exec = parentPage.getTaskDto().getExecution();
-		return TaskDtoExecutionStatus.RUNNABLE.equals(exec);
-	}
-
-	private boolean isRunning() {
-		TaskDtoExecutionStatus exec = parentPage.getTaskDto().getExecution();
-		return TaskDtoExecutionStatus.RUNNING.equals(exec);
-	}
-
-	private boolean isClosed() {
-		TaskDtoExecutionStatus exec = parentPage.getTaskDto().getExecution();
-		return TaskDtoExecutionStatus.CLOSED.equals(exec);
-	}
-
-	private boolean isRecurring() {
-		return parentPage.getTaskDto().getRecurring();
-	}
-
-	private boolean isSuspended() {
-		TaskDtoExecutionStatus exec = parentPage.getTaskDto().getExecution();
-		return TaskDtoExecutionStatus.SUSPENDED.equals(exec);
 	}
 
 }

@@ -73,16 +73,13 @@ public class PageTaskController implements Serializable {
 			LOGGER.trace("Saving task modifications.");
 			parentPage.getModelService().executeChanges(prepareChanges(updatedTask), null, operationTask, result);
 
-			parentPage.setEdit(false);
-			parentPage.setResponsePage(new PageTasks(false));
 			result.recomputeStatus();
 		} catch (Exception ex) {
 			result.recomputeStatus();
 			result.recordFatalError("Couldn't save task.", ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save task modifications", ex);
 		}
-		parentPage.showResult(result);
-		target.add(parentPage.getFeedbackPanel());
+		afterSave(target, result);
 	}
 
 	private List<ObjectDelta<? extends ObjectType>> prepareChanges(Task updatedTask) {
@@ -234,21 +231,56 @@ public class PageTaskController implements Serializable {
 	void suspendPerformed(AjaxRequestTarget target) {
 		String oid = parentPage.getTaskDto().getOid();
 		OperationResult result = TaskOperationUtils.suspendPerformed(parentPage.getTaskService(), Collections.singleton(oid));
-		parentPage.showResult(result);
-		parentPage.setResponsePage(new PageTasks(false));
+		afterStateChangingOperation(target, result);
 	}
 
 	void resumePerformed(AjaxRequestTarget target) {
 		String oid = parentPage.getTaskDto().getOid();
 		OperationResult result = TaskOperationUtils.resumePerformed(parentPage.getTaskService(), Arrays.asList(oid));
-		parentPage.showResult(result);
-		parentPage.setResponsePage(new PageTasks(false));
+		afterStateChangingOperation(target, result);
 	}
 
 	void runNowPerformed(AjaxRequestTarget target) {
 		String oid = parentPage.getTaskDto().getOid();
 		OperationResult result = TaskOperationUtils.runNowPerformed(parentPage.getTaskService(), Arrays.asList(oid));
-		parentPage.showResult(result);
-		parentPage.setResponsePage(new PageTasks(false));
+		afterStateChangingOperation(target, result);
 	}
+
+	private void afterStateChangingOperation(AjaxRequestTarget target, OperationResult result) {
+		parentPage.showResult(result);
+		parentPage.refreshModel();
+		parentPage.refreshRefreshing();
+
+		target.add(parentPage.getFeedbackPanel());
+		target.add(parentPage.get(PageTask2.ID_SUMMARY_PANEL));
+		target.add(parentPage.get(PageTask2.ID_MAIN_PANEL));
+
+		//parentPage.startRefreshing();
+		//parentPage.setResponsePage(new PageTasks(false));
+	}
+
+	private void afterSave(AjaxRequestTarget target, OperationResult result) {
+		parentPage.showResult(result);
+		parentPage.setEdit(false);
+		parentPage.refreshModel();
+		parentPage.startRefreshing();
+		target.add(parentPage.getFeedbackPanel());
+		target.add(parentPage.get(PageTask2.ID_SUMMARY_PANEL));
+		target.add(parentPage.get(PageTask2.ID_MAIN_PANEL));
+		//parentPage.setResponsePage(new PageTasks(false));
+	}
+
+	public void backPerformed(AjaxRequestTarget target) {
+		if (!parentPage.isEdit()) {
+			parentPage.goBack(PageTasks.class);			// TODO implement correctly
+		} else {
+			parentPage.setEdit(false);
+			parentPage.refreshModel();
+			parentPage.startRefreshing();
+			target.add(parentPage.getFeedbackPanel());
+			target.add(parentPage.get(PageTask2.ID_SUMMARY_PANEL));
+			target.add(parentPage.get(PageTask2.ID_MAIN_PANEL));
+		}
+	}
+
 }

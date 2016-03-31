@@ -97,6 +97,13 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public static final String F_OP_RESULT = "opResult";
 	public static final String F_WORKFLOW_CONTEXT = "workflowContext";
 	public static final String F_WORK_ITEMS = "workItems";
+	public static final String RECURRING = "recurring";
+	public static final String BOUND = "bound";
+	public static final String F_INTERVAL = "interval";
+	public static final String CRON_SPECIFICATION = "cronSpecification";
+	public static final String F_NOT_START_BEFORE = "notStartBefore";
+	public static final String F_NOT_START_AFTER = "notStartAfter";
+	public static final String F_MISFIRE_ACTION = "misfireAction";
 
 	private List<InlineMenuItem> menuItems;
 
