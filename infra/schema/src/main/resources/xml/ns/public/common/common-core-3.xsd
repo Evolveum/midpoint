@@ -8274,6 +8274,99 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="org" type="tns:OrgType" substitutionGroup="c:object"/>
+
+    <xsd:complexType name="ServiceType">
+        <xsd:annotation>
+            <xsd:documentation>
+            	<p>
+	            	This object type represents any kind of abstract or concrete services or devices such as servers, virtual machines,
+	            	printers, mobile devices, network nodes, application servers, applications or anything similar. The "service" is a
+	            	very abstract concept.
+            	</p>
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AbstractRoleType">
+                <xsd:sequence>
+                    
+                    <xsd:element name="serviceType" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                            	<p>
+                                	Type of the service. It is used to distinguish what a specific
+                                	Service object represents. Whether it is a server, virtual machine, network node, etc.
+                                </p>
+                                <p>
+                                Examples:
+                                    <ul>
+                                        <li>server</li>
+                                        <li>vm</li>
+                                        <li>printer</li>
+                                        <li>device</li>
+                                    </ul>
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Type</a:displayName>
+                                <a:displayOrder>120</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="locality" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                            	<p>
+	                                Informal description of the place where the service is located. 
+	                                E.g. the location where the printer is placed, the name of the
+	                                datacenter, etc.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Locality</a:displayName>
+                                <a:displayOrder>210</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
+                    <xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                            	<p>
+	                                The content of this property specifies an order in which the organization
+	                                should be displayed relative to other organizations at the same level.
+	                                Organizations will be displayed by sorting them by the values of displayOrder
+	                                property (ascending). These that do not have any displayOrder annotation
+	                                will be displayed last. Services with the same displayOrder
+	                                are displayed in alphabetic order.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Display Order</a:displayName>
+                                <a:displayOrder>300</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="url" type="xsd:anyURI" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                            	<p>
+	                                URL that points to the location of the service.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Display Order</a:displayName>
+                                <a:displayOrder>150</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="service" type="tns:ServiceType" substitutionGroup="c:object"/>
     
     <xsd:complexType name="LookupTableType">
         <xsd:annotation>
