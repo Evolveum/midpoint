@@ -341,6 +341,7 @@ public class SchemaHandlingStep extends WizardStep {
 
         AutoCompleteSettings autoCompleteSettings = new AutoCompleteSettings();
         autoCompleteSettings.setShowListOnEmptyInput(true);
+        autoCompleteSettings.setMaxHeightInPx(200);
         AutoCompleteTextField<String> editorObjectClass = new AutoCompleteTextField<String>(ID_EDITOR_OBJECT_CLASS,
                 new PropertyModel<String>(model, SchemaHandlingDto.F_SELECTED_OBJECT_CLASS), autoCompleteSettings) {
 
