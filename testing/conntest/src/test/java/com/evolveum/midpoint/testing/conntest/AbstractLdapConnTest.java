@@ -168,6 +168,10 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 	}
 			
 	protected abstract String getAccount0Cn();
+	
+	protected int getNumberOfAllAccounts() {
+		return NUMBER_OF_GENERATED_ACCOUNTS + (isIdmAdminInteOrgPerson()?1:0);
+	}
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -237,7 +241,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
         
-        SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, NUMBER_OF_GENERATED_ACCOUNTS + (isIdmAdminInteOrgPerson()?1:0), task, result);
+        SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, getNumberOfAllAccounts(), task, result);
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
@@ -307,6 +311,66 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         }
     }
 	
+	/**
+	 * Make a search that starts in the list of all accounts but goes beyond the end.
+	 */
+	@Test
+    public void test156SeachThroughEnd() throws Exception {
+		final String TEST_NAME = "test156SeachBeyondEnd";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        
+        ObjectPaging paging = ObjectPaging.createEmptyPaging();
+        paging.setOffset(getNumberOfAllAccounts() - 150);
+        paging.setMaxSize(333);
+		query.setPaging(paging);
+		
+		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 150, task, result);
+                
+        assertConnectorOperationIncrement(1);
+        assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = searchResultList.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
+    }
+
+	/**
+	 * Make a search that goes beyond the end of the list of all accounts.
+	 */
+	@Test
+    public void test158SeachBeyondEnd() throws Exception {
+		final String TEST_NAME = "test158SeachBeyondEnd";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        
+        ObjectPaging paging = ObjectPaging.createEmptyPaging();
+        paging.setOffset(getNumberOfAllAccounts() + 50);
+        paging.setMaxSize(123);
+		query.setPaging(paging);
+		
+		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 0, task, result);
+                
+        assertConnectorOperationIncrement(1);
+        assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = searchResultList.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
+    }
+
 	
 	@Test
     public void test162SeachFirst50AccountsOffset0() throws Exception {

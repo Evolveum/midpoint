@@ -15,7 +15,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType>{
 
-
 	public ResourceSummaryPanel(String id, IModel<PrismObject<ResourceType>> model) {
 		super(id, model);
 		

@@ -48,6 +48,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.time.Duration;
 
@@ -152,7 +154,13 @@ public class PageTaskEdit extends PageAdmin {
 
 
 	protected void initLayout() {
-		final FocusSummaryPanel<TaskType> summaryPanel = new TaskSummaryPanel(ID_SUMMARY_PANEL, objectWrapperModel);
+		IModel<PrismObject<TaskType>> prismObjectModel = new AbstractReadOnlyModel<PrismObject<TaskType>>() {
+			@Override
+			public PrismObject<TaskType> getObject() {
+				return objectWrapperModel.getObject().getObject();
+			}
+		};
+		final TaskSummaryPanel summaryPanel = new TaskSummaryPanel(ID_SUMMARY_PANEL, prismObjectModel);
 		summaryPanel.setOutputMarkupId(true);
 		add(summaryPanel);
 

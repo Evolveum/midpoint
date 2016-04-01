@@ -42,6 +42,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -67,6 +68,8 @@ import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.datetime.PatternDateConverter;
+import org.apache.wicket.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -420,15 +423,17 @@ public class PageTasks extends PageAdminTasks {
         columns.add(new AbstractColumn<TaskDto, String>(createStringResource("pageTasks.task.currentRunTime")) {
 
             @Override
-            public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,
+            public void populateItem(final Item<ICellPopulator<TaskDto>> item, final String componentId,
                                      final IModel<TaskDto> rowModel) {
-                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+
+                DateLabelComponent dateLabel = new DateLabelComponent(componentId, new AbstractReadOnlyModel<Date>() {
 
                     @Override
-                    public Object getObject() {
-                        return createCurrentRuntime(rowModel);
+                    public Date getObject() {
+                        return createCurrentRuntime(rowModel,(DateLabelComponent) item.get(componentId));
                     }
-                }));
+                }, DateLabelComponent.MEDIUM_MEDIUM_STYLE);
+                item.add(dateLabel);
             }
         });
         columns.add(new AbstractColumn<TaskDto, String>(createStringResource("pageTasks.task.scheduledToRunAgain")) {
@@ -682,7 +687,7 @@ public class PageTasks extends PageAdminTasks {
         }
     }
 
-    private String createCurrentRuntime(IModel<TaskDto> taskModel) {
+    private Date createCurrentRuntime(IModel<TaskDto> taskModel, DateLabel dateLabel) {
         TaskDto task = taskModel.getObject();
 
         if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
@@ -690,22 +695,21 @@ public class PageTasks extends PageAdminTasks {
             //todo i18n and proper date/time formatting
             Long time = task.getCompletionTimestamp();
             if (time == null) {
-                return "";
+                return null;
             }
-            return "closed at " + new Date(time).toLocaleString();
+            dateLabel.setBefore("closed at ");
+            return new Date(time);
 
         } else {
-
             Long time = task.getCurrentRuntime();
             if (time == null) {
-                return "";
+                return null;
             }
-
             //todo i18n
-            return DurationFormatUtils.formatDurationWords(time, true, true);
+            dateLabel.setBefore(DurationFormatUtils.formatDurationWords(time, true, true));
+            return null;
         }
     }
-
 
     private String createLastCheckInTime(IModel<NodeDto> nodeModel) {
         NodeDto node = nodeModel.getObject();

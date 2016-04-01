@@ -3,6 +3,7 @@ package com.evolveum.midpoint.web.component;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
+import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromPrismObjectModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -132,6 +133,10 @@ public abstract class AbstractSummaryPanel<O extends ObjectType> extends BasePan
     public void addTag(SummaryTag<O> tag) {
         box.add(tag);
     }
+
+	public void addTag(SummaryTagSimple<O> tag) {
+		box.add(tag);
+	}
 
     protected abstract String getIconCssClass();
 
