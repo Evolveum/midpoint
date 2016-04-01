@@ -97,9 +97,9 @@ public class PagePreviewChanges extends PageAdminWorkItems {		// TODO extends
 		LOGGER.info("Creating context DTO for secondary deltas:\n{}", DebugUtil.debugDump(secondaryScenes));
 
 		final WrapperScene primaryScene = new WrapperScene(primaryScenes,
-				primaryDeltas.size() != 1 ? "PagePreviewChanges.primaryChangesMore" : "PagePreviewChanges.primaryChangesOne", primaryDeltas.size());
+				primaryScenes.size() != 1 ? "PagePreviewChanges.primaryChangesMore" : "PagePreviewChanges.primaryChangesOne", primaryScenes.size());
 		final WrapperScene secondaryScene = new WrapperScene(secondaryScenes,
-				secondaryDeltas.size() != 1 ? "PagePreviewChanges.secondaryChangesMore" : "PagePreviewChanges.secondaryChangesOne", secondaryDeltas.size());
+				secondaryScenes.size() != 1 ? "PagePreviewChanges.secondaryChangesMore" : "PagePreviewChanges.secondaryChangesOne", secondaryScenes.size());
 		final SceneDto primarySceneDto = new SceneDto(primaryScene);
 		final SceneDto secondarySceneDto = new SceneDto(secondaryScene);
 		primaryDeltasModel = new AbstractReadOnlyModel<SceneDto>() {
