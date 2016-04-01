@@ -492,6 +492,53 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertTrue("Partial results not indicated", metadata.isPartialResults());
     }
 	
+	/**
+	 * Do many searches with different sorting and paging options. This test is designed
+	 * to deplete SSS/VLV resources on the LDAP server side, so the server may reach with
+	 * an error. Make sure that the connector transparently handles the error and that
+	 * we can sustain a large number of searches.
+	 */
+	@Test
+    public void test195SearchInferno() throws Exception {
+		final String TEST_NAME = "test195SearchInferno";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        singleInfernoSearch(query, 30, 10, 30, "uid", task, result);
+        singleInfernoSearch(query, 40, 5, 40, "cn", task, result);
+        singleInfernoSearch(query, 15, 2, 15, "sn", task, result);
+        singleInfernoSearch(query, 42, 200, 42, "uid", task, result);
+        singleInfernoSearch(query, 200, 30, 200, "sn", task, result);
+                
+        assertConnectorOperationIncrement(5);
+        assertConnectorSimulatedPagingSearchIncrement(0);
+    }
+	
+	private void singleInfernoSearch(ObjectQuery query, int expectedNumberOfResults, Integer offset, Integer maxSize, String sortAttrName, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		ObjectPaging paging = ObjectPaging.createPaging(offset, maxSize);
+        paging.setOrdering(getAttributePath(resource, sortAttrName), OrderDirection.ASCENDING);
+		query.setPaging(paging);
+		
+		final MutableInt count = new MutableInt();
+		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+			@Override
+			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
+				count.increment();
+				return true;
+			}
+		};
+		
+		modelService.searchObjectsIterative(ShadowType.class, query, handler, null, task, result);
+		
+		assertEquals("Unexpected number of search results", expectedNumberOfResults, count.intValue());
+	}
+	
 	// TODO: scoped search
 
     // TODO: count shadows
