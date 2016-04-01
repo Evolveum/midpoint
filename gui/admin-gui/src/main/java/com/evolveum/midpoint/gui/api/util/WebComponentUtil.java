@@ -79,6 +79,7 @@ import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
+import org.joda.time.format.DateTimeFormat;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -635,7 +636,19 @@ public final class WebComponentUtil {
 		return dateFormat.format(date);
 	}
 
-	public static boolean isActivationEnabled(PrismObject object) {
+    public static String getLocalizedDatePattern(String style){
+        return DateTimeFormat.patternForStyle(style, getCurrentLocale());
+    }
+
+    public static Locale getCurrentLocale(){
+        Locale locale = Session.get().getLocale();
+        if (locale == null){
+            locale = Locale.getDefault();
+        }
+        return locale;
+    }
+
+    public static boolean isActivationEnabled(PrismObject object) {
 		Validate.notNull(object);
 
 		PrismContainer activation = object.findContainer(UserType.F_ACTIVATION); // this
