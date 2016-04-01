@@ -47,6 +47,7 @@ public class TaskMainPanel extends Panel {
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_EDIT = "edit";
 	private static final String ID_BACK = "back";
+	private static final String ID_CANCEL_EDITING = "cancelEditing";
 	private static final String ID_SAVE = "save";
 	private static final String ID_SUSPEND = "suspend";
 	private static final String ID_RESUME = "resume";
@@ -205,13 +206,32 @@ public class TaskMainPanel extends Panel {
 
 	private void initButtons() {
 		AjaxButton backButton = new AjaxButton(ID_BACK, parentPage.createStringResource("pageTaskEdit.button.back")) {
-
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				parentPage.getController().backPerformed(target);
 			}
 		};
+		backButton.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return !parentPage.isEdit();
+			}
+		});
 		mainForm.add(backButton);
+
+		AjaxButton cancelEditingButton = new AjaxButton(ID_CANCEL_EDITING, parentPage.createStringResource("pageTaskEdit.button.cancelEditing")) {
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				parentPage.getController().cancelEditingPerformed(target);
+			}
+		};
+		cancelEditingButton.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return parentPage.isEdit();
+			}
+		});
+		mainForm.add(cancelEditingButton);
 
 		AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE, parentPage.createStringResource("pageTaskEdit.button.save")) {
 

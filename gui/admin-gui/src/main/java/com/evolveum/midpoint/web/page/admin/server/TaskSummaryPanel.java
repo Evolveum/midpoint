@@ -64,11 +64,25 @@ public class TaskSummaryPanel extends FocusSummaryPanel<TaskType> {
 			protected void initialize(ObjectWrapper<TaskType> wrapper) {
 				TaskType taskType = wrapper.getObject().asObjectable();
 				TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
+				String icon = getIconForExecutionStatus(status);
+				setIconCssClass(icon);
 				setLabel(PageBase.createStringResourceStatic(TaskSummaryPanel.this, status).getString());
 				// TODO setColor
 			}
 		};
 		addTag(tagExecutionStatus);
+	}
+
+	private String getIconForExecutionStatus(TaskDtoExecutionStatus status) {
+		switch (status) {
+			case RUNNING: return "fa fa-fw fa-lg fa-spinner";
+			case RUNNABLE: return "fa fa-fw fa-lg fa-hand-o-up";
+			case SUSPENDED: return "fa fa-fw fa-lg fa-bed";
+			case SUSPENDING: return "fa fa-fw fa-lg fa-bed";
+			case WAITING: return "fa fa-fw fa-lg fa-clock-o";
+			case CLOSED: return "fa fa-fw fa-lg fa-power-off";
+			default: return "";
+		}
 	}
 
 	@Override

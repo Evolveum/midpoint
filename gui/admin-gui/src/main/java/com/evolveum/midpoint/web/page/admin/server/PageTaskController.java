@@ -271,16 +271,20 @@ public class PageTaskController implements Serializable {
 	}
 
 	public void backPerformed(AjaxRequestTarget target) {
+		parentPage.goBack(PageTasks.class);			// TODO implement correctly
+	}
+
+	public void cancelEditingPerformed(AjaxRequestTarget target) {
 		if (!parentPage.isEdit()) {
-			parentPage.goBack(PageTasks.class);			// TODO implement correctly
-		} else {
-			parentPage.setEdit(false);
-			parentPage.refreshModel();
-			parentPage.startRefreshing();
-			target.add(parentPage.getFeedbackPanel());
-			target.add(parentPage.get(PageTaskEdit.ID_SUMMARY_PANEL));
-			target.add(parentPage.get(PageTaskEdit.ID_MAIN_PANEL));
+			backPerformed(target);			// just for sure
+			return;
 		}
+		parentPage.setEdit(false);
+		parentPage.refreshModel();
+		parentPage.startRefreshing();
+		target.add(parentPage.getFeedbackPanel());
+		target.add(parentPage.get(PageTaskEdit.ID_SUMMARY_PANEL));
+		target.add(parentPage.get(PageTaskEdit.ID_MAIN_PANEL));
 	}
 
 }
