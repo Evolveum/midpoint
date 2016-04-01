@@ -218,4 +218,22 @@ public class SceneImpl implements Scene, DebugDumpable {
 	public boolean isFocusObject() {
 		return sourceDefinition != null && sourceDefinition.getCompileTimeClass() != null && FocusType.class.isAssignableFrom(sourceDefinition.getCompileTimeClass());
 	}
+
+	public boolean isEmpty() {
+		if (changeType != ChangeType.MODIFY) {
+			return false;		// ADD or DELETE are never 'empty'
+		}
+		for (SceneItemImpl item : getItems()) {
+			if (item.isDescriptive()) {
+				continue;
+			}
+			return false;
+		}
+		for (SceneImpl partialScene : getPartialScenes()) {
+			if (!partialScene.isEmpty()) {
+				return false;
+			}
+		}
+		return true;
+	}
 }

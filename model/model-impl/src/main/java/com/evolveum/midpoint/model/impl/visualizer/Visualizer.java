@@ -146,7 +146,12 @@ public class Visualizer {
 			throws SchemaException {
 		List<SceneImpl> rv = new ArrayList<>(deltas.size());
 		for (ObjectDelta<? extends ObjectType> delta : deltas) {
-			rv.add(visualizeDelta(delta, null, context, task, result));
+			if (!delta.isEmpty()) {
+				final SceneImpl scene = visualizeDelta(delta, null, context, task, result);
+				if (!scene.isEmpty()) {
+					rv.add(scene);
+				}
+			}
 		}
 		return rv;
 	}
