@@ -96,7 +96,7 @@ public class PersonalInfoPanel extends SimplePanel<PersonalInfoDto> {
                 PersonalInfoDto dto = getModel().getObject();
                 return dto == null ? null : dto.getLastLoginDate();
             }
-        },new PatternDateConverter(WebComponentUtil.getLocalizedDatePattern(DateLabelComponent.LONG_MEDIUM_STYLE), true ));
+        }, DateLabelComponent.LONG_MEDIUM_STYLE);
         lastLoginDate.setBeforeTextOnDateNull(PersonalInfoPanel.this.getString("PersonalInfoPanel.never"));
         add(lastLoginDate);
 
@@ -119,8 +119,8 @@ public class PersonalInfoPanel extends SimplePanel<PersonalInfoDto> {
                 PersonalInfoDto dto = getModel().getObject();
                 return dto == null ? null : dto.getLastFailDate();
             }
-        },new PatternDateConverter(WebComponentUtil.getLocalizedDatePattern(DateLabelComponent.LONG_MEDIUM_STYLE), true ));
-        lastLoginDate.setBeforeTextOnDateNull(PersonalInfoPanel.this.getString("PersonalInfoPanel.never"));
+        }, DateLabelComponent.LONG_MEDIUM_STYLE);
+        lastFailDate.setBeforeTextOnDateNull(PersonalInfoPanel.this.getString("PersonalInfoPanel.never"));
         add(lastFailDate);
 
         Label lastFailFrom = new Label(ID_LAST_FAIL_FROM, new AbstractReadOnlyModel<String>() {

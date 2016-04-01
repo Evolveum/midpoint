@@ -20,9 +20,11 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.FutureUpdateBehavior;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 
+import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -159,7 +161,7 @@ public class SystemInfoPanel extends SimplePanel<SystemInfoPanel.SystemInfoDto> 
         Label threads = new Label(ID_THREADS, createThreadModel());
         table.add(threads);
 
-        Label startTime = new Label(ID_START_TIME, createStartTimeModel());
+        DateLabelComponent startTime = new DateLabelComponent(ID_START_TIME, createStartTimeModel(), DateLabelComponent.MEDIUM_MEDIUM_STYLE);
         table.add(startTime);
 
         Label uptime = new Label(ID_UPTIME, createUptimeModel());
@@ -179,19 +181,13 @@ public class SystemInfoPanel extends SimplePanel<SystemInfoPanel.SystemInfoDto> 
         };
     }
 
-    private IModel<String> createStartTimeModel() {
-        return new AbstractReadOnlyModel<String>() {
+    private IModel<Date> createStartTimeModel() {
+        return new AbstractReadOnlyModel<Date>() {
 
             @Override
-            public String getObject() {
-                SystemInfoDto dto = getModelObject();
-
-                if (dto.starttime == 0) {
-                    return null;
-                }
-
-                SimpleDateFormat df = new SimpleDateFormat();
-                return df.format(new Date(dto.starttime));
+            public Date getObject() {
+                return getModelObject() == null ? null :
+                        (getModelObject().starttime == 0 ? null  : new Date(getModelObject().starttime));
             }
         };
     }

@@ -25,7 +25,11 @@ import org.apache.wicket.model.IModel;
 import java.util.Date;
 
 /**
- * Created by Kate on 01.04.2016.
+ * Created by honchar
+ * Component for displaying date value as a label
+ * By default (if no converter is set) the date is formatted
+ * according to the client's locale, timezone (not implemented yet),
+ * with applying long style for date and long style for time.
  */
 public class DateLabelComponent extends DateLabel {
 
@@ -55,16 +59,21 @@ public class DateLabelComponent extends DateLabel {
     public static final String NODATE_FULL_STYLE = "-F";    //no date, full style for time
 
     public DateLabelComponent(String id, IModel<Date> model){
-        this(id, model, null);
+        this(id, model, (DateConverter) null);
     }
 
     public DateLabelComponent(String id, IModel<Date> model, DateConverter converter){
-        this(id, model, converter, "", "");
+        this(id, model, converter, null, "", "");
     }
 
-    public DateLabelComponent(String id, IModel<Date> model, DateConverter converter, String beforeDateText, String afterDateText){
+    public DateLabelComponent(String id, IModel<Date> model, String style){
+        this(id, model, null, style, "", "");
+    }
+
+    public DateLabelComponent(String id, IModel<Date> model, DateConverter converter, String style,
+                              String beforeDateText, String afterDateText){
         super(id, model, converter == null ?
-                new PatternDateConverter(WebComponentUtil.getLocalizedDatePattern(LONG_LONG_STYLE), true ) : converter);
+                new PatternDateConverter(WebComponentUtil.getLocalizedDatePattern(style == null ? LONG_LONG_STYLE : style), true ) : converter);
 
         setBefore(beforeDateText);
         setAfter(afterDateText);
