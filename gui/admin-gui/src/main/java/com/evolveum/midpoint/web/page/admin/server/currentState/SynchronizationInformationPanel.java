@@ -16,9 +16,12 @@
 
 package com.evolveum.midpoint.web.page.admin.server.currentState;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -26,10 +29,12 @@ import org.apache.wicket.model.PropertyModel;
 /**
  * @author mederly
  */
-public class SynchronizationInformationPanel extends SimplePanel<SynchronizationInformationDto> {
+public class SynchronizationInformationPanel extends BasePanel<SynchronizationInformationDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationInformationPanel.class);
 
+    private static final String ID_TITLE_BEFORE = "titleBefore";
+    private static final String ID_TITLE_AFTER = "titleAfter";
     private static final String ID_PROTECTED = "protected";
     private static final String ID_NO_SYNCHRONIZATION_POLICY = "noSynchronizationPolicy";
     private static final String ID_SYNCHRONIZATION_DISABLED = "synchronizationDisabled";
@@ -40,12 +45,30 @@ public class SynchronizationInformationPanel extends SimplePanel<Synchronization
     private static final String ID_UNLINKED = "unlinked";
     private static final String ID_UNMATCHED = "unmatched";
 
-    public SynchronizationInformationPanel(String id, IModel<SynchronizationInformationDto> model) {
+    public SynchronizationInformationPanel(String id, IModel<SynchronizationInformationDto> model, boolean useAfter) {
         super(id, model);
+		initLayout(useAfter);
     }
 
-    @Override
-    protected void initLayout() {
+    protected void initLayout(final boolean useAfter) {
+
+		WebMarkupContainer titleBefore = new WebMarkupContainer(ID_TITLE_BEFORE);
+		titleBefore.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return !useAfter;
+			}
+		});
+		add(titleBefore);
+
+		WebMarkupContainer titleAfter = new WebMarkupContainer(ID_TITLE_AFTER);
+		titleAfter.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return useAfter;
+			}
+		});
+		add(titleAfter);
 
         Label aProtected = new Label(ID_PROTECTED, new PropertyModel<>(getModel(), SynchronizationInformationDto.F_COUNT_PROTECTED));
         add(aProtected);

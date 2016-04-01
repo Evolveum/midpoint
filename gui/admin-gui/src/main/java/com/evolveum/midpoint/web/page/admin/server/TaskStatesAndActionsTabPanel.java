@@ -34,7 +34,8 @@ import org.apache.wicket.model.PropertyModel;
 public class TaskStatesAndActionsTabPanel extends AbstractObjectTabPanel<TaskType> {
 	private static final long serialVersionUID = 1L;
 
-	private static final String ID_SYNCHRONIZATION_INFORMATION_PANEL = "synchronizationInformationPanel";
+	private static final String ID_SYNCHRONIZATION_INFORMATION_PANEL_BEFORE = "synchronizationInformationPanelBefore";
+	private static final String ID_SYNCHRONIZATION_INFORMATION_PANEL_AFTER = "synchronizationInformationPanelAfter";
 	private static final String ID_ACTIONS_EXECUTED_INFORMATION_PANEL = "actionsExecutedInformationPanel";
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskStatesAndActionsTabPanel.class);
@@ -46,18 +47,28 @@ public class TaskStatesAndActionsTabPanel extends AbstractObjectTabPanel<TaskTyp
 		initLayout(taskDtoModel, pageBase);
 	}
 
-	private void initLayout(LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
+	private void initLayout(final LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		final TaskCurrentStateDtoModel model = new TaskCurrentStateDtoModel(taskDtoModel);
-		SynchronizationInformationPanel synchronizationInformationPanel = new SynchronizationInformationPanel(ID_SYNCHRONIZATION_INFORMATION_PANEL,
-				new PropertyModel<SynchronizationInformationDto>(model, TaskCurrentStateDto.F_SYNCHRONIZATION_INFORMATION_DTO));
-		synchronizationInformationPanel.add(new VisibleEnableBehaviour() {
+		SynchronizationInformationPanel synchronizationInformationPanelBefore = new SynchronizationInformationPanel(ID_SYNCHRONIZATION_INFORMATION_PANEL_BEFORE,
+				new PropertyModel<SynchronizationInformationDto>(model, TaskCurrentStateDto.F_SYNCHRONIZATION_INFORMATION_DTO), false);
+		synchronizationInformationPanelBefore.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
 				return model.getObject().getSynchronizationInformationType() != null;
 			}
 		});
-		add(synchronizationInformationPanel);
+		add(synchronizationInformationPanelBefore);
 
+		SynchronizationInformationPanel synchronizationInformationPanelAfter = new SynchronizationInformationPanel(ID_SYNCHRONIZATION_INFORMATION_PANEL_AFTER,
+				new PropertyModel<SynchronizationInformationDto>(model, TaskCurrentStateDto.F_SYNCHRONIZATION_INFORMATION_AFTER_DTO), true);
+		synchronizationInformationPanelAfter.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return model.getObject().getSynchronizationInformationType() != null && !taskDtoModel.getObject().isDryRun();
+			}
+		});
+		add(synchronizationInformationPanelAfter);
+		
 		ActionsExecutedInformationPanel actionsExecutedInformationPanel = new ActionsExecutedInformationPanel(ID_ACTIONS_EXECUTED_INFORMATION_PANEL,
 				new PropertyModel<ActionsExecutedInformationDto>(model, TaskCurrentStateDto.F_ACTIONS_EXECUTED_INFORMATION_DTO));
 		actionsExecutedInformationPanel.add(new VisibleEnableBehaviour() {

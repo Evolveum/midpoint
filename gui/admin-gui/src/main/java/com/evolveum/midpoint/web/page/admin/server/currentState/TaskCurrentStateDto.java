@@ -32,6 +32,7 @@ public class TaskCurrentStateDto {
 
 	public static final String F_ACTIONS_EXECUTED_INFORMATION_DTO = "actionsExecutedInformationDto";
 	public static final String F_SYNCHRONIZATION_INFORMATION_DTO = "synchronizationInformationDto";
+	public static final String F_SYNCHRONIZATION_INFORMATION_AFTER_DTO = "synchronizationInformationAfterDto";
 
 	private TaskDto taskDto;
 
@@ -59,10 +60,14 @@ public class TaskCurrentStateDto {
     }
 
 	public SynchronizationInformationDto getSynchronizationInformationDto() {
-		return getSynchronizationInformationType() != null ? new SynchronizationInformationDto(getSynchronizationInformationType()) : null;
+		return getSynchronizationInformationType() != null ? new SynchronizationInformationDto(getSynchronizationInformationType(), false) : null;
 	}
 
-    public IterativeTaskInformationType getIterativeTaskInformationType() {
+	public SynchronizationInformationDto getSynchronizationInformationAfterDto() {
+		return getSynchronizationInformationType() != null ? new SynchronizationInformationDto(getSynchronizationInformationType(), true) : null;
+	}
+
+	public IterativeTaskInformationType getIterativeTaskInformationType() {
         OperationStatsType stats = getOperationStatsType();
         if (stats == null) {
             return null;

@@ -11185,6 +11185,15 @@
             <xsd:element name="countLinked" type="xsd:int" minOccurs="1" />
             <xsd:element name="countUnlinked" type="xsd:int" minOccurs="1" />
             <xsd:element name="countUnmatched" type="xsd:int" minOccurs="1" />
+            <xsd:element name="countProtectedAfter" type="xsd:int" minOccurs="1" />
+            <xsd:element name="countNoSynchronizationPolicyAfter" type="xsd:int" minOccurs="1" />
+            <xsd:element name="countSynchronizationDisabledAfter" type="xsd:int" minOccurs="1" />
+            <xsd:element name="countNotApplicableForTaskAfter" type="xsd:int" minOccurs="1" />
+            <xsd:element name="countDeletedAfter" type="xsd:int" minOccurs="1" />
+            <xsd:element name="countDisputedAfter" type="xsd:int" minOccurs="1" />
+            <xsd:element name="countLinkedAfter" type="xsd:int" minOccurs="1" />
+            <xsd:element name="countUnlinkedAfter" type="xsd:int" minOccurs="1" />
+            <xsd:element name="countUnmatchedAfter" type="xsd:int" minOccurs="1" />
         </xsd:sequence>
     </xsd:complexType>
 

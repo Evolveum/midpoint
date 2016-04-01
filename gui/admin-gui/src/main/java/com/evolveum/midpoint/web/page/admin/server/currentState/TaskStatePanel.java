@@ -453,9 +453,9 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
                         if (dto.getSynchronizationInformationType() == null) {
                             return null;
                         }
-                        return new SynchronizationInformationDto(dto.getSynchronizationInformationType());
+                        return new SynchronizationInformationDto(dto.getSynchronizationInformationType(), false);
                     }
-                });
+                }, false);
         synchronizationInformationPanel.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {

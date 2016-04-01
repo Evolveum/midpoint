@@ -34,44 +34,46 @@ public class SynchronizationInformationDto {
     public static final String F_COUNT_UNMATCHED = "countUnmatched";
     
     private SynchronizationInformationType synchronizationInformationType;
+	private boolean useAfter;
 
-    public SynchronizationInformationDto(SynchronizationInformationType synchronizationInformationType) {
+    public SynchronizationInformationDto(SynchronizationInformationType synchronizationInformationType, boolean useAfter) {
         this.synchronizationInformationType = synchronizationInformationType;
+		this.useAfter = useAfter;
     }
 
     public int getCountProtected() {
-        return synchronizationInformationType.getCountProtected();
+        return useAfter ? synchronizationInformationType.getCountProtectedAfter() : synchronizationInformationType.getCountProtected();
     }
 
     public int getCountNoSynchronizationPolicy() {
-        return synchronizationInformationType.getCountNoSynchronizationPolicy();
+        return useAfter ? synchronizationInformationType.getCountNoSynchronizationPolicyAfter() : synchronizationInformationType.getCountNoSynchronizationPolicy();
     }
 
     public int getCountSynchronizationDisabled() {
-        return synchronizationInformationType.getCountSynchronizationDisabled();
+        return useAfter ? synchronizationInformationType.getCountSynchronizationDisabledAfter() : synchronizationInformationType.getCountSynchronizationDisabled();
     }
 
     public int getCountNotApplicableForTask() {
-        return synchronizationInformationType.getCountNotApplicableForTask();
+        return useAfter ? synchronizationInformationType.getCountNotApplicableForTaskAfter() : synchronizationInformationType.getCountNotApplicableForTask();
     }
 
     public int getCountDeleted() {
-        return synchronizationInformationType.getCountDeleted();
+        return useAfter ? synchronizationInformationType.getCountDeletedAfter() : synchronizationInformationType.getCountDeleted();
     }
 
     public int getCountDisputed() {
-        return synchronizationInformationType.getCountDisputed();
+        return useAfter ? synchronizationInformationType.getCountDisputedAfter() : synchronizationInformationType.getCountDisputed();
     }
 
     public int getCountLinked() {
-        return synchronizationInformationType.getCountLinked();
+        return useAfter ? synchronizationInformationType.getCountLinkedAfter() : synchronizationInformationType.getCountLinked();
     }
 
     public int getCountUnlinked() {
-        return synchronizationInformationType.getCountUnlinked();
+        return useAfter ? synchronizationInformationType.getCountUnlinkedAfter() : synchronizationInformationType.getCountUnlinked();
     }
 
     public int getCountUnmatched() {
-        return synchronizationInformationType.getCountUnmatched();
+        return useAfter ? synchronizationInformationType.getCountUnmatchedAfter() : synchronizationInformationType.getCountUnmatched();
     }
 }

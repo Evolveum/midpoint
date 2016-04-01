@@ -16,12 +16,9 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 
 import javax.xml.namespace.QName;
-import java.util.Date;
 
 /**
  * @author Pavol Mederly
@@ -88,7 +85,8 @@ public class SynchronizationInformation {
 
     };
 
-    private final Record currentState = new Record();
+    private final Record stateBefore = new Record();
+    private final Record stateAfter = new Record();
 
     public SynchronizationInformation(SynchronizationInformationType value) {
         startValue = value;
@@ -133,6 +131,16 @@ public class SynchronizationInformation {
         sum.setCountLinked(sum.getCountLinked() + delta.getCountLinked());
         sum.setCountUnlinked(sum.getCountUnlinked() + delta.getCountUnlinked());
         sum.setCountUnmatched(sum.getCountUnmatched() + delta.getCountUnmatched());
+
+		sum.setCountProtectedAfter(sum.getCountProtectedAfter() + delta.getCountProtectedAfter());
+		sum.setCountNoSynchronizationPolicyAfter(sum.getCountNoSynchronizationPolicyAfter() + delta.getCountNoSynchronizationPolicyAfter());
+		sum.setCountSynchronizationDisabledAfter(sum.getCountSynchronizationDisabledAfter() + delta.getCountSynchronizationDisabledAfter());
+		sum.setCountNotApplicableForTaskAfter(sum.getCountNotApplicableForTaskAfter() + delta.getCountNotApplicableForTaskAfter());
+		sum.setCountDeletedAfter(sum.getCountDeletedAfter() + delta.getCountDeletedAfter());
+		sum.setCountDisputedAfter(sum.getCountDisputedAfter() + delta.getCountDisputedAfter());
+		sum.setCountLinkedAfter(sum.getCountLinkedAfter() + delta.getCountLinkedAfter());
+		sum.setCountUnlinkedAfter(sum.getCountUnlinkedAfter() + delta.getCountUnlinkedAfter());
+		sum.setCountUnmatchedAfter(sum.getCountUnmatchedAfter() + delta.getCountUnmatchedAfter());
     }
 
     private SynchronizationInformationType toSynchronizationInformationType() {
@@ -142,30 +150,46 @@ public class SynchronizationInformation {
     }
 
     private void toJaxb(SynchronizationInformationType rv) {
-        rv.setCountProtected(currentState.countProtected);
-        rv.setCountNoSynchronizationPolicy(currentState.countNoSynchronizationPolicy);
-        rv.setCountSynchronizationDisabled(currentState.countSynchronizationDisabled);
-        rv.setCountNotApplicableForTask(currentState.countNotApplicableForTask);
-        rv.setCountDeleted(currentState.countDeleted);
-        rv.setCountDisputed(currentState.countDisputed);
-        rv.setCountLinked(currentState.countLinked);
-        rv.setCountUnlinked(currentState.countUnlinked);
-        rv.setCountUnmatched(currentState.countUnmatched);
+        rv.setCountProtected(stateBefore.countProtected);
+        rv.setCountNoSynchronizationPolicy(stateBefore.countNoSynchronizationPolicy);
+        rv.setCountSynchronizationDisabled(stateBefore.countSynchronizationDisabled);
+        rv.setCountNotApplicableForTask(stateBefore.countNotApplicableForTask);
+        rv.setCountDeleted(stateBefore.countDeleted);
+        rv.setCountDisputed(stateBefore.countDisputed);
+        rv.setCountLinked(stateBefore.countLinked);
+        rv.setCountUnlinked(stateBefore.countUnlinked);
+        rv.setCountUnmatched(stateBefore.countUnmatched);
+
+		rv.setCountProtectedAfter(stateAfter.countProtected);
+		rv.setCountNoSynchronizationPolicyAfter(stateAfter.countNoSynchronizationPolicy);
+		rv.setCountSynchronizationDisabledAfter(stateAfter.countSynchronizationDisabled);
+		rv.setCountNotApplicableForTaskAfter(stateAfter.countNotApplicableForTask);
+		rv.setCountDeletedAfter(stateAfter.countDeleted);
+		rv.setCountDisputedAfter(stateAfter.countDisputed);
+		rv.setCountLinkedAfter(stateAfter.countLinked);
+		rv.setCountUnlinkedAfter(stateAfter.countUnlinked);
+		rv.setCountUnmatchedAfter(stateAfter.countUnmatched);
     }
 
-    public synchronized void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception, SynchronizationInformation.Record increment) {
-        currentState.countProtected += increment.countProtected;
-        currentState.countNoSynchronizationPolicy += increment.countNoSynchronizationPolicy;
-        currentState.countSynchronizationDisabled += increment.countSynchronizationDisabled;
-        currentState.countNotApplicableForTask += increment.countNotApplicableForTask;
-        currentState.countDeleted += increment.countDeleted;
-        currentState.countDisputed += increment.countDisputed;
-        currentState.countLinked += increment.countLinked;
-        currentState.countUnlinked += increment.countUnlinked;
-        currentState.countUnmatched += increment.countUnmatched;
+    public synchronized void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid,
+			long started, Throwable exception, Record originalStateIncrement, Record newStateIncrement) {
+		addToState(stateBefore, originalStateIncrement);
+		addToState(stateAfter, newStateIncrement);
     }
 
-    public void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
+	protected void addToState(Record state, Record increment) {
+		state.countProtected += increment.countProtected;
+		state.countNoSynchronizationPolicy += increment.countNoSynchronizationPolicy;
+		state.countSynchronizationDisabled += increment.countSynchronizationDisabled;
+		state.countNotApplicableForTask += increment.countNotApplicableForTask;
+		state.countDeleted += increment.countDeleted;
+		state.countDisputed += increment.countDisputed;
+		state.countLinked += increment.countLinked;
+		state.countUnlinked += increment.countUnlinked;
+		state.countUnmatched += increment.countUnmatched;
+	}
+
+	public void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
         // noop
     }
 
