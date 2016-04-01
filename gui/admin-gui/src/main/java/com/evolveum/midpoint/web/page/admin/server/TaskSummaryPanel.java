@@ -16,11 +16,14 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
+import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
+import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
@@ -38,31 +41,19 @@ import java.util.Date;
  * @author mederly
  *
  */
-public class TaskSummaryPanel extends FocusSummaryPanel<TaskType> {
+public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	private static final long serialVersionUID = -5077637168906420769L;
 
-	private static final String ID_TAG_EXECUTION_STATUS = "summaryTagExecutionStatus";
+	//private static final String ID_TAG_EXECUTION_STATUS = "summaryTagExecutionStatus";
 	private static final String ID_TAG_RESULT = "summaryTagResult";
 
-	public TaskSummaryPanel(String id, IModel<ObjectWrapper<TaskType>> model) {
+	public TaskSummaryPanel(String id, IModel<PrismObject<TaskType>> model) {
 		super(id, model);
-		
-		SummaryTag<TaskType> tagResult = new SummaryTag<TaskType>(ID_TAG_RESULT, model) {
-			@Override
-			protected void initialize(ObjectWrapper<TaskType> wrapper) {
-				OperationResultStatusType resultStatus = wrapper.getObject().asObjectable().getResultStatus();
-				String icon = OperationResultStatusIcon.parseOperationalResultStatus(resultStatus).getIcon();
-				setIconCssClass(icon);
-				setLabel(PageBase.createStringResourceStatic(TaskSummaryPanel.this, resultStatus).getString());
-				// TODO setColor
-			}
-		};
-		addTag(tagResult);
 
-		SummaryTag<TaskType> tagExecutionStatus = new SummaryTag<TaskType>(ID_TAG_EXECUTION_STATUS, model) {
+		SummaryTagSimple<TaskType> tagExecutionStatus = new SummaryTagSimple<TaskType>(ID_FIRST_SUMMARY_TAG, model) {
 			@Override
-			protected void initialize(ObjectWrapper<TaskType> wrapper) {
-				TaskType taskType = wrapper.getObject().asObjectable();
+			protected void initialize(PrismObject<TaskType> taskObject) {
+				TaskType taskType = taskObject.asObjectable();
 				TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
 				String icon = getIconForExecutionStatus(status);
 				setIconCssClass(icon);
@@ -70,7 +61,19 @@ public class TaskSummaryPanel extends FocusSummaryPanel<TaskType> {
 				// TODO setColor
 			}
 		};
-		addTag(tagExecutionStatus);
+		box.add(tagExecutionStatus);
+
+		SummaryTagSimple<TaskType> tagResult = new SummaryTagSimple<TaskType>(ID_TAG_RESULT, model) {
+			@Override
+			protected void initialize(PrismObject<TaskType> taskObject) {
+				OperationResultStatusType resultStatus = taskObject.asObjectable().getResultStatus();
+				String icon = OperationResultStatusIcon.parseOperationalResultStatus(resultStatus).getIcon();
+				setIconCssClass(icon);
+				setLabel(PageBase.createStringResourceStatic(TaskSummaryPanel.this, resultStatus).getString());
+				// TODO setColor
+			}
+		};
+		addTag(tagResult);
 	}
 
 	private String getIconForExecutionStatus(TaskDtoExecutionStatus status) {
@@ -107,11 +110,6 @@ public class TaskSummaryPanel extends FocusSummaryPanel<TaskType> {
 
 	@Override
 	protected boolean isIdentifierVisible() {
-		return false;
-	}
-
-	@Override
-	protected boolean isActivationVisible() {
 		return false;
 	}
 
