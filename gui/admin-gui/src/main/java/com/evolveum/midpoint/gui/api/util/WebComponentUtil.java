@@ -1041,7 +1041,7 @@ public final class WebComponentUtil {
 		} else if (ResourceType.COMPLEX_TYPE.equals(type)) {
 			page.setResponsePage(new PageResource(parameters, page));
 		} else if (TaskType.COMPLEX_TYPE.equals(type)) {
-			page.setResponsePage(new PageTaskEdit(parameters, page));
+			page.setResponsePage(new PageTaskEdit(parameters));		// TODO: "back" page
 		} else {
 			// nothing to do
 		}

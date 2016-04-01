@@ -43,7 +43,6 @@ public class ProcessInstanceDto extends Selectable {
 
 	public static final String F_OBJECT_NAME = "objectName";
 	public static final String F_TARGET_NAME = "targetName";
-    public static final String F_SHADOW_TASK = "shadowTask";		// DELETE THIS!
     public static final String F_NAME = "name";
     public static final String F_START_FORMATTED = "startFormatted";
     public static final String F_END_FORMATTED = "endFormatted";

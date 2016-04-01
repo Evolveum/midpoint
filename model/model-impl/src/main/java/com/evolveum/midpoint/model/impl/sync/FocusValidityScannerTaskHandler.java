@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
@@ -63,7 +64,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	// Therefore it must not have task-specific fields. It can only contain fields specific to
 	// all tasks of a specified type
 	
-	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/focus-validation-scanner/handler-3";
+	public static final String HANDLER_URI = ModelPublicConstants.FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI;
 
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;

@@ -30,7 +30,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  */
 public class TaskCurrentStateDto {
 
-    private TaskDto taskDto;
+	public static final String F_ACTIONS_EXECUTED_INFORMATION_DTO = "actionsExecutedInformationDto";
+	public static final String F_SYNCHRONIZATION_INFORMATION_DTO = "synchronizationInformationDto";
+	public static final String F_SYNCHRONIZATION_INFORMATION_AFTER_DTO = "synchronizationInformationAfterDto";
+
+	private TaskDto taskDto;
 
     public TaskCurrentStateDto(TaskDto taskDto) {
         this.taskDto = taskDto;
@@ -55,7 +59,15 @@ public class TaskCurrentStateDto {
         return stats.getSynchronizationInformation();
     }
 
-    public IterativeTaskInformationType getIterativeTaskInformationType() {
+	public SynchronizationInformationDto getSynchronizationInformationDto() {
+		return getSynchronizationInformationType() != null ? new SynchronizationInformationDto(getSynchronizationInformationType(), false) : null;
+	}
+
+	public SynchronizationInformationDto getSynchronizationInformationAfterDto() {
+		return getSynchronizationInformationType() != null ? new SynchronizationInformationDto(getSynchronizationInformationType(), true) : null;
+	}
+
+	public IterativeTaskInformationType getIterativeTaskInformationType() {
         OperationStatsType stats = getOperationStatsType();
         if (stats == null) {
             return null;
@@ -70,6 +82,14 @@ public class TaskCurrentStateDto {
         }
         return stats.getActionsExecutedInformation();
     }
+
+	public ActionsExecutedInformationDto getActionsExecutedInformationDto() {
+		if (getActionsExecutedInformationType() == null) {
+			return null;
+		} else {
+			return new ActionsExecutedInformationDto(getActionsExecutedInformationType());
+		}
+	}
 
     public Long getCurrentProgress() {
         if (taskDto == null) {

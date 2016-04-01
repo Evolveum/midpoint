@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.integrity;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -58,7 +59,7 @@ import java.util.List;
 @Component
 public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeTaskHandler<ShadowType, ShadowIntegrityCheckResultHandler> {
 
-    public static final String HANDLER_URI = SchemaConstants.NS_MODEL + "/shadow-integrity-check/handler-3";
+    public static final String HANDLER_URI = ModelPublicConstants.SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI;
 
     // WARNING! This task handler is efficiently singleton!
  	// It is a spring bean and it is supposed to handle all search task instances

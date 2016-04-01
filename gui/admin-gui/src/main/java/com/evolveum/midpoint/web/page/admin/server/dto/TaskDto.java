@@ -16,10 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -52,13 +48,21 @@ import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.wf.WfHistoryEventDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.Application;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -79,6 +83,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public static final String F_PARENT_TASK_OID = "parentTaskOid";
     public static final String F_WORKFLOW_LAST_DETAILS = "workflowLastDetails";
     public static final String F_WORKFLOW_DELTAS_IN = "workflowDeltasIn";
+    public static final String F_WORKFLOW_DELTA_IN = "workflowDeltaIn";
     public static final String F_WORKFLOW_DELTAS_OUT = "workflowDeltasOut";
     public static final String F_IDENTIFIER = "identifier";
     public static final String F_HANDLER_URI_LIST = "handlerUriList";
@@ -91,8 +96,24 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public static final String F_OBJECT_CLASS = "objectClass";
     public static final String F_WORKER_THREADS = "workerThreads";
     public static final String F_RESOURCE_REFERENCE = "resourceRef";
+    public static final String F_OP_RESULT = "opResult";
+	public static final String F_WORKFLOW_CONTEXT = "workflowContext";
+	public static final String F_WORK_ITEMS = "workItems";
+	public static final String RECURRING = "recurring";
+	public static final String BOUND = "bound";
+	public static final String F_INTERVAL = "interval";
+	public static final String CRON_SPECIFICATION = "cronSpecification";
+	public static final String F_NOT_START_BEFORE = "notStartBefore";
+	public static final String F_NOT_START_AFTER = "notStartAfter";
+	public static final String F_MISFIRE_ACTION = "misfireAction";
+	public static final String F_OBJECT_REF_NAME = "objectRefName";
+	public static final String F_OBJECT_TYPE = "objectType";
+	public static final String F_OBJECT_QUERY = "objectQuery";
+	public static final String F_OBJECT_DELTA = "objectDelta";
+	public static final String F_SCRIPT = "script";
+	public static final String F_EXECUTE_IN_RAW_MODE = "executeInRawMode";
 
-    private List<InlineMenuItem> menuItems;
+	private List<InlineMenuItem> menuItems;
 
     private List<String> handlerUriList;
     private String parentTaskName;
@@ -132,6 +153,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
     private List<SceneDto> workflowDeltasIn, workflowDeltasOut;
     private List<WfHistoryEventDto> workflowHistory;
+
+	private SceneDto workflowDeltaIn;
 
     private boolean dryRun;
     private ShadowKindType kind;
@@ -411,6 +434,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 //        }
 
         workflowDeltasIn = retrieveDeltasToProcess(taskType, modelInteractionService, opTask, thisOpResult);
+        workflowDeltaIn = retrieveDeltaToProcess(taskType, modelInteractionService, opTask, thisOpResult);
         workflowDeltasOut = retrieveResultingDeltas(taskType, modelInteractionService, opTask, thisOpResult);
         workflowHistory = prepareWorkflowHistory(taskType);
     }
@@ -424,6 +448,18 @@ public class TaskDto extends Selectable implements InlineMenuable {
         WfPrimaryChangeProcessorStateType pcps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
         return objectTreeDeltasToDeltaDtoList(pcps.getDeltasToProcess(), taskType.asPrismObject().getPrismContext(), modelInteractionService, opTask, thisOpResult);
     }
+
+	private SceneDto retrieveDeltaToProcess(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask,
+			OperationResult thisOpResult) throws SchemaException {
+		WfContextType wfc = taskType.getWorkflowContext();
+		if (wfc == null || !(wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
+			return null;
+		}
+		WfPrimaryChangeProcessorStateType pcps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
+		Scene scene = SceneUtil.visualizeObjectTreeDeltas(pcps.getDeltasToProcess(), "", taskType.asPrismObject().getPrismContext(),
+				modelInteractionService, opTask, thisOpResult);
+		return new SceneDto(scene);
+	}
 
     private List<SceneDto> objectTreeDeltasToDeltaDtoList(ObjectTreeDeltasType deltas, PrismContext prismContext,
 			ModelInteractionService modelInteractionService, Task opTask, OperationResult thisOpResult) throws SchemaException {
@@ -748,6 +784,10 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return workflowDeltasIn;
     }
 
+	public SceneDto getWorkflowDeltaIn() {
+        return workflowDeltaIn;
+    }
+
     public List<SceneDto> getWorkflowDeltasOut() {
         return workflowDeltasOut;
     }
@@ -776,6 +816,11 @@ public class TaskDto extends Selectable implements InlineMenuable {
     private PrismProperty getExtensionProperty(TaskType taskType, QName propertyName) {
         return taskType.asPrismObject().findProperty(new ItemPath(TaskType.F_EXTENSION, propertyName));
     }
+
+	private <T> T getExtensionPropertyRealValue(QName propertyName, Class<T> clazz) {
+		PrismProperty<T> property = taskType.asPrismObject().findProperty(new ItemPath(TaskType.F_EXTENSION, propertyName));
+		return property != null ? property.getRealValue() : null;
+	}
 
     public void setThreadStop(ThreadStopActionType value) {
         taskType.setThreadStopAction(value);
@@ -851,6 +896,59 @@ public class TaskDto extends Selectable implements InlineMenuable {
         this.objectClassList = objectClassList;
     }
 
+	public WfContextType getWorkflowContext() {
+		return taskType.getWorkflowContext();
+	}
+
+	public List<WorkItemDto> getWorkItems() {
+		List<WorkItemDto> rv = new ArrayList<>();
+		if (taskType.getWorkflowContext() != null) {
+			for (WorkItemType workItemType : taskType.getWorkflowContext().getWorkItem()) {
+				rv.add(new WorkItemDto(workItemType));
+			}
+		}
+		return rv;
+	}
+
+	public String getObjectType() {
+		QName type = getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, QName.class);
+		return type != null ? type.getLocalPart() : null;
+	}
+
+	public String getObjectQuery() {
+		QueryType queryType = getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.class);
+		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
+		try {
+			return prismContext.serializeAnyData(queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, PrismContext.LANG_XML);
+		} catch (SchemaException e) {
+			throw new SystemException("Couldn't serialize query: " + e.getMessage(), e);
+		}
+	}
+
+	public String getObjectDelta() {
+		ObjectDeltaType objectDeltaType = getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, ObjectDeltaType.class);
+		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
+		try {
+			return prismContext.serializeAnyData(objectDeltaType, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, PrismContext.LANG_XML);
+		} catch (SchemaException e) {
+			throw new SystemException("Couldn't serialize delta: " + e.getMessage(), e);
+		}
+	}
+
+	public String getScript() {
+		ExecuteScriptType script = getExtensionPropertyRealValue(SchemaConstants.SE_EXECUTE_SCRIPT, ExecuteScriptType.class);
+		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
+		try {
+			return prismContext.serializeAnyData(script, SchemaConstants.SE_EXECUTE_SCRIPT, PrismContext.LANG_XML);
+		} catch (SchemaException e) {
+			throw new SystemException("Couldn't serialize script: " + e.getMessage(), e);
+		}
+	}
+
+	public Boolean isExecuteInRawMode() {
+		return getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OPTION_RAW, Boolean.class);
+	}
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -905,6 +1003,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
             return false;
         if (workflowDeltasIn != null ? !workflowDeltasIn.equals(taskDto.workflowDeltasIn) : taskDto.workflowDeltasIn != null)
             return false;
+		if (workflowDeltaIn != null ? !workflowDeltaIn.equals(taskDto.workflowDeltaIn) : taskDto.workflowDeltaIn != null)
+			return false;
         if (workflowDeltasOut != null ? !workflowDeltasOut.equals(taskDto.workflowDeltasOut) : taskDto.workflowDeltasOut != null)
             return false;
         if (workflowHistory != null ? !workflowHistory.equals(taskDto.workflowHistory) : taskDto.workflowHistory != null)

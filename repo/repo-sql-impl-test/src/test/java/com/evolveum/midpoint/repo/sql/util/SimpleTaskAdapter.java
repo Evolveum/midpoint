@@ -703,7 +703,8 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception, SynchronizationInformation.Record increment) {
+    public void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started,
+			Throwable exception, SynchronizationInformation.Record originalStateIncrement, SynchronizationInformation.Record newStateIncrement) {
     }
 
     @Override

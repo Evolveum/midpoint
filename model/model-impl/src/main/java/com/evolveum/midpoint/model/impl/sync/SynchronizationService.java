@@ -18,10 +18,7 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -32,6 +29,7 @@ import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -251,7 +249,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				LOGGER.trace("SYNCHRONIZATION: SITUATION: '{}', currentOwner={}, correlatedOwner={}", situation.getSituation().value(), 
 						situation.getCurrentOwner(), situation.getCorrelatedOwner());
 			}
-			eventInfo.setSituation(situation.getSituation());
+			eventInfo.setOriginalSituation(situation.getSituation());
+			eventInfo.setNewSituation(situation.getSituation());			// overwritten later (TODO fix this!)
 
 			if (change.isUnrelatedChange() || Utils.isDryRun(task)){
 				PrismObject object = null;
@@ -288,7 +287,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				change.setCurrentShadow(newCurrentShadow);
 			}
 			
-			reactToChange(focusType, change, synchronizationPolicy, situation, resourceType, logDebug, configuration, task, subResult);
+			SynchronizationSituationType newSituation =
+					reactToChange(focusType, change, synchronizationPolicy, situation, resourceType, logDebug, configuration, task, subResult);
+			eventInfo.setNewSituation(newSituation);
 			eventInfo.record(task);
 			subResult.computeStatus();
 		} catch (Exception ex) {
@@ -645,15 +646,17 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		return ChangeType.ADD;
 	}
 
-	private <F extends FocusType> void reactToChange(Class<F> focusClass, ResourceObjectShadowChangeDescription change,
+	private <F extends FocusType> SynchronizationSituationType reactToChange(Class<F> focusClass, ResourceObjectShadowChangeDescription change,
 			ObjectSynchronizationType synchronizationPolicy, SynchronizationSituation<F> situation,
 			ResourceType resource, boolean logDebug, PrismObject<SystemConfigurationType> configuration, Task task, OperationResult parentResult) throws ConfigurationException, ObjectNotFoundException, SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException, SecurityViolationException {
+
+		SynchronizationSituationType newSituation = situation.getSituation();
 
 		SynchronizationReactionType reactionDefinition = findReactionDefinition(synchronizationPolicy, situation, 
 				change.getSourceChannel(), resource);
 		if (reactionDefinition == null) {
 			LOGGER.trace("No reaction is defined for situation {} in {}", situation.getSituation(), resource);
-			return;
+			return newSituation;
 		}
 
 		// seems to be unused so commented it out [med]
@@ -678,7 +681,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		options.setReconcile(doReconciliation);
 		options.setLimitPropagation(limitPropagation);
 		
-		boolean willSynchronize = isSynchronize(reactionDefinition);
+		final boolean willSynchronize = isSynchronize(reactionDefinition);
 		LensContext<F> lensContext = null;
 		if (willSynchronize) {
 			lensContext = createLensContext(focusClass, change, reactionDefinition, synchronizationPolicy, situation, 
@@ -697,16 +700,26 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			executeActions(reactionDefinition, lensContext, situation, BeforeAfterType.BEFORE, resource,
 					logDebug, task, parentResult);
 
+
+			Iterator<LensProjectionContext> iterator = lensContext.getProjectionContextsIterator();
+			LensProjectionContext originalProjectionContext = iterator.hasNext() ? iterator.next() : null;
+
 			clockwork.run(lensContext, task, parentResult);
 
 			// note: actions "AFTER" seem to be useless here (basically they modify lens context - which is relevant only if followed by clockwork run)
 			executeActions(reactionDefinition, lensContext, situation, BeforeAfterType.AFTER, resource,
 					logDebug, task, parentResult);
 
+			if (originalProjectionContext != null) {
+				newSituation = originalProjectionContext.getSynchronizationSituationResolved();
+			}
+
 		} else {
 			LOGGER.trace("Skipping clockwork run on {} for situation {}, synchronize is set to false.",
 					new Object[] { resource, situation.getSituation() });
 		}
+
+		return newSituation;
 
 	}
 
@@ -745,6 +758,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		return null;
 	}
 
+	@NotNull
 	private <F extends FocusType> LensContext<F> createLensContext(Class<F> focusClass, ResourceObjectShadowChangeDescription change,
 			SynchronizationReactionType reactionDefinition, ObjectSynchronizationType synchronizationPolicy,
 			SynchronizationSituation<F> situation, ModelExecuteOptions options, PrismObject<SystemConfigurationType> configuration,
@@ -1050,7 +1064,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		private long started;
 		private String channel;
 
-		private SynchronizationInformation.Record increment = new SynchronizationInformation.Record();
+		private SynchronizationInformation.Record originalStateIncrement = new SynchronizationInformation.Record();
+		private SynchronizationInformation.Record newStateIncrement = new SynchronizationInformation.Record();
 
 		public SynchronizationEventInformation(PrismObject<? extends ShadowType> currentShadow, String channel, Task task) {
 			this.channel = channel;
@@ -1069,22 +1084,26 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		}
 
 		public void setProtected() {
-			increment.setCountProtected(1);
+			originalStateIncrement.setCountProtected(1);
+			newStateIncrement.setCountProtected(1);
 		}
 
 		public void setNoSynchronizationPolicy() {
-			increment.setCountNoSynchronizationPolicy(1);
+			originalStateIncrement.setCountNoSynchronizationPolicy(1);
+			newStateIncrement.setCountNoSynchronizationPolicy(1);
 		}
 
 		public void setSynchronizationNotEnabled() {
-			increment.setCountSynchronizationDisabled(1);
+			originalStateIncrement.setCountSynchronizationDisabled(1);
+			newStateIncrement.setCountSynchronizationDisabled(1);
 		}
 
 		public void setDoesNotMatchTaskSpecification() {
-			increment.setCountNotApplicableForTask(1);
+			originalStateIncrement.setCountNotApplicableForTask(1);
+			newStateIncrement.setCountNotApplicableForTask(1);
 		}
 
-		public void setSituation(SynchronizationSituationType situation) {
+		private void setSituation(SynchronizationInformation.Record increment, SynchronizationSituationType situation) {
 			switch (situation) {
 				case LINKED: increment.setCountLinked(1); break;
 				case UNLINKED: increment.setCountUnlinked(1); break;
@@ -1096,17 +1115,25 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			}
 		}
 
+		public void setOriginalSituation(SynchronizationSituationType situation) {
+			setSituation(originalStateIncrement, situation);
+		}
+
+		public void setNewSituation(SynchronizationSituationType situation) {
+			newStateIncrement = new SynchronizationInformation.Record();		// brutal hack, TODO fix this!
+			setSituation(newStateIncrement, situation);
+		}
+
 		public void setException(Exception ex) {
 			exception = ex;
 		}
 
 		public void record(Task task) {
-			task.recordSynchronizationOperationEnd(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid, started, exception, increment);
+			task.recordSynchronizationOperationEnd(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid, started, exception, originalStateIncrement, newStateIncrement);
 			if (SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI.equals(channel)) {
 				// livesync processing is not controlled via model -> so we cannot do this in upper layers
 				task.recordIterativeOperationEnd(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid, started, exception);
 			}
 		}
-
 	}
 }

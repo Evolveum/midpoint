@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.wf.DecisionsPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.DecisionDto;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemApprovalProcessStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
@@ -39,12 +40,12 @@ public class ItemApprovalHistoryPanel extends BasePanel<WfContextType> {
 
     private static final String ID_DECISIONS_DONE = "decisionsDone";
 
-    public ItemApprovalHistoryPanel(String id, IModel<WfContextType> model) {
+    public ItemApprovalHistoryPanel(String id, IModel<WfContextType> model, UserProfileStorage.TableId tableId, int pageSize) {
         super(id, model);
-        initLayout();
+        initLayout(tableId, pageSize);
     }
 
-    private void initLayout() {
+    private void initLayout(UserProfileStorage.TableId tableId, int pageSize) {
 
         add(new DecisionsPanel(ID_DECISIONS_DONE, new AbstractReadOnlyModel<List<DecisionDto>>() {
             @Override
@@ -64,7 +65,7 @@ public class ItemApprovalHistoryPanel extends BasePanel<WfContextType> {
 				}
                 return rv;
             }
-        }));
+        }, tableId, pageSize));
 
     }
 }

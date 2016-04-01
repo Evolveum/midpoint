@@ -15,17 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.util.ListModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
 import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -41,6 +31,14 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.util.ListModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ResourceTasksPanel extends Panel{
 
@@ -120,7 +118,7 @@ public class ResourceTasksPanel extends Panel{
 				super.objectDetailsPerformed(target, task);
 				PageParameters parameters = new PageParameters();
 		        parameters.add(OnePageParameterEncoder.PARAMETER, task.getOid());
-		        setResponsePage(new PageTaskEdit(parameters, new PageResource()));
+		        setResponsePage(new PageTaskEdit(parameters));
 			}
 		};
 		tasksPanel.setEditable(false);

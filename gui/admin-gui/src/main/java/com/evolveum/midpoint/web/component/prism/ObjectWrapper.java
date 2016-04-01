@@ -694,6 +694,10 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         }
     }
 
+	public String getOid() {
+		return object.getOid();
+	}
+
     public boolean isShowAssignments() {
         return showAssignments;
     }

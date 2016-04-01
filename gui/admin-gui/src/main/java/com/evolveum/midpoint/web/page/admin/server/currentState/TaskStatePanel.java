@@ -28,7 +28,7 @@ import com.evolveum.midpoint.web.component.progress.StatisticsPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEditOld;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
@@ -453,9 +453,9 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
                         if (dto.getSynchronizationInformationType() == null) {
                             return null;
                         }
-                        return new SynchronizationInformationDto(dto.getSynchronizationInformationType());
+                        return new SynchronizationInformationDto(dto.getSynchronizationInformationType(), false);
                     }
-                });
+                }, false);
         synchronizationInformationPanel.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
@@ -615,7 +615,7 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
     }
 
 
-    public void refreshModel(PageTaskEdit page) {
+    public void refreshModel(PageTaskEditOld page) {
         IModel<TaskCurrentStateDto> model = getModel();
         if (!(model instanceof TaskCurrentStateDtoModel)) {
             LOGGER.warn("Unexpected or null model for TaskCurrentStateDto object: {}", model);
