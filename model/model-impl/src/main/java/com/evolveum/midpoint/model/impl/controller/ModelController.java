@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 
 import org.apache.commons.lang.Validate;
-import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -1546,7 +1545,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			try {
 				fis.close();
 			} catch (IOException e) {
-				Log.error("Error closing file "+input+": "+e.getMessage(), e);
+				LOGGER.error("Error closing file "+input+": "+e.getMessage(), e);
 			}
 		}
 		result.computeStatus();

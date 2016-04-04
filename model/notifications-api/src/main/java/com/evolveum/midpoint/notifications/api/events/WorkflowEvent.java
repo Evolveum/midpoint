@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,6 +131,13 @@ abstract public class WorkflowEvent extends BaseEvent {
                 ", changeType=" + changeType +
                 ", answer=" + workflowContext.getAnswer() +
                 '}';
+    }
+    
+    // This method is not used. It is here just for maven dependency plugin to detect the
+    // dependency on workflow-api
+    @SuppressWarnings("unused")
+	private void notUsed() {
+    	ApprovalUtils.approvalBooleanValue("");
     }
 
 }

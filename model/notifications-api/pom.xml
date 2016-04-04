@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -33,6 +33,21 @@
     </scm>
     <dependencies>
         <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>util</artifactId>
+            <version>3.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>prism</artifactId>
+            <version>3.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>schema</artifactId>
+            <version>3.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-api</artifactId>
             <version>3.4-SNAPSHOT</version>
@@ -40,16 +55,6 @@
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>workflow-api</artifactId>
-            <version>3.4-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-api</artifactId>
-            <version>3.4-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-cache</artifactId>
             <version>3.4-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -62,11 +67,12 @@
             <artifactId>task-api</artifactId>
             <version>3.4-SNAPSHOT</version>
         </dependency>
+        
         <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>schema</artifactId>
-            <version>3.4-SNAPSHOT</version>
-        </dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+		</dependency>
+        
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>

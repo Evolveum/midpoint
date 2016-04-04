@@ -159,5 +159,11 @@ public class LoggerAuditServiceImpl implements AuditService {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	// This method is never used. It is here only for maven dependency plugin to properly detect common component usage.
+	@SuppressWarnings("unused")
+	private void fakeMethod() {
+		LoggingConfigurationManager.getCurrentlyUsedVersion();
+	}
 
 }

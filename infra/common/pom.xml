@@ -39,28 +39,41 @@
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>prism</artifactId>
+			<version>3.4-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>schema</artifactId>
 			<version>3.4-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>commons-collections</groupId>
-			<artifactId>commons-collections</artifactId>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.codehaus.groovy</groupId>
-			<artifactId>groovy-all</artifactId>
+			<groupId>xml-apis</groupId>
+			<artifactId>xml-apis</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>net.sf.saxon</groupId>
-			<artifactId>Saxon-HE</artifactId>
+			<groupId>stax</groupId>
+			<artifactId>stax-api</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.santuario</groupId>
-			<artifactId>xmlsec</artifactId>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.staxmate</groupId>
@@ -72,21 +85,7 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>jul-to-slf4j</artifactId>
 		</dependency>
-		<!-- this dependency probably can be removed after protector 
-		class is implemented (just for development purposes only) -->
-		<dependency>
-			<groupId>xalan</groupId>
-			<artifactId>xalan</artifactId>
-			<version>2.7.1</version>
-		</dependency>
-		<dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
-        </dependency>
+
 		<!-- Testing dependecies -->
 		<dependency>
 			<groupId>org.testng</groupId>
