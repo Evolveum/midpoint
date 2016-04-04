@@ -114,21 +114,6 @@ public class TaskMainPanel extends Panel {
 					}
 				});
 		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.work")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskWorkTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-					}
-					@Override
-					public boolean isVisible() {
-						if (parentPage.isEdit()) {
-							return parentPage.configuresWorkToDo();
-						} else {
-							return parentPage.configuresWorkToDo() || parentPage.getTaskDto().getObjectRef() != null;
-						}
-					}
-				});
-		tabs.add(
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.progress")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
@@ -137,21 +122,10 @@ public class TaskMainPanel extends Panel {
 					@Override
 					public boolean isVisible() {
 						final OperationStatsType operationStats = taskDtoModel.getObject().getTaskType().getOperationStats();
-						return !parentPage.isEdit() && operationStats != null && operationStats.getIterativeTaskInformation() != null;
-					}
-				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.statesAndActions")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskStatesAndActionsTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-					}
-					@Override
-					public boolean isVisible() {
-						final OperationStatsType operationStats = taskDtoModel.getObject().getTaskType().getOperationStats();
-						return !parentPage.isEdit()
-								&& operationStats != null
-								&& (operationStats.getSynchronizationInformation() != null || operationStats.getActionsExecutedInformation() != null);
+						return !parentPage.isEdit() && operationStats != null &&
+								(operationStats.getIterativeTaskInformation() != null ||
+										operationStats.getSynchronizationInformation() != null ||
+										operationStats.getActionsExecutedInformation() != null);
 					}
 				});
 		tabs.add(

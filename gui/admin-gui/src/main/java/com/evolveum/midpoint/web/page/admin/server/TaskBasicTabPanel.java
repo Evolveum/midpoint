@@ -36,6 +36,7 @@ import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -46,6 +47,9 @@ import java.util.Date;
 
 /**
  * @author semancik
+ * @author lazyman
+ * @author mserbak
+ * @author mederly
  */
 public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implements TaskTabPanel {
 	private static final long serialVersionUID = 1L;
@@ -63,6 +67,8 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 	private static final String ID_EXECUTION = "execution";
 	private static final String ID_NODE = "node";
 
+	private static final String ID_WORK_TO_DO = "workToDoPanel";
+
 	private static final Trace LOGGER = TraceManager.getTrace(TaskBasicTabPanel.class);
 
 	private LoadableModel<TaskDto> taskDtoModel;
@@ -74,11 +80,13 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 		super(id, mainForm, taskWrapperModel, parentPage);
 		this.taskDtoModel = taskDtoModel;
 		this.parentPage = parentPage;
-		initLayout();
+		initLayoutBasic();
+		initLayoutWorkToDo(mainForm, taskWrapperModel);
+
 		setOutputMarkupId(true);
 	}
 	
-	private void initLayout() {
+	private void initLayoutBasic() {
 
 		final VisibleEnableBehaviour visibleIfEdit = new VisibleEnableBehaviour() {
 			@Override
@@ -176,6 +184,11 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 		});
 		add(node);
 
+	}
+
+	private void initLayoutWorkToDo(Form mainForm, LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel) {
+		Panel workToDoPanel = new TaskWorkTabPanel(ID_WORK_TO_DO, mainForm, taskWrapperModel, taskDtoModel, parentPage);
+		add(workToDoPanel);
 	}
 
 	@Override

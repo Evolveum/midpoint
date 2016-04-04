@@ -19,44 +19,52 @@
 	xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div class="box box-success">
-        <div class="box-body no-padding">
-            <table class="table table-striped">
-                <tr>
-                    <td><wicket:message key="pageTaskEdit.name"/></td>
-                    <td><input type="text" class="form-control input-sm" wicket:id="name"/><span wicket:id="nameLabel"/></td>
-                </tr>
-                <tr>
-                    <td><wicket:message key="pageTaskEdit.description"/></td>
-                    <td><textarea class="form-control input-sm" rows="2" wicket:id="description"/><span wicket:id="descriptionLabel"/></td>
-                </tr>
-                <tr>
-                    <td><wicket:message key="pageTaskEdit.oid"/></td>
-                    <td><span wicket:id="oid"/></td>
-                </tr>
-                <tr>
-                    <td><wicket:message key="pageTaskEdit.identifier"/></td>
-                    <td><span wicket:id="identifier"/></td>
-                </tr>
-                <tr>
-                    <td><wicket:message key="pageTaskEdit.category"/></td>
-                    <td><span wicket:id="category"/></td>
-                </tr>
-                <tr>
-                    <td><wicket:message key="pageTaskEdit.parent"/></td>
-                    <td><span wicket:id="parent"/></td>
-                </tr>
-                <tr wicket:id="handlerUriList">
-                    <td><wicket:message key="pageTaskEdit.handlerUri"/></td>
-                    <td><span wicket:id="handlerUri"/></td>
-                </tr>
-                <tr>
-                    <td><wicket:message key="pageTaskEdit.execution"/></td>
-                    <td><span wicket:id="execution"/> <span wicket:id="node"/></td>
-                </tr>
-            </table>
+    <div class="row">
+    <div class="col-md-6">
+        <div class="box box-success">
+            <div class="box-body no-padding">
+                <table class="table table-striped">
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.name"/></td>
+                        <td><input type="text" class="form-control input-sm" wicket:id="name"/><span wicket:id="nameLabel"/></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.description"/></td>
+                        <td><textarea class="form-control input-sm" rows="2" wicket:id="description"/><span wicket:id="descriptionLabel"/></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.oid"/></td>
+                        <td><span wicket:id="oid"/></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.identifier"/></td>
+                        <td><span wicket:id="identifier"/></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.category"/></td>
+                        <td><span wicket:id="category"/></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.parent"/></td>
+                        <td><span wicket:id="parent"/></td>
+                    </tr>
+                    <tr wicket:id="handlerUriList">
+                        <td><wicket:message key="pageTaskEdit.handlerUri"/></td>
+                        <td><span wicket:id="handlerUri"/></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.execution"/></td>
+                        <td><span wicket:id="execution"/> <span wicket:id="node"/></td>
+                    </tr>
+                </table>
+            </div>
         </div>
     </div>
+    <div class="col-md-6">
+        <div wicket:id="workToDoPanel"/>
+    </div>
+    </div>
+
 </wicket:panel>
 </body>
 </html>

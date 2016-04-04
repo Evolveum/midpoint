@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.web.component.progress.StatisticsDtoModel;
 import com.evolveum.midpoint.web.component.progress.StatisticsPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.server.currentState.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
@@ -42,6 +43,9 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_ITERATIVE_INFORMATION_PANEL = "iterativeInformationPanel";
+	private static final String ID_SYNCHRONIZATION_INFORMATION_PANEL_BEFORE = "synchronizationInformationPanelBefore";
+	private static final String ID_SYNCHRONIZATION_INFORMATION_PANEL_AFTER = "synchronizationInformationPanelAfter";
+	private static final String ID_ACTIONS_EXECUTED_INFORMATION_PANEL = "actionsExecutedInformationPanel";
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskProgressTabPanel.class);
 
@@ -53,9 +57,40 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 		setOutputMarkupId(true);
 	}
 
-	private void initLayout(LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
-		TaskCurrentStateDtoModel model = new TaskCurrentStateDtoModel(taskDtoModel);
+	private void initLayout(final LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
+		final TaskCurrentStateDtoModel model = new TaskCurrentStateDtoModel(taskDtoModel);
 		add(new IterativeInformationPanel(ID_ITERATIVE_INFORMATION_PANEL, model, pageBase));
+
+		SynchronizationInformationPanel synchronizationInformationPanelBefore = new SynchronizationInformationPanel(ID_SYNCHRONIZATION_INFORMATION_PANEL_BEFORE,
+				new PropertyModel<SynchronizationInformationDto>(model, TaskCurrentStateDto.F_SYNCHRONIZATION_INFORMATION_DTO), false);
+		synchronizationInformationPanelBefore.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return model.getObject().getSynchronizationInformationType() != null;
+			}
+		});
+		add(synchronizationInformationPanelBefore);
+
+		SynchronizationInformationPanel synchronizationInformationPanelAfter = new SynchronizationInformationPanel(ID_SYNCHRONIZATION_INFORMATION_PANEL_AFTER,
+				new PropertyModel<SynchronizationInformationDto>(model, TaskCurrentStateDto.F_SYNCHRONIZATION_INFORMATION_AFTER_DTO), true);
+		synchronizationInformationPanelAfter.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return model.getObject().getSynchronizationInformationType() != null && !taskDtoModel.getObject().isDryRun();
+			}
+		});
+		add(synchronizationInformationPanelAfter);
+
+		ActionsExecutedInformationPanel actionsExecutedInformationPanel = new ActionsExecutedInformationPanel(ID_ACTIONS_EXECUTED_INFORMATION_PANEL,
+				new PropertyModel<ActionsExecutedInformationDto>(model, TaskCurrentStateDto.F_ACTIONS_EXECUTED_INFORMATION_DTO));
+		actionsExecutedInformationPanel.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return model.getObject().getActionsExecutedInformationType() != null;
+			}
+		});
+		add(actionsExecutedInformationPanel);
+
 	}
 
 	@Override
