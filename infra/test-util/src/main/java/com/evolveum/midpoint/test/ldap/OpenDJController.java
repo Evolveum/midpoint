@@ -811,8 +811,34 @@ public class OpenDJController extends AbstractResourceController {
 		
 		return sb.toString();
 	}
+	
+	public String dumpTree() throws DirectoryException {
+		StringBuilder sb = new StringBuilder();
+		sb.append(LDAP_SUFFIX).append("\n");
+		dumpTreeLevel(sb, LDAP_SUFFIX, 1);
+		return sb.toString();
+	}
+		
+	private void dumpTreeLevel(StringBuilder sb, String dn, int indent) throws DirectoryException {
+		InternalSearchOperation op = getInternalConnection().processSearch(
+				dn, SearchScope.SINGLE_LEVEL, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
+				100, false, "(objectclass=*)", getSearchAttributes());
 
-    private String toHumanReadableLdifoid(Entry entry) {
+		for (SearchResultEntry searchEntry: op.getSearchEntries()) {
+			ident(sb, indent);
+			sb.append(searchEntry.getDN().getRDN());
+			sb.append("\n");
+			dumpTreeLevel(sb, searchEntry.getDN().toString(), indent + 1);
+		}
+	}
+
+	private void ident(StringBuilder sb, int indent) {
+		for(int i=0; i < indent; i++) {
+			sb.append("  ");
+		}
+	}
+
+	public String toHumanReadableLdifoid(Entry entry) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("dn: ").append(entry.getDN()).append("\n");
 		for (Attribute attribute: entry.getAttributes()) {

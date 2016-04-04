@@ -201,7 +201,12 @@ public class ConstraintsChecker {
 			return true;
 		}
 		if (foundObjects.size() > 1) {
-			LOGGER.trace("Found more than one object with attribute "+identifier.toHumanReadableString());
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Found {} objects with attribute {}", foundObjects.size() ,identifier.toHumanReadableString());
+				for (PrismObject<ShadowType> foundObject: foundObjects) {
+					LOGGER.debug("Conflicting object:\n{}", foundObject.debugDump());
+				}
+			}
 			message("Found more than one object with attribute "+identifier.toHumanReadableString());
 			return false;
 		}

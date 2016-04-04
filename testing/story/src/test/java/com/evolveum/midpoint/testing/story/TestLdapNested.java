@@ -53,7 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdapNested extends AbstractLdapHierarchyTest {
 	
-	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "nested-ldap");
+	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap-nested");
 		
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
