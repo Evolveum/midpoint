@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,6 @@ import org.testng.annotations.*;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import java.io.File;
@@ -125,7 +124,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	protected static OpenDJController openDJController = new OpenDJController();
 
-	public TestUcfOpenDj() throws JAXBException {
+	public TestUcfOpenDj() {
 		System.setProperty("midpoint.home", "target/midPointHome/");
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import java.io.File;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
@@ -110,11 +109,7 @@ public class TestCsvFile extends AbstractIntegrationTest {
 	@Autowired(required=true)
 	private ProvisioningService provisioningService;
 		
-
-	/**
-	 * @throws JAXBException
-	 */
-	public TestCsvFile() throws JAXBException {
+	public TestCsvFile() {
 		super();
 	}
 

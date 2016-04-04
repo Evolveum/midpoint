@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,4 +26,7 @@ public class AccessCertificationApiConstants {
     public static final String NS_HANDLERS_PREFIX = SchemaConstants.NS_CERTIFICATION + "/handlers-3";
     public static final String DIRECT_ASSIGNMENT_HANDLER_URI = AccessCertificationApiConstants.NS_HANDLERS_PREFIX + "#direct-assignment";
 
+    public static void noop() {
+    	// no nothing. Just for maven dependency analyze to properly detect the dependency.
+    }
 }

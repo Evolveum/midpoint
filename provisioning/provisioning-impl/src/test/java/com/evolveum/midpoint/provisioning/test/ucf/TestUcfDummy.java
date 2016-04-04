@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,18 @@
  */
 package com.evolveum.midpoint.provisioning.test.ucf;
 
-import static org.testng.AssertJUnit.assertTrue;
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
-import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +36,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
@@ -74,8 +70,8 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -129,7 +125,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	private static Trace LOGGER = TraceManager.getTrace(TestUcfDummy.class);
 	
 	@BeforeClass
-	public void setup() throws SchemaException, SAXException, IOException {
+	public void setup() throws Exception {
 		TestUtil.displayTestTile("setup");
 		System.setProperty("midpoint.home", "target/midPointHome/");
 
@@ -151,7 +147,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	}
 		
 	@Test
-	public void test000PrismContextSanity() throws ObjectNotFoundException, SchemaException {
+	public void test000PrismContextSanity() throws Exception {
 		TestUtil.displayTestTile("test000PrismContextSanity");
 		
 		SchemaRegistry schemaRegistry = PrismTestUtil.getPrismContext().getSchemaRegistry();
@@ -168,7 +164,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	}
 	
 	@Test
-	public void test001ResourceSanity() throws ObjectNotFoundException, SchemaException {
+	public void test001ResourceSanity() throws Exception {
 		TestUtil.displayTestTile("test001ResourceSanity");
 		
 		display("Resource", resource);
@@ -200,7 +196,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void test002ConnectorSchema() throws ObjectNotFoundException, SchemaException {
+	public void test002ConnectorSchema() throws Exception {
 		TestUtil.displayTestTile("test002ConnectorSchema");
 		
 		ConnectorInstance cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
@@ -228,7 +224,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	 * @throws CommunicationException 
 	 */
 	@Test
-	public void test010ListConnectors() throws CommunicationException {
+	public void test010ListConnectors() throws Exception {
 		final String TEST_NAME = "test010ListConnectors";
 		TestUtil.displayTestTile(TEST_NAME);
 		
@@ -254,7 +250,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	}
 	
 	@Test
-	public void test020CreateConfiguredConnector() throws FileNotFoundException, JAXBException,
+	public void test020CreateConfiguredConnector() throws Exception,
 			ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, SchemaException, ConfigurationException {
 		TestUtil.displayTestTile("test004CreateConfiguredConnector");
@@ -276,7 +272,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	}
 	
 	@Test
-	public void test030ResourceSchema() throws ObjectNotFoundException, SchemaException, CommunicationException, GenericFrameworkException, ConfigurationException {
+	public void test030ResourceSchema() throws Exception {
 		TestUtil.displayTestTile("test030ResourceSchema");
 		
 		OperationResult result = new OperationResult(TestUcfDummy.class+".test030ResourceSchema");
@@ -312,7 +308,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	}
 	
 	@Test
-	public void test030ResourceSchemaAccountObjectClass() throws ObjectNotFoundException, SchemaException, CommunicationException, GenericFrameworkException, ConfigurationException {
+	public void test030ResourceSchemaAccountObjectClass() throws Exception {
 		TestUtil.displayTestTile("test030ResourceSchemaAccountObjectClass");
 		
 		OperationResult result = new OperationResult(TestUcfDummy.class+".test030ResourceSchema");

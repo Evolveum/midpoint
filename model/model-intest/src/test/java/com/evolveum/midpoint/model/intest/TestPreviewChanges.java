@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -465,9 +465,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		TestUtil.assertSuccess(result);
 		
 		assertAdminGuiConfigurations(adminGuiConfiguration, 0, 1, 1);
+		
 		RichHyperlinkType link = adminGuiConfiguration.getUserDashboardLink().get(0);
 		assertEquals("Bad link label", "Foo", link.getLabel());
 		assertEquals("Bad link targetUrl", "/foo", link.getTargetUrl());
+		
+		assertEquals("Bad timezone targetUrl", "Jamaica", adminGuiConfiguration.getDefaultTimezone());
 	}
 	
 	@Test

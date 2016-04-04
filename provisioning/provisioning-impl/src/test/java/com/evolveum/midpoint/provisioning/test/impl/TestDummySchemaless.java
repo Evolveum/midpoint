@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.util.List;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,11 +62,6 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
@@ -120,14 +114,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
 
-	
-//	@Autowired
-//	TaskManager taskManager;
-
-	/**
-	 * @throws JAXBException
-	 */
-	public TestDummySchemaless() throws JAXBException {
+	public TestDummySchemaless() {
 		super();
 	}
 
@@ -160,7 +147,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
+	public void test000Integrity() throws Exception {
 		TestUtil.displayTestTile("test000Integrity");
 
 		display("Dummy resource instance", dummyResourceSchemaless.toString());
@@ -192,7 +179,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	 * that executes testResource and checks whether the schema was generated.
 	 */
 	@Test
-	public void test003ConnectionSchemaless() throws ObjectNotFoundException, SchemaException {
+	public void test003ConnectionSchemaless() throws Exception {
 		TestUtil.displayTestTile("test003ConnectionSchemaless");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
@@ -229,8 +216,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	 * This basically checks if the methods do not die on NPE
 	 */
 	@Test
-	public void test005ParsedSchemaSchemaless() throws ObjectNotFoundException, CommunicationException, SchemaException,
-			ConfigurationException {
+	public void test005ParsedSchemaSchemaless() throws Exception {
 		TestUtil.displayTestTile("test005ParsedSchemaSchemaless");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
@@ -270,7 +256,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	 * that executes testResource and checks whether the schema was generated.
 	 */
 	@Test
-	public void test103ConnectionStaticSchema() throws ObjectNotFoundException, SchemaException {
+	public void test103ConnectionStaticSchema() throws Exception {
 		TestUtil.displayTestTile("test103ConnectionStaticSchema");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
@@ -306,8 +292,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	 * This basically checks if the methods do not die on NPE
 	 */
 	@Test
-	public void test105ParsedSchemaStaticSchema() throws ObjectNotFoundException, CommunicationException, SchemaException,
-			ConfigurationException {
+	public void test105ParsedSchemaStaticSchema() throws Exception {
 		TestUtil.displayTestTile("test105ParsedSchemaStaticSchema");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
@@ -348,8 +333,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void test107Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException,
-			JAXBException, ConfigurationException, SecurityViolationException {
+	public void test107Capabilities() throws Exception {
 		TestUtil.displayTestTile("test107Capabilities");
 
 		// GIVEN
