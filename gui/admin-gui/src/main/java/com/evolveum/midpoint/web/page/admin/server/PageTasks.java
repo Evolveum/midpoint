@@ -140,7 +140,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     private static final String ID_TABLE_HEADER = "tableHeader";
 
     public static final String SELECTED_CATEGORY = "category";
-	private static final int REFRESH_INTERVAL = 5000;
+	private static final int REFRESH_INTERVAL = 10000;				// don't set too low to prevent refreshing open inline menus (TODO skip refresh if a menu is open)
 
 	private IModel<TasksSearchDto> searchModel;
     private String searchText = "";
@@ -1175,18 +1175,22 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     //endregion
 
     private void refreshTasks(AjaxRequestTarget target) {
-        searchModel = new LoadableModel<TasksSearchDto>(false) {
-
-            @Override
-            protected TasksSearchDto load() {
-                return loadTasksSearchDto();
-            }
-        };
+//        searchModel = new LoadableModel<TasksSearchDto>(false) {
+//
+//            @Override
+//            protected TasksSearchDto load() {
+//                return loadTasksSearchDto();
+//            }
+//        };
 
 		target.add(refreshPanel);
 
         //refresh feedback and table
         refreshTables(target);
+
+		if (refreshModel.getObject().isEnabled()) {
+			startRefreshing();
+		}
     }
 
     private void searchFilterPerformed(AjaxRequestTarget target) {
