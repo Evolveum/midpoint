@@ -31,6 +31,7 @@
             <class name="com.evolveum.midpoint.testing.story.TestUuid"/>
             <class name="com.evolveum.midpoint.testing.story.TestLdapFlat"/>
             <class name="com.evolveum.midpoint.testing.story.TestLdapNested"/>
+            <class name="com.evolveum.midpoint.testing.story.TestLdapHierarchical"/>
         </classes>
     </test>
 </suite>

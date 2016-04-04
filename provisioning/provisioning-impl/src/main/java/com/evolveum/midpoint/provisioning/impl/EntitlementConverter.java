@@ -740,7 +740,7 @@ class EntitlementConverter {
 			if (ResourceTypeUtil.isAvoidDuplicateValues(resource)) {
 				PrismObject<ShadowType> currentObjectShadow = operations.getCurrentShadow();
 				if (currentObjectShadow == null) {
-					LOGGER.trace("Fetching etitlement shadow {} to avoid value duplication (intent={})", entitlementIdentifiers, entitlementIntent);
+					LOGGER.trace("Fetching entitlement shadow {} to avoid value duplication (intent={})", entitlementIdentifiers, entitlementIntent);
 					currentObjectShadow = resourceObjectReferenceResolver.fetchResourceObject(entitlementCtx, entitlementIdentifiers, null, result);
 					operations.setCurrentShadow(currentObjectShadow);
 				}
