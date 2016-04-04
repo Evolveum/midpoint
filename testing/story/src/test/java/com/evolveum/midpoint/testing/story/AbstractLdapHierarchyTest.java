@@ -36,6 +36,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -47,6 +48,7 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -56,9 +58,12 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -170,6 +175,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
         TestUtil.assertSuccess(testResultOpenDj);
 
         dumpOrgTree();
+        dumpLdap();
 	}
 	
 	@Test
@@ -191,10 +197,11 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        dumpOrgTree();
+		dumpLdap();
+        
         PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_ROYULA_CARPATHIA_NAME, ORG_TOP_OID);
         orgRolyulaCarpathiaOid = orgAfter.getOid();
-
-		dumpOrgTree();
 
 		assertSubOrgs(orgAfter, 0);
 		assertSubOrgs(ORG_TOP_OID, 1);
@@ -465,7 +472,9 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
         PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_CORTUV_HRAD_NAME2, orgRolyulaDiabolicaOid);
         assertEquals("Cortuv hrad org OID changed after rename", orgCortuvHradOid, orgAfter.getOid());
 
-		recomputeUsersIfNeeded(orgCortuvHradOid);
+        dumpLdap();
+        
+		recomputeIfNeeded(orgCortuvHradOid);
         
 		dumpOrgTree();
 		dumpLdap();
@@ -480,7 +489,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 		assertSubOrgs(orgVysneVlkodlakyOid, 0);
 	}
 	
-	protected void recomputeUsersIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException  {
+	protected void recomputeIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException  {
 		// nothing to do by default
 	}
 
@@ -536,7 +545,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 
 		Entry accountEntry = openDJController.searchSingle("uid="+username);
 		assertNotNull("No account LDAP entry for "+username, accountEntry);
-		display("account entry", accountEntry);
+		display("account entry", openDJController.toHumanReadableLdifoid(accountEntry));
 		openDJController.assertObjectClass(accountEntry, "inetOrgPerson");
 		
 		return user;
@@ -555,7 +564,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 
 		Entry groupEntry = openDJController.searchSingle("cn="+orgName);
 		assertNotNull("No group LDAP entry for "+orgName, groupEntry);
-		display("OU GROUP entry", groupEntry);
+		display("OU GROUP entry", openDJController.toHumanReadableLdifoid(groupEntry));
 		openDJController.assertObjectClass(groupEntry, "groupOfUniqueNames");
 
 		assertHasOrg(org, directParentOrgOid);
@@ -577,6 +586,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	}
 	
 	protected void dumpLdap() throws DirectoryException {
+		display("LDAP server tree", openDJController.dumpTree());
 		display("LDAP server content", openDJController.dumpEntries());
 	}
 	
@@ -591,6 +601,48 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 		String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "org-group");
 		PrismObject<ShadowType> groupShadow = getShadowModel(groupOid);
 		assertNoAttribute(groupShadow, new QName(MidPointConstants.NS_RI, "uniqueMember"));
+	}
+	
+	protected void reconcileAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		final Task task = createTask("reconcileAllUsers");
+		OperationResult result = task.getResult();
+		ResultHandler<UserType> handler = new ResultHandler<UserType>() {
+			@Override
+			public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {
+				try {
+					display("reconciling "+object);
+					reconcileUser(object.getOid(), task, parentResult);
+				} catch (SchemaException | PolicyViolationException | ExpressionEvaluationException
+						| ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException
+						| ConfigurationException | SecurityViolationException e) {
+					throw new SystemException(e.getMessage(), e);
+				}
+				return true;
+			}
+		};
+		display("Reconciling all users");
+		modelService.searchObjectsIterative(UserType.class, null, handler, null, task, result);
+	}
+	
+	protected void reconcileAllOrgs() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		final Task task = createTask("reconcileAllOrgs");
+		OperationResult result = task.getResult();
+		ResultHandler<OrgType> handler = new ResultHandler<OrgType>() {
+			@Override
+			public boolean handle(PrismObject<OrgType> object, OperationResult parentResult) {
+				try {
+					display("reconciling "+object);
+					reconcileOrg(object.getOid(), task, parentResult);
+				} catch (SchemaException | PolicyViolationException | ExpressionEvaluationException
+						| ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException
+						| ConfigurationException | SecurityViolationException e) {
+					throw new SystemException(e.getMessage(), e);
+				}
+				return true;
+			}
+		};
+		display("Reconciling all orgs");
+		modelService.searchObjectsIterative(OrgType.class, null, handler, null, task, result);
 	}
 	
 }
