@@ -18,9 +18,14 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
@@ -70,18 +75,25 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
 
 
     private static final String DOT_CLASS = MultipleAssignmentSelectorPanel.class.getName();
+    private static final String OPERATION_LOAD_AVAILABLE_ROLES = DOT_CLASS + "loadAvailableRoles";
     private Class<F> type;
 
     private BaseSortableDataProvider dataProvider;
     private BaseSortableDataProvider currentAssignmentsProvider;
     private List<OrgType> tenantEditorObject = new ArrayList<>();
     private List<OrgType> orgEditorObject = new ArrayList<>();
+    private PrismObject<UserType> user;
+    private ObjectFilter authorizedRolesFilter = null;
+    private IModel<ObjectFilter> filterModel = null;
     private static final Trace LOGGER = TraceManager.getTrace(MultipleAssignmentSelectorPanel.class);
 
-    public MultipleAssignmentSelectorPanel(String id, LoadableModel<List<AssignmentEditorDto>> assignmentsModel, Class<H> targetFocusClass, Class<F> type) {
+    public MultipleAssignmentSelectorPanel(String id, LoadableModel<List<AssignmentEditorDto>> assignmentsModel,
+                                           PrismObject<UserType> user, Class<H> targetFocusClass, Class<F> type) {
         super(id, assignmentsModel);
         this.assignmentsModel = assignmentsModel;
         this.type = type;
+        this.user = user;
+        filterModel = getFilterModel();
         tenantEditorObject.add(new OrgType());
         orgEditorObject.add(new OrgType());
         initLayout(targetFocusClass);
@@ -217,7 +229,57 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
             public AssignmentEditorDto createDataObjectWrapper(PrismObject<F> obj) {
                 return AssignmentEditorDto.createDtoFromObject(obj.asObjectable(), UserDtoStatus.MODIFY, getPageBase());
             }
+
+            @Override
+            public ObjectQuery getQuery() {
+                ObjectQuery query = new ObjectQuery();
+                if (filterModel != null && filterModel.getObject() != null){
+                    query.addFilter(filterModel.getObject());
+                }
+                return query;
+            }
         };
+    }
+
+    private  IModel<ObjectFilter> getFilterModel(){
+        return new IModel<ObjectFilter>() {
+            @Override
+            public ObjectFilter getObject() {
+                if (authorizedRolesFilter == null){
+                    initRolesFilter();
+                }
+                return authorizedRolesFilter;
+            }
+
+            @Override
+            public void setObject(ObjectFilter objectFilter) {
+
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
+    }
+
+    private void initRolesFilter (){
+        LOGGER.debug("Loading roles which the current user has right to assign");
+        OperationResult result = new OperationResult(OPERATION_LOAD_AVAILABLE_ROLES);
+        try {
+            PageBase pb = getPageBase();
+            ModelInteractionService mis = pb.getModelInteractionService();
+            RoleSelectionSpecification roleSpec = mis.getAssignableRoleSpecification(user, result);
+            authorizedRolesFilter = roleSpec.getFilter();
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't load available roles", ex);
+            result.recordFatalError("Couldn't load available roles", ex);
+        } finally {
+            result.recomputeStatus();
+        }
+        if (!result.isSuccess() && !result.isHandledError()) {
+            getPageBase().showResult(result);
+        }
     }
 
     public <T extends FocusType> ListDataProvider<AssignmentEditorDto> getListDataProvider(final T user) {
@@ -448,7 +510,8 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         if (user == null) {
             currentAssignments = getAssignmentsByType(assignmentsModel.getObject());
             if (currentAssignmentsProvider != null) {
-                query = currentAssignmentsProvider.getQuery();
+                query = currentAssignmentsProvider.getQuery() == null ? new ObjectQuery() :
+                        currentAssignmentsProvider.getQuery();
             }
         } else {
             List<AssignmentEditorDto> assignmentsList = getAssignmentEditorDtoList(user.getAssignment());
@@ -462,6 +525,9 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
             query = dataProvider.getQuery();
         }
         if (query != null){
+            if (filterModel != null && filterModel.getObject() != null){
+                query.addFilter(filterModel.getObject());
+            }
             return applyQueryToListProvider(query, currentAssignments);
         }
         return currentAssignments;
