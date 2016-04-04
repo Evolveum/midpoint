@@ -26,12 +26,16 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.currentState.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import org.apache.wicket.Component;
 import org.apache.wicket.model.PropertyModel;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * @author semancik
  */
-public class TaskStatesAndActionsTabPanel extends AbstractObjectTabPanel<TaskType> {
+public class TaskStatesAndActionsTabPanel extends AbstractObjectTabPanel<TaskType> implements TaskTabPanel {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_SYNCHRONIZATION_INFORMATION_PANEL_BEFORE = "synchronizationInformationPanelBefore";
@@ -45,6 +49,7 @@ public class TaskStatesAndActionsTabPanel extends AbstractObjectTabPanel<TaskTyp
 			LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		super(id, mainForm, taskWrapperModel, pageBase);
 		initLayout(taskDtoModel, pageBase);
+		setOutputMarkupId(true);
 	}
 
 	private void initLayout(final LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
@@ -78,6 +83,11 @@ public class TaskStatesAndActionsTabPanel extends AbstractObjectTabPanel<TaskTyp
 			}
 		});
 		add(actionsExecutedInformationPanel);
+	}
+
+	@Override
+	public Collection<Component> getComponentsToUpdate() {
+		return Collections.<Component>singleton(this);
 	}
 
 }

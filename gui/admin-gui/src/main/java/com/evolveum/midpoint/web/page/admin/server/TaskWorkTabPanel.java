@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
@@ -51,10 +52,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.Strings;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author semancik
@@ -62,7 +60,7 @@ import java.util.List;
  * @author mserbak
  * @author mederly
  */
-public class TaskWorkTabPanel extends AbstractObjectTabPanel<TaskType> {
+public class TaskWorkTabPanel extends AbstractObjectTabPanel<TaskType> implements TaskTabPanel {
 	private static final long serialVersionUID = 1L;
 
 	private static final String DOT_CLASS = TaskWorkTabPanel.class.getName() + ".";
@@ -105,6 +103,7 @@ public class TaskWorkTabPanel extends AbstractObjectTabPanel<TaskType> {
 		this.taskDtoModel = taskDtoModel;
 		this.parentPage = parentPage;
 		initLayout();
+		setOutputMarkupId(true);
 	}
 	
 	private void initLayout() {
@@ -401,4 +400,10 @@ public class TaskWorkTabPanel extends AbstractObjectTabPanel<TaskType> {
 
 		return choices.iterator();
 	}
+
+	@Override
+	public Collection<Component> getComponentsToUpdate() {
+		return Collections.<Component>singleton(this);
+	}
+
 }

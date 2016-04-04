@@ -43,9 +43,11 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
@@ -64,11 +66,14 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.IFeedback;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
@@ -79,6 +84,7 @@ import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
+import org.jetbrains.annotations.NotNull;
 import org.joda.time.format.DateTimeFormat;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -1072,6 +1078,36 @@ public final class WebComponentUtil {
 				TaskType.class.isAssignableFrom(clazz);
 	}
 
+	@NotNull
+	public static TabbedPanel<ITab> createTabPanel(String id, final PageBase parentPage, final List<ITab> tabs) {
+		TabbedPanel<ITab> tabPanel = new TabbedPanel<ITab>(id, tabs) {
+			@Override
+			protected WebMarkupContainer newLink(String linkId, final int index) {
+				return new AjaxSubmitLink(linkId) {
 
+					@Override
+					protected void onError(AjaxRequestTarget target,
+							org.apache.wicket.markup.html.form.Form<?> form) {
+						super.onError(target, form);
+						target.add(parentPage.getFeedbackPanel());
+					}
+
+					@Override
+					protected void onSubmit(AjaxRequestTarget target,
+							org.apache.wicket.markup.html.form.Form<?> form) {
+						super.onSubmit(target, form);
+
+						setSelectedTab(index);
+						if (target != null) {
+							target.add(findParent(TabbedPanel.class));
+						}
+					}
+
+				};
+			}
+		};
+		tabPanel.setOutputMarkupId(true);
+		return tabPanel;
+	}
 
 }

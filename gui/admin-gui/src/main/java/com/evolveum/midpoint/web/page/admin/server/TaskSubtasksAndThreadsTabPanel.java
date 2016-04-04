@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.page.admin.server.currentState.WorkerThreadDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.subtasks.SubtasksPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -41,6 +42,8 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
@@ -48,7 +51,7 @@ import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceSt
 /**
  * @author semancik
  */
-public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskType> {
+public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskType> implements TaskTabPanel {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_WORKER_THREADS = "workerThreads";
@@ -70,6 +73,7 @@ public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskT
 		super(id, mainForm, taskWrapperModel, parentPage);
 		this.parentPage = parentPage;
 		initLayout(taskDtoModel);
+		setOutputMarkupId(true);
 	}
 
 	private void initLayout(final LoadableModel<TaskDto> taskDtoModel) {
@@ -141,6 +145,11 @@ public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskT
 		workerThreadsTablePanel.add(hiddenWhenNoSubtasks);
 		add(workerThreadsTablePanel);
 
+	}
+
+	@Override
+	public Collection<Component> getComponentsToUpdate() {
+		return Collections.<Component>singleton(this);
 	}
 
 }

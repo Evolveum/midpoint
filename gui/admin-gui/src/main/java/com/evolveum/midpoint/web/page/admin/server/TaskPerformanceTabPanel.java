@@ -28,13 +28,17 @@ import com.evolveum.midpoint.web.component.progress.StatisticsPanel;
 import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import org.apache.wicket.Component;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * @author semancik
  */
-public class TaskPerformanceTabPanel extends AbstractObjectTabPanel<TaskType> {
+public class TaskPerformanceTabPanel extends AbstractObjectTabPanel<TaskType> implements TaskTabPanel {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_STATISTICS_PANEL = "statisticsPanel";
@@ -49,6 +53,7 @@ public class TaskPerformanceTabPanel extends AbstractObjectTabPanel<TaskType> {
 		super(id, mainForm, taskWrapperModel, pageBase);
 		this.taskDtoModel = taskDtoModel;
 		initLayout(pageBase);
+		setOutputMarkupId(true);
 	}
 	
 	private void initLayout(PageBase pageBase) {
@@ -56,4 +61,10 @@ public class TaskPerformanceTabPanel extends AbstractObjectTabPanel<TaskType> {
 		StatisticsPanel statisticsPanel = new StatisticsPanel(ID_STATISTICS_PANEL, statisticsDtoModel);
 		add(statisticsPanel);
 	}
+
+	@Override
+	public Collection<Component> getComponentsToUpdate() {
+		return Collections.<Component>singleton(this);
+	}
+
 }

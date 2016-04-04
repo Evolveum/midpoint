@@ -46,6 +46,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -54,6 +55,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.time.Duration;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * @author mederly
@@ -79,6 +81,7 @@ public class PageTaskEdit extends PageAdmin {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageTaskEdit.class);
 
+	private String taskOid;
 	private LoadableModel<TaskDto> taskDtoModel;
 	private LoadableModel<ObjectWrapper<TaskType>> objectWrapperModel;
 	private boolean edit = false;
@@ -91,11 +94,11 @@ public class PageTaskEdit extends PageAdmin {
 	public PageTaskEdit(PageParameters parameters) {
 
 		getPageParameters().overwriteWith(parameters);
+		taskOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER).toString();
 
 		final OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
 		final Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
-		final String taskOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER).toString();
-		final TaskType taskType = loadTaskType(taskOid, operationTask, result);
+		final TaskType taskType = loadTaskTypeChecked(taskOid, operationTask, result);
 		final TaskDto taskDto;
 		try {
 			taskDto = prepareTaskDto(taskType, operationTask, result);
@@ -120,7 +123,23 @@ public class PageTaskEdit extends PageAdmin {
 		initLayout();
 	}
 
-	private TaskType loadTaskType(String taskOid, Task operationTask, OperationResult result) {
+	private TaskType loadTaskTypeChecked(String taskOid, Task operationTask, OperationResult result) {
+		TaskType taskType = loadTaskType(taskOid, operationTask, result);
+
+		if (!result.isSuccess()) {
+			showResult(result);
+		}
+
+		if (taskType == null) {
+			getSession().error(getString("pageTaskEdit.message.cantTaskDetails"));
+			showResult(result, false);
+			throw getRestartResponseException(PageTasks.class);
+		}
+
+		return taskType;
+	}
+
+	TaskType loadTaskType(String taskOid, Task operationTask, OperationResult result) {
 		TaskType taskType = null;
 
 		try {
@@ -132,16 +151,6 @@ public class PageTaskEdit extends PageAdmin {
 			result.computeStatus();
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get task.", ex);
-		}
-
-		if (!result.isSuccess()) {
-			showResult(result);
-		}
-
-		if (taskType == null) {
-			getSession().error(getString("pageTaskEdit.message.cantTaskDetails"));
-			showResult(result, false);
-			throw getRestartResponseException(PageTasks.class);
 		}
 		return taskType;
 	}
@@ -172,10 +181,19 @@ public class PageTaskEdit extends PageAdmin {
 			@Override
 			protected void onPostProcessTarget(AjaxRequestTarget target) {
 				refreshModel();
-				target.add(summaryPanel);
+				Iterator<Component> componentIterator = mainPanel.getTabPanel().iterator();
+				while (componentIterator.hasNext()) {
+					Component component = componentIterator.next();
+					if (component instanceof TaskTabPanel) {
+						for (Component c : ((TaskTabPanel) component).getComponentsToUpdate()) {
+							target.add(c);
+						}
+					}
+				}
+				target.add(mainPanel.getButtonPanel());
 			}
 		};
-		mainPanel.add(refreshingBehavior);
+		summaryPanel.add(refreshingBehavior);
 	}
 
 	public void refreshModel() {
@@ -306,6 +324,10 @@ public class PageTaskEdit extends PageAdmin {
 		return getTaskDto().getRecurring();
 	}
 
+	public TaskSummaryPanel getSummaryPanel() {
+		return (TaskSummaryPanel) get(ID_SUMMARY_PANEL);
+	}
+
 	public void startRefreshing() {
 		refreshingBehavior.restart(null);
 	}
@@ -315,8 +337,8 @@ public class PageTaskEdit extends PageAdmin {
 	}
 
 	public void refreshRefreshing() {		// necessary for some strange reason
-		mainPanel.remove(refreshingBehavior);
-		mainPanel.add(refreshingBehavior);
+		getSummaryPanel().remove(refreshingBehavior);
+		getSummaryPanel().add(refreshingBehavior);
 	}
 
 	public boolean configuresWorkerThreads() {
@@ -353,5 +375,9 @@ public class PageTaskEdit extends PageAdmin {
 
 	public boolean configuresExecuteInRawMode() {
 		return isExecuteChanges();
+	}
+
+	public String getTaskOid() {
+		return taskOid;
 	}
 }

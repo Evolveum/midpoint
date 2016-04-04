@@ -29,12 +29,16 @@ import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.server.currentState.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import org.apache.wicket.Component;
 import org.apache.wicket.model.PropertyModel;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * @author semancik
  */
-public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> {
+public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> implements TaskTabPanel {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_ITERATIVE_INFORMATION_PANEL = "iterativeInformationPanel";
@@ -46,11 +50,17 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> {
 			LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		super(id, mainForm, taskWrapperModel, pageBase);
 		initLayout(taskDtoModel, pageBase);
+		setOutputMarkupId(true);
 	}
 
 	private void initLayout(LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		TaskCurrentStateDtoModel model = new TaskCurrentStateDtoModel(taskDtoModel);
 		add(new IterativeInformationPanel(ID_ITERATIVE_INFORMATION_PANEL, model, pageBase));
+	}
+
+	@Override
+	public Collection<Component> getComponentsToUpdate() {
+		return Collections.<Component>singleton(this);
 	}
 
 }

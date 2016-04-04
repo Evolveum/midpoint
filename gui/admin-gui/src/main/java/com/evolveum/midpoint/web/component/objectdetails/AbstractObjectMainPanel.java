@@ -17,12 +17,10 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -38,7 +36,6 @@ import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -98,42 +95,9 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	
 	protected void initLayoutTabs(final PageAdminObjectDetails<O> parentPage) {
 		List<ITab> tabs = createTabs(parentPage);
-		TabbedPanel<ITab> tabPanel = createTabPanel(parentPage, tabs);
+		TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, parentPage, tabs);
 		LOGGER.info("Adding {} to {}", tabPanel, mainForm);
 		mainForm.add(tabPanel);
-	}
-
-	// TODO move to some utility class
-	@NotNull
-	public static TabbedPanel<ITab> createTabPanel(final PageBase parentPage, final List<ITab> tabs) {
-		TabbedPanel<ITab> tabPanel = new TabbedPanel<ITab>(ID_TAB_PANEL, tabs) {
-			@Override
-			protected WebMarkupContainer newLink(String linkId, final int index) {
-				return new AjaxSubmitLink(linkId) {
-
-					@Override
-					protected void onError(AjaxRequestTarget target,
-							org.apache.wicket.markup.html.form.Form<?> form) {
-						super.onError(target, form);
-						target.add(parentPage.getFeedbackPanel());
-					}
-
-					@Override
-					protected void onSubmit(AjaxRequestTarget target,
-							org.apache.wicket.markup.html.form.Form<?> form) {
-						super.onSubmit(target, form);
-
-						setSelectedTab(index);
-						if (target != null) {
-							target.add(findParent(TabbedPanel.class));
-						}
-					}
-
-				};
-			}
-		};
-		tabPanel.setOutputMarkupId(true);
-		return tabPanel;
 	}
 
 	protected abstract List<ITab> createTabs(PageAdminObjectDetails<O> parentPage);

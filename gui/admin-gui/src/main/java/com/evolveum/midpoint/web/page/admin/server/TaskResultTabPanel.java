@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -40,12 +41,14 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * @author semancik
  */
-public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> {
+public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> implements TaskTabPanel {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_OPERATION_RESULT = "operationResult";
@@ -58,6 +61,7 @@ public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> {
 			LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		super(id, mainForm, taskWrapperModel, pageBase);
 		initLayout(taskDtoModel, pageBase);
+		setOutputMarkupId(true);
 	}
 	
 	private void initLayout(final LoadableModel<TaskDto> taskDtoModel, final PageBase pageBase) {
@@ -88,5 +92,9 @@ public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> {
 		return columns;
 	}
 
+	@Override
+	public Collection<Component> getComponentsToUpdate() {
+		return Collections.<Component>singleton(this);
+	}
 
 }

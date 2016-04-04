@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -42,6 +43,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 
 /**
@@ -50,7 +53,7 @@ import java.util.Date;
  * @author mserbak
  * @author mederly
  */
-public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> {
+public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> implements TaskTabPanel {
 	private static final long serialVersionUID = 1L;
 
 
@@ -87,6 +90,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> {
 		this.parentPage = parentPage;
 		initLayoutForInfoPanel();
 		initLayoutForSchedulingTable();
+		setOutputMarkupId(true);
 	}
 
 	private void initLayoutForInfoPanel() {
@@ -286,6 +290,11 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> {
 		//add(new StartEndDateValidator(notStartBefore, notStartAfter));
 		//add(new ScheduleValidator(parentPage.getTaskManager(), recurring, bound, interval, cron));
 
+	}
+
+	@Override
+	public Collection<Component> getComponentsToUpdate() {
+		return Collections.<Component>singleton(this);
 	}
 
 }

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.RequiredTextField;
@@ -39,12 +40,14 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 
 /**
  * @author semancik
  */
-public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> {
+public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implements TaskTabPanel {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_NAME = "name";
@@ -72,6 +75,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> {
 		this.taskDtoModel = taskDtoModel;
 		this.parentPage = parentPage;
 		initLayout();
+		setOutputMarkupId(true);
 	}
 	
 	private void initLayout() {
@@ -172,6 +176,11 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> {
 		});
 		add(node);
 
+	}
+
+	@Override
+	public Collection<Component> getComponentsToUpdate() {
+		return Collections.<Component>singleton(this);
 	}
 
 }

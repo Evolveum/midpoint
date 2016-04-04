@@ -31,15 +31,18 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
+import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.model.PropertyModel;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * @author semancik
  */
-public class TaskApprovalsTabPanel extends AbstractObjectTabPanel<TaskType> {
+public class TaskApprovalsTabPanel extends AbstractObjectTabPanel<TaskType> implements TaskTabPanel {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_DELTAS_TO_BE_APPROVED = "deltasToBeApproved";
@@ -53,6 +56,7 @@ public class TaskApprovalsTabPanel extends AbstractObjectTabPanel<TaskType> {
 			LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		super(id, mainForm, taskWrapperModel, pageBase);
 		initLayout(taskDtoModel, pageBase);
+		setOutputMarkupId(true);
 	}
 	
 	private void initLayout(LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
@@ -69,4 +73,8 @@ public class TaskApprovalsTabPanel extends AbstractObjectTabPanel<TaskType> {
 
 	}
 
+	@Override
+	public Collection<Component> getComponentsToUpdate() {
+		return Collections.<Component>singleton(this);
+	}
 }
