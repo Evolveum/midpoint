@@ -117,6 +117,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.resource.CoreLibrariesContributor;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -128,10 +129,7 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -1463,4 +1461,20 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 		breadcrumb.redirect(this);
 	}
+
+    protected void setTimeZone(PageBase page){
+        PrismObject<UserType> user = loadUserSelf(page);
+        String timeZone = null;
+        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        if (user != null && user.asObjectable().getTimezone() != null){
+            timeZone = user.asObjectable().getTimezone();
+        } else {
+            timeZone = principal.getAdminGuiConfiguration().getDefaultTimezone();
+        }
+        if (timeZone != null) {
+            WebSession.get().getClientInfo().getProperties().
+                    setTimeZone(TimeZone.getTimeZone(principal.getAdminGuiConfiguration().getDefaultTimezone()));
+        }
+    }
+
 }

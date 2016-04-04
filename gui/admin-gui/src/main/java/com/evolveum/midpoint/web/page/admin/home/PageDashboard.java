@@ -94,6 +94,7 @@ public class PageDashboard extends PageAdminHome {
 
     public PageDashboard() {
         principalModel.setObject(loadUserSelf(PageDashboard.this));
+        setTimeZone(PageDashboard.this);
         initLayout();
     }
 

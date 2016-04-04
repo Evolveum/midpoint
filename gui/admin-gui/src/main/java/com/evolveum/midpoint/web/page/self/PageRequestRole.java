@@ -89,6 +89,7 @@ public class PageRequestRole extends PageSelf {
                 return loadAssignments();
             }
         };
+        loadUser();
         initLayout();
     }
 
@@ -96,7 +97,8 @@ public class PageRequestRole extends PageSelf {
         Form mainForm = new org.apache.wicket.markup.html.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
-        MultipleAssignmentSelectorPanel<RoleType, UserType> panel = new MultipleAssignmentSelectorPanel<>(ID_MAIN_PANEL, assignmentsModel, UserType.class, RoleType.class);
+        MultipleAssignmentSelectorPanel<RoleType, UserType> panel = new MultipleAssignmentSelectorPanel<>(ID_MAIN_PANEL, assignmentsModel,
+                user, UserType.class, RoleType.class);
         mainForm.add(panel);
 
         initButtons(mainForm);
@@ -105,7 +107,6 @@ public class PageRequestRole extends PageSelf {
     private List<AssignmentEditorDto> loadAssignments() {
         List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
 
-        loadUser();
         List<AssignmentType> assignments = user.asObjectable().getAssignment();
         for (AssignmentType assignment : assignments) {
             list.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));

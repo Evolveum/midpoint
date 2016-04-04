@@ -53,15 +53,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
 import org.apache.wicket.Component;
+import org.apache.wicket.Session;
 import org.apache.wicket.ThreadContext;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.protocol.http.WebSession;
 import org.springframework.security.core.Authentication;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
@@ -96,6 +99,7 @@ public class PageSelfDashboard extends PageSelf {
 
     public PageSelfDashboard() {
         principalModel.setObject(loadUser());
+        setTimeZone(PageSelfDashboard.this);
         initLayout();
     }
 
