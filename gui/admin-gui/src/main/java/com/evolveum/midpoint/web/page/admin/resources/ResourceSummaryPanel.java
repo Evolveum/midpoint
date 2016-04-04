@@ -20,7 +20,7 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType>{
 		
 		boolean down = ResourceTypeUtil.isDown(model.getObject().asObjectable());
 		Label summaryTag  = new Label(ID_FIRST_SUMMARY_TAG, down ? "DOWN" : "UP");
-		((WebMarkupContainer) get(ID_BOX)).add(summaryTag);
+		addTag(summaryTag);
 	}
 	
 	@Override

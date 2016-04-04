@@ -97,6 +97,8 @@ import java.lang.management.RuntimeMXBean;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
+
 /**
  * Utility class containing miscellaneous methods used mostly in Wicket components.
  * 
@@ -236,6 +238,15 @@ public final class WebComponentUtil {
 		// categories.add(TaskCategory.IMPORT_FROM_FILE);
 		// categories.add(TaskCategory.IMPORT_FROM_FILE);
 		return categories;
+	}
+
+	public static IModel<String> createCategoryNameModel(final Component component, final IModel<String> categorySymbolModel) {
+		return new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				return createStringResourceStatic(component, "pageTasks.category." + categorySymbolModel.getObject()).getString();
+			}
+		};
 	}
 
 	public static ObjectReferenceType createObjectRef(String oid, String name, QName type) {

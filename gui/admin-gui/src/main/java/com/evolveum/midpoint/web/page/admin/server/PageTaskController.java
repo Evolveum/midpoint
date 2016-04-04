@@ -248,21 +248,15 @@ public class PageTaskController implements Serializable {
 
 	private void afterStateChangingOperation(AjaxRequestTarget target, OperationResult result) {
 		parentPage.showResult(result);
-		parentPage.refreshModel();
-		parentPage.refreshRefreshing();
 
+		parentPage.refresh(target);
 		target.add(parentPage.getFeedbackPanel());
-		target.add(parentPage.get(PageTaskEdit.ID_SUMMARY_PANEL));
-		target.add(parentPage.get(PageTaskEdit.ID_MAIN_PANEL));
-
-		//parentPage.startRefreshing();
-		//parentPage.setResponsePage(new PageTasks(false));
 	}
 
 	private void afterSave(AjaxRequestTarget target, OperationResult result) {
 		parentPage.showResult(result);
 		parentPage.setEdit(false);
-		parentPage.refreshModel();
+		parentPage.refreshTaskModels();
 		parentPage.startRefreshing();
 		target.add(parentPage.getFeedbackPanel());
 		target.add(parentPage.get(PageTaskEdit.ID_SUMMARY_PANEL));
@@ -280,7 +274,7 @@ public class PageTaskController implements Serializable {
 			return;
 		}
 		parentPage.setEdit(false);
-		parentPage.refreshModel();
+		parentPage.refreshTaskModels();
 		parentPage.startRefreshing();
 		target.add(parentPage.getFeedbackPanel());
 		target.add(parentPage.get(PageTaskEdit.ID_SUMMARY_PANEL));

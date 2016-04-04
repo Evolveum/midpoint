@@ -2,13 +2,12 @@ package com.evolveum.midpoint.web.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.web.component.util.SummaryTag;
-import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromPrismObjectModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.Image;
@@ -26,6 +25,7 @@ public abstract class AbstractSummaryPanel<O extends ObjectType> extends BasePan
 
     protected static final String ID_BOX = "summaryBox";
     protected static final String ID_ICON_BOX = "summaryIconBox";
+	protected static final String ID_TAG_BOX = "summaryTagBox";
     protected static final String ID_ICON = "summaryIcon";
     protected static final String ID_DISPLAY_NAME = "summaryDisplayName";
     protected static final String ID_IDENTIFIER = "summaryIdentifier";
@@ -42,6 +42,7 @@ public abstract class AbstractSummaryPanel<O extends ObjectType> extends BasePan
     protected static final String ICON_BOX_CSS_CLASS = "info-box-icon";
 
     protected WebMarkupContainer box;
+    protected WebMarkupContainer tagBox;
     protected WebMarkupContainer iconBox;
 
     public AbstractSummaryPanel(String id, IModel<PrismObject<O>> model) {
@@ -128,17 +129,27 @@ public abstract class AbstractSummaryPanel<O extends ObjectType> extends BasePan
             }
         });
         iconBox.add(img);
+
+		tagBox = new WebMarkupContainer(ID_TAG_BOX);
+		if (getTagBoxCssClass() != null) {
+			tagBox.add(new AttributeModifier("class", getTagBoxCssClass()));
+		}
+		box.add(tagBox);
     }
 
-    public void addTag(SummaryTag<O> tag) {
-        box.add(tag);
-    }
-
-	public void addTag(SummaryTagSimple<O> tag) {
-		box.add(tag);
+	protected String getTagBoxCssClass() {
+		return null;
 	}
 
-    protected abstract String getIconCssClass();
+	public void addTag(Component tag) {
+        tagBox.add(tag);
+    }
+
+	public Component getTag(String id) {
+		return tagBox.get(id);
+	}
+
+	protected abstract String getIconCssClass();
 
     protected abstract String getIconBoxAdditionalCssClass();
 

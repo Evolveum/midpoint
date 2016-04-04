@@ -33,8 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.PropertyModel;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 
 /**
  * @author semancik
@@ -49,6 +48,10 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskProgressTabPanel.class);
 
+	private SynchronizationInformationPanel synchronizationInformationPanelBefore;
+	private SynchronizationInformationPanel synchronizationInformationPanelAfter;
+	private ActionsExecutedInformationPanel actionsExecutedInformationPanel;
+
 	public TaskProgressTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
 			LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
@@ -61,7 +64,7 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 		final TaskCurrentStateDtoModel model = new TaskCurrentStateDtoModel(taskDtoModel);
 		add(new IterativeInformationPanel(ID_ITERATIVE_INFORMATION_PANEL, model, pageBase));
 
-		SynchronizationInformationPanel synchronizationInformationPanelBefore = new SynchronizationInformationPanel(ID_SYNCHRONIZATION_INFORMATION_PANEL_BEFORE,
+		synchronizationInformationPanelBefore = new SynchronizationInformationPanel(ID_SYNCHRONIZATION_INFORMATION_PANEL_BEFORE,
 				new PropertyModel<SynchronizationInformationDto>(model, TaskCurrentStateDto.F_SYNCHRONIZATION_INFORMATION_DTO), false);
 		synchronizationInformationPanelBefore.add(new VisibleEnableBehaviour() {
 			@Override
@@ -69,9 +72,10 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 				return model.getObject().getSynchronizationInformationType() != null;
 			}
 		});
+		synchronizationInformationPanelBefore.setOutputMarkupId(true);
 		add(synchronizationInformationPanelBefore);
 
-		SynchronizationInformationPanel synchronizationInformationPanelAfter = new SynchronizationInformationPanel(ID_SYNCHRONIZATION_INFORMATION_PANEL_AFTER,
+		synchronizationInformationPanelAfter = new SynchronizationInformationPanel(ID_SYNCHRONIZATION_INFORMATION_PANEL_AFTER,
 				new PropertyModel<SynchronizationInformationDto>(model, TaskCurrentStateDto.F_SYNCHRONIZATION_INFORMATION_AFTER_DTO), true);
 		synchronizationInformationPanelAfter.add(new VisibleEnableBehaviour() {
 			@Override
@@ -79,9 +83,10 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 				return model.getObject().getSynchronizationInformationType() != null && !taskDtoModel.getObject().isDryRun();
 			}
 		});
+		synchronizationInformationPanelAfter.setOutputMarkupId(true);
 		add(synchronizationInformationPanelAfter);
 
-		ActionsExecutedInformationPanel actionsExecutedInformationPanel = new ActionsExecutedInformationPanel(ID_ACTIONS_EXECUTED_INFORMATION_PANEL,
+		actionsExecutedInformationPanel = new ActionsExecutedInformationPanel(ID_ACTIONS_EXECUTED_INFORMATION_PANEL,
 				new PropertyModel<ActionsExecutedInformationDto>(model, TaskCurrentStateDto.F_ACTIONS_EXECUTED_INFORMATION_DTO));
 		actionsExecutedInformationPanel.add(new VisibleEnableBehaviour() {
 			@Override
@@ -89,13 +94,18 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 				return model.getObject().getActionsExecutedInformationType() != null;
 			}
 		});
+		actionsExecutedInformationPanel.setOutputMarkupId(true);
 		add(actionsExecutedInformationPanel);
 
 	}
 
 	@Override
 	public Collection<Component> getComponentsToUpdate() {
-		return Collections.<Component>singleton(this);
+		List<Component> rv = new ArrayList<>();
+		rv.add(synchronizationInformationPanelBefore);
+		rv.add(synchronizationInformationPanelAfter);
+		rv.addAll(actionsExecutedInformationPanel.getComponentsToUpdate());
+		return rv;
 	}
 
 }

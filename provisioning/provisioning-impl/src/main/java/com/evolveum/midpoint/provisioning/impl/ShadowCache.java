@@ -1632,8 +1632,16 @@ public abstract class ShadowCache {
 							try {
 								entitlementRepoShadow = shadowManager.lookupShadowInRepository(ctxEntitlement, identifierContainer, parentResult);
 								if (entitlementRepoShadow == null) {								
+									
 									entitlementShadow = resouceObjectConverter.locateResourceObject(ctxEntitlement, entitlementIdentifiers, parentResult);
-									entitlementRepoShadow = createShadowInRepository(ctxEntitlement, entitlementShadow, false, parentResult);
+									
+									// Try to look up repo shadow again, this time with full resource shadow. When we have searched before we might
+									// have only some identifiers. The shadow might still be there, but it may be renamed
+									entitlementRepoShadow = shadowManager.lookupShadowInRepository(ctxEntitlement, entitlementShadow, parentResult);
+									
+									if (entitlementRepoShadow == null) {
+										entitlementRepoShadow = createShadowInRepository(ctxEntitlement, entitlementShadow, false, parentResult);
+									}
 								}
 							} catch (ObjectNotFoundException e) {
 								// The entitlement to which we point is not there.

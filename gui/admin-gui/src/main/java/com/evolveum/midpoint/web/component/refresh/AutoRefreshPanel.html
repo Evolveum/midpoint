@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2010-2016 Evolveum
   ~
@@ -14,14 +13,11 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
 <body>
-<wicket:extend>
-	<!--<span wicket:id="summaryTagExecutionStatus"/>-->
-	<span wicket:id="summaryTagResult"/>
-	<span wicket:id="emptyTag" style="display: block"/>
-	<span wicket:id="refreshTag"/>
-</wicket:extend>
+<wicket:panel>
+    <div wicket:id="start"/><div wicket:id="pause"/><div wicket:id="refreshNow"/><div wicket:id="status"/>
+</wicket:panel>
 </body>
 </html>

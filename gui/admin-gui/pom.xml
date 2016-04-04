@@ -108,13 +108,13 @@
             <groupId>org.webjars</groupId>
             <artifactId>respond</artifactId>
             <version>1.4.2</version>
-            <scope>runtime</scope> <!-- TODO: review if we need this dependency -->
+            <scope>runtime</scope> <!-- needed for javascripts for IE8 -->
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>html5shiv</artifactId>
             <version>3.7.2</version>
-            <scope>runtime</scope> <!-- TODO: review if we need this dependency -->
+            <scope>runtime</scope> <!-- needed for javascripts for IE8 -->
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
@@ -138,12 +138,12 @@
         <dependency>
         	<groupId>org.webjars</groupId>
     		<artifactId>webjars-locator</artifactId>
-    		<scope>runtime</scope> <!-- TODO: review if we need this dependency -->
+    		<scope>runtime</scope> <!-- used for loading js/css from webjars -->
         </dependency>
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>
             <artifactId>wro4j-extensions</artifactId>
-            <scope>runtime</scope> <!-- TODO: review if we need this dependency -->
+            <scope>runtime</scope> <!-- used to compile less files -->
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -498,29 +498,6 @@
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket-datetime</artifactId>
         </dependency>
-        
-        <!--  Wicketstuff -->
-	<dependency>
-		<groupId>org.wicketstuff</groupId>
-		<artifactId>wicketstuff-jwicket-ui-dragdrop</artifactId>
-		<version>6.11.0</version>
-		<scope>runtime</scope> <!-- TODO: review if we need this dependency -->
-	</dependency>
-
-	<dependency>
-		<groupId>org.wicketstuff</groupId>
-		<artifactId>wicketstuff-jwicket-ui-effects</artifactId>
-		<version>6.11.0</version>
-		<scope>runtime</scope> <!-- TODO: review if we need this dependency -->
-	</dependency>
-	
-	<dependency>
-		<groupId>org.wicketstuff</groupId>
-		<artifactId>wicketstuff-jwicket-ui-tooltip</artifactId>
-		<version>6.11.0</version>
-		<scope>runtime</scope> <!-- TODO: review if we need this dependency -->
-	</dependency>
-
 
         <dependency>
             <groupId>org.ocpsoft.prettytime</groupId>

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.server.currentState;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.markup.html.basic.Label;
@@ -28,6 +29,8 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -131,5 +134,12 @@ public class ActionsExecutedInformationPanel extends SimplePanel<ActionsExecuted
 
     public void setShowResultingActionsOnly(boolean showResultingActionsOnly) {
         this.showResultingActionsOnly = showResultingActionsOnly;
+    }
+
+    public Collection<? extends Component> getComponentsToUpdate() {
+        return Arrays.asList(
+                get(ID_SHOW_RESULTING_ACTIONS_ONLY_LABEL),
+                get(ID_OBJECT_TABLE_LINES)
+        );
     }
 }

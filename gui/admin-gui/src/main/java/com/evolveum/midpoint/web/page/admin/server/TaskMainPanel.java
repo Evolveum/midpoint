@@ -17,7 +17,6 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -27,7 +26,6 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -84,6 +82,7 @@ public class TaskMainPanel extends Panel {
 
 	protected List<ITab> createTabs() {
 		List<ITab> tabs = new ArrayList<>();
+		final TaskTabsVisibility visibility = new TaskTabsVisibility();
 		tabs.add(
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.basic")) {
 					@Override
@@ -106,11 +105,7 @@ public class TaskMainPanel extends Panel {
 					}
 					@Override
 					public boolean isVisible() {
-						if (parentPage.isEdit()) {
-							return parentPage.configuresWorkerThreads();
-						} else {
-							return parentPage.configuresWorkerThreads() || !taskDtoModel.getObject().getSubtasks().isEmpty() || !taskDtoModel.getObject().getTransientSubtasks().isEmpty();
-						}
+						return visibility.computeSubtasksAndThreadsVisible(parentPage);
 					}
 				});
 		tabs.add(
@@ -121,11 +116,7 @@ public class TaskMainPanel extends Panel {
 					}
 					@Override
 					public boolean isVisible() {
-						final OperationStatsType operationStats = taskDtoModel.getObject().getTaskType().getOperationStats();
-						return !parentPage.isEdit() && operationStats != null &&
-								(operationStats.getIterativeTaskInformation() != null ||
-										operationStats.getSynchronizationInformation() != null ||
-										operationStats.getActionsExecutedInformation() != null);
+						return visibility.computeProgressVisible(parentPage);
 					}
 				});
 		tabs.add(
@@ -136,8 +127,7 @@ public class TaskMainPanel extends Panel {
 					}
 					@Override
 					public boolean isVisible() {
-						final OperationStatsType operationStats = taskDtoModel.getObject().getTaskType().getOperationStats();
-						return !parentPage.isEdit() && operationStats != null && !StatisticsUtil.isEmpty(operationStats.getEnvironmentalPerformanceInformation());
+						return visibility.computeEnvironmentalPerformanceVisible(parentPage);
 					}
 				});
 		tabs.add(
@@ -148,22 +138,20 @@ public class TaskMainPanel extends Panel {
 					}
 					@Override
 					public boolean isVisible() {
-						return !parentPage.isEdit()
-								&& taskDtoModel.getObject().getTaskType().getWorkflowContext() != null
-								&& taskDtoModel.getObject().getWorkflowDeltaIn() != null;
+						return visibility.computeApprovalsVisible(parentPage);
 					}
 				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.operation")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskOperationTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-					}
-					@Override
-					public boolean isVisible() {
-						return !parentPage.isEdit() && taskDtoModel.getObject().getTaskType().getModelOperationContext() != null;
-					}
-				});
+//		tabs.add(
+//				new AbstractTab(parentPage.createStringResource("pageTaskEdit.operation")) {
+//					@Override
+//					public WebMarkupContainer getPanel(String panelId) {
+//						return new TaskOperationTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
+//					}
+//					@Override
+//					public boolean isVisible() {
+//						return !parentPage.isEdit() && taskDtoModel.getObject().getTaskType().getModelOperationContext() != null;
+//					}
+//				});
 		tabs.add(
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.result")) {
 					@Override
@@ -173,7 +161,7 @@ public class TaskMainPanel extends Panel {
 
 					@Override
 					public boolean isVisible() {
-						return !parentPage.isEdit();
+						return visibility.computeResultVisible(parentPage);
 					}
 				});
 		return tabs;
@@ -196,6 +184,8 @@ public class TaskMainPanel extends Panel {
 		buttonPanel.setOutputMarkupId(true);
 		mainForm.add(buttonPanel);
 
+		final TaskButtonsVisibility visibility = new TaskButtonsVisibility();
+
 		AjaxButton backButton = new AjaxButton(ID_BACK, parentPage.createStringResource("pageTaskEdit.button.back")) {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
@@ -205,7 +195,7 @@ public class TaskMainPanel extends Panel {
 		backButton.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return !parentPage.isEdit();
+				return visibility.computeBackVisible(parentPage);
 			}
 		});
 		buttonPanel.add(backButton);
@@ -219,7 +209,7 @@ public class TaskMainPanel extends Panel {
 		cancelEditingButton.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return parentPage.isEdit();
+				return visibility.computeCancelEditVisible(parentPage);
 			}
 		});
 		buttonPanel.add(cancelEditingButton);
@@ -240,7 +230,7 @@ public class TaskMainPanel extends Panel {
 		saveButton.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return parentPage.isEdit();
+				return visibility.computeSaveVisible(parentPage);
 			}
 		});
 		mainForm.setDefaultButton(saveButton);
@@ -252,14 +242,14 @@ public class TaskMainPanel extends Panel {
 			public void onClick(AjaxRequestTarget target) {
 				parentPage.setEdit(true);
 				parentPage.stopRefreshing();
-				parentPage.refreshModel();
+				parentPage.refreshTaskModels();
 				target.add(getMainForm());
 			}
 		};
 		editButton.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return !parentPage.isEdit();
+				return visibility.computeEditVisible(parentPage);
 			}
 		});
 		buttonPanel.add(editButton);
@@ -274,7 +264,7 @@ public class TaskMainPanel extends Panel {
 
 			@Override
 			public boolean isVisible() {
-				return !parentPage.isEdit() && parentPage.isRunnableOrRunning();
+				return visibility.computeSuspendVisible(parentPage);
 			}
 		});
 		buttonPanel.add(suspend);
@@ -289,7 +279,7 @@ public class TaskMainPanel extends Panel {
 
 			@Override
 			public boolean isVisible() {
-				return !parentPage.isEdit() && (parentPage.isSuspended() || (parentPage.isClosed() && parentPage.isRecurring()));
+				return visibility.computeResumeVisible(parentPage);
 			}
 		});
 		buttonPanel.add(resume);
@@ -304,7 +294,7 @@ public class TaskMainPanel extends Panel {
 
 			@Override
 			public boolean isVisible() {
-				return !parentPage.isEdit() && (parentPage.isRunnable() || (parentPage.isClosed() && !parentPage.isRecurring()));
+				return visibility.computeRunNowVisible(parentPage);
 			}
 		});
 		buttonPanel.add(runNow);

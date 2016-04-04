@@ -35,10 +35,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
+import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
+import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
+import com.evolveum.midpoint.web.component.refresh.Refreshable;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
@@ -47,10 +49,11 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.time.Duration;
 
@@ -68,9 +71,12 @@ import java.util.Iterator;
 				label = "PageTaskEdit.auth.task.label",
 				description = "PageTaskEdit.auth.task.description")})
 
-public class PageTaskEdit extends PageAdmin {
+public class PageTaskEdit extends PageAdmin implements Refreshable {
 
-	private static final long REFRESH_INTERVAL = 2000L;
+	private static final int REFRESH_INTERVAL_IF_RUNNABLE = 2000;
+	private static final int REFRESH_INTERVAL_IF_SUSPENDED = 10000;
+	private static final int REFRESH_INTERVAL_IF_WAITING = 10000;
+	private static final int REFRESH_INTERVAL_IF_CLOSED = 60000;
 
 	private static final String DOT_CLASS = PageTaskEdit.class.getName() + ".";
 	private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadTask";
@@ -89,7 +95,8 @@ public class PageTaskEdit extends PageAdmin {
 	private PageTaskController controller = new PageTaskController(this);
 
 	private TaskMainPanel mainPanel;
-	private AjaxSelfUpdatingTimerBehavior refreshingBehavior;
+	private AbstractAjaxTimerBehavior refreshingBehavior;
+	private IModel<AutoRefreshDto> refreshModel;
 
 	public PageTaskEdit(PageParameters parameters) {
 
@@ -163,13 +170,17 @@ public class PageTaskEdit extends PageAdmin {
 
 
 	protected void initLayout() {
+
+		refreshModel = new Model(new AutoRefreshDto());
+		refreshModel.getObject().setInterval(getRefreshInterval());
+
 		IModel<PrismObject<TaskType>> prismObjectModel = new AbstractReadOnlyModel<PrismObject<TaskType>>() {
 			@Override
 			public PrismObject<TaskType> getObject() {
 				return objectWrapperModel.getObject().getObject();
 			}
 		};
-		final TaskSummaryPanel summaryPanel = new TaskSummaryPanel(ID_SUMMARY_PANEL, prismObjectModel);
+		final TaskSummaryPanel summaryPanel = new TaskSummaryPanel(ID_SUMMARY_PANEL, prismObjectModel, refreshModel, this);
 		summaryPanel.setOutputMarkupId(true);
 		add(summaryPanel);
 
@@ -177,26 +188,72 @@ public class PageTaskEdit extends PageAdmin {
 		mainPanel.setOutputMarkupId(true);
 		add(mainPanel);
 
-		refreshingBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(REFRESH_INTERVAL)) {
-			@Override
-			protected void onPostProcessTarget(AjaxRequestTarget target) {
-				refreshModel();
-				Iterator<Component> componentIterator = mainPanel.getTabPanel().iterator();
-				while (componentIterator.hasNext()) {
-					Component component = componentIterator.next();
-					if (component instanceof TaskTabPanel) {
-						for (Component c : ((TaskTabPanel) component).getComponentsToUpdate()) {
-							target.add(c);
-						}
-					}
-				}
-				target.add(mainPanel.getButtonPanel());
-			}
-		};
-		summaryPanel.add(refreshingBehavior);
+		createRefreshingBehavior();
+		addRefreshingBehavior();
 	}
 
-	public void refreshModel() {
+	private void createRefreshingBehavior() {
+		refreshingBehavior = new AbstractAjaxTimerBehavior(Duration.milliseconds(refreshModel.getObject().getInterval())) {
+			@Override
+			protected void onTimer(AjaxRequestTarget target) {
+				AutoRefreshDto refreshDto = refreshModel.getObject();
+//				if (refreshDto.shouldRefresh()) {
+					refresh(target);
+//				} else {
+//					target.add(summaryPanel.getRefreshPanel());
+//				}
+			}
+		};
+	}
+
+	private int getRefreshInterval() {
+		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
+		switch (exec) {
+			case RUNNABLE:
+			case RUNNING:
+			case RUNNING_OR_RUNNABLE:
+			case SUSPENDING: return REFRESH_INTERVAL_IF_RUNNABLE;
+			case SUSPENDED: return REFRESH_INTERVAL_IF_SUSPENDED;
+			case WAITING: return REFRESH_INTERVAL_IF_WAITING;
+			case CLOSED: return REFRESH_INTERVAL_IF_CLOSED;
+		}
+		return REFRESH_INTERVAL_IF_RUNNABLE;
+	}
+
+	public void refresh(AjaxRequestTarget target) {
+		refreshTaskModels();
+		Iterator<Component> componentIterator = mainPanel.getTabPanel().iterator();
+		while (componentIterator.hasNext()) {
+			Component component = componentIterator.next();
+			if (component instanceof TaskTabPanel) {
+				for (Component c : ((TaskTabPanel) component).getComponentsToUpdate()) {
+					target.add(c);
+				}
+			}
+		}
+		target.add(getSummaryPanel());
+		target.add(mainPanel.getButtonPanel());
+
+		AutoRefreshDto refreshDto = refreshModel.getObject();
+		refreshDto.recordRefreshed();
+
+		if (refreshDto.isEnabled()) {
+			int computedInterval = getRefreshInterval();
+			if (computedInterval != refreshDto.getInterval()) {
+				refreshDto.setInterval(computedInterval);
+				if (getRefreshPanel().getBehaviors().contains(refreshingBehavior)) {
+					stopRefreshing();
+					removeRefreshingBehavior();
+				}
+				createRefreshingBehavior();
+				addRefreshingBehavior();
+			} else {
+				refreshRefreshing();
+			}
+		}
+	}
+
+	public void refreshTaskModels() {
 		TaskDto oldTaskDto = taskDtoModel.getObject();
 		if (oldTaskDto == null) {
 			LOGGER.warn("Null or empty taskModel");
@@ -328,8 +385,13 @@ public class PageTaskEdit extends PageAdmin {
 		return (TaskSummaryPanel) get(ID_SUMMARY_PANEL);
 	}
 
+	public AutoRefreshPanel getRefreshPanel() {
+		return getSummaryPanel().getRefreshPanel();
+	}
+
 	public void startRefreshing() {
 		refreshingBehavior.restart(null);
+		refreshRefreshing();
 	}
 
 	public void stopRefreshing() {
@@ -337,8 +399,16 @@ public class PageTaskEdit extends PageAdmin {
 	}
 
 	public void refreshRefreshing() {		// necessary for some strange reason
-		getSummaryPanel().remove(refreshingBehavior);
-		getSummaryPanel().add(refreshingBehavior);
+		removeRefreshingBehavior();
+		addRefreshingBehavior();
+	}
+
+	private void addRefreshingBehavior() {
+		getRefreshPanel().add(refreshingBehavior);
+	}
+
+	private void removeRefreshingBehavior() {
+		getRefreshPanel().remove(refreshingBehavior);
 	}
 
 	public boolean configuresWorkerThreads() {
@@ -380,4 +450,5 @@ public class PageTaskEdit extends PageAdmin {
 	public String getTaskOid() {
 		return taskOid;
 	}
+
 }

@@ -49,6 +49,9 @@ import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
+import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
+import com.evolveum.midpoint.web.component.refresh.Refreshable;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
@@ -66,9 +69,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.datetime.PatternDateConverter;
 import org.apache.wicket.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -83,9 +86,11 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.apache.wicket.util.time.Duration;
 
 import java.util.*;
 
@@ -99,7 +104,7 @@ import java.util.*;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASKS_URL,
                 label = "PageTasks.auth.tasks.label",
                 description = "PageTasks.auth.tasks.description")})
-public class PageTasks extends PageAdminTasks {
+public class PageTasks extends PageAdminTasks implements Refreshable {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageTasks.class);
     private static final String DOT_CLASS = PageTasks.class.getName() + ".";
@@ -121,6 +126,7 @@ public class PageTasks extends PageAdminTasks {
 
     public static final long WAIT_FOR_TASK_STOP = 2000L;
 
+    private static final String ID_REFRESH_PANEL = "refreshPanel";
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_STATE = "state";
@@ -134,11 +140,16 @@ public class PageTasks extends PageAdminTasks {
     private static final String ID_TABLE_HEADER = "tableHeader";
 
     public static final String SELECTED_CATEGORY = "category";
+	private static final int REFRESH_INTERVAL = 5000;
 
-    private IModel<TasksSearchDto> searchModel;
+	private IModel<TasksSearchDto> searchModel;
     private String searchText = "";
 
-    //used for confirmation modal, cleaner implementation needed probaly :)
+	private IModel<AutoRefreshDto> refreshModel;
+	private AbstractAjaxTimerBehavior refreshingBehavior;
+	private AutoRefreshPanel refreshPanel;
+
+	//used for confirmation modal, cleaner implementation needed probaly :)
     private List<TaskDto> tasksToBeDeleted = new ArrayList<>();
 
     public PageTasks() {
@@ -172,7 +183,11 @@ public class PageTasks extends PageAdminTasks {
             }
         };
 
+		refreshModel = new Model<>(new AutoRefreshDto(REFRESH_INTERVAL));
+
         initLayout();
+
+		startRefreshing();
     }
 
     private TasksSearchDto loadTasksSearchDto() {
@@ -199,10 +214,14 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private void initLayout() {
+
+		refreshPanel = new AutoRefreshPanel(ID_REFRESH_PANEL, refreshModel, this);
+		add(refreshPanel);
+
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
+		List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
 
         TaskDtoProviderOptions options = TaskDtoProviderOptions.fullOptions();
         options.setGetTaskParent(false);
@@ -285,7 +304,39 @@ public class PageTasks extends PageAdminTasks {
         initDiagnosticButtons();
     }
 
-    private List<IColumn<NodeDto, String>> initNodeColumns() {
+	@Override
+	public void refresh(AjaxRequestTarget target) {
+		refreshTasks(target);
+	}
+
+	@Override
+	public void startRefreshing() {
+		if (refreshingBehavior != null && refreshPanel.getBehaviors().contains(refreshingBehavior)) {
+			stopRefreshing();
+		}
+		if (refreshingBehavior == null) {
+			refreshingBehavior = new AbstractAjaxTimerBehavior(Duration.milliseconds(REFRESH_INTERVAL)) {
+				@Override
+				protected void onTimer(AjaxRequestTarget target) {
+					refresh(target);
+				}
+			};
+		} else {
+			refreshingBehavior.restart(null);
+		}
+		refreshPanel.add(refreshingBehavior);
+	}
+
+	@Override
+	public void stopRefreshing() {
+		if (refreshingBehavior != null) {
+			refreshingBehavior.stop(null);
+			refreshPanel.remove(refreshingBehavior);
+			refreshingBehavior = null;            // just to be sure (TODO relax this)
+		}
+	}
+
+	private List<IColumn<NodeDto, String>> initNodeColumns() {
         List<IColumn<NodeDto, String>> columns = new ArrayList<>();
 
         IColumn column = new CheckBoxHeaderColumn<>();
@@ -568,13 +619,7 @@ public class PageTasks extends PageAdminTasks {
             @Override
             public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,
                                      final IModel<TaskDto> rowModel) {
-                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
-
-                    @Override
-                    public Object getObject() {
-                        return createStringResourceStatic(component, "pageTasks.category." + rowModel.getObject().getCategory()).getString();
-                    }
-                }));
+                item.add(new Label(componentId, WebComponentUtil.createCategoryNameModel(component, new PropertyModel<String>(rowModel, TaskDto.F_CATEGORY))));
             }
         };
     }
@@ -1137,6 +1182,8 @@ public class PageTasks extends PageAdminTasks {
                 return loadTasksSearchDto();
             }
         };
+
+		target.add(refreshPanel);
 
         //refresh feedback and table
         refreshTables(target);
