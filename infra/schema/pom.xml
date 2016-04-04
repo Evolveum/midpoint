@@ -283,6 +283,11 @@
                         <artifactId>xjc-plugin</artifactId>
                         <version>3.4-SNAPSHOT</version>
                     </dependency>
+                    <dependency>
+		                <groupId>com.sun.xml.bind</groupId>
+		                <artifactId>jaxb-xjc</artifactId>
+		                <version>${jaxb-xjc.version}</version>
+		            </dependency>
                 </dependencies>
             </plugin>
             <plugin>

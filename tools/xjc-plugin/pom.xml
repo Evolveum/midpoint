@@ -41,7 +41,6 @@
         <dependency>
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-xjc</artifactId>
-            <version>${jaxb-xjc.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
@@ -54,11 +53,10 @@
         <dependency>
             <groupId>org.jvnet.jaxb2_commons</groupId>
             <artifactId>jaxb2-basics-runtime</artifactId>
-            </dependency>
+        </dependency>
         <dependency>
             <groupId>net.sourceforge.ccxjc</groupId>
             <artifactId>cc-xjc-plugin</artifactId>
-            <version>2.0</version>
         </dependency>
     </dependencies>
 </project>
