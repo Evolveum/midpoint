@@ -155,5 +155,6 @@
     			</formSpecification>
     		</objectForm>
     	</objectForms>
+    	<defaultTimezone>Jamaica</defaultTimezone>
     </adminGuiConfiguration>
 </systemConfiguration>

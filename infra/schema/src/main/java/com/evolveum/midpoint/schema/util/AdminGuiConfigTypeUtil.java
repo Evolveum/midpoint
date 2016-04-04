@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,9 @@ public class AdminGuiConfigTypeUtil {
 		}
 		composite.getAdditionalMenuLink().addAll(adminGuiConfiguration.getAdditionalMenuLink());
 		composite.getUserDashboardLink().addAll(adminGuiConfiguration.getUserDashboardLink());
+		if (adminGuiConfiguration.getDefaultTimezone() != null) {
+			composite.setDefaultTimezone(adminGuiConfiguration.getDefaultTimezone());
+		}
 		if (adminGuiConfiguration.getObjectForms() != null) {
 			if (composite.getObjectForms() == null) {
 				composite.setObjectForms(adminGuiConfiguration.getObjectForms().clone());

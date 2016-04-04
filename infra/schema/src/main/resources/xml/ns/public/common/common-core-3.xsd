@@ -9081,6 +9081,25 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="defaultTimezone" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+                               Default timezone for the GUI. It is specified in the "tz database" (a.k.a "Olson")
+                               format. If not specified then system default timezone is assumed.
+                        </p>
+						<p>
+                         Examples:
+                             <ul>
+                                 <li>Europe/Bratislava</li>
+                             </ul>
+                         </p> 
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.4</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
