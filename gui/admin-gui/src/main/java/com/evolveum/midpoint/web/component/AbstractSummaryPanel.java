@@ -9,6 +9,7 @@ import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromPrismObjectMode
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.Image;
@@ -130,13 +131,9 @@ public abstract class AbstractSummaryPanel<O extends ObjectType> extends BasePan
         iconBox.add(img);
     }
 
-    public void addTag(SummaryTag<O> tag) {
+    public void addTag(Component tag) {
         box.add(tag);
     }
-
-	public void addTag(SummaryTagSimple<O> tag) {
-		box.add(tag);
-	}
 
     protected abstract String getIconCssClass();
 

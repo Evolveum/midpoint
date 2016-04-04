@@ -29,8 +29,10 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -46,6 +48,8 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
 	//private static final String ID_TAG_EXECUTION_STATUS = "summaryTagExecutionStatus";
 	private static final String ID_TAG_RESULT = "summaryTagResult";
+	private static final String ID_TAG_EMPTY = "emptyTag";
+	private static final String ID_TAG_REFRESH = "refreshTag";
 
 	public TaskSummaryPanel(String id, IModel<PrismObject<TaskType>> model) {
 		super(id, model);
@@ -74,6 +78,9 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 			}
 		};
 		addTag(tagResult);
+
+		addTag(new Label(ID_TAG_EMPTY, new Model("")));
+		addTag(new Label(ID_TAG_REFRESH, new Model("Refresh")));
 	}
 
 	private String getIconForExecutionStatus(TaskDtoExecutionStatus status) {
