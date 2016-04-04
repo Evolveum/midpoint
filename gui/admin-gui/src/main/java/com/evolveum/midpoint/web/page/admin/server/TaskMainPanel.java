@@ -252,7 +252,7 @@ public class TaskMainPanel extends Panel {
 			public void onClick(AjaxRequestTarget target) {
 				parentPage.setEdit(true);
 				parentPage.stopRefreshing();
-				parentPage.refreshModel();
+				parentPage.refreshTaskModels();
 				target.add(getMainForm());
 			}
 		};

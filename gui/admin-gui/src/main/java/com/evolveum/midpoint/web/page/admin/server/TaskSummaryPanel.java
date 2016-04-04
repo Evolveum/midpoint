@@ -19,23 +19,18 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.Date;
 
@@ -51,7 +46,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	private static final String ID_TAG_EMPTY = "emptyTag";
 	private static final String ID_TAG_REFRESH = "refreshTag";
 
-	public TaskSummaryPanel(String id, IModel<PrismObject<TaskType>> model) {
+	public TaskSummaryPanel(String id, IModel<PrismObject<TaskType>> model, IModel<TaskRefreshDto> refreshModel, PageTaskEdit parentPage) {
 		super(id, model);
 
 		SummaryTagSimple<TaskType> tagExecutionStatus = new SummaryTagSimple<TaskType>(ID_FIRST_SUMMARY_TAG, model) {
@@ -65,7 +60,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 				// TODO setColor
 			}
 		};
-		box.add(tagExecutionStatus);
+		addTag(tagExecutionStatus);
 
 		SummaryTagSimple<TaskType> tagResult = new SummaryTagSimple<TaskType>(ID_TAG_RESULT, model) {
 			@Override
@@ -79,8 +74,11 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		};
 		addTag(tagResult);
 
-		addTag(new Label(ID_TAG_EMPTY, new Model("")));
-		addTag(new Label(ID_TAG_REFRESH, new Model("Refresh")));
+		addTag(new Label(ID_TAG_EMPTY, new Model("<br/>")).setEscapeModelStrings(false));
+
+		final TaskRefreshPanel refreshTag = new TaskRefreshPanel(ID_TAG_REFRESH, refreshModel, parentPage);
+		refreshTag.setOutputMarkupId(true);
+		addTag(refreshTag);
 	}
 
 	private String getIconForExecutionStatus(TaskDtoExecutionStatus status) {
@@ -118,6 +116,11 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	@Override
 	protected boolean isIdentifierVisible() {
 		return false;
+	}
+
+	@Override
+	protected String getTagBoxCssClass() {
+		return "summary-tag-box-wide";
 	}
 
 	@Override
@@ -185,5 +188,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		return date.toLocaleString();
 	}
 
-
+	public TaskRefreshPanel getRefreshPanel() {
+		return (TaskRefreshPanel) getTag(ID_TAG_REFRESH);
+	}
 }
