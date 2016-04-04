@@ -568,13 +568,7 @@ public class PageTasks extends PageAdminTasks {
             @Override
             public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,
                                      final IModel<TaskDto> rowModel) {
-                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
-
-                    @Override
-                    public Object getObject() {
-                        return createStringResourceStatic(component, "pageTasks.category." + rowModel.getObject().getCategory()).getString();
-                    }
-                }));
+                item.add(new Label(componentId, WebComponentUtil.createCategoryNameModel(component, new PropertyModel<String>(rowModel, TaskDto.F_CATEGORY))));
             }
         };
     }

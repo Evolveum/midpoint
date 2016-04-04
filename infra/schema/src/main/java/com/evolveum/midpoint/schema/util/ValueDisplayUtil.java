@@ -127,11 +127,12 @@ public class ValueDisplayUtil {
             return sb.toString();
         } else if (value instanceof QName) {
             QName qname = (QName) value;
-            if (StringUtils.isNotEmpty(qname.getNamespaceURI())) {
-                return qname.getLocalPart() + " (in " + qname.getNamespaceURI() + ")";
-            } else {
-                return qname.getLocalPart();
-            }
+            return qname.getLocalPart();
+//            if (StringUtils.isNotEmpty(qname.getNamespaceURI())) {
+//                return qname.getLocalPart() + " (in " + qname.getNamespaceURI() + ")";
+//            } else {
+//                return qname.getLocalPart();
+//            }
         } else {
             return "(a value of type " + value.getClass().getName() + ")";  // todo i18n
         }

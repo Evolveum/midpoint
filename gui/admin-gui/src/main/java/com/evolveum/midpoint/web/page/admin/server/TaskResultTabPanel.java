@@ -94,7 +94,7 @@ public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> impleme
 
 	@Override
 	public Collection<Component> getComponentsToUpdate() {
-		return Collections.<Component>singleton(this);
+		return Collections.singleton(get(ID_OPERATION_RESULT));
 	}
 
 }

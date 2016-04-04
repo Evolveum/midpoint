@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
@@ -125,7 +126,8 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 		add(oid);
 
 		add(new Label(ID_IDENTIFIER, new PropertyModel(taskDtoModel, TaskDto.F_IDENTIFIER)));
-		add(new Label(ID_CATEGORY, new PropertyModel(taskDtoModel, TaskDto.F_CATEGORY)));
+		add(new Label(ID_CATEGORY,
+				WebComponentUtil.createCategoryNameModel(this, new PropertyModel(taskDtoModel, TaskDto.F_CATEGORY))));
 
 		final LinkPanel parent = new LinkPanel(ID_PARENT, new PropertyModel<>(taskDtoModel, TaskDto.F_PARENT_TASK_NAME)) {
 			@Override
