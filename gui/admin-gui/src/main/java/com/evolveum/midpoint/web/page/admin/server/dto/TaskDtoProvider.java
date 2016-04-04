@@ -35,10 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.Component;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -65,6 +62,7 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
 
     @Override
     public Iterator<? extends TaskDto> internalIterator(long first, long count) {
+		Collection<String> selectedOids = getSelectedOids();
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_LIST_TASKS);
@@ -105,10 +103,29 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
                 result.recomputeStatus();
             }
         }
+		setSelectedOids(selectedOids);
         return getAvailableData().iterator();
     }
 
-    public TaskDto createTaskDto(PrismObject<TaskType> task, Task opTask, OperationResult result)
+	private Collection<String> getSelectedOids() {
+		Set<String> oids = new HashSet<>();
+		for (TaskDto taskDto : getAvailableData()) {
+			if (taskDto.isSelected()) {
+				oids.add(taskDto.getOid());
+			}
+		}
+		return oids;
+	}
+
+	private void setSelectedOids(Collection<String> selectedOids) {
+		for (TaskDto taskDto : getAvailableData()) {
+			if (selectedOids.contains(taskDto.getOid())) {
+				taskDto.setSelected(true);
+			}
+		}
+	}
+
+	public TaskDto createTaskDto(PrismObject<TaskType> task, Task opTask, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
 
         return new TaskDto(task.asObjectable(), getModel(), getTaskService(),

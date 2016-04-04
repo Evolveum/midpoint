@@ -14,18 +14,25 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.page.admin.server;
+package com.evolveum.midpoint.web.component.refresh;
 
 import java.io.Serializable;
 
 /**
  * @author mederly
  */
-public class TaskRefreshDto implements Serializable {
+public class AutoRefreshDto implements Serializable {
 
 	private long lastRefreshed = System.currentTimeMillis();
 	private int interval;					// in milliseconds
 	private boolean enabled = true;
+
+	public AutoRefreshDto() {
+	}
+
+	public AutoRefreshDto(int refreshInterval) {
+		this.interval = refreshInterval;
+	}
 
 	public int getInterval() {
 		return interval;

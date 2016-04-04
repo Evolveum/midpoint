@@ -20,6 +20,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
+import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
+import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
 import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
@@ -46,7 +48,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	private static final String ID_TAG_EMPTY = "emptyTag";
 	private static final String ID_TAG_REFRESH = "refreshTag";
 
-	public TaskSummaryPanel(String id, IModel<PrismObject<TaskType>> model, IModel<TaskRefreshDto> refreshModel, PageTaskEdit parentPage) {
+	public TaskSummaryPanel(String id, IModel<PrismObject<TaskType>> model, IModel<AutoRefreshDto> refreshModel, PageTaskEdit parentPage) {
 		super(id, model);
 
 		SummaryTagSimple<TaskType> tagExecutionStatus = new SummaryTagSimple<TaskType>(ID_FIRST_SUMMARY_TAG, model) {
@@ -76,7 +78,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
 		addTag(new Label(ID_TAG_EMPTY, new Model("<br/>")).setEscapeModelStrings(false));
 
-		final TaskRefreshPanel refreshTag = new TaskRefreshPanel(ID_TAG_REFRESH, refreshModel, parentPage);
+		final AutoRefreshPanel refreshTag = new AutoRefreshPanel(ID_TAG_REFRESH, refreshModel, parentPage);
 		refreshTag.setOutputMarkupId(true);
 		addTag(refreshTag);
 	}
@@ -188,7 +190,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		return date.toLocaleString();
 	}
 
-	public TaskRefreshPanel getRefreshPanel() {
-		return (TaskRefreshPanel) getTag(ID_TAG_REFRESH);
+	public AutoRefreshPanel getRefreshPanel() {
+		return (AutoRefreshPanel) getTag(ID_TAG_REFRESH);
 	}
 }

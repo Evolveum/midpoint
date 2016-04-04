@@ -38,6 +38,9 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
+import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
+import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
+import com.evolveum.midpoint.web.component.refresh.Refreshable;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
@@ -68,7 +71,7 @@ import java.util.Iterator;
 				label = "PageTaskEdit.auth.task.label",
 				description = "PageTaskEdit.auth.task.description")})
 
-public class PageTaskEdit extends PageAdmin {
+public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 	private static final int REFRESH_INTERVAL_IF_RUNNABLE = 2000;
 	private static final int REFRESH_INTERVAL_IF_SUSPENDED = 10000;
@@ -93,7 +96,7 @@ public class PageTaskEdit extends PageAdmin {
 
 	private TaskMainPanel mainPanel;
 	private AbstractAjaxTimerBehavior refreshingBehavior;
-	private IModel<TaskRefreshDto> refreshModel;
+	private IModel<AutoRefreshDto> refreshModel;
 
 	public PageTaskEdit(PageParameters parameters) {
 
@@ -168,7 +171,7 @@ public class PageTaskEdit extends PageAdmin {
 
 	protected void initLayout() {
 
-		refreshModel = new Model(new TaskRefreshDto());
+		refreshModel = new Model(new AutoRefreshDto());
 		refreshModel.getObject().setInterval(getRefreshInterval());
 
 		IModel<PrismObject<TaskType>> prismObjectModel = new AbstractReadOnlyModel<PrismObject<TaskType>>() {
@@ -193,7 +196,7 @@ public class PageTaskEdit extends PageAdmin {
 		refreshingBehavior = new AbstractAjaxTimerBehavior(Duration.milliseconds(refreshModel.getObject().getInterval())) {
 			@Override
 			protected void onTimer(AjaxRequestTarget target) {
-				TaskRefreshDto refreshDto = refreshModel.getObject();
+				AutoRefreshDto refreshDto = refreshModel.getObject();
 //				if (refreshDto.shouldRefresh()) {
 					refresh(target);
 //				} else {
@@ -231,7 +234,7 @@ public class PageTaskEdit extends PageAdmin {
 		target.add(getSummaryPanel());
 		target.add(mainPanel.getButtonPanel());
 
-		TaskRefreshDto refreshDto = refreshModel.getObject();
+		AutoRefreshDto refreshDto = refreshModel.getObject();
 		refreshDto.recordRefreshed();
 
 		if (refreshDto.isEnabled()) {
@@ -249,7 +252,6 @@ public class PageTaskEdit extends PageAdmin {
 			}
 		}
 	}
-
 
 	public void refreshTaskModels() {
 		TaskDto oldTaskDto = taskDtoModel.getObject();
@@ -383,7 +385,7 @@ public class PageTaskEdit extends PageAdmin {
 		return (TaskSummaryPanel) get(ID_SUMMARY_PANEL);
 	}
 
-	public TaskRefreshPanel getRefreshPanel() {
+	public AutoRefreshPanel getRefreshPanel() {
 		return getSummaryPanel().getRefreshPanel();
 	}
 

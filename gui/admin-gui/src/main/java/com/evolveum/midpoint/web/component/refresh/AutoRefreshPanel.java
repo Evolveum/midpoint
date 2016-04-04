@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.page.admin.server;
+package com.evolveum.midpoint.web.component.refresh;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkIconPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -28,38 +29,35 @@ import org.apache.wicket.model.Model;
 /**
  * @author mederly
  */
-public class TaskRefreshPanel extends BasePanel<TaskRefreshDto> {
+public class AutoRefreshPanel extends BasePanel<AutoRefreshDto> {
 
 	private static final String ID_REFRESH_NOW = "refreshNow";
 	private static final String ID_START = "start";
 	private static final String ID_PAUSE = "pause";
 	private static final String ID_STATUS = "status";
 
-	public TaskRefreshPanel(String id, IModel<TaskRefreshDto> model, PageTaskEdit parentPage) {
+	public AutoRefreshPanel(String id, IModel<AutoRefreshDto> model, Refreshable refreshable) {
 		super(id, model);
-		initLayout(parentPage);
+		initLayout(refreshable);
 	}
 
-	private void initLayout(final PageTaskEdit parentPage) {
+	private void initLayout(final Refreshable refreshable) {
 
-		final LinkIconPanel refreshNow = new LinkIconPanel(ID_REFRESH_NOW, new Model("fa fa-refresh"), createStringResource("taskRefreshPanel.refreshNow")) {
+		final LinkIconPanel refreshNow = new LinkIconPanel(ID_REFRESH_NOW, new Model("fa fa-refresh"), createStringResource("autoRefreshPanel.refreshNow")) {
 			@Override
 			protected void onClickPerformed(AjaxRequestTarget target) {
-				parentPage.refresh(target);
-				if (getModelObject().isEnabled()) {
-					parentPage.refreshRefreshing();
-				}
+				refreshable.refresh(target);
 			}
 		};
 		refreshNow.setRenderBodyOnly(true);
 		add(refreshNow);
 
-		final LinkIconPanel resumeRefreshing = new LinkIconPanel(ID_START, new Model("fa fa-play"), createStringResource("taskRefreshPanel.resumeRefreshing")) {
+		final LinkIconPanel resumeRefreshing = new LinkIconPanel(ID_START, new Model("fa fa-play"), createStringResource("autoRefreshPanel.resumeRefreshing")) {
 			@Override
 			protected void onClickPerformed(AjaxRequestTarget target) {
 				getModelObject().setEnabled(true);
-				parentPage.refresh(target);
-				parentPage.startRefreshing();
+				refreshable.refresh(target);
+				refreshable.startRefreshing();
 			}
 		};
 		resumeRefreshing.setRenderBodyOnly(true);
@@ -71,12 +69,12 @@ public class TaskRefreshPanel extends BasePanel<TaskRefreshDto> {
 		});
 		add(resumeRefreshing);
 
-		final LinkIconPanel pauseRefreshing = new LinkIconPanel(ID_PAUSE, new Model("fa fa-pause"), createStringResource("taskRefreshPanel.pauseRefreshing")) {
+		final LinkIconPanel pauseRefreshing = new LinkIconPanel(ID_PAUSE, new Model("fa fa-pause"), createStringResource("autoRefreshPanel.pauseRefreshing")) {
 			@Override
 			protected void onClickPerformed(AjaxRequestTarget target) {
 				getModelObject().setEnabled(false);
-				parentPage.refresh(target);
-				parentPage.stopRefreshing();
+				refreshable.refresh(target);
+				refreshable.stopRefreshing();
 			}
 		};
 		pauseRefreshing.setRenderBodyOnly(true);
@@ -91,11 +89,11 @@ public class TaskRefreshPanel extends BasePanel<TaskRefreshDto> {
 		final Label status = new Label(ID_STATUS, new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
-				TaskRefreshDto dto = getModelObject();
+				AutoRefreshDto dto = getModelObject();
 				if (dto.isEnabled()) {
-					return createStringResource("taskRefreshPanel.refreshingEach", dto.getInterval() / 1000).getString();
+					return createStringResource("autoRefreshPanel.refreshingEach", dto.getInterval() / 1000).getString();
 				} else {
-					return createStringResource("taskRefreshPanel.noRefreshing").getString();
+					return createStringResource("autoRefreshPanel.noRefreshing").getString();
 				}
 			}
 		});
