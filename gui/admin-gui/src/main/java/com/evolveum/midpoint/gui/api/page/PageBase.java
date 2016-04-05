@@ -517,6 +517,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		feedbackContainer.add(feedbackList);
 
 		MainPopupDialog mainPopup = new MainPopupDialog(ID_MAIN_POPUP);
+		mainPopup.setOutputMarkupId(true);
 		add(mainPopup);
 	}
 
