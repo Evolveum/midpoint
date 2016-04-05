@@ -49,13 +49,11 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.time.Duration;
 
 import java.util.Collection;
 
@@ -87,7 +85,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	private static final Trace LOGGER = TraceManager.getTrace(PageTaskEdit.class);
 
 	private String taskOid;
-	private LoadableModel<TaskDto> taskDtoModel;
+	private IModel<TaskDto> taskDtoModel;
 	private LoadableModel<ObjectWrapper<TaskType>> objectWrapperModel;
 	private boolean edit = false;
 
@@ -97,30 +95,25 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	private IModel<AutoRefreshDto> refreshModel;
 
 	public PageTaskEdit(PageParameters parameters) {
-
 		getPageParameters().overwriteWith(parameters);
 		taskOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER).toString();
-
-		final OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
-		final Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
-		final TaskType taskType = loadTaskTypeChecked(taskOid, operationTask, result);
-		final TaskDto taskDto;
-		try {
-			taskDto = prepareTaskDto(taskType, operationTask, result);
-		} catch (SchemaException|ObjectNotFoundException e) {
-			throw new SystemException("Couldn't prepare task DTO: " + e.getMessage(), e);
-		}
-		taskDtoModel = new LoadableModel<TaskDto>() {
+		taskDtoModel = new LoadableModel<TaskDto>(false) {
 			@Override
 			protected TaskDto load() {
-				return taskDto;
+				try {
+					final OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
+					final Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
+					final TaskType taskType = loadTaskTypeChecked(taskOid, operationTask, result);
+					return prepareTaskDto(taskType, operationTask, result);
+				} catch (SchemaException|ObjectNotFoundException e) {
+					throw new SystemException("Couldn't prepare task DTO: " + e.getMessage(), e);
+				}
 			}
 		};
-		final ObjectWrapper<TaskType> wrapper = loadObjectWrapper(taskType.asPrismObject(), result);
 		objectWrapperModel = new LoadableModel<ObjectWrapper<TaskType>>() {
 			@Override
 			protected ObjectWrapper<TaskType> load() {
-				return wrapper;
+				return loadObjectWrapper(taskDtoModel.getObject().getTaskType().asPrismObject(), new OperationResult("loadObjectWrapper"));
 			}
 		};
 
@@ -295,7 +288,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		this.edit = edit;
 	}
 
-	public LoadableModel<TaskDto> getTaskDtoModel() {
+	public IModel<TaskDto> getTaskDtoModel() {
 		return taskDtoModel;
 	}
 

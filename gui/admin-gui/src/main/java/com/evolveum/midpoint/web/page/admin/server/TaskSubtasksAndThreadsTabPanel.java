@@ -38,6 +38,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 
@@ -69,14 +70,14 @@ public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskT
 
 	public TaskSubtasksAndThreadsTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
-			LoadableModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
+			IModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
 		super(id, mainForm, taskWrapperModel, parentPage);
 		this.parentPage = parentPage;
 		initLayout(taskDtoModel);
 		setOutputMarkupId(true);
 	}
 
-	private void initLayout(final LoadableModel<TaskDto> taskDtoModel) {
+	private void initLayout(final IModel<TaskDto> taskDtoModel) {
 
 		WebMarkupContainer threadsConfigurationPanel = new WebMarkupContainer(ID_THREADS_CONFIGURATION_PANEL);
 		add(threadsConfigurationPanel);
