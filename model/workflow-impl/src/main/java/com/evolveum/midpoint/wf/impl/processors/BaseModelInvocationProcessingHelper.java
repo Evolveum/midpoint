@@ -29,12 +29,15 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Helper class intended to facilitate processing of model invocation.
@@ -104,8 +107,11 @@ public class BaseModelInvocationProcessingHelper {
         }
         String name = MiscDataUtil.getFocusObjectName(context);
 
-        DateFormat dateFormat = DateFormat.getDateTimeInstance();
-        String time = dateFormat.format(new Date());
+		DateTimeFormatter formatter = DateTimeFormat.forStyle("MM").withLocale(Locale.getDefault());
+		String time = formatter.print(System.currentTimeMillis());
+
+//        DateFormat dateFormat = DateFormat.getDateTimeInstance();
+//        String time = dateFormat.format(new Date());
 
         return "Workflow for " + operation + " " + name + " (started " + time + ")";
     }
