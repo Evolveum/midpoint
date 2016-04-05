@@ -39,6 +39,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -72,12 +73,12 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskBasicTabPanel.class);
 
-	private LoadableModel<TaskDto> taskDtoModel;
+	private IModel<TaskDto> taskDtoModel;
 	private PageTaskEdit parentPage;
 
 	public TaskBasicTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
-			LoadableModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
+			IModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
 		super(id, mainForm, taskWrapperModel, parentPage);
 		this.taskDtoModel = taskDtoModel;
 		this.parentPage = parentPage;

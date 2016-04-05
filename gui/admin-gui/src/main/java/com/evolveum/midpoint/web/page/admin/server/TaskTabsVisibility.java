@@ -8,6 +8,8 @@ import org.apache.wicket.model.IModel;
 import java.io.Serializable;
 
 /**
+ * Used to determine whether tabs have to be refreshed - by comparing instances of this class before and after task update.
+ *
  * @author mederly
  */
 class TaskTabsVisibility implements Serializable {
@@ -56,6 +58,14 @@ class TaskTabsVisibility implements Serializable {
         return resultVisible;
     }
 
+	public void computeAll(PageTaskEdit parentPage) {
+		computeSubtasksAndThreadsVisible(parentPage);
+		computeProgressVisible(parentPage);
+		computeEnvironmentalPerformanceVisible(parentPage);
+		computeApprovalsVisible(parentPage);
+		computeResultVisible(parentPage);
+	}
+
 	public boolean isSubtasksAndThreadsVisible() {
 		return subtasksAndThreadsVisible;
 	}
@@ -99,4 +109,5 @@ class TaskTabsVisibility implements Serializable {
         result = 31 * result + (resultVisible ? 1 : 0);
         return result;
     }
+
 }

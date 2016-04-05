@@ -48,6 +48,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.Strings;
 
@@ -93,12 +94,12 @@ public class TaskWorkTabPanel extends AbstractObjectTabPanel<TaskType> implement
 	private static final String ID_EXECUTE_IN_RAW_MODE_CONTAINER = "executeInRawModeContainer";
 	private static final String ID_EXECUTE_IN_RAW_MODE = "executeInRawMode";
 
-	private LoadableModel<TaskDto> taskDtoModel;
+	private IModel<TaskDto> taskDtoModel;
 	private PageTaskEdit parentPage;
 
 	public TaskWorkTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
-			LoadableModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
+			IModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
 		super(id, mainForm, taskWrapperModel, parentPage);
 		this.taskDtoModel = taskDtoModel;
 		this.parentPage = parentPage;

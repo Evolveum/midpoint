@@ -84,7 +84,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 
 	public TaskSchedulingTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
-			LoadableModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
+			IModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
 		super(id, mainForm, taskWrapperModel, parentPage);
 		this.taskDtoModel = taskDtoModel;
 		this.parentPage = parentPage;
@@ -142,7 +142,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 	private void initLayoutForSchedulingTable() {
 
 		// models
-		final IModel<Boolean> recurringCheckModel = new PropertyModel<Boolean>(taskDtoModel, TaskDto.RECURRING);
+		final IModel<Boolean> recurringCheckModel = new PropertyModel<>(taskDtoModel, TaskDto.RECURRING);
 		final IModel<Boolean> boundCheckModel = new PropertyModel<Boolean>(taskDtoModel, TaskDto.BOUND);
 
 		// behaviors

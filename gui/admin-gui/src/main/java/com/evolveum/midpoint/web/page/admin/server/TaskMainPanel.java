@@ -32,6 +32,7 @@ import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,10 +57,10 @@ public class TaskMainPanel extends Panel {
 	private static final Trace LOGGER = TraceManager.getTrace(TaskMainPanel.class);
 
 	private LoadableModel<ObjectWrapper<TaskType>> objectModel;
-	private LoadableModel<TaskDto> taskDtoModel;
+	private IModel<TaskDto> taskDtoModel;
 	private PageTaskEdit parentPage;
 
-	public TaskMainPanel(String id, LoadableModel<ObjectWrapper<TaskType>> objectModel, LoadableModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
+	public TaskMainPanel(String id, LoadableModel<ObjectWrapper<TaskType>> objectModel, IModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
 		super(id, objectModel);
 		this.objectModel = objectModel;
 		this.taskDtoModel = taskDtoModel;
@@ -241,8 +242,7 @@ public class TaskMainPanel extends Panel {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				parentPage.setEdit(true);
-				parentPage.stopRefreshing();
-				parentPage.refreshTaskModels();
+				parentPage.refresh(target);		// stops refreshing as well
 				target.add(getMainForm());
 			}
 		};
