@@ -49,9 +49,6 @@ public abstract class AsyncUpdatePanel<V, T extends Serializable> extends BasePa
      */
     public static final int DEFAULT_TIMER_DURATION = 2;
 
-    private static final String ID_LOADING = "loading";
-    private static final String ID_BODY = "body";
-
     protected transient Future<T> future;
     private boolean loadingVisible = true;
 
@@ -61,7 +58,6 @@ public abstract class AsyncUpdatePanel<V, T extends Serializable> extends BasePa
 
     public AsyncUpdatePanel(String id, IModel<V> callableParameterModel, Duration durationSecs) {
         super(id, new Model<T>());
-        initLayout();
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         future = GuiComponents.submitCallable(createCallable(auth, callableParameterModel));
@@ -84,24 +80,9 @@ public abstract class AsyncUpdatePanel<V, T extends Serializable> extends BasePa
         add(behaviour);
     }
 
-    private void initLayout() {
-        add(getLoadingComponent(ID_LOADING));
-        add(new Label(ID_BODY));
-    }
+    protected abstract void onPostSuccess(AjaxRequestTarget target);
 
-    protected void onPostSuccess(AjaxRequestTarget target) {
-        replace(getMainComponent(ID_BODY));
-
-        target.add(this);
-    }
-
-    protected void onUpdateError(AjaxRequestTarget target, Exception ex) {
-        String message = "Error occurred while fetching data: " + ex.getMessage();
-        Label errorLabel = new Label(ID_BODY, message);
-        replace(errorLabel);
-
-        target.add(this);
-    }
+    protected abstract void onUpdateError(AjaxRequestTarget target, Exception ex);
 
     protected boolean isLoadingVisible() {
         return loadingVisible;
