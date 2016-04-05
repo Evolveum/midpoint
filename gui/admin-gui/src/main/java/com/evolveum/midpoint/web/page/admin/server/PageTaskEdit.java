@@ -221,18 +221,37 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	}
 
 	public void refresh(AjaxRequestTarget target) {
+		TaskTabsVisibility tabsVisibilityOld = new TaskTabsVisibility();
+		tabsVisibilityOld.computeAll(this);
+		TaskButtonsVisibility buttonsVisibilityOld = new TaskButtonsVisibility();
+		buttonsVisibilityOld.computeAll(this);
+
 		refreshTaskModels();
-		Iterator<Component> componentIterator = mainPanel.getTabPanel().iterator();
-		while (componentIterator.hasNext()) {
-			Component component = componentIterator.next();
-			if (component instanceof TaskTabPanel) {
-				for (Component c : ((TaskTabPanel) component).getComponentsToUpdate()) {
-					target.add(c);
+
+		TaskTabsVisibility tabsVisibilityNew = new TaskTabsVisibility();
+		tabsVisibilityNew.computeAll(this);
+		TaskButtonsVisibility buttonsVisibilityNew = new TaskButtonsVisibility();
+		buttonsVisibilityNew.computeAll(this);
+
+		if (!buttonsVisibilityNew.equals(buttonsVisibilityOld)) {
+			target.add(mainPanel.getButtonPanel());
+		}
+		if (tabsVisibilityNew.equals(tabsVisibilityOld)) {
+			// soft version
+			Iterator<Component> componentIterator = mainPanel.getTabPanel().iterator();
+			while (componentIterator.hasNext()) {
+				Component component = componentIterator.next();
+				if (component instanceof TaskTabPanel) {
+					for (Component c : ((TaskTabPanel) component).getComponentsToUpdate()) {
+						target.add(c);
+					}
 				}
 			}
+		} else {
+			// hard version
+			target.add(mainPanel.getTabPanel());
 		}
 		target.add(getSummaryPanel());
-		target.add(mainPanel.getButtonPanel());
 
 		AutoRefreshDto refreshDto = refreshModel.getObject();
 		refreshDto.recordRefreshed();
