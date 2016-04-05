@@ -47,6 +47,16 @@
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>schema</artifactId>
+			<version>3.4-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>prism</artifactId>
+			<version>3.4-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>common</artifactId>
 			<version>3.4-SNAPSHOT</version>
 		</dependency>
@@ -56,34 +66,61 @@
 			<version>3.4-SNAPSHOT</version>
 		</dependency>
 		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>task-api</artifactId>
+			<version>3.4-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.model</groupId>
+			<artifactId>model-api</artifactId>
+			<version>3.4-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-impl</artifactId>
+			<version>3.4-SNAPSHOT</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.provisioning</groupId>
+			<artifactId>provisioning-api</artifactId>
 			<version>3.4-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
 			<artifactId>provisioning-impl</artifactId>
 			<version>3.4-SNAPSHOT</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-quartz-impl</artifactId>
 			<version>3.4-SNAPSHOT</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>audit-impl</artifactId>
 			<version>3.4-SNAPSHOT</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-test-util</artifactId>
 			<version>3.4-SNAPSHOT</version>
 		</dependency>
+		
 		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>security-api</artifactId>
-			<version>3.4-SNAPSHOT</version>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
 		</dependency>
 
 		<!-- TEST dependency -->
@@ -171,10 +208,23 @@
         <dependency>
 	        <groupId>org.apache.cxf</groupId>
 	        <artifactId>cxf-rt-transports-http-jetty</artifactId>
+	        <scope>runtime</scope>
+	    </dependency>
+	    <dependency>
+	        <groupId>org.apache.cxf</groupId>
+	        <artifactId>cxf-rt-transports-local</artifactId>
 	    </dependency>
 	    <dependency>
 		   <groupId>org.apache.cxf</groupId>
+		   <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+		</dependency>
+		<dependency>
+		   <groupId>org.apache.cxf</groupId>
 		   <artifactId>cxf-rt-rs-client</artifactId>
+		</dependency>
+		<dependency>
+		   <groupId>javax.ws.rs</groupId>
+		   <artifactId>javax.ws.rs-api</artifactId>
 		</dependency>
 	</dependencies>
   	<profiles>
