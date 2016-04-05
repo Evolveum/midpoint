@@ -72,7 +72,9 @@ public enum ObjectTypeGuiDescriptor {
 
     ACCESS_CERTIFICATION_CAMPAIGN(ObjectTypes.ACCESS_CERTIFICATION_CAMPAIGN, "ObjectTypeGuiDescriptor.accessCertificationCampaign", ""),
 
-    SEQUENCE(ObjectTypes.SEQUENCE, "ObjectTypeGuiDescriptor.sequence", "");
+    SEQUENCE(ObjectTypes.SEQUENCE, "ObjectTypeGuiDescriptor.sequence", ""),
+
+    SERVICE(ObjectTypes.SERVICE, "ObjectTypeGuiDescriptor.service", "");
 
     public static final String ERROR_ICON = "silk-error";
     public static final String ERROR_LOCALIZATION_KEY = "ObjectTypeGuiDescriptor.unknown";

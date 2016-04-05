@@ -1557,4 +1557,82 @@
         </case>
     </accessCertificationCampaign>
 
+    <service version="1">
+        <name>lazyman vm</name>
+        <serviceType>some service type</serviceType>
+        <locality>bratislava</locality>
+        <displayOrder>123</displayOrder>
+
+        <linkRef oid="11223355"/>
+        <assignment id="1">
+            <construction>
+                <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
+            </construction>
+        </assignment>
+        <inducement id="5">
+            <construction>
+                <resourceRef oid="10000000-0000-0000-0000-000000000005" type="c:ResourceType"/>
+                <kind>account</kind>
+                <intent>admin</intent>
+            </construction>
+        </inducement>
+        <authorization id="3">
+            <description>some authorization description</description>
+            <decision>allow</decision>
+            <action>http://example.com/uri1</action>
+            <action>http://example.com/uri2</action>
+            <object>
+                <description>object description</description>
+                <type>c:UserType</type>
+                <filter>
+                    <q:substring>
+                        <q:matching>normIgnoreCase</q:matching>
+                        <q:path>c:name</q:path>
+                        <q:value>user</q:value>
+                    </q:substring>
+                </filter>
+                <special>self</special>
+            </object>
+            <item>c:name</item>
+            <target>
+                <description>target description</description>
+                <type>c:UserType</type>
+                <filter>
+                    <q:substring>
+                        <q:matching>normIgnoreCase</q:matching>
+                        <q:path>c:name</q:path>
+                        <q:value>user</q:value>
+                    </q:substring>
+                </filter>
+                <special>self</special>
+            </target>
+        </authorization>
+        <authorization id="4">
+            <description>some authorization description 2</description>
+            <decision>allow</decision>
+            <action>http://example.com/uri3</action>
+            <action>http://example.com/uri4</action>
+        </authorization>
+        <exclusion id="2">
+            <description>A judge cannot be a pirate at the same time. At least not openly.</description>
+            <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
+            <policy>enforce</policy>
+        </exclusion>
+        <approverExpression>
+            <script>
+                <code>giveName + ' ' + familyName</code>
+            </script>
+        </approverExpression>
+        <approverExpression>
+            <script>
+                <code>giveName + '-' + familyName</code>
+            </script>
+        </approverExpression>
+        <automaticallyApproved>
+            <script>
+                <code>giveName + ' ' + familyName</code>
+            </script>
+        </automaticallyApproved>
+    </service>
+
 </objects>
