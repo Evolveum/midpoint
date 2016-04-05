@@ -33,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import java.util.Collection;
@@ -53,13 +54,13 @@ public class TaskApprovalsTabPanel extends AbstractObjectTabPanel<TaskType> impl
 
 	public TaskApprovalsTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
-			LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
+			IModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		super(id, mainForm, taskWrapperModel, pageBase);
 		initLayout(taskDtoModel, pageBase);
 		setOutputMarkupId(true);
 	}
 	
-	private void initLayout(LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
+	private void initLayout(IModel<TaskDto> taskDtoModel, PageBase pageBase) {
 
 		add(new ScenePanel(ID_DELTAS_TO_BE_APPROVED, new PropertyModel(taskDtoModel, TaskDto.F_WORKFLOW_DELTA_IN)));
 		add(new ItemApprovalHistoryPanel(ID_HISTORY, new PropertyModel<WfContextType>(taskDtoModel, TaskDto.F_WORKFLOW_CONTEXT),

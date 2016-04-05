@@ -64,6 +64,7 @@ public final class ClassMapper {
         types.put(ObjectTypes.ACCESS_CERTIFICATION_DEFINITION, RObjectType.ACCESS_CERTIFICATION_DEFINITION);
         types.put(ObjectTypes.ACCESS_CERTIFICATION_CAMPAIGN, RObjectType.ACCESS_CERTIFICATION_CAMPAIGN);
         types.put(ObjectTypes.SEQUENCE, RObjectType.SEQUENCE);
+        types.put(ObjectTypes.SERVICE, RObjectType.SERVICE);
 
         for (ObjectTypes type : ObjectTypes.values()) {
             if (!types.containsKey(type)) {

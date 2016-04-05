@@ -1104,14 +1104,16 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		}
 
 		private void setSituation(SynchronizationInformation.Record increment, SynchronizationSituationType situation) {
-			switch (situation) {
-				case LINKED: increment.setCountLinked(1); break;
-				case UNLINKED: increment.setCountUnlinked(1); break;
-				case DELETED: increment.setCountDeleted(1); break;
-				case DISPUTED: increment.setCountDisputed(1); break;
-				case UNMATCHED: increment.setCountUnmatched(1); break;
-				default:
-					// noop (or throw exception?)
+			if (situation != null) {
+				switch (situation) {
+					case LINKED: increment.setCountLinked(1); break;
+					case UNLINKED: increment.setCountUnlinked(1); break;
+					case DELETED: increment.setCountDeleted(1); break;
+					case DISPUTED: increment.setCountDisputed(1); break;
+					case UNMATCHED: increment.setCountUnmatched(1); break;
+					default:
+						// noop (or throw exception?)
+				}
 			}
 		}
 

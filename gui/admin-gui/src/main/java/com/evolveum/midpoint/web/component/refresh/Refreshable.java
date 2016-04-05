@@ -16,15 +16,29 @@
 
 package com.evolveum.midpoint.web.component.refresh;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 /**
+ * Refreshable page (or component).
+ *
  * @author mederly
  */
 public interface Refreshable {
+
+	/**
+	 * Called on manually requested refresh action.
+	 * @param target The request target.
+	 */
 	void refresh(AjaxRequestTarget target);
 
-	void startRefreshing();
+	/**
+	 * Component to which the refreshing timer should be attached.
+	 */
+	Component getRefreshingBehaviorParent();
 
-	void stopRefreshing();
+	/**
+	 * Current refreshing interval (may depend on page content).
+	 */
+	int getRefreshInterval();
 }

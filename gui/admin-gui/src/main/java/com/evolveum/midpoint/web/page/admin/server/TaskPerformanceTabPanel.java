@@ -43,13 +43,13 @@ public class TaskPerformanceTabPanel extends AbstractObjectTabPanel<TaskType> im
 
 	private static final String ID_STATISTICS_PANEL = "statisticsPanel";
 
-	private LoadableModel<TaskDto> taskDtoModel;
+	private IModel<TaskDto> taskDtoModel;
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskPerformanceTabPanel.class);
 
 	public TaskPerformanceTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
-			LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
+			IModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		super(id, mainForm, taskWrapperModel, pageBase);
 		this.taskDtoModel = taskDtoModel;
 		initLayout(pageBase);

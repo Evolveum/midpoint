@@ -1474,7 +1474,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
         if (timeZone != null) {
             WebSession.get().getClientInfo().getProperties().
-                    setTimeZone(TimeZone.getTimeZone(principal.getAdminGuiConfiguration().getDefaultTimezone()));
+                    setTimeZone(TimeZone.getTimeZone(timeZone));
         }
     }
 
