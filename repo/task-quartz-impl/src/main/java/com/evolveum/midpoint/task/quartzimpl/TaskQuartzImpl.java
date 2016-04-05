@@ -2546,26 +2546,10 @@ public class TaskQuartzImpl implements Task {
 			return new ArrayList<>(0);
 		}
 
-        ObjectFilter filter = null;
-//        try {
-            filter = EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, taskManager.getPrismContext(), null, getTaskIdentifier());
-//        } catch (SchemaException e) {
-//            throw new SystemException("Cannot create filter for 'parent equals task identifier' due to schema exception", e);
-//        }
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-        
-        List<PrismObject<TaskType>> list;
-        try {
-        	list = taskManager.getRepositoryService().searchObjects(TaskType.class, query, null, result);
-        	result.recordSuccessIfUnknown();
-        } catch (SchemaException | RuntimeException e) {
-        	result.recordFatalError(e);
-        	throw e;
-        }
-        return list;
+		return taskManager.listSubtasksForTask(getTaskIdentifier(), result);
     }
 
-    public List<PrismObject<TaskType>> listPrerequisiteTasksRaw(OperationResult parentResult) throws SchemaException {
+	public List<PrismObject<TaskType>> listPrerequisiteTasksRaw(OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "listPrerequisiteTasksRaw");
         result.addContext(OperationResult.CONTEXT_OID, getOid());
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);

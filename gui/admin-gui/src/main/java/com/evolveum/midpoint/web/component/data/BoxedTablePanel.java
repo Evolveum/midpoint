@@ -28,6 +28,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataViewBase;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import org.apache.wicket.model.IModel;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -77,7 +79,13 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
         WebMarkupContainer tableContainer = new WebMarkupContainer(ID_TABLE_CONTAINER);
         tableContainer.setOutputMarkupId(true);
 
-		DataTable<T, String> table = new SelectableDataTable<>(ID_TABLE, columns, provider, pageSize);
+		DataTable<T, String> table = new SelectableDataTable<T>(ID_TABLE, columns, provider, pageSize) {
+			@Override
+			protected Item<T> newRowItem(String id, int index, IModel<T> rowModel) {
+				Item<T> item = super.newRowItem(id, index, rowModel);
+				return customizeNewRowItem(item, rowModel);
+			}
+		};
 		table.setOutputMarkupId(true);
         tableContainer.add(table);
 		add(tableContainer);
@@ -88,6 +96,11 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 
 		add(createHeader(ID_HEADER));
 		add(createFooter(ID_FOOTER));
+	}
+
+	// TODO better name?
+	protected Item<T> customizeNewRowItem(Item<T> item, IModel<T> model) {
+		return item;
 	}
 
 	@Override

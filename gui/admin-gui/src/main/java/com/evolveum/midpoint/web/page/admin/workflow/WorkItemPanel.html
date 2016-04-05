@@ -19,41 +19,59 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <h3><wicket:message key="workItemPanel.mainInfo"/></h3>
-    <table class="table table-condensed table-striped">
-        <tr>
-            <td><wicket:message key="workItemPanel.requestedBy" /></td>
-            <td><b><span wicket:id="requestedBy" /></b> (<span
-                    wicket:id="requestedByFullName" />)</td>
-        </tr>
-        <tr>
-            <td><wicket:message key="workItemPanel.requestedOn" /></td>
-            <td><b><span wicket:id="requestedOn" /></b></td>
-        </tr>
-        <tr>
-            <td><wicket:message key="workItemPanel.workItemCreatedOn" /></td>
-            <td><b><span wicket:id="workItemCreatedOn" /></b></td>
-        </tr>
-        <tr>
-            <td><wicket:message key="workItemPanel.assignee" /></td>
-            <td><b><span wicket:id="assignee" /></b></td>
-        </tr>
-        <tr>
-            <td><wicket:message key="workItemPanel.candidates" /></td>
-            <td><b><span wicket:id="candidates" /></b></td>
-        </tr>
-    </table>
+    <div class="row">
+        <div class="col-md-5">
+            <h3><wicket:message key="workItemPanel.mainInfo"/></h3>
+            <div class="box">
+                <div class="box-body no-padding">
+                    <table class="table table-condensed table-striped">
+                        <tr>
+                            <td><wicket:message key="workItemPanel.requestedBy" /></td>
+                            <td><b><span wicket:id="requestedBy" /></b> (<span
+                                    wicket:id="requestedByFullName" />)</td>
+                        </tr>
+                        <tr>
+                            <td><wicket:message key="workItemPanel.requestedOn" /></td>
+                            <td><b><span wicket:id="requestedOn" /></b></td>
+                        </tr>
+                        <tr>
+                            <td><wicket:message key="workItemPanel.workItemCreatedOn" /></td>
+                            <td><b><span wicket:id="workItemCreatedOn" /></b></td>
+                        </tr>
+                        <tr>
+                            <td><wicket:message key="workItemPanel.assignee" /></td>
+                            <td><b><span wicket:id="assignee" /></b></td>
+                        </tr>
+                        <tr>
+                            <td><wicket:message key="workItemPanel.candidates" /></td>
+                            <td><b><span wicket:id="candidates" /></b></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
 
-    <h3><wicket:message key="workItemPanel.changesToBeApproved"/></h3>
-    <div wicket:id="deltasToBeApproved" />
+            <h3><wicket:message key="workItemPanel.changesToBeApproved"/></h3>
+            <div wicket:id="deltasToBeApproved" />
 
-    <h3><wicket:message key="workItemPanel.approvalHistory"/></h3>
-    <div wicket:id="history" />
+        </div>
+        <div class="col-md-7">
+            <h3><wicket:message key="workItemPanel.approvalHistory"/></h3>
+            <div wicket:id="history" />
+
+            <div wicket:id="relatedWorkItemsContainer">
+                <h3><wicket:message key="workItemPanel.otherWorkItems"/></h3>
+                <div wicket:id="relatedWorkItems"/>
+            </div>
+
+            <div wicket:id="relatedRequestsContainer">
+                <h3><wicket:message key="workItemPanel.relatedRequestsIncluding"/></h3>
+                <div wicket:id="relatedRequests"/>
+            </div>
+        </div>
+    </div>
 
     <h3><wicket:message key="workItemPanel.approverComment"/></h3>
-    <!--<div class="col-md-6">-->
-        <textarea wicket:id="approverComment" class="form-control input-sm" rows="2"></textarea>
-    <!--</div>-->
+    <textarea wicket:id="approverComment" class="form-control input-sm" rows="2"></textarea>
     <p/>
 
 </wicket:panel>

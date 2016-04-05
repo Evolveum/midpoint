@@ -321,6 +321,11 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return exec == TaskDtoExecutionStatus.CLOSED;
 	}
 
+	boolean isWaiting() {
+		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
+		return exec == TaskDtoExecutionStatus.WAITING;
+	}
+
 	boolean isSuspended() {
 		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
 		return exec == TaskDtoExecutionStatus.SUSPENDED;
@@ -340,6 +345,18 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 	boolean isExecuteChanges() {
 		return TaskCategory.EXECUTE_CHANGES.equals(getTaskDto().getCategory());
+	}
+
+	boolean isWorkflow() {
+		return TaskCategory.WORKFLOW.equals(getTaskDto().getCategory());
+	}
+
+	boolean isWorkflowChild() {
+		return isWorkflow() && getTaskDto().getWorkflowContext() != null && getTaskDto().getWorkflowContext().getProcessInstanceId() != null;
+	}
+
+	boolean isWorkflowParent() {
+		return isWorkflow() && getTaskDto().getParentTaskOid() == null;
 	}
 
 	boolean isLiveSync() {
@@ -414,11 +431,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return isExecuteChanges();
 	}
 
-	public String getTaskOid() {
-		return taskOid;
-	}
-
-	public void startRefreshing(AjaxRequestTarget target) {
-
+	public boolean displayProgress() {
+		return !isWorkflow();
 	}
 }

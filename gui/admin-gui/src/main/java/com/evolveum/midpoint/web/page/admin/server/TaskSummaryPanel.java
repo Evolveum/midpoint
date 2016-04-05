@@ -48,8 +48,11 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	private static final String ID_TAG_EMPTY = "emptyTag";
 	private static final String ID_TAG_REFRESH = "refreshTag";
 
+	private PageTaskEdit parentPage;
+
 	public TaskSummaryPanel(String id, IModel<PrismObject<TaskType>> model, IModel<AutoRefreshDto> refreshModel, PageTaskEdit parentPage) {
 		super(id, model);
+		this.parentPage = parentPage;
 
 		SummaryTagSimple<TaskType> tagExecutionStatus = new SummaryTagSimple<TaskType>(ID_FIRST_SUMMARY_TAG, model) {
 			@Override
@@ -130,12 +133,25 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		return new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
-				TaskType taskType = getModelObject().asObjectable();
-				if (taskType.getExpectedTotal() != null) {
-					return createStringResource("TaskSummaryPanel.progressWithTotalKnown", taskType.getProgress(), taskType.getExpectedTotal()).getString();
-				} else {
-					return createStringResource("TaskSummaryPanel.progressWithTotalUnknown", taskType.getProgress()).getString();
+				if (!parentPage.displayProgress()) {
+					return "";
 				}
+				TaskType taskType = getModelObject().asObjectable();
+				String rv;
+				if (taskType.getExpectedTotal() != null) {
+					rv = createStringResource("TaskSummaryPanel.progressWithTotalKnown", taskType.getProgress(), taskType.getExpectedTotal())
+							.getString();
+				} else {
+					rv = createStringResource("TaskSummaryPanel.progressWithTotalUnknown", taskType.getProgress()).getString();
+				}
+				if (parentPage.isSuspended()) {
+					rv += " " + getString("TaskSummaryPanel.progressIfSuspended");
+				} else if (parentPage.isClosed()) {
+					rv += " " + getString("TaskSummaryPanel.progressIfClosed");
+				} else if (parentPage.isWaiting()) {
+					rv += " " + getString("TaskSummaryPanel.progressIfWaiting");
+				}
+				return rv;
 			}
 		};
 	}

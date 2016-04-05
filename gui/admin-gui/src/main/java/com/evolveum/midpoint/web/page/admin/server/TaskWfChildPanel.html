@@ -19,8 +19,23 @@
 	xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div wicket:id="workflowParentPanel"/>
-    <div wicket:id="workflowChildPanel"/>
+    <div class="row">
+        <div class="col-md-5">
+            <h3><wicket:message key="workItemPanel.changesToBeApproved"/></h3>
+            <div wicket:id="deltasToBeApproved" />
+        </div>
+        <div class="col-md-7">
+            <h3><wicket:message key="workItemPanel.approvalHistory"/></h3>
+            <div wicket:id="history" />
+
+            <h3><wicket:message key="ItemApprovalPanel.currentWorkItems"/></h3>
+            <div wicket:id="currentWorkItems" />
+        </div>
+    </div>
+    <div wicket:id="relatedRequestsContainer">
+        <h3><wicket:message key="workItemPanel.relatedRequests"/></h3>
+        <div wicket:id="relatedRequests"/>
+    </div>
 </wicket:panel>
 </body>
 </html>

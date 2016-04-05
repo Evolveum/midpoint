@@ -54,7 +54,7 @@ public class ModelOperationStatusPanel extends SimplePanel<ModelOperationStatusD
         deltaPanel.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return getModel().getObject().getPrimaryDelta() != null;
+                return getModelObject() != null && getModelObject().getPrimaryDelta() != null;
             }
         });
         add(deltaPanel);

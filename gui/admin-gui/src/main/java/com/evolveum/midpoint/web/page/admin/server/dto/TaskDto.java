@@ -48,6 +48,7 @@ import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.wf.WfHistoryEventDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -57,12 +58,17 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
+import org.apache.wicket.extensions.markup.html.form.select.Select;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
+import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 
 /**
  * @author lazyman
@@ -99,6 +105,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public static final String F_OP_RESULT = "opResult";
 	public static final String F_WORKFLOW_CONTEXT = "workflowContext";
 	public static final String F_WORK_ITEMS = "workItems";
+	public static final String F_WORKFLOW_REQUESTS = "workflowRequests";
 	public static final String RECURRING = "recurring";
 	public static final String BOUND = "bound";
 	public static final String F_INTERVAL = "interval";
@@ -112,10 +119,12 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	public static final String F_OBJECT_DELTA = "objectDelta";
 	public static final String F_SCRIPT = "script";
 	public static final String F_EXECUTE_IN_RAW_MODE = "executeInRawMode";
+	public static final String F_PROCESS_INSTANCE_ID = "processInstanceId";
 
 	private List<InlineMenuItem> menuItems;
 
     private List<String> handlerUriList;
+	private TaskType parentTaskType;
     private String parentTaskName;
     private String parentTaskOid;
 
@@ -150,8 +159,9 @@ public class TaskDto extends Selectable implements InlineMenuable {
     private String workflowProcessInstanceId;
     private boolean workflowProcessInstanceFinished;
     private String workflowLastDetails;
+	private List<ProcessInstanceDto> workflowRequests;
 
-    private List<SceneDto> workflowDeltasIn, workflowDeltasOut;
+	private List<SceneDto> workflowDeltasIn, workflowDeltasOut;
     private List<WfHistoryEventDto> workflowHistory;
 
 	private SceneDto workflowDeltaIn;
@@ -352,7 +362,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 //                }
                 // todo optimize to retrieve name only (something like GetOperationOptions.createRetrieveNameOnlyOptions() if it would work)
                 // raw is here because otherwise, if we would try to get a Resource in non-raw mode as ObjectType, we would get illegal state exception in model
-                object = modelService.getObject(ObjectType.class, objectRef.getOid(), SelectorOptions.createCollection(GetOperationOptions.createRaw()), taskManager.createTaskInstance(), thisOpResult);
+                object = modelService.getObject(ObjectType.class, objectRef.getOid(), createCollection(GetOperationOptions.createRaw()), taskManager.createTaskInstance(), thisOpResult);
             } catch (ObjectNotFoundException e) {
                 failReason = e;
             } catch (SchemaException e) {
@@ -377,8 +387,9 @@ public class TaskDto extends Selectable implements InlineMenuable {
     private void fillInParentTaskAttributes(TaskType taskType, TaskService taskService, TaskDtoProviderOptions options, OperationResult thisOpResult) {
         if (options.isGetTaskParent() && taskType.getParent() != null) {
             try {
-                //TaskType parentTaskType = taskService.getTaskByIdentifier(taskType.getParent(), GetOperationOptions.createRetrieveNameOnlyOptions(), thisOpResult).asObjectable();
-                TaskType parentTaskType = taskService.getTaskByIdentifier(taskType.getParent(), null, thisOpResult).asObjectable();
+				Collection<SelectorOptions<GetOperationOptions>> getOptions =
+						options.isRetrieveSiblings() ? createCollection(TaskType.F_SUBTASK, createRetrieve()) : null;
+                parentTaskType = taskService.getTaskByIdentifier(taskType.getParent(), getOptions, thisOpResult).asObjectable();
                 if (parentTaskType != null) {
                     parentTaskName = parentTaskType.getName() != null ? parentTaskType.getName().getOrig() : "(unnamed)";       // todo i18n
                     parentTaskOid = parentTaskType.getOid();
@@ -437,6 +448,26 @@ public class TaskDto extends Selectable implements InlineMenuable {
         workflowDeltaIn = retrieveDeltaToProcess(taskType, modelInteractionService, opTask, thisOpResult);
         workflowDeltasOut = retrieveResultingDeltas(taskType, modelInteractionService, opTask, thisOpResult);
         workflowHistory = prepareWorkflowHistory(taskType);
+
+		List<TaskType> wfSubtasks = new ArrayList<>();
+		if (parentTaskType == null) {
+			for (TaskDto subtaskDto : subtasks) {
+				wfSubtasks.add(subtaskDto.getTaskType());
+			}
+		} else {
+			for (TaskType sibling : parentTaskType.getSubtask()) {
+				if (this.getOid() != null && this.getOid().equals(sibling.getOid())) {
+					continue;
+				}
+				wfSubtasks.add(sibling);
+			}
+		}
+		workflowRequests = new ArrayList<>();
+		for (TaskType wfSubtask : wfSubtasks) {
+			if (wfSubtask.getWorkflowContext() != null && wfSubtask.getWorkflowContext().getProcessInstanceId() != null) {
+				workflowRequests.add(new ProcessInstanceDto(wfSubtask));
+			}
+		}
     }
 
     private List<SceneDto> retrieveDeltasToProcess(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask,
@@ -910,6 +941,10 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		return rv;
 	}
 
+	public List<ProcessInstanceDto> getWorkflowRequests() {
+		return workflowRequests;
+	}
+
 	public String getObjectType() {
 		QName type = getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, QName.class);
 		return type != null ? type.getLocalPart() : null;
@@ -943,6 +978,11 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		} catch (SchemaException e) {
 			throw new SystemException("Couldn't serialize script: " + e.getMessage(), e);
 		}
+	}
+
+	public String getProcessInstanceId() {
+		WfContextType wfc = getWorkflowContext();
+		return wfc != null ? wfc.getProcessInstanceId() : null;
 	}
 
 	public Boolean isExecuteInRawMode() {

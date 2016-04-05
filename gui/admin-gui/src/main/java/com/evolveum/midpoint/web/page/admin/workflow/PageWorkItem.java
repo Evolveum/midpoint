@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -49,13 +51,18 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
+import static com.evolveum.midpoint.schema.GetOperationOptions.retrieveItemsNamed;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_PARENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_ASSIGNEE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_WORK_ITEM_ID;
 
 /**
  * @author mederly
@@ -141,16 +148,33 @@ public class PageWorkItem extends PageAdminWorkItems {
             final ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
                     .item(F_WORK_ITEM_ID).eq(id)
                     .build();
-			final Collection<SelectorOptions<GetOperationOptions>> options = resolveItemsNamed(
-					F_ASSIGNEE_REF,
-					new ItemPath(F_TASK_REF, F_WORKFLOW_CONTEXT, F_REQUESTER_REF));
+			final Collection<SelectorOptions<GetOperationOptions>> options = resolveItemsNamed(F_ASSIGNEE_REF);
 			List<WorkItemType> workItems = getModelService().searchContainers(WorkItemType.class, query, options, task, result);
             if (workItems.size() > 1) {
                 throw new SystemException("More than one work item with ID of " + id);
             } else if (workItems.size() == 0) {
                 throw new SystemException("No work item with ID of " + id);
             }
-            workItemDto = new WorkItemDto(workItems.get(0));
+			final WorkItemType workItem = workItems.get(0);
+
+			final String taskOid = workItem.getTaskRef() != null ? workItem.getTaskRef().getOid() : null;
+			TaskType taskType = null;
+			List<TaskType> relatedTasks = new ArrayList<>();
+			if (taskOid != null) {
+				final Collection<SelectorOptions<GetOperationOptions>> getTaskOptions = resolveItemsNamed(
+						new ItemPath(F_WORKFLOW_CONTEXT, F_REQUESTER_REF));
+				getTaskOptions.addAll(retrieveItemsNamed(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM)));
+				taskType = getModelService().getObject(TaskType.class, taskOid, getTaskOptions, task, result).asObjectable();
+
+				final ObjectQuery relatedTasksQuery = QueryBuilder.queryFor(TaskType.class, getPrismContext())
+						.item(F_PARENT).eq(taskType.getParent())
+						.build();
+				List<PrismObject<TaskType>> relatedTaskObjects = getModelService().searchObjects(TaskType.class, relatedTasksQuery, null, task, result);
+				for (PrismObject<TaskType> relatedObject : relatedTaskObjects) {
+					relatedTasks.add(relatedObject.asObjectable());
+				}
+			}
+			workItemDto = new WorkItemDto(workItem, taskType, relatedTasks);
 			workItemDto.prepareDeltaVisualization("pageWorkItem.delta", getPrismContext(), getModelInteractionService(), task, result);
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
