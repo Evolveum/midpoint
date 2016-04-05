@@ -241,8 +241,7 @@ public class TaskMainPanel extends Panel {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				parentPage.setEdit(true);
-				parentPage.stopRefreshing();
-				parentPage.refreshTaskModels();
+				parentPage.refresh(target);		// stops refreshing as well
 				target.add(getMainForm());
 			}
 		};

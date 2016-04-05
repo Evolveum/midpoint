@@ -23,8 +23,8 @@ import java.io.Serializable;
  */
 public class AutoRefreshDto implements Serializable {
 
-	private long lastRefreshed = System.currentTimeMillis();
-	private int interval;					// in milliseconds
+	private long lastRefreshed = System.currentTimeMillis();		// currently not used (useful if the refresh should not be done on each timer click)
+	private int interval;											// in milliseconds
 	private boolean enabled = true;
 
 	public AutoRefreshDto() {

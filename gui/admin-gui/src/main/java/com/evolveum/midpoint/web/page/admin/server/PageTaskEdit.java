@@ -58,7 +58,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.time.Duration;
 
 import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * @author mederly
@@ -95,7 +94,6 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	private PageTaskController controller = new PageTaskController(this);
 
 	private TaskMainPanel mainPanel;
-	private AbstractAjaxTimerBehavior refreshingBehavior;
 	private IModel<AutoRefreshDto> refreshModel;
 
 	public PageTaskEdit(PageParameters parameters) {
@@ -170,7 +168,6 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 
 	protected void initLayout() {
-
 		refreshModel = new Model(new AutoRefreshDto());
 		refreshModel.getObject().setInterval(getRefreshInterval());
 
@@ -188,25 +185,11 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		mainPanel.setOutputMarkupId(true);
 		add(mainPanel);
 
-		createRefreshingBehavior();
-		addRefreshingBehavior();
+		summaryPanel.getRefreshPanel().startRefreshing(this);
 	}
 
-	private void createRefreshingBehavior() {
-		refreshingBehavior = new AbstractAjaxTimerBehavior(Duration.milliseconds(refreshModel.getObject().getInterval())) {
-			@Override
-			protected void onTimer(AjaxRequestTarget target) {
-				AutoRefreshDto refreshDto = refreshModel.getObject();
-//				if (refreshDto.shouldRefresh()) {
-					refresh(target);
-//				} else {
-//					target.add(summaryPanel.getRefreshPanel());
-//				}
-			}
-		};
-	}
-
-	private int getRefreshInterval() {
+	@Override
+	public int getRefreshInterval() {
 		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
 		switch (exec) {
 			case RUNNABLE:
@@ -238,9 +221,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		}
 		if (tabsVisibilityNew.equals(tabsVisibilityOld)) {
 			// soft version
-			Iterator<Component> componentIterator = mainPanel.getTabPanel().iterator();
-			while (componentIterator.hasNext()) {
-				Component component = componentIterator.next();
+			for (Component component : mainPanel.getTabPanel()) {
 				if (component instanceof TaskTabPanel) {
 					for (Component c : ((TaskTabPanel) component).getComponentsToUpdate()) {
 						target.add(c);
@@ -256,20 +237,17 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		AutoRefreshDto refreshDto = refreshModel.getObject();
 		refreshDto.recordRefreshed();
 
-		if (refreshDto.isEnabled()) {
-			int computedInterval = getRefreshInterval();
-			if (computedInterval != refreshDto.getInterval()) {
-				refreshDto.setInterval(computedInterval);
-				if (getRefreshPanel().getBehaviors().contains(refreshingBehavior)) {
-					stopRefreshing();
-					removeRefreshingBehavior();
-				}
-				createRefreshingBehavior();
-				addRefreshingBehavior();
-			} else {
-				refreshRefreshing();
-			}
+		if (isEdit() || !refreshDto.isEnabled()) {
+			getRefreshPanel().stopRefreshing(this);
+		} else {
+			getRefreshPanel().stopRefreshing(this);
+			getRefreshPanel().startRefreshing(this);
 		}
+	}
+
+	@Override
+	public Component getRefreshingBehaviorParent() {
+		return getRefreshPanel();
 	}
 
 	public void refreshTaskModels() {
@@ -295,7 +273,6 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	}
 
 	protected ObjectWrapper<TaskType> loadObjectWrapper(PrismObject<TaskType> object, OperationResult result) {
-
 		ObjectWrapper<TaskType> wrapper;
 		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
 		try {
@@ -408,28 +385,6 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return getSummaryPanel().getRefreshPanel();
 	}
 
-	public void startRefreshing() {
-		refreshingBehavior.restart(null);
-		refreshRefreshing();
-	}
-
-	public void stopRefreshing() {
-		refreshingBehavior.stop(null);
-	}
-
-	public void refreshRefreshing() {		// necessary for some strange reason
-		removeRefreshingBehavior();
-		addRefreshingBehavior();
-	}
-
-	private void addRefreshingBehavior() {
-		getRefreshPanel().add(refreshingBehavior);
-	}
-
-	private void removeRefreshingBehavior() {
-		getRefreshPanel().remove(refreshingBehavior);
-	}
-
 	public boolean configuresWorkerThreads() {
 		return isReconciliation() || isImportAccounts() || isRecomputation() || isExecuteChanges() || isShadowIntegrityCheck() || isFocusValidityScanner() || isTriggerScanner();
 	}
@@ -470,4 +425,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return taskOid;
 	}
 
+	public void startRefreshing(AjaxRequestTarget target) {
+
+	}
 }
