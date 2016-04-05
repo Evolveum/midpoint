@@ -274,7 +274,7 @@ public class ObjectListPanel<T extends ObjectType> extends BasePanel<T> {
 		String nameColumnName = SelectableBean.F_VALUE + ".name";
 		if (isEditable()) {
 			columns.add(new LinkColumn<SelectableBean<T>>(createStringResource("ObjectType.name"),
-					nameColumnName, nameColumnName) {
+					ObjectType.F_NAME.getLocalPart(), nameColumnName) {
 
 				@Override
 				public void onClick(AjaxRequestTarget target, IModel<SelectableBean<T>> rowModel) {
@@ -284,7 +284,7 @@ public class ObjectListPanel<T extends ObjectType> extends BasePanel<T> {
 
 			});
 		} else {
-			columns.add(new PropertyColumn(createStringResource("userBrowserDialog.name"), nameColumnName,
+			columns.add(new PropertyColumn(createStringResource("userBrowserDialog.name"), ObjectType.F_NAME.getLocalPart(),
 					nameColumnName));
 		}
 
