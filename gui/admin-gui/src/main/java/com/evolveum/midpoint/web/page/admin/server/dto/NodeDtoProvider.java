@@ -29,8 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
 import org.apache.wicket.Component;
 
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -48,6 +47,7 @@ public class NodeDtoProvider extends BaseSortableDataProvider<NodeDto> {
 
     @Override
     public Iterator<? extends NodeDto> internalIterator(long first, long count) {
+		Collection<String> selectedOids = getSelectedOids();
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_LIST_NODES);
@@ -71,10 +71,30 @@ public class NodeDtoProvider extends BaseSortableDataProvider<NodeDto> {
             result.recordFatalError("Couldn't list nodes.", ex);
         }
 
+		setSelectedOids(selectedOids);
         return getAvailableData().iterator();
     }
 
-    public NodeDto createNodeDto(PrismObject<NodeType> node) {
+	private Collection<String> getSelectedOids() {
+		Set<String> oids = new HashSet<>();
+		for (NodeDto nodeDto : getAvailableData()) {
+			if (nodeDto.isSelected()) {
+				oids.add(nodeDto.getOid());
+			}
+		}
+		return oids;
+	}
+
+	private void setSelectedOids(Collection<String> selectedOids) {
+		for (NodeDto nodeDto : getAvailableData()) {
+			if (selectedOids.contains(nodeDto.getOid())) {
+				nodeDto.setSelected(true);
+			}
+		}
+	}
+
+
+	public NodeDto createNodeDto(PrismObject<NodeType> node) {
         return new NodeDto(node.asObjectable());
     }
 
