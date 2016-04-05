@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
+import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -76,8 +77,11 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 	public static final String ID_NOT_START_AFTER_FIELD = "notStartAfterField";
 	public static final String ID_MISFIRE_ACTION = "misfireAction";
 	public static final String ID_LAST_STARTED = "lastStarted";
+	public static final String ID_LAST_STARTED_AGO = "lastStartedAgo";
 	public static final String ID_LAST_FINISHED = "lastFinished";
+	public static final String ID_LAST_FINISHED_AGO = "lastFinishedAgo";
 	public static final String ID_NEXT_RUN = "nextRun";
+	public static final String ID_NEXT_RUN_IN = "nextRunIn";
 
 	private PageTaskEdit parentPage;
 	private IModel<TaskDto> taskDtoModel;
@@ -100,43 +104,101 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 				TaskDto dto = taskDtoModel.getObject();
 				if (dto.getLastRunStartTimestampLong() == null) {
 					return "-";
+				} else {
+					return WebComponentUtil.formatDate(new Date(dto.getLastRunStartTimestampLong()));
 				}
-				Date date = new Date(dto.getLastRunStartTimestampLong());
-				return WebComponentUtil.formatDate(date);
 			}
 		});
 		add(lastStart);
 
-		Label lastFinished = new Label(ID_LAST_FINISHED, new AbstractReadOnlyModel<String>() {
+		Label lastStartAgo = new Label(ID_LAST_STARTED_AGO, new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				TaskDto dto = taskDtoModel.getObject();
+				if (dto.getLastRunStartTimestampLong() == null) {
+					return "";
+				} else {
+					final long ago = System.currentTimeMillis() - dto.getLastRunStartTimestampLong();
+					return createStringResource("TaskStatePanel.message.ago", DurationFormatUtils.formatDurationWords(ago, true, true)).getString();
+				}
+			}
+		});
+		add(lastStartAgo);
 
+		Label lastFinished = new Label(ID_LAST_FINISHED, new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
 				TaskDto dto = taskDtoModel.getObject();
 				if (dto.getLastRunFinishTimestampLong() == null) {
 					return "-";
+				} else {
+					return WebComponentUtil.formatDate(new Date(dto.getLastRunFinishTimestampLong()));
 				}
-				Date date = new Date(dto.getLastRunFinishTimestampLong());
-				return WebComponentUtil.formatDate(date);
 			}
 		});
 		add(lastFinished);
 
-		Label nextRun = new Label(ID_NEXT_RUN, new AbstractReadOnlyModel<String>() {
+		Label lastFinishedAgo = new Label(ID_LAST_FINISHED_AGO, new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				TaskDto dto = taskDtoModel.getObject();
+				if (dto.getLastRunFinishTimestampLong() == null) {
+					return "";
+				} else {
+					Long duration;
+					if (dto.getLastRunStartTimestampLong() == null || dto.getLastRunFinishTimestampLong() < dto.getLastRunStartTimestampLong()) {
+						duration = null;
+					} else {
+						duration = dto.getLastRunFinishTimestampLong() - dto.getLastRunStartTimestampLong();
+					}
+					long ago = System.currentTimeMillis() - dto.getLastRunFinishTimestampLong();
+					if (duration != null) {
+						return getString("TaskStatePanel.message.durationAndAgo",
+								DurationFormatUtils.formatDurationWords(ago, true, true),
+								duration);
+					} else {
+						return getString("TaskStatePanel.message.ago",
+								DurationFormatUtils.formatDurationWords(ago, true, true));
+					}
+				}
+			}
+		});
+		add(lastFinishedAgo);
 
+		Label nextRun = new Label(ID_NEXT_RUN, new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
 				TaskDto dto = taskDtoModel.getObject();
 				if (dto.getRecurring() && dto.getBound() && parentPage.isRunning()) {
 					return getString("pageTasks.runsContinually");
-				}
-				if (dto.getNextRunStartTimeLong() == null) {
+				} else if (dto.getNextRunStartTimeLong() == null) {
 					return "-";
+				} else {
+					return WebComponentUtil.formatDate(new Date(dto.getNextRunStartTimeLong()));
 				}
-				Date date = new Date(dto.getNextRunStartTimeLong());
-				return WebComponentUtil.formatDate(date);
 			}
 		});
 		add(nextRun);
+
+		Label nextRunIn = new Label(ID_NEXT_RUN_IN, new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				TaskDto dto = taskDtoModel.getObject();
+				if (dto.getNextRunStartTimeLong() == null || (dto.getRecurring() && dto.getBound() && parentPage.isRunning())) {
+					return "";
+				} else {
+					long currentTime = System.currentTimeMillis();
+					final long in = dto.getNextRunStartTimeLong() - currentTime;
+					if (in >= 0) {
+						return getString("TaskStatePanel.message.in", DurationFormatUtils.formatDurationWords(in, true, true));
+					} else {
+						return "";
+					}
+				}
+			}
+		});
+		add(nextRunIn);
+
 	}
 	
 	private void initLayoutForSchedulingTable() {
