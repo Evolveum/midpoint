@@ -36,6 +36,7 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -305,6 +306,11 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 		}
 
 		return map;
+	}
+
+	@Override
+	protected ModelExecuteOptions createModelOptions() {
+		return null;
 	}
 
 }
