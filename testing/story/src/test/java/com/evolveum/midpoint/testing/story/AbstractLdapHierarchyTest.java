@@ -227,11 +227,12 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        dumpOrgTree();
+		dumpLdap();
+        
         PrismObject<UserType> userAfter = getAndAssertUser(USER_TELEKE_USERNAME, ORG_ROYULA_CARPATHIA_NAME);
         
         PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_ROYULA_CARPATHIA_NAME, ORG_TOP_OID);
-
-		dumpOrgTree();
 
 		assertSubOrgs(orgAfter, 0);
 		assertSubOrgs(ORG_TOP_OID, 1);
@@ -256,10 +257,11 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        dumpOrgTree();
+		dumpLdap();
+        
         PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_CORTUV_HRAD_NAME, orgRolyulaCarpathiaOid);
         orgCortuvHradOid = orgAfter.getOid();
-
-		dumpOrgTree();
 
 		assertSubOrgs(orgAfter, 0);
 		assertSubOrgs(orgRolyulaCarpathiaOid, 1);
@@ -286,10 +288,11 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        dumpOrgTree();
+		dumpLdap();
+        
         PrismObject<UserType> userAfter = getAndAssertUser(USER_GORC_USERNAME, ORG_CORTUV_HRAD_NAME, ORG_ROYULA_CARPATHIA_NAME);
         userGorcOid = userAfter.getOid();
-        
-		dumpOrgTree();
 	}
 
 	@Test
@@ -311,10 +314,11 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        dumpOrgTree();
+		dumpLdap();
+        
         PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_VYSNE_VLKODLAKY_NAME, orgCortuvHradOid);
         orgVysneVlkodlakyOid = orgAfter.getOid();
-
-		dumpOrgTree();
 
 		assertSubOrgs(orgAfter, 0);
 		assertSubOrgs(orgRolyulaCarpathiaOid, 1);
@@ -341,10 +345,10 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
-        PrismObject<UserType> userAfter = getAndAssertUser(USER_DEZI_USERNAME, ORG_VYSNE_VLKODLAKY_NAME, ORG_CORTUV_HRAD_NAME, ORG_ROYULA_CARPATHIA_NAME);
-        
-		dumpOrgTree();
+        dumpOrgTree();
 		dumpLdap();
+        
+        PrismObject<UserType> userAfter = getAndAssertUser(USER_DEZI_USERNAME, ORG_VYSNE_VLKODLAKY_NAME, ORG_CORTUV_HRAD_NAME, ORG_ROYULA_CARPATHIA_NAME);        
 	}
 
 	@Test
@@ -366,12 +370,12 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        dumpOrgTree();
+		dumpLdap();
+        
         PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_CORTUV_HRAD_NAME2, orgRolyulaCarpathiaOid);
         assertEquals("Cortuv hrad org OID changed after rename", orgCortuvHradOid, orgAfter.getOid());
 
-		dumpOrgTree();
-		dumpLdap();
-		
 		getAndAssertUser(USER_DEZI_USERNAME, ORG_VYSNE_VLKODLAKY_NAME, ORG_CORTUV_HRAD_NAME2, ORG_ROYULA_CARPATHIA_NAME);
 
 		assertSubOrgs(orgAfter, 1);
@@ -399,10 +403,10 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
-        PrismObject<UserType> userAfter = getAndAssertUser(USER_GORC_USERNAME2, ORG_CORTUV_HRAD_NAME2, ORG_ROYULA_CARPATHIA_NAME);
-        
-		dumpOrgTree();
+        dumpOrgTree();
 		dumpLdap();
+        
+        PrismObject<UserType> userAfter = getAndAssertUser(USER_GORC_USERNAME2, ORG_CORTUV_HRAD_NAME2, ORG_ROYULA_CARPATHIA_NAME);
 	}
 	
 	@Test
@@ -424,10 +428,11 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        dumpOrgTree();
+		dumpLdap();
+        
         PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_ROYULA_DIABOLICA_NAME, ORG_TOP_OID);
         orgRolyulaDiabolicaOid = orgAfter.getOid();
-
-		dumpOrgTree();
 
 		assertSubOrgs(orgAfter, 0);
 		assertSubOrgs(ORG_TOP_OID, 2);
@@ -469,10 +474,11 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        dumpOrgTree();
+		dumpLdap();
+        
         PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_CORTUV_HRAD_NAME2, orgRolyulaDiabolicaOid);
         assertEquals("Cortuv hrad org OID changed after rename", orgCortuvHradOid, orgAfter.getOid());
-
-        dumpLdap();
         
 		recomputeIfNeeded(orgCortuvHradOid);
         
