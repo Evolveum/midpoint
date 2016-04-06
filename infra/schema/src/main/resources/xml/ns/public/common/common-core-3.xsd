@@ -4259,37 +4259,45 @@
     <xsd:complexType name="ResourceActivationDefinitionType">
     	<xsd:annotation>
             <xsd:documentation>
-                Defines how the synchronization of the activation section is handled for the resource.
+                Defines how the mapping of the activation section is handled for the resource.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="existence" type="tns:ResourceBidirectionalMappingType" minOccurs="0" maxOccurs="1">
 		    	<xsd:annotation>
 		            <xsd:documentation>
-		                TODO
+		                Mapping for resource object existence. This mapping decides whether the resource object
+		                should exist at all.
 		            </xsd:documentation>
 		        </xsd:annotation>                
             </xsd:element>
         	<xsd:element name="administrativeStatus" type="tns:ResourceBidirectionalMappingType" minOccurs="0" maxOccurs="1">
 		    	<xsd:annotation>
 		            <xsd:documentation>
-		                TODO
+		                Mapping for activation administrative status.
 		            </xsd:documentation>
-		        </xsd:annotation>                
+		        </xsd:annotation>
             </xsd:element>
         	<xsd:element name="validFrom" type="tns:ResourceBidirectionalMappingType" minOccurs="0" maxOccurs="1">
 		    	<xsd:annotation>
 		            <xsd:documentation>
-		                TODO
+		                Mapping for activation start of validity.
 		            </xsd:documentation>
 		        </xsd:annotation>                
             </xsd:element>
         	<xsd:element name="validTo" type="tns:ResourceBidirectionalMappingType" minOccurs="0" maxOccurs="1">
 		    	<xsd:annotation>
 		            <xsd:documentation>
-		                TODO
+		                Mapping for activation end of validity.
 		            </xsd:documentation>
 		        </xsd:annotation>                
+            </xsd:element>
+            <xsd:element name="lockoutStatus" type="tns:ResourceBidirectionalMappingType" minOccurs="0" maxOccurs="1">
+		    	<xsd:annotation>
+		            <xsd:documentation>
+		                Mapping for activation lockout status.
+		            </xsd:documentation>
+		        </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
