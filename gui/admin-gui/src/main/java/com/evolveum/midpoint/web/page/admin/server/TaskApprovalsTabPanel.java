@@ -39,19 +39,24 @@ public class TaskApprovalsTabPanel extends AbstractObjectTabPanel<TaskType> impl
 	private static final String ID_WORKFLOW_PARENT_PANEL = "workflowParentPanel";
 	private static final String ID_WORKFLOW_CHILD_PANEL = "workflowChildPanel";
 
+	private PageTaskEdit parentPage;
+
+	private TaskWfChildPanel childPanel;
+
 	private static final Trace LOGGER = TraceManager.getTrace(TaskApprovalsTabPanel.class);
 
 	public TaskApprovalsTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
 			IModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
 		super(id, mainForm, taskWrapperModel, parentPage);
-		initLayout(taskDtoModel, parentPage);
+		this.parentPage = parentPage;
+		initLayout(taskDtoModel);
 		setOutputMarkupId(true);
 	}
 	
-	private void initLayout(final IModel<TaskDto> taskDtoModel, final PageTaskEdit parentPage) {
+	private void initLayout(final IModel<TaskDto> taskDtoModel) {
 
-		TaskWfChildPanel childPanel = new TaskWfChildPanel(ID_WORKFLOW_CHILD_PANEL, taskDtoModel, parentPage);
+		childPanel = new TaskWfChildPanel(ID_WORKFLOW_CHILD_PANEL, taskDtoModel, parentPage);
 		childPanel.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
@@ -72,6 +77,10 @@ public class TaskApprovalsTabPanel extends AbstractObjectTabPanel<TaskType> impl
 
 	@Override
 	public Collection<Component> getComponentsToUpdate() {
-		return Collections.<Component>singleton(this);
+		if (parentPage.isWorkflowChild()) {
+			return childPanel.getComponentsToUpdate();
+		} else {
+			return Collections.<Component>singleton(this);
+		}
 	}
 }

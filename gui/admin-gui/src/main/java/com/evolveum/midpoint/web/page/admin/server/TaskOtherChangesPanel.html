@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2010-2016 Evolveum
   ~
@@ -15,18 +14,12 @@
   ~ limitations under the License.
   -->
 
-<html xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:wicket="http://wicket.apache.org">
-<body>
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <h3><wicket:message key="workItemPanel.requests"/></h3>
-    <div wicket:id="requests"/>
 
-    <div wicket:id="changesNotRequiringApprovalContainer">
-        <h3><wicket:message key="taskWfParentPanel.changesNotRequiringApproval"/></h3>
-        <div wicket:id="changesNotRequiringApproval"/>
-    </div>
+    <div style="margin-bottom: 10px"><wicket:message key="ModelOperationStatusPanel.label.state"/> <b><span wicket:id="state"></span></b></div>
+    <div wicket:id="primaryDelta" />
+
 </wicket:panel>
-</body>
 </html>
-

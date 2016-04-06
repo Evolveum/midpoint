@@ -90,7 +90,7 @@ public class TaskMainPanel extends Panel {
 						return !parentPage.isEdit();
 					}
 				};
-				final TaskShowAdvancedFeaturesPanel advancedFeaturesPanel = new TaskShowAdvancedFeaturesPanel(id, showAdvancedFeaturesModel, boxEnabled) {
+				TaskShowAdvancedFeaturesPanel advancedFeaturesPanel = new TaskShowAdvancedFeaturesPanel(id, showAdvancedFeaturesModel, boxEnabled) {
 					@Override
 					protected void onAdvancedFeaturesUpdate(AjaxRequestTarget target) {
 						target.add(getTabPanel());

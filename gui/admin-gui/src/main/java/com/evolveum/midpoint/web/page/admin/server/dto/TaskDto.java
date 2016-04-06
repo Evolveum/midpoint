@@ -35,6 +35,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.wf.WfHistoryEventDto;
+import com.evolveum.midpoint.web.page.admin.server.TaskOtherChangesDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -69,6 +71,7 @@ import java.util.List;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 
 /**
  * @author lazyman
@@ -81,6 +84,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskDto.class);
     public static final String F_MODEL_OPERATION_STATUS = "modelOperationStatus";
+    public static final String F_CHANGES_NOT_REQUIRING_APPROVAL = "changesNotRequiringApproval";
     public static final String F_SUBTASKS = "subtasks";
     public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
@@ -142,6 +146,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     private OperationResult taskOperationResult;
 
     private ModelOperationStatusDto modelOperationStatusDto;
+    private TaskOtherChangesDto changesNotRequiringApproval;
 
     private ObjectTypes objectRefType;
     private String objectRefName;
@@ -410,23 +415,30 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     private void fillInModelContext(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask, OperationResult result) throws ObjectNotFoundException {
-        LensContextType value = taskType.getModelOperationContext();
-        if (value != null) {
-            if (!(value instanceof LensContextType)) {
-                throw new SystemException("Model context information in task " + taskType + " is of wrong type: " + value.getClass());
-            }
-            try {
-                ModelContext modelContext = modelInteractionService.unwrapModelContext((LensContextType) value, result);
-                modelOperationStatusDto = new ModelOperationStatusDto(modelContext, modelInteractionService, opTask, result);
-            } catch (SchemaException | CommunicationException | ConfigurationException e) {   // todo treat appropriately
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't access model operation context in task {}", e, WebComponentUtil.getIdentification(taskType));
-            	throw new SystemException("Couldn't access model operation context in task: " + e.getMessage(), e);
-            }
-        }
+        ModelContext ctx = unwrapModelContext(taskType, modelInteractionService, opTask, result);
+		if (ctx != null) {
+			modelOperationStatusDto = new ModelOperationStatusDto(ctx, modelInteractionService, opTask, result);
+		}
     }
 
+	private ModelContext unwrapModelContext(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask, OperationResult result) throws ObjectNotFoundException {
+		LensContextType value = taskType.getModelOperationContext();
+		if (value != null) {
+			if (!(value instanceof LensContextType)) {
+				throw new SystemException("Model context information in task " + taskType + " is of wrong type: " + value.getClass());
+			}
+			try {
+				return modelInteractionService.unwrapModelContext((LensContextType) value, result);
+			} catch (SchemaException | CommunicationException | ConfigurationException e) {   // todo treat appropriately
+				throw new SystemException("Couldn't access model operation context in task: " + e.getMessage(), e);
+			}
+		} else {
+			return null;
+		}
+	}
+
     private void fillInWorkflowAttributes(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask,
-			OperationResult thisOpResult) throws SchemaException {
+			OperationResult thisOpResult) throws SchemaException, ObjectNotFoundException {
         workflowProcessInstanceId =
                 taskType.getWorkflowContext() != null ? taskType.getWorkflowContext().getProcessInstanceId() : null;
         if (workflowProcessInstanceId != null) {
@@ -449,12 +461,21 @@ public class TaskDto extends Selectable implements InlineMenuable {
         workflowDeltasOut = retrieveResultingDeltas(taskType, modelInteractionService, opTask, thisOpResult);
         workflowHistory = prepareWorkflowHistory(taskType);
 
-		final List<TaskType> wfSubtasks;
+		final TaskType rootTask;
 		if (parentTaskType == null) {
-			wfSubtasks = taskType.getSubtask();
+			rootTask = taskType;
 		} else {
-			wfSubtasks = parentTaskType.getSubtask();
+			rootTask = parentTaskType;
 		}
+
+		TaskType changesNotRequiringApprovalTask = null;
+		if (rootTask.getModelOperationContext() != null) {
+			final ModelContext modelContext = unwrapModelContext(rootTask, modelInteractionService, opTask, thisOpResult);
+			changesNotRequiringApproval = new TaskOtherChangesDto(modelContext, modelInteractionService, opTask, thisOpResult);
+			changesNotRequiringApprovalTask = rootTask;
+		}
+
+		final List<TaskType> wfSubtasks = rootTask.getSubtask();
 		workflowRequests = new ArrayList<>();
 		for (TaskType wfSubtask : wfSubtasks) {
 			if (this.getOid() != null && this.getOid().equals(wfSubtask.getOid())) {
@@ -462,9 +483,19 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			}
 			if (wfSubtask.getWorkflowContext() != null && wfSubtask.getWorkflowContext().getProcessInstanceId() != null) {
 				workflowRequests.add(new ProcessInstanceDto(wfSubtask));
+			} else {
+				if (changesNotRequiringApprovalTask != null) {
+					LOGGER.warn("Changes not requiring approval found both in task {} as well in subtask {} -- ignoring the latter", toShortString(rootTask), toShortString(wfSubtask));
+				} else {
+					if (wfSubtask.getModelOperationContext() != null) {
+						ModelContext modelContext = unwrapModelContext(wfSubtask, modelInteractionService, opTask, thisOpResult);
+						changesNotRequiringApproval = new TaskOtherChangesDto(modelContext, modelInteractionService, opTask, thisOpResult);
+						changesNotRequiringApprovalTask = wfSubtask;
+					}
+				}
 			}
 		}
-    }
+	}
 
     private List<SceneDto> retrieveDeltasToProcess(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask,
 			OperationResult thisOpResult) throws SchemaException {
@@ -775,6 +806,10 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return modelOperationStatusDto;
     }
 
+	public TaskOtherChangesDto getChangesNotRequringApproval() {
+        return changesNotRequiringApproval;
+    }
+
     public void addChildTaskDto(TaskDto taskDto) {
         if (taskDto.getOid() != null) {
             subtasks.add(taskDto);
@@ -1011,6 +1046,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
             return false;
         if (misfireAction != taskDto.misfireAction) return false;
         if (modelOperationStatusDto != null ? !modelOperationStatusDto.equals(taskDto.modelOperationStatusDto) : taskDto.modelOperationStatusDto != null)
+            return false;
+        if (changesNotRequiringApproval != null ? !changesNotRequiringApproval.equals(taskDto.changesNotRequiringApproval) : taskDto.changesNotRequiringApproval != null)
             return false;
         if (nextRunStartTimeLong != null ? !nextRunStartTimeLong.equals(taskDto.nextRunStartTimeLong) : taskDto.nextRunStartTimeLong != null)
             return false;
