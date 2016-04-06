@@ -1104,4 +1104,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public boolean isManager(UserType user) {
         return orgStructFunctions.isManager(user);
     }
+
+	@Override
+	public Protector getProtector() {
+		return protector;
+	}
 }
