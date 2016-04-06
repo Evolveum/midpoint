@@ -18,15 +18,17 @@ package com.evolveum.midpoint.web.component.wf;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.DecisionDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,14 +48,52 @@ public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
     }
 
     protected void initLayout(UserProfileStorage.TableId tableId, int pageSize) {
-        List<IColumn<DecisionDto, String>> columns = new ArrayList<IColumn<DecisionDto, String>>();
-        columns.add(new PropertyColumn(createStringResource("DecisionsPanel.user"), DecisionDto.F_USER));
-        columns.add(new PropertyColumn(createStringResource("DecisionsPanel.result"), DecisionDto.F_RESULT));
-        columns.add(new PropertyColumn(createStringResource("DecisionsPanel.comment"), DecisionDto.F_COMMENT));
-        columns.add(new PropertyColumn(createStringResource("DecisionsPanel.when"), DecisionDto.F_TIME));
+        List<IColumn<DecisionDto, String>> columns = new ArrayList<>();
+        columns.add(new PropertyColumn<DecisionDto, String>(createStringResource("DecisionsPanel.user"), DecisionDto.F_USER));
+		columns.add(createOutcomeColumn());
+        columns.add(new PropertyColumn<DecisionDto, String>(createStringResource("DecisionsPanel.comment"), DecisionDto.F_COMMENT));
+        columns.add(new PropertyColumn<DecisionDto, String>(createStringResource("DecisionsPanel.when"), DecisionDto.F_TIME));
 
-        ISortableDataProvider provider = new ListDataProvider(this, getModel());
+        ISortableDataProvider provider = new ListDataProvider<>(this, getModel());
         BoxedTablePanel decisionsTable = new BoxedTablePanel<>(ID_DECISIONS_TABLE, provider, columns, tableId, pageSize);
         add(decisionsTable);
     }
+
+	@NotNull
+	private IconColumn<DecisionDto> createOutcomeColumn() {
+		return new IconColumn<DecisionDto>(createStringResource("DecisionsPanel.result")) {
+			@Override
+			protected IModel<String> createIconModel(final IModel<DecisionDto> rowModel) {
+				return new AbstractReadOnlyModel<String>() {
+					@Override
+					public String getObject() {
+						return choose(rowModel, ApprovalOutcomeIcon.IN_PROGRESS.getIcon(), ApprovalOutcomeIcon.APPROVED.getIcon(), ApprovalOutcomeIcon.REJECTED.getIcon());
+					}
+				};
+			}
+
+			@Override
+			protected IModel<String> createTitleModel(final IModel<DecisionDto> rowModel) {
+				return new AbstractReadOnlyModel<String>() {
+					@Override
+					public String getObject() {
+						return choose(rowModel,
+								createStringResource("MyRequestsPanel.inProgress").getString(),
+								createStringResource("MyRequestsPanel.approved").getString(),
+								createStringResource("MyRequestsPanel.rejected").getString());
+					}
+				};
+			}
+
+			private String choose(IModel<DecisionDto> rowModel, String inProgress, String approved, String rejected) {
+				DecisionDto dto = rowModel.getObject();
+				if (dto.getOutcome() == null) {
+					return inProgress;
+				} else {
+					return dto.getOutcome() ? approved : rejected;
+				}
+			}
+		};
+	}
+
 }
