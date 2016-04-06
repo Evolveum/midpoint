@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+ 
+<org oid="00000000-8888-6666-0000-100000ffffff"
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+    xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+	<name>RETIRED</name>
+	<displayName>Retired</displayName>
+	<identifier>RRRR</identifier>
+	<orgType>functional</orgType>
+	
+	<assignment>
+    	<description>RET-OU</description>
+    	<construction>
+    		<description>RET-OU</description>
+    		<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+    		<kind>generic</kind>
+    		<intent>ou</intent>
+    	</construction>
+    </assignment>
+    
+    <inducement>
+    	<description>RET-ACC</description>
+    	<construction>
+    		<description>RET-ACC</description>
+    		<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+    		<kind>account</kind>
+    		<intent>default</intent>
+    		<attribute>
+				<ref>ri:dn</ref>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>$focus/name</path>
+					</source>
+					<expression>
+                    	<script>
+	                        <code>
+	                        	basic.composeDnWithSuffix('uid', 'RRR-' + name, 'ou=RETIRED,dc=example,dc=com')
+	                        </code>
+                        </script>
+                    </expression>
+				</outbound>
+			</attribute>
+    	</construction>
+    </inducement>
+</org>

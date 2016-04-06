@@ -49,8 +49,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
@@ -79,8 +81,6 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 	
 	@Autowired(required = true)
 	private SecurityHelper securityHelper;
-	
-	// TODO: auditing - through securityHelper
 	
 	@Override
 	public UsernamePasswordAuthenticationToken authenticateUserPassword(ConnectionEnvironment connEnv, String enteredUsername, String enteredPassword) 
@@ -309,6 +309,10 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 	
 	private boolean isOverFailedLockoutAttempts(AbstractCredentialType credentialsType, AbstractCredentialPolicyType credentialsPolicy) {
 		int failedLogins = credentialsType.getFailedLogins() != null ? credentialsType.getFailedLogins() : 0;
+		return isOverFailedLockoutAttempts(failedLogins, credentialsPolicy);
+	}
+	
+	private boolean isOverFailedLockoutAttempts(int failedLogins, AbstractCredentialPolicyType credentialsPolicy) {
 		return credentialsPolicy != null && credentialsPolicy.getLockoutMaxFailedAttempts() != null &&
 				credentialsPolicy.getLockoutMaxFailedAttempts() > 0 && failedLogins >= credentialsPolicy.getLockoutMaxFailedAttempts();
 	}
@@ -342,6 +346,12 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 
 		passwordType.setPreviousSuccessfulLogin(passwordType.getLastSuccessfulLogin());
 		passwordType.setLastSuccessfulLogin(event);
+		
+		ActivationType activation = principal.getUser().getActivation();
+		if (activation != null) {
+			activation.setLockoutStatus(LockoutStatusType.NORMAL);
+			activation.setLockoutExpirationTimestamp(null);
+		}
 
 		userProfileService.updateUser(principal);
 		
@@ -355,32 +365,55 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 	private void recordPasswordAuthenticationFailure(MidPointPrincipal principal, ConnectionEnvironment connEnv,
 			PasswordType passwordType, PasswordCredentialsPolicyType passwordCredentialsPolicy, String reason) {
 		Integer failedLogins = passwordType.getFailedLogins();
+		LoginEventType lastFailedLogin = passwordType.getLastFailedLogin();
+		XMLGregorianCalendar lastFailedLoginTs = null;
+		if (lastFailedLogin != null) {
+			lastFailedLoginTs = lastFailedLogin.getTimestamp();
+		}
+		
 		if (passwordCredentialsPolicy != null) {
 			Duration lockoutFailedAttemptsDuration = passwordCredentialsPolicy.getLockoutFailedAttemptsDuration();
 			if (lockoutFailedAttemptsDuration != null) {
-				LoginEventType lastFailedLogin = passwordType.getLastFailedLogin();
-				if (lastFailedLogin != null) {
-					XMLGregorianCalendar lastFailedLoginTs = lastFailedLogin.getTimestamp();
-					if (lastFailedLoginTs != null) {
-						XMLGregorianCalendar failedLoginsExpirationTs = XmlTypeConverter.addDuration(lastFailedLoginTs, lockoutFailedAttemptsDuration);
-						if (clock.isPast(failedLoginsExpirationTs)) {
-							failedLogins = 0;
-						}
+				if (lastFailedLoginTs != null) {
+					XMLGregorianCalendar failedLoginsExpirationTs = XmlTypeConverter.addDuration(lastFailedLoginTs, lockoutFailedAttemptsDuration);
+					if (clock.isPast(failedLoginsExpirationTs)) {
+						failedLogins = 0;
 					}
 				}
 			}
 		}
 		if (failedLogins == null) {
-			passwordType.setFailedLogins(1);
+			failedLogins = 1;
 		} else {
-			passwordType.setFailedLogins(failedLogins + 1);
+			failedLogins++;
 		}
+		
+		passwordType.setFailedLogins(failedLogins);
 		
 		LoginEventType event = new LoginEventType();
 		event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
 		event.setFrom(connEnv.getRemoteHost());
 		
 		passwordType.setLastFailedLogin(event);
+		
+		ActivationType activationType = principal.getUser().getActivation();
+		
+		if (failedLogins != null && isOverFailedLockoutAttempts(failedLogins, passwordCredentialsPolicy)) {
+			if (activationType == null) {
+				activationType = new ActivationType();
+				principal.getUser().setActivation(activationType);
+			}
+			activationType.setLockoutStatus(LockoutStatusType.LOCKED);
+			XMLGregorianCalendar lockoutExpirationTs = null;
+			if (passwordCredentialsPolicy != null) {
+				Duration lockoutDuration = passwordCredentialsPolicy.getLockoutDuration();
+				if (lockoutDuration != null) {
+					lockoutExpirationTs = XmlTypeConverter.addDuration(event.getTimestamp(), lockoutDuration);
+				}
+			}
+			activationType.setLockoutExpirationTimestamp(lockoutExpirationTs);
+		}
+		
 		userProfileService.updateUser(principal);
 		
 		recordAuthenticationFailure(principal, connEnv, reason);
