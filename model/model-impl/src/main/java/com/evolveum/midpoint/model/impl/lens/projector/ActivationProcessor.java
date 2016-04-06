@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDe
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationValidityCapabilityType;
 
@@ -266,6 +267,7 @@ public class ActivationProcessor {
         ActivationStatusCapabilityType capStatus = capActivation.getStatus();
         ActivationValidityCapabilityType capValidFrom = capActivation.getValidFrom();
         ActivationValidityCapabilityType capValidTo = capActivation.getValidTo();
+        ActivationLockoutStatusCapabilityType capLockoutStatus = capActivation.getLockoutStatus();
         
         if (capStatus != null) {
 	    	evaluateActivationMapping(context, accCtx,
@@ -273,7 +275,7 @@ public class ActivationProcessor {
 	    			SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, 
 	    			capActivation, now, true, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), task, result);
         } else {
-        	LOGGER.trace("Skipping activation status processing because {} does not have activation status capability", accCtx.getResource());
+        	LOGGER.trace("Skipping activation administrative status processing because {} does not have activation administrative status capability", accCtx.getResource());
         }
 
         ResourceBidirectionalMappingType validFromMappingType = activationType.getValidFrom();
@@ -290,13 +292,22 @@ public class ActivationProcessor {
         ResourceBidirectionalMappingType validToMappingType = activationType.getValidTo();
         if (validToMappingType == null || validToMappingType.getOutbound() == null) {
         	LOGGER.trace("Skipping activation validTo processing because {} does not have appropriate outbound mapping", accCtx.getResource());
-        } else if (capValidFrom == null && !ExpressionUtil.hasExplicitTarget(validToMappingType.getOutbound())) {
+        } else if (capValidTo == null && !ExpressionUtil.hasExplicitTarget(validToMappingType.getOutbound())) {
         	LOGGER.trace("Skipping activation validTo processing because {} does not have activation validTo capability nor outbound mapping with explicit target", accCtx.getResource());
         } else {
 	    	evaluateActivationMapping(context, accCtx, activationType.getValidTo(),
 	    			SchemaConstants.PATH_ACTIVATION_VALID_TO, SchemaConstants.PATH_ACTIVATION_VALID_TO, 
 	    			null, now, true, ActivationType.F_VALID_TO.getLocalPart(), task, result);
 	    }
+        
+        if (capLockoutStatus != null) {
+	    	evaluateActivationMapping(context, accCtx,
+	    			activationType.getLockoutStatus(),
+	    			SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, 
+	    			capActivation, now, true, ActivationType.F_LOCKOUT_STATUS.getLocalPart(), task, result);
+        } else {
+        	LOGGER.trace("Skipping activation lockout status processing because {} does not have activation lockout status capability", accCtx.getResource());
+        }
     	
     }
 
@@ -572,7 +583,7 @@ public class ActivationProcessor {
 				// Source: administrativeStatus, validFrom or validTo
 		        ItemDeltaItem<PrismPropertyValue<T>,PrismPropertyDefinition<T>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(focusPropertyPath);
 		        
-		        if (capActivation != null) {
+		        if (capActivation != null && focusPropertyPath.equals(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
 			        ActivationValidityCapabilityType capValidFrom = capActivation.getValidFrom();
 			        ActivationValidityCapabilityType capValidTo = capActivation.getValidTo();
 			        

@@ -44,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -102,6 +103,8 @@ public class ColumnUtils {
 			return getDefaultRoleColumns();
 		} else if (OrgType.class.equals(type)) {
 			return getDefaultOrgColumns();
+		} else if (ServiceType.class.equals(type)) {
+			return getDefaultServiceColumns();
 		} else if (type.equals(TaskType.class)) {
 			return getDefaultTaskColumns();
 		} else if (type.equals(ResourceType.class)) {
@@ -231,6 +234,28 @@ public class ColumnUtils {
 					public String getObject() {
 						T user = rowModel.getObject().getValue();
 						return WebComponentUtil.createRoleIcon(user.asPrismContainer());
+					}
+				};
+			}
+		});
+
+		columns.addAll(getDefaultAbstractRoleColumns());
+
+		return columns;
+	}
+	
+	public static <T extends ObjectType> List<IColumn> getDefaultServiceColumns() {
+		List<IColumn> columns = new ArrayList<IColumn>();
+		columns.add(new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+
+			@Override
+			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
+				return new AbstractReadOnlyModel<String>() {
+
+					@Override
+					public String getObject() {
+						T user = rowModel.getObject().getValue();
+						return WebComponentUtil.createServiceIcon(user.asPrismContainer());
 					}
 				};
 			}
