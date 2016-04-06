@@ -70,15 +70,24 @@ public class TaskWfChildPanel extends Panel {
 
 	private void initLayout(final IModel<TaskDto> taskDtoModel, PageBase pageBase) {
 
-		add(new ScenePanel(ID_DELTAS_TO_BE_APPROVED, new PropertyModel(taskDtoModel, TaskDto.F_WORKFLOW_DELTA_IN)));
-		add(new ItemApprovalHistoryPanel(ID_HISTORY, new PropertyModel<WfContextType>(taskDtoModel, TaskDto.F_WORKFLOW_CONTEXT),
-				UserProfileStorage.TableId.PAGE_TASK_HISTORY_PANEL, (int) pageBase.getItemsPerPage(UserProfileStorage.TableId.PAGE_TASK_HISTORY_PANEL)));
+		final ScenePanel deltasToBeApproved = new ScenePanel(ID_DELTAS_TO_BE_APPROVED, new PropertyModel(taskDtoModel, TaskDto.F_WORKFLOW_DELTA_IN));
+		deltasToBeApproved.setOutputMarkupId(true);
+		add(deltasToBeApproved);
+
+		final ItemApprovalHistoryPanel history = new ItemApprovalHistoryPanel(ID_HISTORY,
+				new PropertyModel<WfContextType>(taskDtoModel, TaskDto.F_WORKFLOW_CONTEXT),
+				UserProfileStorage.TableId.PAGE_TASK_HISTORY_PANEL,
+				(int) pageBase.getItemsPerPage(UserProfileStorage.TableId.PAGE_TASK_HISTORY_PANEL));
+		history.setOutputMarkupId(true);
+		add(history);
 
 		ISortableDataProvider<WorkItemDto, String> provider = new ListDataProvider(this, new PropertyModel<List<WorkItemDto>>(taskDtoModel, TaskDto.F_WORK_ITEMS));
-		add(new WorkItemsTablePanel(ID_CURRENT_WORK_ITEMS, provider,
+		final WorkItemsTablePanel workItemsPanel = new WorkItemsTablePanel(ID_CURRENT_WORK_ITEMS, provider,
 				UserProfileStorage.TableId.PAGE_TASK_CURRENT_WORK_ITEMS_PANEL,
 				(int) pageBase.getItemsPerPage(UserProfileStorage.TableId.PAGE_TASK_CURRENT_WORK_ITEMS_PANEL),
-				WorkItemsTablePanel.View.ITEMS_FOR_PROCESS));
+				WorkItemsTablePanel.View.ITEMS_FOR_PROCESS);
+		workItemsPanel.setOutputMarkupId(true);
+		add(workItemsPanel);
 
 		final PropertyModel<List<ProcessInstanceDto>> relatedRequestsModel = new PropertyModel<>(taskDtoModel, TaskDto.F_WORKFLOW_REQUESTS);
 
@@ -89,6 +98,7 @@ public class TaskWfChildPanel extends Panel {
 				return CollectionUtils.isNotEmpty(relatedRequestsModel.getObject());
 			}
 		});
+		relatedRequestsContainer.setOutputMarkupId(true);
 		add(relatedRequestsContainer);
 		ISortableDataProvider<ProcessInstanceDto, String> requestsProvider = new ListDataProvider(this, relatedRequestsModel);
 		relatedRequestsContainer.add(new WorkflowRequestsPanel(ID_RELATED_REQUESTS, requestsProvider, null, 10,
