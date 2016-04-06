@@ -2465,7 +2465,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals("Unexpected number of search results", 1, resultList.size());
 		PrismObject<ShadowType> shadow = resultList.get(0);
         display("Shadow", shadow);
-        assertLockout(shadow, LockoutStatusType.LOCKED);
+        assertShadowLockout(shadow, LockoutStatusType.LOCKED);
 		
 		assertSteadyResource();
 	}
