@@ -43,12 +43,10 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
@@ -1091,8 +1089,9 @@ public final class WebComponentUtil {
 	}
 
 	@NotNull
-	public static TabbedPanel<ITab> createTabPanel(String id, final PageBase parentPage, final List<ITab> tabs) {
-		TabbedPanel<ITab> tabPanel = new TabbedPanel<ITab>(id, tabs) {
+	public static TabbedPanel<ITab> createTabPanel(String id, final PageBase parentPage, final List<ITab> tabs,
+			TabbedPanel.RightSideItemProvider rightSideItemProvider) {
+		TabbedPanel<ITab> tabPanel = new TabbedPanel<ITab>(id, tabs, rightSideItemProvider) {
 			@Override
 			protected WebMarkupContainer newLink(String linkId, final int index) {
 				return new AjaxSubmitLink(linkId) {

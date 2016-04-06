@@ -118,7 +118,7 @@ public class PageOrgTree extends PageAdminUsers {
             storage.getUsers().setSelectedTabId(0);
             selectedTab = 0;
         }
-        TabbedPanel tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<>(selectedTab));
+        TabbedPanel tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<>(selectedTab), null);
         tabbedPanel.setOutputMarkupId(true);
         if (tabsList == null || tabsList.size() == 0){
             tabbedPanel.setVisible(false);

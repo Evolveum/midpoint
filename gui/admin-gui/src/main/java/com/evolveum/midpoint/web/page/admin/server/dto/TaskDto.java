@@ -449,21 +449,17 @@ public class TaskDto extends Selectable implements InlineMenuable {
         workflowDeltasOut = retrieveResultingDeltas(taskType, modelInteractionService, opTask, thisOpResult);
         workflowHistory = prepareWorkflowHistory(taskType);
 
-		List<TaskType> wfSubtasks = new ArrayList<>();
+		final List<TaskType> wfSubtasks;
 		if (parentTaskType == null) {
-			for (TaskDto subtaskDto : subtasks) {
-				wfSubtasks.add(subtaskDto.getTaskType());
-			}
+			wfSubtasks = taskType.getSubtask();
 		} else {
-			for (TaskType sibling : parentTaskType.getSubtask()) {
-				if (this.getOid() != null && this.getOid().equals(sibling.getOid())) {
-					continue;
-				}
-				wfSubtasks.add(sibling);
-			}
+			wfSubtasks = parentTaskType.getSubtask();
 		}
 		workflowRequests = new ArrayList<>();
 		for (TaskType wfSubtask : wfSubtasks) {
+			if (this.getOid() != null && this.getOid().equals(wfSubtask.getOid())) {
+				continue;
+			}
 			if (wfSubtask.getWorkflowContext() != null && wfSubtask.getWorkflowContext().getProcessInstanceId() != null) {
 				workflowRequests.add(new ProcessInstanceDto(wfSubtask));
 			}

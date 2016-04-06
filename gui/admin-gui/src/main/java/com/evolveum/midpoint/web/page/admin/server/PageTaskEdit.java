@@ -93,6 +93,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 	private TaskMainPanel mainPanel;
 	private IModel<AutoRefreshDto> refreshModel;
+	private IModel<Boolean> showAdvancedFeaturesModel;
 
 	public PageTaskEdit(PageParameters parameters) {
 		getPageParameters().overwriteWith(parameters);
@@ -116,7 +117,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 				return loadObjectWrapper(taskDtoModel.getObject().getTaskType().asPrismObject(), new OperationResult("loadObjectWrapper"));
 			}
 		};
-
+		showAdvancedFeaturesModel = new Model<>(false);		// todo save setting in session
 		edit = false;
 		initLayout();
 	}
@@ -174,7 +175,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		summaryPanel.setOutputMarkupId(true);
 		add(summaryPanel);
 
-		mainPanel = new TaskMainPanel(ID_MAIN_PANEL, objectWrapperModel, taskDtoModel, this);
+		mainPanel = new TaskMainPanel(ID_MAIN_PANEL, objectWrapperModel, taskDtoModel, showAdvancedFeaturesModel, this);
 		mainPanel.setOutputMarkupId(true);
 		add(mainPanel);
 
@@ -433,5 +434,9 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 	public boolean displayProgress() {
 		return !isWorkflow();
+	}
+
+	public boolean isShowAdvanced() {
+		return showAdvancedFeaturesModel.getObject();
 	}
 }
