@@ -32,6 +32,7 @@
             <class name="com.evolveum.midpoint.testing.story.TestLdapFlat"/>
             <class name="com.evolveum.midpoint.testing.story.TestLdapNested"/>
             <class name="com.evolveum.midpoint.testing.story.TestLdapHierarchical"/>
+            <class name="com.evolveum.midpoint.testing.story.TestLdapDeeplyHierarchical"/>
             <class name="com.evolveum.midpoint.testing.story.TestRetirement"/>
         </classes>
     </test>
