@@ -58,9 +58,12 @@ public class AjaxTabbedPanel<T extends ITab> extends TabbedPanel<T>
      * @param model
      *            model holding the index of the selected tab
      */
-    public AjaxTabbedPanel(final String id, final List<T> tabs, IModel<Integer> model)
-    {
-        super(id, tabs, model);
+	public AjaxTabbedPanel(final String id, final List<T> tabs, IModel<Integer> model) {
+		this(id, tabs, model, null);
+	}
+
+	public AjaxTabbedPanel(final String id, final List<T> tabs, IModel<Integer> model, RightSideItemProvider rightSideItemProvider) {
+        super(id, tabs, model, rightSideItemProvider);
         setOutputMarkupId(true);
 
         setVersioned(false);

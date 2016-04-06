@@ -227,7 +227,7 @@ public class PageCertDefinition extends PageAdminCertification {
 				return new DefinitionXmlPanel(panelId, definitionModel);
 			}
 		});
-		TabbedPanel tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, this, tabs);
+		TabbedPanel tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, this, tabs, null);
 		mainForm.add(tabPanel);
 	}
 

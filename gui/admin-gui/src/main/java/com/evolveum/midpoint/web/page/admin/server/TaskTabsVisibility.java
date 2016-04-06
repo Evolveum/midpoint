@@ -13,19 +13,33 @@ import java.io.Serializable;
  * @author mederly
  */
 class TaskTabsVisibility implements Serializable {
+    private boolean basicVisible;
+    private boolean schedulingVisible;
     private boolean subtasksAndThreadsVisible;
     private boolean progressVisible;
     private boolean environmentalPerformanceVisible;
     private boolean approvalsVisible;
     private boolean resultVisible;
 
-    public boolean computeSubtasksAndThreadsVisible(PageTaskEdit parentPage) {
+	public boolean computeBasicVisible(PageTaskEdit parentPage) {
+		basicVisible = parentPage.isShowAdvanced() || !parentPage.isWorkflow();
+		return basicVisible;
+	}
+
+	public boolean computeSchedulingVisible(PageTaskEdit parentPage) {
+		schedulingVisible = parentPage.isShowAdvanced() || !parentPage.isWorkflow();
+		return schedulingVisible;
+	}
+
+	public boolean computeSubtasksAndThreadsVisible(PageTaskEdit parentPage) {
         if (parentPage.isEdit()) {
             subtasksAndThreadsVisible = parentPage.configuresWorkerThreads();
-        } else {
+        } else if (parentPage.isShowAdvanced() || !parentPage.isWorkflow()) {
             IModel<TaskDto> taskDtoModel = parentPage.getTaskDtoModel();
             subtasksAndThreadsVisible = parentPage.configuresWorkerThreads() || !taskDtoModel.getObject().getSubtasks().isEmpty() || !taskDtoModel.getObject().getTransientSubtasks().isEmpty();
-        }
+        } else {
+			subtasksAndThreadsVisible = false;
+		}
         return subtasksAndThreadsVisible;
     }
 
@@ -55,16 +69,26 @@ class TaskTabsVisibility implements Serializable {
     }
 
     public boolean computeResultVisible(PageTaskEdit parentPage) {
-        resultVisible = !parentPage.isEdit();
+        resultVisible = !parentPage.isEdit() && (parentPage.isShowAdvanced() || !parentPage.isWorkflow());
         return resultVisible;
     }
 
 	public void computeAll(PageTaskEdit parentPage) {
+		computeBasicVisible(parentPage);
+		computeSchedulingVisible(parentPage);
 		computeSubtasksAndThreadsVisible(parentPage);
 		computeProgressVisible(parentPage);
 		computeEnvironmentalPerformanceVisible(parentPage);
 		computeApprovalsVisible(parentPage);
 		computeResultVisible(parentPage);
+	}
+
+	public boolean isBasicVisible() {
+		return basicVisible;
+	}
+
+	public boolean isSchedulingVisible() {
+		return schedulingVisible;
 	}
 
 	public boolean isSubtasksAndThreadsVisible() {
@@ -88,27 +112,39 @@ class TaskTabsVisibility implements Serializable {
 	}
 
 	@Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
 
-        TaskTabsVisibility that = (TaskTabsVisibility) o;
+		TaskTabsVisibility that = (TaskTabsVisibility) o;
 
-        if (subtasksAndThreadsVisible != that.subtasksAndThreadsVisible) return false;
-        if (progressVisible != that.progressVisible) return false;
-        if (environmentalPerformanceVisible != that.environmentalPerformanceVisible) return false;
-        if (approvalsVisible != that.approvalsVisible) return false;
-        return resultVisible == that.resultVisible;
-    }
+		if (basicVisible != that.basicVisible)
+			return false;
+		if (schedulingVisible != that.schedulingVisible)
+			return false;
+		if (subtasksAndThreadsVisible != that.subtasksAndThreadsVisible)
+			return false;
+		if (progressVisible != that.progressVisible)
+			return false;
+		if (environmentalPerformanceVisible != that.environmentalPerformanceVisible)
+			return false;
+		if (approvalsVisible != that.approvalsVisible)
+			return false;
+		return resultVisible == that.resultVisible;
 
-    @Override
-    public int hashCode() {
-        int result = (subtasksAndThreadsVisible ? 1 : 0);
-        result = 31 * result + (progressVisible ? 1 : 0);
-        result = 31 * result + (environmentalPerformanceVisible ? 1 : 0);
-        result = 31 * result + (approvalsVisible ? 1 : 0);
-        result = 31 * result + (resultVisible ? 1 : 0);
-        return result;
-    }
+	}
 
+	@Override
+	public int hashCode() {
+		int result = (basicVisible ? 1 : 0);
+		result = 31 * result + (schedulingVisible ? 1 : 0);
+		result = 31 * result + (subtasksAndThreadsVisible ? 1 : 0);
+		result = 31 * result + (progressVisible ? 1 : 0);
+		result = 31 * result + (environmentalPerformanceVisible ? 1 : 0);
+		result = 31 * result + (approvalsVisible ? 1 : 0);
+		result = 31 * result + (resultVisible ? 1 : 0);
+		return result;
+	}
 }

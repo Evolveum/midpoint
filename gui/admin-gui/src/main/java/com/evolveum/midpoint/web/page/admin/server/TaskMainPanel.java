@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -56,14 +57,17 @@ public class TaskMainPanel extends Panel {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskMainPanel.class);
 
-	private LoadableModel<ObjectWrapper<TaskType>> objectModel;
-	private IModel<TaskDto> taskDtoModel;
-	private PageTaskEdit parentPage;
+	private final LoadableModel<ObjectWrapper<TaskType>> objectModel;
+	private final IModel<TaskDto> taskDtoModel;
+	private final IModel<Boolean> showAdvancedFeaturesModel;
+	private final PageTaskEdit parentPage;
 
-	public TaskMainPanel(String id, LoadableModel<ObjectWrapper<TaskType>> objectModel, IModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
+	public TaskMainPanel(String id, LoadableModel<ObjectWrapper<TaskType>> objectModel, IModel<TaskDto> taskDtoModel,
+			IModel<Boolean> showAdvancedFeaturesModel, PageTaskEdit parentPage) {
 		super(id, objectModel);
 		this.objectModel = objectModel;
 		this.taskDtoModel = taskDtoModel;
+		this.showAdvancedFeaturesModel = showAdvancedFeaturesModel;
 		this.parentPage = parentPage;
 		initLayout();
 	}
@@ -77,7 +81,34 @@ public class TaskMainPanel extends Panel {
 
 	protected void initTabPanel(Form mainForm) {
 		List<ITab> tabs = createTabs();
-		TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, parentPage, tabs);
+		TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, parentPage, tabs, new TabbedPanel.RightSideItemProvider() {
+			@Override
+			public Component createRightSideItem(String id) {
+				VisibleEnableBehaviour boxEnabled = new VisibleEnableBehaviour() {
+					@Override
+					public boolean isEnabled() {
+						return !parentPage.isEdit();
+					}
+				};
+				final TaskShowAdvancedFeaturesPanel advancedFeaturesPanel = new TaskShowAdvancedFeaturesPanel(id, showAdvancedFeaturesModel, boxEnabled) {
+					@Override
+					protected void onAdvancedFeaturesUpdate(AjaxRequestTarget target) {
+						target.add(getTabPanel());
+						target.add(getButtonPanel());
+						// we DO NOT call parentPage.refresh here because in edit mode this would erase any model changes
+						// (well, because - for some strange reasons - even this code erases name and description input fields
+						// occassionally, we hide 'advanced features' checkbox in editing mode)
+					}
+				};
+				advancedFeaturesPanel.add(new VisibleEnableBehaviour() {
+					@Override
+					public boolean isVisible() {
+						return parentPage.isWorkflow();			// we don't distinguish between basic/advanced features for other task types yet
+					}
+				});
+				return advancedFeaturesPanel;
+			}
+		});
 		mainForm.add(tabPanel);
 	}
 
@@ -90,12 +121,20 @@ public class TaskMainPanel extends Panel {
 					public WebMarkupContainer getPanel(String panelId) {
 						return new TaskBasicTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
 					}
+					@Override
+					public boolean isVisible() {
+						return visibility.computeBasicVisible(parentPage);
+					}
 				});
 		tabs.add(
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.scheduleTitle")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
 						return new TaskSchedulingTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
+					}
+					@Override
+					public boolean isVisible() {
+						return visibility.computeSchedulingVisible(parentPage);
 					}
 				});
 		tabs.add(
@@ -142,24 +181,12 @@ public class TaskMainPanel extends Panel {
 						return visibility.computeApprovalsVisible(parentPage);
 					}
 				});
-//		tabs.add(
-//				new AbstractTab(parentPage.createStringResource("pageTaskEdit.operation")) {
-//					@Override
-//					public WebMarkupContainer getPanel(String panelId) {
-//						return new TaskOperationTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-//					}
-//					@Override
-//					public boolean isVisible() {
-//						return !parentPage.isEdit() && taskDtoModel.getObject().getTaskType().getModelOperationContext() != null;
-//					}
-//				});
 		tabs.add(
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.result")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
 						return new TaskResultTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
 					}
-
 					@Override
 					public boolean isVisible() {
 						return visibility.computeResultVisible(parentPage);
