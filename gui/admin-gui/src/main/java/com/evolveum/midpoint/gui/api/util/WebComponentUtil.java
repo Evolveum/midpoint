@@ -743,6 +743,10 @@ public final class WebComponentUtil {
 		return "fa fa-building";
 	}
 	
+	public static String createServiceIcon(PrismObject<ServiceType> object) {
+		return "fa fa-building";
+	}
+	
 	public static String createResourceIcon(PrismObject<ResourceType> object) {
 		return "fa fa-laptop";
 	}
