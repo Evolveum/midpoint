@@ -669,6 +669,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION,
 					assocTargetObjectClassDefinition);
 		}
+		mapping.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
 		LensUtil.addAssignmentPathVariables(mapping, assignmentPathVariables);
 		if (getSystemConfiguration() != null) {
 			mapping.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, getSystemConfiguration());

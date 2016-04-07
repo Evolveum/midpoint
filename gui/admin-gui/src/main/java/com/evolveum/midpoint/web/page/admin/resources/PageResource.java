@@ -37,7 +37,10 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -72,6 +75,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
+import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 @PageDescriptor(url = "/admin/resource", encoder = OnePageParameterEncoder.class, action = {
 		@AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL, label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL, description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
@@ -279,13 +283,18 @@ public class PageResource extends PageAdminResources {
 			PrismContainer<XmlSchemaType> resourceSchemaContainer = resourceModel.getObject().findContainer(ResourceType.F_SCHEMA);
 			
 			if (resourceSchemaContainer != null && resourceSchemaContainer.getValue() != null){
-				PrismContainerValue<XmlSchemaType> resourceSchema = resourceSchemaContainer.getValue().clone();
-				ObjectDelta<ResourceType> deleteSchemaDelta = ObjectDelta.createModificationDeleteContainer(ResourceType.class,
-						resourceModel.getObject().getOid(), ResourceType.F_SCHEMA, getPrismContext(), resourceSchema
-						);
+				PrismProperty<SchemaDefinitionType> resourceSchemaDefinitionProp = resourceSchemaContainer.findProperty(XmlSchemaType.F_DEFINITION);
 				
+				if (resourceSchemaDefinitionProp != null && !resourceSchemaDefinitionProp.isEmpty()){
+				
+				PrismPropertyValue<SchemaDefinitionType> resourceSchema = resourceSchemaDefinitionProp.getValue().clone();
+				ObjectDelta<ResourceType> deleteSchemaDefinitionDelta = ObjectDelta.createModificationDeleteProperty(ResourceType.class,
+						resourceModel.getObject().getOid(), new ItemPath(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION), getPrismContext(), resourceSchema.getValue()
+						);
 				// delete schema 
-				getModelService().executeChanges((Collection) MiscUtil.createCollection(deleteSchemaDelta), null, task, parentResult);
+				getModelService().executeChanges((Collection) MiscUtil.createCollection(deleteSchemaDefinitionDelta), null, task, parentResult);
+				
+				}
 				
 			}
 			
