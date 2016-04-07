@@ -1,11 +1,11 @@
-midPoint 3.3 "Lincoln"
--------------------------------
+midPoint 3.3.1 "Lincoln" Update 1
+---------------------------------
 
-Release 3.3 is a fifteenth midPoint release code-named Lincoln. The 3.3
+Release 3.3 is a fifteenth midPoint release code-named Lincoln. The 3.3.1
 release brings major GUI look&feel improvements and miscellaneous new
 features that improve practical usability of midPoint.
 
-Release date: 1st December 2015
+Release date: 7th April 2016
 
 Changes with respect to version 3.2:
 * Significant GUI look&feel improvements
@@ -31,5 +31,21 @@ Changes with respect to version 3.2:
 * Indirect role membership index (roleMembershipRef)
 * Consistency mechanism improvements (self-healing)
 * Improved reliability of strong mappings
+
+Changes with respect to version 3.3:
+* Support for base context searches for connectors that support object
+    hierarchies (such as LDAP)
+* LDAP-based AD connector in full production quality
+* Support for Active Directory multi-domain environment in LDAP-based AD
+    connector
+* Improved support for entitlement associations that use non-identifier
+    values
+* Support for volatile attributes in provisioning objects
+    (volatilityTrigger)
+* Matching rule for XML-formatted string attributes and UUIDs
+* Automatic determination of matching rules based on ConnId subtypes.
+* Support for permissive modify control in LDAP connector
+* Bugfixes and minor quality improvements
+* Organizational structure recursion for associationFromLink expressions
 
 XPath2 scripting is deprecated and it is not supported in Java8 environment.
