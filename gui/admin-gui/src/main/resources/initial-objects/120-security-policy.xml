@@ -20,7 +20,6 @@
 	<name>Default Security Policy</name>
 	<credentials>
 		<password>
-			<maxAge>P30D</maxAge>
 			<lockoutMaxFailedAttempts>3</lockoutMaxFailedAttempts>
 			<lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
 			<lockoutDuration>PT15M</lockoutDuration>
