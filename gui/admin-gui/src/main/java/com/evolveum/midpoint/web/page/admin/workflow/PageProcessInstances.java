@@ -95,7 +95,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                goBack(PageDashboard.class);
+                redirectBack();
             }
         };
         mainForm.add(back);

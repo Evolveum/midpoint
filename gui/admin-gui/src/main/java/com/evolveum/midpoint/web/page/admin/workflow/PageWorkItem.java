@@ -304,7 +304,7 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     private void cancelPerformed(AjaxRequestTarget target) {
-        goBack(PageWorkItems.class);
+        redirectBack();
     }
 
     private void savePerformed(AjaxRequestTarget target, boolean decision) {

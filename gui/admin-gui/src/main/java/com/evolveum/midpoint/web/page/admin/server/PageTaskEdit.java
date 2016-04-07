@@ -274,6 +274,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		ObjectWrapper<TaskType> wrapper;
 		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
 		try {
+			object.revive(getPrismContext());		// just to be sure (after deserialization the context is missing in this object)
 			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, ContainerStatus.MODIFYING);
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get user.", ex);

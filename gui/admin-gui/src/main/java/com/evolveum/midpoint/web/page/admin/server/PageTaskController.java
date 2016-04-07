@@ -264,7 +264,7 @@ public class PageTaskController implements Serializable {
 	}
 
 	public void backPerformed(AjaxRequestTarget target) {
-		parentPage.goBack(PageTasks.class);			// TODO implement correctly
+		parentPage.redirectBack();
 	}
 
 	public void cancelEditingPerformed(AjaxRequestTarget target) {
