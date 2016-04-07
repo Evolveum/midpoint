@@ -16,9 +16,11 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
@@ -28,6 +30,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.apache.wicket.datetime.PatternDateConverter;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -172,11 +175,20 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 				}
 				if ((TaskExecutionStatus.RUNNABLE.equals(taskType.getExecutionStatus()) && taskType.getNodeAsObserved() != null)
 						|| finished == 0 || finished < started) {
-					return getString("TaskStatePanel.message.executionTime.notFinished", formatDate(new Date(started)),
+
+                    PatternDateConverter pdc = new PatternDateConverter
+                            (WebComponentUtil.getLocalizedDatePattern(DateLabelComponent.SHORT_MEDIUM_STYLE), true );
+                    String date = pdc.convertToString(new Date(started), WebComponentUtil.getCurrentLocale());
+                    return getString("TaskStatePanel.message.executionTime.notFinished", date,
 							DurationFormatUtils.formatDurationHMS(System.currentTimeMillis() - started));
 				} else {
+                    PatternDateConverter pdc = new PatternDateConverter
+                            (WebComponentUtil.getLocalizedDatePattern(DateLabelComponent.SHORT_MEDIUM_STYLE), true );
+                    String startedDate = pdc.convertToString(new Date(started), WebComponentUtil.getCurrentLocale());
+                    String finishedDate = pdc.convertToString(new Date(finished), WebComponentUtil.getCurrentLocale());
+
 					return getString("TaskStatePanel.message.executionTime.finished",
-							formatDate(new Date(started)), formatDate(new Date(finished)),
+                            startedDate, finishedDate,
 							DurationFormatUtils.formatDurationHMS(finished - started));
 				}
 			}

@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;
+import java.util.Date;
 
 /**
  * @author lazyman
@@ -92,6 +93,14 @@ public class WorkItemDto extends Selectable {
 
     public String getCreated() {
         return WebComponentUtil.formatDate(XmlTypeConverter.toDate(workItem.getWorkItemCreatedTimestamp()));
+    }
+
+    public Date getCreatedDate() {
+        return XmlTypeConverter.toDate(workItem.getWorkItemCreatedTimestamp());
+    }
+
+    public Date getStartedDate() {
+        return XmlTypeConverter.toDate(workItem.getProcessStartedTimestamp());
     }
 
     public String getProcessStarted() {
