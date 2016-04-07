@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -48,10 +49,12 @@ import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.wf.WfHistoryEventDto;
-import com.evolveum.midpoint.web.page.admin.server.TaskOtherChangesDto;
+import com.evolveum.midpoint.web.page.admin.server.TaskChangesDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
@@ -62,10 +65,7 @@ import org.apache.wicket.Application;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
@@ -82,7 +82,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskDto.class);
     public static final String F_MODEL_OPERATION_STATUS = "modelOperationStatus";
-    public static final String F_CHANGES_NOT_REQUIRING_APPROVAL = "changesNotRequiringApproval";
     public static final String F_SUBTASKS = "subtasks";
     public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
@@ -122,6 +121,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	public static final String F_SCRIPT = "script";
 	public static final String F_EXECUTE_IN_RAW_MODE = "executeInRawMode";
 	public static final String F_PROCESS_INSTANCE_ID = "processInstanceId";
+	public static final String F_CHANGES_1 = "changes1";
 
 	private List<InlineMenuItem> menuItems;
 
@@ -144,7 +144,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     private OperationResult taskOperationResult;
 
     private ModelOperationStatusDto modelOperationStatusDto;
-    private TaskOtherChangesDto changesNotRequiringApproval;
+    private List<TaskChangesDto> changes;
 
     private ObjectTypes objectRefType;
     private String objectRefName;
@@ -183,7 +183,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
     //region Construction
     public TaskDto(TaskType taskType, ModelService modelService, TaskService taskService, ModelInteractionService modelInteractionService,
-                   TaskManager taskManager, TaskDtoProviderOptions options,
+			TaskManager taskManager, WorkflowManager workflowManager, TaskDtoProviderOptions options,
 			Task opTask, OperationResult parentResult, PageBase pageBase) throws SchemaException, ObjectNotFoundException {
         Validate.notNull(taskType, "Task must not be null.");
         Validate.notNull(modelService);
@@ -208,7 +208,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
         }
 		if (options.isRetrieveWorkflowContext()) {
 			// TODO fill-in "cheap" wf attributes not only when this option is set
-			fillInWorkflowAttributes(taskType, modelInteractionService, opTask, thisOpResult);
+			fillInWorkflowAttributes(taskType, modelInteractionService, workflowManager, pageBase.getPrismContext(), opTask, thisOpResult);
 		}
         thisOpResult.computeStatusIfUnknown();
 
@@ -217,7 +217,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
         for (TaskType child : taskType.getSubtask()) {
             addChildTaskDto(new TaskDto(child, modelService, taskService, modelInteractionService, taskManager,
-                    options, opTask, parentResult, pageBase));
+					workflowManager, options, opTask, parentResult, pageBase));
         }
     }
 
@@ -422,13 +422,10 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
 	private ModelContext unwrapModelContext(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask, OperationResult result) throws ObjectNotFoundException {
-		LensContextType value = taskType.getModelOperationContext();
-		if (value != null) {
-			if (!(value instanceof LensContextType)) {
-				throw new SystemException("Model context information in task " + taskType + " is of wrong type: " + value.getClass());
-			}
+		LensContextType lensContextType = taskType.getModelOperationContext();
+		if (lensContextType != null) {
 			try {
-				return modelInteractionService.unwrapModelContext((LensContextType) value, result);
+				return modelInteractionService.unwrapModelContext(lensContextType, result);
 			} catch (SchemaException | CommunicationException | ConfigurationException e) {   // todo treat appropriately
 				throw new SystemException("Couldn't access model operation context in task: " + e.getMessage(), e);
 			}
@@ -437,7 +434,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		}
 	}
 
-    private void fillInWorkflowAttributes(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask,
+    private void fillInWorkflowAttributes(TaskType taskType, ModelInteractionService modelInteractionService, WorkflowManager workflowManager,
+			PrismContext prismContext, Task opTask,
 			OperationResult thisOpResult) throws SchemaException, ObjectNotFoundException {
 
 		WfContextType wfc = getWorkflowContext();
@@ -471,30 +469,12 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			rootTask = parentTaskType;
 		}
 
-		TaskType changesNotRequiringApprovalTask = null;
-		if (rootTask.getModelOperationContext() != null) {
-			final ModelContext modelContext = unwrapModelContext(rootTask, modelInteractionService, opTask, thisOpResult);
-			changesNotRequiringApproval = new TaskOtherChangesDto(modelContext, modelInteractionService, opTask, thisOpResult);
-			changesNotRequiringApprovalTask = rootTask;
-		}
-
-		final List<TaskType> wfSubtasks = rootTask.getSubtask();
 		workflowRequests = new ArrayList<>();
-		for (TaskType wfSubtask : wfSubtasks) {
-			if (this.getOid() != null && this.getOid().equals(wfSubtask.getOid())) {
-				continue;
-			}
-			if (wfSubtask.getWorkflowContext() != null && wfSubtask.getWorkflowContext().getProcessInstanceId() != null) {
-				workflowRequests.add(new ProcessInstanceDto(wfSubtask));
-			} else {
-				if (changesNotRequiringApprovalTask != null) {
-					LOGGER.warn("Changes not requiring approval found both in task {} as well in subtask {} -- ignoring the latter", toShortString(rootTask), toShortString(wfSubtask));
-				} else {
-					if (wfSubtask.getModelOperationContext() != null) {
-						ModelContext modelContext = unwrapModelContext(wfSubtask, modelInteractionService, opTask, thisOpResult);
-						changesNotRequiringApproval = new TaskOtherChangesDto(modelContext, modelInteractionService, opTask, thisOpResult);
-						changesNotRequiringApprovalTask = wfSubtask;
-					}
+		for (TaskType wfSubtask : rootTask.getSubtask()) {
+			final WfContextType subWfc = wfSubtask.getWorkflowContext();
+			if (subWfc != null && subWfc.getProcessInstanceId() != null) {
+				if (this.getOid() == null || !this.getOid().equals(wfSubtask.getOid())) {
+					workflowRequests.add(new ProcessInstanceDto(wfSubtask));
 				}
 			}
 		}
@@ -503,9 +483,34 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			requestedBy = WebComponentUtil.getName(wfc.getRequesterRef());
 			requestedOn = XmlTypeConverter.toDate(wfc.getStartTimestamp());
 		}
+
+		changes = new ArrayList<>();
+		ChangesByState changesByState = workflowManager.getChangesByState(rootTask, modelInteractionService, prismContext, thisOpResult);
+		if (!changesByState.getApplied().isEmpty()) {
+			changes.add(createTaskChangesDto("TaskDto.changesApplied", changesByState.getApplied(), modelInteractionService, prismContext, opTask, thisOpResult));
+		}
+		if (!changesByState.getBeingApplied().isEmpty()) {
+			changes.add(createTaskChangesDto("TaskDto.changesBeingApplied", changesByState.getBeingApplied(), modelInteractionService, prismContext, opTask, thisOpResult));
+		}
+		if (!changesByState.getWaitingToBeApplied().isEmpty()) {
+			changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApplied", changesByState.getWaitingToBeApplied(), modelInteractionService, prismContext, opTask, thisOpResult));
+		}
+		if (!changesByState.getWaitingToBeApproved().isEmpty()) {
+			changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApproved", changesByState.getWaitingToBeApproved(), modelInteractionService, prismContext, opTask, thisOpResult));
+		}
+		if (!changesByState.getRejected().isEmpty()) {
+			changes.add(createTaskChangesDto("TaskDto.changesRejected", changesByState.getRejected(), modelInteractionService, prismContext, opTask, thisOpResult));
+		}
 	}
 
-    private List<SceneDto> retrieveDeltasToProcess(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask,
+	private TaskChangesDto createTaskChangesDto(String titleKey, ObjectTreeDeltas deltas, ModelInteractionService modelInteractionService,
+			PrismContext prismContext, Task opTask, OperationResult result) throws SchemaException {
+		ObjectTreeDeltasType deltasType = ObjectTreeDeltas.toObjectTreeDeltasType(deltas);
+		Scene scene = SceneUtil.visualizeObjectTreeDeltas(deltasType, titleKey, prismContext, modelInteractionService, opTask, result);
+		return new TaskChangesDto(new SceneDto(scene));
+	}
+
+	private List<SceneDto> retrieveDeltasToProcess(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask,
 			OperationResult thisOpResult) throws SchemaException {
         WfContextType wfc = taskType.getWorkflowContext();
         if (wfc == null || !(wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
@@ -814,11 +819,12 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return modelOperationStatusDto;
     }
 
-	public TaskOtherChangesDto getChangesNotRequringApproval() {
-        return changesNotRequiringApproval;
-    }
+	public TaskChangesDto getChangesForIndex(int index) {
+		int realIndex = index-1;
+		return realIndex < changes.size() ? changes.get(realIndex) : null;
+	}
 
-    public void addChildTaskDto(TaskDto taskDto) {
+	public void addChildTaskDto(TaskDto taskDto) {
         if (taskDto.getOid() != null) {
             subtasks.add(taskDto);
         } else {
@@ -1086,9 +1092,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 				!modelOperationStatusDto.equals(taskDto.modelOperationStatusDto) :
 				taskDto.modelOperationStatusDto != null)
 			return false;
-		if (changesNotRequiringApproval != null ?
-				!changesNotRequiringApproval.equals(taskDto.changesNotRequiringApproval) :
-				taskDto.changesNotRequiringApproval != null)
+		if (changes != null ? !changes.equals(taskDto.changes) : taskDto.changes != null)
 			return false;
 		if (objectRefType != taskDto.objectRefType)
 			return false;
@@ -1166,7 +1170,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		result = 31 * result + (opResult != null ? opResult.hashCode() : 0);
 		result = 31 * result + (taskOperationResult != null ? taskOperationResult.hashCode() : 0);
 		result = 31 * result + (modelOperationStatusDto != null ? modelOperationStatusDto.hashCode() : 0);
-		result = 31 * result + (changesNotRequiringApproval != null ? changesNotRequiringApproval.hashCode() : 0);
+		result = 31 * result + (changes != null ? changes.hashCode() : 0);
 		result = 31 * result + (objectRefType != null ? objectRefType.hashCode() : 0);
 		result = 31 * result + (objectRefName != null ? objectRefName.hashCode() : 0);
 		result = 31 * result + (subtasks != null ? subtasks.hashCode() : 0);

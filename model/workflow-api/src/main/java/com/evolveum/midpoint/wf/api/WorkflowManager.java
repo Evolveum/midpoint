@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.api;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.Collection;
@@ -46,60 +48,65 @@ public interface WorkflowManager {
      * ==========
      */
 
-    <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
-            throws SchemaException;
+	<T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+			OperationResult result)
+			throws SchemaException;
 
-    <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
-            throws SchemaException;
+	<T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+			throws SchemaException;
 
     /*
      * CHANGING THINGS
      * ===============
      */
 
-    /**
-     * Approves or rejects a work item (without supplying any further information).
-     *  @param taskId identifier of activiti task backing the work item
-     * @param decision true = approve, false = reject
-     * @param comment
-     * @param parentResult
-     */
-    void approveOrRejectWorkItem(String taskId, boolean decision, String comment, OperationResult parentResult) throws SecurityViolationException;
+	/**
+	 * Approves or rejects a work item (without supplying any further information).
+	 *
+	 * @param taskId       identifier of activiti task backing the work item
+	 * @param decision     true = approve, false = reject
+	 * @param comment
+	 * @param parentResult
+	 */
+	void approveOrRejectWorkItem(String taskId, boolean decision, String comment, OperationResult parentResult) throws SecurityViolationException;
 
-    void claimWorkItem(String workItemId, OperationResult result) throws ObjectNotFoundException, SecurityViolationException;
+	void claimWorkItem(String workItemId, OperationResult result) throws ObjectNotFoundException, SecurityViolationException;
 
-    void releaseWorkItem(String workItemId, OperationResult result) throws SecurityViolationException, ObjectNotFoundException;
+	void releaseWorkItem(String workItemId, OperationResult result) throws SecurityViolationException, ObjectNotFoundException;
 
-    void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
+	void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
 
-    void deleteProcessInstance(String instanceId, OperationResult parentResult);
+	void deleteProcessInstance(String instanceId, OperationResult parentResult);
 
     /*
      * MISC
      * ====
      */
 
-    public boolean isEnabled();
+	public boolean isEnabled();
 
-    // TODO remove this
-    PrismContext getPrismContext();
+	// TODO remove this
+	PrismContext getPrismContext();
 
-    void registerProcessListener(ProcessListener processListener);
+	void registerProcessListener(ProcessListener processListener);
 
-    void registerWorkItemListener(WorkItemListener workItemListener);
+	void registerWorkItemListener(WorkItemListener workItemListener);
 
-    List<? extends ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException;
+	List<? extends ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException;
 
-    boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem);
+	boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem);
 
-    boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem);
+	boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem);
 
-    // doesn't throw any exceptions - these are logged and stored into the operation result
-    <T extends ObjectType> void augmentTaskObject(PrismObject<T> object, Collection<SelectorOptions<GetOperationOptions>> options,
-            Task task, OperationResult result);
+	// doesn't throw any exceptions - these are logged and stored into the operation result
+	<T extends ObjectType> void augmentTaskObject(PrismObject<T> object, Collection<SelectorOptions<GetOperationOptions>> options,
+			Task task, OperationResult result);
 
-    // doesn't throw any exceptions - these are logged and stored into the operation result
-    <T extends ObjectType> void augmentTaskObjectList(SearchResultList<PrismObject<T>> list,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result);
+	// doesn't throw any exceptions - these are logged and stored into the operation result
+	<T extends ObjectType> void augmentTaskObjectList(SearchResultList<PrismObject<T>> list,
+			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result);
 
+	ChangesByState getChangesByState(TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext, OperationResult result)
+			throws SchemaException, ObjectNotFoundException;
 }

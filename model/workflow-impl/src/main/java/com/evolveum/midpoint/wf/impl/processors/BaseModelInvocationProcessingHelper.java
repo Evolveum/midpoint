@@ -17,8 +17,10 @@
 package com.evolveum.midpoint.wf.impl.processors;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -30,7 +32,6 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -38,8 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.text.DateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -211,5 +210,20 @@ public class BaseModelInvocationProcessingHelper {
 		}
 		return requester;
 	}
+
+	public ObjectTreeDeltas extractTreeDeltasFromModelContext(ModelContext<?> modelContext) {
+		ObjectTreeDeltas objectTreeDeltas = new ObjectTreeDeltas(modelContext.getPrismContext());
+		if (modelContext.getFocusContext() != null && modelContext.getFocusContext().getPrimaryDelta() != null) {
+			objectTreeDeltas.setFocusChange(modelContext.getFocusContext().getPrimaryDelta().clone());
+		}
+
+		for (ModelProjectionContext projectionContext : modelContext.getProjectionContexts()) {
+			if (projectionContext.getPrimaryDelta() != null) {
+				objectTreeDeltas.addProjectionChange(projectionContext.getResourceShadowDiscriminator(), projectionContext.getPrimaryDelta());
+			}
+		}
+		return objectTreeDeltas;
+	}
+
 
 }

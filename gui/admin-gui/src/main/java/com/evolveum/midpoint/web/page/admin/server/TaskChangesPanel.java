@@ -17,32 +17,34 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
 
 /**
  * @author mederly
  */
-public class TaskOtherChangesPanel extends BasePanel<TaskOtherChangesDto> {
+public class TaskChangesPanel extends BasePanel<TaskChangesDto> {
 
-    private static final String ID_STATE = "state";
+//    private static final String ID_TITLE = "title";
     private static final String ID_PRIMARY_DELTA = "primaryDelta";
 
-    public TaskOtherChangesPanel(String id, IModel<TaskOtherChangesDto> model) {
+    public TaskChangesPanel(String id, IModel<TaskChangesDto> model) {
         super(id, model);
 		initLayout();
     }
 
     protected void initLayout() {
-        add(new Label(ID_STATE, new StringResourceModel("taskOtherChangesPanel.state.${}", new PropertyModel<ModelState>(getModel(), TaskOtherChangesDto.F_STATE))));
+//        add(new Label(ID_TITLE, new AbstractReadOnlyModel<String>() {
+//			@Override
+//			public String getObject() {
+//				return getString(getModelObject().getTitleKey());
+//			}
+//		}));
 
-        ScenePanel deltaPanel = new ScenePanel(ID_PRIMARY_DELTA, new PropertyModel<SceneDto>(getModel(), TaskOtherChangesDto.F_PRIMARY_DELTAS));
+        ScenePanel deltaPanel = new ScenePanel(ID_PRIMARY_DELTA, new PropertyModel<SceneDto>(getModel(), TaskChangesDto.F_PRIMARY_DELTAS));
         deltaPanel.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {

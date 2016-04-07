@@ -38,6 +38,8 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 
 /**
  * @author Radovan Semancik
@@ -620,6 +622,16 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 			return true;
 		}
 		return false;
+	}
+
+	public static boolean isEmpty(ItemDeltaType itemDeltaType) {
+		if (itemDeltaType == null) {
+			return true;
+		}
+		if (itemDeltaType.getModificationType() == ModificationTypeType.REPLACE) {
+			return false;
+		}
+		return !itemDeltaType.getValue().isEmpty();
 	}
 	
 	public boolean addsAnyValue() {

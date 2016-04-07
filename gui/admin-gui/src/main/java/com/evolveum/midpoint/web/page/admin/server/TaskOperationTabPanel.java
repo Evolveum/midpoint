@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.Component;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import java.util.Collection;
@@ -47,13 +48,13 @@ public class TaskOperationTabPanel extends AbstractObjectTabPanel<TaskType> impl
 
 	public TaskOperationTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
-			LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
+			IModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		super(id, mainForm, taskWrapperModel, pageBase);
 		initLayout(taskDtoModel, pageBase);
 		setOutputMarkupId(true);
 	}
 	
-	private void initLayout(final LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
+	private void initLayout(final IModel<TaskDto> taskDtoModel, PageBase pageBase) {
 
 		final PropertyModel<ModelOperationStatusDto> operationStatusModel = new PropertyModel<>(taskDtoModel, TaskDto.F_MODEL_OPERATION_STATUS);
 		VisibleEnableBehaviour modelOpBehaviour = new VisibleEnableBehaviour() {

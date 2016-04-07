@@ -19,6 +19,7 @@ class TaskTabsVisibility implements Serializable {
     private boolean progressVisible;
     private boolean environmentalPerformanceVisible;
     private boolean approvalsVisible;
+    private boolean operationVisible;
     private boolean resultVisible;
 
 	public boolean computeBasicVisible(PageTaskEdit parentPage) {
@@ -68,7 +69,14 @@ class TaskTabsVisibility implements Serializable {
         return approvalsVisible;
     }
 
-    public boolean computeResultVisible(PageTaskEdit parentPage) {
+	public boolean computeOperationVisible(PageTaskEdit parentPage) {
+		operationVisible = !parentPage.isEdit()
+				&& parentPage.getTaskDto().getTaskType().getModelOperationContext() != null
+				&& (!parentPage.isWorkflow() || parentPage.isShowAdvanced());
+		return operationVisible;
+	}
+
+	public boolean computeResultVisible(PageTaskEdit parentPage) {
         resultVisible = !parentPage.isEdit() && (parentPage.isShowAdvanced() || !parentPage.isWorkflow());
         return resultVisible;
     }
@@ -80,6 +88,7 @@ class TaskTabsVisibility implements Serializable {
 		computeProgressVisible(parentPage);
 		computeEnvironmentalPerformanceVisible(parentPage);
 		computeApprovalsVisible(parentPage);
+		computeOperationVisible(parentPage);
 		computeResultVisible(parentPage);
 	}
 
@@ -107,6 +116,10 @@ class TaskTabsVisibility implements Serializable {
 		return approvalsVisible;
 	}
 
+	public boolean isOperationVisible() {
+		return operationVisible;
+	}
+
 	public boolean isResultVisible() {
 		return resultVisible;
 	}
@@ -132,6 +145,8 @@ class TaskTabsVisibility implements Serializable {
 			return false;
 		if (approvalsVisible != that.approvalsVisible)
 			return false;
+		if (operationVisible != that.operationVisible)
+			return false;
 		return resultVisible == that.resultVisible;
 
 	}
@@ -144,6 +159,7 @@ class TaskTabsVisibility implements Serializable {
 		result = 31 * result + (progressVisible ? 1 : 0);
 		result = 31 * result + (environmentalPerformanceVisible ? 1 : 0);
 		result = 31 * result + (approvalsVisible ? 1 : 0);
+		result = 31 * result + (operationVisible ? 1 : 0);
 		result = 31 * result + (resultVisible ? 1 : 0);
 		return result;
 	}

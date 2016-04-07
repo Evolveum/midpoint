@@ -160,7 +160,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 	private TaskDto prepareTaskDto(TaskType task, Task operationTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		TaskDto taskDto = new TaskDto(task, getModelService(), getTaskService(), getModelInteractionService(),
-				getTaskManager(), TaskDtoProviderOptions.fullOptions(), operationTask, result, this);
+				getTaskManager(), getWorkflowManager(), TaskDtoProviderOptions.fullOptions(), operationTask, result, this);
 		return taskDto;
 	}
 

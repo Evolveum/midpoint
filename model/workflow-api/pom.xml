@@ -60,6 +60,11 @@
 			<version>3.4-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>model-api</artifactId>
+            <version>3.4-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
 

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.impl;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -39,9 +40,8 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.wf.util.ChangesByState;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -225,4 +225,12 @@ public class WorkflowManagerImpl implements WorkflowManager {
     public boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem) {
         return miscDataUtil.isAuthorizedToClaim(workItem);
     }
+
+	@Override
+	public ChangesByState getChangesByState(TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext,
+			OperationResult result) throws SchemaException, ObjectNotFoundException {
+
+		// TODO op subresult
+		return miscDataUtil.getChangesByState(rootTask, modelInteractionService, prismContext, result);
+	}
 }

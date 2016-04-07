@@ -182,6 +182,17 @@ public class TaskMainPanel extends Panel {
 					}
 				});
 		tabs.add(
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.operation")) {
+					@Override
+					public WebMarkupContainer getPanel(String panelId) {
+						return new TaskOperationTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
+					}
+					@Override
+					public boolean isVisible() {
+						return visibility.computeOperationVisible(parentPage);
+					}
+				});
+		tabs.add(
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.result")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {

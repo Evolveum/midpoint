@@ -34,6 +34,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.RuntimeConfigurationType;
@@ -193,6 +194,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 	transient private RepositoryService repositoryService;			// temporary
     @Autowired
     transient private WorkflowService workflowService;
+	@Autowired
+	transient private WorkflowManager workflowManager;
     @Autowired
     transient MidpointConfiguration configuration;
     @Autowired(required = true)
@@ -445,7 +448,11 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         return workflowService;
     }
 
-    public ModelInteractionService getModelInteractionService() {
+	public WorkflowManager getWorkflowManager() {
+		return workflowManager;
+	}
+
+	public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
     }
 

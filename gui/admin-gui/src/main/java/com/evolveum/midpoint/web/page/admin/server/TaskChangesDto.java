@@ -40,48 +40,24 @@ import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
 /**
  * @author mederly
  */
-public class TaskOtherChangesDto implements Serializable {
+public class TaskChangesDto implements Serializable {
 
-    public static final String F_STATE = "state";
+//    public static final String F_TITLE_KEY = "titleKey";
     public static final String F_PRIMARY_DELTAS = "primaryDeltas";
 
-    private ModelState state;
+    private String titleKey;
     private SceneDto primarySceneDto;
 
-    public TaskOtherChangesDto(ModelContext<?> modelContext, ModelInteractionService modelInteractionService, Task opTask, OperationResult result) {
+	public TaskChangesDto(SceneDto primarySceneDto) {
+//		this.titleKey = titleKey;
+		this.primarySceneDto = primarySceneDto;
+	}
 
-        state = modelContext.getState();
+//	public String getTitleKey() {
+//		return titleKey;
+//	}
 
-        if (modelContext.getFocusContext() != null) {
-
-            // focusType & focusName
-            PrismObject object = modelContext.getFocusContext().getObjectNew();
-            if (object == null) {
-                object = modelContext.getFocusContext().getObjectOld();
-            }
-
-            // primaryDelta
-			final List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
-			final List<? extends Scene> primaryScenes;
-			try {
-				addIgnoreNull(primaryDeltas, modelContext.getFocusContext().getPrimaryDelta());
-				for (ModelProjectionContext projCtx : modelContext.getProjectionContexts()) {
-					addIgnoreNull(primaryDeltas, projCtx.getPrimaryDelta());
-				}
-				primaryScenes = modelInteractionService.visualizeDeltas(primaryDeltas, opTask, result);
-			} catch (SchemaException e) {
-				throw new SystemException(e);		// TODO
-			}
-			final WrapperScene primaryWrapperScene = new WrapperScene(primaryScenes, primaryDeltas.size() != 1 ? "PagePreviewChanges.primaryChangesMore" : "PagePreviewChanges.primaryChangesOne", primaryDeltas.size());
-			primarySceneDto = new SceneDto(primaryWrapperScene);
-        }
-    }
-
-    public ModelState getState() {
-        return state;
-    }
-
-    public SceneDto getPrimaryDeltas() {
+	public SceneDto getPrimaryDeltas() {
         return primarySceneDto;
     }
 }

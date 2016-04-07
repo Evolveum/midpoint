@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -40,8 +41,9 @@ public class TaskWfParentPanel extends Panel {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_REQUESTS = "requests";
-	private static final String ID_CHANGES_NOT_REQUIRING_APPROVAL_CONTAINER = "changesNotRequiringApprovalContainer";
-	private static final String ID_CHANGES_NOT_REQUIRING_APPROVAL = "changesNotRequiringApproval";
+	private static final String ID_CHANGES_PREFIX = "changes";				// e.g. changes3Content
+	public static final String ID_CHANGES_CONTENT_SUFFIX = "Content";
+	public static final int CHANGES_NUMBER = 5;
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskApprovalsTabPanel.class);
 
@@ -51,25 +53,32 @@ public class TaskWfParentPanel extends Panel {
 		setOutputMarkupId(true);
 	}
 
-	private void initLayout(IModel<TaskDto> taskDtoModel, PageBase pageBase) {
+	private void initLayout(final IModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		final PropertyModel<List<ProcessInstanceDto>> requestsModel = new PropertyModel<>(taskDtoModel, TaskDto.F_WORKFLOW_REQUESTS);
 		final ISortableDataProvider<ProcessInstanceDto, String> requestsProvider = new ListDataProvider<>(this, requestsModel);
 		add(new WorkflowRequestsPanel(ID_REQUESTS, requestsProvider, null, 10, WorkflowRequestsPanel.View.TASKS_FOR_PROCESS, null));
 
-		final WebMarkupContainer changesContainer = new WebMarkupContainer(ID_CHANGES_NOT_REQUIRING_APPROVAL_CONTAINER);
-		final PropertyModel<TaskOtherChangesDto> changesModel = new PropertyModel<>(taskDtoModel, TaskDto.F_CHANGES_NOT_REQUIRING_APPROVAL);
-		final TaskOtherChangesPanel changesPanel = new TaskOtherChangesPanel(ID_CHANGES_NOT_REQUIRING_APPROVAL, changesModel);
-		changesContainer.add(changesPanel);
-		final VisibleEnableBehaviour changesVisible = new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return changesModel.getObject() != null
-						&& changesModel.getObject().getPrimaryDeltas() != null
-						&& !changesModel.getObject().getPrimaryDeltas().getScene().isEmpty();
-			}
-		};
-		changesContainer.add(changesVisible);
-		add(changesContainer);
+		for (int i = 1; i <= CHANGES_NUMBER; i++) {
+			final int index = i;
+			final String changesId = ID_CHANGES_PREFIX + i;
+			final String changesContentId = changesId + ID_CHANGES_CONTENT_SUFFIX;
+			final WebMarkupContainer changes = new WebMarkupContainer(changesId);
+			final IModel<TaskChangesDto> changesModel = new AbstractReadOnlyModel<TaskChangesDto>() {
+				@Override
+				public TaskChangesDto getObject() {
+					return taskDtoModel.getObject().getChangesForIndex(index);
+				}
+			};
+			final TaskChangesPanel changesPanel = new TaskChangesPanel(changesContentId, changesModel);
+			changes.add(changesPanel);
+			changes.add(new VisibleEnableBehaviour() {
+				@Override
+				public boolean isVisible() {
+					return changesModel.getObject() != null;
+				}
+			});
+			add(changes);
+		}
 	}
 
 }
