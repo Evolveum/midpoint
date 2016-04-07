@@ -1075,7 +1075,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 	}
 	
-	protected void assertLockout(PrismObject<ShadowType> shadow, LockoutStatusType expectedStatus) {
+	protected void assertShadowLockout(PrismObject<ShadowType> shadow, LockoutStatusType expectedStatus) {
 		ActivationType activationType = shadow.asObjectable().getActivation();
 		if (activationType == null) {
 			if (expectedStatus == null) {
@@ -1085,6 +1085,19 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			}
 		} else {
 			assertEquals("Wrong lockout status of "+shadow, expectedStatus, activationType.getLockoutStatus());
+		}
+	}
+	
+	protected void assertUserLockout(PrismObject<UserType> user, LockoutStatusType expectedStatus) {
+		ActivationType activationType = user.asObjectable().getActivation();
+		if (activationType == null) {
+			if (expectedStatus == null) {
+				return;
+			} else {
+				AssertJUnit.fail("Expected lockout status of "+user+" to be "+expectedStatus+", but there was no lockout status");
+			}
+		} else {
+			assertEquals("Wrong lockout status of "+user, expectedStatus, activationType.getLockoutStatus());
 		}
 	}
 }

@@ -134,7 +134,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         try {
             // ========== preparing root task ===========
 
-            WfTaskCreationInstruction rootInstruction = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel);
+            WfTaskCreationInstruction rootInstruction = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel, result);
             WfTask rootWfTask = baseModelInvocationProcessingHelper.submitRootTask(rootInstruction, taskFromModel, result);
 
             // ========== preparing child task, starting WF process ===========

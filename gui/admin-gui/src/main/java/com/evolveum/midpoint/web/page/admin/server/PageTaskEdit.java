@@ -142,10 +142,14 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		TaskType taskType = null;
 
 		try {
-			Collection<SelectorOptions<GetOperationOptions>> options =
-					GetOperationOptions.createRetrieveAttributesOptions(
-							TaskType.F_SUBTASK, TaskType.F_NODE_AS_OBSERVED, TaskType.F_NEXT_RUN_START_TIMESTAMP);
-			options.add(SelectorOptions.create(new ItemPath(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM), GetOperationOptions.createRetrieve()));
+			Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.retrieveItemsNamed(
+					TaskType.F_SUBTASK,
+					TaskType.F_NODE_AS_OBSERVED,
+					TaskType.F_NEXT_RUN_START_TIMESTAMP,
+					new ItemPath(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM));
+			options.addAll(GetOperationOptions.resolveItemsNamed(
+					new ItemPath(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_REQUESTER_REF)
+			));
 			taskType = getModelService().getObject(TaskType.class, taskOid, options, operationTask, result).asObjectable();
 			result.computeStatus();
 		} catch (Exception ex) {
@@ -348,16 +352,20 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return TaskCategory.EXECUTE_CHANGES.equals(getTaskDto().getCategory());
 	}
 
-	boolean isWorkflow() {
+	boolean isWorkflowCategory() {
 		return TaskCategory.WORKFLOW.equals(getTaskDto().getCategory());
 	}
 
 	boolean isWorkflowChild() {
-		return isWorkflow() && getTaskDto().getWorkflowContext() != null && getTaskDto().getWorkflowContext().getProcessInstanceId() != null;
+		return isWorkflowCategory() && getTaskDto().getWorkflowContext() != null && getTaskDto().getWorkflowContext().getProcessInstanceId() != null;
 	}
 
 	boolean isWorkflowParent() {
-		return isWorkflow() && getTaskDto().getParentTaskOid() == null;
+		return isWorkflowCategory() && getTaskDto().getParentTaskOid() == null;
+	}
+
+	boolean isWorkflow() {
+		return isWorkflowChild() || isWorkflowParent();		// "task0" is not among these
 	}
 
 	boolean isLiveSync() {
@@ -430,10 +438,6 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 	public boolean configuresExecuteInRawMode() {
 		return isExecuteChanges();
-	}
-
-	public boolean displayProgress() {
-		return !isWorkflow();
 	}
 
 	public boolean isShowAdvanced() {

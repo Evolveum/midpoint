@@ -9,6 +9,7 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
@@ -35,7 +36,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
-import static com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon.*;
 import static com.evolveum.midpoint.web.page.admin.workflow.WorkflowRequestsPanel.View.FULL_LIST;
 import static com.evolveum.midpoint.web.page.admin.workflow.WorkflowRequestsPanel.View.TASKS_FOR_PROCESS;
 import static com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto.*;
@@ -104,12 +104,12 @@ public class WorkflowRequestsPanel extends BasePanel {
 			columns.add(createNameColumn());
 			columns.add(createStateColumn());
 			columns.add(new PropertyColumn<ProcessInstanceDto, String>(createStringResource("pageProcessInstances.item.started"), F_START_FORMATTED));
-			columns.add(createResultColumn());
+			columns.add(createOutcomeColumn());
 			columns.add(createFinishedColumn());
 		} else {
 			columns.add(createNameColumn());
 			columns.add(createStateColumn());
-			columns.add(createResultColumn());
+			columns.add(createOutcomeColumn());
 			columns.add(createFinishedColumn());
 		}
 		return columns;
@@ -142,14 +142,14 @@ public class WorkflowRequestsPanel extends BasePanel {
 	}
 
 	@NotNull
-	private IconColumn<ProcessInstanceDto> createResultColumn() {
+	private IconColumn<ProcessInstanceDto> createOutcomeColumn() {
 		return new IconColumn<ProcessInstanceDto>(createStringResource("pageProcessInstances.item.result")) {
 			@Override
 			protected IModel<String> createIconModel(final IModel<ProcessInstanceDto> rowModel) {
 				return new AbstractReadOnlyModel<String>() {
 					@Override
 					public String getObject() {
-						return choose(rowModel, IN_PROGRESS.getIcon(), SUCCESS.getIcon(), FATAL_ERROR.getIcon());
+						return choose(rowModel, ApprovalOutcomeIcon.IN_PROGRESS.getIcon(), ApprovalOutcomeIcon.APPROVED.getIcon(), ApprovalOutcomeIcon.REJECTED.getIcon());
 					}
 				};
 			}

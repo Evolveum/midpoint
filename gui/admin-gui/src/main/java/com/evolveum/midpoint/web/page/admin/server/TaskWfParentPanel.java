@@ -19,20 +19,11 @@ package com.evolveum.midpoint.web.page.admin.server;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
-import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusPanel;
-import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.component.wf.WorkItemsTablePanel;
-import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalHistoryPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkflowRequestsPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -49,7 +40,8 @@ public class TaskWfParentPanel extends Panel {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_REQUESTS = "requests";
-	private static final String ID_MODEL_OPERATION_STATUS_PANEL = "modelOperationStatusPanel";
+	private static final String ID_CHANGES_NOT_REQUIRING_APPROVAL_CONTAINER = "changesNotRequiringApprovalContainer";
+	private static final String ID_CHANGES_NOT_REQUIRING_APPROVAL = "changesNotRequiringApproval";
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskApprovalsTabPanel.class);
 
@@ -60,20 +52,24 @@ public class TaskWfParentPanel extends Panel {
 	}
 
 	private void initLayout(IModel<TaskDto> taskDtoModel, PageBase pageBase) {
-
 		final PropertyModel<List<ProcessInstanceDto>> requestsModel = new PropertyModel<>(taskDtoModel, TaskDto.F_WORKFLOW_REQUESTS);
 		final ISortableDataProvider<ProcessInstanceDto, String> requestsProvider = new ListDataProvider<>(this, requestsModel);
 		add(new WorkflowRequestsPanel(ID_REQUESTS, requestsProvider, null, 10, WorkflowRequestsPanel.View.TASKS_FOR_PROCESS, null));
 
-		final PropertyModel<ModelOperationStatusDto> operationStatusModel = new PropertyModel<>(taskDtoModel, TaskDto.F_MODEL_OPERATION_STATUS);
-		final ModelOperationStatusPanel panel = new ModelOperationStatusPanel(ID_MODEL_OPERATION_STATUS_PANEL, operationStatusModel);
-		add(panel);
-		/*VisibleEnableBehaviour modelOpBehaviour = new VisibleEnableBehaviour() {
+		final WebMarkupContainer changesContainer = new WebMarkupContainer(ID_CHANGES_NOT_REQUIRING_APPROVAL_CONTAINER);
+		final PropertyModel<TaskOtherChangesDto> changesModel = new PropertyModel<>(taskDtoModel, TaskDto.F_CHANGES_NOT_REQUIRING_APPROVAL);
+		final TaskOtherChangesPanel changesPanel = new TaskOtherChangesPanel(ID_CHANGES_NOT_REQUIRING_APPROVAL, changesModel);
+		changesContainer.add(changesPanel);
+		final VisibleEnableBehaviour changesVisible = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return operationStatusModel.getObject() != null;
+				return changesModel.getObject() != null
+						&& changesModel.getObject().getPrimaryDeltas() != null
+						&& !changesModel.getObject().getPrimaryDeltas().getScene().isEmpty();
 			}
-		}; panel.add(modelOpBehaviour);*/
+		};
+		changesContainer.add(changesVisible);
+		add(changesContainer);
 	}
 
 }

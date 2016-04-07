@@ -104,26 +104,6 @@ public class PrimaryChangeAspectHelper {
 
     //endregion
 
-    public PrismObject<UserType> getRequester(Task task, OperationResult result) {
-        // let's get fresh data (not the ones read on user login)
-        PrismObject<UserType> requester = null;
-        try {
-            requester = ((PrismObject<UserType>) repositoryService.getObject(UserType.class, task.getOwner().getOid(), null, result));
-        } catch (ObjectNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't get data about task requester (" + task.getOwner() + "), because it does not exist in repository anymore. Using cached data.", e);
-            requester = task.getOwner().clone();
-        } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't get data about task requester (" + task.getOwner() + "), due to schema exception. Using cached data.", e);
-            requester = task.getOwner().clone();
-        }
-
-        if (requester != null) {
-            resolveRolesAndOrgUnits(requester, result);
-        }
-
-        return requester;
-    }
-
     public ShadowType resolveTargetUnchecked(ShadowAssociationType association, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         if (association == null) {

@@ -454,7 +454,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
      */
     protected void onTabChange(int index) {}
 
-	public interface RightSideItemProvider {
+	public interface RightSideItemProvider extends Serializable {
 		Component createRightSideItem(String id);
 	}
 }

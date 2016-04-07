@@ -22,7 +22,10 @@
     <h3><wicket:message key="workItemPanel.requests"/></h3>
     <div wicket:id="requests"/>
 
-    <div wicket:id="modelOperationStatusPanel"/>
+    <div wicket:id="changesNotRequiringApprovalContainer">
+        <h3><wicket:message key="taskWfParentPanel.changesNotRequiringApproval"/></h3>
+        <div wicket:id="changesNotRequiringApproval"/>
+    </div>
 </wicket:panel>
 </body>
 </html>

@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
 import com.evolveum.midpoint.wf.impl.processes.modifyAssignment.AssignmentModification;
+import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
@@ -72,7 +73,7 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
     @Autowired
     protected ItemApprovalProcessInterface itemApprovalProcessInterface;
 
-    //region ------------------------------------------------------------ Things that execute on request arrival
+	//region ------------------------------------------------------------ Things that execute on request arrival
 
     @Override
     public List<PcpChildWfTaskCreationInstruction> prepareTasks(ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException {
@@ -202,7 +203,7 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
             String targetName = getTargetDisplayName(target);
 
             String focusOid = MiscDataUtil.getFocusObjectOid(modelContext);
-            PrismObject<UserType> requester = primaryChangeAspectHelper.getRequester(taskFromModel, result);
+            PrismObject<UserType> requester = baseModelInvocationProcessingHelper.getRequester(taskFromModel, result);
 
 			String approvalTaskName = "Approve modifying assignment of " + targetName + " to " + focusName;
 

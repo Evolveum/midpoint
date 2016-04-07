@@ -135,6 +135,19 @@ public class WrapperScene implements Scene {
 	}
 
 	@Override
+	public boolean isEmpty() {
+		if (partialScenes == null) {
+			return true;
+		}
+		for (Scene scene : partialScenes) {
+			if (!scene.isEmpty()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	@Override
 	public String debugDump() {
 		return debugDump(0);
 	}

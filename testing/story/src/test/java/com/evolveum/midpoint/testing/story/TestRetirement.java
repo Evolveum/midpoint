@@ -24,6 +24,8 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -41,6 +43,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -54,6 +57,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -66,6 +71,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -75,21 +81,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * Common superclass for LDAP hierarchy tests TestLdapFlat, TestLdapNested
- *  
  * @author Radovan Semancik
  *
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
+public class TestRetirement extends AbstractStoryTest {
 	
+	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "retirement");
+	
+	protected static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
 	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
 	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 	protected static final QName OPENDJ_ASSOCIATION_GROUP_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "group");
 
+	public static final File ORG_TOP_FILE = new File(TEST_DIR, "org-top.xml");
 	public static final String ORG_TOP_OID = "00000000-8888-6666-0000-100000000001";
 	
+	public static final File ORG_RETIRED_FILE = new File(TEST_DIR, "org-retired.xml");
+	public static final String ORG_RETIRED_OID = "00000000-8888-6666-0000-100000ffffff";
+	public static final String ORG_RETIRED_NAME = "RETIRED";
+	
+	public static final File ROLE_META_ORG_FILE = new File(TEST_DIR, "role-meta-org.xml");
 	public static final String ROLE_META_ORG_OID = "10000000-0000-0000-0000-000000006601";
 
 	protected static final String ORG_ROYULA_CARPATHIA_NAME = "Royula Carpathia";
@@ -101,6 +114,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	protected static final String ORG_TYPE_FUNCTIONAL = "functional";
 
 	protected static final String LDAP_GROUP_INTENT = "group";
+	protected static final String LDAP_OU_INTENT = "ou";
 
 	protected static final String USER_TELEKE_USERNAME = "teleke";
 	protected static final String USER_TELEKE_GIVEN_NAME = "Felix";
@@ -124,20 +138,6 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	protected String orgRolyulaDiabolicaOid;
 	protected String userGorcOid;
 	
-	protected abstract File getTestDir();
-	
-	protected File getResourceOpenDjFile() {
-		return new File(getTestDir(), "resource-opendj.xml");
-	}
-	
-	protected File getOrgTopFile() {
-		return new File(getTestDir(), "org-top.xml");
-	}
-	
-	protected File getRoleMetaOrgFile() {
-		return new File(getTestDir(), "role-meta-org.xml");
-	}
-
 	@Override
     protected void startResources() throws Exception {
         openDJController.startCleanServerRI();
@@ -154,15 +154,15 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 		
 		
 		// Resources	
-		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, getResourceOpenDjFile(), RESOURCE_OPENDJ_OID, initTask, initResult);
+		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
 		resourceOpenDjType = resourceOpenDj.asObjectable();
 		openDJController.setResource(resourceOpenDj);
 
 		// Org
-		importObjectFromFile(getOrgTopFile(), initResult);
+		importObjectFromFile(ORG_TOP_FILE, initResult);
 
 		// Role
-		importObjectFromFile(getRoleMetaOrgFile(), initResult);
+		importObjectFromFile(ROLE_META_ORG_FILE, initResult);
 	}
 	
 	@Test
@@ -179,10 +179,49 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	}
 	
 	@Test
+    public void test050AddOrgRetired() throws Exception {
+		final String TEST_NAME = "test050AddOrgRetired";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<OrgType> orgBefore = PrismTestUtil.parseObject(ORG_RETIRED_FILE);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        display("Adding org", orgBefore);
+        addObject(orgBefore, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        dumpOrgTree();
+		dumpLdap();
+		
+		PrismObject<OrgType> org = getObject(OrgType.class, ORG_RETIRED_OID);
+		display("org", org);
+		PrismAsserts.assertPropertyValue(org, OrgType.F_ORG_TYPE, ORG_TYPE_FUNCTIONAL);
+
+		String ouShadowOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.GENERIC, LDAP_OU_INTENT);
+		PrismObject<ShadowType> ouShadow = getShadowModel(ouShadowOid);
+		display("Org retired OU shadow", ouShadow);
+		// TODO assert shadow content
+
+		Entry ouEntry = openDJController.fetchEntry(ouShadow.getName().getOrig());
+		assertNotNull("No ou LDAP entry for retirement ("+ouShadow.getName().getOrig()+")", ouEntry);
+		display("OU retirement entry", openDJController.toHumanReadableLdifoid(ouEntry));
+		openDJController.assertObjectClass(ouEntry, "organizationalUnit");
+
+		assertSubOrgs(org, 0);        
+	}
+	
+	@Test
     public void test100AddOrgRoyulaCarpathia() throws Exception {
 		final String TEST_NAME = "test100AddOrgRoyulaCarpathia";
         TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_ROYULA_CARPATHIA_NAME, ORG_TOP_OID);
@@ -211,7 +250,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
     public void test110AddUserTeleke() throws Exception {
 		final String TEST_NAME = "test110AddUserTeleke";
         TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_TELEKE_USERNAME, 
@@ -227,12 +266,12 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
-        dumpOrgTree();
-		dumpLdap();
-        
         PrismObject<UserType> userAfter = getAndAssertUser(USER_TELEKE_USERNAME, ORG_ROYULA_CARPATHIA_NAME);
         
         PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_ROYULA_CARPATHIA_NAME, ORG_TOP_OID);
+
+		dumpOrgTree();
+		dumpLdap();
 
 		assertSubOrgs(orgAfter, 0);
 		assertSubOrgs(ORG_TOP_OID, 1);
@@ -242,7 +281,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
     public void test200AddOrgCortuvHrad() throws Exception {
 		final String TEST_NAME = "test200AddOrgCortuvHrad";
         TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_CORTUV_HRAD_NAME, orgRolyulaCarpathiaOid);
@@ -257,11 +296,11 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
-        dumpOrgTree();
-		dumpLdap();
-        
         PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_CORTUV_HRAD_NAME, orgRolyulaCarpathiaOid);
         orgCortuvHradOid = orgAfter.getOid();
+
+		dumpOrgTree();
+		dumpLdap();
 
 		assertSubOrgs(orgAfter, 0);
 		assertSubOrgs(orgRolyulaCarpathiaOid, 1);
@@ -272,7 +311,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
     public void test210AddUserGorc() throws Exception {
 		final String TEST_NAME = "test210AddUserGorc";
         TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_GORC_USERNAME, 
@@ -288,18 +327,18 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
-        dumpOrgTree();
-		dumpLdap();
-        
         PrismObject<UserType> userAfter = getAndAssertUser(USER_GORC_USERNAME, ORG_CORTUV_HRAD_NAME, ORG_ROYULA_CARPATHIA_NAME);
         userGorcOid = userAfter.getOid();
+        
+		dumpOrgTree();
+		dumpLdap();
 	}
 
 	@Test
     public void test220AddOrgVysneVlkodlaky() throws Exception {
 		final String TEST_NAME = "test220AddOrgVysneVlkodlaky";
         TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_VYSNE_VLKODLAKY_NAME, orgCortuvHradOid);
@@ -314,11 +353,11 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
-        dumpOrgTree();
-		dumpLdap();
-        
         PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_VYSNE_VLKODLAKY_NAME, orgCortuvHradOid);
         orgVysneVlkodlakyOid = orgAfter.getOid();
+
+		dumpOrgTree();
+		dumpLdap();
 
 		assertSubOrgs(orgAfter, 0);
 		assertSubOrgs(orgRolyulaCarpathiaOid, 1);
@@ -329,7 +368,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
     public void test230AddUserViljaDezi() throws Exception {
 		final String TEST_NAME = "test230AddUserViljaDezi";
         TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_DEZI_USERNAME, 
@@ -345,158 +384,85 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
-        dumpOrgTree();
-		dumpLdap();
-        
-        PrismObject<UserType> userAfter = getAndAssertUser(USER_DEZI_USERNAME, ORG_VYSNE_VLKODLAKY_NAME, ORG_CORTUV_HRAD_NAME, ORG_ROYULA_CARPATHIA_NAME);        
-	}
-
-	@Test
-    public void test300RenameOrgCortuvHrad() throws Exception {
-		final String TEST_NAME = "test300RenameOrgCortuvHrad";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
-
-        PrismObject<OrgType> orgBefore = createOrg(ORG_CORTUV_HRAD_NAME, orgRolyulaCarpathiaOid);
-        
-        // WHEN
-        TestUtil.displayWhen(TEST_NAME);
-        display("Adding org", orgBefore);
-        modifyObjectReplaceProperty(OrgType.class, orgCortuvHradOid, OrgType.F_NAME, task, result, new PolyString(ORG_CORTUV_HRAD_NAME2));
-
-        // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        
-        dumpOrgTree();
-		dumpLdap();
-        
-        PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_CORTUV_HRAD_NAME2, orgRolyulaCarpathiaOid);
-        assertEquals("Cortuv hrad org OID changed after rename", orgCortuvHradOid, orgAfter.getOid());
-
-		getAndAssertUser(USER_DEZI_USERNAME, ORG_VYSNE_VLKODLAKY_NAME, ORG_CORTUV_HRAD_NAME2, ORG_ROYULA_CARPATHIA_NAME);
-
-		assertSubOrgs(orgAfter, 1);
-		assertSubOrgs(orgRolyulaCarpathiaOid, 1);
-		assertSubOrgs(ORG_TOP_OID, 1);
-		assertSubOrgs(orgVysneVlkodlakyOid, 0);
-	}
-	
-	@Test
-    public void test310RenameUserGorc() throws Exception {
-		final String TEST_NAME = "test310RenameUserGorc";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
-
-        PrismObject<UserType> userBefore = createUser(USER_GORC_USERNAME, 
-        		USER_GORC_GIVEN_NAME, USER_GORC_FAMILY_NAME, orgCortuvHradOid);
-        
-        // WHEN
-        TestUtil.displayWhen(TEST_NAME);
-        modifyObjectReplaceProperty(UserType.class, userGorcOid, UserType.F_NAME, task, result, new PolyString(USER_GORC_USERNAME2));
-
-        // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        
-        dumpOrgTree();
-		dumpLdap();
-        
-        PrismObject<UserType> userAfter = getAndAssertUser(USER_GORC_USERNAME2, ORG_CORTUV_HRAD_NAME2, ORG_ROYULA_CARPATHIA_NAME);
-	}
-	
-	@Test
-    public void test320AddOrgRoyulaDiabolica() throws Exception {
-		final String TEST_NAME = "test320AddOrgRoyulaDiabolica";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
-
-        PrismObject<OrgType> orgBefore = createOrg(ORG_ROYULA_DIABOLICA_NAME, ORG_TOP_OID);
-        
-        // WHEN
-        TestUtil.displayWhen(TEST_NAME);
-        display("Adding org", orgBefore);
-        addObject(orgBefore, task, result);
-
-        // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        
-        dumpOrgTree();
-		dumpLdap();
-        
-        PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_ROYULA_DIABOLICA_NAME, ORG_TOP_OID);
-        orgRolyulaDiabolicaOid = orgAfter.getOid();
-
-		assertSubOrgs(orgAfter, 0);
-		assertSubOrgs(ORG_TOP_OID, 2);
-		assertSubOrgs(orgRolyulaDiabolicaOid, 0);
-		assertSubOrgs(orgRolyulaCarpathiaOid, 1);
-	}
-	
-	@Test
-    public void test322MoveOrgZblo() throws Exception {
-		final String TEST_NAME = "test322MoveOrgZblo";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
-
-        PrismObject<OrgType> orgBefore = getOrg(ORG_CORTUV_HRAD_NAME2);
-        ObjectDelta<OrgType> delta = orgBefore.createModifyDelta();
-        PrismContainerValue<AssignmentType> oldAssignment = null;
-        for (PrismContainerValue aval: orgBefore.findContainer(OrgType.F_ASSIGNMENT).getValues()) {
-        	oldAssignment = (PrismContainerValue<AssignmentType>)aval;
-        	if (OrgType.COMPLEX_TYPE.equals(oldAssignment.asContainerable().getTargetRef().getType())) {
-        		break;
-        	}
-        }
-        delta.addModificationDeleteContainer(OrgType.F_ASSIGNMENT, oldAssignment.clone());
-        AssignmentType newAssignmentType = new AssignmentType();
-        ObjectReferenceType targetRef = new ObjectReferenceType();
-        targetRef.setOid(orgRolyulaDiabolicaOid);
-        targetRef.setType(OrgType.COMPLEX_TYPE);
-		newAssignmentType.setTargetRef(targetRef);
-		delta.addModificationAddContainer(OrgType.F_ASSIGNMENT, newAssignmentType);
-        
-        // WHEN
-        TestUtil.displayWhen(TEST_NAME);
-        display("Modifying "+orgBefore+"with delta", delta);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
-
-        // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        
-        dumpOrgTree();
-		dumpLdap();
-        
-        PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_CORTUV_HRAD_NAME2, orgRolyulaDiabolicaOid);
-        assertEquals("Cortuv hrad org OID changed after rename", orgCortuvHradOid, orgAfter.getOid());
-        
-		recomputeIfNeeded(orgCortuvHradOid);
+        PrismObject<UserType> userAfter = getAndAssertUser(USER_DEZI_USERNAME, ORG_VYSNE_VLKODLAKY_NAME, ORG_CORTUV_HRAD_NAME, ORG_ROYULA_CARPATHIA_NAME);
         
 		dumpOrgTree();
 		dumpLdap();
-		
-		getAndAssertUser(USER_GORC_USERNAME2, ORG_CORTUV_HRAD_NAME2, ORG_ROYULA_DIABOLICA_NAME);
-		getAndAssertUser(USER_DEZI_USERNAME, ORG_VYSNE_VLKODLAKY_NAME, ORG_CORTUV_HRAD_NAME2, ORG_ROYULA_DIABOLICA_NAME);
+	}
 
-		assertSubOrgs(orgAfter, 1);
-		assertSubOrgs(orgRolyulaCarpathiaOid, 0);
-		assertSubOrgs(orgRolyulaDiabolicaOid, 1);
-		assertSubOrgs(ORG_TOP_OID, 2);
-		assertSubOrgs(orgVysneVlkodlakyOid, 0);
+	@Test
+    public void test300RetireUserGorc() throws Exception {
+		final String TEST_NAME = "test300RetireUserGorc";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		modifications.add(createAssignmentModification(orgCortuvHradOid, OrgType.COMPLEX_TYPE, null, null, null, false));
+		modifications.add(createAssignmentModification(ORG_RETIRED_OID, OrgType.COMPLEX_TYPE, null, null, null, true));
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userGorcOid, modifications, UserType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		modelService.executeChanges(deltas, null, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        dumpOrgTree();
+		dumpLdap();
+        
+        PrismObject<UserType> userAfter = getAndAssertRetiredUser(USER_GORC_USERNAME);
+        userGorcOid = userAfter.getOid();
 	}
 	
-	protected void recomputeIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException  {
-		// nothing to do by default
+	@Test
+    public void test302ReconcileUserGorc() throws Exception {
+		final String TEST_NAME = "test302ReconcileUserGorc";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        reconcileUser(userGorcOid, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        dumpOrgTree();
+		dumpLdap();
+        
+        PrismObject<UserType> userAfter = getAndAssertRetiredUser(USER_GORC_USERNAME);
+        userGorcOid = userAfter.getOid();
+	}
+	
+	@Test
+    public void test303ReconcileUserGorcAgain() throws Exception {
+		final String TEST_NAME = "test303ReconcileUserGorcAgain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        reconcileUser(userGorcOid, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        dumpOrgTree();
+		dumpLdap();
+        
+        PrismObject<UserType> userAfter = getAndAssertRetiredUser(USER_GORC_USERNAME);
+        userGorcOid = userAfter.getOid();
 	}
 
 	private PrismObject<UserType> createUser(String username, String givenName,
@@ -540,7 +506,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 		return org;
 	}
 
-	protected PrismObject<UserType> getAndAssertUser(String username, String directOrgGroupname, String... indirectGroupNames) throws SchemaException, CommonException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+	private PrismObject<UserType> getAndAssertUser(String username, String directOrgGroupname, String... indirectGroupNames) throws SchemaException, CommonException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
 		PrismObject<UserType> user = findUserByUsername(username);
 		display("user", user);
 
@@ -556,8 +522,26 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 		
 		return user;
 	}
+	
+	private PrismObject<UserType> getAndAssertRetiredUser(String username) throws SchemaException, CommonException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+		PrismObject<UserType> user = findUserByUsername(username);
+		display("user", user);
 
-	protected PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+		String shadowOid = getLinkRefOid(user, RESOURCE_OPENDJ_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+		PrismObject<ShadowType> accountShadow = getShadowModel(shadowOid);
+		display("Account "+username+" shadow", accountShadow);
+		// TODO assert shadow content
+
+		String dn = "uid=RRR-"+username+",ou=RETIRED,dc=example,dc=com";
+		Entry accountEntry = openDJController.fetchEntry(dn);
+		assertNotNull("No account LDAP entry for "+username+" ("+dn+")", accountEntry);
+		display("account entry", openDJController.toHumanReadableLdifoid(accountEntry));
+		openDJController.assertObjectClass(accountEntry, "inetOrgPerson");
+		
+		return user;
+	}
+
+	private PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
 		PrismObject<OrgType> org = getOrg(orgName);
 		display("org", org);
 		PrismAsserts.assertPropertyValue(org, OrgType.F_ORG_TYPE, ORG_TYPE_FUNCTIONAL);
@@ -579,7 +563,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 		return org;
 	}
 
-	protected PrismObject<OrgType> getOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+	private PrismObject<OrgType> getOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
 		assertNotNull("The org "+orgName+" is missing!", org);
 		display("Org "+orgName, org);
@@ -587,29 +571,29 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 		return org;
 	}
 
-	protected void dumpOrgTree() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+	private void dumpOrgTree() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		display("Org tree", dumpOrgTree(ORG_TOP_OID));
 	}
 	
-	protected void dumpLdap() throws DirectoryException {
+	private void dumpLdap() throws DirectoryException {
 		display("LDAP server tree", openDJController.dumpTree());
 		display("LDAP server content", openDJController.dumpEntries());
 	}
 	
 	
-	protected void assertGroupMembers(PrismObject<OrgType> org, String... members) throws Exception {
+	private void assertGroupMembers(PrismObject<OrgType> org, String... members) throws Exception {
 		String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "org-group");
 		PrismObject<ShadowType> groupShadow = getShadowModel(groupOid);
 		assertAttribute(groupShadow, new QName(MidPointConstants.NS_RI, "uniqueMember"), members);
 	}
 
-	protected void assertNoGroupMembers(PrismObject<OrgType> org) throws Exception {
+	private void assertNoGroupMembers(PrismObject<OrgType> org) throws Exception {
 		String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "org-group");
 		PrismObject<ShadowType> groupShadow = getShadowModel(groupOid);
 		assertNoAttribute(groupShadow, new QName(MidPointConstants.NS_RI, "uniqueMember"));
 	}
 	
-	protected void reconcileAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private void reconcileAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		final Task task = createTask("reconcileAllUsers");
 		OperationResult result = task.getResult();
 		ResultHandler<UserType> handler = new ResultHandler<UserType>() {
@@ -630,7 +614,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 		modelService.searchObjectsIterative(UserType.class, null, handler, null, task, result);
 	}
 	
-	protected void reconcileAllOrgs() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private void reconcileAllOrgs() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		final Task task = createTask("reconcileAllOrgs");
 		OperationResult result = task.getResult();
 		ResultHandler<OrgType> handler = new ResultHandler<OrgType>() {

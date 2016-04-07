@@ -64,4 +64,5 @@ public interface Scene extends Serializable, DebugDumpable {
 	 */
 	ObjectDelta<?> getSourceDelta();
 
+	boolean isEmpty();
 }

@@ -253,7 +253,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         PrismObject<ShadowType> shadow = shadows.get(0);
         display("Shadow", shadow);
         assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_UID));
-        assertLockout(shadow, LockoutStatusType.NORMAL);
+        assertShadowLockout(shadow, LockoutStatusType.NORMAL);
         jackAccountOid = shadow.getOid();
         assertNotNull("Null OID in "+shadow, jackAccountOid);
         
@@ -327,7 +327,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		TestUtil.assertSuccess(result);		
         display("Shadow", shadow);
         assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_UID));
-        assertLockout(shadow, LockoutStatusType.NORMAL);
+        assertShadowLockout(shadow, LockoutStatusType.NORMAL);
         assertPasswordAllowChange(shadow, null);
         jackAccountOid = shadow.getOid();
         
@@ -372,7 +372,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         PrismObject<ShadowType> shadow = shadows.get(0);
         display("Shadow", shadow);
         assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_UID));
-        assertLockout(shadow, LockoutStatusType.LOCKED);
+        assertShadowLockout(shadow, LockoutStatusType.LOCKED);
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
@@ -429,7 +429,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         PrismObject<ShadowType> shadow = searchResultList.get(0);
         display("Shadow", shadow);
         assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_UID));
-        assertLockout(shadow, LockoutStatusType.LOCKED);
+        assertShadowLockout(shadow, LockoutStatusType.LOCKED);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();
         if (metadata != null) {
@@ -896,7 +896,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         PrismObject<ShadowType> shadow = shadows.get(0);
         display("Shadow", shadow);
         assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_UID));
-        assertLockout(shadow, LockoutStatusType.NORMAL);
+        assertShadowLockout(shadow, LockoutStatusType.NORMAL);
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
@@ -952,7 +952,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         PrismObject<ShadowType> shadowLocked = shadows.get(0);
         display("Locked shadow", shadowLocked);
         assertAccountShadow(shadowLocked, toAccountDn(ACCOUNT_JACK_UID));
-        assertLockout(shadowLocked, LockoutStatusType.LOCKED);
+        assertShadowLockout(shadowLocked, LockoutStatusType.LOCKED);
 		
         rememberConnectorOperationCount();
 		rememberConnectorSimulatedPagingSearchCount();
@@ -974,7 +974,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		PrismObject<ShadowType> shadowAfter = getObject(ShadowType.class, shadowLocked.getOid());
         display("Shadow after", shadowAfter);
         assertAccountShadow(shadowAfter, toAccountDn(ACCOUNT_JACK_UID));
-        assertLockout(shadowAfter, LockoutStatusType.NORMAL);
+        assertShadowLockout(shadowAfter, LockoutStatusType.NORMAL);
 
         assertLdapPassword(ACCOUNT_JACK_UID, ACCOUNT_JACK_PASSWORD);
         

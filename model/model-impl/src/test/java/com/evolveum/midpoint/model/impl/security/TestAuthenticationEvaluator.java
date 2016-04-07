@@ -60,6 +60,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -189,6 +190,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("user after", userAfter);
 		assertFailedLogins(userAfter, 1);
+		assertUserLockout(userAfter, LockoutStatusType.NORMAL);
 		assertLastFailedLogin(userAfter, startTs, endTs);
 	}
 	
@@ -221,6 +223,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("user after", userAfter);
 		assertFailedLogins(userAfter, 1);
+		assertUserLockout(userAfter, LockoutStatusType.NORMAL);
 	}
 
 
@@ -253,6 +256,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("user after", userAfter);
 		assertFailedLogins(userAfter, 1);
+		assertUserLockout(userAfter, LockoutStatusType.NORMAL);
 	}
 	
 	@Test
@@ -377,6 +381,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		display("user after", userAfter);
 		assertFailedLogins(userAfter, 1);
 		assertLastFailedLogin(userAfter, startTs, endTs);
+		assertUserLockout(userAfter, LockoutStatusType.NORMAL);
 	}
 
 
@@ -399,8 +404,6 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		} catch (BadCredentialsException e) {
 			// This is expected
 			
-			// THEN
-			TestUtil.displayThen(TEST_NAME);
 			display("expected exception", e);
 			assertBadPasswordException(e, USER_JACK_USERNAME);
 		}
@@ -408,6 +411,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		PrismObject<UserType> userBetween = getUser(USER_JACK_OID);
 		display("user after", userBetween);
 		assertFailedLogins(userBetween, 2);
+		assertUserLockout(userBetween, LockoutStatusType.NORMAL);
 		
 		try {
 			
@@ -417,8 +421,6 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		} catch (BadCredentialsException e) {
 			// This is expected
 			
-			// THEN
-			TestUtil.displayThen(TEST_NAME);
 			display("expected exception", e);
 			assertBadPasswordException(e, USER_JACK_USERNAME);
 		}
@@ -426,10 +428,14 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("user after", userAfter);
 		assertFailedLogins(userAfter, 3);
 		assertLastFailedLogin(userAfter, startTs, endTs);
+		assertUserLockout(userAfter, LockoutStatusType.LOCKED);
 	}
 	
 	@Test
@@ -459,6 +465,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("user after", userAfter);
 		assertFailedLogins(userAfter, 3);
+		assertUserLockout(userAfter, LockoutStatusType.LOCKED);
 	}
 
 	@Test
@@ -491,18 +498,163 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("user after", userAfter);
 		assertFailedLogins(userAfter, 3);
+		assertUserLockout(userAfter, LockoutStatusType.LOCKED);
 	}
 
-
 	@Test
-	public void test138PasswordLoginLockedoutLockExpires() throws Exception {
-		final String TEST_NAME = "test138PasswordLoginLockedoutLockExpires";
+	public void test135PasswordLoginLockedoutLockExpires() throws Exception {
+		final String TEST_NAME = "test135PasswordLoginLockedoutLockExpires";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
 		clock.overrideDuration("PT30M");
 		
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+		assertGoodPasswordAuthentication(authentication, USER_JACK_USERNAME);
+		
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("user after", userAfter);
+		assertFailedLogins(userAfter, 0);
+		assertLastSuccessfulLogin(userAfter, startTs, endTs);
+		assertUserLockout(userAfter, LockoutStatusType.NORMAL);
+	}
+	
+	@Test
+	public void test137PasswordLoginLockoutAgain() throws Exception {
+		final String TEST_NAME = "test137PasswordLoginLockoutAgain";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		ConnectionEnvironment connEnv = createConnectionEnvironment();
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		try {
+			
+			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "not my password either");
+			
+			AssertJUnit.fail("Unexpected success");
+		} catch (BadCredentialsException e) {
+			// This is expected
+			
+			// THEN
+			TestUtil.displayThen(TEST_NAME);
+			display("expected exception", e);
+			assertBadPasswordException(e, USER_JACK_USERNAME);
+		}
+		
+		PrismObject<UserType> userBetween = getUser(USER_JACK_OID);
+		display("user after", userBetween);
+		assertFailedLogins(userBetween, 1);
+		assertUserLockout(userBetween, LockoutStatusType.NORMAL);
+		
+		try {
+			
+			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "absoLUTELY NOT my PASSword");
+			
+			AssertJUnit.fail("Unexpected success");
+		} catch (BadCredentialsException e) {
+			// This is expected
+			
+			// THEN
+			TestUtil.displayThen(TEST_NAME);
+			display("expected exception", e);
+			assertBadPasswordException(e, USER_JACK_USERNAME);
+		}
+
+		userBetween = getUser(USER_JACK_OID);
+		display("user after", userBetween);
+		assertFailedLogins(userBetween, 2);
+		assertUserLockout(userBetween, LockoutStatusType.NORMAL);
+		
+		try {
+			
+			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "no, no NO!");
+			
+			AssertJUnit.fail("Unexpected success");
+		} catch (BadCredentialsException e) {
+			// This is expected
+			
+			// THEN
+			TestUtil.displayThen(TEST_NAME);
+			display("expected exception", e);
+			assertBadPasswordException(e, USER_JACK_USERNAME);
+		}
+
+		
+		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+		
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("user after", userAfter);
+		assertFailedLogins(userAfter, 3);
+		assertLastFailedLogin(userAfter, startTs, endTs);
+		assertUserLockout(userAfter, LockoutStatusType.LOCKED);
+	}
+	
+	@Test
+	public void test138PasswordLoginLockedoutGoodPasswordAgain() throws Exception {
+		final String TEST_NAME = "test138PasswordLoginLockedoutGoodPasswordAgain";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		ConnectionEnvironment connEnv = createConnectionEnvironment();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		try {
+			
+			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
+			
+			AssertJUnit.fail("Unexpected success");
+		} catch (LockedException e) {
+			// This is expected
+			
+			// THEN
+			TestUtil.displayThen(TEST_NAME);
+			display("expected exception", e);
+			assertLockedException(e, USER_JACK_USERNAME);
+		}
+				
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("user after", userAfter);
+		assertFailedLogins(userAfter, 3);
+		assertUserLockout(userAfter, LockoutStatusType.LOCKED);
+	}
+	
+	@Test
+	public void test139UnlockUserGoodPassword() throws Exception {
+		final String TEST_NAME = "test139UnlockUserGoodPassword";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+				
+		ConnectionEnvironment connEnv = createConnectionEnvironment();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, task, result, LockoutStatusType.NORMAL);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		
+		PrismObject<UserType> userBetween = getUser(USER_JACK_OID);
+		display("user after", userBetween);
+		assertFailedLogins(userBetween, 0);
+		assertUserLockout(userBetween, LockoutStatusType.NORMAL);
+
+		// GIVEN
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 		
 		// WHEN

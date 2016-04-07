@@ -64,12 +64,15 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -87,6 +90,7 @@ public class FocusProcessor {
 	private static final Trace LOGGER = TraceManager.getTrace(FocusProcessor.class);
 
 	private PrismContainerDefinition<ActivationType> activationDefinition;
+	private PrismPropertyDefinition<Integer> failedLoginsDefinition;
 	
 	@Autowired(required = true)
     private InboundProcessor inboundProcessor;
@@ -438,6 +442,17 @@ public class FocusProcessor {
 			return;
 		}
 		
+		processActivationAdministrativeAndValidity(focusContext, now, result);
+		
+		if (focusContext.canRepresent(UserType.class)) {
+			processActivationLockout((LensFocusContext<UserType>) focusContext, now, result);
+		}
+	}
+		
+	private <F extends FocusType> void processActivationAdministrativeAndValidity(LensFocusContext<F> focusContext, XMLGregorianCalendar now, 
+			OperationResult result) 
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {	
+		
 		TimeIntervalStatusType validityStatusNew = null;
 		TimeIntervalStatusType validityStatusCurrent = null;
 		XMLGregorianCalendar validityChangeTimestamp = null;
@@ -497,6 +512,70 @@ public class FocusProcessor {
 			LOGGER.trace("Effective status change {} -> {}", effectiveStatusCurrent, effectiveStatusNew);
 			recordEffectiveStatusDelta(focusContext, effectiveStatusNew, now);
 		}
+		
+		
+	}
+	
+	private <F extends FocusType> void processActivationLockout(LensFocusContext<UserType> focusContext, XMLGregorianCalendar now, 
+			OperationResult result) 
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {	
+		
+		ActivationType activationNew = null;
+		ActivationType activationCurrent = null;
+		
+		LockoutStatusType lockoutStatusNew = null;
+		LockoutStatusType lockoutStatusCurrent = null;
+		
+		PrismObject<UserType> focusNew = focusContext.getObjectNew();
+		if (focusNew != null) {
+			activationNew = focusNew.asObjectable().getActivation();
+			if (activationNew != null) {
+				lockoutStatusNew = activationNew.getLockoutStatus();
+			}
+		}
+		
+		PrismObject<UserType> focusCurrent = focusContext.getObjectCurrent();
+		if (focusCurrent != null) {
+			activationCurrent = focusCurrent.asObjectable().getActivation();
+			if (activationCurrent != null) {
+				lockoutStatusCurrent = activationCurrent.getLockoutStatus();
+			}
+		}
+		
+		if (lockoutStatusNew == lockoutStatusCurrent) {
+			// No change, (almost) no work
+			LOGGER.trace("Skipping lockout processing because there was no change ({} -> {})", lockoutStatusCurrent, lockoutStatusNew);
+			return;
+		}
+		
+		LOGGER.trace("Lockout change {} -> {}", lockoutStatusCurrent, lockoutStatusNew);
+		
+		if (lockoutStatusNew == LockoutStatusType.NORMAL) {
+			
+			CredentialsType credentialsTypeNew = focusNew.asObjectable().getCredentials();
+			if (credentialsTypeNew != null) {
+				PasswordType passwordTypeNew = credentialsTypeNew.getPassword();
+				if (passwordTypeNew != null) {
+					Integer failedLogins = passwordTypeNew.getFailedLogins();
+					if (failedLogins != null && failedLogins != 0) {
+						PrismPropertyDefinition<Integer> failedLoginsDef = getFailedLoginsDefinition();
+						PropertyDelta<Integer> failedLoginsDelta = failedLoginsDef.createEmptyDelta(SchemaConstants.PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS);
+						failedLoginsDelta.setValueToReplace(new PrismPropertyValue<Integer>(0, OriginType.USER_POLICY, null));
+						focusContext.swallowToProjectionWaveSecondaryDelta(failedLoginsDelta);
+					}
+				}
+			}
+			
+			if (activationNew != null && activationNew.getLockoutExpirationTimestamp() != null) {
+				PrismContainerDefinition<ActivationType> activationDefinition = getActivationDefinition();
+				PrismPropertyDefinition<XMLGregorianCalendar> lockoutExpirationTimestampDef = activationDefinition.findPropertyDefinition(ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP);
+				PropertyDelta<XMLGregorianCalendar> lockoutExpirationTimestampDelta 
+						= lockoutExpirationTimestampDef.createEmptyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP));
+				lockoutExpirationTimestampDelta.setValueToReplace();
+				focusContext.swallowToProjectionWaveSecondaryDelta(lockoutExpirationTimestampDelta);
+			}
+		}
+		
 	}
 	
 	private <F extends ObjectType> void recordValidityDelta(LensFocusContext<F> focusContext, TimeIntervalStatusType validityStatusNew,
@@ -546,6 +625,14 @@ public class FocusProcessor {
 			activationDefinition = focusDefinition.findContainerDefinition(FocusType.F_ACTIVATION);
 		}
 		return activationDefinition;
+	}
+	
+	private PrismPropertyDefinition<Integer> getFailedLoginsDefinition() {
+		if (failedLoginsDefinition == null) {
+			PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+			failedLoginsDefinition = userDef.findPropertyDefinition(SchemaConstants.PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS);
+		}
+		return failedLoginsDefinition;
 	}
 	
 	/**
