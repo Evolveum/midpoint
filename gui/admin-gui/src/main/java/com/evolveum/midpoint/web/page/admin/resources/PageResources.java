@@ -250,7 +250,8 @@ public class PageResources extends PageAdminResources {
         Search search = searchModel.getObject();
         ObjectQuery query = search.createObjectQuery(getPrismContext());
         provider.setQuery(query);
-
+        provider.setOptions(SelectorOptions.createCollection(GetOperationOptions.createNoFetch()));
+        
         return provider;
     }
 
