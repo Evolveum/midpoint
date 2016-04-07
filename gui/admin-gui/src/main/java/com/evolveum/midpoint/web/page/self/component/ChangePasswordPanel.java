@@ -4,9 +4,11 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.input.PasswordPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.wizard.resource.component.WizardHelpDialog;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPropagationUserControlType;
@@ -48,6 +50,8 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
     public static final String SELECTED_ACCOUNT_ICON_CSS = "fa fa-check-square-o";
     public static final String DESELECTED_ACCOUNT_ICON_CSS = "fa fa-square-o";
     public static final String PROPAGATED_ACCOUNT_ICON_CSS = "fa fa-sign-out";
+    private static final int HELP_MODAL_WIDTH = 400;
+    private static final int HELP_MODAL_HEIGH = 600;
 
     private LoadableModel<MyPasswordsDto> model;
     private boolean midpointAccountSelected = true;
@@ -106,6 +110,7 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
         AjaxLink help = new AjaxLink(ID_BUTTON_HELP) {
             @Override
             public void onClick(AjaxRequestTarget target) {
+                showHelpPerformed(target);
             }
         };
         accountContainer.add(help);
@@ -214,5 +219,24 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
                 passwordAccountDto.setCssClass(cssClassName);
             }
         }
+    }
+
+    private void showHelpPerformed(AjaxRequestTarget target){
+//        getPageBase().getMainPopup().setTitle(getPageBase().createStringResource("ChangePasswordPanel.helpPopupTitle"));
+//        getPageBase().getMainPopup().setBody(new HelpInfoPanel(getPageBase().getMainPopupBodyId(), "ChangePasswordPanel.helpInfo") {
+//            @Override
+//            protected void closePerformed(AjaxRequestTarget target) {
+//                getPageBase().getMainPopup().close(target);
+//
+//            }
+//        });
+        getPageBase().showMainPopup(new HelpInfoPanel(getPageBase().getMainPopupBodyId(), "ChangePasswordPanel.helpInfo") {
+            @Override
+            protected void closePerformed(AjaxRequestTarget target) {
+                getPageBase().hideMainPopup(target);
+
+            }
+        }, getPageBase().createStringResource("ChangePasswordPanel.helpPopupTitle"),
+               target, HELP_MODAL_WIDTH, HELP_MODAL_HEIGH);
     }
 }
