@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -75,7 +76,7 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         OperationResult result = new OperationResult(OPERATION_LIST_ITEMS);
 
         try {
-            ObjectQuery query = createQuery(first, count);
+            ObjectQuery query = createQuery(first, count, result);
             Collection<SelectorOptions<GetOperationOptions>> options =
                     Arrays.asList(
                             SelectorOptions.create(new ItemPath(F_ASSIGNEE_REF), createResolve()));
@@ -102,29 +103,31 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         return getAvailableData().iterator();
     }
 
-    private ObjectQuery createQuery(long first, long count) throws SchemaException {
-        ObjectQuery query = createQuery();
+    private ObjectQuery createQuery(long first, long count, OperationResult result) throws SchemaException {
+        ObjectQuery query = createQuery(result);
         query.setPaging(ObjectPaging.createPaging(safeLongToInteger(first), safeLongToInteger(count), F_WORK_ITEM_CREATED_TIMESTAMP, DESCENDING));
         return query;
     }
 
-    private ObjectQuery createQuery() throws SchemaException {
+    private ObjectQuery createQuery(OperationResult result) throws SchemaException {
         if (assigned) {
             return QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
                     .item(WorkItemType.F_ASSIGNEE_REF).ref(currentUser())
                     .build();
         } else {
-            throw new UnsupportedOperationException("search by more than one ref is not supported");
+            return QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
+					.item(WorkItemType.F_CANDIDATE_ROLES_REF).ref(getGroupsForUser(currentUser(), result))
+					.build();
         }
     }
 
-    @Override
+	@Override
     protected int internalSize() {
         int count = 0;
         Task task = getTaskManager().createTaskInstance();
         OperationResult result = new OperationResult(OPERATION_COUNT_ITEMS);
         try {
-            ObjectQuery query = createQuery();
+            ObjectQuery query = createQuery(result);
             count = getModel().countContainers(WorkItemType.class, query, null, task, result);
         } catch (SchemaException|RuntimeException e) {
             throw new SystemException("Couldn't count work items: " + e.getMessage(), e);
@@ -142,30 +145,22 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
     }
 
     // TODO - fix this temporary implementation (perhaps by storing 'groups' in user context on logon)
-    public List<String> getGroupsForUser(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        List<String> retval = new ArrayList<>();
-        UserType userType = getRepositoryService().getObject(UserType.class, oid, null, result).asObjectable();
-        for (AssignmentType assignmentType : userType.getAssignment()) {
+	// TODO: currently we check only the direct assignments, we need to implement more complex mechanism
+	public List<PrismReferenceValue> getGroupsForUser(String oid, OperationResult result) throws SchemaException {
+        List<PrismReferenceValue> retval = new ArrayList<>();
+		UserType userType;
+		try {
+			userType = getRepositoryService().getObject(UserType.class, oid, null, result).asObjectable();
+		} catch (ObjectNotFoundException e) {
+			return retval;
+		}
+		for (AssignmentType assignmentType : userType.getAssignment()) {
             ObjectReferenceType ref = assignmentType.getTargetRef();
             if (ref != null) {
-                String groupName = objectReferenceToGroupName(ref);
-                if (groupName != null) {        // if the reference represents a group name (i.e. it is not e.g. an account ref)
-                    retval.add(groupName);
-                }
+				retval.add(ref.asReferenceValue());
             }
         }
         return retval;
     }
-
-    private String objectReferenceToGroupName(ObjectReferenceType ref) {
-        if (RoleType.COMPLEX_TYPE.equals(ref.getType())) {
-            return "role:" + ref.getOid();
-        } else if (OrgType.COMPLEX_TYPE.equals(ref.getType())) {
-            return "org:" + ref.getOid();
-        } else {
-            return null;
-        }
-    }
-
 
 }

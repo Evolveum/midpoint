@@ -357,23 +357,6 @@ public class MiscDataUtil {
         return false;
     }
 
-    // TODO: currently we check only the direct assignments, we need to implement more complex mechanism
-    @Deprecated
-    public List<String> getGroupsForUser(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        List<String> retval = new ArrayList<>();
-        UserType userType = repositoryService.getObject(UserType.class, oid, null, result).asObjectable();
-        for (AssignmentType assignmentType : userType.getAssignment()) {
-            ObjectReferenceType ref = assignmentType.getTargetRef();
-            if (ref != null) {
-                String groupName = objectReferenceToGroupName(ref);
-                if (groupName != null) {        // if the reference represents a group name (i.e. it is not e.g. an account ref)
-                    retval.add(groupName);
-                }
-            }
-        }
-        return retval;
-    }
-
 	public PrismObject resolveObjectReference(ObjectReferenceType ref, OperationResult result) {
 		return resolveObjectReference(ref, false, result);
 	}
