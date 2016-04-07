@@ -17,10 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -28,6 +26,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -66,12 +65,17 @@ public class PageTaskController implements Serializable {
 		TaskManager manager = parentPage.getTaskManager();
 
 		try {
-			PrismObject<TaskType> originalTaskType = parentPage.getModelService().getObject(TaskType.class, dto.getOid(), null, operationTask, result);
-			Task originalTask = manager.createTaskInstance(originalTaskType, result);
-			Task updatedTask = updateTask(dto, originalTask);
+			// TODO rework this
+			TaskType taskType = parentPage.getTaskDto().getTaskType();
+			Task task = manager.createTaskInstance(taskType.asPrismObject(), result);
+			TaskType originalTaskType = taskType.clone();
+			updateTask(dto, task);
 
-			LOGGER.trace("Saving task modifications.");
-			parentPage.getModelService().executeChanges(prepareChanges(updatedTask), null, operationTask, result);
+			final Collection<ObjectDelta<? extends ObjectType>> deltas = prepareChanges(originalTaskType, task.getTaskPrismObject().asObjectable());
+			//if (LOGGER.isTraceEnabled()) {
+				LOGGER.info("Saving task modifications:\n{}", DebugUtil.debugDump(deltas));
+			//}
+			parentPage.getModelService().executeChanges(deltas, null, operationTask, result);
 
 			result.recomputeStatus();
 		} catch (Exception ex) {
@@ -82,64 +86,44 @@ public class PageTaskController implements Serializable {
 		afterSave(target, result);
 	}
 
-	private List<ObjectDelta<? extends ObjectType>> prepareChanges(Task updatedTask) {
-		Collection<? extends ItemDelta<?,?>> modifications = updatedTask.getPendingModifications();
-		List<ObjectDelta<? extends ObjectType>> retval = new ArrayList<>();
-		retval.add(ObjectDelta.createModifyDelta(updatedTask.getOid(), modifications, TaskType.class, parentPage.getPrismContext()));
-		return retval;
+	private List<ObjectDelta<? extends ObjectType>> prepareChanges(TaskType original, TaskType updated) {
+		ObjectDelta<TaskType> delta = original.asPrismObject().diff(updated.asPrismObject());
+		return Collections.<ObjectDelta<? extends ObjectType>>singletonList(delta);
 	}
 
 	private Task updateTask(TaskDto dto, Task existingTask) throws SchemaException {
 
-		if (!existingTask.getName().equals(dto.getName())) {
-			existingTask.setName(WebComponentUtil.createPolyFromOrigString(dto.getName()));
-		}   // if they are equal, modifyObject complains ... it's probably a bug in repo; we'll fix it later?
-
-		if ((existingTask.getDescription() == null && dto.getDescription() != null) ||
-				(existingTask.getDescription() != null && !existingTask.getDescription().equals(dto.getDescription()))) {
-			existingTask.setDescription(dto.getDescription());
-		}
+		existingTask.setName(WebComponentUtil.createPolyFromOrigString(dto.getName()));
+		existingTask.setDescription(dto.getDescription());
 
 		TaskAddResourcesDto resourceRefDto;
-		if(dto.getResource() != null){
-			resourceRefDto = dto.getResource();
+		if (dto.getResourceRef() != null) {
+			resourceRefDto = dto.getResourceRef();
 			ObjectReferenceType resourceRef = new ObjectReferenceType();
 			resourceRef.setOid(resourceRefDto.getOid());
 			resourceRef.setType(ResourceType.COMPLEX_TYPE);
 			existingTask.setObjectRef(resourceRef);
 		}
 
-		if (!dto.getRecurring()) {
-			existingTask.makeSingle();
-		}
-		existingTask.setBinding(dto.getBound() == true ? TaskBinding.TIGHT : TaskBinding.LOOSE);
-
 		ScheduleType schedule = new ScheduleType();
-
 		schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(dto.getNotStartBefore()));
 		schedule.setLatestStartTime(MiscUtil.asXMLGregorianCalendar(dto.getNotStartAfter()));
-		schedule.setMisfireAction(dto.getMisfire());
 		if (existingTask.getSchedule() != null) {
 			schedule.setLatestFinishTime(existingTask.getSchedule().getLatestFinishTime());
 		}
-
-		if (dto.getRecurring() == true) {
-
-			if (dto.getBound() == false && dto.getCronSpecification() != null) {
-				schedule.setCronLikePattern(dto.getCronSpecification());
-			} else {
-				schedule.setInterval(dto.getInterval());
-			}
-			existingTask.makeRecurring(schedule);
+		schedule.setMisfireAction(dto.getMisfireActionType());
+		if (!dto.isBound() && dto.getCronSpecification() != null) {
+			schedule.setCronLikePattern(dto.getCronSpecification());
 		} else {
-			existingTask.makeSingle(schedule);
+			schedule.setInterval(dto.getInterval());
 		}
-
-		ThreadStopActionType tsa = dto.getThreadStop();
-		//        if (tsa == null) {
-		//            tsa = dto.getRunUntilNodeDown() ? ThreadStopActionType.CLOSE : ThreadStopActionType.RESTART;
-		//        }
-		existingTask.setThreadStopAction(tsa);
+		if (!dto.isRecurring()) {
+			existingTask.makeSingle(schedule);
+		} else {
+			existingTask.makeRecurring(schedule);
+		}
+		existingTask.setBinding(dto.isBound() ? TaskBinding.TIGHT : TaskBinding.LOOSE);
+		existingTask.setThreadStopAction(dto.getThreadStopActionType());
 
 		SchemaRegistry registry = parentPage.getPrismContext().getSchemaRegistry();
 		if (dto.isDryRun()) {
@@ -166,7 +150,7 @@ public class PageTaskController implements Serializable {
 		} else {
 			PrismProperty kind = existingTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_KIND);
 
-			if(kind != null){
+			if (kind != null) {
 				existingTask.deleteExtensionProperty(kind);
 			}
 		}
@@ -186,7 +170,7 @@ public class PageTaskController implements Serializable {
 			}
 		}
 
-		if(dto.getObjectClass() != null && StringUtils.isNotEmpty(dto.getObjectClass())){
+		if (dto.getObjectClass() != null && StringUtils.isNotEmpty(dto.getObjectClass())) {
 			PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.OBJECTCLASS_PROPERTY_NAME);
 			PrismProperty objectClassProperty = new PrismProperty(SchemaConstants.OBJECTCLASS_PROPERTY_NAME);
 			objectClassProperty.setRealValue(def);
@@ -223,7 +207,6 @@ public class PageTaskController implements Serializable {
 				existingTask.deleteExtensionProperty(workerThreads);
 			}
 		}
-
 
 		return existingTask;
 	}

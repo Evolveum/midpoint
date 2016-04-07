@@ -68,7 +68,9 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 				TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
 				String icon = getIconForExecutionStatus(status);
 				setIconCssClass(icon);
-				setLabel(PageBase.createStringResourceStatic(TaskSummaryPanel.this, status).getString());
+				if (status != null) {
+					setLabel(PageBase.createStringResourceStatic(TaskSummaryPanel.this, status).getString());
+				}
 				// TODO setColor
 			}
 		};
@@ -80,7 +82,9 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 				OperationResultStatusType resultStatus = taskObject.asObjectable().getResultStatus();
 				String icon = OperationResultStatusIcon.parseOperationalResultStatus(resultStatus).getIcon();
 				setIconCssClass(icon);
-				setLabel(PageBase.createStringResourceStatic(TaskSummaryPanel.this, resultStatus).getString());
+				if (resultStatus != null) {
+					setLabel(PageBase.createStringResourceStatic(TaskSummaryPanel.this, resultStatus).getString());
+				}
 				// TODO setColor
 			}
 		};
@@ -129,6 +133,9 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	}
 
 	private String getIconForExecutionStatus(TaskDtoExecutionStatus status) {
+		if (status == null) {
+			return "fa fa-fw fa-question-circle fa-lg text-warning";
+		}
 		switch (status) {
 			case RUNNING: return "fa fa-fw fa-lg fa-spinner";
 			case RUNNABLE: return "fa fa-fw fa-lg fa-hand-o-up";
@@ -192,6 +199,8 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 						rv += " " + getString("TaskSummaryPanel.progressIfClosed");
 					} else if (parentPage.isWaiting()) {
 						rv += " " + getString("TaskSummaryPanel.progressIfWaiting");
+					} else if (parentPage.getTaskDto().getStalledSince() != null) {
+						rv += " " + getString("TaskSummaryPanel.progressIfStalled", WebComponentUtil.formatDate(new Date(parentPage.getTaskDto().getStalledSince())));
 					}
 					return rv;
 				}

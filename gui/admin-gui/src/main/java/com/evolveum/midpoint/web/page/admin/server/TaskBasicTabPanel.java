@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
@@ -27,11 +28,13 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.form.TextArea;
@@ -43,6 +46,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -56,17 +60,26 @@ import java.util.Date;
 public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implements TaskTabPanel {
 	private static final long serialVersionUID = 1L;
 
-	private static final String ID_NAME = "name";
+	private static final String ID_NAME_CONTAINER = "nameContainer";
+	private static final String ID_NAME_INPUT = "nameInput";
 	private static final String ID_NAME_LABEL = "nameLabel";
-	private static final String ID_DESCRIPTION = "description";
+	private static final String ID_DESCRIPTION_CONTAINER = "descriptionContainer";
+	private static final String ID_DESCRIPTION_INPUT = "descriptionInput";
 	private static final String ID_DESCRIPTION_LABEL = "descriptionLabel";
 	private static final String ID_OID = "oid";
+	private static final String ID_IDENTIFIER_CONTAINER = "identifierContainer";
 	private static final String ID_IDENTIFIER = "identifier";
+	private static final String ID_CATEGORY_CONTAINER = "categoryContainer";
 	private static final String ID_CATEGORY = "category";
+	private static final String ID_PARENT_CONTAINER = "parentContainer";
 	private static final String ID_PARENT = "parent";
-	private static final String ID_HANDLER_URI_LIST = "handlerUriList";
+	private static final String ID_OWNER_CONTAINER = "ownerContainer";
+	private static final String ID_OWNER = "owner";
+	private static final String ID_HANDLER_URI_CONTAINER = "handlerUriContainer";
 	private static final String ID_HANDLER_URI = "handlerUri";
+	private static final String ID_EXECUTION_CONTAINER = "executionContainer";
 	private static final String ID_EXECUTION = "execution";
+
 	private static final String ID_NODE = "node";
 
 	private static final String ID_WORK_TO_DO = "workToDoPanel";
@@ -90,46 +103,51 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 	
 	private void initLayoutBasic() {
 
-		final VisibleEnableBehaviour visibleIfEdit = new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return parentPage.isEdit();
-			}
-		};
-		final VisibleEnableBehaviour visibleIfView = new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return !parentPage.isEdit();
-			}
-		};
-
-		RequiredTextField<String> name = new RequiredTextField<>(ID_NAME, new PropertyModel<String>(taskDtoModel, TaskDto.F_NAME));
-		name.add(visibleIfEdit);
+		// Name
+		WebMarkupContainer nameContainer = new WebMarkupContainer(ID_NAME_CONTAINER);
+		RequiredTextField<String> name = new RequiredTextField<>(ID_NAME_INPUT, new PropertyModel<String>(taskDtoModel, TaskDto.F_NAME));
+		name.add(parentPage.createVisibleIfEdit(new ItemPath(TaskType.F_NAME)));
 		name.add(new AttributeModifier("style", "width: 100%"));
 		name.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-		add(name);
-
+		nameContainer.add(name);
 		Label nameLabel = new Label(ID_NAME_LABEL, new PropertyModel(taskDtoModel, TaskDto.F_NAME));
-		nameLabel.add(visibleIfView);
-		add(nameLabel);
+		nameLabel.add(parentPage.createVisibleIfView(new ItemPath(TaskType.F_NAME)));
+		nameContainer.add(nameLabel);
+		nameContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_NAME)));
+		add(nameContainer);
 
-		TextArea<String> description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(taskDtoModel, TaskDto.F_DESCRIPTION));
-		description.add(visibleIfEdit);
+		// Description
+		WebMarkupContainer descriptionContainer = new WebMarkupContainer(ID_DESCRIPTION_CONTAINER);
+		TextArea<String> description = new TextArea<>(ID_DESCRIPTION_INPUT, new PropertyModel<String>(taskDtoModel, TaskDto.F_DESCRIPTION));
+		description.add(parentPage.createVisibleIfEdit(new ItemPath(TaskType.F_DESCRIPTION)));
 		//        description.add(new AttributeModifier("style", "width: 100%"));
 		//        description.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-		add(description);
-
+		descriptionContainer.add(description);
 		Label descriptionLabel = new Label(ID_DESCRIPTION_LABEL, new PropertyModel(taskDtoModel, TaskDto.F_DESCRIPTION));
-		descriptionLabel.add(visibleIfView);
-		add(descriptionLabel);
+		descriptionLabel.add(parentPage.createVisibleIfView(new ItemPath(TaskType.F_DESCRIPTION)));
+		descriptionContainer.add(descriptionLabel);
+		descriptionContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_DESCRIPTION)));
+		add(descriptionContainer);
 
+		// OID
 		Label oid = new Label(ID_OID, new PropertyModel(getObjectWrapperModel(), ID_OID));
 		add(oid);
 
-		add(new Label(ID_IDENTIFIER, new PropertyModel(taskDtoModel, TaskDto.F_IDENTIFIER)));
-		add(new Label(ID_CATEGORY,
-				WebComponentUtil.createCategoryNameModel(this, new PropertyModel(taskDtoModel, TaskDto.F_CATEGORY))));
+		// Identifier
+		WebMarkupContainer identifierContainer = new WebMarkupContainer(ID_IDENTIFIER_CONTAINER);
+		identifierContainer.add(new Label(ID_IDENTIFIER, new PropertyModel(taskDtoModel, TaskDto.F_IDENTIFIER)));
+		identifierContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_TASK_IDENTIFIER)));
+		add(identifierContainer);
 
+		// Category
+		WebMarkupContainer categoryContainer = new WebMarkupContainer(ID_CATEGORY_CONTAINER);
+		categoryContainer.add(new Label(ID_CATEGORY,
+				WebComponentUtil.createCategoryNameModel(this, new PropertyModel(taskDtoModel, TaskDto.F_CATEGORY))));
+		categoryContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_CATEGORY)));
+		add(categoryContainer);
+
+		// Parent
+		WebMarkupContainer parentContainer = new WebMarkupContainer(ID_PARENT_CONTAINER);
 		final LinkPanel parent = new LinkPanel(ID_PARENT, new PropertyModel<>(taskDtoModel, TaskDto.F_PARENT_TASK_NAME)) {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
@@ -141,16 +159,39 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 				}
 			}
 		};
-		add(parent);
+		parentContainer.add(parent);
+		parentContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_PARENT)));
+		add(parentContainer);
 
-		ListView<String> handlerUriList = new ListView<String>(ID_HANDLER_URI_LIST, new PropertyModel(taskDtoModel, TaskDto.F_HANDLER_URI_LIST)) {
+		// Owner
+		WebMarkupContainer ownerContainer = new WebMarkupContainer(ID_OWNER_CONTAINER);
+		final LinkPanel owner = new LinkPanel(ID_OWNER, new PropertyModel<>(taskDtoModel, TaskDto.F_OWNER_NAME)) {
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				String oid = taskDtoModel.getObject().getOwnerOid();
+				if (oid != null) {
+					PageParameters parameters = new PageParameters();
+					parameters.add(OnePageParameterEncoder.PARAMETER, oid);
+					setResponsePage(new PageUser(parameters, parentPage));
+				}
+			}
+		};
+		ownerContainer.add(owner);
+		ownerContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_OWNER_REF)));
+		add(ownerContainer);
+
+		// Handler URI
+		ListView<String> handlerUriContainer = new ListView<String>(ID_HANDLER_URI_CONTAINER, new PropertyModel(taskDtoModel, TaskDto.F_HANDLER_URI_LIST)) {
 			@Override
 			protected void populateItem(ListItem<String> item) {
 				item.add(new Label(ID_HANDLER_URI, item.getModelObject()));
 			}
 		};
-		add(handlerUriList);
+		handlerUriContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_HANDLER_URI), new ItemPath(TaskType.F_OTHER_HANDLERS_URI_STACK)));
+		add(handlerUriContainer);
 
+		// Execution
+		WebMarkupContainer executionContainer = new WebMarkupContainer(ID_EXECUTION_CONTAINER);
 		Label execution = new Label(ID_EXECUTION, new AbstractReadOnlyModel<String>() {
 
 			@Override
@@ -173,8 +214,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 				}
 			}
 		});
-		add(execution);
-
+		executionContainer.add(execution);
 		Label node = new Label(ID_NODE, new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
@@ -185,7 +225,9 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 				return parentPage.getString("pageTaskEdit.message.node", dto.getExecutingAt());
 			}
 		});
-		add(node);
+		executionContainer.add(node);
+		executionContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_EXECUTION_STATUS), new ItemPath(TaskType.F_NODE_AS_OBSERVED)));
+		add(executionContainer);
 
 	}
 

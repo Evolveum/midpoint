@@ -22,7 +22,6 @@ import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.progress.StatisticsDtoModel;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEditOld;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
@@ -32,9 +31,9 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.*;
-
-import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
 
 /**
  * @author mederly
@@ -406,15 +405,4 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
         return (finished - started) / objectsTotal;
     }
 
-    public void refreshModel(PageTaskEditOld page) {
-        IModel<TaskCurrentStateDto> model = getModel();
-        if (!(model instanceof TaskCurrentStateDtoModel)) {
-            LOGGER.warn("Unexpected or null model for TaskCurrentStateDto object: {}", model);
-            return;
-        }
-        ((TaskCurrentStateDtoModel) model).refresh(page);
-        if (statisticsDtoModel != null) {
-            statisticsDtoModel.invalidateCache();
-        }
-    }
 }

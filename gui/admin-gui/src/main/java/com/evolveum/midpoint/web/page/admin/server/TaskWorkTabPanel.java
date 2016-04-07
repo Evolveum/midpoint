@@ -140,7 +140,7 @@ public class TaskWorkTabPanel extends AbstractObjectTabPanel<TaskType> implement
 		objectRefContainer.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return getTaskDto().getObjectRef() != null && !parentPage.configuresResourceCoordinates();
+				return getTaskDto().getObjectRefOid() != null && !parentPage.configuresResourceCoordinates();
 			}
 		});
 		add(objectRefContainer);
@@ -188,7 +188,7 @@ public class TaskWorkTabPanel extends AbstractObjectTabPanel<TaskType> implement
 				OperationResult result = task.getResult();
 				List<QName> objectClassList = new ArrayList<>();
 
-				TaskAddResourcesDto resourcesDto = taskDtoModel.getObject().getResource();
+				TaskAddResourcesDto resourcesDto = taskDtoModel.getObject().getResourceRef();
 
 				if(resourcesDto != null){
 					PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class,
@@ -381,7 +381,7 @@ public class TaskWorkTabPanel extends AbstractObjectTabPanel<TaskType> implement
 	private Iterator<String> prepareObjectClassChoiceList(String input){
 		List<String> choices = new ArrayList<>();
 
-		if(taskDtoModel.getObject().getResource() == null){
+		if(taskDtoModel.getObject().getResourceRef() == null){
 			return choices.iterator();
 		}
 

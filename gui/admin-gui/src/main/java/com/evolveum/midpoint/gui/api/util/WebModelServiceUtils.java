@@ -69,15 +69,22 @@ public class WebModelServiceUtils {
     private static final String OPERATION_LOAD_OBJECT_REFS = DOT_CLASS + "loadObjectReferences";
 
     public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, Task task, OperationResult result) {
-        PrismObject<ObjectType> object = resolveReference(ref, page, task, result);
+		if (ref == null) {
+			return null;
+		}
+		if (ref.getTargetName() != null) {
+			return ref.getTargetName().getOrig();
+		}
+        PrismObject<ObjectType> object = resolveReferenceRaw(ref, page, task, result);
         if (object == null) {
             return ref.getOid();
         } else {
+			ref.asReferenceValue().setObject(object);
             return WebComponentUtil.getName(object);
         }
     }
 
-    public static <T extends ObjectType> PrismObject<T> resolveReference(ObjectReferenceType reference, PageBase page, Task task, OperationResult result) {
+    public static <T extends ObjectType> PrismObject<T> resolveReferenceRaw(ObjectReferenceType reference, PageBase page, Task task, OperationResult result) {
         if (reference == null) {
             return null;
         }
@@ -94,7 +101,8 @@ public class WebModelServiceUtils {
             LOGGER.error("No definition for {} was found", reference.getType());
             return null;
         }
-        return loadObject(definition.getCompileTimeClass(), reference.getOid(), page, task, result);
+        return loadObject(definition.getCompileTimeClass(), reference.getOid(),
+				SelectorOptions.createCollection(GetOperationOptions.createRaw()), page, task, result);
     }
     
     public static <O extends ObjectType> List<ObjectReferenceType> createObjectReferenceList(Class<O> type, PageBase page, Map<String, String> referenceMap){
