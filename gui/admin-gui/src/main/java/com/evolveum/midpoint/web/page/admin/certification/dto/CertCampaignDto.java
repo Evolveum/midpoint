@@ -23,8 +23,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
@@ -35,9 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import static com.evolveum.midpoint.gui.api.page.PageBase.createEnumResourceKey;
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
-
-import java.io.Serializable;
-import java.util.List;
 
 /**
  * @author mederly
@@ -72,7 +67,7 @@ public class CertCampaignDto extends Selectable {
         if (ownerRef == null) {
             return null;
         }
-        PrismObject<? extends ObjectType> ownerObject = WebModelServiceUtils.resolveReference(ownerRef, page, task, result);
+        PrismObject<? extends ObjectType> ownerObject = WebModelServiceUtils.resolveReferenceRaw(ownerRef, page, task, result);
         if (ownerObject == null) {
             return null;
         }

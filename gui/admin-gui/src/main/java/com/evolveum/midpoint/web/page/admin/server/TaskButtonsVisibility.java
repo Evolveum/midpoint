@@ -27,7 +27,10 @@ class TaskButtonsVisibility implements Serializable {
     }
 
     public boolean computeEditVisible(PageTaskEdit parentPage) {
-        editVisible = !parentPage.isEdit() && (!parentPage.isWorkflow() || parentPage.isShowAdvanced());
+        editVisible =
+				!parentPage.isEdit()
+						&& parentPage.isEditable()
+						&& (!parentPage.isWorkflow() || parentPage.isShowAdvanced());
         return editVisible;
     }
 

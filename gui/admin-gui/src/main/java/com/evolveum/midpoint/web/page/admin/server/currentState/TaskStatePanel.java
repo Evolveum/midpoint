@@ -28,7 +28,6 @@ import com.evolveum.midpoint.web.component.progress.StatisticsPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEditOld;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
@@ -45,14 +44,9 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.*;
 
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author mederly
@@ -612,18 +606,5 @@ public class TaskStatePanel extends SimplePanel<TaskCurrentStateDto> {
         columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.status"), "status"));
         columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.message"), "message"));
         return columns;
-    }
-
-
-    public void refreshModel(PageTaskEditOld page) {
-        IModel<TaskCurrentStateDto> model = getModel();
-        if (!(model instanceof TaskCurrentStateDtoModel)) {
-            LOGGER.warn("Unexpected or null model for TaskCurrentStateDto object: {}", model);
-            return;
-        }
-        ((TaskCurrentStateDtoModel) model).refresh(page);
-        if (statisticsDtoModel != null) {
-            statisticsDtoModel.invalidateCache();
-        }
     }
 }

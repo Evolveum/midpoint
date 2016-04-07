@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateInput;
@@ -57,10 +58,20 @@ import java.util.Date;
 public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> implements TaskTabPanel {
 	private static final long serialVersionUID = 1L;
 
-
 	private static final Trace LOGGER = TraceManager.getTrace(TaskSchedulingTabPanel.class);
 
+	public static final String ID_LAST_STARTED_CONTAINER = "lastStartedContainer";
+	public static final String ID_LAST_STARTED = "lastStarted";
+	public static final String ID_LAST_STARTED_AGO = "lastStartedAgo";
+	public static final String ID_LAST_FINISHED_CONTAINER = "lastFinishedContainer";
+	public static final String ID_LAST_FINISHED = "lastFinished";
+	public static final String ID_LAST_FINISHED_AGO = "lastFinishedAgo";
+	public static final String ID_NEXT_RUN_CONTAINER = "nextRunContainer";
+	public static final String ID_NEXT_RUN = "nextRun";
+	public static final String ID_NEXT_RUN_IN = "nextRunIn";
+
 	public static final String ID_SCHEDULING_TABLE = "schedulingTable";
+	public static final String ID_RECURRING_CONTAINER = "recurringContainer";
 	public static final String ID_RECURRING_CHECK = "recurringCheck";
 	public static final String ID_SUSPEND_REQ_RECURRING = "suspendReqRecurring";
 	//public static final String ID_RECURRENT_TASKS_CONTAINER = "recurrentTasksContainer";
@@ -73,15 +84,14 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 	public static final String ID_INTERVAL = "interval";
 	public static final String ID_CRON = "cron";
 	public static final String ID_CRON_HELP = "cronHelp";
+	public static final String ID_NOT_START_BEFORE_CONTAINER = "notStartBeforeContainer";
 	public static final String ID_NOT_START_BEFORE_FIELD = "notStartBeforeField";
+	public static final String ID_NOT_START_AFTER_CONTAINER = "notStartAfterContainer";
 	public static final String ID_NOT_START_AFTER_FIELD = "notStartAfterField";
+	public static final String ID_MISFIRE_ACTION_CONTAINER = "misfireActionContainer";
 	public static final String ID_MISFIRE_ACTION = "misfireAction";
-	public static final String ID_LAST_STARTED = "lastStarted";
-	public static final String ID_LAST_STARTED_AGO = "lastStartedAgo";
-	public static final String ID_LAST_FINISHED = "lastFinished";
-	public static final String ID_LAST_FINISHED_AGO = "lastFinishedAgo";
-	public static final String ID_NEXT_RUN = "nextRun";
-	public static final String ID_NEXT_RUN_IN = "nextRunIn";
+	public static final String ID_THREAD_STOP_CONTAINER = "threadStopContainer";
+	public static final String ID_THREAD_STOP = "threadStop";
 
 	private PageTaskEdit parentPage;
 	private IModel<TaskDto> taskDtoModel;
@@ -98,6 +108,9 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 	}
 
 	private void initLayoutForInfoPanel() {
+
+		// last start
+		WebMarkupContainer lastStartedContainer = new WebMarkupContainer(ID_LAST_STARTED_CONTAINER);
 		Label lastStart = new Label(ID_LAST_STARTED, new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
@@ -109,7 +122,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 				}
 			}
 		});
-		add(lastStart);
+		lastStartedContainer.add(lastStart);
 
 		Label lastStartAgo = new Label(ID_LAST_STARTED_AGO, new AbstractReadOnlyModel<String>() {
 			@Override
@@ -123,8 +136,12 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 				}
 			}
 		});
-		add(lastStartAgo);
+		lastStartedContainer.add(lastStartAgo);
+		lastStartedContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_LAST_RUN_START_TIMESTAMP));
+		add(lastStartedContainer);
 
+		// last finish
+		WebMarkupContainer lastFinishedContainer = new WebMarkupContainer(ID_LAST_FINISHED_CONTAINER);
 		Label lastFinished = new Label(ID_LAST_FINISHED, new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
@@ -136,7 +153,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 				}
 			}
 		});
-		add(lastFinished);
+		lastFinishedContainer.add(lastFinished);
 
 		Label lastFinishedAgo = new Label(ID_LAST_FINISHED_AGO, new AbstractReadOnlyModel<String>() {
 			@Override
@@ -163,13 +180,16 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 				}
 			}
 		});
-		add(lastFinishedAgo);
+		lastFinishedContainer.add(lastFinishedAgo);
+		lastFinishedContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_LAST_RUN_FINISH_TIMESTAMP));
+		add(lastFinishedContainer);
 
+		WebMarkupContainer nextRunContainer = new WebMarkupContainer(ID_NEXT_RUN_CONTAINER);
 		Label nextRun = new Label(ID_NEXT_RUN, new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
 				TaskDto dto = taskDtoModel.getObject();
-				if (dto.getRecurring() && dto.getBound() && parentPage.isRunning()) {
+				if (dto.isRecurring() && dto.isBound() && parentPage.isRunning()) {
 					return getString("pageTasks.runsContinually");
 				} else if (dto.getNextRunStartTimeLong() == null) {
 					return "-";
@@ -178,13 +198,13 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 				}
 			}
 		});
-		add(nextRun);
+		nextRunContainer.add(nextRun);
 
 		Label nextRunIn = new Label(ID_NEXT_RUN_IN, new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
 				TaskDto dto = taskDtoModel.getObject();
-				if (dto.getNextRunStartTimeLong() == null || (dto.getRecurring() && dto.getBound() && parentPage.isRunning())) {
+				if (dto.getNextRunStartTimeLong() == null || (dto.isRecurring() && dto.isBound() && parentPage.isRunning())) {
 					return "";
 				} else {
 					long currentTime = System.currentTimeMillis();
@@ -197,15 +217,16 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 				}
 			}
 		});
-		add(nextRunIn);
-
+		nextRunContainer.add(nextRunIn);
+		nextRunContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_NEXT_RUN_START_TIMESTAMP));
+		add(nextRunContainer);
 	}
 	
 	private void initLayoutForSchedulingTable() {
 
 		// models
-		final IModel<Boolean> recurringCheckModel = new PropertyModel<>(taskDtoModel, TaskDto.RECURRING);
-		final IModel<Boolean> boundCheckModel = new PropertyModel<Boolean>(taskDtoModel, TaskDto.BOUND);
+		final IModel<Boolean> recurringCheckModel = new PropertyModel<>(taskDtoModel, TaskDto.F_RECURRING);
+		final IModel<Boolean> boundCheckModel = new PropertyModel<Boolean>(taskDtoModel, TaskDto.F_BOUND);
 
 		// behaviors
 		final VisibleEnableBehaviour visibleIfEditAndRunnableOrRunning = new VisibleEnableBehaviour() {
@@ -214,40 +235,41 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 				return parentPage.isEdit() && parentPage.isRunnableOrRunning();
 			}
 		};
-		final VisibleEnableBehaviour enabledIfEditAndNotRunnableOrRunning = new VisibleEnableBehaviour() {
-			@Override
-			public boolean isEnabled() {
-				return parentPage.isEdit() && !parentPage.isRunnableOrRunning();
-			}
-		};
-		final VisibleEnableBehaviour visibleIfRecurring = new VisibleEnableBehaviour() {
+		final VisibleEnableBehaviour visibleIfRecurringAndScheduleIsAccessible = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return recurringCheckModel.getObject();
+				return recurringCheckModel.getObject() && parentPage.isReadable(new ItemPath(TaskType.F_SCHEDULE));
 			}
 		};
-		final VisibleEnableBehaviour visibleIfRecurringAndLooselyBound = new VisibleEnableBehaviour() {
+		final VisibleEnableBehaviour visibleIfRecurringAndLooselyBoundAndScheduleIsAccessible = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return recurringCheckModel.getObject() && !boundCheckModel.getObject();
+				return recurringCheckModel.getObject() && !boundCheckModel.getObject() && parentPage.isReadable(new ItemPath(TaskType.F_SCHEDULE));
 			}
 		};
-		final VisibleEnableBehaviour enabledIfEditAndNotRunningRunnableOrLooselyBound = new VisibleEnableBehaviour() {
+		final VisibleEnableBehaviour enabledIfEditAndNotRunningRunnableOrLooselyBoundAndScheduleIsEditable = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isEnabled() {
-				return parentPage.isEdit() && (!parentPage.isRunnableOrRunning() || !boundCheckModel.getObject());
+				return parentPage.isEdit() && (!parentPage.isRunnableOrRunning() || !boundCheckModel.getObject())
+						&& parentPage.isEditable(new ItemPath(TaskType.F_SCHEDULE));
 			}
 		};
-		final VisibleEnableBehaviour enabledIfEditAndNotRunning = new VisibleEnableBehaviour() {
+		final VisibleEnableBehaviour enabledIfEditAndNotRunningAndScheduleIsEditable = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isEnabled() {
-				return parentPage.isEdit() && !parentPage.isRunning();
+				return parentPage.isEdit() && !parentPage.isRunning() && parentPage.isEditable(new ItemPath(TaskType.F_SCHEDULE));
 			}
 		};
-		final VisibleEnableBehaviour enabledIfEdit = new VisibleEnableBehaviour() {
+		final VisibleEnableBehaviour enabledIfEditAndScheduleIsEditable = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isEnabled() {
-				return parentPage.isEdit();
+				return parentPage.isEdit() && parentPage.isEditable(new ItemPath(TaskType.F_SCHEDULE));
+			}
+		};
+		final VisibleEnableBehaviour enabledIfEditAndThreadStopIsEditable = new VisibleEnableBehaviour() {
+			@Override
+			public boolean isEnabled() {
+				return parentPage.isEdit() && parentPage.isEditable(new ItemPath(TaskType.F_THREAD_STOP_ACTION));
 			}
 		};
 
@@ -256,6 +278,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		schedulingTable.setOutputMarkupId(true);
 		add(schedulingTable);
 
+		WebMarkupContainer recurringContainer = new WebMarkupContainer(ID_RECURRING_CONTAINER);
 		AjaxCheckBox recurringCheck = new AjaxCheckBox(ID_RECURRING_CHECK, recurringCheckModel) {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
@@ -263,17 +286,22 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 			}
 		};
 		recurringCheck.setOutputMarkupId(true);
-		recurringCheck.add(enabledIfEditAndNotRunnableOrRunning);
-		schedulingTable.add(recurringCheck);
+		recurringCheck.add(new VisibleEnableBehaviour() {
+							   @Override
+							   public boolean isEnabled() {
+								   return parentPage.isEdit() && !parentPage.isRunnableOrRunning() && parentPage.isEditable(TaskType.F_RECURRENCE);
+							   }
+						   });
+		recurringContainer.add(recurringCheck);
 
 		WebMarkupContainer suspendReqRecurring = new WebMarkupContainer(ID_SUSPEND_REQ_RECURRING);
 		suspendReqRecurring.add(visibleIfEditAndRunnableOrRunning);
-		schedulingTable.add(suspendReqRecurring);
+		recurringContainer.add(suspendReqRecurring);
+		recurringContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_RECURRENCE));
+		schedulingTable.add(recurringContainer);
 
 		final WebMarkupContainer boundContainer = new WebMarkupContainer(ID_BOUND_CONTAINER);
-		boundContainer.add(visibleIfRecurring);
 		boundContainer.setOutputMarkupId(true);
-		schedulingTable.add(boundContainer);
 
 		final AjaxCheckBox bound = new AjaxCheckBox(ID_BOUND_CHECK, boundCheckModel) {
 			@Override
@@ -281,73 +309,96 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 				target.add(schedulingTable);
 			}
 		};
-		bound.add(enabledIfEditAndNotRunnableOrRunning);
+		bound.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isEnabled() {
+				return parentPage.isEdit() && !parentPage.isRunnableOrRunning() && parentPage.isEditable(TaskType.F_BINDING);
+			}
+		});
 		boundContainer.add(bound);
 
 		WebMarkupContainer suspendReqBound = new WebMarkupContainer(ID_SUSPEND_REQ_BOUND);
 		suspendReqBound.add(visibleIfEditAndRunnableOrRunning);
 		boundContainer.add(suspendReqBound);
-
-		final WebMarkupContainer intervalContainer = new WebMarkupContainer(ID_INTERVAL_CONTAINER);
-		intervalContainer.add(visibleIfRecurring);
-		intervalContainer.setOutputMarkupId(true);
-		schedulingTable.add(intervalContainer);
-
-		final WebMarkupContainer cronContainer = new WebMarkupContainer(ID_CRON_CONTAINER);
-		cronContainer.add(visibleIfRecurringAndLooselyBound);
-		cronContainer.setOutputMarkupId(true);
-		schedulingTable.add(cronContainer);
-
+		boundContainer.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return recurringCheckModel.getObject() && parentPage.isReadable(new ItemPath(TaskType.F_BINDING));
+			}
+		});
 		Label boundHelp = new Label(ID_BOUND_HELP);
 		boundHelp.add(new InfoTooltipBehavior());
 		boundContainer.add(boundHelp);
+		schedulingTable.add(boundContainer);
+
+		final WebMarkupContainer intervalContainer = new WebMarkupContainer(ID_INTERVAL_CONTAINER);
+		intervalContainer.add(visibleIfRecurringAndScheduleIsAccessible);
+		intervalContainer.setOutputMarkupId(true);
+		schedulingTable.add(intervalContainer);
 
 		TextField<Integer> interval = new TextField<>(ID_INTERVAL, new PropertyModel<Integer>(taskDtoModel, TaskDto.F_INTERVAL));
 		interval.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-		interval.add(enabledIfEditAndNotRunningRunnableOrLooselyBound);
+		interval.add(enabledIfEditAndNotRunningRunnableOrLooselyBoundAndScheduleIsEditable);
 		intervalContainer.add(interval);
+
+		final WebMarkupContainer cronContainer = new WebMarkupContainer(ID_CRON_CONTAINER);
+		cronContainer.add(visibleIfRecurringAndLooselyBoundAndScheduleIsAccessible);
+		cronContainer.setOutputMarkupId(true);
+		schedulingTable.add(cronContainer);
 
 		TextField<String> cron = new TextField<>(ID_CRON, new PropertyModel<String>(taskDtoModel, TaskDto.CRON_SPECIFICATION));
 		cron.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-		cron.add(enabledIfEditAndNotRunningRunnableOrLooselyBound);
+		cron.add(enabledIfEditAndNotRunningRunnableOrLooselyBoundAndScheduleIsEditable);
 		cronContainer.add(cron);
 
 		Label cronHelp = new Label(ID_CRON_HELP);
 		cronHelp.add(new InfoTooltipBehavior());
 		cronContainer.add(cronHelp);
 
+		WebMarkupContainer notStartBeforeContainer = new WebMarkupContainer(ID_NOT_START_BEFORE_CONTAINER);
 		DateInput notStartBefore = new DateInput(ID_NOT_START_BEFORE_FIELD, new PropertyModel<Date>(taskDtoModel, TaskDto.F_NOT_START_BEFORE));
 		notStartBefore.setOutputMarkupId(true);
-		notStartBefore.add(enabledIfEditAndNotRunning);
-		schedulingTable.add(notStartBefore);
+		notStartBefore.add(enabledIfEditAndNotRunningAndScheduleIsEditable);
+		notStartBeforeContainer.add(notStartBefore);
+		notStartBeforeContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_SCHEDULE));
+		schedulingTable.add(notStartBeforeContainer);
 
+		WebMarkupContainer notStartAfterContainer = new WebMarkupContainer(ID_NOT_START_AFTER_CONTAINER);
 		DateInput notStartAfter = new DateInput(ID_NOT_START_AFTER_FIELD, new PropertyModel<Date>(taskDtoModel, TaskDto.F_NOT_START_AFTER));
 		notStartAfter.setOutputMarkupId(true);
-		notStartAfter.add(enabledIfEdit);
-		schedulingTable.add(notStartAfter);
+		notStartAfter.add(enabledIfEditAndNotRunningAndScheduleIsEditable);
+		notStartAfterContainer.add(notStartAfter);
+		notStartAfterContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_SCHEDULE));
+		schedulingTable.add(notStartAfterContainer);
 
+		WebMarkupContainer misfireActionContainer = new WebMarkupContainer(ID_MISFIRE_ACTION_CONTAINER);
 		DropDownChoice misfire = new DropDownChoice(ID_MISFIRE_ACTION,
 				new PropertyModel<MisfireActionType>(taskDtoModel, TaskDto.F_MISFIRE_ACTION),
 				WebComponentUtil.createReadonlyModelFromEnum(MisfireActionType.class),
 				new EnumChoiceRenderer<MisfireActionType>(parentPage));
-		misfire.add(enabledIfEdit);
-		schedulingTable.add(misfire);
+		misfire.add(enabledIfEditAndScheduleIsEditable);
+		misfireActionContainer.add(misfire);
+		misfireActionContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_SCHEDULE));
+		schedulingTable.add(misfireActionContainer);
 
-		DropDownChoice threadStop = new DropDownChoice<>("threadStop", new Model<ThreadStopActionType>() {
+		WebMarkupContainer threadStopContainer = new WebMarkupContainer(ID_THREAD_STOP_CONTAINER);
+		DropDownChoice threadStop = new DropDownChoice<>(ID_THREAD_STOP, new Model<ThreadStopActionType>() {
 
 			@Override
 			public ThreadStopActionType getObject() {
-				return taskDtoModel.getObject().getThreadStop();
+				return taskDtoModel.getObject().getThreadStopActionType();
 			}
 
 			@Override
 			public void setObject(ThreadStopActionType object) {
-				taskDtoModel.getObject().setThreadStop(object);
+				taskDtoModel.getObject().setThreadStopActionType(object);
 			}
 		}, WebComponentUtil.createReadonlyModelFromEnum(ThreadStopActionType.class),
 				new EnumChoiceRenderer<ThreadStopActionType>(parentPage));
-		threadStop.add(enabledIfEdit);
-		schedulingTable.add(threadStop);
+		threadStop.add(enabledIfEditAndThreadStopIsEditable);
+		threadStopContainer.add(threadStop);
+		threadStopContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_THREAD_STOP_ACTION));
+		schedulingTable.add(threadStopContainer);
 
 		//add(new StartEndDateValidator(notStartBefore, notStartAfter));
 		//add(new ScheduleValidator(parentPage.getTaskManager(), recurring, bound, interval, cron));

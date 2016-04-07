@@ -627,38 +627,38 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         };
     }
 
-    public static IColumn createTaskDetailColumn(final Component component, String label, boolean workflowsEnabled) {
-
-        if (workflowsEnabled) {
-
-            return new LinkColumn<TaskDto>(createStringResourceStatic(component, label), TaskDto.F_WORKFLOW_LAST_DETAILS) {
-
-                @Override
-                public void onClick(AjaxRequestTarget target, IModel<TaskDto> rowModel) {
-                    TaskDto task = rowModel.getObject();
-                    taskDetailsPerformed(target, task);
-                }
-
-                // todo display a message if process instance cannot be found
-                private void taskDetailsPerformed(AjaxRequestTarget target, TaskDto task) {
-                    if (task.getWorkflowProcessInstanceId() != null) {
-                        PageParameters parameters = new PageParameters();
-                        parameters.add(OnePageParameterEncoder.PARAMETER, task.getWorkflowProcessInstanceId());
-                        component.setResponsePage(new PageProcessInstance(parameters, (PageBase) component.getPage()));
-                    }
-                }
-
-            };
-        } else {
-            return new PropertyColumn(createStringResourceStatic(component, label), TaskDto.F_WORKFLOW_LAST_DETAILS);
-        }
-    }
+//    public static IColumn createTaskDetailColumn(final Component component, String label, boolean workflowsEnabled) {
+//
+//        if (workflowsEnabled) {
+//
+//            return new LinkColumn<TaskDto>(createStringResourceStatic(component, label), TaskDto.F_WORKFLOW_LAST_DETAILS) {
+//
+//                @Override
+//                public void onClick(AjaxRequestTarget target, IModel<TaskDto> rowModel) {
+//                    TaskDto task = rowModel.getObject();
+//                    taskDetailsPerformed(target, task);
+//                }
+//
+//                // todo display a message if process instance cannot be found
+//                private void taskDetailsPerformed(AjaxRequestTarget target, TaskDto task) {
+//                    if (task.getWorkflowProcessInstanceId() != null) {
+//                        PageParameters parameters = new PageParameters();
+//                        parameters.add(OnePageParameterEncoder.PARAMETER, task.getWorkflowProcessInstanceId());
+//                        component.setResponsePage(new PageProcessInstance(parameters, (PageBase) component.getPage()));
+//                    }
+//                }
+//
+//            };
+//        } else {
+//            return new PropertyColumn(createStringResourceStatic(component, label), TaskDto.F_WORKFLOW_LAST_DETAILS);
+//        }
+//    }
 
     private String createObjectRef(IModel<TaskDto> taskModel) {
         TaskDto task = taskModel.getObject();
 
         StringBuilder builder = new StringBuilder();
-        if (task.getObjectRef() == null) {
+        if (task.getObjectRefOid() == null) {
             return "";
         }
 
@@ -666,7 +666,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             builder.append(task.getObjectRefName());
         } else {
             //builder.append(createStringResource("pageTasks.unknownRefName").getString());
-            builder.append(task.getObjectRef().getOid());
+            builder.append(task.getObjectRefOid());
         }
         if (task.getObjectRefType() != null) {
             builder.append(" (");

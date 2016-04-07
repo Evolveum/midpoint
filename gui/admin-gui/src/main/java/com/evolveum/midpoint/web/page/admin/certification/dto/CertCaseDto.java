@@ -65,7 +65,7 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
             if (StringUtils.isNotEmpty(decision.getComment())) {
                 comments.add(decision.getComment());
             }
-            PrismObject<UserType> reviewerObject = WebModelServiceUtils.resolveReference(decision.getReviewerRef(), page, task, result);
+            PrismObject<UserType> reviewerObject = WebModelServiceUtils.resolveReferenceRaw(decision.getReviewerRef(), page, task, result);
             if (reviewerObject != null) {
                 reviewerNames.add(WebComponentUtil.getName(reviewerObject));
             }
@@ -73,7 +73,7 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
         List<String> names = new ArrayList<>();
         for (ObjectReferenceType reviewerRef : _case.getCurrentReviewerRef()) {
             // TODO optimize - don't resolve reviewers twice
-            PrismObject<UserType> reviewerObject = WebModelServiceUtils.resolveReference(reviewerRef, page, task, result);
+            PrismObject<UserType> reviewerObject = WebModelServiceUtils.resolveReferenceRaw(reviewerRef, page, task, result);
             if (reviewerObject != null) {
                 names.add(WebComponentUtil.getName(reviewerObject));
             }

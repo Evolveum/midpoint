@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -41,6 +43,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
 import com.evolveum.midpoint.web.component.refresh.Refreshable;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
@@ -50,11 +53,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import javax.xml.namespace.QName;
 import java.util.Collection;
 
 /**
@@ -71,8 +76,8 @@ import java.util.Collection;
 public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 	private static final int REFRESH_INTERVAL_IF_RUNNABLE = 2000;
-	private static final int REFRESH_INTERVAL_IF_SUSPENDED = 10000;
-	private static final int REFRESH_INTERVAL_IF_WAITING = 10000;
+	private static final int REFRESH_INTERVAL_IF_SUSPENDED = 60000;
+	private static final int REFRESH_INTERVAL_IF_WAITING = 60000;
 	private static final int REFRESH_INTERVAL_IF_CLOSED = 60000;
 
 	private static final String DOT_CLASS = PageTaskEdit.class.getName() + ".";
@@ -189,6 +194,9 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	@Override
 	public int getRefreshInterval() {
 		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
+		if (exec == null) {
+			return REFRESH_INTERVAL_IF_CLOSED;
+		}
 		switch (exec) {
 			case RUNNABLE:
 			case RUNNING:
@@ -298,6 +306,10 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return taskDtoModel;
 	}
 
+	public LoadableModel<ObjectWrapper<TaskType>> getObjectWrapperModel() {
+		return objectWrapperModel;
+	}
+
 	public TaskDto getTaskDto() {
 		return taskDtoModel.getObject();
 	}
@@ -394,7 +406,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	}
 
 	boolean isRecurring() {
-		return getTaskDto().getRecurring();
+		return getTaskDto().isRecurring();
 	}
 
 	public TaskSummaryPanel getSummaryPanel() {
@@ -443,5 +455,93 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 	public boolean isShowAdvanced() {
 		return showAdvancedFeaturesModel.getObject();
+	}
+
+	public VisibleEnableBehaviour createVisibleIfEdit(final ItemPath itemPath) {
+		return new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return isEdit() && isEditable(itemPath);
+			}
+		};
+	}
+
+	public VisibleEnableBehaviour createVisibleIfView(final ItemPath itemPath) {
+		return new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return isReadable(itemPath) && (!isEdit() || !isEditable(itemPath));
+			}
+		};
+	}
+
+	public VisibleEnableBehaviour createVisibleIfAccessible(QName... names) {
+		return createVisibleIfAccessible(ItemPath.asPathArray(names));
+	}
+
+	public VisibleEnableBehaviour createVisibleIfAccessible(final ItemPath... itemPaths) {
+		return new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				for (ItemPath itemPath : itemPaths) {
+					if (!isReadable(itemPath)) {
+						return false;
+					}
+				}
+				return true;
+			}
+		};
+	}
+
+	protected boolean isEditable() {
+		return isEditable(objectWrapperModel.getObject().getDefinition());
+	}
+
+	private boolean isEditable(ItemDefinition<?> definition) {
+		if (definition.canModify()) {
+			return true;
+		} else if (definition instanceof PrismContainerDefinition) {
+			for (ItemDefinition<?> subdef : ((PrismContainerDefinition<?>) definition).getDefinitions()) {
+				if (isEditable(subdef)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	protected boolean isEditable(QName name) {
+		return isEditable(new ItemPath(name));
+	}
+
+	protected boolean isEditable(ItemPath itemPath) {
+		ItemDefinition<?> itemDefinition = objectWrapperModel.getObject().getDefinition().findItemDefinition(itemPath);
+		if (itemDefinition != null) {
+			return itemDefinition.canRead() && itemDefinition.canModify();
+		} else {
+			return true;
+		}
+	}
+
+	protected boolean isReadable(ItemPath itemPath) {
+		ItemDefinition<?> itemDefinition = objectWrapperModel.getObject().getDefinition().findItemDefinition(itemPath);
+		if (itemDefinition != null) {
+			return itemDefinition.canRead();
+		} else {
+			return true;
+		}
+	}
+
+	public boolean isExtensionReadable(QName name) {
+		return isReadable(new ItemPath(TaskType.F_EXTENSION, name));
+	}
+
+	public boolean isReadableSomeOf(QName... names) {
+		for (QName name : names) {
+			if (isReadable(new ItemPath(name))) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
