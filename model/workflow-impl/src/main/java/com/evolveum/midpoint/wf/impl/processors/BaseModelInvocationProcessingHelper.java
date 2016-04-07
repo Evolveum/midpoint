@@ -18,9 +18,11 @@ package com.evolveum.midpoint.wf.impl.processors;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.tasks.WfTask;
@@ -29,9 +31,11 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.text.DateFormat;
@@ -60,7 +64,11 @@ public class BaseModelInvocationProcessingHelper {
     @Autowired
     private WfTaskUtil wfTaskUtil;
 
-    /**
+	@Autowired
+	@Qualifier("cacheRepositoryService")
+	private RepositoryService repositoryService;
+
+	/**
      * Creates a root job creation instruction.
      *
      * @param changeProcessor reference to the change processor responsible for the whole operation
@@ -70,7 +78,7 @@ public class BaseModelInvocationProcessingHelper {
      * @return the job creation instruction
      * @throws SchemaException
      */
-    public WfTaskCreationInstruction createInstructionForRoot(ChangeProcessor changeProcessor, ModelContext modelContext, Task taskFromModel, ModelContext contextForRoot) throws SchemaException {
+    public WfTaskCreationInstruction createInstructionForRoot(ChangeProcessor changeProcessor, ModelContext modelContext, Task taskFromModel, ModelContext contextForRoot, OperationResult result) throws SchemaException {
 
         WfTaskCreationInstruction instruction;
         if (contextForRoot != null) {
@@ -83,14 +91,16 @@ public class BaseModelInvocationProcessingHelper {
         instruction.setTaskObject(determineRootTaskObject(modelContext));
         instruction.setTaskOwner(taskFromModel.getOwner());
         instruction.setCreateTaskAsWaiting();
+
+		instruction.setRequesterRef(getRequester(taskFromModel, result));
         return instruction;
     }
 
     /**
      * More specific version of the previous method, having contextForRoot equals to modelContext.
      */
-    public WfTaskCreationInstruction createInstructionForRoot(ChangeProcessor changeProcessor, ModelContext modelContext, Task taskFromModel) throws SchemaException {
-        return createInstructionForRoot(changeProcessor, modelContext, taskFromModel, modelContext);
+    public WfTaskCreationInstruction createInstructionForRoot(ChangeProcessor changeProcessor, ModelContext modelContext, Task taskFromModel, OperationResult result) throws SchemaException {
+        return createInstructionForRoot(changeProcessor, modelContext, taskFromModel, modelContext, result);
     }
 
     /**
@@ -186,4 +196,20 @@ public class BaseModelInvocationProcessingHelper {
         LOGGER.trace("\n{}", sb.toString());
         LOGGER.trace("Now the root task starts waiting for child tasks");
     }
+
+	public PrismObject<UserType> getRequester(Task task, OperationResult result) {
+		// let's get fresh data (not the ones read on user login)
+		PrismObject<UserType> requester = null;
+		try {
+			requester = ((PrismObject<UserType>) repositoryService.getObject(UserType.class, task.getOwner().getOid(), null, result));
+		} catch (ObjectNotFoundException e) {
+			LoggingUtils.logException(LOGGER, "Couldn't get data about task requester (" + task.getOwner() + "), because it does not exist in repository anymore. Using cached data.", e);
+			requester = task.getOwner().clone();
+		} catch (SchemaException e) {
+			LoggingUtils.logException(LOGGER, "Couldn't get data about task requester (" + task.getOwner() + "), due to schema exception. Using cached data.", e);
+			requester = task.getOwner().clone();
+		}
+		return requester;
+	}
+
 }

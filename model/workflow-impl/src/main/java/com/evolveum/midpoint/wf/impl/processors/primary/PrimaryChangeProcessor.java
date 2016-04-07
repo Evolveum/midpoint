@@ -238,7 +238,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 			OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         LensContext lensContextForRootTask = determineLensContextForRootTask(context, changesWithoutApproval, executionMode);
-        WfTaskCreationInstruction instructionForRoot = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel, lensContextForRootTask);
+        WfTaskCreationInstruction instructionForRoot = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel, lensContextForRootTask, result);
 		if (executionMode != ALL_IMMEDIATELY) {
 			instructionForRoot.setHandlersBeforeModelOperation(WfPrepareRootOperationTaskHandler.HANDLER_URI);      // gather all deltas from child objects
 		}

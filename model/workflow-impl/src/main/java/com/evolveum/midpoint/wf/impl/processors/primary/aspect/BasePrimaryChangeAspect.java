@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
@@ -77,7 +78,10 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
     @Autowired
     protected MiscDataUtil miscDataUtil;
 
-    @PostConstruct
+	@Autowired
+	protected BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
+
+	@PostConstruct
     public void init() {
         changeProcessor.registerChangeAspect(this);
     }

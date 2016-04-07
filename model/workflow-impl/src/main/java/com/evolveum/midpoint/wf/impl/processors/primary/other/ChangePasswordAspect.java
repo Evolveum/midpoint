@@ -116,7 +116,7 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
 
         String userName = MiscDataUtil.getFocusObjectName(modelContext);
         String objectOid = MiscDataUtil.getFocusObjectOid(modelContext);
-        PrismObject<UserType> requester = primaryChangeAspectHelper.getRequester(taskFromModel, result);
+        PrismObject<UserType> requester = baseModelInvocationProcessingHelper.getRequester(taskFromModel, result);
 
         String approvalTaskName = "Approve changing password for " + userName;
 
