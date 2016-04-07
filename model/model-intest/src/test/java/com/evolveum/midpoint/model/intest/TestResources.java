@@ -34,6 +34,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
+import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.connector.DummyConnector;
 import com.evolveum.icf.dummy.resource.DummyResource;
@@ -82,6 +83,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurati
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 
 /**
  * @author semancik
@@ -179,7 +181,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         display("Resource", resource);
         
-		assertResourceDummy(resource, true);
+		assertResourceDummy(resource, false);
         
         assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchema(resource));
         
@@ -190,7 +192,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertConnectorSchemaParseIncrement(1);
 	}
 	
-	@Test(enabled=false) // TODO
+	@Test
     public void test052GetResourceNoFetch() throws Exception {
 		final String TEST_NAME = "test052GetResourceNoFetch";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -218,7 +220,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         display("Resource", resource);
         
-		assertResourceDummy(resource, true);
+		assertResourceDummy(resource, false);
         
         assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchema(resource));
         
@@ -230,8 +232,94 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	}
 	
 	@Test
-    public void test100GetResourceDummy() throws Exception {
-		final String TEST_NAME = "test100GetResourceDummy";
+    public void test100SearchResourcesNoFetch() throws Exception {
+		final String TEST_NAME = "test100SearchResourcesNoFetch";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
+        
+        // precondition
+        assertSteadyResources();
+        
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, options, task, result);
+
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
+        assertNotNull("null search return", resources);
+        assertFalse("Empty search return", resources.isEmpty());
+        assertEquals("Unexpected number of resources found", 2, resources.size());
+        
+        result.computeStatus();
+        TestUtil.assertSuccess("searchObjects result", result);
+
+        for (PrismObject<ResourceType> resource: resources) {
+        	assertResource(resource, false);
+        }
+        
+        assertResourceSchemaFetchIncrement(0);
+        assertResourceSchemaParseCountIncrement(0);
+        assertConnectorCapabilitiesFetchIncrement(0);
+		assertConnectorInitializationCountIncrement(0);
+        assertConnectorSchemaParseIncrement(0);
+        
+        assertSteadyResources();
+	}
+	
+	@Test
+    public void test105SearchResourcesIterativeNoFetch() throws Exception {
+		final String TEST_NAME = "test105SearchResourcesIterativeNoFetch";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
+        
+        // precondition
+        assertSteadyResources();
+
+        final List<PrismObject<ResourceType>> resources = new ArrayList<PrismObject<ResourceType>>();
+        		
+        ResultHandler<ResourceType> handler = new ResultHandler<ResourceType>() {
+			@Override
+			public boolean handle(PrismObject<ResourceType> resource, OperationResult parentResult) {
+				assertResource(resource, false);
+				resources.add(resource);
+				return true;
+			}
+		};
+		
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+        
+		// WHEN
+        modelService.searchObjectsIterative(ResourceType.class, null, handler, options, task, result);
+
+		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess("searchObjects result", result);
+
+        assertFalse("Empty search return", resources.isEmpty());
+        assertEquals("Unexpected number of resources found", 2, resources.size());
+        
+        assertResourceSchemaFetchIncrement(0);
+        assertResourceSchemaParseCountIncrement(0);
+        assertConnectorCapabilitiesFetchIncrement(0);
+		assertConnectorInitializationCountIncrement(0);
+        assertConnectorSchemaParseIncrement(0);
+        
+        assertSteadyResources();
+	}
+	
+	@Test
+    public void test110GetResourceDummy() throws Exception {
+		final String TEST_NAME = "test110GetResourceDummy";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -257,9 +345,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         IntegrationTestTools.displayXml("Initialized dummy resource", resource);
 	}
 	
+	
+	
 	@Test
-    public void test110SearchResources() throws Exception {
-		final String TEST_NAME = "test110SearchResources";
+    public void test120SearchResources() throws Exception {
+		final String TEST_NAME = "test120SearchResources";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -271,9 +361,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertSteadyResources();
         
 		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
         List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, null, task, result);
 
 		// THEN
+        TestUtil.displayThen(TEST_NAME);
         assertNotNull("null search return", resources);
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 2, resources.size());
@@ -282,22 +374,19 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         TestUtil.assertSuccess("searchObjects result", result);
 
         for (PrismObject<ResourceType> resource: resources) {
-        	assertResource(resource);
+        	assertResource(resource, true);
         }
         
-//        assertResourceSchemaFetchIncrement(1); // FAILS. TODO: fix
-//        assertResourceSchemaParseCountIncrement(1); // FAILS. TODO: fix
-        
-        assertResourceSchemaParseCountIncrement(2); // HACK. TODO: remove
-        
+        assertResourceSchemaFetchIncrement(1);
+        assertResourceSchemaParseCountIncrement(1);
         assertConnectorCapabilitiesFetchIncrement(1);
 		assertConnectorInitializationCountIncrement(1);
         assertConnectorSchemaParseIncrement(0);
 	}
 	
 	@Test
-    public void test120SearchResourcesIterative() throws Exception {
-		final String TEST_NAME = "test120SearchResourcesIterative";
+    public void test125SearchResourcesIterative() throws Exception {
+		final String TEST_NAME = "test125SearchResourcesIterative";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -313,11 +402,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         ResultHandler<ResourceType> handler = new ResultHandler<ResourceType>() {
 			@Override
 			public boolean handle(PrismObject<ResourceType> resource, OperationResult parentResult) {
-				try {
-					assertResource(resource);
-				} catch (JAXBException e) {
-					throw new RuntimeException(e.getMessage(),e);
-				}
+				assertResource(resource, true);
 				resources.add(resource);
 				return true;
 			}
@@ -336,8 +421,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertSteadyResources();
 	}
 	
-	private void assertResourceDummy(PrismObject<ResourceType> resource, boolean completeDefinition) throws JAXBException {
-		assertResource(resource);
+	private void assertResourceDummy(PrismObject<ResourceType> resource, boolean expectSchema) {
+		assertResource(resource, expectSchema);
 
 		PrismContainer<ConnectorConfigurationType> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition = configurationContainer.getDefinition();
@@ -399,7 +484,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		assertEquals("Wrong help in "+propDef.getName()+" definition", expectedHelp, propDef.getHelp());
 	}
 
-	private void assertResource(PrismObject<ResourceType> resource) throws JAXBException {
+	private void assertResource(PrismObject<ResourceType> resource, boolean expectSchema) {
 		display("Resource", resource);
 		display("Resource def", resource.getDefinition());
 		PrismContainer<ConnectorConfigurationType> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
@@ -414,11 +499,12 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		
 		resource.checkConsistence(true, true);
 		
-		// Try to marshal using pure JAXB as a rough test that it is OK JAXB-wise
-        // skipped because of parsing changes [pm]
-//		Element resourceDomElement = prismContext.getPrismJaxbProcessor().marshalJaxbObjectToDom(resource.asObjectable(), new QName(SchemaConstants.NS_C, "resource"),
-//				DOMUtil.getDocument());
-//		display("Resouce DOM element after JAXB marshall", resourceDomElement);
+		Element schema = ResourceTypeUtil.getResourceXsdSchema(resource);
+		if (expectSchema) {
+			assertNotNull("no schema in "+resource, schema);
+		} else {
+			assertNull("Unexpected schema in "+resource+": "+schema, schema);
+		}
 	}
 
 	@Test
