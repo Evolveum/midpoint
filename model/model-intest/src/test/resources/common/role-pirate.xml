@@ -46,6 +46,7 @@
 						<script>
 							<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
 							<code>
+								assert resource != null
 								locality?.getNorm() != "hidden"
 							</code>
 						</script>
@@ -110,7 +111,10 @@
 					</expression>
 					<condition>
 						<script>
-							<code>!magicSea?.isAllWhitespace()</code>
+							<code>
+								assert resource != null
+								!magicSea?.isAllWhitespace()
+							</code>
 						</script>
 					</condition>
 				</outbound>

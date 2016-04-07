@@ -2134,9 +2134,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
+		PrismObject<UserType> userAugustusBefore = findUserByUsername(USER_AUGUSTUS_NAME);
+		display("User augustus before", userAugustusBefore);
+        
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_AUGUSTUS_FILE);
 		provisioningService.addObject(account, null, null, task, result);
-        
+		display("Account augustus before", account);
+		        
         // Preconditions
         assertUsers(12);
         dummyAuditService.clear();
