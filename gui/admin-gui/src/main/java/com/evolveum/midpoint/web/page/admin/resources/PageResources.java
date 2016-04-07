@@ -357,34 +357,6 @@ public class PageResources extends PageAdminResources {
         };
         columns.add(column);
 
-        columns.add(new AbstractColumn<ResourceDto, String>(createStringResource("pageResources.content")) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<ResourceDto>> cellItem,
-                                     String componentId, final IModel<ResourceDto> model) {
-                cellItem.add(new ContentPanel(componentId) {
-
-                    @Override
-                    public void accountsPerformed(AjaxRequestTarget target) {
-                        ResourceDto dto = model.getObject();
-
-                        PageParameters parameters = new PageParameters();
-                        parameters.add(OnePageParameterEncoder.PARAMETER, dto.getOid());
-//                        setResponsePage(PageContentAccounts.class, parameters);
-                    }
-
-                    @Override
-                    public void entitlementsPerformed(AjaxRequestTarget target) {
-                        ResourceDto dto = model.getObject();
-
-                        PageParameters parameters = new PageParameters();
-                        parameters.add(OnePageParameterEncoder.PARAMETER, dto.getOid());
-                        setResponsePage(PageContentEntitlements.class, parameters);
-                    }
-                });
-            }
-        });
-
         InlineMenuHeaderColumn menu = new InlineMenuHeaderColumn(initInlineMenu());
         columns.add(menu);
 
