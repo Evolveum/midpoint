@@ -97,6 +97,11 @@ public class ScenePanel extends BasePanel<SceneDto> {
 			@Override
 			public String getObject() {
 				SceneDto dto = model.getObject();
+
+				if (dto.getBoxClassOverride() != null) {
+					return dto.getBoxClassOverride();
+				}
+
 				if (dto.getChangeType() == null) {
 					return null;
 				}
