@@ -49,16 +49,13 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.time.Duration;
 
 import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * @author mederly
@@ -88,44 +85,39 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	private static final Trace LOGGER = TraceManager.getTrace(PageTaskEdit.class);
 
 	private String taskOid;
-	private LoadableModel<TaskDto> taskDtoModel;
+	private IModel<TaskDto> taskDtoModel;
 	private LoadableModel<ObjectWrapper<TaskType>> objectWrapperModel;
 	private boolean edit = false;
 
 	private PageTaskController controller = new PageTaskController(this);
 
 	private TaskMainPanel mainPanel;
-	private AbstractAjaxTimerBehavior refreshingBehavior;
 	private IModel<AutoRefreshDto> refreshModel;
+	private IModel<Boolean> showAdvancedFeaturesModel;
 
 	public PageTaskEdit(PageParameters parameters) {
-
 		getPageParameters().overwriteWith(parameters);
 		taskOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER).toString();
-
-		final OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
-		final Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
-		final TaskType taskType = loadTaskTypeChecked(taskOid, operationTask, result);
-		final TaskDto taskDto;
-		try {
-			taskDto = prepareTaskDto(taskType, operationTask, result);
-		} catch (SchemaException|ObjectNotFoundException e) {
-			throw new SystemException("Couldn't prepare task DTO: " + e.getMessage(), e);
-		}
-		taskDtoModel = new LoadableModel<TaskDto>() {
+		taskDtoModel = new LoadableModel<TaskDto>(false) {
 			@Override
 			protected TaskDto load() {
-				return taskDto;
+				try {
+					final OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
+					final Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
+					final TaskType taskType = loadTaskTypeChecked(taskOid, operationTask, result);
+					return prepareTaskDto(taskType, operationTask, result);
+				} catch (SchemaException|ObjectNotFoundException e) {
+					throw new SystemException("Couldn't prepare task DTO: " + e.getMessage(), e);
+				}
 			}
 		};
-		final ObjectWrapper<TaskType> wrapper = loadObjectWrapper(taskType.asPrismObject(), result);
 		objectWrapperModel = new LoadableModel<ObjectWrapper<TaskType>>() {
 			@Override
 			protected ObjectWrapper<TaskType> load() {
-				return wrapper;
+				return loadObjectWrapper(taskDtoModel.getObject().getTaskType().asPrismObject(), new OperationResult("loadObjectWrapper"));
 			}
 		};
-
+		showAdvancedFeaturesModel = new Model<>(false);		// todo save setting in session
 		edit = false;
 		initLayout();
 	}
@@ -150,10 +142,14 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		TaskType taskType = null;
 
 		try {
-			Collection<SelectorOptions<GetOperationOptions>> options =
-					GetOperationOptions.createRetrieveAttributesOptions(
-							TaskType.F_SUBTASK, TaskType.F_NODE_AS_OBSERVED, TaskType.F_NEXT_RUN_START_TIMESTAMP);
-			options.add(SelectorOptions.create(new ItemPath(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM), GetOperationOptions.createRetrieve()));
+			Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.retrieveItemsNamed(
+					TaskType.F_SUBTASK,
+					TaskType.F_NODE_AS_OBSERVED,
+					TaskType.F_NEXT_RUN_START_TIMESTAMP,
+					new ItemPath(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM));
+			options.addAll(GetOperationOptions.resolveItemsNamed(
+					new ItemPath(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_REQUESTER_REF)
+			));
 			taskType = getModelService().getObject(TaskType.class, taskOid, options, operationTask, result).asObjectable();
 			result.computeStatus();
 		} catch (Exception ex) {
@@ -164,13 +160,12 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 	private TaskDto prepareTaskDto(TaskType task, Task operationTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		TaskDto taskDto = new TaskDto(task, getModelService(), getTaskService(), getModelInteractionService(),
-				getTaskManager(), TaskDtoProviderOptions.fullOptions(), operationTask, result, this);
+				getTaskManager(), getWorkflowManager(), TaskDtoProviderOptions.fullOptions(), operationTask, result, this);
 		return taskDto;
 	}
 
 
 	protected void initLayout() {
-
 		refreshModel = new Model(new AutoRefreshDto());
 		refreshModel.getObject().setInterval(getRefreshInterval());
 
@@ -184,29 +179,15 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		summaryPanel.setOutputMarkupId(true);
 		add(summaryPanel);
 
-		mainPanel = new TaskMainPanel(ID_MAIN_PANEL, objectWrapperModel, taskDtoModel, this);
+		mainPanel = new TaskMainPanel(ID_MAIN_PANEL, objectWrapperModel, taskDtoModel, showAdvancedFeaturesModel, this);
 		mainPanel.setOutputMarkupId(true);
 		add(mainPanel);
 
-		createRefreshingBehavior();
-		addRefreshingBehavior();
+		summaryPanel.getRefreshPanel().startRefreshing(this);
 	}
 
-	private void createRefreshingBehavior() {
-		refreshingBehavior = new AbstractAjaxTimerBehavior(Duration.milliseconds(refreshModel.getObject().getInterval())) {
-			@Override
-			protected void onTimer(AjaxRequestTarget target) {
-				AutoRefreshDto refreshDto = refreshModel.getObject();
-//				if (refreshDto.shouldRefresh()) {
-					refresh(target);
-//				} else {
-//					target.add(summaryPanel.getRefreshPanel());
-//				}
-			}
-		};
-	}
-
-	private int getRefreshInterval() {
+	@Override
+	public int getRefreshInterval() {
 		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
 		switch (exec) {
 			case RUNNABLE:
@@ -221,36 +202,50 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	}
 
 	public void refresh(AjaxRequestTarget target) {
+		TaskTabsVisibility tabsVisibilityOld = new TaskTabsVisibility();
+		tabsVisibilityOld.computeAll(this);
+		TaskButtonsVisibility buttonsVisibilityOld = new TaskButtonsVisibility();
+		buttonsVisibilityOld.computeAll(this);
+
 		refreshTaskModels();
-		Iterator<Component> componentIterator = mainPanel.getTabPanel().iterator();
-		while (componentIterator.hasNext()) {
-			Component component = componentIterator.next();
-			if (component instanceof TaskTabPanel) {
-				for (Component c : ((TaskTabPanel) component).getComponentsToUpdate()) {
-					target.add(c);
+
+		TaskTabsVisibility tabsVisibilityNew = new TaskTabsVisibility();
+		tabsVisibilityNew.computeAll(this);
+		TaskButtonsVisibility buttonsVisibilityNew = new TaskButtonsVisibility();
+		buttonsVisibilityNew.computeAll(this);
+
+		if (!buttonsVisibilityNew.equals(buttonsVisibilityOld)) {
+			target.add(mainPanel.getButtonPanel());
+		}
+		if (tabsVisibilityNew.equals(tabsVisibilityOld)) {
+			// soft version
+			for (Component component : mainPanel.getTabPanel()) {
+				if (component instanceof TaskTabPanel) {
+					for (Component c : ((TaskTabPanel) component).getComponentsToUpdate()) {
+						target.add(c);
+					}
 				}
 			}
+		} else {
+			// hard version
+			target.add(mainPanel.getTabPanel());
 		}
 		target.add(getSummaryPanel());
-		target.add(mainPanel.getButtonPanel());
 
 		AutoRefreshDto refreshDto = refreshModel.getObject();
 		refreshDto.recordRefreshed();
 
-		if (refreshDto.isEnabled()) {
-			int computedInterval = getRefreshInterval();
-			if (computedInterval != refreshDto.getInterval()) {
-				refreshDto.setInterval(computedInterval);
-				if (getRefreshPanel().getBehaviors().contains(refreshingBehavior)) {
-					stopRefreshing();
-					removeRefreshingBehavior();
-				}
-				createRefreshingBehavior();
-				addRefreshingBehavior();
-			} else {
-				refreshRefreshing();
-			}
+		if (isEdit() || !refreshDto.isEnabled()) {
+			getRefreshPanel().stopRefreshing(this);
+		} else {
+			getRefreshPanel().stopRefreshing(this);
+			getRefreshPanel().startRefreshing(this);
 		}
+	}
+
+	@Override
+	public Component getRefreshingBehaviorParent() {
+		return getRefreshPanel();
 	}
 
 	public void refreshTaskModels() {
@@ -276,10 +271,10 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	}
 
 	protected ObjectWrapper<TaskType> loadObjectWrapper(PrismObject<TaskType> object, OperationResult result) {
-
 		ObjectWrapper<TaskType> wrapper;
 		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
 		try {
+			object.revive(getPrismContext());		// just to be sure (after deserialization the context is missing in this object)
 			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, ContainerStatus.MODIFYING);
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get user.", ex);
@@ -299,7 +294,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		this.edit = edit;
 	}
 
-	public LoadableModel<TaskDto> getTaskDtoModel() {
+	public IModel<TaskDto> getTaskDtoModel() {
 		return taskDtoModel;
 	}
 
@@ -332,6 +327,11 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return exec == TaskDtoExecutionStatus.CLOSED;
 	}
 
+	boolean isWaiting() {
+		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
+		return exec == TaskDtoExecutionStatus.WAITING;
+	}
+
 	boolean isSuspended() {
 		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
 		return exec == TaskDtoExecutionStatus.SUSPENDED;
@@ -351,6 +351,22 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 	boolean isExecuteChanges() {
 		return TaskCategory.EXECUTE_CHANGES.equals(getTaskDto().getCategory());
+	}
+
+	boolean isWorkflowCategory() {
+		return TaskCategory.WORKFLOW.equals(getTaskDto().getCategory());
+	}
+
+	boolean isWorkflowChild() {
+		return isWorkflowCategory() && getTaskDto().getWorkflowContext() != null && getTaskDto().getWorkflowContext().getProcessInstanceId() != null;
+	}
+
+	boolean isWorkflowParent() {
+		return isWorkflowCategory() && getTaskDto().getParentTaskOid() == null;
+	}
+
+	boolean isWorkflow() {
+		return isWorkflowChild() || isWorkflowParent();		// "task0" is not among these
 	}
 
 	boolean isLiveSync() {
@@ -389,28 +405,6 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return getSummaryPanel().getRefreshPanel();
 	}
 
-	public void startRefreshing() {
-		refreshingBehavior.restart(null);
-		refreshRefreshing();
-	}
-
-	public void stopRefreshing() {
-		refreshingBehavior.stop(null);
-	}
-
-	public void refreshRefreshing() {		// necessary for some strange reason
-		removeRefreshingBehavior();
-		addRefreshingBehavior();
-	}
-
-	private void addRefreshingBehavior() {
-		getRefreshPanel().add(refreshingBehavior);
-	}
-
-	private void removeRefreshingBehavior() {
-		getRefreshPanel().remove(refreshingBehavior);
-	}
-
 	public boolean configuresWorkerThreads() {
 		return isReconciliation() || isImportAccounts() || isRecomputation() || isExecuteChanges() || isShadowIntegrityCheck() || isFocusValidityScanner() || isTriggerScanner();
 	}
@@ -447,8 +441,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return isExecuteChanges();
 	}
 
-	public String getTaskOid() {
-		return taskOid;
+	public boolean isShowAdvanced() {
+		return showAdvancedFeaturesModel.getObject();
 	}
-
 }

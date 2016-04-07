@@ -26,9 +26,7 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.Component;
@@ -37,6 +35,7 @@ import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
@@ -58,13 +57,13 @@ public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> impleme
 
 	public TaskResultTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
-			LoadableModel<TaskDto> taskDtoModel, PageBase pageBase) {
+			IModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		super(id, mainForm, taskWrapperModel, pageBase);
 		initLayout(taskDtoModel, pageBase);
 		setOutputMarkupId(true);
 	}
 	
-	private void initLayout(final LoadableModel<TaskDto> taskDtoModel, final PageBase pageBase) {
+	private void initLayout(final IModel<TaskDto> taskDtoModel, final PageBase pageBase) {
 		SortableDataProvider<OperationResult, String> provider = new ListDataProvider<>(this,
 				new PropertyModel<List<OperationResult>>(taskDtoModel, TaskDto.F_OP_RESULT));
 		TablePanel resultTablePanel = new TablePanel<>(ID_OPERATION_RESULT, provider, initResultColumns());

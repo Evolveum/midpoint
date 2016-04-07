@@ -2084,7 +2084,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             objectQuery = ObjectQuery.createObjectQuery(substring);
             objectQuery.setUseNewQueryInterpreter(true);
             count = repositoryService.countObjects(ObjectType.class, objectQuery, result);
-            AssertJUnit.assertEquals(19, count);
+            AssertJUnit.assertEquals(20, count);
 
         } finally {
             close(session);

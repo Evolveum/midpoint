@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.wf.impl.processors.primary;
 
+import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.tasks.WfTask;

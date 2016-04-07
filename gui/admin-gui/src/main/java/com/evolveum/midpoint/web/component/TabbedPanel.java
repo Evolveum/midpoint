@@ -30,6 +30,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.lang.Args;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.List;
@@ -44,6 +45,8 @@ public class TabbedPanel<T extends ITab> extends Panel {
      * id used for child panels
      */
     public static final String TAB_PANEL_ID = "panel";
+    public static final String RIGHT_SIDE_TAB_ITEM_ID = "rightSideTabItem";
+    public static final String RIGHT_SIDE_TAB_ID = "rightSideTab";
 
     private final IModel<List<T>> tabs;
     /**
@@ -56,8 +59,12 @@ public class TabbedPanel<T extends ITab> extends Panel {
         this(id, tabs, null);
     }
 
-    public TabbedPanel(final String id, final List<T> tabs, IModel<Integer> model) {
-        this(id, new Model((Serializable) tabs), model);
+	public TabbedPanel(final String id, final List<T> tabs, @Nullable RightSideItemProvider rightSideItemProvider) {
+		this(id, tabs, null, rightSideItemProvider);
+	}
+
+    public TabbedPanel(final String id, final List<T> tabs, IModel<Integer> model, @Nullable RightSideItemProvider rightSideItemProvider) {
+        this(id, new Model((Serializable) tabs), model, rightSideItemProvider);
     }
 
     /**
@@ -67,7 +74,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
      * @param tabs list of ITab objects used to represent tabs
      */
     public TabbedPanel(final String id, final IModel<List<T>> tabs) {
-        this(id, tabs, null);
+        this(id, tabs, null, null);
     }
 
     /**
@@ -77,7 +84,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
      * @param tabs  list of ITab objects used to represent tabs
      * @param model model holding the index of the selected tab
      */
-    public TabbedPanel(final String id, final IModel<List<T>> tabs, IModel<Integer> model) {
+    public TabbedPanel(final String id, final IModel<List<T>> tabs, IModel<Integer> model, RightSideItemProvider rightSideItemProvider) {
         super(id, model);
 
         this.tabs = Args.notNull(tabs, "tabs");
@@ -114,6 +121,15 @@ public class TabbedPanel<T extends ITab> extends Panel {
                 return newTabContainer(iteration);
             }
         });
+
+		WebMarkupContainer rightSideTabItem = new WebMarkupContainer(RIGHT_SIDE_TAB_ITEM_ID);
+		Component rightSideTabPanel = rightSideItemProvider != null ? rightSideItemProvider.createRightSideItem(RIGHT_SIDE_TAB_ID) : null;
+		if (rightSideTabPanel != null) {
+			rightSideTabItem.add(rightSideTabPanel);
+		} else {
+			rightSideTabItem.setVisible(false);
+		}
+		tabsContainer.add(rightSideTabItem);
 
         add(newPanel());
     }
@@ -437,4 +453,8 @@ public class TabbedPanel<T extends ITab> extends Panel {
      * @param index Index of new tab.
      */
     protected void onTabChange(int index) {}
+
+	public interface RightSideItemProvider extends Serializable {
+		Component createRightSideItem(String id);
+	}
 }

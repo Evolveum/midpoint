@@ -129,7 +129,7 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
             throws SchemaException, ObjectNotFoundException {
 
         return new TaskDto(task.asObjectable(), getModel(), getTaskService(),
-                getModelInteractionService(), getTaskManager(), options, opTask, result, (PageBase)component);
+                getModelInteractionService(), getTaskManager(), getWorkflowManager(), options, opTask, result, (PageBase)component);
     }
 
     @Override

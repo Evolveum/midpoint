@@ -988,30 +988,69 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
     }
 
-    private void fillInSubtasks(Task task, ClusterStatusInformation clusterStatusInformation, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+	// TODO deduplicate
+	private void fillInSubtasks(Task task, ClusterStatusInformation clusterStatusInformation, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+		boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options);
+		boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options);
+
+		List<Task> subtasks = task.listSubtasks(result);
+
+		for (Task subtask : subtasks) {
+
+			if (subtask.isPersistent()) {
+				addTransientTaskInformation(subtask.getTaskPrismObject(),
+						clusterStatusInformation,
+						retrieveNextRunStartTime,
+						retrieveNodeAsObserved,
+						result);
+
+				fillInSubtasks(subtask, clusterStatusInformation, options, result);
+			}
+			TaskType subTaskType = subtask.getTaskPrismObject().asObjectable();
+			task.getTaskPrismObject().asObjectable().getSubtask().add(subTaskType);
+		}
+	}
+
+	// retrieves only "heavyweight" subtasks
+    private void fillInSubtasks(TaskType task, ClusterStatusInformation clusterStatusInformation, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
         boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options);
         boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options);
 
-        List<Task> subtasks = task.listSubtasks(result);
+        List<PrismObject<TaskType>> subtasks = listSubtasksForTask(task.getTaskIdentifier(), result);
 
-        for (Task subtask : subtasks) {
+        for (PrismObject<TaskType> subtask : subtasks) {
 
-            if (subtask.isPersistent()) {
-                addTransientTaskInformation(subtask.getTaskPrismObject(),
+            if (subtask.getOid() != null) {
+                addTransientTaskInformation(subtask,
                         clusterStatusInformation,
                         retrieveNextRunStartTime,
                         retrieveNodeAsObserved,
                         result);
 
-                fillInSubtasks(subtask, clusterStatusInformation, options, result);
+                fillInSubtasks(subtask.asObjectable(), clusterStatusInformation, options, result);
             }
-            TaskType subTaskType = subtask.getTaskPrismObject().asObjectable();
-            task.getTaskPrismObject().asObjectable().getSubtask().add(subTaskType);
+            task.getSubtask().add(subtask.asObjectable());
         }
     }
 
-    @Override
+	public List<PrismObject<TaskType>> listSubtasksForTask(String taskIdentifier, OperationResult result) throws SchemaException {
+		ObjectFilter filter = null;
+		filter = EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, prismContext, null, taskIdentifier);
+		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+
+		List<PrismObject<TaskType>> list;
+		try {
+			list = repositoryService.searchObjects(TaskType.class, query, null, result);
+			result.recordSuccessIfUnknown();
+		} catch (SchemaException | RuntimeException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
+		return list;
+	}
+
+	@Override
     public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type,
                                                                      ObjectQuery query,
                                                                      Collection<SelectorOptions<GetOperationOptions>> options,
@@ -1629,6 +1668,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             }
             retval = list.get(0);
 //        }
+		if (SelectorOptions.hasToLoadPath(TaskType.F_SUBTASK, options)) {
+			ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, TaskType.class, true, result); // returns null if noFetch is set
+			fillInSubtasks(retval.asObjectable(), clusterStatusInformation, options, result);
+		}
         result.computeStatusIfUnknown();
         return retval;
     }
@@ -1838,5 +1881,5 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return retval;
     }
 
-    //endregion
+	//endregion
 }

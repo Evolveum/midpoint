@@ -202,7 +202,7 @@ public class PageSelfDashboard extends PageSelf {
                     @Override
                     protected Component getMainComponent(String markupId) {
 						ISortableDataProvider provider = new ListDataProvider(this, new PropertyModel<List<ProcessInstanceDto>>(getModel(), CallableResult.F_VALUE));
-                        return new WorkflowRequestsPanel(markupId, provider, null, 10);
+                        return new WorkflowRequestsPanel(markupId, provider, null, 10, WorkflowRequestsPanel.View.INFO_ONLY, null);
                     }
                 };
 

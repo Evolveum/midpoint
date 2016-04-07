@@ -37,7 +37,7 @@ public class PrepareResult implements JavaDelegate {
         boolean approved = !loopLevelsStop;
 
         execution.setVariable(BaseProcessMidPointInterface.VARIABLE_WF_ANSWER, ApprovalUtils.approvalStringValue(approved));
-        execution.setVariable(BaseProcessMidPointInterface.VARIABLE_WF_STATE, "Final decision is " + (approved ? "APPROVED" : "REFUSED"));
+        execution.setVariable(BaseProcessMidPointInterface.VARIABLE_WF_STATE, "Final decision is " + (approved ? "APPROVED" : "REJECTED"));
 
         getActivitiInterface().notifyMidpointAboutProcessFinishedEvent(execution);
     }

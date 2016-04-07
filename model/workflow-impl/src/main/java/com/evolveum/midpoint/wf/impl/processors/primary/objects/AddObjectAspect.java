@@ -29,10 +29,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
-import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
+import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.Validate;
 
 import java.util.ArrayList;
@@ -48,7 +51,7 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
 
     private static final Trace LOGGER = TraceManager.getTrace(AddObjectAspect.class);
 
-    //region ------------------------------------------------------------ Things that execute on request arrival
+	//region ------------------------------------------------------------ Things that execute on request arrival
 
     protected abstract Class<T> getObjectClass();
     protected abstract String getObjectLabel(T object);
@@ -107,7 +110,7 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
             Validate.notNull(objectToAdd);
             String objectLabel = getObjectLabel(objectToAdd);
 
-            PrismObject<UserType> requester = primaryChangeAspectHelper.getRequester(taskFromModel, result);
+            PrismObject<UserType> requester = baseModelInvocationProcessingHelper.getRequester(taskFromModel, result);
 
             String approvalTaskName = "Approve creating " + objectLabel;
 

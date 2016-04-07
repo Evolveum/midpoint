@@ -146,7 +146,6 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     private String searchText = "";
 
 	private IModel<AutoRefreshDto> refreshModel;
-	private AbstractAjaxTimerBehavior refreshingBehavior;
 	private AutoRefreshPanel refreshPanel;
 
 	//used for confirmation modal, cleaner implementation needed probaly :)
@@ -187,7 +186,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
         initLayout();
 
-		startRefreshing();
+		refreshPanel.startRefreshing(this);
     }
 
     private TasksSearchDto loadTasksSearchDto() {
@@ -310,30 +309,13 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 	}
 
 	@Override
-	public void startRefreshing() {
-		if (refreshingBehavior != null && refreshPanel.getBehaviors().contains(refreshingBehavior)) {
-			stopRefreshing();
-		}
-		if (refreshingBehavior == null) {
-			refreshingBehavior = new AbstractAjaxTimerBehavior(Duration.milliseconds(REFRESH_INTERVAL)) {
-				@Override
-				protected void onTimer(AjaxRequestTarget target) {
-					refresh(target);
-				}
-			};
-		} else {
-			refreshingBehavior.restart(null);
-		}
-		refreshPanel.add(refreshingBehavior);
+	public Component getRefreshingBehaviorParent() {
+		return refreshPanel;
 	}
 
 	@Override
-	public void stopRefreshing() {
-		if (refreshingBehavior != null) {
-			refreshingBehavior.stop(null);
-			refreshPanel.remove(refreshingBehavior);
-			refreshingBehavior = null;            // just to be sure (TODO relax this)
-		}
+	public int getRefreshInterval() {
+		return REFRESH_INTERVAL;
 	}
 
 	private List<IColumn<NodeDto, String>> initNodeColumns() {
@@ -342,14 +324,15 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         IColumn column = new CheckBoxHeaderColumn<>();
         columns.add(column);
 
-        column = new LinkColumn<NodeDto>(createStringResource("pageTasks.node.name"), "name", "name") {
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<NodeDto> rowModel) {
-                NodeDto node = rowModel.getObject();
-                nodeDetailsPerformed(target, node.getOid());
-            }
-        };
+//        column = new LinkColumn<NodeDto>(createStringResource("pageTasks.node.name"), "name", "name") {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target, IModel<NodeDto> rowModel) {
+//                NodeDto node = rowModel.getObject();
+//                nodeDetailsPerformed(target, node.getOid());
+//            }
+//        };
+		column = new PropertyColumn<>(createStringResource("pageTasks.node.name"), "name", "name");
         columns.add(column);
 
         columns.add(new EnumPropertyColumn<NodeDto>(createStringResource("pageTasks.node.executionStatus"),
@@ -1189,7 +1172,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         refreshTables(target);
 
 		if (refreshModel.getObject().isEnabled()) {
-			startRefreshing();
+			refreshPanel.startRefreshing(this);
 		}
     }
 

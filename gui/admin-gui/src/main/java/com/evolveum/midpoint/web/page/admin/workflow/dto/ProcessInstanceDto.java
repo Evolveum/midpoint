@@ -110,6 +110,10 @@ public class ProcessInstanceDto extends Selectable {
 		return task.getWorkflowContext().getState();
 	}
 
+	public String getProcessInstanceId() {
+		return task.getWorkflowContext().getProcessInstanceId();
+	}
+
 //    public List<WorkItemDto> getWorkItems() {
 //        List<WorkItemDto> retval = new ArrayList<WorkItemDto>();
 //        if (processInstance.getWorkItems() != null) {
@@ -148,10 +152,6 @@ public class ProcessInstanceDto extends Selectable {
 //        return processInstanceState.getShadowTaskOid();
 //    }
 
-    public void reviveIfNeeded(Component component) {
-//        WebComponentUtil.reviveIfNeeded(processInstance, component);
-//        WebComponentUtil.reviveIfNeeded(processInstanceState, component);
-    }
 
     public String getTaskOid() {
         return task.getOid();

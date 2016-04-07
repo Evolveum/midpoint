@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+import java.util.Collection;
 
 /**
  * @author mederly
@@ -183,7 +184,13 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
         return new R_AtomicFilter(this, RefFilter.createReferenceEqual(itemPath, referenceDefinition, value));
     }
 
-    @Override
+	@Override
+	public S_AtomicFilterExit ref(Collection<PrismReferenceValue> values) {
+		return new R_AtomicFilter(this, RefFilter.createReferenceEqual(itemPath, referenceDefinition,
+				values.toArray(new PrismReferenceValue[values.size()])));
+	}
+
+	@Override
     public S_AtomicFilterExit ref(String oid) {
         return new R_AtomicFilter(this, RefFilter.createReferenceEqual(itemPath, referenceDefinition, oid));
     }

@@ -19,14 +19,20 @@ package com.evolveum.midpoint.web.component.refresh;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkIconPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.util.time.Duration;
 
 /**
+ * Provides simple "auto refresh" panel: buttons for start/stop auto refreshing, requesting manual refresh, and status label.
+ *
+ * @see Refreshable
+ *
  * @author mederly
  */
 public class AutoRefreshPanel extends BasePanel<AutoRefreshDto> {
@@ -35,6 +41,8 @@ public class AutoRefreshPanel extends BasePanel<AutoRefreshDto> {
 	private static final String ID_START = "start";
 	private static final String ID_PAUSE = "pause";
 	private static final String ID_STATUS = "status";
+
+	private AbstractAjaxTimerBehavior refreshingBehavior;			// this behavior is attached to some component (defined by owning page/panel)
 
 	public AutoRefreshPanel(String id, IModel<AutoRefreshDto> model, Refreshable refreshable) {
 		super(id, model);
@@ -57,7 +65,7 @@ public class AutoRefreshPanel extends BasePanel<AutoRefreshDto> {
 			protected void onClickPerformed(AjaxRequestTarget target) {
 				getModelObject().setEnabled(true);
 				refreshable.refresh(target);
-				refreshable.startRefreshing();
+				startRefreshing(refreshable);
 			}
 		};
 		resumeRefreshing.setRenderBodyOnly(true);
@@ -74,7 +82,7 @@ public class AutoRefreshPanel extends BasePanel<AutoRefreshDto> {
 			protected void onClickPerformed(AjaxRequestTarget target) {
 				getModelObject().setEnabled(false);
 				refreshable.refresh(target);
-				refreshable.stopRefreshing();
+				stopRefreshing(refreshable);
 			}
 		};
 		pauseRefreshing.setRenderBodyOnly(true);
@@ -99,5 +107,31 @@ public class AutoRefreshPanel extends BasePanel<AutoRefreshDto> {
 		});
 		status.setRenderBodyOnly(true);
 		add(status);
+	}
+
+	public void startRefreshing(final Refreshable refreshable) {
+		if (refreshingBehavior != null) {
+			stopRefreshing(refreshable);
+		}
+		int refreshInterval = refreshable.getRefreshInterval();
+		getModel().getObject().setInterval(refreshInterval);
+		refreshingBehavior = new AbstractAjaxTimerBehavior(Duration.milliseconds(refreshInterval)) {
+			@Override
+			protected void onTimer(AjaxRequestTarget target1) {
+				refreshable.refresh(target1);
+			}
+		};
+		refreshable.getRefreshingBehaviorParent().add(refreshingBehavior);
+	}
+
+	public void stopRefreshing(Refreshable refreshable) {
+		if (refreshingBehavior != null) {
+			refreshingBehavior.stop(null);
+			Component refreshingBehaviorParent = refreshable.getRefreshingBehaviorParent();
+			if (refreshingBehaviorParent.getBehaviors().contains(refreshingBehavior)) {
+				refreshingBehaviorParent.remove(refreshingBehavior);
+			}
+			refreshingBehavior = null;
+		}
 	}
 }

@@ -180,7 +180,13 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     
     @Override
     public PrismContext getPrismContext() {
-    	return prismContext;
+		if (prismContext != null) {
+			return prismContext;
+		} else if (parent != null) {
+			return parent.getPrismContext();
+		} else {
+			return null;
+		}
     }
     
     public void setPrismContext(PrismContext prismContext) {

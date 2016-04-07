@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.impl.util;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -34,10 +36,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -45,6 +44,10 @@ import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
+import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper;
+import com.evolveum.midpoint.wf.impl.processors.primary.WfPrepareChildOperationTaskHandler;
+import com.evolveum.midpoint.wf.impl.processors.primary.WfPrepareRootOperationTaskHandler;
+import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.activiti.engine.ActivitiException;
@@ -62,6 +65,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.evolveum.midpoint.prism.delta.ChangeType.ADD;
+import static com.evolveum.midpoint.schema.ObjectTreeDeltas.fromObjectTreeDeltasType;
 
 /**
  * @author mederly
@@ -93,6 +97,9 @@ public class MiscDataUtil {
 
     @Autowired
     private ActivitiEngine activitiEngine;
+
+	@Autowired
+	private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
 
     public static ObjectReferenceType toObjectReferenceType(LightweightObjectRef ref) {
 		if (ref != null) {
@@ -350,23 +357,6 @@ public class MiscDataUtil {
         return false;
     }
 
-    // TODO: currently we check only the direct assignments, we need to implement more complex mechanism
-    @Deprecated
-    public List<String> getGroupsForUser(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        List<String> retval = new ArrayList<>();
-        UserType userType = repositoryService.getObject(UserType.class, oid, null, result).asObjectable();
-        for (AssignmentType assignmentType : userType.getAssignment()) {
-            ObjectReferenceType ref = assignmentType.getTargetRef();
-            if (ref != null) {
-                String groupName = objectReferenceToGroupName(ref);
-                if (groupName != null) {        // if the reference represents a group name (i.e. it is not e.g. an account ref)
-                    retval.add(groupName);
-                }
-            }
-        }
-        return retval;
-    }
-
 	public PrismObject resolveObjectReference(ObjectReferenceType ref, OperationResult result) {
 		return resolveObjectReference(ref, false, result);
 	}
@@ -474,4 +464,105 @@ public class MiscDataUtil {
 		}
 		projCtx.setOid(newOid);
 	}
+
+	// TODO move somewhere else?
+	public ChangesByState getChangesByState(TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext, OperationResult result)
+			throws SchemaException, ObjectNotFoundException {
+		ChangesByState rv = new ChangesByState(prismContext);
+		recordChanges(rv, rootTask.getModelOperationContext(), modelInteractionService, result);
+		for (TaskType subtask : rootTask.getSubtask()) {
+			recordChanges(rv, subtask.getModelOperationContext(), modelInteractionService, result);
+			final WfContextType wfc = subtask.getWorkflowContext();
+			if (wfc != null && wfc.getProcessInstanceId() != null) {
+				if (wfc.isApproved() == null) {
+					recordChangesWaitingToBeApproved(rv, wfc, prismContext);
+				} else if (wfc.isApproved()) {
+					recordChangesApproved(rv, subtask, rootTask, prismContext);
+				} else {
+					recordChangesRejected(rv, wfc, prismContext);
+				}
+			}
+		}
+		return rv;
+	}
+
+	private void recordChangesApproved(ChangesByState rv, TaskType subtask, TaskType rootTask, PrismContext prismContext) throws SchemaException {
+		if (!containsHandler(rootTask, WfPrepareRootOperationTaskHandler.HANDLER_URI) &&
+				!containsHandler(subtask, WfPrepareChildOperationTaskHandler.HANDLER_URI)) {
+			return;			// these changes were already incorporated into one of model contexts
+		}
+		if (subtask.getWorkflowContext().getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType) {
+			WfPrimaryChangeProcessorStateType ps = (WfPrimaryChangeProcessorStateType) subtask.getWorkflowContext().getProcessorSpecificState();
+			rv.getWaitingToBeApplied().merge(fromObjectTreeDeltasType(ps.getResultingDeltas(), prismContext));
+		}
+	}
+
+	private boolean containsHandler(TaskType taskType, String handlerUri) {
+		if (handlerUri.equals(taskType.getHandlerUri())) {
+			return true;
+		}
+		if (taskType.getOtherHandlersUriStack() == null) {
+			return false;
+		}
+		for (UriStackEntry uriStackEntry : taskType.getOtherHandlersUriStack().getUriStackEntry()) {
+			if (handlerUri.equals(uriStackEntry.getHandlerUri())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private <F extends FocusType> void recordChanges(ChangesByState rv, LensContextType modelOperationContext, ModelInteractionService modelInteractionService,
+			OperationResult result) throws ObjectNotFoundException, SchemaException {
+		if (modelOperationContext == null) {
+			return;
+		}
+		ModelContext<F> modelContext = unwrapModelContext(modelOperationContext, modelInteractionService, result);
+		ObjectTreeDeltas<F> deltas = baseModelInvocationProcessingHelper.extractTreeDeltasFromModelContext(modelContext);
+		ObjectTreeDeltas<F> target;
+		switch (modelContext.getState()) {
+			case INITIAL:
+			case PRIMARY: target = rv.getWaitingToBeApplied(); break;
+			case SECONDARY: target = rv.getBeingApplied(); break;
+			case EXECUTION:	// TODO reconsider this after EXECUTION and POSTEXECUTION states are really used
+			case POSTEXECUTION:
+			case FINAL: target = rv.getApplied(); break;
+			default: throw new IllegalStateException("Illegal model state: " + modelContext.getState());
+		}
+		target.merge(deltas);
+	}
+
+	protected void recordChangesWaitingToBeApproved(ChangesByState rv, WfContextType wfc, PrismContext prismContext)
+			throws SchemaException {
+		if (wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType) {
+			WfPrimaryChangeProcessorStateType ps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
+			rv.getWaitingToBeApproved().merge(fromObjectTreeDeltasType(ps.getDeltasToProcess(), prismContext));
+		}
+	}
+
+	private void recordChangesRejected(ChangesByState rv, WfContextType wfc, PrismContext prismContext) throws SchemaException {
+		if (wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType) {
+			WfPrimaryChangeProcessorStateType ps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
+			if (ObjectTreeDeltas.isEmpty(ps.getResultingDeltas())) {
+				rv.getRejected().merge(fromObjectTreeDeltasType(ps.getDeltasToProcess(), prismContext));
+			} else {
+				// it's actually hard to decide what to display as 'rejected' - because the delta was partly approved
+				// however, this situation will not currently occur
+			}
+		}
+	}
+
+	private ModelContext unwrapModelContext(LensContextType lensContextType, ModelInteractionService modelInteractionService, OperationResult result) throws
+			ObjectNotFoundException {
+		if (lensContextType != null) {
+			try {
+				return modelInteractionService.unwrapModelContext(lensContextType, result);
+			} catch (SchemaException | CommunicationException | ConfigurationException e) {   // todo treat appropriately
+				throw new SystemException("Couldn't access model operation context in task: " + e.getMessage(), e);
+			}
+		} else {
+			return null;
+		}
+	}
+
 }

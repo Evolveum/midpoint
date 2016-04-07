@@ -1,0 +1,230 @@
+/*
+ * Copyright (c) 2010-2015 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.evolveum.midpoint.web.page.admin.services;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
+import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.Table;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchFormPanel;
+import com.evolveum.midpoint.web.component.search.SearchPanel;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
+import com.evolveum.midpoint.web.session.RolesStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.session.UsersStorage;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+
+/**
+ * @author lazyman
+ */
+@PageDescriptor(url = "/admin/users", action = {
+        @AuthorizationAction(actionUri = PageAdminServices.AUTH_SERVICES_ALL,
+                label = PageAdminServices.AUTH_SERVICES_ALL_LABEL,
+                description = PageAdminServices.AUTH_SERVICES_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL,
+                label = "PageUsers.auth.users.label",
+                description = "PageUsers.auth.users.description")})
+public class PageServices extends PageAdminServices {
+	
+	private static final String ID_MAIN_FORM = "mainForm";
+	private static final String ID_TABLE = "table";
+
+	  private IModel<Search> searchModel;
+
+	    public PageServices() {
+	        this(true);
+	    }
+
+	    public PageServices(boolean clearPagingInSession) {
+	        searchModel = new LoadableModel<Search>(false) {
+
+	            @Override
+	            protected Search load() {
+	                RolesStorage storage = getSessionStorage().getRoles();
+	                Search dto = storage.getRolesSearch();
+
+	                if (dto == null) {
+	                    dto = SearchFactory.createSearch(RoleType.class, getPrismContext(), true);
+
+	                    SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+	                    PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(RoleType.class);
+	                    PrismPropertyDefinition def = objDef.findPropertyDefinition(RoleType.F_REQUESTABLE);
+
+	                    dto.addItem(def);
+	                }
+
+	                return dto;
+	            }
+	        };
+
+	        initLayout();
+	    }
+
+	    private void initLayout() {
+	        Form mainForm = new Form(ID_MAIN_FORM);
+	        add(mainForm);
+	        
+	        ObjectListPanel<ServiceType> servicePanel = new ObjectListPanel<ServiceType>(ID_TABLE, ServiceType.class, this){
+	        	
+	        	@Override
+	        	public void objectDetailsPerformed(AjaxRequestTarget target, ServiceType service) {
+	        		PageServices.this.serviceDetailsPerformed(target, service);
+	        	}
+	        	
+	        	
+	        };
+	        mainForm.add(servicePanel);
+	  
+	    }
+
+	    protected void serviceDetailsPerformed(AjaxRequestTarget target, ServiceType service) {
+			 PageParameters parameters = new PageParameters();
+		     parameters.add(OnePageParameterEncoder.PARAMETER, service.getOid());
+		     setResponsePage(PageService.class, parameters);
+			
+		}
+
+//	        ObjectDataProvider provider = new ObjectDataProvider(PageServices.this, Servi.class) {
+//
+//	            @Override
+//	            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
+//	                RolesStorage storage = getSessionStorage().getRoles();
+//	                storage.setRolesPaging(paging);
+//	            }
+//	        };
+//	        Search search = searchModel.getObject();
+//	        ObjectQuery query = search.createObjectQuery(getPrismContext());
+//	        provider.setQuery(query);
+//
+//	        List<IColumn<RoleType, String>> columns = initColumns();
+//
+//	        BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns,
+//	                UserProfileStorage.TableId.TABLE_ROLES,
+//	                (int) getItemsPerPage(UserProfileStorage.TableId.TABLE_ROLES)) {
+//
+//	            @Override
+//	            protected WebMarkupContainer createHeader(String headerId) {
+//	                return new SearchFormPanel(headerId, searchModel) {
+//
+//	                    @Override
+//	                    protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+//	                        PageRoles.this.listRolesPerformed(query, target);
+//	                    }
+//	                };
+//	            }
+//	        };
+//	        table.setOutputMarkupId(true);
+//
+//	        RolesStorage storage = getSessionStorage().getRoles();
+//	        table.setCurrentPage(storage.getRolesPaging());
+//
+//	        mainForm.add(table);
+//
+//	        add(new ConfirmationDialog(DIALOG_CONFIRM_DELETE, createStringResource("pageRoles.dialog.title.confirmDelete"),
+//	                createDeleteConfirmString()) {
+//
+//	            @Override
+//	            public void yesPerformed(AjaxRequestTarget target) {
+//	                close(target);
+//	                deleteConfirmedPerformed(target);
+//	            }
+//	        });
+//	    }
+
+//	    private List<InlineMenuItem> initInlineMenu() {
+//	        List<InlineMenuItem> headerMenuItems = new ArrayList<InlineMenuItem>();
+//	        headerMenuItems.add(new InlineMenuItem(createStringResource("pageRoles.button.delete"), true,
+//	                new HeaderMenuAction(this) {
+//
+//	                    @Override
+//	                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+//	                        deletePerformed(target);
+//	                    }
+//	                }));
+//
+//	        return headerMenuItems;
+//	    }
+
+}

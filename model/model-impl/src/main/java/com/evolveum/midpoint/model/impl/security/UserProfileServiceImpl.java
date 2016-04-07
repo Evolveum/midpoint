@@ -266,6 +266,9 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         PrismObject<UserType> newUser = person.getUser().asPrismObject();
 
         ObjectDelta<UserType> delta = oldUser.diff(newUser);
+        if (LOGGER.isTraceEnabled()) {
+        	LOGGER.trace("Updating user {} with delta:\n{}", newUser, delta.debugDump());
+        }
         repositoryService.modifyObject(UserType.class, delta.getOid(), delta.getModifications(),
                 new OperationResult(OPERATION_UPDATE_USER));
 

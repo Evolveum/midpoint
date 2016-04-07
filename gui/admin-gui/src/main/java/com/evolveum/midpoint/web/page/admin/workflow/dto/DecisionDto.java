@@ -28,12 +28,12 @@ import java.util.Date;
 public class DecisionDto extends Selectable {
 
     public static final String F_USER = "user";
-    public static final String F_RESULT = "result";
+    public static final String F_OUTCOME = "outcome";
     public static final String F_COMMENT = "comment";
     public static final String F_TIME = "time";
 
     private String user;
-    private String result;
+    private Boolean outcome;
     private String comment;
     private Date time;
 
@@ -43,13 +43,7 @@ public class DecisionDto extends Selectable {
         } else {
             this.user = decision.getApproverRef().getOid();
         }
-        if (Boolean.TRUE.equals(decision.isApproved())) {
-            this.result = "APPROVED";
-        } else if (Boolean.FALSE.equals(decision.isApproved())) {
-            this.result = "REJECTED";     // todo i18n
-        } else {
-            this.result = "-";
-        }
+        outcome = decision.isApproved();
         this.comment = decision.getComment();
         this.time = XmlTypeConverter.toDate(decision.getDateTime());
     }
@@ -62,8 +56,8 @@ public class DecisionDto extends Selectable {
         return user;
     }
 
-    public String getResult() {
-        return result;
+    public Boolean getOutcome() {
+        return outcome;
     }
 
     public String getComment() {

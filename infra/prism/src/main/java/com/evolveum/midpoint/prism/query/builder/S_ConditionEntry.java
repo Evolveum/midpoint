@@ -17,12 +17,10 @@
 package com.evolveum.midpoint.prism.query.builder;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
-import java.nio.file.attribute.AclEntry;
+import java.util.Collection;
 
 /**
  * @author mederly
@@ -43,6 +41,7 @@ public interface S_ConditionEntry {
     S_AtomicFilterExit endsWith(String value);
     S_AtomicFilterExit contains(String value);
     S_AtomicFilterExit ref(PrismReferenceValue value);
+	S_AtomicFilterExit ref(Collection<PrismReferenceValue> values);			// not supported by repo QueryInterpreter yet
     S_AtomicFilterExit ref(String oid);
     S_AtomicFilterExit ref(String oid, QName targetTypeName);
     S_AtomicFilterExit isNull();

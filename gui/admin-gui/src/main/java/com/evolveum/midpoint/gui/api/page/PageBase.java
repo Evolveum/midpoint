@@ -74,6 +74,8 @@ import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.services.PageService;
+import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
@@ -517,6 +519,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		feedbackContainer.add(feedbackList);
 
 		MainPopupDialog mainPopup = new MainPopupDialog(ID_MAIN_POPUP);
+		mainPopup.setOutputMarkupId(true);
 		add(mainPopup);
 	}
 
@@ -912,6 +915,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
 				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
 			items.add(createRolesItems());
+		}
+		
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SERVICE_URL,
+				AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+			items.add(createServicesItems());
 		}
 
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
@@ -1378,6 +1387,20 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		submenu.add(list);
 		createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.roles.new", "PageAdmin.menu.top.roles.edit",
 				PageRole.class);
+
+		return item;
+	}
+	
+	private MainMenuItem createServicesItems() {
+		MainMenuItem item = new MainMenuItem("fa fa-street-view", createStringResource("PageAdmin.menu.top.services"),
+				null);
+
+		List<MenuItem> submenu = item.getItems();
+
+		MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.services.list"), PageServices.class);
+		submenu.add(list);
+		createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.services.new", "PageAdmin.menu.top.services.edit",
+				PageService.class);
 
 		return item;
 	}

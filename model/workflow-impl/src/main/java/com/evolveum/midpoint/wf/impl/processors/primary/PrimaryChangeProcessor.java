@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -57,7 +58,6 @@ import java.util.*;
 import static com.evolveum.midpoint.audit.api.AuditEventStage.EXECUTION;
 import static com.evolveum.midpoint.audit.api.AuditEventStage.REQUEST;
 import static com.evolveum.midpoint.model.api.context.ModelState.PRIMARY;
-import static com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas.extractFromModelContext;
 import static com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor.ExecutionMode.*;
 
 /**
@@ -130,7 +130,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 			return null;
 		}
 
-		ObjectTreeDeltas objectTreeDeltas = extractFromModelContext(context);
+		ObjectTreeDeltas objectTreeDeltas = baseModelInvocationProcessingHelper.extractTreeDeltasFromModelContext(context);
         if (objectTreeDeltas.isEmpty()) {
             return null;
         }
@@ -238,7 +238,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 			OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         LensContext lensContextForRootTask = determineLensContextForRootTask(context, changesWithoutApproval, executionMode);
-        WfTaskCreationInstruction instructionForRoot = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel, lensContextForRootTask);
+        WfTaskCreationInstruction instructionForRoot = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel, lensContextForRootTask, result);
 		if (executionMode != ALL_IMMEDIATELY) {
 			instructionForRoot.setHandlersBeforeModelOperation(WfPrepareRootOperationTaskHandler.HANDLER_URI);      // gather all deltas from child objects
 		}

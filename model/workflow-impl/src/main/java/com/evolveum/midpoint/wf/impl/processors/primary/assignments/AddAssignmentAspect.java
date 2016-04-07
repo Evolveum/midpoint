@@ -35,9 +35,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalSpecificContent;
-import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
+import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
-import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
@@ -212,7 +211,7 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
         List<PcpChildWfTaskCreationInstruction> instructions = new ArrayList<>();
 		String assigneeOid = getFocusObjectOid(modelContext);
         String assigneeName = getFocusObjectName(modelContext);
-        PrismObject<UserType> requester = primaryChangeAspectHelper.getRequester(taskFromModel, result);
+        PrismObject<UserType> requester = baseModelInvocationProcessingHelper.getRequester(taskFromModel, result);
 
         for (ApprovalRequest<AssignmentType> approvalRequest : approvalRequestList) {
 

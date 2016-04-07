@@ -29,7 +29,8 @@ public enum RObjectType {
     LOOKUP_TABLE(RLookupTable.class),
     ACCESS_CERTIFICATION_DEFINITION(RAccessCertificationDefinition.class),
     ACCESS_CERTIFICATION_CAMPAIGN(RAccessCertificationCampaign.class),
-    SEQUENCE(RSequence.class);
+    SEQUENCE(RSequence.class),
+    SERVICE(RService.class);
 
     private Class<? extends RObject> clazz;
 

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="row">
+        <div class="col-md-5">
+            <h3><wicket:message key="workItemPanel.changesToBeApproved"/></h3>
+            <div wicket:id="deltasToBeApproved" />
+        </div>
+        <div class="col-md-7">
+            <h3><wicket:message key="workItemPanel.approvalHistory"/></h3>
+            <div wicket:id="history" />
+
+            <h3><wicket:message key="ItemApprovalPanel.currentWorkItems"/></h3>
+            <div wicket:id="currentWorkItems" />
+        </div>
+    </div>
+    <div wicket:id="relatedRequestsContainer">
+        <h3><wicket:message key="workItemPanel.relatedRequests"/></h3>
+        <div wicket:id="relatedRequests"/>
+    </div>
+    <a href="#" wicket:id="showParent"><wicket:message key="taskWfChildPanel.showParent"/></a>
+</wicket:panel>
+</body>
+</html>
+

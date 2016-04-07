@@ -28,7 +28,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -42,12 +41,15 @@ import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.task.IdentityLink;
 import org.activiti.engine.task.IdentityLinkType;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -59,6 +61,7 @@ import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.FilterComponents
 import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.factorOutQuery;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
+import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -143,7 +146,7 @@ public class WorkItemProvider {
         }
 
         if (candidateRolesFilter != null) {
-            taskQuery = taskQuery.taskCandidateGroupIn(ObjectTypeUtil.referenceValueListToOidList((Collection<PrismReferenceValue>) candidateRolesFilter.getValue()));
+            taskQuery = taskQuery.taskCandidateGroupIn(prismReferenceValueListToGroupNames((Collection<PrismReferenceValue>) candidateRolesFilter.getValue()));
         }
 
         if (query != null && query.getPaging() != null) {
@@ -171,7 +174,25 @@ public class WorkItemProvider {
                 .includeProcessVariables();
     }
 
-    // special interface for ProcessInstanceProvider - TODO align with other interfaces
+	private List<String> prismReferenceValueListToGroupNames(Collection<PrismReferenceValue> refs) {
+		List<String> rv = new ArrayList<>();
+		for (PrismReferenceValue ref : refs) {
+			addIgnoreNull(rv, prismReferenceValueToGroupName(ref));
+		}
+		return rv;
+	}
+
+	private String prismReferenceValueToGroupName(PrismReferenceValue ref) {
+		if (RoleType.COMPLEX_TYPE.equals(ref.getTargetType())) {
+			return "role:" + ref.getOid();
+		} else if (OrgType.COMPLEX_TYPE.equals(ref.getTargetType())) {
+			return "org:" + ref.getOid();
+		} else {
+			return null;
+		}
+	}
+
+	// special interface for ProcessInstanceProvider - TODO align with other interfaces
     public SearchResultList<WorkItemType> getWorkItemsForProcessInstanceId(String processInstanceId, OperationResult result) {
         TaskService ts = activitiEngine.getTaskService();
         List<Task> tasks = ts.createTaskQuery()

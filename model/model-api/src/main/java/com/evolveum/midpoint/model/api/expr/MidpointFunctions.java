@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -998,4 +999,6 @@ public interface MidpointFunctions {
      * @return
      */
     ObjectDeltaType getResourceDelta(ModelContext context, String resourceOid) throws SchemaException;
+
+	Protector getProtector();
 }

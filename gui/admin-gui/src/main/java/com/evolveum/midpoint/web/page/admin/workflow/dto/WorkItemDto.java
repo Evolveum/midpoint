@@ -29,8 +29,11 @@ import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Date;
 
 /**
@@ -46,6 +49,9 @@ public class WorkItemDto extends Selectable {
     public static final String F_ASSIGNEE = "assignee";
     public static final String F_CANDIDATES = "candidates";
 
+	public static final String F_OTHER_WORK_ITEMS = "otherWorkItems";
+	public static final String F_RELATED_WORKFLOW_REQUESTS = "relatedWorkflowRequests";
+
     public static final String F_OBJECT_NAME = "objectName";
     public static final String F_TARGET_NAME = "targetName";
 
@@ -55,6 +61,7 @@ public class WorkItemDto extends Selectable {
 
     public static final String F_WORKFLOW_CONTEXT = "workflowContext";          // use with care
 	public static final String F_DELTAS = "deltas";
+	public static final String F_PROCESS_INSTANCE_ID = "processInstanceId";
 
 	// workItem may or may not contain resolved taskRef;
     // and this task may or may not contain filled-in workflowContext -> and then requesterRef object
@@ -62,16 +69,24 @@ public class WorkItemDto extends Selectable {
     // Depending on expected use (work item list vs. work item details)
 
     protected WorkItemType workItem;
+	protected TaskType taskType;
+	protected List<TaskType> relatedTasks;
 	protected SceneDto deltas;
     protected String approverComment;
 
     public WorkItemDto(WorkItemType workItem) {
-        this.workItem = workItem;
+        this(workItem, null, null);
     }
+
+	public WorkItemDto(WorkItemType workItem, TaskType taskType, List<TaskType> relatedTasks) {
+		this.workItem = workItem;
+		this.taskType = taskType;
+		this.relatedTasks = relatedTasks;
+	}
 
 	public void prepareDeltaVisualization(String sceneNameKey, PrismContext prismContext,
 			ModelInteractionService modelInteractionService, Task opTask, OperationResult result) throws SchemaException {
-		TaskType task = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
+		TaskType task = getTaskType();
 		if (task == null || task.getWorkflowContext() == null) {
 			return;
 		}
@@ -83,7 +98,12 @@ public class WorkItemDto extends Selectable {
 		deltas = new SceneDto(deltasScene);
 	}
 
-    public String getWorkItemId() {
+	@Nullable
+	protected TaskType getTaskType() {
+		return taskType != null ? taskType : WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
+	}
+
+	public String getWorkItemId() {
         return workItem.getWorkItemId();
     }
 
@@ -165,7 +185,7 @@ public class WorkItemDto extends Selectable {
     }
 
     public WfContextType getWorkflowContext() {
-        TaskType task = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
+        TaskType task = getTaskType();
         if (task == null || task.getWorkflowContext() == null) {
             return null;
         } else {
@@ -213,5 +233,41 @@ public class WorkItemDto extends Selectable {
 
 	public QName getObjectType() {
 		return workItem.getObjectRef() != null ? workItem.getObjectRef().getType() : null;
+	}
+
+	// all except the current one
+	public List<WorkItemDto> getOtherWorkItems() {
+		final List<WorkItemDto> rv = new ArrayList<>();
+		final TaskType task = getTaskType();
+		if (task == null || task.getWorkflowContext() == null) {
+			return rv;
+		}
+		for (WorkItemType workItemType : task.getWorkflowContext().getWorkItem()) {
+			if (workItemType.getWorkItemId() == null || workItemType.getWorkItemId().equals(getWorkItemId())) {
+				continue;
+			}
+			rv.add(new WorkItemDto(workItemType));
+		}
+		return rv;
+	}
+
+	// all including the current task
+	public List<ProcessInstanceDto> getRelatedWorkflowRequests() {
+		final List<ProcessInstanceDto> rv = new ArrayList<>();
+		if (relatedTasks == null) {
+			return rv;
+		}
+		for (TaskType task : relatedTasks) {
+			if (task.getWorkflowContext() == null || task.getWorkflowContext().getProcessInstanceId() == null) {
+				continue;
+			}
+			rv.add(new ProcessInstanceDto(task));
+		}
+		return rv;
+	}
+
+	public String getProcessInstanceId() {
+		final TaskType task = getTaskType();
+		return task != null && task.getWorkflowContext() != null ? task.getWorkflowContext().getProcessInstanceId() : null;
 	}
 }

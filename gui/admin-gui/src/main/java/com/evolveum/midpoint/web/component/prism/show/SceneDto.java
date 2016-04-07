@@ -43,6 +43,8 @@ public class SceneDto implements Serializable {
 	private Scene scene;
 	private boolean minimized;
 
+	private String boxClassOverride;
+
 	private final List<SceneItemDto> items = new ArrayList<>();
 	private final List<SceneDto> partialScenes = new ArrayList<>();
 
@@ -125,5 +127,13 @@ public class SceneDto implements Serializable {
 
 	public boolean isWrapper() {
 		return scene instanceof WrapperScene;
+	}
+
+	public String getBoxClassOverride() {
+		return boxClassOverride;
+	}
+
+	public void setBoxClassOverride(String boxClassOverride) {
+		this.boxClassOverride = boxClassOverride;
 	}
 }

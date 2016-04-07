@@ -47,7 +47,6 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
@@ -742,6 +741,10 @@ public final class WebComponentUtil {
 		return "fa fa-building";
 	}
 	
+	public static String createServiceIcon(PrismObject<ServiceType> object) {
+		return "fa fa-building";
+	}
+	
 	public static String createResourceIcon(PrismObject<ResourceType> object) {
 		return "fa fa-laptop";
 	}
@@ -1090,8 +1093,9 @@ public final class WebComponentUtil {
 	}
 
 	@NotNull
-	public static TabbedPanel<ITab> createTabPanel(String id, final PageBase parentPage, final List<ITab> tabs) {
-		TabbedPanel<ITab> tabPanel = new TabbedPanel<ITab>(id, tabs) {
+	public static TabbedPanel<ITab> createTabPanel(String id, final PageBase parentPage, final List<ITab> tabs,
+			TabbedPanel.RightSideItemProvider rightSideItemProvider) {
+		TabbedPanel<ITab> tabPanel = new TabbedPanel<ITab>(id, tabs, rightSideItemProvider) {
 			@Override
 			protected WebMarkupContainer newLink(String linkId, final int index) {
 				return new AjaxSubmitLink(linkId) {

@@ -67,22 +67,22 @@ public class WorkItemManager {
     private static final String OPERATION_CLAIM_WORK_ITEM = DOT_INTERFACE + "claimWorkItem";
     private static final String OPERATION_RELEASE_WORK_ITEM = DOT_INTERFACE + "releaseWorkItem";
 
-    public void completeWorkItem(String taskId, String decision, String comment, OperationResult parentResult) throws SecurityViolationException {
+    public void completeWorkItem(String workItemId, String decision, String comment, OperationResult parentResult) throws SecurityViolationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_COMPLETE_WORK_ITEM);
-        result.addParams(new String[] { "taskId", "decision", "comment" }, taskId, decision, comment);
+        result.addParams(new String[] { "workItemId", "decision", "comment" }, workItemId, decision, comment);
 
 		try {
 			final String userDecription = toShortString(securityEnforcer.getPrincipal().getUser());
 			result.addContext("user", userDecription);
 
-			LOGGER.trace("Completing work item {} with decision of {} ['{}'] by {}", taskId, decision, comment, userDecription);
+			LOGGER.trace("Completing work item {} with decision of {} ['{}'] by {}", workItemId, decision, comment, userDecription);
 
 			FormService formService = activitiEngine.getFormService();
-			TaskFormData data = activitiEngine.getFormService().getTaskFormData(taskId);
+			TaskFormData data = activitiEngine.getFormService().getTaskFormData(workItemId);
 
 			String assigneeOid = data.getTask().getAssignee();
-			if (!miscDataUtil.isAuthorizedToSubmit(taskId, assigneeOid)) {
+			if (!miscDataUtil.isAuthorizedToSubmit(workItemId, assigneeOid)) {
 				throw new SecurityViolationException("You are not authorized to complete this work item.");
 			}
 
@@ -101,28 +101,28 @@ public class WorkItemManager {
 				}
 			}
 			LOGGER.trace("Submitting {} properties", propertiesToSubmit.size());
-			formService.submitTaskFormData(taskId, propertiesToSubmit);
+			formService.submitTaskFormData(workItemId, propertiesToSubmit);
 		} catch (SecurityViolationException|RuntimeException e) {
-			result.recordFatalError("Couldn't complete the work item " + taskId + ": " + e.getMessage(), e);
+			result.recordFatalError("Couldn't complete the work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;
 		} finally {
 			result.computeStatusIfUnknown();
 		}
     }
 
-    public void claimWorkItem(String taskId, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException {
+    public void claimWorkItem(String workItemId, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(OPERATION_CLAIM_WORK_ITEM);
-        result.addParam("taskId", taskId);
+        result.addParam("workItemId", workItemId);
 		try {
 			MidPointPrincipal principal = securityEnforcer.getPrincipal();
 			result.addContext("user", toShortString(principal.getUser()));
 
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Claiming work item {} by {}", taskId, toShortString(principal.getUser()));
+				LOGGER.trace("Claiming work item {} by {}", workItemId, toShortString(principal.getUser()));
 			}
 
 			TaskService taskService = activitiEngine.getTaskService();
-			Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
+			Task task = taskService.createTaskQuery().taskId(workItemId).singleResult();
 			if (task == null) {
 				throw new ObjectNotFoundException("The work item does not exist");
 			}
@@ -133,28 +133,28 @@ public class WorkItemManager {
 			if (!miscDataUtil.isAuthorizedToClaim(task.getId())) {
 				throw new SecurityViolationException("You are not authorized to claim the selected work item.");
 			}
-			taskService.claim(taskId, principal.getOid());
+			taskService.claim(workItemId, principal.getOid());
 		} catch (ObjectNotFoundException|SecurityViolationException|RuntimeException e) {
-			result.recordFatalError("Couldn't claim the work item " + taskId + ": " + e.getMessage(), e);
+			result.recordFatalError("Couldn't claim the work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;
 		} finally {
 			result.computeStatusIfUnknown();
 		}
 	}
 
-    public void releaseWorkItem(String taskId, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException {
+    public void releaseWorkItem(String workItemId, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException {
         OperationResult result = parentResult.createSubresult(OPERATION_RELEASE_WORK_ITEM);
-        result.addParam("taskId", taskId);
+        result.addParam("workItemId", workItemId);
 		try {
 			MidPointPrincipal principal = securityEnforcer.getPrincipal();
 			result.addContext("user", toShortString(principal.getUser()));
 
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Releasing work item {} by {}", taskId, toShortString(principal.getUser()));
+				LOGGER.trace("Releasing work item {} by {}", workItemId, toShortString(principal.getUser()));
 			}
 
             TaskService taskService = activitiEngine.getTaskService();
-            Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
+            Task task = taskService.createTaskQuery().taskId(workItemId).singleResult();
             if (task == null) {
 				throw new ObjectNotFoundException("The work item does not exist");
             }
@@ -165,7 +165,7 @@ public class WorkItemManager {
                 throw new SystemException("The work item is not assigned to the current user");
             }
             boolean candidateFound = false;
-            for (IdentityLink link : taskService.getIdentityLinksForTask(taskId)) {
+            for (IdentityLink link : taskService.getIdentityLinksForTask(workItemId)) {
                 if (IdentityLinkType.CANDIDATE.equals(link.getType())) {
                     candidateFound = true;
                     break;
@@ -174,9 +174,9 @@ public class WorkItemManager {
             if (!candidateFound) {
                 throw new SystemException("It has no candidates to be offered to");
             }
-            taskService.unclaim(taskId);
+            taskService.unclaim(workItemId);
         } catch (ObjectNotFoundException|SecurityViolationException|RuntimeException e) {
-            result.recordFatalError("Couldn't release work item " + taskId + ": " + e.getMessage(), e);
+            result.recordFatalError("Couldn't release work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;
         } finally {
 			result.computeStatusIfUnknown();

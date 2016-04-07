@@ -38,7 +38,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
-import com.evolveum.midpoint.wf.impl.processors.primary.ObjectTreeDeltas;
+import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspectHelper;
@@ -77,7 +77,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
     @Autowired
     protected PrimaryChangeAspectHelper primaryChangeAspectHelper;
 
-    //region ------------------------------------------------------------ Things that execute on request arrival
+	//region ------------------------------------------------------------ Things that execute on request arrival
 
     @Override
     public List<PcpChildWfTaskCreationInstruction> prepareTasks(ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -232,7 +232,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
         List<PcpChildWfTaskCreationInstruction> instructions = new ArrayList<>();
         String assigneeName = MiscDataUtil.getFocusObjectName(modelContext);
         String assigneeOid = MiscDataUtil.getFocusObjectOid(modelContext);
-        PrismObject<UserType> requester = primaryChangeAspectHelper.getRequester(taskFromModel, result);
+        PrismObject<UserType> requester = baseModelInvocationProcessingHelper.getRequester(taskFromModel, result);
 
         for (ApprovalRequest<AssociationAdditionType> approvalRequest : approvalRequestList) {
 

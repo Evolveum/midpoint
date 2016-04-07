@@ -43,24 +43,24 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
-import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -77,10 +77,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider2;
-import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
@@ -88,7 +86,6 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
@@ -97,7 +94,7 @@ import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -105,6 +102,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+
+/**
+ * Implementation classes : ResourceContentResourcePanel, ResourceContentRepositoryPanel
+ * @author katka
+ *
+ */
 public abstract class ResourceContentPanel extends Panel {
 
 	/**
@@ -117,6 +120,9 @@ public abstract class ResourceContentPanel extends Panel {
 	private static final String DOT_CLASS = ResourceContentTabPanel.class.getName() + ".";
 	private static final String OPERATION_CHANGE_OWNER = DOT_CLASS + "changeOwner";
 	private static final String OPERATION_LOAD_SHADOW_OWNER = DOT_CLASS + "loadOwner";
+	private static final String OPERATION_UPDATE_STATUS = DOT_CLASS + "updateStatus";
+	private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
+	private static final String OPERATION_IMPORT_OBJECT = DOT_CLASS + "importObject";
 
 	private static final String ID_TABLE = "table";
 
@@ -560,8 +566,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						// updateAccountStatusPerformed(target, null, true);
-						// TODO
+						 updateResourceObjectStatusPerformed(target, true);
 					}
 				}));
 
@@ -570,8 +575,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						// updateAccountStatusPerformed(target, null, false);
-						// TODO
+						 updateResourceObjectStatusPerformed(target, false);
 					}
 				}));
 
@@ -580,7 +584,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						// deleteAccountPerformed(target, null); TODO
+						 deleteResourceObjectPerformed(target); 
 					}
 				}));
 
@@ -591,7 +595,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						// importAccount(target, null); TODO
+						 importResourceObject(target); 
 					}
 				}));
 
@@ -603,7 +607,6 @@ public abstract class ResourceContentPanel extends Panel {
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
 						changeOwner(target, null, Operation.REMOVE);
-						// removeOwnerPerformed(target, null); TODO
 					}
 				}));
 
@@ -627,6 +630,114 @@ public abstract class ResourceContentPanel extends Panel {
 
 		return items;
 	}
+	
+	protected void importResourceObject(AjaxRequestTarget target){
+		List<SelectableBean<ShadowType>> selectedShadow = WebComponentUtil.getSelectedData(getTable());
+		
+		OperationResult result = new OperationResult(OPERATION_IMPORT_OBJECT);
+		Task task = pageBase.createSimpleTask(OPERATION_IMPORT_OBJECT);
+		
+		if (selectedShadow == null && selectedShadow.isEmpty()){
+			result.recordWarning("Nothing select to import");
+			getPageBase().showResult(result);
+			target.add(getPageBase().getFeedbackPanel());
+			return;
+		}
+		
+		for (SelectableBean<ShadowType> shadow : selectedShadow) {
+			try {
+				getPageBase().getModelService().importFromResource(shadow.getValue().getOid(), task, result);
+			} catch (ObjectNotFoundException | SchemaException | SecurityViolationException
+					| CommunicationException | ConfigurationException e) {
+				result.recordPartialError("Could not import account " + shadow.getValue(), e);
+				LOGGER.error("Could not import account {} ", shadow.getValue(), e);
+				continue;
+			}
+		}
+		
+		result.computeStatusIfUnknown();
+		getPageBase().showResult(result);
+		target.add(getPageBase().getFeedbackPanel());
+	}
+	
+	//TODO: as a task?
+	protected void deleteResourceObjectPerformed(AjaxRequestTarget target){
+		List<SelectableBean<ShadowType>> selectedShadow = WebComponentUtil.getSelectedData(getTable());
+		
+		
+		OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
+		Task task = pageBase.createSimpleTask(OPERATION_DELETE_OBJECT);
+		
+		if (selectedShadow == null && selectedShadow.isEmpty()){
+			result.recordWarning("Nothing selected to delete");
+			getPageBase().showResult(result);
+			target.add(getPageBase().getFeedbackPanel());
+			return;
+		}
+		
+		ModelExecuteOptions opts = createModelOptions();
+		
+		for (SelectableBean<ShadowType> shadow : selectedShadow){
+			try {
+				ObjectDelta<ShadowType> deleteDelta = ObjectDelta.createDeleteDelta(ShadowType.class, shadow.getValue().getOid(), getPageBase().getPrismContext());
+				getPageBase().getModelService().executeChanges(WebComponentUtil.createDeltaCollection(deleteDelta), opts, task, result);
+			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+					| ExpressionEvaluationException | CommunicationException | ConfigurationException
+					| PolicyViolationException | SecurityViolationException e) {
+				// TODO Auto-generated catch block
+				result.recordPartialError("Could not delete object " + shadow.getValue(), e);
+				LOGGER.error("Could not delete {}, using option {}", shadow.getValue(), opts, e);
+				continue;
+			}
+		}
+		
+		result.computeStatusIfUnknown();
+		getPageBase().showResult(result);
+		target.add(getPageBase().getFeedbackPanel());
+		
+	}
+	
+	protected abstract ModelExecuteOptions createModelOptions();
+	
+	protected void updateResourceObjectStatusPerformed(AjaxRequestTarget target, boolean enabled){
+List<SelectableBean<ShadowType>> selectedShadow = WebComponentUtil.getSelectedData(getTable());
+		
+		
+		OperationResult result = new OperationResult(OPERATION_UPDATE_STATUS);
+		Task task = pageBase.createSimpleTask(OPERATION_UPDATE_STATUS);
+		
+		if (selectedShadow == null && selectedShadow.isEmpty()){
+			result.recordWarning("Nothing selected to update status");
+			getPageBase().showResult(result);
+			target.add(getPageBase().getFeedbackPanel());
+			return;
+		}
+		
+		
+		
+		ModelExecuteOptions opts = createModelOptions();
+		
+		for (SelectableBean<ShadowType> shadow : selectedShadow){
+			ActivationStatusType status = enabled ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED;
+			try {	
+				ObjectDelta<ShadowType> deleteDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, shadow.getValue().getOid(), SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getPageBase().getPrismContext(), status);
+				getPageBase().getModelService().executeChanges(WebComponentUtil.createDeltaCollection(deleteDelta), opts, task, result);
+			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+					| ExpressionEvaluationException | CommunicationException | ConfigurationException
+					| PolicyViolationException | SecurityViolationException e) {
+				// TODO Auto-generated catch block
+				result.recordPartialError("Could not update status (to " + status+ ") for " + shadow.getValue(), e);
+				LOGGER.error("Could not update status (to {}) for {}, using option {}", status, shadow.getValue(), opts, e);
+				continue;
+			}
+		}
+		
+		result.computeStatusIfUnknown();
+		getPageBase().showResult(result);
+		target.add(getPageBase().getFeedbackPanel());
+		
+	
+	}
 
 	private PrismObjectDefinition getFocusDefinition() {
 		return pageBase.getPrismContext().getSchemaRegistry()
@@ -638,8 +749,7 @@ public abstract class ResourceContentPanel extends Panel {
 	}
 
 	private void changeOwner(AjaxRequestTarget target, FocusType ownerToChange, Operation operation) {
-		BoxedTablePanel table = getTable();
-		List<SelectableBean<ShadowType>> selectedShadow = WebComponentUtil.getSelectedData(table);
+		List<SelectableBean<ShadowType>> selectedShadow = WebComponentUtil.getSelectedData(getTable());
 
 		Collection<? extends ItemDelta> modifications = new ArrayList<>();
 

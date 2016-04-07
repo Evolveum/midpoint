@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.processors.primary;
+package com.evolveum.midpoint.schema;
 
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -30,14 +25,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTreeDeltasType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionObjectDeltaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang.Validate;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Structure that contains all primary changes requested: from focus as well as from projections.
@@ -75,20 +65,6 @@ public class ObjectTreeDeltas<F extends FocusType> implements DebugDumpable {
         this.focusChange = focusChange;
     }
 
-    public static <T extends FocusType> ObjectTreeDeltas<T> extractFromModelContext(ModelContext<T> modelContext) {
-        ObjectTreeDeltas objectTreeDeltas = new ObjectTreeDeltas(modelContext.getPrismContext());
-        if (modelContext.getFocusContext() != null && modelContext.getFocusContext().getPrimaryDelta() != null) {
-            objectTreeDeltas.setFocusChange(modelContext.getFocusContext().getPrimaryDelta().clone());
-        }
-
-        for (ModelProjectionContext projectionContext : modelContext.getProjectionContexts()) {
-            if (projectionContext.getPrimaryDelta() != null) {
-                objectTreeDeltas.addProjectionChange(projectionContext.getResourceShadowDiscriminator(), projectionContext.getPrimaryDelta());
-            }
-        }
-        return objectTreeDeltas;
-    }
-
     public void addProjectionChange(ResourceShadowDiscriminator resourceShadowDiscriminator, ObjectDelta<ShadowType> primaryDelta) {
         if (projectionChangeMap.containsKey(resourceShadowDiscriminator)) {
             throw new IllegalStateException("Duplicate contexts for " + resourceShadowDiscriminator);
@@ -108,7 +84,24 @@ public class ObjectTreeDeltas<F extends FocusType> implements DebugDumpable {
         return true;
     }
 
-    public ObjectTreeDeltas<F> clone() {
+	public static boolean isEmpty(ObjectTreeDeltasType deltas) {
+		if (deltas == null) {
+			return true;
+		}
+		if (deltas.getFocusPrimaryDelta() != null) {
+			if (!ObjectDelta.isEmpty(deltas.getFocusPrimaryDelta())) {
+				return false;
+			}
+		}
+		for (ProjectionObjectDeltaType projDelta: deltas.getProjectionPrimaryDelta()) {
+			if (!ObjectDelta.isEmpty(projDelta.getPrimaryDelta())) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public ObjectTreeDeltas<F> clone() {
         ObjectTreeDeltas<F> clone = new ObjectTreeDeltas<>(prismContext);
         if (focusChange != null) {
             clone.setFocusChange(focusChange.clone());
@@ -217,4 +210,25 @@ public class ObjectTreeDeltas<F extends FocusType> implements DebugDumpable {
         }
         return sb.toString();
     }
+
+	public void merge(ObjectTreeDeltas<F> deltasToMerge) throws SchemaException {
+		if (deltasToMerge == null) {
+			return;
+		}
+		if (focusChange != null) {
+			focusChange.merge(deltasToMerge.focusChange);
+		} else {
+			focusChange = deltasToMerge.focusChange;
+		}
+		for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> projEntry : deltasToMerge.getProjectionChangeMapEntries()) {
+			ResourceShadowDiscriminator rsd = projEntry.getKey();
+			ObjectDelta<ShadowType> existingDelta = projectionChangeMap.get(rsd);
+			ObjectDelta<ShadowType> newDelta = projEntry.getValue();
+			if (existingDelta != null) {
+				existingDelta.merge(newDelta);
+			} else {
+				projectionChangeMap.put(rsd, newDelta);
+			}
+		}
+	}
 }

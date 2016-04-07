@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author Vilo Repan
@@ -143,6 +144,7 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_ATTRIBUTES = new ItemPath(C_ATTRIBUTES);
     public static final ItemPath PATH_ASSOCIATION = new ItemPath(C_ASSOCIATION);
 	public static final ItemPath PATH_TRIGGER = new ItemPath(ObjectType.F_TRIGGER);
+	public static final ItemPath PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS = new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
 
 	public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-1.xsd";

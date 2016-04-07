@@ -8,6 +8,8 @@ import org.apache.wicket.model.IModel;
 import java.io.Serializable;
 
 /**
+ * Used to determine whether tabs have to be refreshed - by comparing instances of this class before and after task update.
+ *
  * @author mederly
  */
 class TaskButtonsVisibility implements Serializable {
@@ -25,7 +27,7 @@ class TaskButtonsVisibility implements Serializable {
     }
 
     public boolean computeEditVisible(PageTaskEdit parentPage) {
-        editVisible = !parentPage.isEdit();
+        editVisible = !parentPage.isEdit() && (!parentPage.isWorkflow() || parentPage.isShowAdvanced());
         return editVisible;
     }
 
@@ -40,21 +42,35 @@ class TaskButtonsVisibility implements Serializable {
     }
 
     public boolean computeSuspendVisible(PageTaskEdit parentPage) {
-        suspendVisible = !parentPage.isEdit() && parentPage.isRunnableOrRunning();
+        suspendVisible = !parentPage.isEdit() && parentPage.isRunnableOrRunning() && (!parentPage.isWorkflow() || parentPage.isShowAdvanced());
         return suspendVisible;
     }
 
     public boolean computeResumeVisible(PageTaskEdit parentPage) {
-        resumeVisible = !parentPage.isEdit() && (parentPage.isSuspended() || (parentPage.isClosed() && parentPage.isRecurring()));
+        resumeVisible = !parentPage.isEdit()
+				&& (parentPage.isSuspended() || (parentPage.isClosed() && parentPage.isRecurring()))
+				&& (!parentPage.isWorkflow() || parentPage.isShowAdvanced());
         return resumeVisible;
     }
 
     public boolean computeRunNowVisible(PageTaskEdit parentPage) {
-        runNowVisible = !parentPage.isEdit() && (parentPage.isRunnable() || (parentPage.isClosed() && !parentPage.isRecurring()));
+        runNowVisible = !parentPage.isEdit()
+				&& (parentPage.isRunnable() || (parentPage.isClosed() && !parentPage.isRecurring()))
+				&& (!parentPage.isWorkflow() || parentPage.isShowAdvanced());
         return runNowVisible;
     }
 
-    public boolean isBackVisible() {
+	public void computeAll(PageTaskEdit parentPage) {
+		computeBackVisible(parentPage);
+		computeEditVisible(parentPage);
+		computeCancelEditVisible(parentPage);
+		computeSaveVisible(parentPage);
+		computeSuspendVisible(parentPage);
+		computeResumeVisible(parentPage);
+		computeRunNowVisible(parentPage);
+	}
+
+	public boolean isBackVisible() {
         return backVisible;
     }
 

@@ -28,6 +28,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.commons.lang.Validate;
 
 import java.io.Serializable;
@@ -433,6 +436,24 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
         }
         return true;
     }
+
+	public static boolean isEmpty(ObjectDeltaType deltaType) {
+		if (deltaType == null) {
+			return true;
+		}
+		if (deltaType.getChangeType() == ChangeTypeType.DELETE) {
+			return false;
+		} else if (deltaType.getChangeType() == ChangeTypeType.ADD) {
+			return deltaType.getObjectToAdd() == null || deltaType.getObjectToAdd().asPrismObject().isEmpty();
+		} else {
+			for (ItemDeltaType itemDeltaType : deltaType.getItemDelta()) {
+				if (!ItemDelta.isEmpty(itemDeltaType)) {
+					return false;
+				}
+			}
+			return true;
+		}
+	}
     
     public void normalize() {
     	if (objectToAdd != null) {
