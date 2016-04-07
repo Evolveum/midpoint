@@ -65,6 +65,11 @@
             <artifactId>model-api</artifactId>
             <version>3.4-SNAPSHOT</version>
         </dependency>
+        
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations-java5</artifactId>
+        </dependency>
     </dependencies>
 
 
