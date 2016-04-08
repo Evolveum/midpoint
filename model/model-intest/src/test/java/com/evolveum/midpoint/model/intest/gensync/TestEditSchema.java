@@ -62,6 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -1036,6 +1037,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		assertTrue("costCenter not readable", costCenterDef.canRead());
 		PrismAsserts.assertEmphasized(costCenterDef, true);
 		
+		// This has overridden lookup def in object template
 		PrismPropertyDefinition<String> preferredLanguageDef = editDef.findPropertyDefinition(UserType.F_PREFERRED_LANGUAGE);
 		assertNotNull("No definition for preferredLanguage in user", preferredLanguageDef);
 		assertEquals("Wrong preferredLanguage displayName", "Language", preferredLanguageDef.getDisplayName());
@@ -1044,6 +1046,15 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		assertNotNull("No valueEnumerationRef for preferredLanguage", valueEnumerationRef);
 		assertEquals("Wrong valueEnumerationRef OID for preferredLanguage", LOOKUP_LANGUAGES_OID, valueEnumerationRef.getOid());
 
+		// This has default lookup def in schema
+		PrismPropertyDefinition<String> timezoneDef = editDef.findPropertyDefinition(UserType.F_TIMEZONE);
+		assertNotNull("No definition for timezone in user", timezoneDef);
+		assertEquals("Wrong timezone displayName", "Timezone", timezoneDef.getDisplayName());
+		assertTrue("timezone not readable", timezoneDef.canRead());
+		valueEnumerationRef = timezoneDef.getValueEnumerationRef();
+		assertNotNull("No valueEnumerationRef for timezone", valueEnumerationRef);
+		assertEquals("Wrong valueEnumerationRef OID for timezone", SystemObjectsType.LOOKUP_TIMEZONES.value(), valueEnumerationRef.getOid());
+		
 		PrismContainerDefinition<CredentialsType> credentialsDef = editDef.findContainerDefinition(UserType.F_CREDENTIALS);
 		assertNotNull("No definition for credentials in user", credentialsDef);
 		assertTrue("Credentials not readable", credentialsDef.canRead());
@@ -1584,6 +1595,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		assertTrue("costCenter not readable", costCenterDef.canRead());
 		assertTrue("costCenter not creatable", costCenterDef.canAdd());
 		assertTrue("costCenter not modifiable", costCenterDef.canModify());
+		PrismReferenceValue valueEnumerationRef = costCenterDef.getValueEnumerationRef();
+		assertNull("valueEnumerationRef for costCente sneaked in", valueEnumerationRef);
 		
 		PrismPropertyDefinition<String> preferredLanguageDef = userDefinition.findPropertyDefinition(UserType.F_PREFERRED_LANGUAGE);
 		assertNotNull("No definition for preferredLanguage in user", preferredLanguageDef);
@@ -1591,8 +1604,10 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		assertTrue("preferredLanguage not readable", preferredLanguageDef.canRead());
 		assertTrue("preferredLanguage not creatable", preferredLanguageDef.canAdd());
 		assertTrue("preferredLanguage not modifiable", preferredLanguageDef.canModify());
-		PrismReferenceValue valueEnumerationRef = preferredLanguageDef.getValueEnumerationRef();
-		assertNull("valueEnumerationRef for preferredLanguage sneaked in", valueEnumerationRef);
+		valueEnumerationRef = preferredLanguageDef.getValueEnumerationRef();
+		assertNotNull("valueEnumerationRef for preferredLanguage missing", valueEnumerationRef);
+		assertEquals("wrong OID in valueEnumerationRef for preferredLanguage missing", 
+				SystemObjectsType.LOOKUP_LANGUAGES.value(), valueEnumerationRef.getOid());
 
 		PrismContainerDefinition<CredentialsType> credentialsDef = userDefinition.findContainerDefinition(UserType.F_CREDENTIALS);
 		assertNotNull("No definition for credentials in user", credentialsDef);
