@@ -253,23 +253,23 @@
         </xsd:annotation>    
     </xsd:attribute>
     
-    <xsd:attribute name="since" type="xsd:string">
+    <xsd:element name="since" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
                 Version of data model in which was the item introduced.
             </xsd:documentation>
         </xsd:annotation>    
-    </xsd:attribute>
+    </xsd:element>
     
-    <xsd:attribute name="label" type="xsd:string">
+    <xsd:element name="label" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
                 Displayable label of enumeration item.
             </xsd:documentation>
         </xsd:annotation>    
-    </xsd:attribute>
+    </xsd:element>
 
-    <xsd:attribute name="matchingRule" type="xsd:QName">
+    <xsd:element name="matchingRule" type="xsd:QName">
         <xsd:annotation>
             <xsd:documentation>
                 Matching rules are algorithms that specify
@@ -277,7 +277,59 @@
 				rules for case insensitive string comparison, for LDAP DNs, etc.
             </xsd:documentation>
         </xsd:annotation>    
-    </xsd:attribute>
+    </xsd:element>
+    
+    <xsd:element name="valueEnumerationRef" type="tns:ObjectReferenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Reference to an object that directly or indirectly represents possible values for
+				this item. We do not define here what exactly the object has to be. It can be a lookup
+				table, script that dynamically produces the values or anything similar. 
+				The object must produce the values of the correct type for this item otherwise an
+				error occurs.
+            </xsd:documentation>
+        </xsd:annotation>    
+    </xsd:element>
+    
+    <xsd:complexType name="ObjectReferenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+            	<p>
+	                Reference to an object. It contains OID of the object that it
+	                refers to.
+	                This is simplified version of the "real" object reference used
+	                in the main schemas. This has to be a duplicate to avoid circular
+	                dependencies.
+                </p>
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:attribute name="oid" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation>
+                	<p>
+	                    Target of the reference.
+                    </p>
+					<p>
+	                    Optional only during imports. The objects stored in the repository must have the OID
+	                    value filled in.
+                    </p>
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="type" type="xsd:QName" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>
+                	<p>
+                    	Type of the reference target object.
+                    </p>
+					<p>
+	                    It has to be provided unless the schema explicitly defines
+	                    a non-polymorphic type for the reference target type. 
+                    </p>
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
 
 </xsd:schema>
 

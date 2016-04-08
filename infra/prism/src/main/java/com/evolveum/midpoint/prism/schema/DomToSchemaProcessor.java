@@ -31,6 +31,7 @@ import static com.evolveum.midpoint.prism.PrismConstants.A_IGNORE;
 import static com.evolveum.midpoint.prism.PrismConstants.A_EMPHASIZED;
 import static com.evolveum.midpoint.prism.PrismConstants.A_INDEXED;
 import static com.evolveum.midpoint.prism.PrismConstants.A_MATCHING_RULE;
+import static com.evolveum.midpoint.prism.PrismConstants.A_VALUE_ENUMERATION_REF;
 import static com.evolveum.midpoint.prism.PrismConstants.A_MAX_OCCURS;
 import static com.evolveum.midpoint.prism.PrismConstants.A_OBJECT;
 import static com.evolveum.midpoint.prism.PrismConstants.A_OBJECT_REFERENCE;
@@ -62,7 +63,6 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.cxf.common.util.ReflectionInvokationHandler.Optional;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.EntityResolver;
@@ -78,6 +78,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -93,11 +94,9 @@ import com.sun.xml.xsom.XSFacet;
 import com.sun.xml.xsom.XSModelGroup;
 import com.sun.xml.xsom.XSParticle;
 import com.sun.xml.xsom.XSRestrictionSimpleType;
-import com.sun.xml.xsom.XSSchema;
 import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
-import com.sun.xml.xsom.impl.ElementDecl;
 import com.sun.xml.xsom.parser.XSOMParser;
 import com.sun.xml.xsom.util.DomAnnotationParserFactory;
 
@@ -961,6 +960,16 @@ class DomToSchemaProcessor {
 		if (matchingRuleElement != null) {
 			QName matchingRule = XmlTypeConverter.toJavaValue(matchingRuleElement, QName.class);
 			propDef.setMatchingRuleQName(matchingRule);
+		}
+		
+		Element valueEnumerationRefElement = SchemaProcessorUtil.getAnnotationElement(annotation, A_VALUE_ENUMERATION_REF);
+		if (valueEnumerationRefElement != null) {
+			String oid = valueEnumerationRefElement.getAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME);
+			if (oid != null) {
+				QName targetType = DOMUtil.getQNameAttribute(valueEnumerationRefElement, PrismConstants.ATTRIBUTE_REF_TYPE_LOCAL_NAME);
+				PrismReferenceValue valueEnumerationRef = new PrismReferenceValue(oid, targetType);
+				propDef.setValueEnumerationRef(valueEnumerationRef);
+			}
 		}
 
 		return propDef;
