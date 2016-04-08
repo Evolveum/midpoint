@@ -222,14 +222,6 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
     }
 
     private void showHelpPerformed(AjaxRequestTarget target){
-//        getPageBase().getMainPopup().setTitle(getPageBase().createStringResource("ChangePasswordPanel.helpPopupTitle"));
-//        getPageBase().getMainPopup().setBody(new HelpInfoPanel(getPageBase().getMainPopupBodyId(), "ChangePasswordPanel.helpInfo") {
-//            @Override
-//            protected void closePerformed(AjaxRequestTarget target) {
-//                getPageBase().getMainPopup().close(target);
-//
-//            }
-//        });
         getPageBase().showMainPopup(new HelpInfoPanel(getPageBase().getMainPopupBodyId(), "ChangePasswordPanel.helpInfo") {
             @Override
             protected void closePerformed(AjaxRequestTarget target) {

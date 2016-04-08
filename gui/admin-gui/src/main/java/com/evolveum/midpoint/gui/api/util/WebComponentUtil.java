@@ -43,6 +43,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
@@ -69,6 +70,7 @@ import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
+import org.apache.wicket.datetime.PatternDateConverter;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.IFeedback;
@@ -662,6 +664,12 @@ public final class WebComponentUtil {
             locale = Locale.getDefault();
         }
         return locale;
+    }
+
+    public static String getLocalizedDate(Date date, String style){
+        PatternDateConverter converter = new PatternDateConverter(getLocalizedDatePattern(style), true );
+        return converter.convertToString(date, WebComponentUtil.getCurrentLocale());
+
     }
 
     public static boolean isActivationEnabled(PrismObject object) {
