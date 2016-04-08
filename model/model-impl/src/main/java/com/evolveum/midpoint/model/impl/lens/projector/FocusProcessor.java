@@ -17,6 +17,8 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
+import java.util.Collection;
+
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
@@ -36,6 +38,7 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -519,6 +522,23 @@ public class FocusProcessor {
 	private <F extends FocusType> void processActivationLockout(LensFocusContext<UserType> focusContext, XMLGregorianCalendar now, 
 			OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {	
+		
+		PropertyDelta<LockoutStatusType> lockoutStatusDelta = focusContext.getPrimaryDelta().findPropertyDelta(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
+		if (lockoutStatusDelta != null) {
+			if (lockoutStatusDelta.isAdd()) {
+				for (PrismPropertyValue<LockoutStatusType> pval: lockoutStatusDelta.getValuesToAdd()) {
+					if (pval.getValue() == LockoutStatusType.LOCKED) {
+						throw new SchemaException("Lockout status cannot be changed to LOCKED value");
+					}
+				}
+			} else if (lockoutStatusDelta.isReplace()) {
+				for (PrismPropertyValue<LockoutStatusType> pval: lockoutStatusDelta.getValuesToReplace()) {
+					if (pval.getValue() == LockoutStatusType.LOCKED) {
+						throw new SchemaException("Lockout status cannot be changed to LOCKED value");
+					}
+				}
+			}
+		}
 		
 		ActivationType activationNew = null;
 		ActivationType activationCurrent = null;
