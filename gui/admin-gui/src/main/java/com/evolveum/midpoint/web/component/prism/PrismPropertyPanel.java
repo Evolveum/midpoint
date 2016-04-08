@@ -252,6 +252,9 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         }
         ObjectWrapper objectWrapper = containerWrapper.getObject();
 
+		if (objectWrapper == null) {
+			return false;
+		}
         PrismObject prismObject = objectWrapper.getObject();
         if (!ShadowType.class.isAssignableFrom(prismObject.getCompileTimeClass())) {
             return false;

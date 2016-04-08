@@ -41,6 +41,16 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="reportOutputOid" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>OID of created Report Output object. TODO consider replacing with object reference.</xsd:documentation>
+            <xsd:appinfo>
+            	<a:minOccurs>0</a:minOccurs>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
 
 
 </xsd:schema>

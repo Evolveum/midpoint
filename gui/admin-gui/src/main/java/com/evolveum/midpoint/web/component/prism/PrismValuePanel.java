@@ -212,7 +212,7 @@ public class PrismValuePanel extends Panel {
                     ObjectWrapper object = itemWrapper.getContainer().getObject();
                     ItemDefinition def = itemWrapper.getItem().getDefinition();
 
-                    return !model.getObject().isReadonly() && isAccessible(def, object.getStatus());
+                    return !model.getObject().isReadonly() && (object == null || isAccessible(def, object.getStatus()));
                 }
             });
         }
@@ -295,10 +295,16 @@ public class PrismValuePanel extends Panel {
         if (propertyWrapper.getContainer() == null) {
             return true;        // TODO
         }
-        return isAccessible(definition, propertyWrapper.getContainer().getObject().getStatus());
+
+		return isAccessible(definition, getContainerStatus(propertyWrapper));
     }
 
-    private boolean isAddButtonVisible() {
+	private ContainerStatus getContainerStatus(ItemWrapper propertyWrapper) {
+		final ObjectWrapper objectWrapper = propertyWrapper.getContainer().getObject();
+		return objectWrapper != null ? objectWrapper.getStatus() : ContainerStatus.MODIFYING;
+	}
+
+	private boolean isAddButtonVisible() {
         Component inputPanel = this.get(ID_VALUE_CONTAINER).get(ID_INPUT);
         ValueWrapper valueWrapper = model.getObject();
 
@@ -327,7 +333,7 @@ public class PrismValuePanel extends Panel {
         if (propertyWrapper.getContainer() == null) {
             return true;            // TODO
         }
-        return isAccessible(definition, propertyWrapper.getContainer().getObject().getStatus());
+        return isAccessible(definition, getContainerStatus(propertyWrapper));
     }
 
     private Panel createInputComponent(String id, IModel<String> label, Form form) {

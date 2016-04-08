@@ -26,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
@@ -52,19 +53,33 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
 
     private PrismContainerDefinition<C> containerDefinition;
 
-    public ContainerWrapper(ObjectWrapper objectWrapper, PrismContainer<C> container, ContainerStatus status, ItemPath path) {
+	public ContainerWrapper(ObjectWrapper objectWrapper, PrismContainer<C> container, ContainerStatus status, ItemPath path) {
+		Validate.notNull(container, "container must not be null.");
+		Validate.notNull(status, "Container status must not be null.");
+
+		this.objectWrapper = objectWrapper;
+		this.container = container;
+		this.status = status;
+		this.path = path;
+		main = path == null;
+		readonly = objectWrapper.isReadonly(); // [pm] this is quite questionable
+		showInheritedObjectAttributes = objectWrapper.isShowInheritedObjectAttributes();
+		// have to be after setting "main" property
+		containerDefinition = getItemDefinition();
+	}
+
+	public ContainerWrapper(PrismContainer<C> container, ContainerStatus status, boolean readOnly) {
         Validate.notNull(container, "container must not be null.");
+        Validate.notNull(container.getDefinition(), "container definition must not be null.");
         Validate.notNull(status, "Container status must not be null.");
 
-        this.objectWrapper = objectWrapper;
         this.container = container;
+		this.containerDefinition = container.getDefinition();
         this.status = status;
-        this.path = path;
+        this.path = null;
         main = path == null;
-        readonly = objectWrapper.isReadonly(); // [pm] this is quite questionable
-        showInheritedObjectAttributes = objectWrapper.isShowInheritedObjectAttributes();
-        // have to be after setting "main" property
-        containerDefinition = getItemDefinition();
+        this.readonly = readOnly;
+        showInheritedObjectAttributes = false;
     }
 
     public void revive(PrismContext prismContext) throws SchemaException {
@@ -83,6 +98,9 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
 
     @Override
     public PrismContainerDefinition<C> getItemDefinition() {
+		if (containerDefinition != null) {
+			return containerDefinition;
+		}
         if (main) {
             return objectWrapper.getDefinition();
         } else {
@@ -90,7 +108,8 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
         }
     }
 
-    ObjectWrapper getObject() {
+    @Nullable
+	ObjectWrapper getObject() {
         return objectWrapper;
     }
 
@@ -139,7 +158,7 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
 
         // we decide not according to status of this container, but according to
         // the status of the whole object
-        if (objectWrapper.getStatus() == ContainerStatus.ADDING) {
+        if (objectWrapper != null && objectWrapper.getStatus() == ContainerStatus.ADDING) {
             return def.canAdd();
         }
 
@@ -155,7 +174,11 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
         }
     }
 
-    private boolean showEmpty(ItemWrapper item) {
+	public boolean isShowInheritedObjectAttributes() {
+		return showInheritedObjectAttributes;
+	}
+
+	private boolean showEmpty(ItemWrapper item) {
         ObjectWrapper objectWrapper = getObject();
         List<ValueWrapper> valueWrappers = item.getValues();
         boolean isEmpty;
@@ -170,7 +193,7 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
                 isEmpty = true;
             }
         }
-        return objectWrapper.isShowEmpty() || !isEmpty;
+        return (objectWrapper == null || objectWrapper.isShowEmpty()) || !isEmpty;
     }
 
     @Override
@@ -351,4 +374,5 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
         DebugUtil.debugDump(sb, properties, indent + 2, false);
         return sb.toString();
     }
+
 }

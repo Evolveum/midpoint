@@ -84,7 +84,7 @@ public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskT
 		threadsConfigurationPanel.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return parentPage.configuresWorkerThreads();
+				return taskDtoModel.getObject().configuresWorkerThreads();
 			}
 		});
 

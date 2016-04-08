@@ -24,10 +24,11 @@ import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
+import com.evolveum.midpoint.web.page.admin.server.handlers.HandlerPanelFactory;
+import com.evolveum.midpoint.web.page.admin.server.handlers.dto.HandlerDto;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -46,7 +47,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -61,11 +61,9 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_NAME_CONTAINER = "nameContainer";
-	private static final String ID_NAME_INPUT = "nameInput";
-	private static final String ID_NAME_LABEL = "nameLabel";
+	private static final String ID_NAME = "name";
 	private static final String ID_DESCRIPTION_CONTAINER = "descriptionContainer";
-	private static final String ID_DESCRIPTION_INPUT = "descriptionInput";
-	private static final String ID_DESCRIPTION_LABEL = "descriptionLabel";
+	private static final String ID_DESCRIPTION = "description";
 	private static final String ID_OID = "oid";
 	private static final String ID_IDENTIFIER_CONTAINER = "identifierContainer";
 	private static final String ID_IDENTIFIER = "identifier";
@@ -82,7 +80,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 
 	private static final String ID_NODE = "node";
 
-	private static final String ID_WORK_TO_DO = "workToDoPanel";
+	private static final String ID_HANDLER_PANEL = "handlerPanel";
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskBasicTabPanel.class);
 
@@ -96,8 +94,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 		this.taskDtoModel = taskDtoModel;
 		this.parentPage = parentPage;
 		initLayoutBasic();
-		initLayoutWorkToDo(mainForm, taskWrapperModel);
-
+		initLayoutHandler();
 		setOutputMarkupId(true);
 	}
 	
@@ -105,27 +102,21 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 
 		// Name
 		WebMarkupContainer nameContainer = new WebMarkupContainer(ID_NAME_CONTAINER);
-		RequiredTextField<String> name = new RequiredTextField<>(ID_NAME_INPUT, new PropertyModel<String>(taskDtoModel, TaskDto.F_NAME));
-		name.add(parentPage.createVisibleIfEdit(new ItemPath(TaskType.F_NAME)));
+		RequiredTextField<String> name = new RequiredTextField<>(ID_NAME, new PropertyModel<String>(taskDtoModel, TaskDto.F_NAME));
+		name.add(parentPage.createEnabledIfEdit(new ItemPath(TaskType.F_NAME)));
 		name.add(new AttributeModifier("style", "width: 100%"));
 		name.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		nameContainer.add(name);
-		Label nameLabel = new Label(ID_NAME_LABEL, new PropertyModel(taskDtoModel, TaskDto.F_NAME));
-		nameLabel.add(parentPage.createVisibleIfView(new ItemPath(TaskType.F_NAME)));
-		nameContainer.add(nameLabel);
 		nameContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_NAME)));
 		add(nameContainer);
 
 		// Description
 		WebMarkupContainer descriptionContainer = new WebMarkupContainer(ID_DESCRIPTION_CONTAINER);
-		TextArea<String> description = new TextArea<>(ID_DESCRIPTION_INPUT, new PropertyModel<String>(taskDtoModel, TaskDto.F_DESCRIPTION));
-		description.add(parentPage.createVisibleIfEdit(new ItemPath(TaskType.F_DESCRIPTION)));
+		TextArea<String> description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(taskDtoModel, TaskDto.F_DESCRIPTION));
+		description.add(parentPage.createEnabledIfEdit(new ItemPath(TaskType.F_DESCRIPTION)));
 		//        description.add(new AttributeModifier("style", "width: 100%"));
 		//        description.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		descriptionContainer.add(description);
-		Label descriptionLabel = new Label(ID_DESCRIPTION_LABEL, new PropertyModel(taskDtoModel, TaskDto.F_DESCRIPTION));
-		descriptionLabel.add(parentPage.createVisibleIfView(new ItemPath(TaskType.F_DESCRIPTION)));
-		descriptionContainer.add(descriptionLabel);
 		descriptionContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_DESCRIPTION)));
 		add(descriptionContainer);
 
@@ -231,9 +222,9 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 
 	}
 
-	private void initLayoutWorkToDo(Form mainForm, LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel) {
-		Panel workToDoPanel = new TaskWorkTabPanel(ID_WORK_TO_DO, mainForm, taskWrapperModel, taskDtoModel, parentPage);
-		add(workToDoPanel);
+	private void initLayoutHandler() {
+		Panel handlerPanel = HandlerPanelFactory.instance().createPanelForTask(ID_HANDLER_PANEL, new PropertyModel<HandlerDto>(taskDtoModel, TaskDto.F_HANDLER_DTO), parentPage);
+		add(handlerPanel);
 	}
 
 	@Override

@@ -135,7 +135,7 @@ public class PageCreatedReports extends PageAdminReports {
 
     }
 
-    public PageCreatedReports() {
+	public PageCreatedReports() {
         this(new PageParameters(), null);
     }
 
@@ -195,18 +195,9 @@ public class PageCreatedReports extends PageAdminReports {
         add(mainForm);
 
         final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream() {
-
             @Override
             protected InputStream initStream() {
-                if (currentReport != null) {
-                    String contentType = reportExportTypeMap.get(currentReport.getExportType());
-                    if (StringUtils.isEmpty(contentType)) {
-                        contentType = "multipart/mixed; charset=UTF-8";
-                    }
-                    setContentType(contentType);
-                }
-
-                return createReport();
+                return createReport(this);
             }
         };
 
@@ -513,19 +504,29 @@ public class PageCreatedReports extends PageAdminReports {
         }
     }
 
-    private InputStream createReport() {
-        OperationResult result = new OperationResult(OPERATION_DOWNLOAD_REPORT);
-        ReportManager reportManager = getReportManager();
+    private InputStream createReport(AjaxDownloadBehaviorFromStream ajaxDownloadBehaviorFromStream) {
+		return createReport(currentReport, ajaxDownloadBehaviorFromStream, this);
+	}
 
-        if (currentReport == null) {
+	public static InputStream createReport(ReportOutputType report, AjaxDownloadBehaviorFromStream ajaxDownloadBehaviorFromStream, PageBase pageBase) {
+        OperationResult result = new OperationResult(OPERATION_DOWNLOAD_REPORT);
+        ReportManager reportManager = pageBase.getReportManager();
+
+		if (report == null) {
             return null;
         }
 
-        InputStream input = null;
+		String contentType = reportExportTypeMap.get(report.getExportType());
+		if (StringUtils.isEmpty(contentType)) {
+			contentType = "multipart/mixed; charset=UTF-8";
+		}
+		ajaxDownloadBehaviorFromStream.setContentType(contentType);
+
+		InputStream input = null;
         try {
-            input = reportManager.getReportOutputData(currentReport.getOid(), result);
+            input = reportManager.getReportOutputData(report.getOid(), result);
         } catch (Exception e) {
-            error(getString("pageCreatedReports.message.downloadError") + " " + e.getMessage());
+            pageBase.error(pageBase.getString("pageCreatedReports.message.downloadError") + " " + e.getMessage());
             LoggingUtils.logException(LOGGER, "Couldn't download report.", e);
             LOGGER.trace(result.debugDump());
         } finally {
@@ -533,7 +534,7 @@ public class PageCreatedReports extends PageAdminReports {
         }
 
         if (WebComponentUtil.showResultInPage(result)) {
-            showResult(result);
+            pageBase.showResult(result);
         }
 
         return input;

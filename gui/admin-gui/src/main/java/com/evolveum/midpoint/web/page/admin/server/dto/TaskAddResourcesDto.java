@@ -16,11 +16,17 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.web.component.util.Choiceable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import java.io.Serializable;
 
-import com.evolveum.midpoint.web.component.util.Choiceable;
-
 /**
+ * TODO replace with ObjectReferenceType
+ *
  * @author mserbak
  */
 public class TaskAddResourcesDto implements Serializable, Choiceable {
@@ -68,4 +74,8 @@ public class TaskAddResourcesDto implements Serializable, Choiceable {
         result = 31 * result + (oid != null ? oid.hashCode() : 0);
         return result;
     }
+
+	public ObjectReferenceType asObjectReferenceType() {
+		return ObjectTypeUtil.createObjectRef(oid, PolyStringType.fromOrig(name), ObjectTypes.RESOURCE);
+	}
 }

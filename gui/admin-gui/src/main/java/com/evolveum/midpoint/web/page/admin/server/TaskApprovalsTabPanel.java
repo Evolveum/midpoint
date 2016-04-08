@@ -60,7 +60,7 @@ public class TaskApprovalsTabPanel extends AbstractObjectTabPanel<TaskType> impl
 		childPanel.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return parentPage.isWorkflowChild();
+				return taskDtoModel.getObject().isWorkflowChild();
 			}
 		});
 		add(childPanel);
@@ -69,7 +69,7 @@ public class TaskApprovalsTabPanel extends AbstractObjectTabPanel<TaskType> impl
 		parentPanel.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return parentPage.isWorkflowParent();
+				return taskDtoModel.getObject().isWorkflowParent();
 			}
 		});
 		add(parentPanel);
@@ -77,7 +77,7 @@ public class TaskApprovalsTabPanel extends AbstractObjectTabPanel<TaskType> impl
 
 	@Override
 	public Collection<Component> getComponentsToUpdate() {
-		if (parentPage.isWorkflowChild()) {
+		if (parentPage.getTaskDto().isWorkflowChild()) {
 			return childPanel.getComponentsToUpdate();
 		} else {
 			return Collections.<Component>singleton(this);

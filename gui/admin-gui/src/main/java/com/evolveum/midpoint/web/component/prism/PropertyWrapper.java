@@ -16,14 +16,7 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -31,18 +24,15 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -51,12 +41,12 @@ public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extend
 
 	private static final long serialVersionUID = -6347026284758253783L;
 
-	public PropertyWrapper(ContainerWrapper container, I property, boolean readonly, ValueStatus status) {
+	public PropertyWrapper(@Nullable ContainerWrapper container, I property, boolean readonly, ValueStatus status) {
 		super(container, property, readonly, status);
 
         ItemPath passwordPath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
                 CredentialsType.F_PASSWORD);
-        if (passwordPath.equivalent(container.getPath())
+        if (container != null && passwordPath.equivalent(container.getPath())
                 && PasswordType.F_VALUE.equals(property.getElementName())) {
 			super.setDisplayName("prismPropertyPanel.name.credentials.password");
 		}
@@ -107,6 +97,9 @@ public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extend
 			return false;
 		}
         ObjectWrapper wrapper = getContainer().getObject();
+		if (wrapper == null) {
+			return false;
+		}
         PrismObject object = wrapper.getObject();
 
         return UserType.class.isAssignableFrom(object.getCompileTimeClass());
@@ -121,7 +114,7 @@ public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extend
             return false;
         }
 
-        if (ContainerStatus.MODIFYING.equals(container.getObject().getStatus())) {
+        if (container.getObject() == null || ContainerStatus.MODIFYING.equals(container.getObject().getStatus())) {
             //when modifying then we don't want to create "true" value for c:activation/c:enabled, only during add
             return false;
         }

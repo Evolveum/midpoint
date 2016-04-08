@@ -16,27 +16,32 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -48,6 +53,9 @@ import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationS
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.page.admin.server.handlers.HandlerDtoFactory;
+import com.evolveum.midpoint.web.page.admin.server.handlers.dto.HandlerDto;
+import com.evolveum.midpoint.web.page.admin.server.handlers.dto.ResourceRelatedHandlerDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -59,23 +67,26 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 
 /**
  * @author lazyman
+ * @author mederly
  */
 public class TaskDto extends Selectable implements InlineMenuable {
 
     public static final String CLASS_DOT = TaskDto.class.getName() + ".";
     public static final String OPERATION_NEW = CLASS_DOT + "new";
-    public static final String OPERATION_LOAD_RESOURCE = CLASS_DOT + "loadResource";
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskDto.class);
     public static final String F_MODEL_OPERATION_STATUS = "modelOperationStatus";
@@ -94,12 +105,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public static final String F_HANDLER_URI_LIST = "handlerUriList";
     public static final String F_TASK_OPERATION_RESULT = "taskOperationResult";
     public static final String F_PROGRESS_DESCRIPTION = "progressDescription";
-    public static final String F_DRY_RUN = "dryRun";
-    public static final String F_KIND = "kind";
-    public static final String F_INTENT = "intent";
-    public static final String F_OBJECT_CLASS = "objectClass";
     public static final String F_WORKER_THREADS = "workerThreads";
-    public static final String F_RESOURCE_REFERENCE = "resourceRef";
     public static final String F_OP_RESULT = "opResult";
 	public static final String F_WORKFLOW_CONTEXT = "workflowContext";
 	public static final String F_WORK_ITEMS = "workItems";
@@ -118,6 +124,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	public static final String F_SCRIPT = "script";
 	public static final String F_EXECUTE_IN_RAW_MODE = "executeInRawMode";
 	public static final String F_PROCESS_INSTANCE_ID = "processInstanceId";
+	public static final String F_HANDLER_DTO = "handlerDto";
 
 	private TaskType taskType;
 
@@ -134,12 +141,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	private MisfireActionType misfireActionType;
 	private ThreadStopActionType threadStopActionType;
 
-	private boolean dryRun;
-	private ShadowKindType kind;
-	private String intent;
-	private String objectClass;
-	private List<QName> objectClassList;
-
 	private Integer workerThreads;
 
 	// simple computed properties (optimization)
@@ -155,16 +156,16 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
 	// related objects
 	private TaskType parentTaskType;
-	private TaskAddResourcesDto resourceRef;
 	private ObjectTypes objectRefType;
 	private String objectRefName;
-	private String objectRefOid;
+	private ObjectReferenceType objectRef;
 
 	private List<TaskDto> subtasks = new ArrayList<>();          // only persistent subtasks are here
 	private List<TaskDto> transientSubtasks = new ArrayList<>();        // transient ones are here
 
 	// other
 	private List<InlineMenuItem> menuItems;
+	private HandlerDto handlerDto;
 
     //region Construction
     public TaskDto(TaskType taskType, ModelService modelService, TaskService taskService, ModelInteractionService modelInteractionService,
@@ -186,7 +187,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
         OperationResult thisOpResult = parentResult.createMinorSubresult(OPERATION_NEW);
         fillInHandlerUriList(taskType);
-        fillInResourceReference(taskType, pageBase, opTask, thisOpResult);
         fillInObjectRefAttributes(taskType, options, pageBase, opTask, thisOpResult);
         fillInParentTaskAttributes(taskType, taskService, options, thisOpResult);
         fillInOperationResultAttributes(taskType);
@@ -199,12 +199,18 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		}
         thisOpResult.computeStatusIfUnknown();
 
-        fillFromExtension(taskType);
+        fillFromExtension();
 
         for (TaskType child : taskType.getSubtask()) {
             addChildTaskDto(new TaskDto(child, modelService, taskService, modelInteractionService, taskManager,
 					workflowManager, options, opTask, parentResult, pageBase));
         }
+
+		if (options.isCreateHandlerDto()) {
+			handlerDto = HandlerDtoFactory.instance().createDtoForTask(this, pageBase, opTask, thisOpResult);
+		} else {
+			handlerDto = new HandlerDto(this);		// just to avoid NPEs
+		}
     }
 
     @Override
@@ -215,69 +221,9 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return menuItems;
     }
 
-    private void fillInResourceReference(TaskType task, PageBase pageBase, Task opTask, OperationResult result) {
-        ObjectReferenceType ref = task.getObjectRef();
-        if (ref != null && ResourceType.COMPLEX_TYPE.equals(ref.getType())){
-            resourceRef = new TaskAddResourcesDto(ref.getOid(), getTaskObjectName(task, pageBase, opTask, result));
-        }
-        updateObjectClassList(pageBase);
-    }
-
-    private void updateObjectClassList(PageBase pageBase){
-    	Task task = pageBase.createSimpleTask(OPERATION_LOAD_RESOURCE);
-        OperationResult result = task.getResult();
-        List<QName> objectClassList = new ArrayList<>();
-
-        if(resourceRef != null){
-            PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class, resourceRef.getOid(), 
-            		pageBase, task, result);
-
-            try {
-                ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, pageBase.getPrismContext());
-                schema.getObjectClassDefinitions();
-
-                for(Definition def: schema.getDefinitions()){
-                    objectClassList.add(def.getTypeName());
-                }
-
-                setObjectClassList(objectClassList);
-            } catch (Exception e){
-                LoggingUtils.logException(LOGGER, "Couldn't load object class list from resource.", e);
-            }
-        }
-    }
-
-    private void fillFromExtension(TaskType taskType) {
-        PrismObject<TaskType> task = taskType.asPrismObject();
-        if (task.getExtension() == null) {
-            dryRun = false;
-            return;
-        }
-
-        PrismProperty<Boolean> item = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-        if (item == null || item.getRealValue() == null) {
-            dryRun = false;
-        } else {
-            dryRun = item.getRealValue();
-        }
-
-        PrismProperty<ShadowKindType> kindItem = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_KIND);
-        if(kindItem != null && kindItem.getRealValue() != null){
-            kind = kindItem.getRealValue();
-        }
-
-        PrismProperty<String> intentItem = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_INTENT);
-        if(intentItem != null && intentItem.getRealValue() != null){
-            intent = intentItem.getRealValue();
-        }
-
-        PrismProperty<QName> objectClassItem = task.getExtension().findProperty(SchemaConstants.OBJECTCLASS_PROPERTY_NAME);
-        if(objectClassItem != null && objectClassItem.getRealValue() != null){
-            objectClass = objectClassItem.getRealValue().getLocalPart();
-        }
-
-        PrismProperty<Integer> workerThreadsItem = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
-        if(workerThreadsItem != null) {
+    private void fillFromExtension() {
+        PrismProperty<Integer> workerThreadsItem = getExtensionProperty(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
+        if (workerThreadsItem != null) {
             workerThreads = workerThreadsItem.getRealValue();
         }
     }
@@ -326,11 +272,11 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			if (options.isResolveObjectRef()) {
 				this.objectRefName = getTaskObjectName(taskType, pageBase, opTask, thisOpResult);
 			}
-			this.objectRefOid = taskType.getObjectRef().getOid();
+			this.objectRef = taskType.getObjectRef();
 		}
     }
 
-    private String getTaskObjectName(TaskType taskType, PageBase pageBase, Task opTask, OperationResult thisOpResult) {
+    public String getTaskObjectName(TaskType taskType, PageBase pageBase, Task opTask, OperationResult thisOpResult) {
 		return WebModelServiceUtils.resolveReferenceName(taskType.getObjectRef(), pageBase, opTask, thisOpResult);
     }
 
@@ -566,51 +512,20 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		return objectRefType;
 	}
 
-	public String getObjectRefOid() {
-		return objectRefOid;
+	public ObjectReferenceType getObjectRef() {
+		return objectRef;
 	}
 
-	public TaskAddResourcesDto getResourceRef() {
-		return resourceRef;
-	}
-
-	public void setResource(TaskAddResourcesDto resource) {
-		this.resourceRef = resource;
-		this.objectRefOid = resource.getOid();
-		this.objectRefName = resource.getName();
-		this.objectRefType = ObjectTypes.RESOURCE;
-	}
-
-	public boolean isDryRun() {
-		return dryRun;
-	}
-
-	public void setDryRun(boolean dryRun) {
-		this.dryRun = dryRun;
-	}
-
-	public String getIntent() {
-		return intent;
-	}
-
-	public void setIntent(String intent) {
-		this.intent = intent;
-	}
-
-	public ShadowKindType getKind() {
-		return kind;
-	}
-
-	public void setKind(ShadowKindType kind) {
-		this.kind = kind;
-	}
-
-	public String getObjectClass() {
-		return objectClass;
-	}
-
-	public void setObjectClass(String objectClass) {
-		this.objectClass = objectClass;
+	// should contain the name
+	public void setObjectRef(@Nullable ObjectReferenceType objectRef) {
+		this.objectRef = objectRef;
+		if (objectRef != null) {
+			this.objectRefName = PolyString.getOrig(objectRef.getTargetName());
+			this.objectRefType = ObjectTypes.getObjectTypeFromTypeQName(objectRef.getType());
+		} else {
+			this.objectRefName = null;
+			this.objectRefType = null;
+		}
 	}
 
 	public Integer getWorkerThreads() { return workerThreads; }
@@ -619,16 +534,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		this.workerThreads = workerThreads;
 	}
 
-	public List<QName> getObjectClassList() {
-		if (objectClassList == null) {
-			objectClassList = new ArrayList<>();
-		}
-		return objectClassList;
-	}
-
-	public void setObjectClassList(List<QName> objectClassList) {
-		this.objectClassList = objectClassList;
-	}
 	//endregion
 
     //region Getters for read-only properties
@@ -820,11 +725,11 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return taskOperationResult;
     }
 
-	private PrismProperty getExtensionProperty(TaskType taskType, QName propertyName) {
+	public PrismProperty getExtensionProperty(QName propertyName) {
 		return taskType.asPrismObject().findProperty(new ItemPath(TaskType.F_EXTENSION, propertyName));
 	}
 
-	private <T> T getExtensionPropertyRealValue(QName propertyName, Class<T> clazz) {
+	public <T> T getExtensionPropertyRealValue(QName propertyName, Class<T> clazz) {
 		PrismProperty<T> property = taskType.asPrismObject().findProperty(new ItemPath(TaskType.F_EXTENSION, propertyName));
 		return property != null ? property.getRealValue() : null;
 	}
@@ -880,16 +785,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		}
 	}
 
-	public String getScript() {
-		ExecuteScriptType script = getExtensionPropertyRealValue(SchemaConstants.SE_EXECUTE_SCRIPT, ExecuteScriptType.class);
-		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
-		try {
-			return prismContext.serializeAnyData(script, SchemaConstants.SE_EXECUTE_SCRIPT, PrismContext.LANG_XML);
-		} catch (SchemaException e) {
-			throw new SystemException("Couldn't serialize script: " + e.getMessage(), e);
-		}
-	}
-
 	public String getProcessInstanceId() {
 		WfContextType wfc = getWorkflowContext();
 		return wfc != null ? wfc.getProcessInstanceId() : null;
@@ -922,6 +817,10 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		return WebComponentUtil.getName(taskType.getOwnerRef());
 	}
 
+	public HandlerDto getHandlerDto() {
+		return handlerDto;
+	}
+
 	//endregion
 
     public static List<String> getOids(List<TaskDto> taskDtoList) {
@@ -945,8 +844,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			return false;
 		if (recurring != taskDto.recurring)
 			return false;
-		if (dryRun != taskDto.dryRun)
-			return false;
 		if (taskType != null ? !taskType.equals(taskDto.taskType) : taskDto.taskType != null)
 			return false;
 		if (name != null ? !name.equals(taskDto.name) : taskDto.name != null)
@@ -964,14 +861,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		if (misfireActionType != taskDto.misfireActionType)
 			return false;
 		if (threadStopActionType != taskDto.threadStopActionType)
-			return false;
-		if (kind != taskDto.kind)
-			return false;
-		if (intent != null ? !intent.equals(taskDto.intent) : taskDto.intent != null)
-			return false;
-		if (objectClass != null ? !objectClass.equals(taskDto.objectClass) : taskDto.objectClass != null)
-			return false;
-		if (objectClassList != null ? !objectClassList.equals(taskDto.objectClassList) : taskDto.objectClassList != null)
 			return false;
 		if (workerThreads != null ? !workerThreads.equals(taskDto.workerThreads) : taskDto.workerThreads != null)
 			return false;
@@ -997,19 +886,19 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			return false;
 		if (parentTaskType != null ? !parentTaskType.equals(taskDto.parentTaskType) : taskDto.parentTaskType != null)
 			return false;
-		if (resourceRef != null ? !resourceRef.equals(taskDto.resourceRef) : taskDto.resourceRef != null)
-			return false;
 		if (objectRefType != taskDto.objectRefType)
 			return false;
 		if (objectRefName != null ? !objectRefName.equals(taskDto.objectRefName) : taskDto.objectRefName != null)
 			return false;
-		if (objectRefOid != null ? !objectRefOid.equals(taskDto.objectRefOid) : taskDto.objectRefOid != null)
+		if (objectRef != null ? !objectRef.equals(taskDto.objectRef) : taskDto.objectRef != null)
 			return false;
 		if (subtasks != null ? !subtasks.equals(taskDto.subtasks) : taskDto.subtasks != null)
 			return false;
 		if (transientSubtasks != null ? !transientSubtasks.equals(taskDto.transientSubtasks) : taskDto.transientSubtasks != null)
 			return false;
-		return menuItems != null ? menuItems.equals(taskDto.menuItems) : taskDto.menuItems == null;
+		if (menuItems != null ? !menuItems.equals(taskDto.menuItems) : taskDto.menuItems != null)
+			return false;
+		return handlerDto != null ? handlerDto.equals(taskDto.handlerDto) : taskDto.handlerDto == null;
 
 	}
 
@@ -1026,11 +915,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		result = 31 * result + (notStartAfter != null ? notStartAfter.hashCode() : 0);
 		result = 31 * result + (misfireActionType != null ? misfireActionType.hashCode() : 0);
 		result = 31 * result + (threadStopActionType != null ? threadStopActionType.hashCode() : 0);
-		result = 31 * result + (dryRun ? 1 : 0);
-		result = 31 * result + (kind != null ? kind.hashCode() : 0);
-		result = 31 * result + (intent != null ? intent.hashCode() : 0);
-		result = 31 * result + (objectClass != null ? objectClass.hashCode() : 0);
-		result = 31 * result + (objectClassList != null ? objectClassList.hashCode() : 0);
 		result = 31 * result + (workerThreads != null ? workerThreads.hashCode() : 0);
 		result = 31 * result + (handlerUriList != null ? handlerUriList.hashCode() : 0);
 		result = 31 * result + (opResult != null ? opResult.hashCode() : 0);
@@ -1042,13 +926,13 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		result = 31 * result + (workflowDeltasOut != null ? workflowDeltasOut.hashCode() : 0);
 		result = 31 * result + (workflowDeltaIn != null ? workflowDeltaIn.hashCode() : 0);
 		result = 31 * result + (parentTaskType != null ? parentTaskType.hashCode() : 0);
-		result = 31 * result + (resourceRef != null ? resourceRef.hashCode() : 0);
 		result = 31 * result + (objectRefType != null ? objectRefType.hashCode() : 0);
 		result = 31 * result + (objectRefName != null ? objectRefName.hashCode() : 0);
-		result = 31 * result + (objectRefOid != null ? objectRefOid.hashCode() : 0);
+		result = 31 * result + (objectRef != null ? objectRef.hashCode() : 0);
 		result = 31 * result + (subtasks != null ? subtasks.hashCode() : 0);
 		result = 31 * result + (transientSubtasks != null ? transientSubtasks.hashCode() : 0);
 		result = 31 * result + (menuItems != null ? menuItems.hashCode() : 0);
+		result = 31 * result + (handlerDto != null ? handlerDto.hashCode() : 0);
 		return result;
 	}
 
@@ -1059,4 +943,133 @@ public class TaskDto extends Selectable implements InlineMenuable {
                 '}';
     }
 
+	public boolean isRunnableOrRunning() {
+		TaskDtoExecutionStatus exec = getExecution();
+		return exec == TaskDtoExecutionStatus.RUNNABLE || exec == TaskDtoExecutionStatus.RUNNING;
+	}
+
+	public boolean isRunnable() {
+		return getExecution() == TaskDtoExecutionStatus.RUNNABLE;
+	}
+
+	public boolean isRunning() {
+		return getExecution() == TaskDtoExecutionStatus.RUNNING;
+	}
+
+	public boolean isClosed() {
+		return getExecution() == TaskDtoExecutionStatus.CLOSED;
+	}
+
+	public boolean isWaiting() {
+		return getExecution() == TaskDtoExecutionStatus.WAITING;
+	}
+
+	public boolean isSuspended() {
+		return getExecution() == TaskDtoExecutionStatus.SUSPENDED;
+	}
+
+	public boolean isReconciliation() {
+		return TaskCategory.RECONCILIATION.equals(getCategory());
+	}
+
+	public boolean isImportAccounts() {
+		return TaskCategory.IMPORTING_ACCOUNTS.equals(getCategory());
+	}
+
+	public boolean isRecomputation() {
+		return TaskCategory.RECOMPUTATION.equals(getCategory());
+	}
+
+	public boolean isExecuteChanges() {
+		return TaskCategory.EXECUTE_CHANGES.equals(getCategory());
+	}
+
+	public boolean isWorkflowCategory() {
+		return TaskCategory.WORKFLOW.equals(getCategory());
+	}
+
+	public boolean isWorkflowChild() {
+		return isWorkflowCategory() && getWorkflowContext() != null && getWorkflowContext().getProcessInstanceId() != null;
+	}
+
+	public boolean isWorkflowParent() {
+		return isWorkflowCategory() && getParentTaskOid() == null;
+	}
+
+	public boolean isWorkflow() {
+		return isWorkflowChild() || isWorkflowParent();		// "task0" is not among these
+	}
+
+	public boolean isLiveSync() {
+		return TaskCategory.LIVE_SYNCHRONIZATION.equals(getCategory());
+	}
+
+	public boolean isShadowIntegrityCheck() {
+		return getHandlerUriList().contains(ModelPublicConstants.SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI);
+	}
+
+	public boolean isFocusValidityScanner() {
+		return getHandlerUriList().contains(ModelPublicConstants.FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI);
+	}
+
+	public boolean isTriggerScanner() {
+		return getHandlerUriList().contains(ModelPublicConstants.TRIGGER_SCANNER_TASK_HANDLER_URI);
+	}
+
+	public boolean isDelete() {
+		return getHandlerUriList().contains(ModelPublicConstants.DELETE_TASK_HANDLER_URI);
+	}
+
+	public boolean isBulkAction() {
+		return TaskCategory.BULK_ACTIONS.equals(getCategory());
+	}
+
+	public boolean isReportCreate() {
+		return TaskCategory.REPORT.equals(getCategory());
+	}
+
+	public boolean configuresWorkerThreads() {
+		return isReconciliation() || isImportAccounts() || isRecomputation() || isExecuteChanges() || isShadowIntegrityCheck() || isFocusValidityScanner() || isTriggerScanner();
+	}
+
+	public boolean configuresWorkToDo() {
+		return isLiveSync() || isReconciliation() || isImportAccounts() || isRecomputation() || isExecuteChanges() || isBulkAction() || isDelete() || isShadowIntegrityCheck();
+	}
+
+	public boolean configuresResourceCoordinates() {
+		return isLiveSync() || isReconciliation() || isImportAccounts();
+	}
+
+	public boolean configuresObjectType() {
+		return isRecomputation() || isExecuteChanges() || isDelete();
+	}
+
+	public boolean configuresObjectQuery() {
+		return isRecomputation() || isExecuteChanges() || isDelete() || isShadowIntegrityCheck();
+	}
+
+	public boolean configuresObjectDelta() {
+		return isExecuteChanges();
+	}
+
+	public boolean configuresScript() {
+		return isBulkAction();
+	}
+
+	public boolean configuresDryRun() {
+		return isLiveSync() || isReconciliation() || isImportAccounts() || isShadowIntegrityCheck();
+	}
+
+	public boolean configuresExecuteInRawMode() {
+		return isExecuteChanges();
+	}
+
+	// quite a hack (TODO think about this)
+	public boolean isDryRun() {
+		if (handlerDto instanceof ResourceRelatedHandlerDto) {
+			return ((ResourceRelatedHandlerDto) handlerDto).isDryRun();
+		} else {
+			return false;
+		}
+	}
 }

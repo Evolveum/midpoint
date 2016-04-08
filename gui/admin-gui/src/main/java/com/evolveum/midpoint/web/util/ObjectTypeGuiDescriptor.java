@@ -123,6 +123,9 @@ public enum ObjectTypeGuiDescriptor {
     }
 
     public static ObjectTypeGuiDescriptor getDescriptor(ObjectTypes type) {
+		if (type == null) {
+			return null;
+		}
         for (ObjectTypeGuiDescriptor descr : ObjectTypeGuiDescriptor.values()) {
             if (descr.getType() != null && descr.getType().equals(type)) {
                 return descr;

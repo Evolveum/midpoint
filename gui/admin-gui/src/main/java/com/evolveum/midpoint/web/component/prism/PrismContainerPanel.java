@@ -114,8 +114,7 @@ public class PrismContainerPanel extends Panel {
 
             @Override
             public boolean isVisible() {
-                //
-                return true;
+                return isShowHeader();
             }
         });
 
@@ -194,7 +193,7 @@ public class PrismContainerPanel extends Panel {
 //            headerLabelModel = new StringResourceModel(resourceKey, this);
             ContainerWrapper wrappper = model.getObject();
             ObjectWrapper objwrapper = wrappper.getObject();
-            final String key = objwrapper.getDisplayName();
+            final String key = objwrapper != null ? objwrapper.getDisplayName() : "";
 
             headerLabelModel = new IModel<String>() {
                 @Override

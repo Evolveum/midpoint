@@ -103,7 +103,7 @@ public class TaskMainPanel extends Panel {
 				advancedFeaturesPanel.add(new VisibleEnableBehaviour() {
 					@Override
 					public boolean isVisible() {
-						return parentPage.isWorkflow();			// we don't distinguish between basic/advanced features for other task types yet
+						return parentPage.getTaskDto().isWorkflow();			// we don't distinguish between basic/advanced features for other task types yet
 					}
 				});
 				return advancedFeaturesPanel;
