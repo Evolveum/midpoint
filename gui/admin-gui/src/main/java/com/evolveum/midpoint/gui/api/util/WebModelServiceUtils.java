@@ -361,19 +361,27 @@ public class WebModelServiceUtils {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         Locale locale = null;
         if (principal != null) {
-            if (user == null){
+            if (user == null) {
                 PrismObject<UserType> userPrismObject = principal.getUser().asPrismObject();
                 user = userPrismObject == null ? null : userPrismObject.asObjectable();
             }
             if (user != null && user.getPreferredLanguage() != null &&
                     !user.getPreferredLanguage().trim().equals("")) {
-                locale = LocaleUtils.toLocale(user.getPreferredLanguage());
+                try {
+                    locale = LocaleUtils.toLocale(user.getPreferredLanguage());
+                } catch (Exception ex) {
+                    LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
+                }
             }
             if (locale != null && MidPointApplication.containsLocale(locale)) {
                 return locale;
             } else {
                 String userLocale = user != null ? user.getLocale() : null;
-                locale = userLocale == null ? null : LocaleUtils.toLocale(userLocale);
+                try {
+                    locale = userLocale == null ? null : LocaleUtils.toLocale(userLocale);
+                } catch (Exception ex) {
+                    LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
+                }
                 if (locale != null && MidPointApplication.containsLocale(locale)) {
                     return locale;
                 } else {

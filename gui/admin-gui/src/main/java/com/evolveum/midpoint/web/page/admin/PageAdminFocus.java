@@ -187,12 +187,13 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			finishPreviewProcessing(target, result);
 			return;
 		}
-        if (result.isSuccess()) {
+        if (result.isSuccess() && getDelta() != null  && getDelta().getOid().equals(SecurityUtils.getPrincipalUser().getOid())) {
             UserType user = null;
             if (getObjectWrapper().getObject().asObjectable() instanceof UserType){
                 user = (UserType) getObjectWrapper().getObject().asObjectable();
             }
             Session.get().setLocale(WebModelServiceUtils.getLocale(user));
+            LOGGER.debug("Using {} as locale", getLocale());
         }
 		boolean userAdded = getDelta() != null && getDelta().isAdd() && StringUtils.isNotEmpty(getDelta().getOid());
 		if (!isKeepDisplayingResults() && getProgressReporter().isAllSuccess()
