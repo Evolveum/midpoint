@@ -54,6 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -80,9 +81,10 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	private static final int REFRESH_INTERVAL_IF_WAITING = 60000;
 	private static final int REFRESH_INTERVAL_IF_CLOSED = 60000;
 
-	private static final String DOT_CLASS = PageTaskEdit.class.getName() + ".";
+	public static final String DOT_CLASS = PageTaskEdit.class.getName() + ".";
 	private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadTask";
 	static final String OPERATION_SAVE_TASK = DOT_CLASS + "saveTask";
+	static final String OPERATION_DELETE_SYNC_TOKEN = DOT_CLASS + "deleteSyncToken";
 
 	public static final String ID_SUMMARY_PANEL = "summaryPanel";
 	public static final String ID_MAIN_PANEL = "mainPanel";
@@ -318,139 +320,12 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return controller;
 	}
 
-	boolean isRunnableOrRunning() {
-		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
-		//System.out.println(this + ": state = " + exec);
-		return exec == TaskDtoExecutionStatus.RUNNABLE || exec == TaskDtoExecutionStatus.RUNNING;
-	}
-
-	boolean isRunnable() {
-		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
-		return exec == TaskDtoExecutionStatus.RUNNABLE;
-	}
-
-	boolean isRunning() {
-		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
-		return exec == TaskDtoExecutionStatus.RUNNING;
-	}
-
-	boolean isClosed() {
-		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
-		return exec == TaskDtoExecutionStatus.CLOSED;
-	}
-
-	boolean isWaiting() {
-		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
-		return exec == TaskDtoExecutionStatus.WAITING;
-	}
-
-	boolean isSuspended() {
-		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
-		return exec == TaskDtoExecutionStatus.SUSPENDED;
-	}
-
-	boolean isReconciliation() {
-		return TaskCategory.RECONCILIATION.equals(getTaskDto().getCategory());
-	}
-
-	boolean isImportAccounts() {
-		return TaskCategory.IMPORTING_ACCOUNTS.equals(getTaskDto().getCategory());
-	}
-
-	boolean isRecomputation() {
-		return TaskCategory.RECOMPUTATION.equals(getTaskDto().getCategory());
-	}
-
-	boolean isExecuteChanges() {
-		return TaskCategory.EXECUTE_CHANGES.equals(getTaskDto().getCategory());
-	}
-
-	boolean isWorkflowCategory() {
-		return TaskCategory.WORKFLOW.equals(getTaskDto().getCategory());
-	}
-
-	boolean isWorkflowChild() {
-		return isWorkflowCategory() && getTaskDto().getWorkflowContext() != null && getTaskDto().getWorkflowContext().getProcessInstanceId() != null;
-	}
-
-	boolean isWorkflowParent() {
-		return isWorkflowCategory() && getTaskDto().getParentTaskOid() == null;
-	}
-
-	boolean isWorkflow() {
-		return isWorkflowChild() || isWorkflowParent();		// "task0" is not among these
-	}
-
-	boolean isLiveSync() {
-		return TaskCategory.LIVE_SYNCHRONIZATION.equals(getTaskDto().getCategory());
-	}
-
-	boolean isShadowIntegrityCheck() {
-		return getTaskDto().getHandlerUriList().contains(ModelPublicConstants.SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI);
-	}
-
-	boolean isFocusValidityScanner() {
-		return getTaskDto().getHandlerUriList().contains(ModelPublicConstants.FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI);
-	}
-
-	boolean isTriggerScanner() {
-		return getTaskDto().getHandlerUriList().contains(ModelPublicConstants.TRIGGER_SCANNER_TASK_HANDLER_URI);
-	}
-
-	boolean isDelete() {
-		return getTaskDto().getHandlerUriList().contains(ModelPublicConstants.DELETE_TASK_HANDLER_URI);
-	}
-
-	boolean isBulkAction() {
-		return TaskCategory.BULK_ACTIONS.equals(getTaskDto().getCategory());
-	}
-
-	boolean isRecurring() {
-		return getTaskDto().isRecurring();
-	}
-
 	public TaskSummaryPanel getSummaryPanel() {
 		return (TaskSummaryPanel) get(ID_SUMMARY_PANEL);
 	}
 
 	public AutoRefreshPanel getRefreshPanel() {
 		return getSummaryPanel().getRefreshPanel();
-	}
-
-	public boolean configuresWorkerThreads() {
-		return isReconciliation() || isImportAccounts() || isRecomputation() || isExecuteChanges() || isShadowIntegrityCheck() || isFocusValidityScanner() || isTriggerScanner();
-	}
-
-	public boolean configuresWorkToDo() {
-		return isLiveSync() || isReconciliation() || isImportAccounts() || isRecomputation() || isExecuteChanges() || isBulkAction() || isDelete() || isShadowIntegrityCheck();
-	}
-
-	public boolean configuresResourceCoordinates() {
-		return isLiveSync() || isReconciliation() || isImportAccounts();
-	}
-
-	public boolean configuresObjectType() {
-		return isRecomputation() || isExecuteChanges() || isDelete();
-	}
-
-	public boolean configuresObjectQuery() {
-		return isRecomputation() || isExecuteChanges() || isDelete() || isShadowIntegrityCheck();
-	}
-
-	public boolean configuresObjectDelta() {
-		return isExecuteChanges();
-	}
-
-	public boolean configuresScript() {
-		return isBulkAction();
-	}
-
-	public boolean configuresDryRun() {
-		return isLiveSync() || isReconciliation() || isImportAccounts() || isShadowIntegrityCheck();
-	}
-
-	public boolean configuresExecuteInRawMode() {
-		return isExecuteChanges();
 	}
 
 	public boolean isShowAdvanced() {
@@ -466,6 +341,14 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		};
 	}
 
+	public VisibleEnableBehaviour createEnabledIfEdit(final ItemPath itemPath) {
+		return new VisibleEnableBehaviour() {
+			@Override
+			public boolean isEnabled() {
+				return isEdit() && isEditable(itemPath);
+			}
+		};
+	}
 	public VisibleEnableBehaviour createVisibleIfView(final ItemPath itemPath) {
 		return new VisibleEnableBehaviour() {
 			@Override
@@ -543,5 +426,9 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 			}
 		}
 		return false;
+	}
+
+	public Form getForm() {
+		return mainPanel.getMainForm();
 	}
 }

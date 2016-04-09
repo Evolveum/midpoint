@@ -28,6 +28,7 @@ import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -182,7 +183,8 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		return new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
-				if (parentPage.isWorkflow()) {
+				TaskDto taskDto = parentPage.getTaskDto();
+				if (taskDto.isWorkflow()) {
 					return getString("TaskSummaryPanel.requestedBy", parentPage.getTaskDto().getRequestedBy());
 				} else {
 					TaskType taskType = getModelObject().asObjectable();
@@ -193,13 +195,13 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 					} else {
 						rv = createStringResource("TaskSummaryPanel.progressWithTotalUnknown", taskType.getProgress()).getString();
 					}
-					if (parentPage.isSuspended()) {
+					if (taskDto.isSuspended()) {
 						rv += " " + getString("TaskSummaryPanel.progressIfSuspended");
-					} else if (parentPage.isClosed()) {
+					} else if (taskDto.isClosed()) {
 						rv += " " + getString("TaskSummaryPanel.progressIfClosed");
-					} else if (parentPage.isWaiting()) {
+					} else if (taskDto.isWaiting()) {
 						rv += " " + getString("TaskSummaryPanel.progressIfWaiting");
-					} else if (parentPage.getTaskDto().getStalledSince() != null) {
+					} else if (taskDto.getStalledSince() != null) {
 						rv += " " + getString("TaskSummaryPanel.progressIfStalled", WebComponentUtil.formatDate(new Date(parentPage.getTaskDto().getStalledSince())));
 					}
 					return rv;
@@ -213,7 +215,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		return new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
-				if (parentPage.isWorkflow()) {
+				if (parentPage.getTaskDto().isWorkflow()) {
 					return getString("TaskSummaryPanel.requestedOn", WebComponentUtil.formatDate(parentPage.getTaskDto().getRequestedOn()));
 				} else {
 					TaskType taskType = getModelObject().asObjectable();
@@ -234,7 +236,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		return new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
-				if (parentPage.isWorkflow()) {
+				if (parentPage.getTaskDto().isWorkflow()) {
 					return "";
 				}
 

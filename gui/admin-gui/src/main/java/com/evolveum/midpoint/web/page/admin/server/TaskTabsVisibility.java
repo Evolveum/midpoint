@@ -26,12 +26,12 @@ class TaskTabsVisibility implements Serializable {
     private boolean resultVisible;
 
 	public boolean computeBasicVisible(PageTaskEdit parentPage) {
-		basicVisible = parentPage.isShowAdvanced() || !parentPage.isWorkflow();
+		basicVisible = parentPage.isShowAdvanced() || !parentPage.getTaskDto().isWorkflow();
 		return basicVisible;
 	}
 
 	public boolean computeSchedulingVisible(PageTaskEdit parentPage) {
-		schedulingVisible = (parentPage.isShowAdvanced() || !parentPage.isWorkflow())
+		schedulingVisible = (parentPage.isShowAdvanced() || !parentPage.getTaskDto().isWorkflow())
 			&& parentPage.isReadableSomeOf(
 				TaskType.F_LAST_RUN_START_TIMESTAMP, TaskType.F_LAST_RUN_FINISH_TIMESTAMP, TaskType.F_NEXT_RUN_START_TIMESTAMP,
 				TaskType.F_RECURRENCE, TaskType.F_BINDING, TaskType.F_SCHEDULE, TaskType.F_THREAD_STOP_ACTION);
@@ -41,12 +41,12 @@ class TaskTabsVisibility implements Serializable {
 
 	public boolean computeSubtasksAndThreadsVisible(PageTaskEdit parentPage) {
         if (parentPage.isEdit()) {
-            subtasksAndThreadsVisible = parentPage.configuresWorkerThreads()
+            subtasksAndThreadsVisible = parentPage.getTaskDto().configuresWorkerThreads()
 					&& parentPage.isExtensionReadable(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
-        } else if (parentPage.isShowAdvanced() || !parentPage.isWorkflow()) {
+        } else if (parentPage.isShowAdvanced() || !parentPage.getTaskDto().isWorkflow()) {
             IModel<TaskDto> taskDtoModel = parentPage.getTaskDtoModel();
             subtasksAndThreadsVisible =
-					(parentPage.configuresWorkerThreads() && parentPage.isExtensionReadable(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS))
+					(parentPage.getTaskDto().configuresWorkerThreads() && parentPage.isExtensionReadable(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS))
 							|| !taskDtoModel.getObject().getSubtasks().isEmpty() || !taskDtoModel.getObject().getTransientSubtasks().isEmpty();
         } else {
 			subtasksAndThreadsVisible = false;
@@ -77,7 +77,7 @@ class TaskTabsVisibility implements Serializable {
     public boolean computeApprovalsVisible(PageTaskEdit parentPage) {
         approvalsVisible = !parentPage.isEdit()
 				&& parentPage.isReadable(new ItemPath(TaskType.F_WORKFLOW_CONTEXT))
-				&& (parentPage.isWorkflowChild() || parentPage.isWorkflowParent());
+				&& (parentPage.getTaskDto().isWorkflowChild() || parentPage.getTaskDto().isWorkflowParent());
                 //&& parentPage.getTaskDto().getTaskType().getWorkflowContext() != null
                 //&& parentPage.getTaskDto().getWorkflowDeltaIn() != null;
         return approvalsVisible;
@@ -87,14 +87,14 @@ class TaskTabsVisibility implements Serializable {
 		operationVisible = !parentPage.isEdit()
 				&& parentPage.isReadable(new ItemPath(TaskType.F_MODEL_OPERATION_CONTEXT))
 				&& parentPage.getTaskDto().getTaskType().getModelOperationContext() != null
-				&& (!parentPage.isWorkflow() || parentPage.isShowAdvanced());
+				&& (!parentPage.getTaskDto().isWorkflow() || parentPage.isShowAdvanced());
 		return operationVisible;
 	}
 
 	public boolean computeResultVisible(PageTaskEdit parentPage) {
         resultVisible = !parentPage.isEdit()
 				&& parentPage.isReadable(new ItemPath(TaskType.F_RESULT))
-				&& (parentPage.isShowAdvanced() || !parentPage.isWorkflow());
+				&& (parentPage.isShowAdvanced() || !parentPage.getTaskDto().isWorkflow());
         return resultVisible;
     }
 

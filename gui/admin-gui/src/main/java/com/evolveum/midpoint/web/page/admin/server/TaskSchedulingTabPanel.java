@@ -189,7 +189,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 			@Override
 			public String getObject() {
 				TaskDto dto = taskDtoModel.getObject();
-				if (dto.isRecurring() && dto.isBound() && parentPage.isRunning()) {
+				if (dto.isRecurring() && dto.isBound() && dto.isRunning()) {
 					return getString("pageTasks.runsContinually");
 				} else if (dto.getNextRunStartTimeLong() == null) {
 					return "-";
@@ -204,7 +204,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 			@Override
 			public String getObject() {
 				TaskDto dto = taskDtoModel.getObject();
-				if (dto.getNextRunStartTimeLong() == null || (dto.isRecurring() && dto.isBound() && parentPage.isRunning())) {
+				if (dto.getNextRunStartTimeLong() == null || (dto.isRecurring() && dto.isBound() && dto.isRunning())) {
 					return "";
 				} else {
 					long currentTime = System.currentTimeMillis();
@@ -232,7 +232,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		final VisibleEnableBehaviour visibleIfEditAndRunnableOrRunning = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return parentPage.isEdit() && parentPage.isRunnableOrRunning();
+				return parentPage.isEdit() && parentPage.getTaskDto().isRunnableOrRunning();
 			}
 		};
 		final VisibleEnableBehaviour visibleIfRecurringAndScheduleIsAccessible = new VisibleEnableBehaviour() {
@@ -250,14 +250,14 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		final VisibleEnableBehaviour enabledIfEditAndNotRunningRunnableOrLooselyBoundAndScheduleIsEditable = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isEnabled() {
-				return parentPage.isEdit() && (!parentPage.isRunnableOrRunning() || !boundCheckModel.getObject())
+				return parentPage.isEdit() && (!parentPage.getTaskDto().isRunnableOrRunning() || !boundCheckModel.getObject())
 						&& parentPage.isEditable(new ItemPath(TaskType.F_SCHEDULE));
 			}
 		};
 		final VisibleEnableBehaviour enabledIfEditAndNotRunningAndScheduleIsEditable = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isEnabled() {
-				return parentPage.isEdit() && !parentPage.isRunning() && parentPage.isEditable(new ItemPath(TaskType.F_SCHEDULE));
+				return parentPage.isEdit() && !parentPage.getTaskDto().isRunning() && parentPage.isEditable(new ItemPath(TaskType.F_SCHEDULE));
 			}
 		};
 		final VisibleEnableBehaviour enabledIfEditAndScheduleIsEditable = new VisibleEnableBehaviour() {
@@ -289,7 +289,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		recurringCheck.add(new VisibleEnableBehaviour() {
 							   @Override
 							   public boolean isEnabled() {
-								   return parentPage.isEdit() && !parentPage.isRunnableOrRunning() && parentPage.isEditable(TaskType.F_RECURRENCE);
+								   return parentPage.isEdit() && !parentPage.getTaskDto().isRunnableOrRunning() && parentPage.isEditable(TaskType.F_RECURRENCE);
 							   }
 						   });
 		recurringContainer.add(recurringCheck);
@@ -312,7 +312,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		bound.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isEnabled() {
-				return parentPage.isEdit() && !parentPage.isRunnableOrRunning() && parentPage.isEditable(TaskType.F_BINDING);
+				return parentPage.isEdit() && !parentPage.getTaskDto().isRunnableOrRunning() && parentPage.isEditable(TaskType.F_BINDING);
 			}
 		});
 		boundContainer.add(bound);

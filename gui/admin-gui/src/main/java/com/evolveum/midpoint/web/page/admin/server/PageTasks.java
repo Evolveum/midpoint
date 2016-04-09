@@ -222,10 +222,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
 		List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
 
-        TaskDtoProviderOptions options = TaskDtoProviderOptions.fullOptions();
-        options.setGetTaskParent(false);
-        options.setRetrieveModelContext(false);
-        options.setResolveOwnerRef(false);
+        TaskDtoProviderOptions options = TaskDtoProviderOptions.minimalOptions();
+		options.setGetNextRunStartTime(true);
+		options.setUseClusterInformation(true);
+		options.setResolveObjectRef(true);
         TaskDtoProvider provider = new TaskDtoProvider(PageTasks.this, options) {
 
             @Override
@@ -658,7 +658,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         TaskDto task = taskModel.getObject();
 
         StringBuilder builder = new StringBuilder();
-        if (task.getObjectRefOid() == null) {
+        if (task.getObjectRef() == null) {
             return "";
         }
 
@@ -666,7 +666,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             builder.append(task.getObjectRefName());
         } else {
             //builder.append(createStringResource("pageTasks.unknownRefName").getString());
-            builder.append(task.getObjectRefOid());
+            builder.append(task.getObjectRef().getOid());
         }
         if (task.getObjectRefType() != null) {
             builder.append(" (");

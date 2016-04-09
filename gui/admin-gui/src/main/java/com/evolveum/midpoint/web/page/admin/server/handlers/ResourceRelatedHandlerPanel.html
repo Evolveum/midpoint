@@ -22,18 +22,6 @@
     <div class="box box-success">
         <div class="box-body no-padding">
             <table class="table table-striped">
-                <tr wicket:id="objectRefContainer">
-                    <td><wicket:message key="pageTaskEdit.objectRef"/></td>
-                    <td><span wicket:id="objectRef"/></td>
-                </tr>
-                <tr wicket:id="objectTypeContainer">
-                    <td><wicket:message key="pageTaskEdit.objectType"/></td>
-                    <td><span wicket:id="objectType"/></td>
-                </tr>
-                <tr wicket:id="objectQueryContainer">
-                    <td><wicket:message key="pageTaskEdit.objectQuery"/></td>
-                    <td><span wicket:id="objectQuery"/></td>
-                </tr>
                 <tr wicket:id="resourceRefContainer">
                     <td><wicket:message key="pageTaskEdit.resourceRef"/></td>
                     <td><select class="form-control input-sm" wicket:id="resourceRef"/></td>
@@ -50,14 +38,6 @@
                     <td><wicket:message key="pageTaskEdit.objectClass"/></td>
                     <td><input class="form-control input-sm" type="text" wicket:id="objectClass"/></td>
                 </tr>
-                <tr wicket:id="objectDeltaContainer">
-                    <td><wicket:message key="pageTaskEdit.objectDelta"/></td>
-                    <td><span wicket:id="objectDelta"/></td>
-                </tr>
-                <tr wicket:id="scriptContainer">
-                    <td><wicket:message key="pageTaskEdit.bulkAction"/></td>
-                    <td><span wicket:id="script"/></td>
-                </tr>
                 <tr wicket:id="optionsContainer">
                     <td><wicket:message key="pageTaskEdit.options"/></td>
                     <td>
@@ -65,16 +45,12 @@
                             <input type="checkbox" wicket:id="dryRun">
                             <wicket:message key="pageTaskEdit.dryRun" />
                         </label>
-                        <label class="col-lg-2 checkbox-inline" wicket:id="executeInRawModeContainer">
-                            <input type="checkbox" wicket:id="executeInRawMode">
-                            <wicket:message key="pageTaskEdit.executeInRawMode" />
-                        </label>
                     </td>
                 </tr>
+                <wicket:child/>
             </table>
         </div>
     </div>
 </wicket:panel>
 </body>
 </html>
-

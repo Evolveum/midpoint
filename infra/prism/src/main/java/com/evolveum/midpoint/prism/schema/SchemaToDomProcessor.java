@@ -20,11 +20,7 @@ import static com.evolveum.midpoint.prism.PrismConstants.*;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -32,10 +28,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
@@ -45,6 +39,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -53,7 +48,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 import com.sun.xml.xsom.XSParticle;
 
 /**
@@ -259,6 +253,10 @@ public class SchemaToDomProcessor {
 		
 		if (definition.getMatchingRuleQName() != null) {
 			addAnnotation(A_MATCHING_RULE, definition.getMatchingRuleQName(), appinfo);
+		}
+		
+		if (definition.getValueEnumerationRef() != null) {
+			addAnnotation(A_VALUE_ENUMERATION_REF, definition.getValueEnumerationRef(), appinfo);
 		}
 				
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
@@ -529,6 +527,16 @@ public class SchemaToDomProcessor {
 		parent.appendChild(annotation);
 		if (value != null) {
 			DOMUtil.setQNameValue(annotation, value);
+		}
+		return annotation;
+	}
+	
+	public Element addAnnotation(QName qname, PrismReferenceValue value, Element parent) {
+		Element annotation = createElement(qname);
+		parent.appendChild(annotation);
+		if (value != null) {
+			annotation.setAttribute(ATTRIBUTE_OID_LOCAL_NAME, value.getOid());
+			DOMUtil.setQNameAttribute(annotation, ATTRIBUTE_REF_TYPE_LOCAL_NAME, value.getTargetType());
 		}
 		return annotation;
 	}

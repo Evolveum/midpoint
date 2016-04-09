@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -43,7 +44,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	protected String displayName;
 	protected boolean readonly;
 
-	public PropertyOrReferenceWrapper(ContainerWrapper container, I item, boolean readonly, ValueStatus status) {
+	public PropertyOrReferenceWrapper(@Nullable ContainerWrapper container, I item, boolean readonly, ValueStatus status) {
 		Validate.notNull(item, "Item must not be null.");
 		Validate.notNull(status, "Item status must not be null.");
 

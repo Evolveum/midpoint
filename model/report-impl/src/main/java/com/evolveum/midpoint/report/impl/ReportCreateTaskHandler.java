@@ -477,6 +477,12 @@ public class ReportCreateTaskHandler implements TaskHandler {
 
         modelService.executeChanges(deltas, null, task, subResult);
 
+		String outputOid = objectDelta.getOid();
+		LOGGER.debug("Created report output with OID {}", outputOid);
+		PrismProperty<String> outputOidProperty = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME).instantiate();
+		outputOidProperty.setRealValue(outputOid);
+		task.setExtensionPropertyImmediate(outputOidProperty, subResult);
+
         subResult.computeStatus();
     }
 

@@ -94,6 +94,18 @@ public class ContainerWrapperFactory {
         return cWrapper;
     }
 
+	public <T extends PrismContainer> ContainerWrapper createContainerWrapper(T container, ContainerStatus status, boolean readonly) {
+
+		result = new OperationResult(CREATE_PROPERTIES);
+
+		ContainerWrapper cWrapper = new ContainerWrapper(container, status, readonly);
+
+		List<ItemWrapper> properties = createProperties(cWrapper, result);
+		cWrapper.setProperties(properties);
+
+		return cWrapper;
+	}
+
     private List<ItemWrapper> createProperties(ContainerWrapper cWrapper, OperationResult result) {
         ObjectWrapper objectWrapper = cWrapper.getObject();
         PrismContainer container = cWrapper.getItem();
@@ -102,50 +114,54 @@ public class ContainerWrapperFactory {
         List<ItemWrapper> properties = new ArrayList<>();
 
         PrismContainerDefinition definition;
-        PrismObject parent = objectWrapper.getObject();
-        Class clazz = parent.getCompileTimeClass();
-        if (ShadowType.class.isAssignableFrom(clazz)) {
-            QName name = containerDefinition.getName();
+		if (objectWrapper == null) {
+			definition = containerDefinition;
+		} else {
+			PrismObject parent = objectWrapper.getObject();
+			Class clazz = parent.getCompileTimeClass();
+			if (ShadowType.class.isAssignableFrom(clazz)) {
+				QName name = containerDefinition.getName();
 
-            if (ShadowType.F_ATTRIBUTES.equals(name)) {
-                try {
-                    definition = objectWrapper.getRefinedAttributeDefinition();
+				if (ShadowType.F_ATTRIBUTES.equals(name)) {
+					try {
+						definition = objectWrapper.getRefinedAttributeDefinition();
 
-                    if (definition == null) {
-                        PrismReference resourceRef = parent.findReference(ShadowType.F_RESOURCE_REF);
-                        PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
+						if (definition == null) {
+							PrismReference resourceRef = parent.findReference(ShadowType.F_RESOURCE_REF);
+							PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
 
-                        definition = modelServiceLocator
-                                .getModelInteractionService()
-                                .getEditObjectClassDefinition((PrismObject<ShadowType>) objectWrapper.getObject(), resource,
-                                        AuthorizationPhaseType.REQUEST)
-                                .toResourceAttributeContainerDefinition();
+							definition = modelServiceLocator
+									.getModelInteractionService()
+									.getEditObjectClassDefinition((PrismObject<ShadowType>) objectWrapper.getObject(), resource,
+											AuthorizationPhaseType.REQUEST)
+									.toResourceAttributeContainerDefinition();
 
-                        if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("Refined account def:\n{}", definition.debugDump());
-                        }
-                    }
-                } catch (Exception ex) {
-                    LoggingUtils.logException(LOGGER,
-                            "Couldn't load definitions from refined schema for shadow", ex);
-                    result.recordFatalError(
-                            "Couldn't load definitions from refined schema for shadow, reason: "
-                                    + ex.getMessage(), ex);
+							if (LOGGER.isTraceEnabled()) {
+								LOGGER.trace("Refined account def:\n{}", definition.debugDump());
+							}
+						}
+					} catch (Exception ex) {
+						LoggingUtils.logException(LOGGER,
+								"Couldn't load definitions from refined schema for shadow", ex);
+						result.recordFatalError(
+								"Couldn't load definitions from refined schema for shadow, reason: "
+										+ ex.getMessage(), ex);
 
-                    return properties;
-                }
-            } else {
-                definition = containerDefinition;
-            }
-        } else if (ResourceType.class.isAssignableFrom(clazz)) {
-            if (containerDefinition != null) {
-                definition = containerDefinition;
-            } else {
-                definition = container.getDefinition();
-            }
-        } else {
-            definition = containerDefinition;
-        }
+						return properties;
+					}
+				} else {
+					definition = containerDefinition;
+				}
+			} else if (ResourceType.class.isAssignableFrom(clazz)) {
+				if (containerDefinition != null) {
+					definition = containerDefinition;
+				} else {
+					definition = container.getDefinition();
+				}
+			} else {
+				definition = containerDefinition;
+			}
+		}
 
         if (definition == null) {
             LOGGER.error("Couldn't get property list from null definition {}",
@@ -224,7 +240,7 @@ public class ContainerWrapperFactory {
 	            }
             }
 
-            PrismReference resourceRef = parent.findReference(ShadowType.F_RESOURCE_REF);
+            PrismReference resourceRef = objectWrapper.getObject().findReference(ShadowType.F_RESOURCE_REF);
             PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
 
             // HACK. The revive should not be here. Revive is no good. The next use of the resource will
@@ -239,7 +255,7 @@ public class ContainerWrapperFactory {
             CompositeRefinedObjectClassDefinition rOcDef;
             try {
                 refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-                rOcDef = refinedSchema.determineCompositeObjectClassDefinition(parent);
+                rOcDef = refinedSchema.determineCompositeObjectClassDefinition(objectWrapper.getObject());
             } catch (SchemaException e) {
                 throw new SystemException(e.getMessage(), e);
             }
@@ -278,7 +294,7 @@ public class ContainerWrapperFactory {
                         if (def.isIgnored() || skipProperty(def)) {
                             continue;
                         }
-                        if (!objectWrapper.isShowInheritedObjectAttributes()
+                        if (!cWrapper.isShowInheritedObjectAttributes()
                                 && INHERITED_OBJECT_ATTRIBUTES.contains(def.getName())) {
                             continue;
                         }
@@ -297,7 +313,7 @@ public class ContainerWrapperFactory {
                         // decision is based on parent object status, not this
                         // container's one (because container can be added also
                         // to an existing object)
-                        if (objectWrapper.getStatus() == ContainerStatus.MODIFYING) {
+                        if (objectWrapper == null || objectWrapper.getStatus() == ContainerStatus.MODIFYING) {
 
                             propertyIsReadOnly = !def.canModify();
                         } else {
@@ -322,7 +338,7 @@ public class ContainerWrapperFactory {
                         // decision is based on parent object status, not this
                         // container's one (because container can be added also
                         // to an existing object)
-                        if (objectWrapper.getStatus() == ContainerStatus.MODIFYING) {
+                        if (objectWrapper == null || objectWrapper.getStatus() == ContainerStatus.MODIFYING) {
 
                             propertyIsReadOnly = !def.canModify();
                         } else {
@@ -350,6 +366,9 @@ public class ContainerWrapperFactory {
 
 	private boolean isShadowAssociation(ContainerWrapper cWrapper) {
         ObjectWrapper oWrapper = cWrapper.getObject();
+		if (oWrapper == null) {
+			return false;
+		}
         PrismContainer container = cWrapper.getItem();
 
         if (!ShadowType.class.isAssignableFrom(oWrapper.getObject().getCompileTimeClass())) {
@@ -365,6 +384,9 @@ public class ContainerWrapperFactory {
 
     private boolean isShadowActivation(ContainerWrapper cWrapper) {
         ObjectWrapper oWrapper = cWrapper.getObject();
+		if (oWrapper == null) {
+			return false;
+		}
         PrismContainer container = cWrapper.getItem();
 
         if (!ShadowType.class.isAssignableFrom(oWrapper.getObject().getCompileTimeClass())) {

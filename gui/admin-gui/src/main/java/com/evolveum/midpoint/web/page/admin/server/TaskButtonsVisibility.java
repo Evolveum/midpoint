@@ -30,7 +30,7 @@ class TaskButtonsVisibility implements Serializable {
         editVisible =
 				!parentPage.isEdit()
 						&& parentPage.isEditable()
-						&& (!parentPage.isWorkflow() || parentPage.isShowAdvanced());
+						&& (!parentPage.getTaskDto().isWorkflow() || parentPage.isShowAdvanced());
         return editVisible;
     }
 
@@ -45,21 +45,24 @@ class TaskButtonsVisibility implements Serializable {
     }
 
     public boolean computeSuspendVisible(PageTaskEdit parentPage) {
-        suspendVisible = !parentPage.isEdit() && parentPage.isRunnableOrRunning() && (!parentPage.isWorkflow() || parentPage.isShowAdvanced());
+		final TaskDto taskDto = parentPage.getTaskDto();
+		suspendVisible = !parentPage.isEdit() && taskDto.isRunnableOrRunning() && (!taskDto.isWorkflow() || parentPage.isShowAdvanced());
         return suspendVisible;
     }
 
     public boolean computeResumeVisible(PageTaskEdit parentPage) {
-        resumeVisible = !parentPage.isEdit()
-				&& (parentPage.isSuspended() || (parentPage.isClosed() && parentPage.isRecurring()))
-				&& (!parentPage.isWorkflow() || parentPage.isShowAdvanced());
+		final TaskDto taskDto = parentPage.getTaskDto();
+		resumeVisible = !parentPage.isEdit()
+				&& (taskDto.isSuspended() || (taskDto.isClosed() && taskDto.isRecurring()))
+				&& (!taskDto.isWorkflow() || parentPage.isShowAdvanced());
         return resumeVisible;
     }
 
     public boolean computeRunNowVisible(PageTaskEdit parentPage) {
-        runNowVisible = !parentPage.isEdit()
-				&& (parentPage.isRunnable() || (parentPage.isClosed() && !parentPage.isRecurring()))
-				&& (!parentPage.isWorkflow() || parentPage.isShowAdvanced());
+		final TaskDto taskDto = parentPage.getTaskDto();
+		runNowVisible = !parentPage.isEdit()
+				&& (taskDto.isRunnable() || (taskDto.isClosed() && !taskDto.isRecurring()))
+				&& (!taskDto.isWorkflow() || parentPage.isShowAdvanced());
         return runNowVisible;
     }
 

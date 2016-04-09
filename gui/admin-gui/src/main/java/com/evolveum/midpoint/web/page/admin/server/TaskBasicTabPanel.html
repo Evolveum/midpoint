@@ -26,11 +26,11 @@
                 <table class="table table-striped">
                     <tr wicket:id="nameContainer">
                         <td><wicket:message key="pageTaskEdit.name"/></td>
-                        <td><input type="text" class="form-control input-sm" wicket:id="nameInput"/><span wicket:id="nameLabel"/></td>
+                        <td><input type="text" class="form-control input-sm" wicket:id="name"/></td>
                     </tr>
                     <tr wicket:id="descriptionContainer">
                         <td><wicket:message key="pageTaskEdit.description"/></td>
-                        <td><textarea class="form-control input-sm" rows="2" wicket:id="descriptionInput"/><span wicket:id="descriptionLabel"/></td>
+                        <td><textarea class="form-control input-sm" rows="5" wicket:id="description"/></td>
                     </tr>
                     <tr>
                         <td><wicket:message key="pageTaskEdit.oid"/></td>
@@ -65,7 +65,7 @@
         </div>
     </div>
     <div class="col-md-6">
-        <div wicket:id="workToDoPanel"/>
+        <div wicket:id="handlerPanel"/>
     </div>
     </div>
 

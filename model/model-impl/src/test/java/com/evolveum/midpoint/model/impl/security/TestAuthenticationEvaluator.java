@@ -55,6 +55,7 @@ import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -529,8 +530,8 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	}
 	
 	@Test
-	public void test137PasswordLoginLockoutAgain() throws Exception {
-		final String TEST_NAME = "test137PasswordLoginLockoutAgain";
+	public void test136PasswordLoginLockoutAgain() throws Exception {
+		final String TEST_NAME = "test136PasswordLoginLockoutAgain";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
@@ -602,8 +603,8 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	}
 	
 	@Test
-	public void test138PasswordLoginLockedoutGoodPasswordAgain() throws Exception {
-		final String TEST_NAME = "test138PasswordLoginLockedoutGoodPasswordAgain";
+	public void test137PasswordLoginLockedoutGoodPasswordAgain() throws Exception {
+		final String TEST_NAME = "test137PasswordLoginLockedoutGoodPasswordAgain";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
@@ -632,8 +633,8 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	}
 	
 	@Test
-	public void test139UnlockUserGoodPassword() throws Exception {
-		final String TEST_NAME = "test139UnlockUserGoodPassword";
+	public void test138UnlockUserGoodPassword() throws Exception {
+		final String TEST_NAME = "test138UnlockUserGoodPassword";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
@@ -670,6 +671,41 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		display("user after", userAfter);
 		assertFailedLogins(userAfter, 0);
 		assertLastSuccessfulLogin(userAfter, startTs, endTs);
+		assertUserLockout(userAfter, LockoutStatusType.NORMAL);
+	}
+	
+	/**
+	 * MID-2862
+	 */
+	@Test
+	public void test139TryToLockByModelService() throws Exception {
+		final String TEST_NAME = "test139TryToLockByModelService";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+				
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		try {
+			
+			modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, task, result, LockoutStatusType.LOCKED);
+			
+			AssertJUnit.fail("Unexpected success");
+		} catch (SchemaException e) {
+			// This is expected
+			
+			// THEN
+			TestUtil.displayThen(TEST_NAME);
+			display("expected exception", e);
+			
+		}
+				
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("user after", userAfter);
+		assertFailedLogins(userAfter, 0);
+		assertUserLockout(userAfter, LockoutStatusType.NORMAL);
 	}
 	
 	@Test

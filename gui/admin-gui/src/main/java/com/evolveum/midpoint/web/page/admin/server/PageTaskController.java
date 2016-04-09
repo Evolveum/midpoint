@@ -20,6 +20,8 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -54,6 +56,36 @@ public class PageTaskController implements Serializable {
 
 	public PageTaskController(PageTaskEdit parentPage) {
 		this.parentPage = parentPage;
+	}
+
+	public void deleteSyncTokenPerformed(AjaxRequestTarget target) {
+		LOGGER.debug("Deleting sync token.");
+		OperationResult result = new OperationResult(PageTaskEdit.OPERATION_DELETE_SYNC_TOKEN);
+
+		Task operationTask = parentPage.createSimpleTask(PageTaskEdit.OPERATION_DELETE_SYNC_TOKEN);
+		try {
+			final TaskDto taskDto = parentPage.getTaskDto();
+			final PrismProperty property = taskDto.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
+			if (property == null) {
+				result.recordWarning("Token is not present in this task.");		// should be treated by isVisible
+			} else {
+				final ObjectDelta<? extends ObjectType> delta = (ObjectDelta<? extends ObjectType>)
+						DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
+								.item(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition()).replace()
+								.asObjectDelta(parentPage.getTaskDto().getOid());
+				//if (LOGGER.isTraceEnabled()) {
+				LOGGER.info("Deleting sync token:\n{}", delta.debugDump());
+				//}
+				parentPage.getModelService()
+						.executeChanges(Collections.<ObjectDelta<? extends ObjectType>>singleton(delta), null, operationTask, result);
+				result.recomputeStatus();
+			}
+		} catch (Exception ex) {
+			result.recomputeStatus();
+			result.recordFatalError("Couldn't delete sync token from the task.", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete sync token from the task.", ex);
+		}
+		afterStateChangingOperation(target, result);
 	}
 
 	void savePerformed(AjaxRequestTarget target) {
@@ -96,14 +128,7 @@ public class PageTaskController implements Serializable {
 		existingTask.setName(WebComponentUtil.createPolyFromOrigString(dto.getName()));
 		existingTask.setDescription(dto.getDescription());
 
-		TaskAddResourcesDto resourceRefDto;
-		if (dto.getResourceRef() != null) {
-			resourceRefDto = dto.getResourceRef();
-			ObjectReferenceType resourceRef = new ObjectReferenceType();
-			resourceRef.setOid(resourceRefDto.getOid());
-			resourceRef.setType(ResourceType.COMPLEX_TYPE);
-			existingTask.setObjectRef(resourceRef);
-		}
+		dto.getHandlerDto().updateTask(existingTask, parentPage);
 
 		ScheduleType schedule = new ScheduleType();
 		schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(dto.getNotStartBefore()));
@@ -126,74 +151,8 @@ public class PageTaskController implements Serializable {
 		existingTask.setThreadStopAction(dto.getThreadStopActionType());
 
 		SchemaRegistry registry = parentPage.getPrismContext().getSchemaRegistry();
-		if (dto.isDryRun()) {
-			PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-			PrismProperty dryRun = new PrismProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-			dryRun.setDefinition(def);
-			dryRun.setRealValue(true);
 
-			existingTask.addExtensionProperty(dryRun);
-		} else {
-			PrismProperty dryRun = existingTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-			if (dryRun != null) {
-				existingTask.deleteExtensionProperty(dryRun);
-			}
-		}
-
-		if (dto.getKind() != null) {
-			PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_KIND);
-			PrismProperty kind = new PrismProperty(SchemaConstants.MODEL_EXTENSION_KIND);
-			kind.setDefinition(def);
-			kind.setRealValue(dto.getKind());
-
-			existingTask.addExtensionProperty(kind);
-		} else {
-			PrismProperty kind = existingTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_KIND);
-
-			if (kind != null) {
-				existingTask.deleteExtensionProperty(kind);
-			}
-		}
-
-		if (dto.getIntent() != null && StringUtils.isNotEmpty(dto.getIntent())) {
-			PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_INTENT);
-			PrismProperty intent = new PrismProperty(SchemaConstants.MODEL_EXTENSION_INTENT);
-			intent.setDefinition(def);
-			intent.setRealValue(dto.getIntent());
-
-			existingTask.addExtensionProperty(intent);
-		} else {
-			PrismProperty intent = existingTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_INTENT);
-
-			if (intent != null) {
-				existingTask.deleteExtensionProperty(intent);
-			}
-		}
-
-		if (dto.getObjectClass() != null && StringUtils.isNotEmpty(dto.getObjectClass())) {
-			PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.OBJECTCLASS_PROPERTY_NAME);
-			PrismProperty objectClassProperty = new PrismProperty(SchemaConstants.OBJECTCLASS_PROPERTY_NAME);
-			objectClassProperty.setRealValue(def);
-
-			QName objectClass = null;
-			for (QName q: parentPage.getTaskDto().getObjectClassList()) {
-				if (q.getLocalPart().equals(dto.getObjectClass())) {
-					objectClass = q;
-				}
-			}
-
-			objectClassProperty.setRealValue(objectClass);
-			existingTask.addExtensionProperty(objectClassProperty);
-
-		} else {
-			PrismProperty objectClass = existingTask.getExtensionProperty(SchemaConstants.OBJECTCLASS_PROPERTY_NAME);
-
-			if(objectClass != null){
-				existingTask.deleteExtensionProperty(objectClass);
-			}
-		}
-
-		if(dto.getWorkerThreads() != null) {
+		if (dto.getWorkerThreads() != null) {
 			PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
 			PrismProperty workerThreads = new PrismProperty(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
 			workerThreads.setDefinition(def);
@@ -231,7 +190,6 @@ public class PageTaskController implements Serializable {
 
 	private void afterStateChangingOperation(AjaxRequestTarget target, OperationResult result) {
 		parentPage.showResult(result);
-
 		parentPage.refresh(target);
 		target.add(parentPage.getFeedbackPanel());
 	}

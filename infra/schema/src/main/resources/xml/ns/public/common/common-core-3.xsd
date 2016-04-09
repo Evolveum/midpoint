@@ -2205,6 +2205,7 @@
                             <xsd:appinfo>
 		                    	<a:displayName>Preferred Language</a:displayName>
 		                    	<a:displayOrder>200</a:displayOrder>
+		                    	<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000200" type="tns:LookupTableType"/>
 		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2229,6 +2230,7 @@
                             <xsd:appinfo>
 		                    	<a:displayName>Locale</a:displayName>
 		                    	<a:displayOrder>210</a:displayOrder>
+		                    	<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000210" type="tns:LookupTableType"/>
 		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2250,6 +2252,7 @@
                             <xsd:appinfo>
 		                    	<a:displayName>Timezone</a:displayName>
 		                    	<a:displayOrder>220</a:displayOrder>
+		                    	<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000220" type="tns:LookupTableType"/>
 		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -10271,6 +10274,27 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SECURITY_POLICY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000200">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LOOKUP_LANGUAGES"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000210">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LOOKUP_LOCALES"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000220">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LOOKUP_TIMEZONES"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
