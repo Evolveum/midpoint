@@ -16,11 +16,10 @@
 
 package com.evolveum.midpoint.gui.api.util;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -50,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.wicket.Session;
 
 /**
  * Utility class that contains methods that interact with ModelService and other
@@ -355,6 +355,37 @@ public class WebModelServiceUtils {
         	throw new IllegalArgumentException("No OID in principal: "+principal);
         }
         return principal.getOid();
+    }
+
+    public static Locale getLocale(UserType user) {
+        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        Locale locale = null;
+        if (principal != null) {
+            if (user == null){
+                PrismObject<UserType> userPrismObject = principal.getUser().asPrismObject();
+                user = userPrismObject == null ? null : userPrismObject.asObjectable();
+            }
+            if (user != null && user.getPreferredLanguage() != null &&
+                    !user.getPreferredLanguage().trim().equals("")) {
+                locale = LocaleUtils.toLocale(user.getPreferredLanguage());
+            }
+            if (locale != null && MidPointApplication.containsLocale(locale)) {
+                return locale;
+            } else {
+                String userLocale = user != null ? user.getLocale() : null;
+                locale = userLocale == null ? null : LocaleUtils.toLocale(userLocale);
+                if (locale != null && MidPointApplication.containsLocale(locale)) {
+                    return locale;
+                } else {
+                    locale = Session.get().getLocale();
+                    if (locale == null || !MidPointApplication.containsLocale(locale)) {
+                        //default locale for web application
+                        return MidPointApplication.getDefaultLocale();
+                    }
+                }
+            }
+        }
+        return null;
     }
 
 }

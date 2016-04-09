@@ -15,17 +15,14 @@
  */
 package com.evolveum.midpoint.web.page.admin;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -190,7 +187,13 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			finishPreviewProcessing(target, result);
 			return;
 		}
-
+        if (result.isSuccess()) {
+            UserType user = null;
+            if (getObjectWrapper().getObject().asObjectable() instanceof UserType){
+                user = (UserType) getObjectWrapper().getObject().asObjectable();
+            }
+            Session.get().setLocale(WebModelServiceUtils.getLocale(user));
+        }
 		boolean userAdded = getDelta() != null && getDelta().isAdd() && StringUtils.isNotEmpty(getDelta().getOid());
 		if (!isKeepDisplayingResults() && getProgressReporter().isAllSuccess()
 				&& (userAdded || !result.isFatalError())) { // TODO
