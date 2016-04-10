@@ -171,22 +171,13 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         if (principal != null) {
             //setting locale
-            setLocale(WebModelServiceUtils.getLocale(null));
+            setLocale(WebModelServiceUtils.getLocale());
             LOGGER.debug("Using {} as locale", getLocale());
 
-            PrismObject<UserType> user = principal.getUser().asPrismObject();
             //set time zone
-            String timeZone;
-            if (user != null && user.asObjectable().getTimezone() != null) {
-                timeZone = user.asObjectable().getTimezone();
-            } else {
-                timeZone = principal.getAdminGuiConfiguration().getDefaultTimezone();
-            }
-            if (timeZone != null) {
-                WebSession.get().getClientInfo().getProperties().
-                        setTimeZone(TimeZone.getTimeZone(timeZone));
-                LOGGER.debug("Using {} as time zone", timeZone);
-            }
+            WebSession.get().getClientInfo().getProperties().
+                    setTimeZone(WebModelServiceUtils.getTimezone());
+            LOGGER.debug("Using {} as time zone", WebSession.get().getClientInfo().getProperties().getTimeZone());
         }
     }
 }
