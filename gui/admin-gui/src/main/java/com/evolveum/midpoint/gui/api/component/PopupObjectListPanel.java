@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -60,6 +61,11 @@ public abstract class PopupObjectListPanel<T extends ObjectType> extends ObjectL
 	
 	protected void onSelectPerformed(AjaxRequestTarget target, T object){
 		
+	}
+	
+	@Override
+	protected List<InlineMenuItem> createInlineMenu() {
+		return null;
 	}
 
 }

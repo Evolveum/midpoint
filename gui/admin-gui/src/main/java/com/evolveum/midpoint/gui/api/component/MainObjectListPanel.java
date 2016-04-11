@@ -12,13 +12,13 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public abstract class MainObjectListPanel<T extends ObjectType> extends ObjectListPanel<T> {
 
 	private static final long serialVersionUID = 1L;
-	
 
 	public MainObjectListPanel(String id, Class<T> type, Collection<SelectorOptions<GetOperationOptions>> options, PageBase parentPage) {
 		super(id, type, options, parentPage);
@@ -48,6 +48,7 @@ public abstract class MainObjectListPanel<T extends ObjectType> extends ObjectLi
 	protected abstract void objectDetailsPerformed(AjaxRequestTarget target, T object);
 
 	
+		
 
 
 }

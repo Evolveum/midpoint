@@ -20,26 +20,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.event.Broadcast;
-import org.apache.wicket.event.IEventSink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
@@ -47,18 +38,13 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -66,26 +52,16 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -206,7 +182,7 @@ public class PageUsers extends PageAdminUsers {
     private List<IColumn<SelectableBean<UserType>, String>> initColumns() {
         List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<IColumn<SelectableBean<UserType>, String>>();
 
-        columns.add(new CheckBoxHeaderColumn());
+//        columns.add(new CheckBoxHeaderColumn());
 //        columns.add(new IconColumn<UserListItemDto>(null) {
 //
 //            @Override
@@ -271,8 +247,16 @@ public class PageUsers extends PageAdminUsers {
 		};
         
 //        column = new PropertyColumn(createStringResource("pageUsers.accounts"), null, UserListItemDto.F_ACCOUNT_COUNT);
-//        columns.add(column);
+        columns.add(column);
 
+//        column = new AbstractColumn<SelectableBean<UserType>, String>(null) {
+//        	
+//        	@Override
+//        	public void populateItem(Item<ICellPopulator<SelectableBean<UserType>>> cellItem,
+//        			String componentId, IModel<SelectableBean<UserType>> rowModel) {
+//        		cellItem.setadd(new InlineMenuHeaderColumn(initInlineMenu()));
+//        	}
+//		};
         column = new InlineMenuHeaderColumn(initInlineMenu());
         columns.add(column);
 
@@ -347,11 +331,18 @@ public class PageUsers extends PageAdminUsers {
 			}
 			
 			@Override
+			protected List<InlineMenuItem> createInlineMenu() {
+				return createRowActions();
+			}
+			
+			@Override
 			protected void objectDetailsPerformed(AjaxRequestTarget target, UserType object) {
 				// TODO Auto-generated method stub
 				userDetailsPerformed(target, object.getOid());
 			}
 		};
+//		userListPanel.setInlineMenu(createRowActions());
+		userListPanel.setOutputMarkupId(true);
 		mainForm.add(userListPanel);
         
 //        ObjectDataProvider<UserListItemDto, UserType> provider =
@@ -469,6 +460,62 @@ public class PageUsers extends PageAdminUsers {
 //        PrismReference accountRef = object.findReference(UserType.F_LINK_REF);
 //        return accountRef != null ? accountRef.size() : 0;
 //    }
+    
+    private List<InlineMenuItem> createRowActions(){
+    	List<InlineMenuItem> menu = new ArrayList<InlineMenuItem>();
+    	menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.enable"),
+               new ColumnMenuAction<SelectableBean<UserType>>() {
+
+                   @Override
+                   public void onClick(AjaxRequestTarget target) {
+                       SelectableBean<UserType> rowDto = getRowModel().getObject();
+                       updateActivationPerformed(target, true, rowDto.getValue());
+                   }
+               }));
+
+    	menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.disable"),
+               new ColumnMenuAction<SelectableBean<UserType>>() {
+
+                   @Override
+                   public void onClick(AjaxRequestTarget target) {
+                   	SelectableBean<UserType> rowDto = getRowModel().getObject();
+                       updateActivationPerformed(target, false, rowDto.getValue());
+                   }
+               }));
+
+    	menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.reconcile"),
+               new ColumnMenuAction<SelectableBean<UserType>>() {
+
+                   @Override
+                   public void onClick(AjaxRequestTarget target) {
+                   	SelectableBean<UserType> rowDto = getRowModel().getObject();
+                       reconcilePerformed(target, rowDto.getValue());
+                   }
+               }));
+
+    	menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.unlock"),
+               new ColumnMenuAction<SelectableBean<UserType>>() {
+
+                   @Override
+                   public void onClick(AjaxRequestTarget target) {
+                   	SelectableBean<UserType> rowDto = getRowModel().getObject();
+                       unlockPerformed(target, rowDto.getValue());
+                   }
+               }));
+
+    	menu.add(new InlineMenuItem());
+
+    	menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.delete"),
+               new ColumnMenuAction<SelectableBean<UserType>>() {
+
+                   @Override
+                   public void onClick(AjaxRequestTarget target) {
+                   	SelectableBean<UserType> rowDto = getRowModel().getObject();
+                       deletePerformed(target, rowDto.getValue());
+                   }
+               }));
+    	return menu;
+    }
 
     private void userDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();

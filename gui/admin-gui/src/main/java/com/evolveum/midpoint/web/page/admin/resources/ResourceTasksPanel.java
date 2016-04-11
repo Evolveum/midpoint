@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.ListDataProvider2;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
@@ -115,6 +116,12 @@ public class ResourceTasksPanel extends Panel{
 			@Override
 			protected BaseSortableDataProvider<SelectableBean<TaskType>> getProvider() {
 				return new ListDataProvider2(pageBase, tasks);
+			}
+			
+			@Override
+			protected List<InlineMenuItem> createInlineMenu() {
+				// TODO Auto-generated method stub
+				return null;
 			}
 			
 			

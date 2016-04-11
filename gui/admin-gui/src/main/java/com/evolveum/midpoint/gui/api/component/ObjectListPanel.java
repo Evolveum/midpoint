@@ -43,6 +43,7 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider2;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchFormPanel;
@@ -122,6 +123,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		this.tableId = tableId;
 	}
 
+
 	public List<T> getSelectedObjects() {
 		BaseSortableDataProvider<SelectableBean<T>> dataProvider = getDataProvider();
 		if (dataProvider instanceof ObjectDataProvider2) {
@@ -148,7 +150,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 					PageStorage storage = getSession().getSessionStorage().getPageStorageMap()
 							.get(storageKey);
 					if (storage != null) {
-						 search = storage.getSearch();
+						search = storage.getSearch();
 					}
 				}
 				if (search == null) {
@@ -177,9 +179,16 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 					PageStorage storage = getSession().getSessionStorage().getPageStorageMap()
 							.get(storageKey);
 					if (storage != null) {
-						 storage.setPaging(paging);
+						storage.setPaging(paging);
 					}
 				}
+			}
+
+			@Override
+			public SelectableBean<T> createDataObjectWrapper(T obj) {
+				SelectableBean<T> bean = super.createDataObjectWrapper(obj);
+				bean.getMenuItems().addAll(createInlineMenu());
+				return bean;
 			}
 		};
 		if (options != null) {
@@ -217,10 +226,9 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		table.setOutputMarkupId(true);
 		String storageKey = storageMap.get(type);
 		if (StringUtils.isNotEmpty(storageKey)) {
-			PageStorage storage = getSession().getSessionStorage().getPageStorageMap()
-					.get(storageKey);
+			PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
 			if (storage != null) {
-				 table.setCurrentPage(storage.getPaging());
+				table.setCurrentPage(storage.getPaging());
 			}
 		}
 
@@ -246,14 +254,13 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		// RolesStorage storage = getSessionStorage().getRoles();
 		// storage.setRolesSearch(searchModel.getObject());
 		// storage.setRolesPaging(null);
-//		saveSearch(provider.getQuery().getPaging());
+		// saveSearch(provider.getQuery().getPaging());
 		String storageKey = storageMap.get(type);
 		if (StringUtils.isNotEmpty(storageKey)) {
-			PageStorage storage = getSession().getSessionStorage().getPageStorageMap()
-					.get(storageKey);
+			PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
 			if (storage != null) {
-				 storage.setSearch(searchModel.getObject());
-				 storage.setPaging(null);
+				storage.setSearch(searchModel.getObject());
+				storage.setPaging(null);
 			}
 		}
 
@@ -263,8 +270,8 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		target.add(parentPage.getFeedbackPanel());
 
 	}
-	
-	public void clearCache(){
+
+	public void clearCache() {
 		getDataProvider().clearCache();
 	}
 
@@ -276,8 +283,8 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 
 	protected ObjectQuery createContentQuery() {
 		Search search = searchModel.getObject();
-        ObjectQuery query = search.createObjectQuery(parentPage.getPrismContext());
-        return query;
+		ObjectQuery query = search.createObjectQuery(parentPage.getPrismContext());
+		return query;
 	}
 
 	public StringResourceModel createStringResource(String resourceKey, Object... objects) {
@@ -293,8 +300,9 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 	protected abstract IColumn<SelectableBean<T>, String> createNameColumn();
 
 	protected abstract List<IColumn<SelectableBean<T>, String>> createColumns();
+	protected abstract List<InlineMenuItem> createInlineMenu();
 
-//	protected abstract void saveSearch(ObjectPaging paging);
+	// protected abstract void saveSearch(ObjectPaging paging);
 
 	protected List<IColumn<SelectableBean<T>, String>> initColumns() {
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();

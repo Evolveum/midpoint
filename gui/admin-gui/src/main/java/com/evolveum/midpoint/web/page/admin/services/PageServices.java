@@ -34,6 +34,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -105,6 +106,12 @@ public class PageServices extends PageAdminServices {
 	        	@Override
 	        	protected List<IColumn<SelectableBean<ServiceType>, String>> createColumns() {
 	        		return ColumnUtils.getDefaultServiceColumns();
+	        	}
+	        	
+	        	@Override
+	        	protected List<InlineMenuItem> createInlineMenu() {
+	        		// TODO Auto-generated method stub
+	        		return null;
 	        	}
 	        	
 	        	
