@@ -133,7 +133,7 @@ userPassword: secret
 dn: ou=Services,dc=example,dc=com
 objectclass: top
 objectclass: organizationalunit
-ou: Administrators
+ou: Services
 
 dn: cn=apache,ou=Services,dc=example,dc=com
 objectclass: top

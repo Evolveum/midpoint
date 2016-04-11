@@ -523,18 +523,21 @@ public class FocusProcessor {
 			OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {	
 		
-		PropertyDelta<LockoutStatusType> lockoutStatusDelta = focusContext.getPrimaryDelta().findPropertyDelta(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
-		if (lockoutStatusDelta != null) {
-			if (lockoutStatusDelta.isAdd()) {
-				for (PrismPropertyValue<LockoutStatusType> pval: lockoutStatusDelta.getValuesToAdd()) {
-					if (pval.getValue() == LockoutStatusType.LOCKED) {
-						throw new SchemaException("Lockout status cannot be changed to LOCKED value");
+		ObjectDelta<UserType> focusPrimaryDelta = focusContext.getPrimaryDelta();
+		if (focusPrimaryDelta != null) {
+			PropertyDelta<LockoutStatusType> lockoutStatusDelta = focusContext.getPrimaryDelta().findPropertyDelta(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
+			if (lockoutStatusDelta != null) {
+				if (lockoutStatusDelta.isAdd()) {
+					for (PrismPropertyValue<LockoutStatusType> pval: lockoutStatusDelta.getValuesToAdd()) {
+						if (pval.getValue() == LockoutStatusType.LOCKED) {
+							throw new SchemaException("Lockout status cannot be changed to LOCKED value");
+						}
 					}
-				}
-			} else if (lockoutStatusDelta.isReplace()) {
-				for (PrismPropertyValue<LockoutStatusType> pval: lockoutStatusDelta.getValuesToReplace()) {
-					if (pval.getValue() == LockoutStatusType.LOCKED) {
-						throw new SchemaException("Lockout status cannot be changed to LOCKED value");
+				} else if (lockoutStatusDelta.isReplace()) {
+					for (PrismPropertyValue<LockoutStatusType> pval: lockoutStatusDelta.getValuesToReplace()) {
+						if (pval.getValue() == LockoutStatusType.LOCKED) {
+							throw new SchemaException("Lockout status cannot be changed to LOCKED value");
+						}
 					}
 				}
 			}
