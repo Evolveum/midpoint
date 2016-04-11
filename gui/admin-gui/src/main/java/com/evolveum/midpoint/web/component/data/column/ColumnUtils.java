@@ -151,6 +151,23 @@ public class ColumnUtils {
 		};
 	}
 	
+	public static <T extends ObjectType> IColumn<SelectableBean<T>, String> getShadowIconColumn(){
+		return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+
+			@Override
+			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
+				return new AbstractReadOnlyModel<String>() {
+
+					@Override
+					public String getObject() {
+						T shadow = rowModel.getObject().getValue();
+						return WebComponentUtil.createShadowIcon(shadow.asPrismContainer());
+					}
+				};
+			}
+		};
+	}
+	
 private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getRoleIconColumn(){
 	return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
 

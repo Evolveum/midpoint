@@ -744,6 +744,7 @@ public final class WebComponentUtil {
 		return "fa fa-male";
 	}
 	
+	
 	public static String createRoleIcon(PrismObject<RoleType> object) {
 		return "fa fa-street-view";
 	}
