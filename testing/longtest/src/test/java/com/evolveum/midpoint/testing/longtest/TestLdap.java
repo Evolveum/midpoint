@@ -136,6 +136,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
     
     public static final String DOT_JPG_FILENAME = "src/test/resources/common/dot.jpg";
 	
+    private static final int NUM_INITIAL_USERS = 3;
 	// Make it at least 1501 so it will go over the 3000 entries size limit
 	private static final int NUM_LDAP_ENTRIES = 1600;
 
@@ -212,6 +213,14 @@ public class TestLdap extends AbstractModelIntegrationTest {
 
 		display("initial LDAP content", openDJController.dumpEntries());
 	}
+
+	@Test
+    public void test000Sanity() throws Exception {
+		final String TEST_NAME = "test000Sanity";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        assertUsers(NUM_INITIAL_USERS);
+	}
 	
 	/**
 	 * Barbossa is already member of LDAP group "pirates". The role adds this group as well.
@@ -237,6 +246,8 @@ public class TestLdap extends AbstractModelIntegrationTest {
 
         String accountDn = assertOpenDjAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true).getDN().toString();
         openDJController.assertUniqueMember(LDAP_GROUP_PIRATES_DN, accountDn);
+        
+        assertUsers(NUM_INITIAL_USERS);
 	}
 	
 	/**
@@ -294,6 +305,8 @@ public class TestLdap extends AbstractModelIntegrationTest {
 		
 		assertEquals("Photo byte length changed (shadow)", photoIn.length, photoBytesOut.length);
 		assertTrue("Photo bytes do not match (shadow)", Arrays.equals(photoIn, photoBytesOut));
+		
+		assertUsers(NUM_INITIAL_USERS);
 	}
 
 	/**
@@ -326,6 +339,8 @@ public class TestLdap extends AbstractModelIntegrationTest {
 
         String accountDn = assertOpenDjAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true).getDN().toString();
         openDJController.assertUniqueMember(LDAP_GROUP_PIRATES_DN, accountDn);
+        
+        assertUsers(NUM_INITIAL_USERS);
 	}
 
 	
@@ -363,6 +378,8 @@ public class TestLdap extends AbstractModelIntegrationTest {
         assertOpenDjAccount(ACCOUNT_CHARLES_NAME, "Charles L. Charles", true);
         assertOpenDjAccount(ACCOUNT_CHARLES_NAME + "1", "LeChuck", true);
         assertNoOpenDjAccount(ACCOUNT_LECHUCK_NAME);
+        
+        assertUsers(NUM_INITIAL_USERS + 1);
 	}
 	
 	@Test
@@ -371,6 +388,8 @@ public class TestLdap extends AbstractModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
+        
+        assertUsers(NUM_INITIAL_USERS + 1);
         
         loadEntries("a");
         
@@ -404,6 +423,8 @@ public class TestLdap extends AbstractModelIntegrationTest {
         TestUtil.displayThen(TEST_NAME);
         
         assertEquals("Unexpected number of search results", NUM_LDAP_ENTRIES + 8, count.getValue());
+        
+        assertUsers(NUM_INITIAL_USERS + 1);
 	}
 
 	@Test
@@ -412,6 +433,8 @@ public class TestLdap extends AbstractModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
+        
+        assertUsers(NUM_INITIAL_USERS + 1);
         
         loadEntries("u");
         
