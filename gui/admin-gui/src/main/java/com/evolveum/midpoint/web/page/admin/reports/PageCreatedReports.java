@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
@@ -45,6 +47,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
 import com.evolveum.midpoint.web.page.admin.reports.component.DownloadButtonPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportOutputSearchDto;
@@ -82,6 +85,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.InputStream;
 import java.util.*;
 
@@ -283,19 +287,18 @@ public class PageCreatedReports extends PageAdminReports {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ReportOutputType>>> cellItem,
                                      String componentId, final IModel<SelectableBean<ReportOutputType>> rowModel) {
-                cellItem.add(new Label(componentId, new AbstractReadOnlyModel() {
+                cellItem.add(new DateLabelComponent(componentId, new AbstractReadOnlyModel<Date>() {
 
                     @Override
-                    public Object getObject() {
+                    public Date getObject() {
                         ReportOutputType object = rowModel.getObject().getValue();
                         MetadataType metadata = object.getMetadata();
                         if (metadata == null) {
                             return null;
                         }
 
-                        return WebComponentUtil.formatDate(metadata.getCreateTimestamp());
-                    }
-                }));
+                        return XmlTypeConverter.toDate(metadata.getCreateTimestamp());                   }
+                }, DateLabelComponent.LONG_MEDIUM_STYLE));
             }
         };
         columns.add(column);
