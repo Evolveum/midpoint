@@ -18,16 +18,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public abstract class PopupObjectListPanel<T extends ObjectType> extends ObjectListPanel<T> {
 
-	private boolean multiselect;
-
 	public PopupObjectListPanel(String id, Class<T> type, boolean multiselect, PageBase parentPage) {
-		super(id, type, null, parentPage);
-		this.multiselect = multiselect;
+		super(id, type, multiselect, parentPage);
+		
 	}
 
 	@Override
 	protected IColumn<SelectableBean<T>, String> createCheckboxColumn() {
-		if (multiselect) {
+		if (isMultiselect()) {
 			return new CheckBoxHeaderColumn<SelectableBean<T>>();
 		}
 		return null;
@@ -35,7 +33,7 @@ public abstract class PopupObjectListPanel<T extends ObjectType> extends ObjectL
 
 	@Override
 	protected IColumn<SelectableBean<T>, String> createNameColumn() {
-		if (multiselect) {
+		if (!isMultiselect()) {
 			return new LinkColumn<SelectableBean<T>>(createStringResource("ObjectType.name"),
 					ObjectType.F_NAME.getLocalPart(), SelectableBean.F_VALUE + ".name") {
 

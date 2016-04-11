@@ -86,7 +86,7 @@ public class ObjectDataProvider2<W extends Serializable, T extends ObjectType>
     }
     
     private void preprocessSelectedData(){
-    	 
+    	 preprocessSelectedDataInternal();
          getAvailableData().clear();
     }
     
@@ -169,9 +169,14 @@ public class ObjectDataProvider2<W extends Serializable, T extends ObjectType>
 
     public W createDataObjectWrapper(T obj) {
     	SelectableBean<T> selectable = new SelectableBean<T>(obj);
-    	if (selected.contains(obj)){
-    		selectable.setSelected(true);
+    	for (T s : selected){
+    		if (s.getOid().equals(obj.getOid())){
+    			selectable.setSelected(true);
+    		}
     	}
+//    	if (selected.contains(obj)){
+//    		selectable.setSelected(true);
+//    	}
         return (W) selectable;
     }
 

@@ -773,7 +773,6 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			String taskOid = execute("Add member(s)", getActionQuery(QueryScope.TO_ADD, selected), delta, parentResult, target);
 			parentResult.setBackgroundTaskOid(taskOid);
 		} catch (SchemaException e) {
-			// TODO Auto-generated catch block
 			error(getString("pageUsers.message.nothingSelected") + e.getMessage());
 			target.add(getFeedbackPanel());
 		}
@@ -792,7 +791,6 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			String taskOid = execute("Remove member(s)", getActionQuery(scope, null), delta, parentResult, target);
 			parentResult.setBackgroundTaskOid(taskOid);
 		} catch (SchemaException e) {
-			// TODO Auto-generated catch block
 			error(getString("pageUsers.message.nothingSelected") + e.getMessage());
 			target.add(getFeedbackPanel());
 		}

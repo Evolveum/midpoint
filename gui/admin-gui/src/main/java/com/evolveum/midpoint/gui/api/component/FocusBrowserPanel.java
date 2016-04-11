@@ -113,7 +113,6 @@ public class FocusBrowserPanel<T extends FocusType> extends BasePanel<T> {
 			
 		};
 		
-		
 //		ObjectListPanel<T> listPanel = new ObjectListPanel<T>(ID_TABLE, type, parentPage) {
 //
 //			@Override

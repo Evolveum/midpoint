@@ -82,6 +82,8 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 	private Collection<SelectorOptions<GetOperationOptions>> options;
 
 	private int pageSize = 10;
+	
+	private boolean multiselect;
 
 	private TableId tableId = TableId.TABLE_USERS;
 
@@ -110,7 +112,20 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		this.options = options;
 		initLayout();
 	}
+	
+	ObjectListPanel(String id, Class<T> type, boolean multiselect,
+			PageBase parentPage) {
+		super(id);
+		this.type = type;
+		this.parentPage = parentPage;
+		this.multiselect = multiselect;
+		initLayout();
+	}
 
+	public boolean isMultiselect() {
+		return multiselect;
+	}
+	
 	public void setProvider(BaseSortableDataProvider<SelectableBean<T>> provider) {
 		this.provider = provider;
 	}
