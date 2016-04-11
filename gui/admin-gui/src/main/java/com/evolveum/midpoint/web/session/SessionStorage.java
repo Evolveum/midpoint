@@ -145,6 +145,20 @@ public class SessionStorage implements Serializable {
         }
         return userProfile;
     }
+    
+    public PageStorage initPageStorage(String key){
+    	PageStorage pageStorage = null;
+    	if (KEY_USERS.equals(key)){
+    		pageStorage = new UsersStorage();
+    		pageStorageMap.put(KEY_USERS, pageStorage);
+    		
+    	} else if (KEY_ROLES.equals(key)){
+    		pageStorage = new RolesStorage();
+    		pageStorageMap.put(KEY_ROLES, pageStorage);
+    	}
+    	return pageStorage;
+    	//TODO: fixme
+    }
 
     public void setUserProfile(UserProfileStorage profile){
         userProfile = profile;
