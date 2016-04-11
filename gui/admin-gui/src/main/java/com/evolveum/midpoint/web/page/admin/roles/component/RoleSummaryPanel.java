@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
@@ -45,7 +46,7 @@ public class RoleSummaryPanel extends FocusSummaryPanel<RoleType> {
 
 	@Override
 	protected String getIconCssClass() {
-		return "fa fa-street-view";
+		return GuiStyleConstants.STYLES_OBJECT_ROLE_ICON;
 	}
 
 	@Override

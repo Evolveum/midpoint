@@ -22,6 +22,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -1000,7 +1001,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	private MainMenuItem createServerTasksItems() {
-		MainMenuItem item = new MainMenuItem("fa fa-tasks", createStringResource("PageAdmin.menu.top.serverTasks"),
+		MainMenuItem item = new MainMenuItem(GuiStyleConstants.STYLES_OBJECT_TASK_ICON_COLORED, createStringResource("PageAdmin.menu.top.serverTasks"),
 				null);
 
 		List<MenuItem> submenu = item.getItems();
@@ -1018,7 +1019,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	private MainMenuItem createResourcesItems() {
-		MainMenuItem item = new MainMenuItem("fa fa-laptop", createStringResource("PageAdmin.menu.top.resources"),
+		MainMenuItem item = new MainMenuItem(GuiStyleConstants.STYLES_OBJECT_RESOURCE_ICON_COLORED, createStringResource("PageAdmin.menu.top.resources"),
 				null);
 
 		List<MenuItem> submenu = item.getItems();
@@ -1278,7 +1279,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	private MainMenuItem createUsersItems() {
-		MainMenuItem item = new MainMenuItem("fa fa-group", createStringResource("PageAdmin.menu.top.users"), null);
+		MainMenuItem item = new MainMenuItem(GuiStyleConstants.STYLES_OBJECT_USER_ICON_COLORED, createStringResource("PageAdmin.menu.top.users"), null);
 
 		List<MenuItem> submenu = item.getItems();
 
@@ -1365,7 +1366,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	private MainMenuItem createOrganizationsMenu() {
-		MainMenuItem item = new MainMenuItem("fa fa-building", createStringResource("PageAdmin.menu.top.users.org"),
+		MainMenuItem item = new MainMenuItem(GuiStyleConstants.STYLES_OBJECT_ORG_ICON_COLORED, createStringResource("PageAdmin.menu.top.users.org"),
 				null);
 
 		List<MenuItem> submenu = item.getItems();
@@ -1379,7 +1380,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	private MainMenuItem createRolesItems() {
-		MainMenuItem item = new MainMenuItem("fa fa-street-view", createStringResource("PageAdmin.menu.top.roles"),
+		MainMenuItem item = new MainMenuItem(GuiStyleConstants.STYLES_OBJECT_ROLE_ICON_COLORED, createStringResource("PageAdmin.menu.top.roles"),
 				null);
 
 		List<MenuItem> submenu = item.getItems();
@@ -1393,7 +1394,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 	
 	private MainMenuItem createServicesItems() {
-		MainMenuItem item = new MainMenuItem("fa fa-street-view", createStringResource("PageAdmin.menu.top.services"),
+		MainMenuItem item = new MainMenuItem(GuiStyleConstants.STYLES_OBJECT_SERVICE_ICON_COLORED, createStringResource("PageAdmin.menu.top.services"),
 				null);
 
 		List<MenuItem> submenu = item.getItems();

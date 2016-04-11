@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,13 @@ import javax.xml.namespace.QName;
 
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 /**
  * @author semancik
+ * @author katkav
  *
  */
 public class ServiceSummaryPanel extends FocusSummaryPanel<ServiceType> {
@@ -32,32 +33,31 @@ public class ServiceSummaryPanel extends FocusSummaryPanel<ServiceType> {
 
 	public ServiceSummaryPanel(String id, IModel model) {
 		super(id, model);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	protected QName getDisplayNamePropertyName() {
-		return OrgType.F_DISPLAY_NAME;
+		return ServiceType.F_DISPLAY_NAME;
 	}
 
 	@Override
 	protected QName getTitlePropertyName() {
-		return OrgType.F_IDENTIFIER;
+		return ServiceType.F_IDENTIFIER;
 	}
 
 	@Override
 	protected String getIconCssClass() {
-		return "fa fa-building";
+		return GuiStyleConstants.STYLES_OBJECT_SERVICE_ICON;
 	}
 
 	@Override
 	protected String getIconBoxAdditionalCssClass() {
-		return "summary-panel-org";
+		return "summary-panel-service";
 	}
 
 	@Override
 	protected String getBoxAdditionalCssClass() {
-		return "summary-panel-org";
+		return "summary-panel-service";
 	}
 
 }

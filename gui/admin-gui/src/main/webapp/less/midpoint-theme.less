@@ -1,3 +1,11 @@
+
+@object-user-color: #dd4b39;
+@object-role-color: #00a65a;
+@object-org-color: #F39C12;
+@object-service-color: #00C0EF;
+@object-resource-color: #605CA8;
+
+
 .skin-blue-light .main-header {
   & .logo {
     //background-color: red;
@@ -131,56 +139,83 @@ th.cog, td.cog {
   vertical-align: middle;
 }
 
+// Classes that can be added to color icons for particular object types
+
+.object-user-color {
+	color: @object-user-color;
+}
+
+.object-role-color {
+	color: @object-role-color;
+}
+
+.object-org-color {
+	color: @object-org-color;
+}
+
+.object-service-color {
+	color: @object-service-color;
+}
+
+.object-resource-color {
+	color: @object-resource-color;
+}
+
 // Summary panel (panel above the edit user/role/org forms)
 
-.info-box.summary-panel-user {
-	border-top: 3px solid #dd4b39;
+#info-box-summary-panel(@color) {
+	border-top: 3px solid @color;
 	min-height: 93px;
+}
+
+.info-box.summary-panel-user {
+	#info-box-summary-panel(@object-user-color);
 }
 
 .info-box.summary-panel-role {
-	border-top: 3px solid #F39C12;
-	min-height: 93px;
+	#info-box-summary-panel(@object-role-color);
 }
 
 .info-box.summary-panel-org {
-	border-top: 3px solid #00C0EF;
-	min-height: 93px;
+	#info-box-summary-panel(@object-org-color);
+}
+
+.info-box.summary-panel-service {
+	#info-box-summary-panel(@object-service-color);
 }
 
 .info-box.summary-panel-resource {
-	border-top: 3px solid #605CA8;
-	min-height: 93px;
+	#info-box-summary-panel(@object-resource-color);
+}
+
+#info-box-icon-summary-panel(@color){
+	color: #FFF !important;
+	background-color: @color;
+	padding: 3px;
+	white-space: nowrap;
+	text-align: center;
+	line-height: 0px;
+    border-radius: 0;
 }
 
 .info-box-icon.summary-panel-user {
-	color: #FFF !important;
-	background-color: #dd4b39;
-	padding: 3px;
-	white-space: nowrap;
-	text-align: center;
-	line-height: 0px;
-    border-radius: 0;
+	#info-box-icon-summary-panel(@object-user-color);
 }
 
 .info-box-icon.summary-panel-role {
-	color: #FFF !important;
-	background-color: #F39C12;
-	padding: 3px;
-	white-space: nowrap;
-	text-align: center;
-	line-height: 0px;
-    border-radius: 0;
+	#info-box-icon-summary-panel(@object-role-color);
 }
 
 .info-box-icon.summary-panel-org {
-	color: #FFF !important;
-	background-color: #00C0EF;
-	padding: 3px;
-	white-space: nowrap;
-	text-align: center;
-	line-height: 0px;
-    border-radius: 0;
+	#info-box-icon-summary-panel(@object-org-color);
+}
+
+.info-box-icon.summary-panel-service {
+	#info-box-icon-summary-panel(@object-service-color);
+}
+
+.info-box-icon.summary-panel-resource {
+	#info-box-icon-summary-panel(@object-resource-color);
 }
 
 .feedback-message.box {
