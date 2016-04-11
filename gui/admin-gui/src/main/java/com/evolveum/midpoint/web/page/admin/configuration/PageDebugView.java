@@ -83,11 +83,11 @@ public class PageDebugView extends PageAdminConfiguration {
     public static final String PARAM_OBJECT_TYPE = "objectType";
     private IModel<ObjectViewDto> model;
     private AceEditor editor;
-    private final IModel<Boolean> encrypt = new Model<Boolean>(true);
+    private final IModel<Boolean> encrypt = new Model<>(true);
     private final IModel<Boolean> saveAsRaw = new Model<>(true);
     private final IModel<Boolean> reevaluateSearchFilters = new Model<>(false);
-    private final IModel<Boolean> validateSchema = new Model<Boolean>(false);
-    private final IModel<Boolean> switchToPlainText = new Model<Boolean>(false);
+    private final IModel<Boolean> validateSchema = new Model<>(false);
+    private final IModel<Boolean> switchToPlainText = new Model<>(false);
     private TextArea<String> plainTextarea;
     final Form mainForm = new Form("mainForm");
 
@@ -344,7 +344,7 @@ public class PageDebugView extends PageAdminConfiguration {
             target.add(getFeedbackPanel());
         } else {
             showResult(result);
-            setResponsePage(new PageDebugList());
+            redirectBack();
         }
     }
 }

@@ -64,6 +64,7 @@ public class PasswordCallback implements CallbackHandler {
         	connEnv.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
         	pc.setPassword(authenticationEvaluatorImpl.getAndCheckUserPassword(connEnv, username));
         } catch (Exception e) {
+        	LOGGER.trace("Exception in password callback: {}: {}", e.getClass().getSimpleName(), e.getMessage(), e);
         	throw new PasswordCallbackException("Authentication failed");
         }
    }

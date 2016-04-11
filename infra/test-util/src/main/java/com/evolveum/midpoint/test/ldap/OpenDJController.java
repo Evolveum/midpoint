@@ -42,6 +42,7 @@ import java.util.jar.JarFile;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.config.ConfigException;
@@ -209,6 +210,7 @@ public class OpenDJController extends AbstractResourceController {
 	 * @return the value of internelConnection
 	 */
 	public InternalClientConnection getInternalConnection() {
+		Validate.notNull(internalConnection, "Not connected");
 		return internalConnection;
 	}
 
@@ -506,6 +508,7 @@ public class OpenDJController extends AbstractResourceController {
 	}
 	
 	public Entry fetchEntry(String dn) throws DirectoryException {
+		Validate.notNull(dn);
 		InternalSearchOperation op = getInternalConnection().processSearch(
 				dn, SearchScope.BASE_OBJECT, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
 				100, false, "(objectclass=*)", getSearchAttributes());

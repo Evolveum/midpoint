@@ -447,6 +447,12 @@ public abstract class AbstractWebserviceTest {
     			OperationResultStatusType.FATAL_ERROR, result.getStatus());
 	}
 	
+	
+	protected void assertSoapSecurityFault(SOAPFaultException e, String expectedCode, String expectedMessage) {
+		// CXF by default replaces the real error with "safe" values
+		assertSoapFault(e, "SecurityError", "security error");
+	}
+	
 	protected void assertSoapFault(SOAPFaultException e, String expectedCode, String expectedMessage) {
     	SOAPFault fault = e.getFault();
     	String faultCode = fault.getFaultCode();
