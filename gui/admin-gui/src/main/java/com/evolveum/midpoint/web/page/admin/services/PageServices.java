@@ -66,27 +66,6 @@ public class PageServices extends PageAdminServices {
 	    }
 
 	    public PageServices(boolean clearPagingInSession) {
-//	        searchModel = new LoadableModel<Search>(false) {
-//
-//	            @Override
-//	            protected Search load() {
-////	                RolesStorage storage = getSessionStorage().getRoles();
-////	                Search dto = storage.getRolesSearch();
-//
-////	                if (dto == null) {
-////	                    dto = SearchFactory.createSearch(RoleType.class, getPrismContext(), true);
-//
-//	                    SchemaRegistry registry = getPrismContext().getSchemaRegistry();
-//	                    PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(RoleType.class);
-//	                    PrismPropertyDefinition def = objDef.findPropertyDefinition(RoleType.F_REQUESTABLE);
-//
-//	                    dto.addItem(def);
-//	                }
-//
-//	                return dto;
-//	            }
-//	        };
-
 	        initLayout();
 	    }
 
@@ -126,66 +105,5 @@ public class PageServices extends PageAdminServices {
 		     setResponsePage(PageService.class, parameters);
 			
 		}
-
-//	        ObjectDataProvider provider = new ObjectDataProvider(PageServices.this, Servi.class) {
-//
-//	            @Override
-//	            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-//	                RolesStorage storage = getSessionStorage().getRoles();
-//	                storage.setRolesPaging(paging);
-//	            }
-//	        };
-//	        Search search = searchModel.getObject();
-//	        ObjectQuery query = search.createObjectQuery(getPrismContext());
-//	        provider.setQuery(query);
-//
-//	        List<IColumn<RoleType, String>> columns = initColumns();
-//
-//	        BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns,
-//	                UserProfileStorage.TableId.TABLE_ROLES,
-//	                (int) getItemsPerPage(UserProfileStorage.TableId.TABLE_ROLES)) {
-//
-//	            @Override
-//	            protected WebMarkupContainer createHeader(String headerId) {
-//	                return new SearchFormPanel(headerId, searchModel) {
-//
-//	                    @Override
-//	                    protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-//	                        PageRoles.this.listRolesPerformed(query, target);
-//	                    }
-//	                };
-//	            }
-//	        };
-//	        table.setOutputMarkupId(true);
-//
-//	        RolesStorage storage = getSessionStorage().getRoles();
-//	        table.setCurrentPage(storage.getRolesPaging());
-//
-//	        mainForm.add(table);
-//
-//	        add(new ConfirmationDialog(DIALOG_CONFIRM_DELETE, createStringResource("pageRoles.dialog.title.confirmDelete"),
-//	                createDeleteConfirmString()) {
-//
-//	            @Override
-//	            public void yesPerformed(AjaxRequestTarget target) {
-//	                close(target);
-//	                deleteConfirmedPerformed(target);
-//	            }
-//	        });
-//	    }
-
-//	    private List<InlineMenuItem> initInlineMenu() {
-//	        List<InlineMenuItem> headerMenuItems = new ArrayList<InlineMenuItem>();
-//	        headerMenuItems.add(new InlineMenuItem(createStringResource("pageRoles.button.delete"), true,
-//	                new HeaderMenuAction(this) {
-//
-//	                    @Override
-//	                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-//	                        deletePerformed(target);
-//	                    }
-//	                }));
-//
-//	        return headerMenuItems;
-//	    }
 
 }
