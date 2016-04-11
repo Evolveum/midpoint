@@ -880,6 +880,11 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
         assertLdapGroupMember(entry, GROUP_EVIL_CN);
         assertLdapNoGroupMember(entry, GROUP_UNDEAD_CN);
+        
+        Entry ldapEntryEvil = getLdapEntry(toGroupDn(GROUP_EVIL_CN));
+        display("Evil group", ldapEntryEvil);
+        Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
+        display("Undead group", ldapEntryUndead);
 	}
 	
 	/**
@@ -912,6 +917,11 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
         assertLdapGroupMember(entry, GROUP_EVIL_CN);
         assertLdapGroupMember(entry, GROUP_UNDEAD_CN);
+        
+        Entry ldapEntryEvil = getLdapEntry(toGroupDn(GROUP_EVIL_CN));
+        display("Evil group", ldapEntryEvil);
+        Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
+        display("Undead group", ldapEntryUndead);
 	}
 	
 	/**
@@ -944,6 +954,11 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
         assertLdapNoGroupMember(entry, GROUP_EVIL_CN);
         assertLdapGroupMember(entry, GROUP_UNDEAD_CN);
+        
+        Entry ldapEntryEvil = getLdapEntry(toGroupDn(GROUP_EVIL_CN));
+        display("Evil group", ldapEntryEvil);
+        Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
+        display("Undead group", ldapEntryUndead);
 	}
 	
 	/**
@@ -976,5 +991,10 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
         assertLdapNoGroupMember(accountLechuckDn, GROUP_EVIL_CN);
         assertLdapNoGroupMember(accountLechuckDn, GROUP_UNDEAD_CN);
+        
+        Entry ldapEntryEvil = getLdapEntry(toGroupDn(GROUP_EVIL_CN));
+        display("Evil group", ldapEntryEvil);
+        Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
+        display("Undead group", ldapEntryUndead);
 	}
 }
