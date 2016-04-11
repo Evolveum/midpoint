@@ -9810,7 +9810,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Credentials management policy. It specifies the management details for each supported
-				credentials type. It defines parameteres such as credential lifetyme. It may define even
+				credentials type. It defines parameters such as credential lifetime. It may define even
 				a very complex schemes for some credential types. E.g. it may define a complete security
 				questions.
 			</xsd:documentation>
@@ -9842,7 +9842,7 @@
 			<xsd:element name="propagationUserControl" type="c:CredentialsPropagationUserControlType" minOccurs="0" maxOccurs="1" default="userChoice">
 				<xsd:annotation>
 					<xsd:documentation>
-						Constraintes that define how propagation of the credentials can be controled by the
+						Constraints that define how propagation of the credentials can be controlled by the
 						user. E.g. if user can choose where the password change will be propagated.
 					</xsd:documentation>
 				</xsd:annotation>

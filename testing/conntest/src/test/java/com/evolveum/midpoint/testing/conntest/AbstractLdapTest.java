@@ -91,6 +91,7 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.DistinguishedNameMatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
@@ -174,6 +175,11 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
 	protected static final String USER_GUYBRUSH_USERNAME = "guybrush";
 	protected static final String USER_GUYBRUSH_FULL_NAME = "Guybrush Threepwood";
+	
+	protected static final File USER_LECHUCK_FILE = new File (COMMON_DIR, "user-lechuck.xml");
+	protected static final String USER_LECHUCK_OID = "0201583e-ffca-11e5-a949-affff1aa5a60";
+	protected static final String USER_LECHUCK_USERNAME = "lechuck";
+	protected static final String USER_LECHUCK_FULL_NAME = "LeChuck";
 			
 	private static final String LDAP_INETORGPERSON_OBJECTCLASS = "inetOrgPerson";
 		
@@ -186,6 +192,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	protected ResourceType resourceType;
 	protected PrismObject<ResourceType> resource;
 	
+	protected MatchingRule<String> dnMatchingRule;
 	protected MatchingRule<String> ciMatchingRule;
 	
 	private static String stopCommand;
@@ -360,6 +367,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         //initProfiling - end
         
         ciMatchingRule = matchingRuleRegistry.getMatchingRule(StringIgnoreCaseMatchingRule.NAME, DOMUtil.XSD_STRING);
+        dnMatchingRule = matchingRuleRegistry.getMatchingRule(DistinguishedNameMatchingRule.NAME, DOMUtil.XSD_STRING);
 	}
 
 	@Test
@@ -521,7 +529,11 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		}
 	}
 	
-	protected void assertAttributeContains(Entry entry, String attrName, String expectedValue) throws LdapInvalidAttributeValueException {
+	protected void assertAttributeContains(Entry entry, String attrName, String expectedValue) throws LdapInvalidAttributeValueException, SchemaException {
+		assertAttributeContains(entry, attrName, expectedValue, null);
+	}
+	
+	protected void assertAttributeContains(Entry entry, String attrName, String expectedValue, MatchingRule<String> matchingRule) throws LdapInvalidAttributeValueException, SchemaException {
 		String dn = entry.getDn().toString();
 		Attribute ldapAttribute = entry.get(attrName);
 		if (ldapAttribute == null) {
@@ -535,8 +547,14 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 			Iterator<Value<?>> iterator = ldapAttribute.iterator();
 			while (iterator.hasNext()) {
 				Value<?> value = iterator.next();
-				if (expectedValue.equals(value.getString())) {
-					return;
+				if (matchingRule == null) {
+					if (expectedValue.equals(value.getString())) {
+						return;
+					}
+				} else {
+					if (matchingRule.match(expectedValue, value.getString())) {
+						return;
+					}
 				}
 				vals.add(value.getString());
 			}
@@ -544,7 +562,11 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		}
 	}
 	
-	protected void assertAttributeNotContains(Entry entry, String attrName, String expectedValue) throws LdapInvalidAttributeValueException {
+	protected void assertAttributeNotContains(Entry entry, String attrName, String expectedValue) throws LdapInvalidAttributeValueException, SchemaException {
+		assertAttributeNotContains(entry, attrName, expectedValue, null);
+	}
+	
+	protected void assertAttributeNotContains(Entry entry, String attrName, String expectedValue, MatchingRule<String> matchingRule) throws LdapInvalidAttributeValueException, SchemaException {
 		String dn = entry.getDn().toString();
 		Attribute ldapAttribute = entry.get(attrName);
 		if (ldapAttribute == null) {
@@ -553,8 +575,14 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 			Iterator<Value<?>> iterator = ldapAttribute.iterator();
 			while (iterator.hasNext()) {
 				Value<?> value = iterator.next();
-				if (expectedValue.equals(value.getString())) {
-					AssertJUnit.fail("Attribute "+attrName+" in "+dn+" contains value " + expectedValue + ", but it should not have it");
+				if (matchingRule == null) {
+					if (expectedValue.equals(value.getString())) {
+						AssertJUnit.fail("Attribute "+attrName+" in "+dn+" contains value " + expectedValue + ", but it should not have it");
+					}
+				} else {
+					if (matchingRule.match(expectedValue, value.getString())) {
+						AssertJUnit.fail("Attribute "+attrName+" in "+dn+" contains value " + expectedValue + ", but it should not have it");
+					}
 				}
 			}
 		}
@@ -583,14 +611,22 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		assertEquals("Unexpected number of entries for uid="+uid+": "+entries, 0, entries.size());
 	}
 	
-	protected void assertLdapGroupMember(Entry accountEntry, String groupName) throws LdapException, IOException, CursorException {
-		Entry groupEntry = getLdapGroupByName(groupName);
-		assertAttributeContains(groupEntry, getLdapGroupMemberAttribute(), accountEntry.getDn().toString());
+	protected void assertLdapGroupMember(Entry accountEntry, String groupName) throws LdapException, IOException, CursorException, SchemaException {
+		assertLdapGroupMember(accountEntry.getDn().toString(), groupName);
 	}
 	
-	protected void assertLdapNoGroupMember(Entry accountEntry, String groupName) throws LdapException, IOException, CursorException {
+	protected void assertLdapGroupMember(String accountEntryDn, String groupName) throws LdapException, IOException, CursorException, SchemaException {
 		Entry groupEntry = getLdapGroupByName(groupName);
-		assertAttributeNotContains(groupEntry, getLdapGroupMemberAttribute(), accountEntry.getDn().toString());
+		assertAttributeContains(groupEntry, getLdapGroupMemberAttribute(), accountEntryDn, dnMatchingRule);
+	}
+	
+	protected void assertLdapNoGroupMember(Entry accountEntry, String groupName) throws LdapException, IOException, CursorException, SchemaException {
+		assertLdapNoGroupMember(accountEntry.getDn().toString(), groupName);
+	}
+	
+	protected void assertLdapNoGroupMember(String accountEntryDn, String groupName) throws LdapException, IOException, CursorException, SchemaException {
+		Entry groupEntry = getLdapGroupByName(groupName);
+		assertAttributeNotContains(groupEntry, getLdapGroupMemberAttribute(), accountEntryDn, dnMatchingRule);
 	}
 	
 	protected List<Entry> ldapSearch(LdapNetworkConnection connection, String filter) throws LdapException, CursorException {

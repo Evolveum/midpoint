@@ -30,6 +30,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class TestOpenDj extends AbstractLdapConnTest {
 
 	private static final String OPENDJ_TEMPLATE_NAME = "opendj-4000.template";
+	
+	private static final int INITIAL_SYNC_TOKEN = 14;
 
 	@Override
 	protected String getResourceOid() {
@@ -121,7 +123,7 @@ public class TestOpenDj extends AbstractLdapConnTest {
 	@Override
 	protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
 			throws ObjectNotFoundException, SchemaException {
-		assertSyncToken(syncTaskOid, (Integer)(step + 6));
+		assertSyncToken(syncTaskOid, (Integer)(step + INITIAL_SYNC_TOKEN));
 	}
 	
 }
