@@ -907,6 +907,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		TaskManager taskManager = getTaskManager();
 		taskManager.switchToBackground(task, result);
+		result.setBackgroundTaskOid(task.getOid());
 	}
 
 	private static class SearchFragment extends Fragment {

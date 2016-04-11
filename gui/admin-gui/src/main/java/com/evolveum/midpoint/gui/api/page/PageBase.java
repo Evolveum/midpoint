@@ -674,6 +674,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
 
         OpResult opResult = OpResult.getOpResult((PageBase) getPage(), result);
+		opResult.determineBackgroundTaskVisibility(this);
         switch (opResult.getStatus()) {
             case FATAL_ERROR:
             case PARTIAL_ERROR:

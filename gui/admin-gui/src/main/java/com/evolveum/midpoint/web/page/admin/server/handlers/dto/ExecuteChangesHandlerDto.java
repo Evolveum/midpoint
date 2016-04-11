@@ -38,6 +38,9 @@ public class ExecuteChangesHandlerDto extends QueryBasedHandlerDto {
 
 	public String getObjectDeltaXml() {
 		ObjectDeltaType objectDeltaType = taskDto.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, ObjectDeltaType.class);
+		if (objectDeltaType == null) {
+			return null;
+		}
 		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
 		try {
 			return prismContext.serializeAnyData(objectDeltaType, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, PrismContext.LANG_XML);

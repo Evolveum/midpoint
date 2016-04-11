@@ -22,11 +22,16 @@ import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.Validate;
 
@@ -43,6 +48,10 @@ import java.util.Map;
  */
 public class OpResult implements Serializable, Visitable {
 
+	private static final Trace LOGGER = TraceManager.getTrace(OpResult.class);
+
+	private static final String OPERATION_CHECK_TASK_VISIBILITY = OpResult.class.getName() + ".checkTaskVisibility";
+
     private OperationResultStatus status;
     private String operation;
     private String message;
@@ -51,8 +60,13 @@ public class OpResult implements Serializable, Visitable {
     private String exceptionMessage;
     private String exceptionsStackTrace;
     private List<OpResult> subresults;
+	private OpResult parent;
     private int count;
     private String xml;
+
+	// we assume there is at most one background task created (TODO revisit this assumption)
+	private String backgroundTaskOid;
+	private Boolean backgroundTaskVisible;			// available on root opResult only
     
     private boolean showMore;
     private boolean showError;
@@ -102,9 +116,18 @@ public class OpResult implements Serializable, Visitable {
 
         if (result.getSubresults() != null) {
             for (OperationResult subresult : result.getSubresults()) {
-                opResult.getSubresults().add(OpResult.getOpResult(page, subresult));
+				OpResult subOpResult = OpResult.getOpResult(page, subresult);
+				opResult.getSubresults().add(subOpResult);
+				subOpResult.parent = opResult;
+				if (subOpResult.getBackgroundTaskOid() != null) {
+					opResult.backgroundTaskOid = subOpResult.getBackgroundTaskOid();
+				}
             }
         }
+
+		if (result.getBackgroundTaskOid() != null) {
+			opResult.backgroundTaskOid = result.getBackgroundTaskOid();
+		}
 
         try {
         	OperationResultType resultType = result.createOperationResultType();
@@ -119,7 +142,34 @@ public class OpResult implements Serializable, Visitable {
         return opResult;
     }
 
-    public boolean isShowMore() {
+	// This method should be called along with getOpResult for root operationResult. However, it might take some time,
+	// and there might be situations in which it is not required -- so we opted for calling it explicitly.
+	public void determineBackgroundTaskVisibility(PageBase pageBase) {
+		if (backgroundTaskOid == null) {
+			return;
+		}
+		try {
+			if (pageBase.getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
+				backgroundTaskVisible = true;
+				return;
+			}
+		} catch (SchemaException e) {
+			backgroundTaskVisible = false;
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine background task visibility", e);
+			return;
+		}
+
+		Task task = pageBase.createSimpleTask(OPERATION_CHECK_TASK_VISIBILITY);
+		try {
+			pageBase.getModelService().getObject(TaskType.class, backgroundTaskOid, null, task, task.getResult());
+			backgroundTaskVisible = true;
+		} catch (ObjectNotFoundException|SchemaException|SecurityViolationException|CommunicationException|ConfigurationException e) {
+			LOGGER.debug("Task {} is not visible by the current user: {}: {}", backgroundTaskOid, e.getClass(), e.getMessage());
+			backgroundTaskVisible = false;
+		}
+	}
+
+	public boolean isShowMore() {
 		return showMore;
 	}
     
@@ -183,6 +233,20 @@ public class OpResult implements Serializable, Visitable {
     public String getXml() {
     	return xml;
     }
+
+	public String getBackgroundTaskOid() {
+		return backgroundTaskOid;
+	}
+
+	public boolean isBackgroundTaskVisible() {
+		if (backgroundTaskVisible != null) {
+			return backgroundTaskVisible;
+		}
+		if (parent != null) {
+			return parent.isBackgroundTaskVisible();
+		}
+		return true;			// at least as for now
+	}
 
 	@Override
 	public void accept(Visitor visitor) {

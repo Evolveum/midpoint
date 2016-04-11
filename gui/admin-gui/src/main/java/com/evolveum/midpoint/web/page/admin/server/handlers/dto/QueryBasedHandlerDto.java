@@ -51,6 +51,9 @@ public class QueryBasedHandlerDto extends HandlerDto {
 
 	public String getObjectQuery() {
 		QueryType query = taskDto.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.class);
+		if (query == null) {
+			return null;
+		}
 		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
 		try {
 			return prismContext.serializeAnyData(query, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, PrismContext.LANG_XML);

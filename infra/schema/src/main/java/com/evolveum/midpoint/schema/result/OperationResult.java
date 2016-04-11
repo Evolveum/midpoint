@@ -85,7 +85,8 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public static final String PARAM_QUERY = "query";
 	
 	public static final String RETURN_COUNT = "count";
-	
+	public static final String RETURN_BACKGROUND_TASK_OID = "backgroundTaskOid";
+
 	private static long TOKEN_COUNT = 1000000000000000000L;
 	private String operation;
 	private OperationResultStatus status;
@@ -728,7 +729,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 
 	public Map<String, Serializable> getReturns() {
 		if (returns == null) {
-			returns = new HashMap<String, Serializable>();
+			returns = new HashMap<>();
 		}
 		return returns;
 	}
@@ -1439,7 +1440,16 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 	}
 
-    // primitive implementation - uncomment it if needed
+	public void setBackgroundTaskOid(String oid) {
+		addReturn(RETURN_BACKGROUND_TASK_OID, oid);
+	}
+
+	public String getBackgroundTaskOid() {
+		Object oid = getReturns().get(RETURN_BACKGROUND_TASK_OID);
+		return oid != null ? String.valueOf(oid) : null;
+	}
+
+	// primitive implementation - uncomment it if needed
 //    public OperationResult clone() {
 //        return CloneUtil.clone(this);
 //    }

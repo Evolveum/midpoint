@@ -205,6 +205,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
         task.setOwner(repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result));
 
         taskManager.switchToBackground(task, result);
+		result.setBackgroundTaskOid(task.getOid());
         if (result.isInProgress()) {
             result.recordStatus(OperationResultStatus.IN_PROGRESS, "Remediation task "+task+" was successfully started, please use Server Tasks to see its status.");
         }

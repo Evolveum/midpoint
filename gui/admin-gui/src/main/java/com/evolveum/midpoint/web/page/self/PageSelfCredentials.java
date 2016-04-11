@@ -271,7 +271,7 @@ public class PageSelfCredentials extends PageSelf {
     }
 
     private PasswordAccountDto createDefaultPasswordAccountDto(PrismObject<UserType> user) {
-        return new PasswordAccountDto(user.getOid(), user.getName().getNorm(),
+        return new PasswordAccountDto(user.getOid(), user.getName().getOrig(),
                 getString("PageSelfCredentials.resourceMidpoint"), WebComponentUtil.isActivationEnabled(user), true);
     }
 

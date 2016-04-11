@@ -23,6 +23,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -53,7 +57,11 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
  */
 public class OperationResultPanel extends BasePanel<OpResult> {
 
+	private static final String ID_DETAILS_BOX = "detailsBox";
+	private static final String ID_ICON_TYPE = "iconType";
 	private static final String ID_MESSAGE = "message";
+	private static final String ID_MESSAGE_LABEL = "messageLabel";
+	private static final String ID_BACKGROUND_TASK = "backgroundTask";
 
 	static final String OPERATION_RESOURCE_KEY_PREFIX = "operation.";
 
@@ -67,7 +75,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 
 	public void initLayout() {
 
-		WebMarkupContainer detailsBox = new WebMarkupContainer("detailsBox");
+		WebMarkupContainer detailsBox = new WebMarkupContainer(ID_DETAILS_BOX);
 		detailsBox.setOutputMarkupId(true);
 		detailsBox.add(AttributeModifier.append("class", createHeaderCss()));
 		add(detailsBox);
@@ -78,7 +86,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 	}
 
 	private void initHeader(WebMarkupContainer box) {
-		WebMarkupContainer iconType = new WebMarkupContainer("iconType");
+		WebMarkupContainer iconType = new WebMarkupContainer(ID_ICON_TYPE);
 		iconType.setOutputMarkupId(true);
 		iconType.add(new AttributeAppender("class", new AbstractReadOnlyModel() {
 			@Override
@@ -129,6 +137,29 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 
 		showMore.add(message);
 		box.add(showMore);
+
+		AjaxLink backgroundTask = new AjaxLink(ID_BACKGROUND_TASK) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				final OpResult opResult = OperationResultPanel.this.getModelObject();
+				String oid = opResult.getBackgroundTaskOid();
+				if (oid == null || !opResult.isBackgroundTaskVisible()) {
+					return;		// just for safety
+				}
+				ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(oid, ObjectTypes.TASK);
+				WebComponentUtil.dispatchToObjectDetailsPage(ref, getPageBase());
+			}
+		};
+		backgroundTask.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return getModelObject().getBackgroundTaskOid() != null && getModelObject().isBackgroundTaskVisible();
+			}
+		});
+		box.add(backgroundTask);
 
 		AjaxLink showAll = new AjaxLink("showAll") {
 
@@ -201,9 +232,9 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		Label message = null;
 		if (StringUtils.isNotBlank(getModelObject().getMessage())) {
 			PropertyModel<String> messageModel = new PropertyModel<String>(getModel(), "message");
-			message = new Label("messageLabel", messageModel);
+			message = new Label(ID_MESSAGE_LABEL, messageModel);
 		} else {
-			message = new Label("messageLabel", new LoadableModel<Object>() {
+			message = new Label(ID_MESSAGE_LABEL, new LoadableModel<Object>() {
 
 				@Override
 				protected Object load() {

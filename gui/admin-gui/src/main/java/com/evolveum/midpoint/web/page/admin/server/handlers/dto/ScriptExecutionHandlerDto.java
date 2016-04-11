@@ -38,6 +38,9 @@ public class ScriptExecutionHandlerDto extends HandlerDto {
 
 	public String getScript() {
 		ExecuteScriptType script = taskDto.getExtensionPropertyRealValue(SchemaConstants.SE_EXECUTE_SCRIPT, ExecuteScriptType.class);
+		if (script == null) {
+			return null;
+		}
 		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
 		try {
 			return prismContext.serializeAnyData(script, SchemaConstants.SE_EXECUTE_SCRIPT, PrismContext.LANG_XML);
