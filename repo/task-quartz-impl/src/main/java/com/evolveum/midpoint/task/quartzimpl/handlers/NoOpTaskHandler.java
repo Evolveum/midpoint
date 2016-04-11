@@ -16,20 +16,16 @@
 
 package com.evolveum.midpoint.task.quartzimpl.handlers;
 
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -44,10 +40,7 @@ public class NoOpTaskHandler implements TaskHandler {
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(NoOpTaskHandler.class);
 	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3";
-	public static final String EXT_SCHEMA_URI = "http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3";
-	public static final QName DELAY_QNAME = new QName(EXT_SCHEMA_URI, "delay"); 
-	public static final QName STEPS_QNAME = new QName(EXT_SCHEMA_URI, "steps");
-		
+
 	private static NoOpTaskHandler instance = null;
 	private TaskManagerQuartzImpl taskManagerImpl;
 	
@@ -71,11 +64,11 @@ public class NoOpTaskHandler implements TaskHandler {
 
         PrismContainer taskExtension = task.getExtension();
 
-        PrismProperty<Integer> delayProp = taskExtension != null ? taskExtension.findProperty(DELAY_QNAME) : null;
-        PrismProperty<Integer> stepsProp = taskExtension != null ? taskExtension.findProperty(STEPS_QNAME) : null;
+        PrismProperty<Integer> delayProp = taskExtension != null ? taskExtension.findProperty(SchemaConstants.NOOP_DELAY_QNAME) : null;
+        PrismProperty<Integer> stepsProp = taskExtension != null ? taskExtension.findProperty(SchemaConstants.NOOP_STEPS_QNAME) : null;
 
-		PrismPropertyDefinition delayPropDef = taskManagerImpl.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(DELAY_QNAME);
-		PrismPropertyDefinition stepsPropDef = taskManagerImpl.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(STEPS_QNAME);
+		PrismPropertyDefinition delayPropDef = taskManagerImpl.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.NOOP_DELAY_QNAME);
+		PrismPropertyDefinition stepsPropDef = taskManagerImpl.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.NOOP_STEPS_QNAME);
 		try {
 			if (delayProp != null)
 				delayProp.applyDefinition(delayPropDef);

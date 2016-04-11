@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
 import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
@@ -394,7 +395,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         System.out.println("Task extension = " + task.getExtension());
 
-        PrismPropertyDefinition delayDefinition = new PrismPropertyDefinition(NoOpTaskHandler.DELAY_QNAME, DOMUtil.XSD_INT, taskManager.getPrismContext());
+        PrismPropertyDefinition delayDefinition = new PrismPropertyDefinition(SchemaConstants.NOOP_DELAY_QNAME, DOMUtil.XSD_INT, taskManager.getPrismContext());
         System.out.println("property definition = " + delayDefinition);
 
         PrismProperty<Integer> property = (PrismProperty<Integer>) delayDefinition.instantiate();
@@ -499,7 +500,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(r001);
         //AssertJUnit.assertEquals("Owner OID is not correct", TASK_OWNER2_OID, task001.getOwner().getOid());
 
-        PrismProperty<?> d = task001.getExtensionProperty(NoOpTaskHandler.DELAY_QNAME);
+        PrismProperty<?> d = task001.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME);
         AssertJUnit.assertNotNull("delay extension property was not found", d);
         AssertJUnit.assertEquals("delay extension property has wrong value", (Integer) 100, d.getRealValue(Integer.class));
 
@@ -523,7 +524,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertEquals("Schedule after first POP is not correct", st1, task001.getSchedule());
         AssertJUnit.assertEquals("Binding after first POP is not correct", TaskBinding.TIGHT, task001.getBinding());
         AssertJUnit.assertNotSame("Task state after first POP should not be CLOSED", TaskExecutionStatus.CLOSED, task001.getExecutionStatus());
-        AssertJUnit.assertEquals("Extension element value is not correct after first POP", (Integer) 2, task001.getExtensionProperty(NoOpTaskHandler.DELAY_QNAME).getRealValue(Integer.class));
+        AssertJUnit.assertEquals("Extension element value is not correct after first POP", (Integer) 2, task001.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME).getRealValue(Integer.class));
 
         ((TaskQuartzImpl) task001).finishHandler(result);
         task001.refresh(result);
@@ -531,7 +532,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertEquals("Schedule after second POP is not correct", st0, task001.getSchedule());
         AssertJUnit.assertEquals("Binding after second POP is not correct", TaskBinding.LOOSE, task001.getBinding());
         AssertJUnit.assertNotSame("Task state after second POP should not be CLOSED", TaskExecutionStatus.CLOSED, task001.getExecutionStatus());
-        AssertJUnit.assertEquals("Extension element value is not correct after second POP", (Integer) 1, task001.getExtensionProperty(NoOpTaskHandler.DELAY_QNAME).getRealValue(Integer.class));
+        AssertJUnit.assertEquals("Extension element value is not correct after second POP", (Integer) 1, task001.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME).getRealValue(Integer.class));
 
         ((TaskQuartzImpl) task001).finishHandler(result);
         task001.refresh(result);
@@ -978,7 +979,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // check if we can read the extension (xsi:type issue)
 
         Task taskTemp = taskManager.getTask(taskOid(test), result);
-        PrismProperty delay = taskTemp.getExtensionProperty(NoOpTaskHandler.DELAY_QNAME);
+        PrismProperty delay = taskTemp.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME);
         AssertJUnit.assertEquals("Delay was not read correctly", 2000, delay.getRealValue());
 
         waitFor("Waiting for task manager to execute the task", new Checker() {
@@ -1037,7 +1038,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // check if we can read the extension (xsi:type issue)
 
-        PrismProperty delay = task.getExtensionProperty(NoOpTaskHandler.DELAY_QNAME);
+        PrismProperty delay = task.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME);
         AssertJUnit.assertEquals("Delay was not read correctly", 1000, delay.getRealValue());
 
         // let us resume (i.e. start the task)
@@ -1231,8 +1232,8 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
             secondPrerequisiteTask.setOwner(rootTask.getOwner());
             secondPrerequisiteTask.addDependent(rootTask.getTaskIdentifier());
             secondPrerequisiteTask.pushHandlerUri(NoOpTaskHandler.HANDLER_URI, new ScheduleType(), null);
-            secondPrerequisiteTask.setExtensionPropertyValue(NoOpTaskHandler.DELAY_QNAME, 1500);
-            secondPrerequisiteTask.setExtensionPropertyValue(NoOpTaskHandler.STEPS_QNAME, 1);
+            secondPrerequisiteTask.setExtensionPropertyValue(SchemaConstants.NOOP_DELAY_QNAME, 1500);
+            secondPrerequisiteTask.setExtensionPropertyValue(SchemaConstants.NOOP_STEPS_QNAME, 1);
             secondPrerequisiteTask.setInitialExecutionStatus(TaskExecutionStatus.SUSPENDED);           // will resume it after root starts waiting for tasks
             secondPrerequisiteTask.addDependent(rootTask.getTaskIdentifier());
             taskManager.switchToBackground(secondPrerequisiteTask, result);

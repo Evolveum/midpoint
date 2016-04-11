@@ -291,6 +291,8 @@
                 Used e.g. to cleanup all currently closed tasks.
             </xsd:documentation>
             <xsd:appinfo>
+                <a:displayName>Task-specific cleanup policies</a:displayName>
+                <a:displayOrder>100</a:displayOrder>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>

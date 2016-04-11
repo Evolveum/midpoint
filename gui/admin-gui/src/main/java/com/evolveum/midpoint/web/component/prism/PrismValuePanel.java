@@ -54,6 +54,7 @@ import com.evolveum.midpoint.web.page.admin.users.component.AssociationValueChoi
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang.ClassUtils;
@@ -420,14 +421,14 @@ public class PrismValuePanel extends Panel {
         if (item instanceof PrismProperty) {
         	  final PrismProperty property = (PrismProperty) item;
         	  PrismPropertyDefinition definition = property.getDefinition();
-              QName valueType = definition.getTypeName();
+              final QName valueType = definition.getTypeName();
 
               final String baseExpression = "value.value"; //pointing to prism property real value
 
               //fixing MID-1230, will be improved with some kind of annotation or something like that
               //now it works only in description
               if (ObjectType.F_DESCRIPTION.equals(definition.getName())) {
-                  return new TextAreaPanel(id, new PropertyModel(model, baseExpression));
+                  return new TextAreaPanel(id, new PropertyModel(model, baseExpression), null);
               }
 
               if (ActivationType.F_ADMINISTRATIVE_STATUS.equals(definition.getName())) {
@@ -548,7 +549,33 @@ public class PrismValuePanel extends Panel {
 
                       }
                   });
-              } else {
+              } else if (QueryType.COMPLEX_TYPE.equals(valueType) || CleanupPoliciesType.COMPLEX_TYPE.equals(valueType)) {
+				  return new TextAreaPanel(id, new AbstractReadOnlyModel() {
+					  @Override
+					  public Object getObject() {
+						  if (model.getObject() == null || model.getObject().getValue() == null) {
+							  return null;
+						  }
+						  PrismPropertyValue ppv = (PrismPropertyValue) model.getObject().getValue();
+						  if (ppv == null || ppv.getValue() == null) {
+							  return null;
+						  }
+						  QName name = property.getElementName();
+						  if (name == null && property.getDefinition() != null) {
+							  name = property.getDefinition().getName();
+						  }
+						  if (name == null) {
+							  name = SchemaConstants.C_VALUE;
+						  }
+						  PrismContext prismContext = ((PageBase) getPage()).getPrismContext();
+						  try {
+							  return prismContext.serializeAnyData(ppv.getValue(), name, PrismContext.LANG_XML);
+						  } catch (SchemaException e) {
+							  throw new SystemException("Couldn't serialize property value of type: " + valueType + ": " + e.getMessage(), e);
+						  }
+					  }
+				  }, 10);
+			  } else {
                   Class type = XsdTypeMapper.getXsdToJavaMapping(valueType);
                   if (type != null && type.isPrimitive()) {
                       type = ClassUtils.primitiveToWrapper(type);

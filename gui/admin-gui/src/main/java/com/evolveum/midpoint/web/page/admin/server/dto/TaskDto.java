@@ -1072,4 +1072,12 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			return false;
 		}
 	}
+
+	public boolean isCleanup() {
+		return ModelPublicConstants.CLEANUP_TASK_HANDLER_URI.equals(taskType.getHandlerUri());
+	}
+
+	public boolean isNoOp() {		// temporary implementation
+		return TaskCategory.DEMO.equals(getCategory());
+	}
 }

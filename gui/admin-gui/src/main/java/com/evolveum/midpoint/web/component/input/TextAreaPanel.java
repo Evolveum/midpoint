@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
@@ -26,10 +27,13 @@ public class TextAreaPanel<T> extends InputPanel {
 
     private static final String ID_INPUT = "input";
 
-    public TextAreaPanel(String id, IModel<T> model) {
+    public TextAreaPanel(String id, IModel<T> model, Integer rowsOverride) {
         super(id);
 
         final TextArea<T> text = new TextArea<T>(ID_INPUT, model);
+		if (rowsOverride != null) {
+			text.add(new AttributeModifier("rows", rowsOverride));
+		}
         add(text);
     }
 
