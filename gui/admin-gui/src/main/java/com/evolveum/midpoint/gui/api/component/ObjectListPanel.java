@@ -246,18 +246,13 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 
 	}
 
-	private BoxedTablePanel<SelectableBean<T>> getTable() {
+	protected BoxedTablePanel<SelectableBean<T>> getTable() {
 		return (BoxedTablePanel<SelectableBean<T>>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
 	}
 
 	private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
 		BaseSortableDataProvider<SelectableBean<T>> provider = getDataProvider();
 		provider.setQuery(query);
-
-		// RolesStorage storage = getSessionStorage().getRoles();
-		// storage.setRolesSearch(searchModel.getObject());
-		// storage.setRolesPaging(null);
-		// saveSearch(provider.getQuery().getPaging());
 		String storageKey = storageMap.get(type);
 		if (StringUtils.isNotEmpty(storageKey)) {
 			PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
@@ -324,49 +319,6 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		List<IColumn<SelectableBean<T>, String>> others = createColumns();
 		columns.addAll(others);
 
-		// CheckBoxHeaderColumn checkboxColumn = new CheckBoxHeaderColumn() {
-		//
-		// @Override
-		// protected void onUpdateRow(AjaxRequestTarget target, DataTable table,
-		// IModel rowModel) {
-		// // TODO Auto-generated method stub
-		// super.onUpdateRow(target, table, rowModel);
-		// ObjectListPanel.this.onCheckboxUpdate(target);
-		// }
-		//
-		//
-		// };
-		// if (isMultiSelect()) {
-		// columns.add(checkboxColumn);
-		// }
-		// String nameColumnName = SelectableBean.F_VALUE + ".name";
-		// if (isEditable()) {
-		// columns.add(new
-		// LinkColumn<SelectableBean<T>>(createStringResource("ObjectType.name"),
-		// ObjectType.F_NAME.getLocalPart(), nameColumnName) {
-		//
-		// @Override
-		// public void onClick(AjaxRequestTarget target,
-		// IModel<SelectableBean<T>> rowModel) {
-		// T user = rowModel.getObject().getValue();
-		// objectDetailsPerformed(target, user);
-		// }
-		//
-		// });
-		// } else {
-		// columns.add(new
-		// PropertyColumn(createStringResource("userBrowserDialog.name"),
-		// ObjectType.F_NAME.getLocalPart(),
-		// nameColumnName));
-		// }
-
-		// if (columnDefinitions != null && !columnDefinitions.isEmpty()) {
-		// ((Collection)
-		// columns).addAll(ColumnUtils.createColumns(columnDefinitions));
-		// } else {
-		// columns.addAll(ColumnUtils.getDefaultColumns(type));
-		// }
-
 		return columns;
 	}
 
@@ -377,16 +329,10 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		target.add(getTable());
 	}
 
-	private void cancelPerformed(AjaxRequestTarget target) {
-		parentPage.hideMainPopup(target);
-	}
-
 	public void addPerformed(AjaxRequestTarget target, List<T> selected) {
 		parentPage.hideMainPopup(target);
 	}
 
-	// public void objectDetailsPerformed(AjaxRequestTarget target, T user) {
-	// parentPage.hideMainPopup(target);
-	// }
+
 
 }

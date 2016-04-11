@@ -143,6 +143,12 @@ public class PageRoles extends PageAdminRoles {
 			protected void objectDetailsPerformed(AjaxRequestTarget target, RoleType object) {
 				PageRoles.this.roleDetailsPerformed(target, object.getOid());;
 			}
+			
+			@Override
+			protected void newObjectPerformed(AjaxRequestTarget target) {
+			setResponsePage(PageRole.class);
+				
+			}
 		};
 		roleListPanel.setOutputMarkupId(true);
 		mainForm.add(roleListPanel);

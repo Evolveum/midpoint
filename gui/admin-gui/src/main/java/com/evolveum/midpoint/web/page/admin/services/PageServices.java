@@ -93,6 +93,10 @@ public class PageServices extends PageAdminServices {
 	        		return null;
 	        	}
 	        	
+	        	@Override
+	        	protected void newObjectPerformed(AjaxRequestTarget target) {
+	        		setResponsePage(PageService.class);	
+	        	}
 	        	
 	        };
 	        mainForm.add(servicePanel);

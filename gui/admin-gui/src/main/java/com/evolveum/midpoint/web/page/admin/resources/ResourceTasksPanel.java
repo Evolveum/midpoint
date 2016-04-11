@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.ListDataProvider2;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
@@ -134,6 +135,11 @@ public class ResourceTasksPanel extends Panel{
 		        setResponsePage(new PageTaskEdit(parameters));
 			}
 
+			@Override
+			protected void newObjectPerformed(AjaxRequestTarget target) {
+				setResponsePage(PageTaskAdd.class);
+				
+			}
 
 			@Override
 			protected List<IColumn<SelectableBean<TaskType>, String>> createColumns() {

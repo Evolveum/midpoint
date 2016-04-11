@@ -165,6 +165,12 @@ public class PageUsers extends PageAdminUsers {
 			protected void objectDetailsPerformed(AjaxRequestTarget target, UserType object) {
 				userDetailsPerformed(target, object.getOid());
 			}
+			
+			@Override
+					protected void newObjectPerformed(AjaxRequestTarget target) {
+					setResponsePage(PageUser.class);
+						
+					}
 		};
 
 		userListPanel.setOutputMarkupId(true);
