@@ -187,7 +187,10 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 			@Override
 			public SelectableBean<T> createDataObjectWrapper(T obj) {
 				SelectableBean<T> bean = super.createDataObjectWrapper(obj);
-				bean.getMenuItems().addAll(createInlineMenu());
+				List<InlineMenuItem> inlineMenu = createInlineMenu();
+				if (inlineMenu != null){
+					bean.getMenuItems().addAll(inlineMenu);
+				}
 				return bean;
 			}
 		};
