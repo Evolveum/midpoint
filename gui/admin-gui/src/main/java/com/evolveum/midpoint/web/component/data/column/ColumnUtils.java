@@ -212,8 +212,28 @@ private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getServ
 	};
 }
 
-private static <T extends Serializable> IColumn<SelectableBean<T>, String> getTaskIconColumn(){
-	return null;
+private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getTaskIconColumn(){
+	return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
+			return new AbstractReadOnlyModel<String>() {
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public String getObject() {
+					T task = rowModel.getObject().getValue();
+					return WebComponentUtil.createTaskIcon(task.asPrismContainer());
+				}
+			};
+		}
+	};
 }
 
 private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getResourceIconColumn(){

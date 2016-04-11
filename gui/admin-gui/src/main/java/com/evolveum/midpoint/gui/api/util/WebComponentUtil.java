@@ -749,6 +749,10 @@ public final class WebComponentUtil {
 		return "fa fa-laptop";
 	}
 	
+	public static String createTaskIcon(PrismObject<TaskType> object) {
+		return "fa fa-tasks";
+	}
+	
 	public static String createShadowIcon(PrismObject<ShadowType> object) {
 		ShadowType shadow = object.asObjectable();
 		

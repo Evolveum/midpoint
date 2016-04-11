@@ -216,6 +216,7 @@ public abstract class ResourceContentPanel extends Panel {
 		}
 
 		provider.setEmptyListOnNullQuery(true);
+		provider.setSort(null);
 		createSearchOptions(provider);
 		List<IColumn> columns = initColumns();
 //		ObjectListPanel<ShadowType> table = new ObjectListPanel<ShadowType>(ID_TABLE, ShadowType.class, getPageBase()){
