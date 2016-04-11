@@ -170,7 +170,11 @@ public class ModelRestService {
 	}
 
 	private Response buildErrorResponse(Status status, Exception ex) {
-		return Response.status(status).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();
+		return buildErrorResponse(status, ex.getMessage());
+	}
+
+	private Response buildErrorResponse(Status status, String message) {
+		return Response.status(status).entity(message).type(MediaType.TEXT_PLAIN).build();
 	}
 	
 	@GET
@@ -216,10 +220,8 @@ public class ModelRestService {
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		if (!object.getCompileTimeClass().equals(clazz)){
 			auditLogout(task);
-			return Response.status(Status.BAD_REQUEST).entity(
-					"Request to add object of type "
-							+ object.getCompileTimeClass().getSimpleName()
-							+ " to the collection of " + type).build();
+			return buildErrorResponse(Status.BAD_REQUEST, "Request to add object of type "
+					+ object.getCompileTimeClass().getSimpleName() + " to the collection of " + type);
 		}
 		
 		
@@ -267,10 +269,9 @@ public class ModelRestService {
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		if (!object.getCompileTimeClass().equals(clazz)){
 			auditLogout(task);
-			return Response.status(Status.BAD_REQUEST).entity(
-					"Request to add object of type "
-							+ object.getCompileTimeClass().getSimpleName()
-							+ " to the collection of " + type).type(MediaType.TEXT_HTML).build();
+			return buildErrorResponse(Status.BAD_REQUEST, "Request to add object of type "
+					+ object.getCompileTimeClass().getSimpleName()
+					+ " to the collection of " + type);
 		}
 		
 		ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
@@ -423,7 +424,7 @@ public class ModelRestService {
 			PrismObject<UserType> user = model.findShadowOwner(shadowOid, task, parentResult);
 			response = Response.ok().entity(user).build();
 		} catch (ConfigurationException e) {
-			response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+			response = buildErrorResponse(Status.INTERNAL_SERVER_ERROR, e.getMessage());
 		} catch (Exception ex) {
 			response = handleException(ex);
 		}
