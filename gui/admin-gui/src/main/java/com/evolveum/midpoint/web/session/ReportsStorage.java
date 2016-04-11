@@ -16,63 +16,86 @@
 package com.evolveum.midpoint.web.session;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportOutputSearchDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportSearchDto;
 
 /**
  * @author shood
  */
-public class ReportsStorage extends PageStorage {
+public class ReportsStorage implements PageStorage {
 
-    /**
-     * DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.reports.PageReports}
-     */
-    private ReportSearchDto reportSearch;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
-    /**
-     * Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.reports.PageReports}
-     */
-    private ObjectPaging reportsPaging;
+	/**
+	 * DTO used for search purposes in
+	 * {@link com.evolveum.midpoint.web.page.admin.reports.PageReports}
+	 */
+	private ReportSearchDto reportSearch;
 
-    /**
-     * DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports}
-     */
-    private ReportOutputSearchDto reportOutputSearch;
+	/**
+	 * Paging DTO used in table on page
+	 * {@link com.evolveum.midpoint.web.page.admin.reports.PageReports}
+	 */
+	private ObjectPaging reportsPaging;
 
-    /**
-     * Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports}
-     */
-    private ObjectPaging reportOutputsPaging;
+	/**
+	 * DTO used for search purposes in
+	 * {@link com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports}
+	 */
+	private ReportOutputSearchDto reportOutputSearch;
 
-    public ReportSearchDto getReportSearch() {
-        return reportSearch;
-    }
+	/**
+	 * Paging DTO used in table on page
+	 * {@link com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports}
+	 */
+	private ObjectPaging reportOutputsPaging;
 
-    public void setReportSearch(ReportSearchDto reportSearch) {
-        this.reportSearch = reportSearch;
-    }
+	private Search search;
 
-    public ObjectPaging getReportsPaging() {
-        return reportsPaging;
-    }
+	public Search getSearch() {
+		return search;
+	}
 
-    public void setReportsPaging(ObjectPaging reportsPaging) {
-        this.reportsPaging = reportsPaging;
-    }
+	@Override
+	public void setSearch(Search search) {
+		this.search = search;
+	}
 
-    public ObjectPaging getReportOutputsPaging() {
-        return reportOutputsPaging;
-    }
+	public ReportSearchDto getReportSearch() {
+		return reportSearch;
+	}
 
-    public void setReportOutputsPaging(ObjectPaging reportOutputsPaging) {
-        this.reportOutputsPaging = reportOutputsPaging;
-    }
+	public void setReportSearch(ReportSearchDto reportSearch) {
+		this.reportSearch = reportSearch;
+	}
 
-    public ReportOutputSearchDto getReportOutputSearch() {
-        return reportOutputSearch;
-    }
+	@Override
+	public ObjectPaging getPaging() {
+		return reportsPaging;
+	}
 
-    public void setReportOutputSearch(ReportOutputSearchDto reportOutputSearch) {
-        this.reportOutputSearch = reportOutputSearch;
-    }
+	@Override
+	public void setPaging(ObjectPaging reportsPaging) {
+		this.reportsPaging = reportsPaging;
+	}
+
+	public ObjectPaging getReportOutputsPaging() {
+		return reportOutputsPaging;
+	}
+
+	public void setReportOutputsPaging(ObjectPaging reportOutputsPaging) {
+		this.reportOutputsPaging = reportOutputsPaging;
+	}
+
+	public ReportOutputSearchDto getReportOutputSearch() {
+		return reportOutputSearch;
+	}
+
+	public void setReportOutputSearch(ReportOutputSearchDto reportOutputSearch) {
+		this.reportOutputSearch = reportOutputSearch;
+	}
 }

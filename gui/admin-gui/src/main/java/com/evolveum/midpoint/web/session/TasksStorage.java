@@ -16,14 +16,20 @@
 package com.evolveum.midpoint.web.session;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.page.admin.server.dto.TasksSearchDto;
 
 /**
  *  @author shood
  * */
-public class TasksStorage extends PageStorage{
+public class TasksStorage implements PageStorage{
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
      *  DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.server.PageTasks}
      * */
     private TasksSearchDto tasksSearch;
@@ -32,6 +38,8 @@ public class TasksStorage extends PageStorage{
      *  Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.server.PageTasks}
      * */
     private ObjectPaging tasksPaging;
+    
+    private Search search;
 
     public TasksSearchDto getTasksSearch() {
         return tasksSearch;
@@ -41,11 +49,24 @@ public class TasksStorage extends PageStorage{
         this.tasksSearch = tasksSearch;
     }
 
-    public ObjectPaging getTasksPaging() {
+    @Override
+    public ObjectPaging getPaging() {
         return tasksPaging;
     }
 
-    public void setTasksPaging(ObjectPaging tasksPaging) {
+    @Override
+    public void setPaging(ObjectPaging tasksPaging) {
         this.tasksPaging = tasksPaging;
+    }
+    
+    @Override
+    public Search getSearch() {
+		return search;
+	}
+    
+    @Override
+    public void setSearch(Search search) {
+    	this.search = search;
+    	
     }
 }

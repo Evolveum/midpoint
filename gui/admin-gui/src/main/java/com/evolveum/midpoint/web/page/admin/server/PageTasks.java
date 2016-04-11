@@ -231,7 +231,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             @Override
             protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
                 TasksStorage storage = getSessionStorage().getTasks();
-                storage.setTasksPaging(paging);
+                storage.setPaging(paging);
             }
 
             @Override
@@ -256,7 +256,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         taskTable.setOutputMarkupId(true);
 
         TasksStorage storage = getSessionStorage().getTasks();
-        taskTable.setCurrentPage(storage.getTasksPaging());
+        taskTable.setCurrentPage(storage.getPaging());
 
         mainForm.add(taskTable);
 
@@ -1248,7 +1248,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
         TasksStorage storage = getSessionStorage().getTasks();
         storage.setTasksSearch(searchModel.getObject());
-        panel.setCurrentPage(storage.getTasksPaging());
+        panel.setCurrentPage(storage.getPaging());
 
         target.add((Component) panel);
     }

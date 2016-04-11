@@ -357,7 +357,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			@Override
 			protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
 				RoleMembersStorage storage = getSession().getSessionStorage().getRoleMembers();
-				storage.setRolesPaging(paging);
+				storage.setPaging(paging);
 			}
 		};
 		provider.setQuery(createQuery());
@@ -368,7 +368,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		table.setOutputMarkupId(true);
 
 		RoleMembersStorage storage = getSession().getSessionStorage().getRoleMembers();
-		table.setCurrentPage(storage.getRolesPaging());
+		table.setCurrentPage(storage.getPaging());
 		getRoleMemberSearch().setType(RoleType.COMPLEX_TYPE);
 		return table;
 
@@ -380,7 +380,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			@Override
 			protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
 				RoleMembersStorage storage = getSession().getSessionStorage().getRoleMembers();
-				storage.setRolesPaging(paging);
+				storage.setPaging(paging);
 			}
 		};
 		provider.setQuery(createQuery());
@@ -391,7 +391,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		table.setOutputMarkupId(true);
 
 		RoleMembersStorage storage = getSession().getSessionStorage().getRoleMembers();
-		table.setCurrentPage(storage.getRolesPaging());
+		table.setCurrentPage(storage.getPaging());
 		getRoleMemberSearch().setType(OrgType.COMPLEX_TYPE);
 		return table;
 
@@ -404,7 +404,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			@Override
 			protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
 				RoleMembersStorage storage = getSession().getSessionStorage().getRoleMembers();
-				storage.setRolesPaging(paging);
+				storage.setPaging(paging);
 			}
 
 			@Override
@@ -422,7 +422,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		table.setOutputMarkupId(true);
 
 		RoleMembersStorage storage = getSession().getSessionStorage().getRoleMembers();
-		table.setCurrentPage(storage.getRolesPaging());
+		table.setCurrentPage(storage.getPaging());
 		getRoleMemberSearch().setType(UserType.COMPLEX_TYPE);
 
 		return table;

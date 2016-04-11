@@ -48,12 +48,12 @@ public class SessionStorage implements Serializable {
      */
     private Map<String, PageStorage> pageStorageMap = new HashMap<>();
 
-    private static final String KEY_CONFIGURATION = "configuration";
-    private static final String KEY_USERS = "users";
-    private static final String KEY_REPORTS = "reports";
-    private static final String KEY_RESOURCES = "resources";
-    private static final String KEY_ROLES = "roles";
-    private static final String KEY_ROLE_MEMBERS = "roleMembers";
+    public static final String KEY_CONFIGURATION = "configuration";
+    public static final String KEY_USERS = "users";
+    public static final String KEY_REPORTS = "reports";
+    public static final String KEY_RESOURCES = "resources";
+    public static final String KEY_ROLES = "roles";
+    public static final String KEY_ROLE_MEMBERS = "roleMembers";
     
     private static final String KEY_TASKS = "tasks";
 
@@ -85,6 +85,10 @@ public class SessionStorage implements Serializable {
     public void setPreviousPageParams(PageParameters previousPageParams) {
         this.previousPageParams = previousPageParams;
     }
+    
+    public Map<String, PageStorage> getPageStorageMap() {
+		return pageStorageMap;
+	}
 
     public ConfigurationStorage getConfiguration() {
         if (pageStorageMap.get(KEY_CONFIGURATION) == null) {

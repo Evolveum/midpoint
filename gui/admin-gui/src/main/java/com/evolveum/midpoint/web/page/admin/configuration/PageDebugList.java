@@ -247,7 +247,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			@Override
 			protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
 				ConfigurationStorage storage = getSessionStorage().getConfiguration();
-				storage.setDebugSearchPaging(paging);
+				storage.setPaging(paging);
 			}
 		};
 		DebugSearchDto search = searchModel.getObject();
@@ -288,7 +288,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		table.setOutputMarkupId(true);
 
 		ConfigurationStorage storage = getSessionStorage().getConfiguration();
-		table.setCurrentPage(storage.getDebugSearchPaging());
+		table.setCurrentPage(storage.getPaging());
 
 		mainForm.addOrReplace(table);
 	}

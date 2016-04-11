@@ -97,7 +97,7 @@ public class PageRoles extends PageAdminRoles {
             @Override
             protected Search load() {
                 RolesStorage storage = getSessionStorage().getRoles();
-                Search dto = storage.getRolesSearch();
+                Search dto = storage.getSearch();
 
                 if (dto == null) {
                     dto = SearchFactory.createSearch(RoleType.class, getPrismContext(), true);
@@ -125,7 +125,7 @@ public class PageRoles extends PageAdminRoles {
             @Override
             protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
                 RolesStorage storage = getSessionStorage().getRoles();
-                storage.setRolesPaging(paging);
+                storage.setPaging(paging);
             }
         };
         Search search = searchModel.getObject();
@@ -152,7 +152,7 @@ public class PageRoles extends PageAdminRoles {
         table.setOutputMarkupId(true);
 
         RolesStorage storage = getSessionStorage().getRoles();
-        table.setCurrentPage(storage.getRolesPaging());
+        table.setCurrentPage(storage.getPaging());
 
         mainForm.add(table);
 
@@ -301,8 +301,8 @@ public class PageRoles extends PageAdminRoles {
         provider.setQuery(query);
 
         RolesStorage storage = getSessionStorage().getRoles();
-        storage.setRolesSearch(searchModel.getObject());
-        storage.setRolesPaging(null);
+        storage.setSearch(searchModel.getObject());
+        storage.setPaging(null);
 
         Table table = getRoleTable();
         table.setCurrentPage(null);

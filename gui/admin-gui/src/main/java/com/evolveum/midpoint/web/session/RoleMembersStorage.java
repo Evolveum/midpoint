@@ -1,9 +1,10 @@
 package com.evolveum.midpoint.web.session;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.page.admin.roles.RoleMemberSearchDto;
 
-public class RoleMembersStorage extends PageStorage{
+public class RoleMembersStorage implements PageStorage{
 
 	 /**
 	 * 
@@ -11,6 +12,8 @@ public class RoleMembersStorage extends PageStorage{
 	private static final long serialVersionUID = 1L;
 
 	private RoleMemberSearchDto roleMemberSearch;
+	
+	private Search search;
 
 	    /**
 	     *  Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.roles.PageRoles}
@@ -25,12 +28,24 @@ public class RoleMembersStorage extends PageStorage{
 	        this.roleMemberSearch = roleMemberSearch;
 	    }
 
-	    public ObjectPaging getRolesPaging() {
+	    @Override
+	    public ObjectPaging getPaging() {
 	        return rolesPaging;
 	    }
 
-	    public void setRolesPaging(ObjectPaging rolesPaging) {
+	    @Override
+	    public void setPaging(ObjectPaging rolesPaging) {
 	        this.rolesPaging = rolesPaging;
+	    }
+	    
+	    @Override
+	    public Search getSearch() {
+			return search;
+		}
+	    
+	    @Override
+	    public void setSearch(Search search) {
+	    	this.search = search;
 	    }
 	
 }

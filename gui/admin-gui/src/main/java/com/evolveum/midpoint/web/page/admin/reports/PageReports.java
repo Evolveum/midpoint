@@ -258,7 +258,7 @@ public class PageReports extends PageAdminReports {
 
         ReportsStorage storage = getSessionStorage().getReports();
         storage.setReportSearch(searchModel.getObject());
-        storage.setReportsPaging(null);
+        storage.setPaging(null);
 
         Table table = getReportTable();
         table.setCurrentPage(null);
@@ -308,7 +308,7 @@ public class PageReports extends PageAdminReports {
 
         ReportsStorage storage = getSessionStorage().getReports();
         storage.setReportSearch(searchModel.getObject());
-        storage.setReportsPaging(null);
+        storage.setPaging(null);
         panel.setCurrentPage(null);
 
         target.add((Component) panel);
