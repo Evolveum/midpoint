@@ -113,7 +113,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	public static final String F_RECURRING = "recurring";
 	public static final String F_BOUND = "bound";
 	public static final String F_INTERVAL = "interval";
-	public static final String CRON_SPECIFICATION = "cronSpecification";
+	public static final String F_CRON_SPECIFICATION = "cronSpecification";
 	public static final String F_NOT_START_BEFORE = "notStartBefore";
 	public static final String F_NOT_START_AFTER = "notStartAfter";
 	public static final String F_MISFIRE_ACTION = "misfireActionType";

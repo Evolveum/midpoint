@@ -26,6 +26,8 @@ import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.dto.ScheduleValidator;
+import com.evolveum.midpoint.web.page.admin.server.dto.StartEndDateValidator;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
@@ -40,6 +42,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -331,7 +334,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		boundContainer.add(boundHelp);
 		schedulingTable.add(boundContainer);
 
-		final WebMarkupContainer intervalContainer = new WebMarkupContainer(ID_INTERVAL_CONTAINER);
+		WebMarkupContainer intervalContainer = new WebMarkupContainer(ID_INTERVAL_CONTAINER);
 		intervalContainer.add(visibleIfRecurringAndScheduleIsAccessible);
 		intervalContainer.setOutputMarkupId(true);
 		schedulingTable.add(intervalContainer);
@@ -341,12 +344,12 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		interval.add(enabledIfEditAndNotRunningRunnableOrLooselyBoundAndScheduleIsEditable);
 		intervalContainer.add(interval);
 
-		final WebMarkupContainer cronContainer = new WebMarkupContainer(ID_CRON_CONTAINER);
+		WebMarkupContainer cronContainer = new WebMarkupContainer(ID_CRON_CONTAINER);
 		cronContainer.add(visibleIfRecurringAndLooselyBoundAndScheduleIsAccessible);
 		cronContainer.setOutputMarkupId(true);
 		schedulingTable.add(cronContainer);
 
-		TextField<String> cron = new TextField<>(ID_CRON, new PropertyModel<String>(taskDtoModel, TaskDto.CRON_SPECIFICATION));
+		TextField<String> cron = new TextField<>(ID_CRON, new PropertyModel<String>(taskDtoModel, TaskDto.F_CRON_SPECIFICATION));
 		cron.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		cron.add(enabledIfEditAndNotRunningRunnableOrLooselyBoundAndScheduleIsEditable);
 		cronContainer.add(cron);
@@ -400,9 +403,14 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		threadStopContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_THREAD_STOP_ACTION));
 		schedulingTable.add(threadStopContainer);
 
-		//add(new StartEndDateValidator(notStartBefore, notStartAfter));
-		//add(new ScheduleValidator(parentPage.getTaskManager(), recurring, bound, interval, cron));
-
+		org.apache.wicket.markup.html.form.Form<?> form = parentPage.getForm();
+		// if not removed, the validators will accumulate on the form
+		// TODO implement more intelligently when other tabs have validators as well
+		for (IFormValidator validator : form.getFormValidators()) {
+			form.remove(validator);
+		}
+		form.add(new StartEndDateValidator(notStartBefore, notStartAfter));
+		form.add(new ScheduleValidator(parentPage.getTaskManager(), recurringCheck, bound, interval, cron));
 	}
 
 	@Override
