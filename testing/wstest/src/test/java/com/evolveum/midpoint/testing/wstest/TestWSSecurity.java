@@ -120,7 +120,7 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         	AssertJUnit.fail("Unexpected success");
         	
         } catch (SOAPFaultException e) {
-        	assertSoapFault(e, "InvalidSecurity", "<wsse:Security> header");        	
+        	assertSoapFault(e, "SecurityError", "<wsse:Security> header");        	
         }
         
         tailer.tail();

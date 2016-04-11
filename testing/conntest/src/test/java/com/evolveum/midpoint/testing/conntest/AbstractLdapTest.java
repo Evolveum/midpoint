@@ -611,6 +611,11 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		assertEquals("Unexpected number of entries for uid="+uid+": "+entries, 0, entries.size());
 	}
 	
+	protected void assertNoEntry(String dn) throws LdapException, IOException, CursorException {
+		Entry entry = getLdapEntry(dn);
+		assertNull("Expected no entry "+dn+", but found "+entry, entry);
+	}
+	
 	protected void assertLdapGroupMember(Entry accountEntry, String groupName) throws LdapException, IOException, CursorException, SchemaException {
 		assertLdapGroupMember(accountEntry.getDn().toString(), groupName);
 	}
