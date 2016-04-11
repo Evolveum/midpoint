@@ -230,7 +230,7 @@ public class PasswordPanel extends InputPanel {
     private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
 
         public EmptyOnBlurAjaxFormUpdatingBehaviour() {
-            super("Blur");
+            super("blur");
         }
 
         @Override

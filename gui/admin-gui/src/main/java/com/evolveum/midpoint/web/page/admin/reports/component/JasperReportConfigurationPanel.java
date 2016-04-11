@@ -334,7 +334,7 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
 	private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
 
 		public EmptyOnBlurAjaxFormUpdatingBehaviour() {
-			super("Blur");
+			super("blur");
 		}
 
 		@Override

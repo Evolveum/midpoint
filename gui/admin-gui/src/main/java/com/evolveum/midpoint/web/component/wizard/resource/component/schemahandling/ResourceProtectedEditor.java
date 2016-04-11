@@ -185,7 +185,7 @@ public class ResourceProtectedEditor extends SimplePanel<List<ResourceObjectPatt
     }
 
     private AjaxFormComponentUpdatingBehavior prepareAjaxOnComponentTagUpdateBehavior(){
-        return new AjaxFormComponentUpdatingBehavior("Blur") {
+        return new AjaxFormComponentUpdatingBehavior("blur") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {}

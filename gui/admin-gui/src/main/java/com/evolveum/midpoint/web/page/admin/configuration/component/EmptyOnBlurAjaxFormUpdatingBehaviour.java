@@ -6,7 +6,7 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 public class EmptyOnBlurAjaxFormUpdatingBehaviour  extends AjaxFormComponentUpdatingBehavior {
 
     public EmptyOnBlurAjaxFormUpdatingBehaviour() {
-        super("Blur");
+        super("blur");
     }
 
     @Override

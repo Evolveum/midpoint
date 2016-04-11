@@ -6,7 +6,7 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 public class EmptyOnChangeAjaxFormUpdatingBehavior extends AjaxFormComponentUpdatingBehavior {
 
     public EmptyOnChangeAjaxFormUpdatingBehavior(){
-        super("Change");
+        super("change");
     }
 
     @Override
