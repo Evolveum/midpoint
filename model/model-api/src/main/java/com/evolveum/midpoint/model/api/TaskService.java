@@ -154,7 +154,15 @@ public interface TaskService {
      */
     void synchronizeTasks(OperationResult parentResult) throws SchemaException, SecurityViolationException;
 
-    /**
+	/**
+	 * Synchronizes information in midPoint repository and activiti database.
+	 * Not needed to use during normal operation (only when problems occur).
+	 *
+	 * @param parentResult
+	 */
+	void synchronizeWorkflowRequests(OperationResult parentResult) throws SchemaException, SecurityViolationException;
+
+	/**
      * Gets a list of all task categories.
      * TODO consider removing this method
      *
