@@ -135,3 +135,9 @@ ALTER TABLE m_acc_cert_decision
 ADD CONSTRAINT fk_acc_cert_decision_owner
 FOREIGN KEY (owner_id, owner_owner_oid)
 REFERENCES m_acc_cert_case;
+
+ALTER TABLE m_lookup_table_row
+DROP CONSTRAINT uc_row_key;
+
+ALTER TABLE m_lookup_table_row
+ADD CONSTRAINT uc_row_key UNIQUE (owner_oid, row_key) INITRANS 30;

@@ -23,12 +23,12 @@ import java.util.Date;
 @Entity
 @Table(indexes = {
 //todo create indexes after lookup api is created (when we know how we will search through lookup table [lazyman]
-//        @Index(name = "i_row_key", columnList = "key"),
-//        @Index(name = "i_row_label_orig", columnList = "label.orig"),
-//        @Index(name = "i_row_label_norm", columnList = "label.norm")
+//        @Index(name = "iRowKey", columnList = "key"),
+//        @Index(name = "iRowLabelOrig", columnList = "label.orig"),
+//        @Index(name = "iRowLabelNorm", columnList = "label.norm")
 },
 uniqueConstraints = {
-        @UniqueConstraint(name = "uc_row_key", columnNames = {"row_key"})
+        @UniqueConstraint(name = "uc_row_key", columnNames = {"owner_oid", "row_key"})
 })
 @IdClass(RContainerId.class)
 public class RLookupTableRow implements Container<RLookupTable> {
