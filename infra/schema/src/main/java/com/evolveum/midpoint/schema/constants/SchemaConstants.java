@@ -203,7 +203,11 @@ public abstract class SchemaConstants {
 
 	public static final QName MODEL_EXTENSION_CLEANUP_POLICIES = new QName(NS_MODEL_EXTENSION, "cleanupPolicies");
 
-    public static final String NS_GUI = NS_MIDPOINT_PUBLIC + "/gui";
+	public static final String NOOP_SCHEMA_URI = NS_MIDPOINT_PUBLIC + "/task/noop/handler-3";
+	public static final QName NOOP_DELAY_QNAME = new QName(NOOP_SCHEMA_URI, "delay");
+	public static final QName NOOP_STEPS_QNAME = new QName(NOOP_SCHEMA_URI, "steps");
+
+	public static final String NS_GUI = NS_MIDPOINT_PUBLIC + "/gui";
 	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-3";
 	public static final QName CHANNEL_GUI_INIT_QNAME = new QName(NS_GUI_CHANNEL, "init");
 	public static final String CHANNEL_GUI_INIT_URI = QNameUtil.qNameToUri(CHANNEL_GUI_INIT_QNAME);

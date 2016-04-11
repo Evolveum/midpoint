@@ -22,9 +22,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.web.page.admin.server.handlers.dto.GenericHandlerDto.item;
@@ -57,11 +59,18 @@ public class HandlerDtoFactory {
 		} else if (taskDto.isShadowIntegrityCheck()) {
 			return new GenericHandlerDto(taskDto, Arrays.asList(
 					item(MODEL_EXTENSION_OBJECT_QUERY, QueryType.class),
-					item(MODEL_EXTENSION_DRY_RUN, Boolean.class),
 					item(MODEL_EXTENSION_DIAGNOSE, String.class),
 					item(MODEL_EXTENSION_FIX, String.class),
+					item(MODEL_EXTENSION_DRY_RUN, Boolean.class),
 					item(MODEL_EXTENSION_DUPLICATE_SHADOWS_RESOLVER, String.class),
 					item(MODEL_EXTENSION_CHECK_DUPLICATES_ON_PRIMARY_IDENTIFIERS_ONLY, Boolean.class)), pageBase);
+		} else if (taskDto.isCleanup()) {
+			return new GenericHandlerDto(taskDto, Collections.singletonList(
+					item(MODEL_EXTENSION_CLEANUP_POLICIES, CleanupPoliciesType.class)), pageBase);
+		} else if (taskDto.isNoOp()) {
+			return new GenericHandlerDto(taskDto, Arrays.asList(
+					item(SchemaConstants.NOOP_STEPS_QNAME, Integer.class),
+					item(SchemaConstants.NOOP_DELAY_QNAME, Integer.class)), pageBase);
 		} else if (taskDto.isReportCreate()) {
 			return new ReportCreateHandlerDto(taskDto);
 		}
