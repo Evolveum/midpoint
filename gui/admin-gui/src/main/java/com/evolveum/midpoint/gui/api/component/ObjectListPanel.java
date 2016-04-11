@@ -52,6 +52,8 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
+import com.evolveum.midpoint.web.page.admin.services.PageService;
+import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -103,6 +105,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		storageMap.put(PageResources.class, SessionStorage.KEY_RESOURCES);
 		storageMap.put(PageReports.class, SessionStorage.KEY_REPORTS);
 		storageMap.put(PageRoles.class, SessionStorage.KEY_ROLES);
+		storageMap.put(PageServices.class, SessionStorage.KEY_SERVICES);
 		// storageMap.put(ObjectType.class, SessionStorage.KEY_CONFIGURATION);
 		// storageMap.put(FocusType.class, SessionStorage.KEY_ROLE_MEMBERS);
 
