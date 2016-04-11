@@ -168,7 +168,8 @@ public class BaseModelInvocationProcessingHelper {
     public WfTask submitRootTask(WfTaskCreationInstruction rootInstruction, Task taskFromModel, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         WfTask rootWfTask = wfTaskController.submitWfTask(rootInstruction, determineParentTaskForRoot(taskFromModel), result);
-        wfTaskUtil.setRootTaskOidImmediate(taskFromModel, rootWfTask.getTask().getOid(), result);
+		result.setBackgroundTaskOid(rootWfTask.getTask().getOid());
+		wfTaskUtil.setRootTaskOidImmediate(taskFromModel, rootWfTask.getTask().getOid(), result);
         return rootWfTask;
     }
 

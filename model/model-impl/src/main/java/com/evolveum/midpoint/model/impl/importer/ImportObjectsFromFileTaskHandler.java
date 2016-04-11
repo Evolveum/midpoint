@@ -141,6 +141,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
         // the run(task) method.
         // Note: the thread may be actually started on a different node
         taskManager.switchToBackground(task, result);
+		result.setBackgroundTaskOid(task.getOid());
 
         LOGGER.trace("Import objects from file {} switched to background, control thread returning with task {}", input, task);
     }

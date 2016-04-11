@@ -1435,6 +1435,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         }
 
         getTaskManager().switchToBackground(task, launchResult);
+		launchResult.setBackgroundTaskOid(task.getOid());
 
         showResult(launchResult);
         target.add(getFeedbackPanel());
