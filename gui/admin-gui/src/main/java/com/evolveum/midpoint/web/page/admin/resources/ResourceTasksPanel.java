@@ -15,26 +15,38 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.ListDataProvider2;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.event.Broadcast;
+import org.apache.wicket.event.IEventSink;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.util.ListModel;
+import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -100,7 +112,7 @@ public class ResourceTasksPanel extends Panel{
 	}
 	
 	private void initLayout(final ListModel<TaskType> tasks){
-		final ObjectListPanel<TaskType> tasksPanel = new ObjectListPanel<TaskType>(ID_TASKS_TABLE, TaskType.class, pageBase){
+		final MainObjectListPanel<TaskType> tasksPanel = new MainObjectListPanel<TaskType>(ID_TASKS_TABLE, TaskType.class, null, pageBase) {
 			
 			@Override
 			protected BaseSortableDataProvider<SelectableBean<TaskType>> getProvider() {
@@ -108,20 +120,54 @@ public class ResourceTasksPanel extends Panel{
 			}
 			
 			@Override
-			public boolean isEditable() {
-				return ResourceTasksPanel.this.editable;
+			protected List<InlineMenuItem> createInlineMenu() {
+				// TODO Auto-generated method stub
+				return null;
 			}
+			
 			
 			@Override
 			public void objectDetailsPerformed(AjaxRequestTarget target, TaskType task) {
 				// TODO Auto-generated method stub
-				super.objectDetailsPerformed(target, task);
+//				super.objectDetailsPerformed(target, task);
 				PageParameters parameters = new PageParameters();
 		        parameters.add(OnePageParameterEncoder.PARAMETER, task.getOid());
 		        setResponsePage(new PageTaskEdit(parameters));
 			}
+
+			@Override
+			protected void newObjectPerformed(AjaxRequestTarget target) {
+				setResponsePage(PageTaskAdd.class);
+				
+			}
+
+			@Override
+			protected List<IColumn<SelectableBean<TaskType>, String>> createColumns() {
+				return ColumnUtils.getDefaultTaskColumns();
+			}
 		};
-		tasksPanel.setEditable(false);
+//		final ObjectListPanel<TaskType> tasksPanel = new ObjectListPanel<TaskType>(ID_TASKS_TABLE, TaskType.class, pageBase){
+//			
+//			@Override
+//			protected BaseSortableDataProvider<SelectableBean<TaskType>> getProvider() {
+//				return new ListDataProvider2(pageBase, tasks);
+//			}
+//			
+//			@Override
+//			public boolean isEditable() {
+//				return ResourceTasksPanel.this.editable;
+//			}
+//			
+//			@Override
+//			public void objectDetailsPerformed(AjaxRequestTarget target, TaskType task) {
+//				// TODO Auto-generated method stub
+//				super.objectDetailsPerformed(target, task);
+//				PageParameters parameters = new PageParameters();
+//		        parameters.add(OnePageParameterEncoder.PARAMETER, task.getOid());
+//		        setResponsePage(new PageTaskEdit(parameters));
+//			}
+//		};
+//		tasksPanel.setEditable(false);
 		add(tasksPanel);
 		
 		AjaxButton runNow = new AjaxButton(ID_RUN_NOW, pageBase.createStringResource("pageTaskEdit.button.runNow")) {

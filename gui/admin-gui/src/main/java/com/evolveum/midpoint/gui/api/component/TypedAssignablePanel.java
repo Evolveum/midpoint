@@ -30,6 +30,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -148,26 +149,30 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> {
 	}
 
 	private ObjectListPanel<T> createObjectListPanel(String id, final String countId, final QName type) {
-		ObjectListPanel<T> listPanel = new ObjectListPanel<T>(id, qnameToCompileTimeClass(type), parentPage) {
-
-			@Override
-			protected void onCheckboxUpdate(AjaxRequestTarget target) {
-				target.add(getParent().addOrReplace(createCountLabel(countId, this)));
-			}
-
-//			@Override
-//			public void addPerformed(AjaxRequestTarget target, List<T> selected) {
-//				super.addPerformed(target, selected);
-//				TypedAssignablePanel.this.addPerformed(target, selected);
-//			}
+		PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(id, qnameToCompileTimeClass(type), true, parentPage) {
 			
-			@Override
-			public boolean isEditable() {
-				// TODO Auto-generated method stub
-				return false;
-			}
-			
+		
 		};
+//		ObjectListPanel<T> listPanel = new ObjectListPanel<T>(id, qnameToCompileTimeClass(type), parentPage) {
+//
+//			@Override
+//			protected void onCheckboxUpdate(AjaxRequestTarget target) {
+//				target.add(getParent().addOrReplace(createCountLabel(countId, this)));
+//			}
+//
+////			@Override
+////			public void addPerformed(AjaxRequestTarget target, List<T> selected) {
+////				super.addPerformed(target, selected);
+////				TypedAssignablePanel.this.addPerformed(target, selected);
+////			}
+//			
+//			@Override
+//			public boolean isEditable() {
+//				// TODO Auto-generated method stub
+//				return false;
+//			}
+//			
+//		};
 //		listPanel.setMultiSelect(multiselect);
 		listPanel.setOutputMarkupId(true);
 		listPanel.add(new VisibleEnableBehaviour() {

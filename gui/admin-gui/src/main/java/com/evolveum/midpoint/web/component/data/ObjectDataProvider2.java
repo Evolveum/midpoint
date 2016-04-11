@@ -64,13 +64,14 @@ public class ObjectDataProvider2<W extends Serializable, T extends ObjectType>
     private Collection<SelectorOptions<GetOperationOptions>> options;
 
     public ObjectDataProvider2(Component component, Class<T> type) {
-        super(component, true, false);
+        super(component, true, true);
 
         Validate.notNull(type);
         this.type = type;
     }
     
     public List<T> getSelectedData() {
+    	preprocessSelectedDataInternal();
     	for (Serializable s : super.getAvailableData()){
     		if (s instanceof SelectableBean){
     			SelectableBean<T> selectable = (SelectableBean<T>) s;
@@ -85,7 +86,12 @@ public class ObjectDataProvider2<W extends Serializable, T extends ObjectType>
     }
     
     private void preprocessSelectedData(){
-    	 for (W available : getAvailableData()){
+    	 preprocessSelectedDataInternal();
+         getAvailableData().clear();
+    }
+    
+    private void preprocessSelectedDataInternal(){
+    	for (W available : getAvailableData()){
          	if (available instanceof SelectableBean){
          		SelectableBean<T> selectableBean = (SelectableBean<T>) available;
          		if (selectableBean.isSelected()){
@@ -104,7 +110,6 @@ public class ObjectDataProvider2<W extends Serializable, T extends ObjectType>
          		}
          	}
          }
-         getAvailableData().clear();
     }
     
    
@@ -164,9 +169,14 @@ public class ObjectDataProvider2<W extends Serializable, T extends ObjectType>
 
     public W createDataObjectWrapper(T obj) {
     	SelectableBean<T> selectable = new SelectableBean<T>(obj);
-    	if (selected.contains(obj)){
-    		selectable.setSelected(true);
+    	for (T s : selected){
+    		if (s.getOid().equals(obj.getOid())){
+    			selectable.setSelected(true);
+    		}
     	}
+//    	if (selected.contains(obj)){
+//    		selectable.setSelected(true);
+//    	}
         return (W) selectable;
     }
 

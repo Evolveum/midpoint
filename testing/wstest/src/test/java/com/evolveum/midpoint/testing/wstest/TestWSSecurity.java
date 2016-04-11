@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015 Evolveum
+ * Copyright (c) 2013-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,7 +120,7 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         	AssertJUnit.fail("Unexpected success");
         	
         } catch (SOAPFaultException e) {
-        	assertSoapFault(e, "InvalidSecurity", "<wsse:Security> header");        	
+        	assertSoapSecurityFault(e, "InvalidSecurity", "<wsse:Security> header");
         }
         
         tailer.tail();
@@ -146,7 +146,7 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         	AssertJUnit.fail("Unexpected success");
         	
         } catch (SOAPFaultException e) {
-        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        	assertSoapSecurityFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
         }
         
         tailer.tail();
@@ -172,7 +172,7 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         	AssertJUnit.fail("Unexpected success");
         	
         } catch (SOAPFaultException e) {
-        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        	assertSoapSecurityFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
         }
         
     }
@@ -196,7 +196,7 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         	AssertJUnit.fail("Unexpected success");
         	
         } catch (SOAPFaultException e) {
-        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        	assertSoapSecurityFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
         }
         
         tailer.tail();
@@ -223,7 +223,7 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         	AssertJUnit.fail("Unexpected success");
         	
         } catch (SOAPFaultException e) {
-        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        	assertSoapSecurityFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
         }
         
         tailer.tail();
@@ -249,11 +249,11 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         	AssertJUnit.fail("Unexpected success");
         	
         } catch (SOAPFaultException e) {
-        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        	assertSoapSecurityFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
         }
         
         tailer.tail();
-        assertAuditLoginFailed(tailer, "No user");
+        assertAuditLoginFailed(tailer, "no user");
     }
     
     @Test
@@ -275,11 +275,11 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         	AssertJUnit.fail("Unexpected success");
         	
         } catch (SOAPFaultException e) {
-        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        	assertSoapSecurityFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
         }
         
         tailer.tail();
-        assertAuditLoginFailed(tailer, "No user");
+        assertAuditLoginFailed(tailer, "no user");
     }
     
     @Test
@@ -301,11 +301,11 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         	AssertJUnit.fail("Unexpected success");
         	
         } catch (SOAPFaultException e) {
-        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        	assertSoapSecurityFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
         }
         
         tailer.tail();
-        assertAuditLoginFailed(tailer, "No username");
+        assertAuditLoginFailed(tailer, "no username");
     }
     
     @Test
@@ -327,11 +327,11 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         	AssertJUnit.fail("Unexpected success");
         	
         } catch (SOAPFaultException e) {
-        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        	assertSoapSecurityFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
         }
         
         tailer.tail();
-        assertAuditLoginFailed(tailer, "No username");
+        assertAuditLoginFailed(tailer, "no username");
     }
     
     @Test
@@ -431,11 +431,11 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         	AssertJUnit.fail("Unexpected success");
         	
         } catch (SOAPFaultException e) {
-        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        	assertSoapSecurityFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
         }
         
         tailer.tail();
-        assertAuditLoginFailed(tailer, "could not be authenticated or authorized");
+        assertAuditLoginFailed(tailer, "no authorizations");
     }
     
     @Test
@@ -457,16 +457,16 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         	AssertJUnit.fail("Unexpected success");
         	
         } catch (SOAPFaultException e) {
-        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        	assertSoapSecurityFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
         }
         
         tailer.tail();
-        assertAuditLoginFailed(tailer, "could not be authenticated or authorized");
+        assertAuditLoginFailed(tailer, "no authorizations");
     }
     
     @Test
-    public void test122GetConfigAsNobodyGoodPasswordDigest() throws Exception {
-    	final String TEST_NAME = "test122GetConfigAsNobodyGoodPasswordDigest";
+    public void test123GetConfigAsNobodyGoodPasswordDigest() throws Exception {
+    	final String TEST_NAME = "test123GetConfigAsNobodyGoodPasswordDigest";
     	displayTestTitle(TEST_NAME);
     	
     	LogfileTestTailer tailer = createLogTailer();
@@ -483,11 +483,11 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         	AssertJUnit.fail("Unexpected success");
         	
         } catch (SOAPFaultException e) {
-        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        	assertSoapSecurityFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
         }
         
         tailer.tail();
-        assertAuditLoginFailed(tailer, "Not authorized");
+        assertAuditLoginFailed(tailer, "no authorizations");
     }
     
     @Test
@@ -823,12 +823,12 @@ public class TestWSSecurity extends AbstractWebserviceTest {
 	        AssertJUnit.fail("Unexpected success");
         	
         } catch (SOAPFaultException e) {
-        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        	assertSoapSecurityFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
         }
         
         // THEN
         tailer.tail();
-        assertAuditLoginFailed(tailer, "User not active");
+        assertAuditLoginFailed(tailer, "user disabled");
     }
     
 	@Test
@@ -852,12 +852,12 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         	AssertJUnit.fail("Unexpected success");
         	
         } catch (SOAPFaultException e) {
-        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        	assertSoapSecurityFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
         }
         
         // THEN
         tailer.tail();
-        assertAuditLoginFailed(tailer, "User not active");
+        assertAuditLoginFailed(tailer, "user disabled");
     }
 	
 	@Test
@@ -909,11 +909,11 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         	AssertJUnit.fail("Unexpected success");
         	
         } catch (SOAPFaultException e) {
-        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        	assertSoapSecurityFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
         }
         
         tailer.tail();
-        assertAuditLoginFailed(tailer, "could not be authenticated or authorized");
+        assertAuditLoginFailed(tailer, "no authorizations");
     }
 	
 	@Test
@@ -935,11 +935,11 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         	AssertJUnit.fail("Unexpected success");
         	
         } catch (SOAPFaultException e) {
-        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        	assertSoapSecurityFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
         }
         
         tailer.tail();
-        assertAuditLoginFailed(tailer, "could not be authenticated or authorized");
+        assertAuditLoginFailed(tailer, "no authorizations");
     }
 	
 	@Test
@@ -1110,12 +1110,12 @@ public class TestWSSecurity extends AbstractWebserviceTest {
 	        AssertJUnit.fail("Unexpected success");
         	
         } catch (SOAPFaultException e) {
-        	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
+        	assertSoapSecurityFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
         }
         
         // THEN
         tailer.tail();
-        assertAuditLoginFailed(tailer, "No user credentials");
+        assertAuditLoginFailed(tailer, "no credentials in user");
     }
 
 }

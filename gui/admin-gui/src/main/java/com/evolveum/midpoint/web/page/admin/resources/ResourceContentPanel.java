@@ -216,6 +216,7 @@ public abstract class ResourceContentPanel extends Panel {
 		}
 
 		provider.setEmptyListOnNullQuery(true);
+		provider.setSort(null);
 		createSearchOptions(provider);
 		List<IColumn> columns = initColumns();
 //		ObjectListPanel<ShadowType> table = new ObjectListPanel<ShadowType>(ID_TABLE, ShadowType.class, getPageBase()){
@@ -338,6 +339,8 @@ public abstract class ResourceContentPanel extends Panel {
 		IColumn column = new CheckBoxColumn(new Model<String>(), SelectableBean.F_SELECTED);
 		columns.add(column);
 
+		columns.add(ColumnUtils.getShadowIconColumn());
+		
 		column = new LinkColumn<SelectableBean<ShadowType>>(createStringResource("pageContentAccounts.name"),
 				SelectableBean.F_VALUE + ".name") {
 

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -86,7 +87,7 @@ public class FocusBrowserPanel<T extends FocusType> extends BasePanel<T> {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				List<T> selected = ((ObjectListPanel) getParent().get(ID_TABLE)).getSelectedObjects();
+				List<T> selected = ((PopupObjectListPanel) getParent().get(ID_TABLE)).getSelectedObjects();
 				FocusBrowserPanel.this.addPerformed(target, selected);
 			}
 		};
@@ -107,25 +108,30 @@ public class FocusBrowserPanel<T extends FocusType> extends BasePanel<T> {
 	}
 
 	private ObjectListPanel<T> createObjectListPanel(Class<T> type, final boolean multiselect) {
-		ObjectListPanel<T> listPanel = new ObjectListPanel<T>(ID_TABLE, type, parentPage) {
-
-			@Override
-			public void objectDetailsPerformed(AjaxRequestTarget target, T focus) {
-				super.objectDetailsPerformed(target, focus);
-				FocusBrowserPanel.this.onClick(target, focus);
-			}
-
-			@Override
-			public void addPerformed(AjaxRequestTarget target, List<T> selected) {
-				super.addPerformed(target, selected);
-				FocusBrowserPanel.this.addPerformed(target, selected);
-			}
+		
+		PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(ID_TABLE, type, multiselect, parentPage){
 			
-			@Override
-			public boolean isMultiSelect() {
-				return multiselect;
-			}
 		};
+		
+//		ObjectListPanel<T> listPanel = new ObjectListPanel<T>(ID_TABLE, type, parentPage) {
+//
+//			@Override
+//			public void objectDetailsPerformed(AjaxRequestTarget target, T focus) {
+//				super.objectDetailsPerformed(target, focus);
+//				FocusBrowserPanel.this.onClick(target, focus);
+//			}
+//
+//			@Override
+//			public void addPerformed(AjaxRequestTarget target, List<T> selected) {
+//				super.addPerformed(target, selected);
+//				FocusBrowserPanel.this.addPerformed(target, selected);
+//			}
+//			
+//			@Override
+//			public boolean isMultiSelect() {
+//				return multiselect;
+//			}
+//		};
 //		listPanel.setMultiSelect(multiselect);
 		listPanel.setOutputMarkupId(true);
 		return listPanel;

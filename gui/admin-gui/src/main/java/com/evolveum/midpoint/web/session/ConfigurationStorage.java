@@ -27,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * @author lazyman
  */
-public class ConfigurationStorage extends PageStorage {
+public class ConfigurationStorage implements PageStorage {
 
     private DebugSearchDto debugSearchDto;
     private AccountDetailsSearchDto accountSearchDto;
@@ -35,13 +35,23 @@ public class ConfigurationStorage extends PageStorage {
     private ObjectPaging debugSearchPaging;
     private ObjectPaging accountDetailsPaging;
 
-    public DebugSearchDto getDebugSearchDto() {
-        return debugSearchDto;
+    @Override
+    public Search getSearch() {
+        return debugSearchDto.getSearch();
+    }
+    
+    @Override
+    public void setSearch(Search search) {
+    	debugSearchDto.setSearch(search);
     }
 
     public void setDebugSearchDto(DebugSearchDto debugSearchDto) {
         this.debugSearchDto = debugSearchDto;
     }
+    
+    public DebugSearchDto getDebugSearchDto() {
+		return debugSearchDto;
+	}
 
     public AccountDetailsSearchDto getAccountSearchDto() {
         if(accountSearchDto == null){
@@ -55,11 +65,13 @@ public class ConfigurationStorage extends PageStorage {
         this.accountSearchDto = accountSearchDto;
     }
 
-    public ObjectPaging getDebugSearchPaging() {
+    @Override
+    public ObjectPaging getPaging() {
         return debugSearchPaging;
     }
 
-    public void setDebugSearchPaging(ObjectPaging debugSearchPaging) {
+    @Override
+    public void setPaging(ObjectPaging debugSearchPaging) {
         this.debugSearchPaging = debugSearchPaging;
     }
 

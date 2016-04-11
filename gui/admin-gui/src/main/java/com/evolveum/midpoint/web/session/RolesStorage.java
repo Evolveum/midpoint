@@ -21,9 +21,14 @@ import com.evolveum.midpoint.web.component.search.Search;
 /**
  * @author shood
  */
-public class RolesStorage extends PageStorage {
+public class RolesStorage implements PageStorage {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
      * DTO used for search in {@link com.evolveum.midpoint.web.page.admin.roles.PageRoles}
      */
     private Search rolesSearch;
@@ -33,19 +38,23 @@ public class RolesStorage extends PageStorage {
      */
     private ObjectPaging rolesPaging;
 
-    public Search getRolesSearch() {
+    @Override
+    public Search getSearch() {
         return rolesSearch;
     }
 
-    public void setRolesSearch(Search rolesSearch) {
+    @Override
+    public void setSearch(Search rolesSearch) {
         this.rolesSearch = rolesSearch;
     }
 
-    public ObjectPaging getRolesPaging() {
+    @Override
+    public ObjectPaging getPaging() {
         return rolesPaging;
     }
 
-    public void setRolesPaging(ObjectPaging rolesPaging) {
+    @Override
+    public void setPaging(ObjectPaging rolesPaging) {
         this.rolesPaging = rolesPaging;
     }
 }

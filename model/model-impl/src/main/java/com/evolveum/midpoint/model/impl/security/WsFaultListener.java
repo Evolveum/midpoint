@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,11 +54,16 @@ public class WsFaultListener implements FaultListener {
     		return true;
     	}
 		try {
+			String auditMessage = exception.getMessage();
+			if (exception.getClass() != null) {
+				// Exception cause has much better message because CXF masks real messages in the SOAP faults.
+				auditMessage = exception.getCause().getMessage();
+			}
 			SOAPMessage saajSoapMessage = message.getContent(SOAPMessage.class);
 	    	String username = securityHelper.getUsernameFromMessage(saajSoapMessage);
 	    	ConnectionEnvironment connEnv = new ConnectionEnvironment();
         	connEnv.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
-			securityHelper.auditLoginFailure(username, connEnv, exception.getMessage());
+			securityHelper.auditLoginFailure(username, connEnv, auditMessage);
 		} catch (WSSecurityException e) {
 			// Ignore
 			LOGGER.trace("Exception getting username from soap message (probably safe to ignore)", e);

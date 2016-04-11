@@ -27,9 +27,14 @@ import java.util.Set;
 /**
  * @author lazyman
  */
-public class UsersStorage extends PageStorage {
+public class UsersStorage implements PageStorage {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
      * DTO used for search in {@link com.evolveum.midpoint.web.page.admin.users.PageUsers}
      */
     private Search usersSearch;
@@ -54,19 +59,23 @@ public class UsersStorage extends PageStorage {
     private int selectedTabId = -1;                 //selected tab id on the Org. structure page
     private OrgTreeDto collapsedItem = null;                 //selected tab id on the Org. structure page
 
-    public ObjectPaging getUsersPaging() {
+    @Override
+    public ObjectPaging getPaging() {
         return usersPaging;
     }
 
-    public void setUsersPaging(ObjectPaging usersPaging) {
+    @Override
+    public void setPaging(ObjectPaging usersPaging) {
         this.usersPaging = usersPaging;
     }
 
-    public Search getUsersSearch() {
+    @Override
+    public Search getSearch() {
         return usersSearch;
     }
 
-    public void setUsersSearch(Search usersSearch) {
+    @Override
+    public void setSearch(Search usersSearch) {
         this.usersSearch = usersSearch;
     }
 

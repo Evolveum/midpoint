@@ -206,6 +206,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 	private MidPointPrincipal getAndCheckPrincipal(ConnectionEnvironment connEnv, String enteredUsername) {
 		
 		if (StringUtils.isBlank(enteredUsername)) {
+			recordAuthenticationFailure(enteredUsername, connEnv, "no username");
 			throw new UsernameNotFoundException("web.security.provider.invalid");
 		}
 		

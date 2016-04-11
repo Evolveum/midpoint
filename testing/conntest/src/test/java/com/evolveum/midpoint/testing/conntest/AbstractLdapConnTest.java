@@ -876,9 +876,15 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         display("Shadow (model)", shadow);
         accountLechuckOid = shadow.getOid();
         accountLechuckDn = entry.getDn().toString();
+        assertNotNull(accountLechuckDn);
         
         assertLdapGroupMember(entry, GROUP_EVIL_CN);
         assertLdapNoGroupMember(entry, GROUP_UNDEAD_CN);
+        
+        Entry ldapEntryEvil = getLdapEntry(toGroupDn(GROUP_EVIL_CN));
+        display("Evil group", ldapEntryEvil);
+        Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
+        display("Undead group", ldapEntryUndead);
 	}
 	
 	/**
@@ -911,6 +917,11 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
         assertLdapGroupMember(entry, GROUP_EVIL_CN);
         assertLdapGroupMember(entry, GROUP_UNDEAD_CN);
+        
+        Entry ldapEntryEvil = getLdapEntry(toGroupDn(GROUP_EVIL_CN));
+        display("Evil group", ldapEntryEvil);
+        Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
+        display("Undead group", ldapEntryUndead);
 	}
 	
 	/**
@@ -943,6 +954,11 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
         assertLdapNoGroupMember(entry, GROUP_EVIL_CN);
         assertLdapGroupMember(entry, GROUP_UNDEAD_CN);
+        
+        Entry ldapEntryEvil = getLdapEntry(toGroupDn(GROUP_EVIL_CN));
+        display("Evil group", ldapEntryEvil);
+        Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
+        display("Undead group", ldapEntryUndead);
 	}
 	
 	/**
@@ -969,11 +985,16 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         PrismObject<UserType> user = getUser(USER_LECHUCK_OID);
         assertNoLinkedAccount(user);
 
-        openDJController.assertNoEntry(accountLechuckDn);
+        assertNoEntry(accountLechuckDn);
         
         assertNoObject(ShadowType.class, accountLechuckOid, task, result);
         
         assertLdapNoGroupMember(accountLechuckDn, GROUP_EVIL_CN);
         assertLdapNoGroupMember(accountLechuckDn, GROUP_UNDEAD_CN);
+        
+        Entry ldapEntryEvil = getLdapEntry(toGroupDn(GROUP_EVIL_CN));
+        display("Evil group", ldapEntryEvil);
+        Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
+        display("Undead group", ldapEntryUndead);
 	}
 }
