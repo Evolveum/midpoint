@@ -876,6 +876,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         display("Shadow (model)", shadow);
         accountLechuckOid = shadow.getOid();
         accountLechuckDn = entry.getDn().toString();
+        assertNotNull(accountLechuckDn);
         
         assertLdapGroupMember(entry, GROUP_EVIL_CN);
         assertLdapNoGroupMember(entry, GROUP_UNDEAD_CN);
@@ -969,7 +970,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         PrismObject<UserType> user = getUser(USER_LECHUCK_OID);
         assertNoLinkedAccount(user);
 
-        openDJController.assertNoEntry(accountLechuckDn);
+        assertNoEntry(accountLechuckDn);
         
         assertNoObject(ShadowType.class, accountLechuckOid, task, result);
         

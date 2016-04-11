@@ -330,9 +330,10 @@
 			<enabled>true</enabled>
 			<correlation>
 				<q:equal>
+					<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#polyStringNorm</q:matching>
 					<q:path>c:name</q:path>
 					<expression>
-					<path>$shadow/attributes/cn</path>
+						<path>$shadow/attributes/cn</path>
 					</expression>
 				</q:equal>
 			</correlation>
