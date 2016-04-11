@@ -19,12 +19,14 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
+import org.apache.wicket.datetime.PatternDateConverter;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -50,6 +52,8 @@ public class ProcessInstanceDto extends Selectable {
     public static final String F_ANSWER = "answer";
 
     private TaskType task;
+    private PatternDateConverter converter = new PatternDateConverter
+            (WebComponentUtil.getLocalizedDatePattern(DateLabelComponent.LONG_MEDIUM_STYLE), true );
 
     public ProcessInstanceDto(TaskType task) {
         Validate.notNull(task, "Task is null");
@@ -66,12 +70,13 @@ public class ProcessInstanceDto extends Selectable {
     }
 
     public String getStartFormatted() {
-        Date started = toDate(getStartTimestamp());
-        return formatDate(started);
+        return getStartTimestamp() != null ? converter.convertToString(XmlTypeConverter.toDate(getStartTimestamp()),
+                WebComponentUtil.getCurrentLocale()) : "";
     }
 
     public String getEndFormatted() {
-        return formatDate(toDate(getEndTimestamp()));
+        return getEndTimestamp() != null ? converter.convertToString(XmlTypeConverter.toDate(getEndTimestamp()),
+                WebComponentUtil.getCurrentLocale()) : "";
     }
 
     public String getName() {

@@ -173,6 +173,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
     	task.makeSingle();
     	
     	taskManager.switchToBackground(task, parentResult);
+		parentResult.setBackgroundTaskOid(task.getOid());
     }
     /**
      * Transforms change:

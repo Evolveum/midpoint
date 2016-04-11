@@ -362,6 +362,13 @@ It also contains inbound mappings and definition to enable synchronization.
 				<ref>ri:member</ref>
 				<matchingRule>mr:distinguishedName</matchingRule>
 				<fetchStrategy>minimal</fetchStrategy>
+				<outbound>
+					<strength>strong</strength>
+					<!-- Workaround - groupOfNames MUST have at least one member. Even non-existent DN. -->
+					<expression>
+						<value>cn=dummy,o=whatever</value>
+					</expression>
+				</outbound>
 			</attribute>			
 			<attribute>
 				<ref>ri:cn</ref>

@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Date;
 
 /**
  * @author lazyman
@@ -112,6 +113,14 @@ public class WorkItemDto extends Selectable {
 
     public String getCreated() {
         return WebComponentUtil.formatDate(XmlTypeConverter.toDate(workItem.getWorkItemCreatedTimestamp()));
+    }
+
+    public Date getCreatedDate() {
+        return XmlTypeConverter.toDate(workItem.getWorkItemCreatedTimestamp());
+    }
+
+    public Date getStartedDate() {
+        return XmlTypeConverter.toDate(workItem.getProcessStartedTimestamp());
     }
 
     public String getProcessStarted() {

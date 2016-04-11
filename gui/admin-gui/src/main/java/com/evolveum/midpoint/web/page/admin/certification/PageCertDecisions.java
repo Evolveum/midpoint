@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -248,7 +250,7 @@ public class PageCertDecisions extends PageAdminCertification {
                 CertDecisionDto dto = rowModel.getObject();
                 Date started = dto.getStageStarted();
                 if (started != null) {
-                    item.add(AttributeModifier.replace("title", WebComponentUtil.formatDate(started)));
+                    item.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(started, DateLabelComponent.LONG_MEDIUM_STYLE)));
                     item.add(new TooltipBehavior());
                 }
             }

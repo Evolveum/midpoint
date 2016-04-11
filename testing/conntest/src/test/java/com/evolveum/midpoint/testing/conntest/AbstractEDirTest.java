@@ -1076,12 +1076,12 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		}
 	}
 	
-	private void assertEDirGroupMember(String accountUid, String groupName) throws LdapException, IOException, CursorException {
+	private void assertEDirGroupMember(String accountUid, String groupName) throws LdapException, IOException, CursorException, SchemaException {
 		Entry accountEntry = getLdapAccountByUid(accountUid);
 		assertEDirGroupMember(accountEntry, groupName);
 	}
 	
-	private void assertEDirGroupMember(Entry accountEntry, String groupName) throws LdapException, IOException, CursorException {
+	private void assertEDirGroupMember(Entry accountEntry, String groupName) throws LdapException, IOException, CursorException, SchemaException {
 		Entry groupEntry = getLdapGroupByName(groupName);
 		assertAttributeContains(groupEntry, getLdapGroupMemberAttribute(), accountEntry.getDn().toString());
 		assertAttributeContains(groupEntry, ATTRIBUTE_EQUIVALENT_TO_ME_NAME, accountEntry.getDn().toString());
@@ -1089,7 +1089,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		assertAttributeContains(accountEntry, ATTRIBUTE_SECURITY_EQUALS_NAME, groupEntry.getDn().toString());
 	}
 	
-	private void assertEDirNoGroupMember(Entry accountEntry, String groupName) throws LdapException, IOException, CursorException {
+	private void assertEDirNoGroupMember(Entry accountEntry, String groupName) throws LdapException, IOException, CursorException, SchemaException {
 		Entry groupEntry = getLdapGroupByName(groupName);
 		assertAttributeNotContains(groupEntry, getLdapGroupMemberAttribute(), accountEntry.getDn().toString());
 		assertAttributeNotContains(groupEntry, ATTRIBUTE_EQUIVALENT_TO_ME_NAME, accountEntry.getDn().toString());

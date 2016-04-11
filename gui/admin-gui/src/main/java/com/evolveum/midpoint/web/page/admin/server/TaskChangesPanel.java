@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskChangesDto;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 

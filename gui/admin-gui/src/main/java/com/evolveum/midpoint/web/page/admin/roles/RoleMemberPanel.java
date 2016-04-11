@@ -770,15 +770,14 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			ObjectDelta delta = ObjectDelta.createModificationAddContainer(UserType.class, "fakeOid",
 					FocusType.F_ASSIGNMENT, getPrismContext(), createAssignmentToModify());
 
-			execute("Add member(s)", getActionQuery(QueryScope.TO_ADD, selected), delta, parentResult,
-					target);
+			String taskOid = execute("Add member(s)", getActionQuery(QueryScope.TO_ADD, selected), delta, parentResult, target);
+			parentResult.setBackgroundTaskOid(taskOid);
 		} catch (SchemaException e) {
 			// TODO Auto-generated catch block
 			error(getString("pageUsers.message.nothingSelected") + e.getMessage());
 			target.add(getFeedbackPanel());
 		}
-
-		parentResult.recordInProgress();
+		parentResult.recordInProgress();		// TODO don't do this in case of error
 		pageBase.showResult(parentResult);
 		target.add(getFeedbackPanel());
 
@@ -790,13 +789,14 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			ObjectDelta delta = ObjectDelta.createModificationDeleteContainer(UserType.class, "fakeOid",
 					FocusType.F_ASSIGNMENT, getPrismContext(), createAssignmentToModify());
 
-			execute("Remove member(s)", getActionQuery(scope, null), delta, parentResult, target);
+			String taskOid = execute("Remove member(s)", getActionQuery(scope, null), delta, parentResult, target);
+			parentResult.setBackgroundTaskOid(taskOid);
 		} catch (SchemaException e) {
 			// TODO Auto-generated catch block
 			error(getString("pageUsers.message.nothingSelected") + e.getMessage());
 			target.add(getFeedbackPanel());
 		}
-		parentResult.recordInProgress();
+		parentResult.recordInProgress();		// TODO don't do this in case of error
 		pageBase.showResult(parentResult);
 		target.add(getFeedbackPanel());
 	}
@@ -812,6 +812,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			pageBase.getPrismContext().adopt(delta);
 			pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
 					operationalTask, parentResult);
+			parentResult.setBackgroundTaskOid(delta.getOid());
 		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
 				| ExpressionEvaluationException | CommunicationException | ConfigurationException
 				| PolicyViolationException | SecurityViolationException e) {
@@ -819,12 +820,12 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			error(getString("pageUsers.message.nothingSelected") + e.getMessage());
 			target.add(getFeedbackPanel());
 		}
-		parentResult.recordInProgress();
+		parentResult.recordInProgress();		// TODO don't this if error
 		pageBase.showResult(parentResult);
 		target.add(getFeedbackPanel());
 	}
 
-	private void execute(String taskName, ObjectQuery query, ObjectDelta deltaToExecute,
+	private String execute(String taskName, ObjectQuery query, ObjectDelta deltaToExecute,
 			OperationResult parentResult, AjaxRequestTarget target) {
 		Task operationalTask = pageBase.createSimpleTask("Execute changes");
 
@@ -834,12 +835,14 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			pageBase.getPrismContext().adopt(delta);
 			pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
 					operationalTask, parentResult);
+			return delta.getOid();
 		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
 				| ExpressionEvaluationException | CommunicationException | ConfigurationException
 				| PolicyViolationException | SecurityViolationException e) {
 			// TODO Auto-generated catch block
 			error(getString("pageUsers.message.nothingSelected") + e.getMessage());
 			target.add(getFeedbackPanel());
+			return null;
 		}
 		// pageBase.showResult(parentResult);
 	}

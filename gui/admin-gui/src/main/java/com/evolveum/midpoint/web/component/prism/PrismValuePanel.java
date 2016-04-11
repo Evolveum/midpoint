@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ import com.evolveum.midpoint.web.page.admin.users.component.AssociationValueChoi
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang.ClassUtils;
@@ -212,7 +213,7 @@ public class PrismValuePanel extends Panel {
                     ObjectWrapper object = itemWrapper.getContainer().getObject();
                     ItemDefinition def = itemWrapper.getItem().getDefinition();
 
-                    return !model.getObject().isReadonly() && isAccessible(def, object.getStatus());
+                    return !model.getObject().isReadonly() && (object == null || isAccessible(def, object.getStatus()));
                 }
             });
         }
@@ -295,10 +296,16 @@ public class PrismValuePanel extends Panel {
         if (propertyWrapper.getContainer() == null) {
             return true;        // TODO
         }
-        return isAccessible(definition, propertyWrapper.getContainer().getObject().getStatus());
+
+		return isAccessible(definition, getContainerStatus(propertyWrapper));
     }
 
-    private boolean isAddButtonVisible() {
+	private ContainerStatus getContainerStatus(ItemWrapper propertyWrapper) {
+		final ObjectWrapper objectWrapper = propertyWrapper.getContainer().getObject();
+		return objectWrapper != null ? objectWrapper.getStatus() : ContainerStatus.MODIFYING;
+	}
+
+	private boolean isAddButtonVisible() {
         Component inputPanel = this.get(ID_VALUE_CONTAINER).get(ID_INPUT);
         ValueWrapper valueWrapper = model.getObject();
 
@@ -327,7 +334,7 @@ public class PrismValuePanel extends Panel {
         if (propertyWrapper.getContainer() == null) {
             return true;            // TODO
         }
-        return isAccessible(definition, propertyWrapper.getContainer().getObject().getStatus());
+        return isAccessible(definition, getContainerStatus(propertyWrapper));
     }
 
     private Panel createInputComponent(String id, IModel<String> label, Form form) {
@@ -414,14 +421,14 @@ public class PrismValuePanel extends Panel {
         if (item instanceof PrismProperty) {
         	  final PrismProperty property = (PrismProperty) item;
         	  PrismPropertyDefinition definition = property.getDefinition();
-              QName valueType = definition.getTypeName();
+              final QName valueType = definition.getTypeName();
 
               final String baseExpression = "value.value"; //pointing to prism property real value
 
               //fixing MID-1230, will be improved with some kind of annotation or something like that
               //now it works only in description
               if (ObjectType.F_DESCRIPTION.equals(definition.getName())) {
-                  return new TextAreaPanel(id, new PropertyModel(model, baseExpression));
+                  return new TextAreaPanel(id, new PropertyModel(model, baseExpression), null);
               }
 
               if (ActivationType.F_ADMINISTRATIVE_STATUS.equals(definition.getName())) {
@@ -463,14 +470,20 @@ public class PrismValuePanel extends Panel {
                       final PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
                               lookupTableUid, options, pageBase, task, result);
 
-                      inputPanel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(model, baseExpression + ".orig",
-                              lookupTable.asObjectable()), String.class) {
-
-                          @Override
-                          public Iterator<String> getIterator(String input) {
-                              return prepareAutoCompleteList(input, lookupTable).iterator();
-                          }
-                      };
+                      if (lookupTable != null) {
+                    	  
+	                      inputPanel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(model, baseExpression + ".orig",
+	                              lookupTable.asObjectable()), String.class) {
+	
+	                          @Override
+	                          public Iterator<String> getIterator(String input) {
+	                              return prepareAutoCompleteList(input, lookupTable).iterator();
+	                          }
+	                      };
+	                      
+                      } else {
+                    	  inputPanel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression + ".orig"), String.class);
+                      }
 
                   } else {
                 	  
@@ -536,7 +549,33 @@ public class PrismValuePanel extends Panel {
 
                       }
                   });
-              } else {
+              } else if (QueryType.COMPLEX_TYPE.equals(valueType) || CleanupPoliciesType.COMPLEX_TYPE.equals(valueType)) {
+				  return new TextAreaPanel(id, new AbstractReadOnlyModel() {
+					  @Override
+					  public Object getObject() {
+						  if (model.getObject() == null || model.getObject().getValue() == null) {
+							  return null;
+						  }
+						  PrismPropertyValue ppv = (PrismPropertyValue) model.getObject().getValue();
+						  if (ppv == null || ppv.getValue() == null) {
+							  return null;
+						  }
+						  QName name = property.getElementName();
+						  if (name == null && property.getDefinition() != null) {
+							  name = property.getDefinition().getName();
+						  }
+						  if (name == null) {
+							  name = SchemaConstants.C_VALUE;
+						  }
+						  PrismContext prismContext = ((PageBase) getPage()).getPrismContext();
+						  try {
+							  return prismContext.serializeAnyData(ppv.getValue(), name, PrismContext.LANG_XML);
+						  } catch (SchemaException e) {
+							  throw new SystemException("Couldn't serialize property value of type: " + valueType + ": " + e.getMessage(), e);
+						  }
+					  }
+				  }, 10);
+			  } else {
                   Class type = XsdTypeMapper.getXsdToJavaMapping(valueType);
                   if (type != null && type.isPrimitive()) {
                       type = ClassUtils.primitiveToWrapper(type);
@@ -564,43 +603,51 @@ public class PrismValuePanel extends Panel {
                       final PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
                               lookupTableUid, options, pageBase, task, result);
 
-                      panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(model, baseExpression,
-                              lookupTable == null ? null : lookupTable.asObjectable()), type) {
-
-
-                          @Override
-                          public Iterator<String> getIterator(String input) {
-                              return prepareAutoCompleteList(input, lookupTable).iterator();
-                          }
-
-                          @Override
-                      public void checkInputValue(AutoCompleteTextField input, AjaxRequestTarget target, LookupPropertyModel model){
-                              Iterator<String> lookupTableValuesIterator = prepareAutoCompleteList("", lookupTable).iterator();
-
-                              String value = input.getInput();
-                              boolean isValueExist = false;
-                              if (value != null) {
-                                  if (value.trim().equals("")){
-                                      isValueExist = true;
-                                  } else {
-                                      while (lookupTableValuesIterator.hasNext()) {
-                                          String lookupTableValue = lookupTableValuesIterator.next();
-                                          if (value.trim().equals(lookupTableValue)) {
-                                              isValueExist = true;
-                                              break;
-                                          }
-                                      }
-                                  }
-                              }
-                              if (isValueExist){
-                                  input.setModelValue(new String[]{value});
-                                  target.add(PrismValuePanel.this.get(ID_FEEDBACK));
-                              } else {
-                                  input.error("Entered value doesn't match any of available values and will not be saved.");
-                                  target.add(PrismValuePanel.this.get(ID_FEEDBACK));
-                              }
-                          }
-                      };
+                      if (lookupTable != null) {
+                      
+	                      panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(model, baseExpression,
+	                              lookupTable == null ? null : lookupTable.asObjectable()), type) {
+	
+	
+	                          @Override
+	                          public Iterator<String> getIterator(String input) {
+	                              return prepareAutoCompleteList(input, lookupTable).iterator();
+	                          }
+	
+	                          @Override
+	                          public void checkInputValue(AutoCompleteTextField input, AjaxRequestTarget target, LookupPropertyModel model){
+	                              Iterator<String> lookupTableValuesIterator = prepareAutoCompleteList("", lookupTable).iterator();
+	
+	                              String value = input.getInput();
+	                              boolean isValueExist = false;
+	                              if (value != null) {
+	                                  if (value.trim().equals("")){
+	                                      isValueExist = true;
+	                                  } else {
+	                                      while (lookupTableValuesIterator.hasNext()) {
+	                                          String lookupTableValue = lookupTableValuesIterator.next();
+	                                          if (value.trim().equals(lookupTableValue)) {
+	                                              isValueExist = true;
+	                                              break;
+	                                          }
+	                                      }
+	                                  }
+	                              }
+	                              if (isValueExist){
+	                                  input.setModelValue(new String[]{value});
+	                                  target.add(PrismValuePanel.this.get(ID_FEEDBACK));
+	                              } else {
+	                                  input.error("Entered value doesn't match any of available values and will not be saved.");
+	                                  target.add(PrismValuePanel.this.get(ID_FEEDBACK));
+	                              }
+	                          }
+	                      };
+	                      
+                      } else {
+                    	  
+                    	  panel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression), type);
+                    	  
+                      }
 
                   } else {
                       panel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression), type);

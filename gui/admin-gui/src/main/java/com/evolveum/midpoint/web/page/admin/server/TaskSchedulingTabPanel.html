@@ -23,15 +23,15 @@
     <div class="box box-info">
         <div class="box-body no-padding">
             <table class="table table-striped">
-                <tr>
+                <tr wicket:id="lastStartedContainer">
                     <td><wicket:message key="pageTaskEdit.lastStarted"/></td>
                     <td><span wicket:id="lastStarted" /> <span class="small" wicket:id="lastStartedAgo" /></td>
                 </tr>
-                <tr>
+                <tr wicket:id="lastFinishedContainer">
                     <td><wicket:message key="pageTaskEdit.lastFinished"/></td>
                     <td><span wicket:id="lastFinished" /> <span class="small" wicket:id="lastFinishedAgo" /></td>
                 </tr>
-                <tr>
+                <tr wicket:id="nextRunContainer">
                     <td><wicket:message key="pageTaskEdit.nextRun"/></td>
                     <td><span wicket:id="nextRun" /> <span class="small" wicket:id="nextRunIn" /></td>
                 </tr>
@@ -42,7 +42,7 @@
     <div class="box box-default">
         <div class="box-body no-padding">
             <table class="table table-striped" wicket:id="schedulingTable">
-                <tr>
+                <tr wicket:id="recurringContainer">
                     <td><wicket:message key="pageTaskEdit.recurring"/></td>
                     <td>
                         <input type="checkbox" class="input-sm" wicket:id="recurringCheck"/>
@@ -77,19 +77,19 @@
                         </span>
                     </td>
                 </tr>
-                <tr>
+                <tr wicket:id="notStartBeforeContainer">
                     <td><wicket:message key="pageTaskEdit.notStartBefore"/></td>
                     <td><span wicket:id="notStartBeforeField" /></td>
                 </tr>
-                <tr>
+                <tr wicket:id="notStartAfterContainer">
                     <td><wicket:message key="pageTaskEdit.notStartAfter"/></td>
                     <td><span wicket:id="notStartAfterField" /></td>
                 </tr>
-                <tr>
+                <tr wicket:id="misfireActionContainer">
                     <td><wicket:message key="pageTaskEdit.misfire"/></td>
                     <td><select class="form-control input-sm" wicket:id="misfireAction"/></td>
                 </tr>
-                <tr>
+                <tr wicket:id="threadStopContainer">
                     <td><wicket:message key="pageTaskEdit.threadStop"/></td>
                     <td><select class="form-control input-sm" wicket:id="threadStop"/></td>
                 </tr>

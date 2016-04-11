@@ -21,6 +21,7 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -33,12 +34,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.ThreadContext;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebSession;
 import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.injection.Injector;
+import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Url;
 import org.apache.wicket.request.cycle.RequestCycle;
@@ -51,6 +54,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * @author lazyman
@@ -111,6 +115,7 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession {
             authenticated = authentication.isAuthenticated();
 
             auditEvent(authentication, username, OperationResultStatus.SUCCESS);
+            setClientCustomization();
         } catch (AuthenticationException ex) {
             String key = ex.getMessage() != null ? ex.getMessage() : "web.security.provider.unavailable";
             MidPointApplication app = (MidPointApplication) getSession().getApplication();
@@ -159,5 +164,20 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession {
         record.setOutcome(status);
 
         auditService.audit(record, task);
+    }
+
+    private void setClientCustomization(){
+
+        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        if (principal != null) {
+            //setting locale
+            setLocale(WebModelServiceUtils.getLocale());
+            LOGGER.debug("Using {} as locale", getLocale());
+
+            //set time zone
+            WebSession.get().getClientInfo().getProperties().
+                    setTimeZone(WebModelServiceUtils.getTimezone());
+            LOGGER.debug("Using {} as time zone", WebSession.get().getClientInfo().getProperties().getTimeZone());
+        }
     }
 }

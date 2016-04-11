@@ -77,32 +77,29 @@ public class ScheduleValidator extends AbstractFormValidator {
 
         if (recurring.getModelObject()) {
 
-            if (interval.getModelObject() != null && interval.getModelObject() <= 0) {
+			Integer intervalValue = interval.getModelObject();
+			if (intervalValue != null && intervalValue <= 0) {
                 error(interval, "pageTask.scheduleValidation.intervalNotPositive");
             }
 
 			if (bound.getModelObject()) {
 
-				if (interval.getModelObject() == null) {
+				if (intervalValue == null) {
 				    error(interval, "pageTask.scheduleValidation.noInterval");
 			    }
 
             } else {
 
-                if (interval.getModelObject() != null && !StringUtils.isEmpty(cron.getModelObject())) {
+				String cronValue = cron.getModelObject();
+				if (intervalValue != null && !StringUtils.isEmpty(cronValue)) {
                     error(interval, "pageTask.scheduleValidation.bothIntervalAndCron");
                 }
 
-                // there can be recurring tasks that are started only on demand, so we allow specifying no timing information
-//                if (interval.getModelObject() == null && StringUtils.isEmpty(cron.getModelObject())) {
-//                    error(interval, "pageTask.scheduleValidation.neitherIntervalNorCron");
-//                }
-
-                if (!StringUtils.isEmpty(cron.getModelObject())) {
-                    ParseException pe = taskManager.validateCronExpression(cron.getModelObject());
+                if (!StringUtils.isEmpty(cronValue)) {
+                    ParseException pe = taskManager.validateCronExpression(cronValue);
                     if (pe != null) {
                         error(cron, "pageTask.scheduleValidation.invalidCronSpecification");
-                        LOGGER.warn("Invalid cron-like specification: " + cron.getModelObject() + ": " + pe);
+                        LOGGER.warn("Invalid cron-like specification: " + cronValue + ": " + pe);
                     }
                 }
             }

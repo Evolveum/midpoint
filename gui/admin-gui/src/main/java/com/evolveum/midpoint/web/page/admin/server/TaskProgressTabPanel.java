@@ -24,7 +24,7 @@ import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.currentState.*;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
@@ -61,7 +61,14 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 
 	private void initLayout(final IModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		final TaskCurrentStateDtoModel model = new TaskCurrentStateDtoModel(taskDtoModel);
-		add(new IterativeInformationPanel(ID_ITERATIVE_INFORMATION_PANEL, model, pageBase));
+		final IterativeInformationPanel iterativeInformationPanel = new IterativeInformationPanel(ID_ITERATIVE_INFORMATION_PANEL, model, pageBase);
+		iterativeInformationPanel.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return model.getObject().getIterativeTaskInformationType() != null;
+			}
+		});
+		add(iterativeInformationPanel);
 
 		synchronizationInformationPanelBefore = new SynchronizationInformationPanel(ID_SYNCHRONIZATION_INFORMATION_PANEL_BEFORE,
 				new PropertyModel<SynchronizationInformationDto>(model, TaskCurrentStateDto.F_SYNCHRONIZATION_INFORMATION_DTO), false);

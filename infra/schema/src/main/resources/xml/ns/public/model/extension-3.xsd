@@ -74,6 +74,8 @@
                the reconciliation will not perform any action, but it will only compare the resource and repository state. 
             </xsd:documentation>
             <xsd:appinfo>
+                <a:displayName>Dry run</a:displayName>
+                <a:displayOrder>800</a:displayOrder>
            	 	<a:minOccurs>0</a:minOccurs>
             	<a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
@@ -101,6 +103,8 @@
                 in case of handlers that by default provide a non-empty query).
             </xsd:documentation>
             <xsd:appinfo>
+                <a:displayName>Object query</a:displayName>
+                <a:displayOrder>120</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
@@ -113,6 +117,8 @@
                 Object type to use for search queries or other operations (e.g. UserType, ShadowType)
             </xsd:documentation>
             <xsd:appinfo>
+                <a:displayName>Object type</a:displayName>
+                <a:displayOrder>110</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
@@ -122,8 +128,7 @@
     <xsd:element name="objectDelta" type="t:ObjectDeltaType">
         <xsd:annotation>
             <xsd:documentation>
-                QName of an object class to process in the import task.
-                E.g. during import from resource.
+                TODO
             </xsd:documentation>
             <xsd:appinfo>
             	<a:maxOccurs>1</a:maxOccurs>
@@ -229,6 +234,8 @@
                 EXPERIMENTAL
             </xsd:documentation>
             <xsd:appinfo>
+                <a:displayName>Diagnose</a:displayName>
+                <a:displayOrder>200</a:displayOrder>
                 <a:maxOccurs>-1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
@@ -243,6 +250,8 @@
                 EXPERIMENTAL
             </xsd:documentation>
             <xsd:appinfo>
+                <a:displayName>Fix</a:displayName>
+                <a:displayOrder>210</a:displayOrder>
                 <a:maxOccurs>-1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
@@ -255,6 +264,8 @@
                 If not specified, a default implementation is used.
             </xsd:documentation>
             <xsd:appinfo>
+                <a:displayName>Duplicate shadows resolver</a:displayName>
+                <a:displayOrder>400</a:displayOrder>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
@@ -266,6 +277,8 @@
                 Should ShadowIntegrityCheck task handler check duplicates only for primary identifiers?
             </xsd:documentation>
             <xsd:appinfo>
+                <a:displayName>Check duplicates on primary identifiers only</a:displayName>
+                <a:displayOrder>500</a:displayOrder>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
@@ -278,6 +291,8 @@
                 Used e.g. to cleanup all currently closed tasks.
             </xsd:documentation>
             <xsd:appinfo>
+                <a:displayName>Task-specific cleanup policies</a:displayName>
+                <a:displayOrder>100</a:displayOrder>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>

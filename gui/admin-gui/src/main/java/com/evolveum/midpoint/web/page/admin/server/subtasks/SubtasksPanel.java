@@ -47,7 +47,7 @@ public class SubtasksPanel extends BasePanel<List<TaskDto>> {
         columns.add(PageTasks.createTaskCategoryColumn(this, "SubtasksPanel.label.category"));
         columns.add(PageTasks.createTaskExecutionStatusColumn(this, "SubtasksPanel.label.executionState"));
         columns.add(PageTasks.createTaskResultStatusColumn(this, "SubtasksPanel.label.result"));
-        columns.add(PageTasks.createTaskDetailColumn(this, "SubtasksPanel.label.detail", workflowsEnabled));
+        //columns.add(PageTasks.createTaskDetailColumn(this, "SubtasksPanel.label.detail", workflowsEnabled));
 
         ISortableDataProvider provider = new ListDataProvider(this, getModel());
         add(new TablePanel<TaskDto>(ID_SUBTASKS_TABLE, provider, columns));

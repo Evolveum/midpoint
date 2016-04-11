@@ -37,6 +37,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +71,7 @@ import org.apache.directory.ldap.client.api.LdapConnectionConfig;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -112,6 +114,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -131,10 +134,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTest {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractLdapConnTest.class);
-	
-	private static final String USER_LECHUCK_NAME = "lechuck";
-	private static final String ACCOUNT_LECHUCK_NAME = "lechuck";
-	private static final String ACCOUNT_CHARLES_NAME = "charles";
 		
 	protected static final String ACCOUNT_IDM_DN = "uid=idm,ou=Administrators,dc=example,dc=com";
 	protected static final String ACCOUNT_0_UID = "u00000000";
@@ -151,10 +150,26 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 	protected static final String ACCOUNT_HT_CN = "Herman Toothrot";
 	protected static final String ACCOUNT_HT_GIVENNAME = "Herman";
 	protected static final String ACCOUNT_HT_SN = "Toothrot";
+	
+	protected static final File ROLE_UNDEAD_FILE = new File (COMMON_DIR, "role-undead.xml");
+	protected static final String ROLE_UNDEAD_OID = "54885c40-ffcc-11e5-b782-63b3e4e2a69d";
+
+	protected static final File ROLE_EVIL_FILE = new File (COMMON_DIR, "role-evil.xml");
+	protected static final String ROLE_EVIL_OID = "624b43ec-ffcc-11e5-8297-f392afa54704";
+
+	protected static final String GROUP_UNDEAD_CN = "undead";
+	protected static final String GROUP_UNDEAD_DESCRIPTION = "Death is for loosers";
+	
+	protected static final String GROUP_EVIL_CN = "evil";
+	protected static final String GROUP_EVIL_DESCRIPTION = "No pain no gain";
+
+	private static final String REGEXP_RESOURCE_OID_PLACEHOLDER = "%%%RESOURCE%%%";
 
 	protected String account0Oid;
 	protected String accountBarbossaOid;
 	protected String accountBarbossaEntryId;
+	protected String accountLechuckOid;
+	protected String accountLechuckDn;
 
     @Autowired
     protected ReconciliationTaskHandler reconciliationTaskHandler;
@@ -180,9 +195,18 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 		// Users
 		repoAddObjectFromFile(USER_BARBOSSA_FILE, UserType.class, initResult);
 		repoAddObjectFromFile(USER_GUYBRUSH_FILE, UserType.class, initResult);
+		repoAddObjectFromFile(USER_LECHUCK_FILE, UserType.class, initResult);
 		
 		// Roles
-		
+		repoAddObjectFromFileReplaceResource(ROLE_UNDEAD_FILE, RoleType.class, initResult);
+		repoAddObjectFromFileReplaceResource(ROLE_EVIL_FILE, RoleType.class, initResult);
+	}
+	
+	protected <O extends ObjectType> void repoAddObjectFromFileReplaceResource(File file, Class<O> type, OperationResult result) throws IOException, SchemaException, ObjectAlreadyExistsException {
+		String fileContent = MiscUtil.readFile(file);
+		String xmlString = fileContent.replaceAll(REGEXP_RESOURCE_OID_PLACEHOLDER, getResourceOid());
+		PrismObject<O> object = PrismTestUtil.parseObject(xmlString);
+		repositoryService.addObject(object, null, result);
 	}
 		
 	@Test
@@ -190,6 +214,17 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 		super.test000Sanity();
 		cleanupDelete(toAccountDn(USER_BARBOSSA_USERNAME));
 		cleanupDelete(toAccountDn(USER_CPTBARBOSSA_USERNAME));
+		
+		cleanupDelete(toGroupDn(GROUP_UNDEAD_CN));
+		cleanupDelete(toGroupDn(GROUP_EVIL_CN));
+		
+		if (needsGroupFakeMemeberEntry()) {
+        	addLdapGroup(GROUP_UNDEAD_CN, GROUP_UNDEAD_DESCRIPTION, "uid=fake,"+getPeopleLdapSuffix());
+        	addLdapGroup(GROUP_EVIL_CN, GROUP_EVIL_DESCRIPTION, "uid=fake,"+getPeopleLdapSuffix());
+        } else {
+        	addLdapGroup(GROUP_UNDEAD_CN, GROUP_UNDEAD_DESCRIPTION);
+        	addLdapGroup(GROUP_EVIL_CN, GROUP_EVIL_DESCRIPTION);
+        }
 	}
 	
 	@Test
@@ -200,8 +235,6 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
-        ResourceAttributeDefinition ldapUidAttrDef = accountObjectClassDefinition.findAttributeDefinition("uid");
         
         ObjectQuery query = createUidQuery(ACCOUNT_0_UID);
         
@@ -814,4 +847,133 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertNoLinkedAccount(user);
 	}
 	
+	/**
+	 *  MID-2853: Unexpected association behaviour - removing roles does not always remove from groups
+	 */
+	@Test
+    public void test300AssignRoleEvilToLechuck() throws Exception {
+		final String TEST_NAME = "test300AssignRoleEvilToLechuck";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_LECHUCK_OID, ROLE_EVIL_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        Entry entry = assertLdapAccount(USER_LECHUCK_USERNAME, USER_LECHUCK_FULL_NAME);
+        
+        PrismObject<UserType> user = getUser(USER_LECHUCK_OID);
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
+        display("Shadow (model)", shadow);
+        accountLechuckOid = shadow.getOid();
+        accountLechuckDn = entry.getDn().toString();
+        
+        assertLdapGroupMember(entry, GROUP_EVIL_CN);
+        assertLdapNoGroupMember(entry, GROUP_UNDEAD_CN);
+	}
+	
+	/**
+	 *  MID-2853: Unexpected association behaviour - removing roles does not always remove from groups
+	 */
+	@Test
+    public void test302AssignRoleUndeadToLechuck() throws Exception {
+		final String TEST_NAME = "test302AssignRoleUndeadToLechuck";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_LECHUCK_OID, ROLE_UNDEAD_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        Entry entry = assertLdapAccount(USER_LECHUCK_USERNAME, USER_LECHUCK_FULL_NAME);
+        
+        PrismObject<UserType> user = getUser(USER_LECHUCK_OID);
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
+        display("Shadow (model)", shadow);
+        
+        assertLdapGroupMember(entry, GROUP_EVIL_CN);
+        assertLdapGroupMember(entry, GROUP_UNDEAD_CN);
+	}
+	
+	/**
+	 *  MID-2853: Unexpected association behaviour - removing roles does not always remove from groups
+	 */
+	@Test
+    public void test306UnassignRoleEvilFromLechuck() throws Exception {
+		final String TEST_NAME = "test306UnassignRoleEvilFromLechuck";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_LECHUCK_OID, ROLE_EVIL_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        Entry entry = assertLdapAccount(USER_LECHUCK_USERNAME, USER_LECHUCK_FULL_NAME);
+        
+        PrismObject<UserType> user = getUser(USER_LECHUCK_OID);
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
+        display("Shadow (model)", shadow);
+        
+        assertLdapNoGroupMember(entry, GROUP_EVIL_CN);
+        assertLdapGroupMember(entry, GROUP_UNDEAD_CN);
+	}
+	
+	/**
+	 *  MID-2853: Unexpected association behaviour - removing roles does not always remove from groups
+	 */
+	@Test
+    public void test309UnassignRoleUndeadFromLechuck() throws Exception {
+		final String TEST_NAME = "test309UnassignRoleUndeadFromLechuck";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_LECHUCK_OID, ROLE_UNDEAD_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_LECHUCK_OID);
+        assertNoLinkedAccount(user);
+
+        openDJController.assertNoEntry(accountLechuckDn);
+        
+        assertNoObject(ShadowType.class, accountLechuckOid, task, result);
+        
+        assertLdapNoGroupMember(accountLechuckDn, GROUP_EVIL_CN);
+        assertLdapNoGroupMember(accountLechuckDn, GROUP_UNDEAD_CN);
+	}
 }

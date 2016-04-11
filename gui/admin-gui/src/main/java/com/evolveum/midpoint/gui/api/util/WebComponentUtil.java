@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
@@ -51,6 +53,7 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
@@ -69,6 +72,7 @@ import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
+import org.apache.wicket.datetime.PatternDateConverter;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.IFeedback;
@@ -664,6 +668,12 @@ public final class WebComponentUtil {
         return locale;
     }
 
+    public static String getLocalizedDate(Date date, String style){
+        PatternDateConverter converter = new PatternDateConverter(getLocalizedDatePattern(style), true );
+        return converter.convertToString(date, WebComponentUtil.getCurrentLocale());
+
+    }
+
     public static boolean isActivationEnabled(PrismObject object) {
 		Validate.notNull(object);
 
@@ -1079,6 +1089,8 @@ public final class WebComponentUtil {
 			page.setResponsePage(new PageResource(parameters, page));
 		} else if (TaskType.COMPLEX_TYPE.equals(type)) {
 			page.setResponsePage(new PageTaskEdit(parameters));		// TODO: "back" page
+		} else if (ReportType.COMPLEX_TYPE.equals(type)) {
+			page.setResponsePage(PageReport.class, parameters);
 		} else {
 			// nothing to do
 		}
@@ -1086,14 +1098,29 @@ public final class WebComponentUtil {
 
 	public static boolean hasDetailsPage(PrismObject<?> object) {
 		Class<?> clazz = object.getCompileTimeClass();
+		return hasDetailsPage(clazz);
+	}
+
+	public static boolean hasDetailsPage(Class<?> clazz) {
 		if (clazz == null) {
 			return false;
 		}
-
 		return AbstractRoleType.class.isAssignableFrom(clazz) ||
 				UserType.class.isAssignableFrom(clazz) ||
 				ResourceType.class.isAssignableFrom(clazz) ||
-				TaskType.class.isAssignableFrom(clazz);
+				TaskType.class.isAssignableFrom(clazz) ||
+				ReportType.class.isAssignableFrom(clazz);
+	}
+
+	public static boolean hasDetailsPage(ObjectReferenceType ref) {
+		if (ref == null) {
+			return false;
+		}
+		ObjectTypes t = ObjectTypes.getObjectTypeFromTypeQName(ref.getType());
+		if (t == null) {
+			return false;
+		}
+		return hasDetailsPage(t.getClassDefinition());
 	}
 
 	@NotNull

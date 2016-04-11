@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -41,6 +43,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
 import com.evolveum.midpoint.web.component.refresh.Refreshable;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
@@ -50,11 +53,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import javax.xml.namespace.QName;
 import java.util.Collection;
 
 /**
@@ -71,13 +77,14 @@ import java.util.Collection;
 public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 	private static final int REFRESH_INTERVAL_IF_RUNNABLE = 2000;
-	private static final int REFRESH_INTERVAL_IF_SUSPENDED = 10000;
-	private static final int REFRESH_INTERVAL_IF_WAITING = 10000;
+	private static final int REFRESH_INTERVAL_IF_SUSPENDED = 60000;
+	private static final int REFRESH_INTERVAL_IF_WAITING = 60000;
 	private static final int REFRESH_INTERVAL_IF_CLOSED = 60000;
 
-	private static final String DOT_CLASS = PageTaskEdit.class.getName() + ".";
+	public static final String DOT_CLASS = PageTaskEdit.class.getName() + ".";
 	private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadTask";
 	static final String OPERATION_SAVE_TASK = DOT_CLASS + "saveTask";
+	static final String OPERATION_DELETE_SYNC_TOKEN = DOT_CLASS + "deleteSyncToken";
 
 	public static final String ID_SUMMARY_PANEL = "summaryPanel";
 	public static final String ID_MAIN_PANEL = "mainPanel";
@@ -189,6 +196,9 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	@Override
 	public int getRefreshInterval() {
 		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
+		if (exec == null) {
+			return REFRESH_INTERVAL_IF_CLOSED;
+		}
 		switch (exec) {
 			case RUNNABLE:
 			case RUNNING:
@@ -298,103 +308,16 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return taskDtoModel;
 	}
 
+	public LoadableModel<ObjectWrapper<TaskType>> getObjectWrapperModel() {
+		return objectWrapperModel;
+	}
+
 	public TaskDto getTaskDto() {
 		return taskDtoModel.getObject();
 	}
 
 	public PageTaskController getController() {
 		return controller;
-	}
-
-	boolean isRunnableOrRunning() {
-		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
-		//System.out.println(this + ": state = " + exec);
-		return exec == TaskDtoExecutionStatus.RUNNABLE || exec == TaskDtoExecutionStatus.RUNNING;
-	}
-
-	boolean isRunnable() {
-		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
-		return exec == TaskDtoExecutionStatus.RUNNABLE;
-	}
-
-	boolean isRunning() {
-		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
-		return exec == TaskDtoExecutionStatus.RUNNING;
-	}
-
-	boolean isClosed() {
-		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
-		return exec == TaskDtoExecutionStatus.CLOSED;
-	}
-
-	boolean isWaiting() {
-		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
-		return exec == TaskDtoExecutionStatus.WAITING;
-	}
-
-	boolean isSuspended() {
-		TaskDtoExecutionStatus exec = getTaskDto().getExecution();
-		return exec == TaskDtoExecutionStatus.SUSPENDED;
-	}
-
-	boolean isReconciliation() {
-		return TaskCategory.RECONCILIATION.equals(getTaskDto().getCategory());
-	}
-
-	boolean isImportAccounts() {
-		return TaskCategory.IMPORTING_ACCOUNTS.equals(getTaskDto().getCategory());
-	}
-
-	boolean isRecomputation() {
-		return TaskCategory.RECOMPUTATION.equals(getTaskDto().getCategory());
-	}
-
-	boolean isExecuteChanges() {
-		return TaskCategory.EXECUTE_CHANGES.equals(getTaskDto().getCategory());
-	}
-
-	boolean isWorkflowCategory() {
-		return TaskCategory.WORKFLOW.equals(getTaskDto().getCategory());
-	}
-
-	boolean isWorkflowChild() {
-		return isWorkflowCategory() && getTaskDto().getWorkflowContext() != null && getTaskDto().getWorkflowContext().getProcessInstanceId() != null;
-	}
-
-	boolean isWorkflowParent() {
-		return isWorkflowCategory() && getTaskDto().getParentTaskOid() == null;
-	}
-
-	boolean isWorkflow() {
-		return isWorkflowChild() || isWorkflowParent();		// "task0" is not among these
-	}
-
-	boolean isLiveSync() {
-		return TaskCategory.LIVE_SYNCHRONIZATION.equals(getTaskDto().getCategory());
-	}
-
-	boolean isShadowIntegrityCheck() {
-		return getTaskDto().getHandlerUriList().contains(ModelPublicConstants.SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI);
-	}
-
-	boolean isFocusValidityScanner() {
-		return getTaskDto().getHandlerUriList().contains(ModelPublicConstants.FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI);
-	}
-
-	boolean isTriggerScanner() {
-		return getTaskDto().getHandlerUriList().contains(ModelPublicConstants.TRIGGER_SCANNER_TASK_HANDLER_URI);
-	}
-
-	boolean isDelete() {
-		return getTaskDto().getHandlerUriList().contains(ModelPublicConstants.DELETE_TASK_HANDLER_URI);
-	}
-
-	boolean isBulkAction() {
-		return TaskCategory.BULK_ACTIONS.equals(getTaskDto().getCategory());
-	}
-
-	boolean isRecurring() {
-		return getTaskDto().getRecurring();
 	}
 
 	public TaskSummaryPanel getSummaryPanel() {
@@ -405,43 +328,107 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return getSummaryPanel().getRefreshPanel();
 	}
 
-	public boolean configuresWorkerThreads() {
-		return isReconciliation() || isImportAccounts() || isRecomputation() || isExecuteChanges() || isShadowIntegrityCheck() || isFocusValidityScanner() || isTriggerScanner();
-	}
-
-	public boolean configuresWorkToDo() {
-		return isLiveSync() || isReconciliation() || isImportAccounts() || isRecomputation() || isExecuteChanges() || isBulkAction() || isDelete() || isShadowIntegrityCheck();
-	}
-
-	public boolean configuresResourceCoordinates() {
-		return isLiveSync() || isReconciliation() || isImportAccounts();
-	}
-
-	public boolean configuresObjectType() {
-		return isRecomputation() || isExecuteChanges() || isDelete();
-	}
-
-	public boolean configuresObjectQuery() {
-		return isRecomputation() || isExecuteChanges() || isDelete() || isShadowIntegrityCheck();
-	}
-
-	public boolean configuresObjectDelta() {
-		return isExecuteChanges();
-	}
-
-	public boolean configuresScript() {
-		return isBulkAction();
-	}
-
-	public boolean configuresDryRun() {
-		return isLiveSync() || isReconciliation() || isImportAccounts() || isShadowIntegrityCheck();
-	}
-
-	public boolean configuresExecuteInRawMode() {
-		return isExecuteChanges();
-	}
-
 	public boolean isShowAdvanced() {
 		return showAdvancedFeaturesModel.getObject();
+	}
+
+	public VisibleEnableBehaviour createVisibleIfEdit(final ItemPath itemPath) {
+		return new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return isEdit() && isEditable(itemPath);
+			}
+		};
+	}
+
+	public VisibleEnableBehaviour createEnabledIfEdit(final ItemPath itemPath) {
+		return new VisibleEnableBehaviour() {
+			@Override
+			public boolean isEnabled() {
+				return isEdit() && isEditable(itemPath);
+			}
+		};
+	}
+	public VisibleEnableBehaviour createVisibleIfView(final ItemPath itemPath) {
+		return new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return isReadable(itemPath) && (!isEdit() || !isEditable(itemPath));
+			}
+		};
+	}
+
+	public VisibleEnableBehaviour createVisibleIfAccessible(QName... names) {
+		return createVisibleIfAccessible(ItemPath.asPathArray(names));
+	}
+
+	public VisibleEnableBehaviour createVisibleIfAccessible(final ItemPath... itemPaths) {
+		return new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				for (ItemPath itemPath : itemPaths) {
+					if (!isReadable(itemPath)) {
+						return false;
+					}
+				}
+				return true;
+			}
+		};
+	}
+
+	protected boolean isEditable() {
+		return isEditable(objectWrapperModel.getObject().getDefinition());
+	}
+
+	private boolean isEditable(ItemDefinition<?> definition) {
+		if (definition.canModify()) {
+			return true;
+		} else if (definition instanceof PrismContainerDefinition) {
+			for (ItemDefinition<?> subdef : ((PrismContainerDefinition<?>) definition).getDefinitions()) {
+				if (isEditable(subdef)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	protected boolean isEditable(QName name) {
+		return isEditable(new ItemPath(name));
+	}
+
+	protected boolean isEditable(ItemPath itemPath) {
+		ItemDefinition<?> itemDefinition = objectWrapperModel.getObject().getDefinition().findItemDefinition(itemPath);
+		if (itemDefinition != null) {
+			return itemDefinition.canRead() && itemDefinition.canModify();
+		} else {
+			return true;
+		}
+	}
+
+	protected boolean isReadable(ItemPath itemPath) {
+		ItemDefinition<?> itemDefinition = objectWrapperModel.getObject().getDefinition().findItemDefinition(itemPath);
+		if (itemDefinition != null) {
+			return itemDefinition.canRead();
+		} else {
+			return true;
+		}
+	}
+
+	public boolean isExtensionReadable(QName name) {
+		return isReadable(new ItemPath(TaskType.F_EXTENSION, name));
+	}
+
+	public boolean isReadableSomeOf(QName... names) {
+		for (QName name : names) {
+			if (isReadable(new ItemPath(name))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public Form getForm() {
+		return mainPanel.getMainForm();
 	}
 }

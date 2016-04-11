@@ -391,6 +391,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		// the run(task) method.
 		// Note: the thread may be actually started on a different node
 		taskManager.switchToBackground(task, result);
+		result.setBackgroundTaskOid(task.getOid());
 		result.computeStatus("Reconciliation launch failed");
 
 		LOGGER.trace("Reconciliation for resource {} switched to background, control thread returning with task {}", ObjectTypeUtil.toShortString(resource), task);

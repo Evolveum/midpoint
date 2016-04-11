@@ -18,17 +18,13 @@ package com.evolveum.midpoint.model.intest.importer;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.InternalsConfig;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -42,7 +38,6 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -57,7 +52,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -435,7 +429,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 //		assertEquals("Task name not imported correctly", "Task1: basic single-run task (takes 180x1 sec)", task1AsType.getName());
 		
 		Task task1 = taskManager.createTaskInstance(task1AsPrism, result);
-        PrismProperty<Integer> delayProp = task1.getExtensionProperty(new QName(NoOpTaskHandler.EXT_SCHEMA_URI, "delay"));
+        PrismProperty<Integer> delayProp = task1.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME);
         assertEquals("xsi:type'd property has incorrect type", Integer.class, delayProp.getValues().get(0).getValue().getClass());
         assertEquals("xsi:type'd property not imported correctly", Integer.valueOf(1000), delayProp.getValues().get(0).getValue());
         

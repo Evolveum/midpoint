@@ -35,6 +35,8 @@
                 TODO
             </xsd:documentation>
             <xsd:appinfo>
+                <a:displayName>Delay</a:displayName>
+                <a:displayOrder>110</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
@@ -47,6 +49,8 @@
                 TODO
             </xsd:documentation>
             <xsd:appinfo>
+                <a:displayName>Number of steps</a:displayName>
+                <a:displayOrder>100</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
@@ -45,6 +47,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
 import com.evolveum.midpoint.web.page.admin.reports.component.DownloadButtonPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportOutputSearchDto;
@@ -82,6 +85,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.InputStream;
 import java.util.*;
 
@@ -135,7 +139,7 @@ public class PageCreatedReports extends PageAdminReports {
 
     }
 
-    public PageCreatedReports() {
+	public PageCreatedReports() {
         this(new PageParameters(), null);
     }
 
@@ -195,18 +199,9 @@ public class PageCreatedReports extends PageAdminReports {
         add(mainForm);
 
         final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream() {
-
             @Override
             protected InputStream initStream() {
-                if (currentReport != null) {
-                    String contentType = reportExportTypeMap.get(currentReport.getExportType());
-                    if (StringUtils.isEmpty(contentType)) {
-                        contentType = "multipart/mixed; charset=UTF-8";
-                    }
-                    setContentType(contentType);
-                }
-
-                return createReport();
+                return createReport(this);
             }
         };
 
@@ -292,19 +287,18 @@ public class PageCreatedReports extends PageAdminReports {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ReportOutputType>>> cellItem,
                                      String componentId, final IModel<SelectableBean<ReportOutputType>> rowModel) {
-                cellItem.add(new Label(componentId, new AbstractReadOnlyModel() {
+                cellItem.add(new DateLabelComponent(componentId, new AbstractReadOnlyModel<Date>() {
 
                     @Override
-                    public Object getObject() {
+                    public Date getObject() {
                         ReportOutputType object = rowModel.getObject().getValue();
                         MetadataType metadata = object.getMetadata();
                         if (metadata == null) {
                             return null;
                         }
 
-                        return WebComponentUtil.formatDate(metadata.getCreateTimestamp());
-                    }
-                }));
+                        return XmlTypeConverter.toDate(metadata.getCreateTimestamp());                   }
+                }, DateLabelComponent.LONG_MEDIUM_STYLE));
             }
         };
         columns.add(column);
@@ -513,19 +507,29 @@ public class PageCreatedReports extends PageAdminReports {
         }
     }
 
-    private InputStream createReport() {
-        OperationResult result = new OperationResult(OPERATION_DOWNLOAD_REPORT);
-        ReportManager reportManager = getReportManager();
+    private InputStream createReport(AjaxDownloadBehaviorFromStream ajaxDownloadBehaviorFromStream) {
+		return createReport(currentReport, ajaxDownloadBehaviorFromStream, this);
+	}
 
-        if (currentReport == null) {
+	public static InputStream createReport(ReportOutputType report, AjaxDownloadBehaviorFromStream ajaxDownloadBehaviorFromStream, PageBase pageBase) {
+        OperationResult result = new OperationResult(OPERATION_DOWNLOAD_REPORT);
+        ReportManager reportManager = pageBase.getReportManager();
+
+		if (report == null) {
             return null;
         }
 
-        InputStream input = null;
+		String contentType = reportExportTypeMap.get(report.getExportType());
+		if (StringUtils.isEmpty(contentType)) {
+			contentType = "multipart/mixed; charset=UTF-8";
+		}
+		ajaxDownloadBehaviorFromStream.setContentType(contentType);
+
+		InputStream input = null;
         try {
-            input = reportManager.getReportOutputData(currentReport.getOid(), result);
+            input = reportManager.getReportOutputData(report.getOid(), result);
         } catch (Exception e) {
-            error(getString("pageCreatedReports.message.downloadError") + " " + e.getMessage());
+            pageBase.error(pageBase.getString("pageCreatedReports.message.downloadError") + " " + e.getMessage());
             LoggingUtils.logException(LOGGER, "Couldn't download report.", e);
             LOGGER.trace(result.debugDump());
         } finally {
@@ -533,7 +537,7 @@ public class PageCreatedReports extends PageAdminReports {
         }
 
         if (WebComponentUtil.showResultInPage(result)) {
-            showResult(result);
+            pageBase.showResult(result);
         }
 
         return input;

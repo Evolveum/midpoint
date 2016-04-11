@@ -72,7 +72,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORT_URL,
                 label = "PageReport.auth.report.label",
                 description = "PageReport.auth.report.description")})
-public class PageReport<T extends Serializable> extends PageAdminReports {
+public class PageReport extends PageAdminReports {
 
     private static Trace LOGGER = TraceManager.getTrace(PageReport.class);
 
@@ -349,6 +349,6 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
     }
 
     protected void onCancelPerformed(AjaxRequestTarget target) {
-        setResponsePage(PageReports.class);
+        redirectBack();
     }
 }

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
@@ -27,10 +28,12 @@ import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.apache.wicket.datetime.PatternDateConverter;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -66,7 +69,9 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 				TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
 				String icon = getIconForExecutionStatus(status);
 				setIconCssClass(icon);
-				setLabel(PageBase.createStringResourceStatic(TaskSummaryPanel.this, status).getString());
+				if (status != null) {
+					setLabel(PageBase.createStringResourceStatic(TaskSummaryPanel.this, status).getString());
+				}
 				// TODO setColor
 			}
 		};
@@ -78,7 +83,9 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 				OperationResultStatusType resultStatus = taskObject.asObjectable().getResultStatus();
 				String icon = OperationResultStatusIcon.parseOperationalResultStatus(resultStatus).getIcon();
 				setIconCssClass(icon);
-				setLabel(PageBase.createStringResourceStatic(TaskSummaryPanel.this, resultStatus).getString());
+				if (resultStatus != null) {
+					setLabel(PageBase.createStringResourceStatic(TaskSummaryPanel.this, resultStatus).getString());
+				}
 				// TODO setColor
 			}
 		};
@@ -127,6 +134,9 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	}
 
 	private String getIconForExecutionStatus(TaskDtoExecutionStatus status) {
+		if (status == null) {
+			return "fa fa-fw fa-question-circle fa-lg text-warning";
+		}
 		switch (status) {
 			case RUNNING: return "fa fa-fw fa-lg fa-spinner";
 			case RUNNABLE: return "fa fa-fw fa-lg fa-hand-o-up";
@@ -173,7 +183,8 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		return new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
-				if (parentPage.isWorkflow()) {
+				TaskDto taskDto = parentPage.getTaskDto();
+				if (taskDto.isWorkflow()) {
 					return getString("TaskSummaryPanel.requestedBy", parentPage.getTaskDto().getRequestedBy());
 				} else {
 					TaskType taskType = getModelObject().asObjectable();
@@ -184,12 +195,14 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 					} else {
 						rv = createStringResource("TaskSummaryPanel.progressWithTotalUnknown", taskType.getProgress()).getString();
 					}
-					if (parentPage.isSuspended()) {
+					if (taskDto.isSuspended()) {
 						rv += " " + getString("TaskSummaryPanel.progressIfSuspended");
-					} else if (parentPage.isClosed()) {
+					} else if (taskDto.isClosed()) {
 						rv += " " + getString("TaskSummaryPanel.progressIfClosed");
-					} else if (parentPage.isWaiting()) {
+					} else if (taskDto.isWaiting()) {
 						rv += " " + getString("TaskSummaryPanel.progressIfWaiting");
+					} else if (taskDto.getStalledSince() != null) {
+						rv += " " + getString("TaskSummaryPanel.progressIfStalled", WebComponentUtil.formatDate(new Date(parentPage.getTaskDto().getStalledSince())));
 					}
 					return rv;
 				}
@@ -202,7 +215,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		return new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
-				if (parentPage.isWorkflow()) {
+				if (parentPage.getTaskDto().isWorkflow()) {
 					return getString("TaskSummaryPanel.requestedOn", WebComponentUtil.formatDate(parentPage.getTaskDto().getRequestedOn()));
 				} else {
 					TaskType taskType = getModelObject().asObjectable();
@@ -223,7 +236,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		return new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
-				if (parentPage.isWorkflow()) {
+				if (parentPage.getTaskDto().isWorkflow()) {
 					return "";
 				}
 
@@ -238,11 +251,20 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 				}
 				if ((TaskExecutionStatus.RUNNABLE.equals(taskType.getExecutionStatus()) && taskType.getNodeAsObserved() != null)
 						|| finished == 0 || finished < started) {
-					return getString("TaskStatePanel.message.executionTime.notFinished", formatDate(new Date(started)),
+
+                    PatternDateConverter pdc = new PatternDateConverter
+                            (WebComponentUtil.getLocalizedDatePattern(DateLabelComponent.SHORT_MEDIUM_STYLE), true );
+                    String date = pdc.convertToString(new Date(started), WebComponentUtil.getCurrentLocale());
+                    return getString("TaskStatePanel.message.executionTime.notFinished", date,
 							DurationFormatUtils.formatDurationHMS(System.currentTimeMillis() - started));
 				} else {
+                    PatternDateConverter pdc = new PatternDateConverter
+                            (WebComponentUtil.getLocalizedDatePattern(DateLabelComponent.SHORT_MEDIUM_STYLE), true );
+                    String startedDate = pdc.convertToString(new Date(started), WebComponentUtil.getCurrentLocale());
+                    String finishedDate = pdc.convertToString(new Date(finished), WebComponentUtil.getCurrentLocale());
+
 					return getString("TaskStatePanel.message.executionTime.finished",
-							formatDate(new Date(started)), formatDate(new Date(finished)),
+                            startedDate, finishedDate,
 							DurationFormatUtils.formatDurationHMS(finished - started));
 				}
 			}

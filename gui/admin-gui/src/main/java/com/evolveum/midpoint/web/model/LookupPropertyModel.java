@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.model;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Application;
 import org.apache.wicket.Session;
 import org.apache.wicket.core.util.lang.PropertyResolver;
@@ -29,8 +31,9 @@ import org.apache.wicket.model.AbstractPropertyModel;
  *
  */
 public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
+	private static final long serialVersionUID = 1L;
 
-    protected final String expression;
+	protected final String expression;
     private final LookupTableType lookupTable;
     private boolean isStrict = true; // if true, allow only values found in lookupTable, false - allow also input that is not in the lookupTable
 
@@ -93,17 +96,19 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
             String label = (String) object;
             String key;
 
-            if (label == null || label.trim().equals("")) {
+            if (StringUtils.isBlank(label)) {
                 PropertyResolver.setValue(expression, getInnermostModelOrObject(), null, prc);
             } else {
-                if (!isStrict) { // set default value from input and overwrite later if key is found
+                if (!isStrict || lookupTable == null) { // set default value from input and overwrite later if key is found
                     PropertyResolver.setValue(expression, getInnermostModelOrObject(), label, prc);
                 }
-                for (LookupTableRowType row : lookupTable.getRow()) {
-                    if (label.equals(WebComponentUtil.getOrigStringFromPoly(row.getLabel()))) {
-                        key = row.getKey();
-                        PropertyResolver.setValue(expression, getInnermostModelOrObject(), key, prc);
-                    }
+                if (lookupTable != null) {
+	                for (LookupTableRowType row : lookupTable.getRow()) {
+	                    if (label.equals(WebComponentUtil.getOrigStringFromPoly(row.getLabel()))) {
+	                        key = row.getKey();
+	                        PropertyResolver.setValue(expression, getInnermostModelOrObject(), key, prc);
+	                    }
+	                }
                 }
             }
         } else if (object == null) {

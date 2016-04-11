@@ -16,11 +16,11 @@
 
 package com.evolveum.midpoint.gui.api.util;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import org.apache.commons.lang.LocaleUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -50,6 +50,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.wicket.Session;
+import org.apache.wicket.protocol.http.WebSession;
 
 /**
  * Utility class that contains methods that interact with ModelService and other
@@ -69,15 +71,22 @@ public class WebModelServiceUtils {
     private static final String OPERATION_LOAD_OBJECT_REFS = DOT_CLASS + "loadObjectReferences";
 
     public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, Task task, OperationResult result) {
-        PrismObject<ObjectType> object = resolveReference(ref, page, task, result);
+		if (ref == null) {
+			return null;
+		}
+		if (ref.getTargetName() != null) {
+			return ref.getTargetName().getOrig();
+		}
+        PrismObject<ObjectType> object = resolveReferenceRaw(ref, page, task, result);
         if (object == null) {
             return ref.getOid();
         } else {
+			ref.asReferenceValue().setObject(object);
             return WebComponentUtil.getName(object);
         }
     }
 
-    public static <T extends ObjectType> PrismObject<T> resolveReference(ObjectReferenceType reference, PageBase page, Task task, OperationResult result) {
+    public static <T extends ObjectType> PrismObject<T> resolveReferenceRaw(ObjectReferenceType reference, PageBase page, Task task, OperationResult result) {
         if (reference == null) {
             return null;
         }
@@ -94,7 +103,8 @@ public class WebModelServiceUtils {
             LOGGER.error("No definition for {} was found", reference.getType());
             return null;
         }
-        return loadObject(definition.getCompileTimeClass(), reference.getOid(), page, task, result);
+        return loadObject(definition.getCompileTimeClass(), reference.getOid(),
+				SelectorOptions.createCollection(GetOperationOptions.createRaw()), page, task, result);
     }
     
     public static <O extends ObjectType> List<ObjectReferenceType> createObjectReferenceList(Class<O> type, PageBase page, Map<String, String> referenceMap){
@@ -347,6 +357,77 @@ public class WebModelServiceUtils {
         	throw new IllegalArgumentException("No OID in principal: "+principal);
         }
         return principal.getOid();
+    }
+
+    public static Locale getLocale() {
+        return getLocale(null);
+    }
+
+    public static Locale getLocale(UserType user) {
+        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        Locale locale = null;
+        if (principal != null) {
+            if (user == null) {
+                PrismObject<UserType> userPrismObject = principal.getUser().asPrismObject();
+                user = userPrismObject == null ? null : userPrismObject.asObjectable();
+            }
+            if (user != null && user.getPreferredLanguage() != null &&
+                    !user.getPreferredLanguage().trim().equals("")) {
+                try {
+                    locale = LocaleUtils.toLocale(user.getPreferredLanguage());
+                } catch (Exception ex) {
+                    LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
+                }
+            }
+            if (locale != null && MidPointApplication.containsLocale(locale)) {
+                return locale;
+            } else {
+                String userLocale = user != null ? user.getLocale() : null;
+                try {
+                    locale = userLocale == null ? null : LocaleUtils.toLocale(userLocale);
+                } catch (Exception ex) {
+                    LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
+                }
+                if (locale != null && MidPointApplication.containsLocale(locale)) {
+                    return locale;
+                } else {
+                    locale = Session.get().getLocale();
+                    if (locale == null || !MidPointApplication.containsLocale(locale)) {
+                        //default locale for web application
+                        return MidPointApplication.getDefaultLocale();
+                    }
+                    return locale;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static TimeZone getTimezone() {
+        return getTimezone(null);
+    }
+
+    public static TimeZone getTimezone(UserType user) {
+        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        if (principal != null && user == null) {
+            user = principal.getUser();
+        }
+        String timeZone;
+
+        if (user != null && StringUtils.isNotEmpty(user.getTimezone())) {
+            timeZone = user.getTimezone();
+        } else {
+            timeZone = principal != null && principal.getAdminGuiConfiguration() != null ?
+                    principal.getAdminGuiConfiguration().getDefaultTimezone() : "";
+        }
+        try {
+            if (timeZone != null) {
+                return TimeZone.getTimeZone(timeZone);
+            }
+        } catch (Exception ex){
+            LOGGER.debug("Error occurred while getting user time zone, " + ex.getMessage());
+        }
+        return null;
     }
 
 }
