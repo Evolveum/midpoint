@@ -161,6 +161,11 @@ public class WorkflowManagerImpl implements WorkflowManager {
         processInstanceManager.deleteProcessInstance(instanceId, parentResult);
     }
 
+	@Override
+	public void synchronizeWorkflowRequests(OperationResult parentResult) {
+		processInstanceManager.synchronizeWorkflowRequests(parentResult);
+	}
+
     /*
      * Tasks
      * =====

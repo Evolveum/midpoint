@@ -447,7 +447,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			List<ObjectFilter> conditions = new ArrayList<>();
 			PrismReferenceValue roleRef = new PrismReferenceValue();
 			roleRef.setOid(roleId);
-//			roleRef.setTargetType(RoleType.COMPLEX_TYPE);
+			roleRef.setTargetType(RoleType.COMPLEX_TYPE);
 			ObjectFilter roleFilter = RefFilter.createReferenceEqual(
 					new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class,
 					getPrismContext(), roleRef);

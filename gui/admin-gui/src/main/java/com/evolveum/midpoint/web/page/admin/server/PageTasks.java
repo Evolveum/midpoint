@@ -106,7 +106,7 @@ import java.util.*;
                 description = "PageTasks.auth.tasks.description")})
 public class PageTasks extends PageAdminTasks implements Refreshable {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageTasks.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PageTasks.class);
     private static final String DOT_CLASS = PageTasks.class.getName() + ".";
     private static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTasks";
     private static final String OPERATION_RESUME_TASKS = DOT_CLASS + "resumeTasks";
@@ -121,6 +121,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     private static final String OPERATION_DEACTIVATE_SERVICE_THREADS = DOT_CLASS + "deactivateServiceThreads";
     private static final String OPERATION_REACTIVATE_SERVICE_THREADS = DOT_CLASS + "reactivateServiceThreads";
     private static final String OPERATION_SYNCHRONIZE_TASKS = DOT_CLASS + "synchronizeTasks";
+    private static final String OPERATION_SYNCHRONIZE_WORKFLOW_REQUESTS = DOT_CLASS + "synchronizeWorkflowRequests";
     private static final String OPERATION_REFRESH_TASKS = DOT_CLASS + "refreshTasks";
     private static final String ALL_CATEGORIES = "";
 
@@ -138,6 +139,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     private static final String ID_DELETE_TASKS_POPUP = "deleteTasksPopup";
     private static final String ID_DELETE_ALL_CLOSED_TASKS_POPUP = "deleteAllClosedTasksPopup";
     private static final String ID_TABLE_HEADER = "tableHeader";
+	public static final String ID_SYNCHRONIZE_WORKFLOW_REQUESTS = "synchronizeWorkflowRequests";
 
     public static final String SELECTED_CATEGORY = "category";
 	private static final int REFRESH_INTERVAL = 10000;				// don't set too low to prevent refreshing open inline menus (TODO skip refresh if a menu is open)
@@ -782,6 +784,16 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         };
         add(synchronize);
 
+		AjaxButton synchronizeWorkflowRequests = new AjaxButton(ID_SYNCHRONIZE_WORKFLOW_REQUESTS,
+				createStringResource("pageTasks.button.synchronizeWorkflowRequests")) {
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				synchronizeWorkflowRequestsPerformed(target);
+			}
+		};
+		add(synchronizeWorkflowRequests);
+
 //      adding Refresh button
         AjaxButton refresh = new AjaxButton("refreshTasks",
                 createStringResource("pageTasks.button.refreshTasks")) {
@@ -1155,6 +1167,24 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         //refresh feedback and table
         refreshTables(target);
     }
+
+	private void synchronizeWorkflowRequestsPerformed(AjaxRequestTarget target) {
+		OperationResult result = new OperationResult(OPERATION_SYNCHRONIZE_WORKFLOW_REQUESTS);
+
+		try {
+			getTaskService().synchronizeWorkflowRequests(result);
+			result.computeStatusIfUnknown();
+			if (result.isSuccess()) {       // brutal hack - the subresult's message contains statistics
+				result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
+			}
+		} catch (RuntimeException | SchemaException | SecurityViolationException e) {
+			result.recordFatalError("Couldn't synchronize tasks", e);
+		}
+		showResult(result);
+
+		//refresh feedback and table
+		refreshTables(target);
+	}
     //endregion
 
     private void refreshTasks(AjaxRequestTarget target) {

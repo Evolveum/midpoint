@@ -202,7 +202,7 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 				}
 			});
 			count.setOutputMarkupId(true);
-			add(count);
+			footerContainer.add(count);
 
 			BoxedPagingPanel nb2 = new BoxedPagingPanel(ID_PAGING, dataTable, true) {
 
