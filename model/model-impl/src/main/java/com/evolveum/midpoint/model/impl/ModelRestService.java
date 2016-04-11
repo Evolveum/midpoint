@@ -110,64 +110,67 @@ public class ModelRestService {
 		// nothing to do
 	}
 
-//	@GET
-//	@Path("/users/{id}/policy")
-//	public Response getValuePolicyForUser(@PathParam("id") String oid, @Context MessageContext mc) {
-//		LOGGER.info("getValuePolicyForUser start");
-//
-//		Task task = taskManager.createTaskInstance("get");
-//		OperationResult parentResult = task.getResult();
-//		initRequest(task, mc);
-//
-//		Response response;
-//		try {
-//			Collection<SelectorOptions<GetOperationOptions>> options =
-//					SelectorOptions.createCollection(GetOperationOptions.createRaw());
-//			PrismObject<UserType> user = model.getObject(UserType.class, oid, options, task, parentResult);
-//
-//			CredentialsPolicyType policy = modelInteraction.getCredentialsPolicy(user, task, parentResult);
-//
-//			ResponseBuilder builder = Response.ok();
-//			builder.entity(policy);
-//			response = builder.build();
-//		} catch (Exception ex) {
-//			response = handleException(ex);
-//		}
-//
-//		parentResult.computeStatus();
-//		auditLogout(task);
-//
-//		LOGGER.info("getValuePolicyForUser finish");
-//
-//		return response;
-//	}
+	@GET
+	@Path("/users/{id}/policy")
+	public Response getValuePolicyForUser(@PathParam("id") String oid, @Context MessageContext mc) {
+		LOGGER.info("getValuePolicyForUser start");
+
+		Task task = taskManager.createTaskInstance("get");
+		OperationResult parentResult = task.getResult();
+		initRequest(task, mc);
+
+		Response response;
+		try {
+			Collection<SelectorOptions<GetOperationOptions>> options =
+					SelectorOptions.createCollection(GetOperationOptions.createRaw());
+			PrismObject<UserType> user = model.getObject(UserType.class, oid, options, task, parentResult);
+
+			CredentialsPolicyType policy = modelInteraction.getCredentialsPolicy(user, task, parentResult);
+
+			ResponseBuilder builder = Response.ok();
+			builder.entity(policy);
+			response = builder.build();
+		} catch (Exception ex) {
+			response = handleException(ex);
+		}
+
+		parentResult.computeStatus();
+		auditLogout(task);
+
+		LOGGER.info("getValuePolicyForUser finish");
+
+		return response;
+	}
 
 	private Response handleException(Exception ex) {
 		if (ex instanceof ObjectNotFoundException) {
-			return Response.status(Status.NOT_FOUND).entity(ex.getMessage()).build();
+			return buildErrorResponse(Status.NOT_FOUND, ex);
 		}
 
 		if (ex instanceof CommunicationException) {
-			return Response.status(Status.GATEWAY_TIMEOUT).entity(ex.getMessage()).build();
+			return buildErrorResponse(Status.GATEWAY_TIMEOUT, ex);
 		}
 
 		if (ex instanceof SecurityViolationException) {
-			return Response.status(Status.FORBIDDEN).entity(ex.getMessage()).build();
+			return buildErrorResponse(Status.FORBIDDEN, ex);
 		}
 
 		if (ex instanceof ConfigurationException) {
-			return Response.status(Status.BAD_GATEWAY).entity(ex.getMessage()).build();
+			return buildErrorResponse(Status.BAD_GATEWAY, ex);
 		}
 
 		if (ex instanceof SchemaException
-				|| ex instanceof ExpressionEvaluationException
 				|| ex instanceof PolicyViolationException
 				|| ex instanceof ConsistencyViolationException
 				|| ex instanceof ObjectAlreadyExistsException) {
-			return Response.status(Status.CONFLICT).entity(ex.getMessage()).build();
+			return buildErrorResponse(Status.CONFLICT, ex);
 		}
 
-		return Response.serverError().entity(ex.getMessage()).build();
+		return buildErrorResponse(Status.INTERNAL_SERVER_ERROR, ex);
+	}
+
+	private Response buildErrorResponse(Status status, Exception ex) {
+		return Response.status(status).entity(ex.getMessage()).type(MediaType.TEXT_PLAIN).build();
 	}
 	
 	@GET
