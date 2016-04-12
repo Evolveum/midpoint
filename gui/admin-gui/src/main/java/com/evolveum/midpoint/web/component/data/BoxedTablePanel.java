@@ -237,7 +237,7 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
         }
 
         public Component getFooterCountLabel(){
-            return get(ID_COUNT);
+            return get(ID_FOOTER_CONTAINER).get(ID_COUNT);
         }
 
         public Component getFooterPaging(){
