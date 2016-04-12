@@ -64,12 +64,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+/**
+ * @author katkav
+ */
 public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T> {
-
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
+
 	// private static final String ID_SEARCH_FORM = "searchForm";
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_BUTTON_CANCEL = "cancelButton";

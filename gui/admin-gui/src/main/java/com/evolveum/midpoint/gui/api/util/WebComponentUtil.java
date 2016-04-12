@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.gui.api.util;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.*;
@@ -733,37 +734,51 @@ public final class WebComponentUtil {
 				continue;
 			}
 			if (StringUtils.equals(targetRef.getOid(), SystemObjectsType.ROLE_SUPERUSER.value())) {
-				return "fa fa-male text-danger";
+				return GuiStyleConstants.STYLES_OBJECT_USER_ICON + " text-danger";
 			}
 		}
 
-		ActivationType activation = user.getActivation();
-		if (activation != null && ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())) {
-			return "fa fa-male text-muted";
-		}
-
-		return "fa fa-male";
+		return getIconEnabledDisabled(object, GuiStyleConstants.STYLES_OBJECT_USER_ICON);
 	}
 	
 	
 	public static String createRoleIcon(PrismObject<RoleType> object) {
-		return "fa fa-street-view";
+		return getIconEnabledDisabled(object, GuiStyleConstants.STYLES_OBJECT_ROLE_ICON);
 	}
 	
 	public static String createOrgIcon(PrismObject<OrgType> object) {
-		return "fa fa-building";
+		return getIconEnabledDisabled(object, GuiStyleConstants.STYLES_OBJECT_ORG_ICON);
 	}
 	
 	public static String createServiceIcon(PrismObject<ServiceType> object) {
-		return "fa fa-building";
+		return getIconEnabledDisabled(object, GuiStyleConstants.STYLES_OBJECT_SERVICE_ICON);
 	}
-	
+
+	private static <F extends FocusType> String getIconEnabledDisabled(PrismObject<F> object, String baseIcon) {
+		ActivationType activation = object.asObjectable().getActivation();
+		if (activation != null && ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())) {
+			return baseIcon + " text-muted";
+		}
+
+		return baseIcon;
+	}
+
 	public static String createResourceIcon(PrismObject<ResourceType> object) {
-		return "fa fa-laptop";
+		OperationalStateType operationalState = object.asObjectable().getOperationalState();
+		if (operationalState != null) {
+			AvailabilityStatusType lastAvailabilityStatus = operationalState.getLastAvailabilityStatus();
+			if (lastAvailabilityStatus == AvailabilityStatusType.UP) {
+				return GuiStyleConstants.STYLES_OBJECT_RESOURCE_ICON + " text-success";
+			}
+			if (lastAvailabilityStatus == AvailabilityStatusType.DOWN) {
+				return GuiStyleConstants.STYLES_OBJECT_RESOURCE_ICON + " text-danger";
+			}
+		}
+		return GuiStyleConstants.STYLES_OBJECT_RESOURCE_ICON;
 	}
 	
 	public static String createTaskIcon(PrismObject<TaskType> object) {
-		return "fa fa-tasks";
+		return GuiStyleConstants.STYLES_OBJECT_TASK_ICON;
 	}
 	
 	public static String createShadowIcon(PrismObject<ShadowType> object) {
