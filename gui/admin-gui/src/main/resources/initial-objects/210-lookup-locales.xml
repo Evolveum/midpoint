@@ -41,6 +41,10 @@
 		<label>Español</label>
 	</row>
 	<row>
+		<key>hu_HU</key>
+		<label>Magyar</label>
+	</row>
+	<row>
 		<key>sk_SK</key>
 		<label>Slovenčina</label>
 	</row>
