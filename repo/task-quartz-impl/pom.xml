@@ -78,6 +78,7 @@
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
             <groupId>org.springframework</groupId>
@@ -90,6 +91,7 @@
         <dependency>
 			<groupId>javax.xml.bind</groupId>
 			<artifactId>jaxb-api</artifactId>
+			<scope>test</scope>
 		</dependency>
         <dependency>
 			<groupId>org.aspectj</groupId>

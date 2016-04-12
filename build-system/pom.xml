@@ -1396,6 +1396,9 @@
 										<ignoredUnusedDeclaredDependency>org.testng:testng</ignoredUnusedDeclaredDependency>
 										<ignoredUnusedDeclaredDependency>commons-lang:commons-lang</ignoredUnusedDeclaredDependency>
 										
+										<!-- Declared, but not used if building only with the "default" profile -->
+										<ignoredUnusedDeclaredDependency>org.aspectj:aspectjweaver</ignoredUnusedDeclaredDependency>
+										
 										<!-- There is some kind of conflict between these. TODO: clean up -->
 										<ignoredUnusedDeclaredDependency>xml-apis:xml-apis</ignoredUnusedDeclaredDependency>
 										<ignoredUnusedDeclaredDependency>stax:stax-api</ignoredUnusedDeclaredDependency>
