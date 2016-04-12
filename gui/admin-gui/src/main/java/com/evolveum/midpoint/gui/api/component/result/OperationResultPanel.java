@@ -103,10 +103,10 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 				case SUCCESS:
 					sb.append(" fa-check");
 					break;
-				case PARTIAL_ERROR:
 				case FATAL_ERROR:
 					sb.append(" fa-ban");
 					break;
+				case PARTIAL_ERROR:
 				case UNKNOWN:
 				case WARNING:
 				case HANDLED_ERROR:
@@ -541,9 +541,10 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 				case SUCCESS:
 					return " box-success";
 				case FATAL_ERROR:
-				case PARTIAL_ERROR:
+				
 					return " box-danger";
 				case UNKNOWN:
+				case PARTIAL_ERROR:
 				case HANDLED_ERROR: // TODO:
 				case WARNING:
 				default:
@@ -606,9 +607,10 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		case SUCCESS:
 			return "left-success";
 		case FATAL_ERROR:
-		case PARTIAL_ERROR:
+		
 			return "left-danger";
 		case UNKNOWN:
+		case PARTIAL_ERROR:
 		case HANDLED_ERROR: // TODO:
 		case WARNING:
 		default:
@@ -630,9 +632,10 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		case SUCCESS:
 			return "fa-check-circle-o text-success";
 		case FATAL_ERROR:
-		case PARTIAL_ERROR:
+		
 			return "fa-times-circle-o text-danger";
 		case UNKNOWN:
+		case PARTIAL_ERROR:
 		case HANDLED_ERROR: // TODO:
 		case WARNING:
 		default:
