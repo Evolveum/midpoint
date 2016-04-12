@@ -27,10 +27,12 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -364,6 +366,14 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {
                     //nothing to do, just update model data
+                }
+            });
+            input.add(new Behavior() {
+                @Override
+                public void bind(Component component) {
+                    super.bind( component );
+
+                    component.add( AttributeModifier.replace( "onkeydown", Model.of( "if(event.keyCode == 13) {event.preventDefault();}" ) ) );
                 }
             });
             input.setOutputMarkupId(true);

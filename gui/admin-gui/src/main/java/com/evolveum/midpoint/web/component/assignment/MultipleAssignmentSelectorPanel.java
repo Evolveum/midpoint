@@ -83,6 +83,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
     private List<OrgType> tenantEditorObject = new ArrayList<>();
     private List<OrgType> orgEditorObject = new ArrayList<>();
     private PrismObject<UserType> user;
+    private ObjectQuery dataProviderQuery;
     private ObjectFilter authorizedRolesFilter = null;
     private IModel<ObjectFilter> filterModel = null;
     private static final Trace LOGGER = TraceManager.getTrace(MultipleAssignmentSelectorPanel.class);
@@ -223,7 +224,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
     }
 
     public ObjectDataProvider getAvailableAssignmentsDataProvider() {
-        return new ObjectDataProvider<AssignmentEditorDto, F>(this, type) {
+        ObjectDataProvider<AssignmentEditorDto, F> provider = new ObjectDataProvider<AssignmentEditorDto, F>(this, type) {
 
             @Override
             public AssignmentEditorDto createDataObjectWrapper(PrismObject<F> obj) {
@@ -231,14 +232,23 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
             }
 
             @Override
+            public void setQuery(ObjectQuery query) {
+                super.setQuery(query);
+                dataProviderQuery = query;
+            }
+
+            @Override
             public ObjectQuery getQuery() {
-                ObjectQuery query = new ObjectQuery();
-                if (filterModel != null && filterModel.getObject() != null){
-                    query.addFilter(filterModel.getObject());
+                if (dataProviderQuery == null){
+                    dataProviderQuery = new ObjectQuery();
                 }
-                return query;
+                if (filterModel != null && filterModel.getObject() != null){
+                    dataProviderQuery.addFilter(filterModel.getObject());
+                }
+                return dataProviderQuery;
             }
         };
+        return provider;
     }
 
     private  IModel<ObjectFilter> getFilterModel(){

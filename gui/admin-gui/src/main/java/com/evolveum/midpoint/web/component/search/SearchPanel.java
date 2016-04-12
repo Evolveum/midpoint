@@ -38,6 +38,7 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -48,6 +49,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.time.Duration;
 
@@ -331,6 +333,15 @@ public class SearchPanel extends BasePanel<Search> {
         propList.add(properties);
 
         TextField addText = new TextField(ID_ADD_TEXT, new PropertyModel(moreDialogModel, MoreDialogDto.F_NAME_FILTER));
+        addText.add(new Behavior() {
+            @Override
+            public void bind(Component component) {
+                super.bind( component );
+
+                component.add( AttributeModifier.replace( "onkeydown", Model.of("if(event.keyCode == 13) {event.preventDefault();}") ) );
+            }
+        });
+
         popover.add(addText);
         addText.add(new AjaxFormComponentUpdatingBehavior("keyup") {
 
