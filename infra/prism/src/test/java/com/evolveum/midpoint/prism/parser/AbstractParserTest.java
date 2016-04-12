@@ -33,13 +33,7 @@ import java.util.Set;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismInternalTestUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.foo.EventHandlerChainType;
 import com.evolveum.midpoint.prism.foo.EventHandlerType;
@@ -112,17 +106,16 @@ public abstract class AbstractParserTest {
 		
 		// GIVEN
 		Parser parser = createParser();
-		XNodeProcessor processor = new XNodeProcessor();
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		processor.setPrismContext(prismContext);
-		
+		XNodeProcessor processor = new XNodeProcessor(prismContext);
+
 		// WHEN (parse to xnode)
 		XNode xnode = parser.parse(getFile(USER_JACK_FILE_BASENAME));
 		System.out.println("XNode after parsing:");
 		System.out.println(xnode.debugDump());
 		
 		// WHEN (parse to prism)
-		PrismObject<UserType> user = processor.parseObject(xnode);
+		PrismObject<UserType> user = processor.parseObject(xnode, createParsingContext());
 		
 		// THEN
 		System.out.println("Parsed user:");
@@ -134,6 +127,10 @@ public abstract class AbstractParserTest {
 		
 	}
 
+	private ParsingContext createParsingContext() {
+		return ParsingContext.createDefault(PrismTestUtil.getPrismContext());
+	}
+
 	@Test
     public void testParseUserRoundTrip() throws Exception {
 		final String TEST_NAME = "testParseUserRoundTrip";
@@ -141,15 +138,14 @@ public abstract class AbstractParserTest {
 		
 		// GIVEN
 		Parser parser = createParser();
-		XNodeProcessor processor = new XNodeProcessor();
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		processor.setPrismContext(prismContext);
-		
+		XNodeProcessor processor = new XNodeProcessor(prismContext);
+
 		// WHEN (parse)
 		XNode xnode = parser.parse(getFile(USER_JACK_FILE_BASENAME));
 		System.out.println("\nParsed xnode:");
 		System.out.println(xnode.debugDump());
-		PrismObject<UserType> user = processor.parseObject(xnode);
+		PrismObject<UserType> user = processor.parseObject(xnode, createParsingContext());
 		
 		// THEN
 		System.out.println("\nParsed user:");
@@ -193,7 +189,7 @@ public abstract class AbstractParserTest {
 		
 		// WHEN (re-parse)
 		XNode reparsedXnode = parser.parse(serializedString);
-		PrismObject<UserType> reparsedUser = processor.parseObject(reparsedXnode);
+		PrismObject<UserType> reparsedUser = processor.parseObject(reparsedXnode, createParsingContext());
 		
 		// THEN
 		System.out.println("\nXNode after re-parsing:");
@@ -226,9 +222,8 @@ public abstract class AbstractParserTest {
 		
 		// GIVEN
 		Parser parser = createParser();
-		XNodeProcessor processor = new XNodeProcessor();
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		processor.setPrismContext(prismContext);
+		XNodeProcessor processor = new XNodeProcessor(prismContext);
 		
 		// WHEN (parse to xnode)
 		XNode xnode = parser.parse(getFile(RESOURCE_RUM_FILE_BASENAME));
@@ -236,7 +231,7 @@ public abstract class AbstractParserTest {
 		System.out.println(xnode.debugDump());
 		
 		// WHEN (parse to prism)
-		PrismObject<ResourceType> resource = processor.parseObject(xnode);
+		PrismObject<ResourceType> resource = processor.parseObject(xnode, createParsingContext());
 		
 		// THEN
 		System.out.println("Parsed resource:");
@@ -253,13 +248,12 @@ public abstract class AbstractParserTest {
 		
 		// GIVEN
 		Parser parser = createParser();
-		XNodeProcessor processor = new XNodeProcessor();
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		processor.setPrismContext(prismContext);
+		XNodeProcessor processor = new XNodeProcessor(prismContext);
 		
 		// WHEN (parse)
 		XNode xnode = parser.parse(getFile(RESOURCE_RUM_FILE_BASENAME));
-		PrismObject<ResourceType> resource = processor.parseObject(xnode);
+		PrismObject<ResourceType> resource = processor.parseObject(xnode, createParsingContext());
 		
 		// THEN
 		System.out.println("\nParsed resource:");
@@ -304,7 +298,7 @@ public abstract class AbstractParserTest {
 		
 		// WHEN (re-parse)
 		XNode reparsedXnode = parser.parse(serializedString);
-		PrismObject<ResourceType> reparsedResource = processor.parseObject(reparsedXnode);
+		PrismObject<ResourceType> reparsedResource = processor.parseObject(reparsedXnode, createParsingContext());
 		
 		// THEN
 		System.out.println("\nXNode after re-parsing:");
@@ -404,9 +398,8 @@ public abstract class AbstractParserTest {
 
         // GIVEN
         Parser parser = createParser();
-        XNodeProcessor processor = new XNodeProcessor();
-        PrismContext prismContext = PrismTestUtil.getPrismContext();
-        processor.setPrismContext(prismContext);
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		XNodeProcessor processor = new XNodeProcessor(prismContext);
 
         // WHEN (parse to xnode)
         RootXNode xnode = (RootXNode) parser.parse(getFile(EVENT_HANDLER_FILE_BASENAME));
@@ -414,14 +407,14 @@ public abstract class AbstractParserTest {
         System.out.println(xnode.debugDump());
 
         // WHEN (parse to prism)
-        EventHandlerType eventHandlerType = processor.getPrismContext().getBeanConverter().unmarshall((MapXNode) xnode.getSubnode(), EventHandlerChainType.class);
+        EventHandlerType eventHandlerType = prismContext.getBeanConverter().unmarshall((MapXNode) xnode.getSubnode(), EventHandlerChainType.class, createParsingContext());
 
         // THEN
         System.out.println("Parsed object:");
         System.out.println(eventHandlerType);
 
         // WHEN2 (marshalling)
-        MapXNode marshalled = (MapXNode) processor.getPrismContext().getBeanConverter().marshall(eventHandlerType);
+        MapXNode marshalled = (MapXNode) prismContext.getBeanConverter().marshall(eventHandlerType);
 
         System.out.println("XNode after unmarshalling and marshalling back:");
         System.out.println(marshalled.debugDump());

@@ -34,7 +34,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
-
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
@@ -44,24 +44,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -233,7 +215,7 @@ public class JaxbDomHack {
 			// DOM Element
 			DomParser domParser = prismContext.getParserDom();
 			XNode xnode = domParser.parseElementContent((Element)element);
-			subItem = (Item<IV, ID>) prismContext.getXnodeProcessor().parseItem(xnode, elementName, itemDefinition);
+			subItem = (Item<IV, ID>) prismContext.getXnodeProcessor().parseItem(xnode, elementName, itemDefinition, ParsingContext.createDefault(prismContext));
 		} else if (element instanceof JAXBElement<?>) {
 			// JAXB Element
 			JAXBElement<?> jaxbElement = (JAXBElement<?>)element;

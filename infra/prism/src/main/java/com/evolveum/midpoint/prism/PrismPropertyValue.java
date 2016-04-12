@@ -364,8 +364,9 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	
 	private T parseRawElementToNewRealValue(PrismPropertyValue<T> prismPropertyValue, PrismPropertyDefinition<T> definition) 
 				throws SchemaException {
-		XNodeProcessor xnodeProcessor = definition.getPrismContext().getXnodeProcessor();
-		T value = xnodeProcessor.parsePrismPropertyRealValue(prismPropertyValue.rawElement, definition);
+		PrismContext prismContext = definition.getPrismContext();
+		XNodeProcessor xnodeProcessor = prismContext.getXnodeProcessor();
+		T value = xnodeProcessor.parsePrismPropertyRealValue(prismPropertyValue.rawElement, definition, ParsingContext.createDefault(prismContext));
 		return value;
 	}
 

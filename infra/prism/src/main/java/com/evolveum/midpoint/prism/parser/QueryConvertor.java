@@ -23,26 +23,13 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ExpressionWrapper;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -337,7 +324,8 @@ public class QueryConvertor {
 			Entry<QName,XNode> expressionEntry = xmap.getSingleEntryThatDoesNotMatch(
 					KEY_FILTER_VALUE, KEY_FILTER_EQUAL_MATCHING, KEY_FILTER_EQUAL_PATH);
 			if (expressionEntry != null) {
-                PrismPropertyValue expressionPropertyValue = prismContext.getXnodeProcessor().parsePrismPropertyFromGlobalXNodeValue(expressionEntry);
+                PrismPropertyValue expressionPropertyValue = prismContext.getXnodeProcessor().parsePrismPropertyFromGlobalXNodeValue(
+						expressionEntry, ParsingContext.createDefault(prismContext));
                 if (preliminaryParsingOnly) {
                     return null;
                 } else {
@@ -440,7 +428,8 @@ public class QueryConvertor {
 		XNode valueXnode = xmap.get(KEY_FILTER_VALUE);
 		if (valueXnode != null){
 		
-			Item<?,?> item = prismContext.getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition);
+			Item<?,?> item = prismContext.getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition,
+					ParsingContext.allowMissingRefTypes(prismContext));
         
 			  if (preliminaryParsingOnly) {
 		            return null;
@@ -492,7 +481,7 @@ public class QueryConvertor {
 				KEY_FILTER_VALUE, KEY_FILTER_EQUAL_MATCHING, KEY_FILTER_EQUAL_PATH);
 		if (expressionEntry != null) {
 			PrismPropertyValue expressionPropertyValue = prismContext.getXnodeProcessor()
-					.parsePrismPropertyFromGlobalXNodeValue(expressionEntry);
+					.parsePrismPropertyFromGlobalXNodeValue(expressionEntry, ParsingContext.createDefault(prismContext));
 			ExpressionWrapper expressionWrapper = new ExpressionWrapper();
 			expressionWrapper.setExpression(expressionPropertyValue.getValue());
 			return expressionWrapper;
@@ -631,9 +620,9 @@ public class QueryConvertor {
 	private static Item parseItem(XNode valueXnode, QName itemName, ItemDefinition itemDefinition, PrismContext prismContext) throws SchemaException{
 		Item<?,?> item;
 		if (prismContext == null) {
-			item = (Item)XNodeProcessor.parsePrismPropertyRaw(valueXnode, itemName, prismContext);
+			item = (Item)XNodeProcessor.parsePrismPropertyRaw(valueXnode, itemName, null);
 		} else {
-			item = prismContext.getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition);
+			item = prismContext.getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition, ParsingContext.allowMissingRefTypes(prismContext));
 		}
 
 		if (item.getValues().size() < 1 ) {

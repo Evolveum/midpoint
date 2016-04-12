@@ -131,7 +131,7 @@ public class TestParseResource {
 		// WHEN
 		DomParser parserDom = prismContext.getParserDom();
 		XNode xnode = parserDom.parse(TestConstants.RESOURCE_FILE);
-		PrismObject<ResourceType> resource = prismContext.getXnodeProcessor().parseObject(xnode);
+		PrismObject<ResourceType> resource = prismContext.getXnodeProcessor().parseObject(xnode, ParsingContext.createDefault(prismContext));
 		
 		// THEN
 		System.out.println("Parsed resource:");

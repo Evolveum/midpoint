@@ -28,6 +28,7 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -767,7 +768,8 @@ public class TestParseDiffPatch {
 //        }
 
        
-        PolyStringType valueAsPoly = value.getPrismContext().getXnodeProcessor().parseAtomicValue(xnode, PolyStringType.COMPLEX_TYPE);
+        PolyStringType valueAsPoly = value.getPrismContext().getXnodeProcessor().parseAtomicValue(xnode, PolyStringType.COMPLEX_TYPE,
+				ParsingContext.createDefault(PrismTestUtil.getPrismContext()));
         boolean found = false;
         for (PolyStringType expectedValue: expectedValues) {
             if (expectedValue.getOrig().equals(valueAsPoly.getOrig()) && expectedValue.getNorm().equals(valueAsPoly.getNorm())) {
