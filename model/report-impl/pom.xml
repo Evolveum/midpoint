@@ -129,11 +129,6 @@
 			<version>20060411</version>
 			<scope>runtime</scope>
 		</dependency>
-  		<dependency>
-   			<groupId>org.hibernate</groupId>
-   			<artifactId>hibernate-core</artifactId>
-   			<scope>compile</scope>
-  		</dependency>
   		
   		<dependency>
    			<groupId>org.apache.cxf</groupId>

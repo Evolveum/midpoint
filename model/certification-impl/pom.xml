@@ -100,10 +100,6 @@
 			<artifactId>spring-beans</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-core</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>javax.annotation</groupId>
 			<artifactId>javax.annotation-api</artifactId>
 		</dependency>
@@ -225,6 +221,15 @@
             <version>3.4-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-core</artifactId>
+			<!-- This is not really "provided". But if set to "test" then it is not on the
+			     compile classpath and the compilation fails (despite being dependency of security-api).
+			     If set to "compile" then the maven dependency analyze will complain that it is not
+			     used if the tests are not compiled. Setting to "provided" solves this. -->
+			<scope>provided</scope> 
+		</dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
