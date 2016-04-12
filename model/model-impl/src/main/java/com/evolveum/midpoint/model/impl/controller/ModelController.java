@@ -1761,7 +1761,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		taskManager.synchronizeTasks(parentResult);
     }
 
-    @Override
+	@Override
+	public void synchronizeWorkflowRequests(OperationResult parentResult) throws SchemaException, SecurityViolationException {
+		securityEnforcer.authorize(ModelAuthorizationAction.SYNCHRONIZE_WORKFLOW_REQUESTS.getUrl(), null, null, null, null, null, parentResult);
+		workflowManager.synchronizeWorkflowRequests(parentResult);
+	}
+
+	@Override
     public List<String> getAllTaskCategories() {
         return taskManager.getAllTaskCategories();
     }

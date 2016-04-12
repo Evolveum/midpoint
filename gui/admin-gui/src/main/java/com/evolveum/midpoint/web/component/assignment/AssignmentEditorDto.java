@@ -121,7 +121,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	public static AssignmentEditorDto createDtoAddFromSelectedObject(ObjectType object, PageBase pageBase) {
 		AssignmentEditorDto dto = createDtoFromObject(object, UserDtoStatus.ADD,
 				pageBase);
-		dto.setMinimized(false);
+		dto.setMinimized(true);
 		dto.setShowEmpty(true);
 		
 		return dto;

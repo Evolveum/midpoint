@@ -61,8 +61,6 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
                 boolean selected = model.getObject() != null ? model.getObject() : false;
 
                 onUpdateHeader(target, selected, table);
-                
-                onCheckboxUpdate(target);
             }
         };
         panel.setOutputMarkupId(true);
@@ -78,9 +76,6 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         return panel;
     }
     
-    protected void onCheckboxUpdate(AjaxRequestTarget target){
-    	
-    }
 
     @Override
     public String getCssClass() {

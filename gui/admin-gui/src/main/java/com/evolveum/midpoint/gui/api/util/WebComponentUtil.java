@@ -181,6 +181,7 @@ public final class WebComponentUtil {
 		focusTypeList.add(UserType.COMPLEX_TYPE);
 		focusTypeList.add(OrgType.COMPLEX_TYPE);
 		focusTypeList.add(RoleType.COMPLEX_TYPE);
+		focusTypeList.add(ServiceType.COMPLEX_TYPE);
 
 		return focusTypeList;
 	}
@@ -191,6 +192,7 @@ public final class WebComponentUtil {
 		focusTypeList.add(ResourceType.COMPLEX_TYPE);
 		focusTypeList.add(OrgType.COMPLEX_TYPE);
 		focusTypeList.add(RoleType.COMPLEX_TYPE);
+		focusTypeList.add(ServiceType.COMPLEX_TYPE);
 
 		return focusTypeList;
 	}
@@ -743,6 +745,7 @@ public final class WebComponentUtil {
 		return "fa fa-male";
 	}
 	
+	
 	public static String createRoleIcon(PrismObject<RoleType> object) {
 		return "fa fa-street-view";
 	}
@@ -757,6 +760,10 @@ public final class WebComponentUtil {
 	
 	public static String createResourceIcon(PrismObject<ResourceType> object) {
 		return "fa fa-laptop";
+	}
+	
+	public static String createTaskIcon(PrismObject<TaskType> object) {
+		return "fa fa-tasks";
 	}
 	
 	public static String createShadowIcon(PrismObject<ShadowType> object) {

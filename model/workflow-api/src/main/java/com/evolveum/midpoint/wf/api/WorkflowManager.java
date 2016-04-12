@@ -109,4 +109,6 @@ public interface WorkflowManager {
 
 	ChangesByState getChangesByState(TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext, OperationResult result)
 			throws SchemaException, ObjectNotFoundException;
+
+	void synchronizeWorkflowRequests(OperationResult parentResult);
 }

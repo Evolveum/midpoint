@@ -357,7 +357,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			@Override
 			protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
 				RoleMembersStorage storage = getSession().getSessionStorage().getRoleMembers();
-				storage.setRolesPaging(paging);
+				storage.setPaging(paging);
 			}
 		};
 		provider.setQuery(createQuery());
@@ -368,7 +368,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		table.setOutputMarkupId(true);
 
 		RoleMembersStorage storage = getSession().getSessionStorage().getRoleMembers();
-		table.setCurrentPage(storage.getRolesPaging());
+		table.setCurrentPage(storage.getPaging());
 		getRoleMemberSearch().setType(RoleType.COMPLEX_TYPE);
 		return table;
 
@@ -380,7 +380,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			@Override
 			protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
 				RoleMembersStorage storage = getSession().getSessionStorage().getRoleMembers();
-				storage.setRolesPaging(paging);
+				storage.setPaging(paging);
 			}
 		};
 		provider.setQuery(createQuery());
@@ -391,7 +391,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		table.setOutputMarkupId(true);
 
 		RoleMembersStorage storage = getSession().getSessionStorage().getRoleMembers();
-		table.setCurrentPage(storage.getRolesPaging());
+		table.setCurrentPage(storage.getPaging());
 		getRoleMemberSearch().setType(OrgType.COMPLEX_TYPE);
 		return table;
 
@@ -404,7 +404,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			@Override
 			protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
 				RoleMembersStorage storage = getSession().getSessionStorage().getRoleMembers();
-				storage.setRolesPaging(paging);
+				storage.setPaging(paging);
 			}
 
 			@Override
@@ -422,7 +422,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		table.setOutputMarkupId(true);
 
 		RoleMembersStorage storage = getSession().getSessionStorage().getRoleMembers();
-		table.setCurrentPage(storage.getRolesPaging());
+		table.setCurrentPage(storage.getPaging());
 		getRoleMemberSearch().setType(UserType.COMPLEX_TYPE);
 
 		return table;
@@ -447,7 +447,7 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			List<ObjectFilter> conditions = new ArrayList<>();
 			PrismReferenceValue roleRef = new PrismReferenceValue();
 			roleRef.setOid(roleId);
-//			roleRef.setTargetType(RoleType.COMPLEX_TYPE);
+			roleRef.setTargetType(RoleType.COMPLEX_TYPE);
 			ObjectFilter roleFilter = RefFilter.createReferenceEqual(
 					new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class,
 					getPrismContext(), roleRef);
@@ -773,7 +773,6 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			String taskOid = execute("Add member(s)", getActionQuery(QueryScope.TO_ADD, selected), delta, parentResult, target);
 			parentResult.setBackgroundTaskOid(taskOid);
 		} catch (SchemaException e) {
-			// TODO Auto-generated catch block
 			error(getString("pageUsers.message.nothingSelected") + e.getMessage());
 			target.add(getFeedbackPanel());
 		}
@@ -792,7 +791,6 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 			String taskOid = execute("Remove member(s)", getActionQuery(scope, null), delta, parentResult, target);
 			parentResult.setBackgroundTaskOid(taskOid);
 		} catch (SchemaException e) {
-			// TODO Auto-generated catch block
 			error(getString("pageUsers.message.nothingSelected") + e.getMessage());
 			target.add(getFeedbackPanel());
 		}

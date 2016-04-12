@@ -969,7 +969,7 @@ ALTER TABLE m_lookup_table
 ADD CONSTRAINT uc_lookup_name UNIQUE (name_norm);
 
 ALTER TABLE m_lookup_table_row
-ADD CONSTRAINT uc_row_key UNIQUE (row_key);
+ADD CONSTRAINT uc_row_key UNIQUE (owner_oid, row_key);
 
 ALTER TABLE m_node
 ADD CONSTRAINT uc_node_name UNIQUE (name_norm);

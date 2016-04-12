@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -155,17 +156,17 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
 	@Override
 	protected String getIconCssClass() {
-		return "fa fa-tasks";
+		return GuiStyleConstants.STYLES_OBJECT_TASK_ICON;
 	}
 
 	@Override
 	protected String getIconBoxAdditionalCssClass() {		// TODO
-		return "summary-panel-resource";
+		return "summary-panel-task";
 	}
 
 	@Override
 	protected String getBoxAdditionalCssClass() {			// TODO
-		return "summary-panel-resource";
+		return "summary-panel-task";
 	}
 
 	@Override

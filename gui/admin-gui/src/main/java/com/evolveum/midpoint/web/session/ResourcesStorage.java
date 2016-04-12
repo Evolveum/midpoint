@@ -22,7 +22,7 @@ import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContent
 /**
  * @author shood
  */
-public class ResourcesStorage extends PageStorage {
+public class ResourcesStorage implements PageStorage {
 
     /**
      * DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.resources.PageResources}
@@ -44,19 +44,23 @@ public class ResourcesStorage extends PageStorage {
      */
     private ObjectPaging accountContentPaging;
 
-    public Search getResourceSearch() {
+    @Override
+    public Search getSearch() {
         return resourceSearch;
     }
 
-    public void setResourceSearch(Search resourceSearch) {
+    @Override
+    public void setSearch(Search resourceSearch) {
         this.resourceSearch = resourceSearch;
     }
 
-    public ObjectPaging getResourcePaging() {
+    @Override
+    public ObjectPaging getPaging() {
         return resourcePaging;
     }
 
-    public void setResourcePaging(ObjectPaging resourcePaging) {
+    @Override
+    public void setPaging(ObjectPaging resourcePaging) {
         this.resourcePaging = resourcePaging;
     }
 

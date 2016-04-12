@@ -34,10 +34,13 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,11 +79,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectShadowChangeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -88,18 +86,20 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @Produces({"application/xml", "application/json"})
 public class ModelRestService {
 	
-	@Autowired(required= true)
+	@Autowired
 	private ModelCrudService model;
+
+	@Autowired
+	private ModelInteractionService modelInteraction;
 	
-	@Autowired(required = true)
+	@Autowired
 	private TaskManager taskManager;
 	
-	@Autowired(required = true)
+	@Autowired
 	private AuditService auditService;
 	
-	@Autowired(required = true)
+	@Autowired
 	private PrismContext prismContext;
-	
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ModelRestService.class);
 	
@@ -109,10 +109,76 @@ public class ModelRestService {
 	public ModelRestService() {
 		// nothing to do
 	}
+
+	@GET
+	@Path("/users/{id}/policy")
+	public Response getValuePolicyForUser(@PathParam("id") String oid, @Context MessageContext mc) {
+		LOGGER.info("getValuePolicyForUser start");
+
+		Task task = taskManager.createTaskInstance("get");
+		OperationResult parentResult = task.getResult();
+		initRequest(task, mc);
+
+		Response response;
+		try {
+			Collection<SelectorOptions<GetOperationOptions>> options =
+					SelectorOptions.createCollection(GetOperationOptions.createRaw());
+			PrismObject<UserType> user = model.getObject(UserType.class, oid, options, task, parentResult);
+
+			CredentialsPolicyType policy = modelInteraction.getCredentialsPolicy(user, task, parentResult);
+
+			ResponseBuilder builder = Response.ok();
+			builder.entity(policy);
+			response = builder.build();
+		} catch (Exception ex) {
+			response = handleException(ex);
+		}
+
+		parentResult.computeStatus();
+		auditLogout(task);
+
+		LOGGER.info("getValuePolicyForUser finish");
+
+		return response;
+	}
+
+	private Response handleException(Exception ex) {
+		if (ex instanceof ObjectNotFoundException) {
+			return buildErrorResponse(Status.NOT_FOUND, ex);
+		}
+
+		if (ex instanceof CommunicationException) {
+			return buildErrorResponse(Status.GATEWAY_TIMEOUT, ex);
+		}
+
+		if (ex instanceof SecurityViolationException) {
+			return buildErrorResponse(Status.FORBIDDEN, ex);
+		}
+
+		if (ex instanceof ConfigurationException) {
+			return buildErrorResponse(Status.BAD_GATEWAY, ex);
+		}
+
+		if (ex instanceof SchemaException
+				|| ex instanceof PolicyViolationException
+				|| ex instanceof ConsistencyViolationException
+				|| ex instanceof ObjectAlreadyExistsException) {
+			return buildErrorResponse(Status.CONFLICT, ex);
+		}
+
+		return buildErrorResponse(Status.INTERNAL_SERVER_ERROR, ex);
+	}
+
+	private Response buildErrorResponse(Status status, Exception ex) {
+		return buildErrorResponse(status, ex.getMessage());
+	}
+
+	private Response buildErrorResponse(Status status, String message) {
+		return Response.status(status).entity(message).type(MediaType.TEXT_PLAIN).build();
+	}
 	
 	@GET
 	@Path("/{type}/{id}")
-//	@Produces({"application/xml"})
 	public <T extends ObjectType> Response getObject(@PathParam("type") String type, @PathParam("id") String id,
 			@Context MessageContext mc){
 		LOGGER.info("model rest service for get operation start");
@@ -129,16 +195,8 @@ public class ModelRestService {
 			ResponseBuilder builder = Response.ok();
 			builder.entity(object);
 			response = builder.build();
-		} catch (ObjectNotFoundException e) {
-			response = Response.status(Status.NOT_FOUND).entity(e.getMessage()).build();
-		} catch (SchemaException e) {
-			response =  Response.status(Status.CONFLICT).type(MediaType.TEXT_HTML).entity(e.getMessage()).build();
-		} catch (CommunicationException e) {
-			response =  Response.status(Status.GATEWAY_TIMEOUT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (ConfigurationException e) {
-			response =  Response.status(Status.BAD_GATEWAY).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SecurityViolationException e) {
-			response =  Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (Exception ex) {
+			response = handleException(ex);
 		}
 		
 		parentResult.computeStatus();
@@ -151,7 +209,8 @@ public class ModelRestService {
 	@Path("/{type}")
 //	@Produces({"text/html", "application/xml"})
 	@Consumes({"application/xml", "application/json"})
-	public <T extends ObjectType> Response addObject(@PathParam("type") String type, PrismObject<T> object, @QueryParam("options") List<String> options, 
+	public <T extends ObjectType> Response addObject(@PathParam("type") String type, PrismObject<T> object,
+													 @QueryParam("options") List<String> options,
 			@Context UriInfo uriInfo, @Context MessageContext mc) {
 		LOGGER.info("model rest service for add operation start");
 		
@@ -162,10 +221,8 @@ public class ModelRestService {
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		if (!object.getCompileTimeClass().equals(clazz)){
 			auditLogout(task);
-			return Response.status(Status.BAD_REQUEST).entity(
-					"Request to add object of type "
-							+ object.getCompileTimeClass().getSimpleName()
-							+ " to the collection of " + type).type(MediaType.TEXT_HTML).build();
+			return buildErrorResponse(Status.BAD_REQUEST, "Request to add object of type "
+					+ object.getCompileTimeClass().getSimpleName() + " to the collection of " + type);
 		}
 		
 		
@@ -181,29 +238,16 @@ public class ModelRestService {
 
 			if (oid != null) {
 				URI resourceURI = uriInfo.getAbsolutePathBuilder().path(oid).build(oid);
-				builder = clazz.isAssignableFrom(TaskType.class) ? Response.accepted().location(resourceURI) : Response.created(resourceURI);
+				builder = clazz.isAssignableFrom(TaskType.class) ?
+						Response.accepted().location(resourceURI) : Response.created(resourceURI);
 			} else {
 				// OID might be null e.g. if the object creation is a subject of workflow approval
 				builder = Response.accepted();			// TODO is this ok ?
 			}
 			
 			response = builder.build();
-		} catch (ObjectAlreadyExistsException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (ObjectNotFoundException e) {
-			response = Response.status(Status.NOT_FOUND).entity(e.getMessage()).build();
-		} catch (SchemaException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (ExpressionEvaluationException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (CommunicationException e) {
-			response = Response.status(Status.GATEWAY_TIMEOUT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (ConfigurationException e) {
-			response = Response.status(Status.BAD_GATEWAY).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (PolicyViolationException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SecurityViolationException e) {
-			response = Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (Exception ex) {
+			response = handleException(ex);
 		}
 		
 		parentResult.computeStatus();
@@ -227,10 +271,9 @@ public class ModelRestService {
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		if (!object.getCompileTimeClass().equals(clazz)){
 			auditLogout(task);
-			return Response.status(Status.BAD_REQUEST).entity(
-					"Request to add object of type "
-							+ object.getCompileTimeClass().getSimpleName()
-							+ " to the collection of " + type).type(MediaType.TEXT_HTML).build();
+			return buildErrorResponse(Status.BAD_REQUEST, "Request to add object of type "
+					+ object.getCompileTimeClass().getSimpleName()
+					+ " to the collection of " + type);
 		}
 		
 		ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
@@ -245,25 +288,14 @@ public class ModelRestService {
 			LOGGER.info("returned oid :  {}", oid );
 			
 			URI resourceURI = uriInfo.getAbsolutePathBuilder().path(oid).build(oid);
-			ResponseBuilder builder = clazz.isAssignableFrom(TaskType.class) ? Response.accepted().location(resourceURI) : Response.created(resourceURI);
+			ResponseBuilder builder = clazz.isAssignableFrom(TaskType.class) ?
+					Response.accepted().location(resourceURI) : Response.created(resourceURI);
 			
 			response = builder.build();
 		} catch (ObjectAlreadyExistsException e) {
 			response = Response.serverError().entity(e.getMessage()).build();
-		} catch (ObjectNotFoundException e) {
-			response = Response.status(Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SchemaException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (ExpressionEvaluationException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (CommunicationException e) {
-			response = Response.status(Status.GATEWAY_TIMEOUT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (ConfigurationException e) {
-			response = Response.status(Status.BAD_GATEWAY).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (PolicyViolationException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SecurityViolationException e) {
-			response = Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (Exception ex) {
+			response = handleException(ex);
 		}
 		
 		parentResult.computeStatus();
@@ -302,21 +334,8 @@ public class ModelRestService {
 			
 			model.deleteObject(clazz, id, modelExecuteOptions, task, parentResult);
 			response = Response.noContent().build();
-			
-		} catch (ObjectNotFoundException e) {
-			response = Response.status(Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (ConsistencyViolationException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (CommunicationException e) {
-			response = Response.status(Status.GATEWAY_TIMEOUT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SchemaException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (ConfigurationException e) {
-			response = Response.status(Status.BAD_GATEWAY).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (PolicyViolationException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SecurityViolationException e) {
-			response = Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (Exception ex) {
+			response = handleException(ex);
 		}
 		
 		parentResult.computeStatus();
@@ -350,22 +369,8 @@ public class ModelRestService {
 			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(modificationType, clazz, prismContext);
 			model.modifyObject(clazz, oid, modifications, modelExecuteOptions, task, parentResult);
 			response = Response.noContent().build();
-		} catch (ObjectNotFoundException e) {
-			response = Response.status(Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SchemaException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (ExpressionEvaluationException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (CommunicationException e) {
-			response = Response.status(Status.GATEWAY_TIMEOUT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (ConfigurationException e) {
-			response = Response.status(Status.BAD_GATEWAY).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (ObjectAlreadyExistsException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (PolicyViolationException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SecurityViolationException e) {
-			response = Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (Exception ex) {
+			response = handleException(ex);
 		}
 		
 		parentResult.computeStatus();
@@ -395,18 +400,8 @@ public class ModelRestService {
 //				changeDescription.get
 //			}
 //			response = Response.seeOther((uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject").build(ObjectTypes.TASK.getRestType(), task.getOid()))).build();
-		} catch (ObjectAlreadyExistsException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (ObjectNotFoundException e) {
-			response = Response.status(Status.NOT_FOUND).entity(e.getMessage()).build();
-		} catch (SchemaException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (CommunicationException e) {
-			response = Response.status(Status.GATEWAY_TIMEOUT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (ConfigurationException e) {
-			response = Response.status(Status.BAD_GATEWAY).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SecurityViolationException e) {
-			response = Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (Exception ex) {
+			response = handleException(ex);
 		}
 		
 		parentResult.computeStatus();
@@ -431,14 +426,10 @@ public class ModelRestService {
 		try {
 			PrismObject<UserType> user = model.findShadowOwner(shadowOid, task, parentResult);
 			response = Response.ok().entity(user).build();
-		} catch (ObjectNotFoundException e) {
-			response = Response.status(Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SecurityViolationException e) {
-			response = Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SchemaException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
 		} catch (ConfigurationException e) {
-			response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+			response = buildErrorResponse(Status.INTERNAL_SERVER_ERROR, e.getMessage());
+		} catch (Exception ex) {
+			response = handleException(ex);
 		}
 		
 		parentResult.computeStatus();
@@ -470,17 +461,8 @@ public class ModelRestService {
 			}
 		
 			response = Response.ok().entity(listType).build();
-		
-		} catch (SchemaException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (ObjectNotFoundException e) {
-			response = Response.status(Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (CommunicationException e) {
-			response = Response.status(Status.GATEWAY_TIMEOUT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (ConfigurationException e) {
-			response = Response.status(Status.BAD_GATEWAY).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SecurityViolationException e) {
-			response = Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (Exception ex) {
+			response = handleException(ex);
 		}
 		
 		parentResult.computeStatus();
@@ -503,17 +485,10 @@ public class ModelRestService {
 		Response response;
 		try {
 			model.importFromResource(resourceOid, objClass, task, parentResult);
-			response = Response.seeOther((uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject").build(ObjectTypes.TASK.getRestType(), task.getOid()))).build();
-		} catch (ObjectNotFoundException e) {
-			response = Response.status(Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SchemaException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (CommunicationException e) {
-			response = Response.status(Status.GATEWAY_TIMEOUT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (ConfigurationException e) {
-			response = Response.status(Status.BAD_GATEWAY).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SecurityViolationException e) {
-			response = Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+			response = Response.seeOther((uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject")
+					.build(ObjectTypes.TASK.getRestType(), task.getOid()))).build();
+		} catch (Exception ex) {
+			response = handleException(ex);
 		}
 		
 		parentResult.computeStatus();
@@ -534,8 +509,8 @@ public class ModelRestService {
 		try {
 			OperationResult result = model.testResource(resourceOid, task);
 			response = Response.ok(result).build();
-		} catch (ObjectNotFoundException e) {
-			response = Response.status(Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (Exception ex) {
+			response = handleException(ex);
 		}
 	
 		auditLogout(task);
@@ -560,13 +535,10 @@ public class ModelRestService {
 			} else {
 				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
 			}
-		} catch (ObjectNotFoundException e) {
-			response = Response.status(Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SchemaException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SecurityViolationException e) {
-			response = Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (Exception ex) {
+			response = handleException(ex);
 		}
+
 		auditLogout(task);
 		return response;
     }
@@ -589,18 +561,13 @@ public class ModelRestService {
 			} else {
 				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
 			}
-		} catch (ObjectNotFoundException e) {
-			response = Response.status(Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SchemaException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SecurityViolationException e) {
-			response = Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (Exception ex) {
+			response = handleException(ex);
 		}
         
 		auditLogout(task);
 		return response;
     }
-	
 	
 	@POST
 	@Path("/tasks/{oid}/resume")
@@ -621,13 +588,10 @@ public class ModelRestService {
 			} else {
 				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
 			}
-		} catch (ObjectNotFoundException e) {
-			response = Response.status(Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SchemaException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SecurityViolationException e) {
-			response = Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (Exception ex) {
+			response = handleException(ex);
 		}
+
 		auditLogout(task);
 		return response;
     }
@@ -652,12 +616,8 @@ public class ModelRestService {
 			} else {
 				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
 			}
-		} catch (ObjectNotFoundException e) {
-			response = Response.status(Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SchemaException e) {
-			response = Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
-		} catch (SecurityViolationException e) {
-			response = Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (Exception ex) {
+			response = handleException(ex);
 		}
 
 		auditLogout(task);
@@ -716,41 +676,30 @@ public class ModelRestService {
 	}
     
     private void auditLoginSuccess(Task task) {
-		AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
-        PrismObject<UserType> owner = task.getOwner();
-        if (owner != null) {
-	        record.setInitiator(owner);
-	        PolyStringType name = owner.asObjectable().getName();
-	        if (name != null) {
-	        	record.setParameter(name.getOrig());
-	        }
-        }
-
-        record.setChannel(SchemaConstants.CHANNEL_REST_URI);
-        record.setTimestamp(System.currentTimeMillis());
-        record.setSessionIdentifier(task.getTaskIdentifier());
-        
-        record.setOutcome(OperationResultStatus.SUCCESS);
-		auditService.audit(record, task);
+		audit(AuditEventType.CREATE_SESSION, task);
 	}
     
     private void auditLogout(Task task) {
-		AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
+		audit(AuditEventType.TERMINATE_SESSION, task);
+	}
+
+	private void audit(AuditEventType event, Task task) {
+		AuditEventRecord record = new AuditEventRecord(event, AuditEventStage.REQUEST);
 		PrismObject<UserType> owner = task.getOwner();
-        if (owner != null) {
-	        record.setInitiator(owner);
-	        PolyStringType name = owner.asObjectable().getName();
-	        if (name != null) {
-	        	record.setParameter(name.getOrig());
-	        }
-        }
+		if (owner != null) {
+			record.setInitiator(owner);
+			PolyStringType name = owner.asObjectable().getName();
+			if (name != null) {
+				record.setParameter(name.getOrig());
+			}
+		}
 
-        record.setChannel(SchemaConstants.CHANNEL_REST_URI);
-        record.setTimestamp(System.currentTimeMillis());
-        record.setSessionIdentifier(task.getTaskIdentifier());
-        
-        record.setOutcome(OperationResultStatus.SUCCESS);
+		record.setChannel(SchemaConstants.CHANNEL_REST_URI);
+		record.setTimestamp(System.currentTimeMillis());
+		record.setSessionIdentifier(task.getTaskIdentifier());
 
-        auditService.audit(record, task);
+		record.setOutcome(OperationResultStatus.SUCCESS);
+
+		auditService.audit(record, task);
 	}
 }

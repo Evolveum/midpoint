@@ -15,8 +15,10 @@
  */
 package com.evolveum.midpoint.web.component.data.column;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -51,8 +53,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class ColumnUtils {
 
-	public static List<IColumn> createColumns(List<ColumnTypeDto> columns) {
-		List<IColumn> tableColumns = new ArrayList<IColumn>();
+	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> createColumns(List<ColumnTypeDto> columns) {
+		List<IColumn<SelectableBean<T>, String>> tableColumns = new ArrayList<IColumn<SelectableBean<T>, String>>();
 		for (ColumnTypeDto column : columns) {
 			PropertyColumn tableColumn = null;
 			if (column.isSortable()) {
@@ -92,7 +94,7 @@ public class ColumnUtils {
 
 	}
 
-	public static <O extends ObjectType> List<IColumn> getDefaultColumns(Class<O> type) {
+	public static <O extends ObjectType> List<IColumn<SelectableBean<O>, String>> getDefaultColumns(Class<O> type) {
 		if (type == null) {
 			return getDefaultUserColumns();
 		}
@@ -113,15 +115,27 @@ public class ColumnUtils {
 			throw new UnsupportedOperationException("Will be implemented eventually");
 		}
 	}
-
-	public static StringResourceModel createStringResource(String resourceKey, Object... objects) {
-		return new StringResourceModel(resourceKey).setModel(new Model<String>()).setDefaultValue(resourceKey)
-				.setParameters(objects);
+	
+	public static <T extends ObjectType> IColumn<SelectableBean<T>, String> createIconColumn(Class<T> type){
+		if (type.equals(UserType.class)) {
+			return getUserIconColumn();
+		} else if (RoleType.class.equals(type)) {
+			return getRoleIconColumn();
+		} else if (OrgType.class.equals(type)) {
+			return getOrgIconColumn();
+		} else if (ServiceType.class.equals(type)) {
+			return getServiceIconColumn();
+		} else if (type.equals(TaskType.class)) {
+			return getTaskIconColumn();
+		} else if (type.equals(ResourceType.class)) {
+			return getResourceIconColumn();
+		} else {
+			throw new UnsupportedOperationException("Will be implemented eventually");
+		}
 	}
-
-	public static <T extends ObjectType> List<IColumn> getDefaultUserColumns() {
-		List<IColumn> columns = new ArrayList<IColumn>();
-		columns.add(new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+	
+	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getUserIconColumn(){
+		return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
@@ -134,7 +148,135 @@ public class ColumnUtils {
 					}
 				};
 			}
-		});
+		};
+	}
+	
+	public static <T extends ObjectType> IColumn<SelectableBean<T>, String> getShadowIconColumn(){
+		return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+
+			@Override
+			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
+				return new AbstractReadOnlyModel<String>() {
+
+					@Override
+					public String getObject() {
+						T shadow = rowModel.getObject().getValue();
+						return WebComponentUtil.createShadowIcon(shadow.asPrismContainer());
+					}
+				};
+			}
+		};
+	}
+	
+private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getRoleIconColumn(){
+	return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+
+		@Override
+		protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
+			return new AbstractReadOnlyModel<String>() {
+
+				@Override
+				public String getObject() {
+					T role = rowModel.getObject().getValue();
+					return WebComponentUtil.createRoleIcon(role.asPrismContainer());
+				}
+			};
+		}
+	};
+	}
+
+private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getOrgIconColumn(){
+	return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+
+		@Override
+		protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
+			return new AbstractReadOnlyModel<String>() {
+
+				@Override
+				public String getObject() {
+					T org = rowModel.getObject().getValue();
+					return WebComponentUtil.createOrgIcon(org.asPrismContainer());
+				}
+			};
+		}
+	};
+}
+
+private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getServiceIconColumn(){
+	return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
+			return new AbstractReadOnlyModel<String>() {
+
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public String getObject() {
+					T service = rowModel.getObject().getValue();
+					return WebComponentUtil.createServiceIcon(service.asPrismContainer());
+				}
+			};
+		}
+	};
+}
+
+private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getTaskIconColumn(){
+	return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
+			return new AbstractReadOnlyModel<String>() {
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public String getObject() {
+					T task = rowModel.getObject().getValue();
+					return WebComponentUtil.createTaskIcon(task.asPrismContainer());
+				}
+			};
+		}
+	};
+}
+
+private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getResourceIconColumn(){
+	return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+
+		@Override
+		protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
+			return new AbstractReadOnlyModel<String>() {
+
+				@Override
+				public String getObject() {
+					T resource = rowModel.getObject().getValue();
+					return WebComponentUtil.createResourceIcon(resource.asPrismContainer());
+				}
+			};
+		}
+	};
+}
+
+	public static StringResourceModel createStringResource(String resourceKey, Object... objects) {
+		return new StringResourceModel(resourceKey).setModel(new Model<String>()).setDefaultValue(resourceKey)
+				.setParameters(objects);
+	}
+
+	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultUserColumns() {
+		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
 
 		List<ColumnTypeDto> columnsDefs = Arrays.asList(
 				new ColumnTypeDto("UserType.givenName", UserType.F_GIVEN_NAME.getLocalPart(),
@@ -147,21 +289,21 @@ public class ColumnUtils {
 						SelectableBean.F_VALUE + ".emailAddress", false)
 
 		);
-		columns.addAll(createColumns(columnsDefs));
+		columns.addAll((Collection)createColumns(columnsDefs));
 
 		return columns;
 
 	}
 
-	public static <T extends ObjectType> List<IColumn> getDefaultTaskColumns() {
-		List<IColumn> columns = new ArrayList<IColumn>();
+	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultTaskColumns() {
+		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
 
 		columns.add(
-				new AbstractColumn<SelectableBean<TaskType>, String>(createStringResource("TaskType.kind")) {
+				new AbstractColumn<SelectableBean<T>, String>(createStringResource("TaskType.kind")) {
 
 					@Override
-					public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem,
-							String componentId, IModel<SelectableBean<TaskType>> rowModel) {
+					public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,
+							String componentId, IModel<SelectableBean<T>> rowModel) {
 						SelectableBean<TaskType> object = (SelectableBean<TaskType>) rowModel.getObject();
 						PrismProperty<ShadowKindType> pKind = object.getValue().asPrismObject().findProperty(
 								new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
@@ -176,12 +318,12 @@ public class ColumnUtils {
 
 				});
 
-		columns.add(new AbstractColumn<SelectableBean<TaskType>, String>(
+		columns.add(new AbstractColumn<SelectableBean<T>, String>(
 				createStringResource("TaskType.intent")) {
 
 			@Override
-			public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem,
-					String componentId, IModel<SelectableBean<TaskType>> rowModel) {
+			public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,
+					String componentId, IModel<SelectableBean<T>> rowModel) {
 				SelectableBean<TaskType> object = (SelectableBean<TaskType>) rowModel.getObject();
 				PrismProperty<String> pIntent = object.getValue().asPrismObject().findProperty(
 						new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
@@ -194,12 +336,12 @@ public class ColumnUtils {
 
 		});
 
-		columns.add(new AbstractColumn<SelectableBean<TaskType>, String>(
+		columns.add(new AbstractColumn<SelectableBean<T>, String>(
 				createStringResource("TaskType.objectClass")) {
 
 			@Override
-			public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem,
-					String componentId, IModel<SelectableBean<TaskType>> rowModel) {
+			public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,
+					String componentId, IModel<SelectableBean<T>> rowModel) {
 				SelectableBean<TaskType> object = (SelectableBean<TaskType>) rowModel.getObject();
 				PrismProperty<QName> pObjectClass = object.getValue().asPrismObject().findProperty(
 						new ItemPath(TaskType.F_EXTENSION, SchemaConstants.OBJECTCLASS_PROPERTY_NAME));
@@ -216,88 +358,53 @@ public class ColumnUtils {
 		List<ColumnTypeDto> columnsDefs = Arrays.asList(
 				new ColumnTypeDto("TaskType.executionStatus", TaskType.F_EXECUTION_STATUS.getLocalPart(),
 						SelectableBean.F_VALUE + ".executionStatus", false));
-		columns.addAll(createColumns(columnsDefs));
+		columns.addAll((Collection)createColumns(columnsDefs));
 
 		return columns;
 
 	}
 
-	public static <T extends ObjectType> List<IColumn> getDefaultRoleColumns() {
-		List<IColumn> columns = new ArrayList<IColumn>();
-		columns.add(new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultRoleColumns() {
+		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
+		
 
-			@Override
-			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
-
-					@Override
-					public String getObject() {
-						T user = rowModel.getObject().getValue();
-						return WebComponentUtil.createRoleIcon(user.asPrismContainer());
-					}
-				};
-			}
-		});
-
-		columns.addAll(getDefaultAbstractRoleColumns());
+		columns.addAll((Collection)getDefaultAbstractRoleColumns(RoleType.COMPLEX_TYPE));
 
 		return columns;
 	}
 	
-	public static <T extends ObjectType> List<IColumn> getDefaultServiceColumns() {
-		List<IColumn> columns = new ArrayList<IColumn>();
-		columns.add(new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
-
-			@Override
-			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
-
-					@Override
-					public String getObject() {
-						T user = rowModel.getObject().getValue();
-						return WebComponentUtil.createServiceIcon(user.asPrismContainer());
-					}
-				};
-			}
-		});
-
-		columns.addAll(getDefaultAbstractRoleColumns());
+	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultServiceColumns() {
+		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
+	
+		columns.addAll((Collection)getDefaultAbstractRoleColumns(ServiceType.COMPLEX_TYPE));
 
 		return columns;
 	}
 
-	public static <T extends ObjectType> List<IColumn> getDefaultOrgColumns() {
-		List<IColumn> columns = new ArrayList<IColumn>();
-		columns.add(new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultOrgColumns() {
+		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
 
-			@Override
-			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
-
-					@Override
-					public String getObject() {
-						T user = rowModel.getObject().getValue();
-						return WebComponentUtil.createOrgIcon(user.asPrismContainer());
-					}
-				};
-			}
-		});
-
-		columns.addAll(getDefaultAbstractRoleColumns());
+		columns.addAll((Collection)getDefaultAbstractRoleColumns(OrgType.COMPLEX_TYPE));
 
 		return columns;
 	}
 
-	private static <T extends ObjectType> List<IColumn> getDefaultAbstractRoleColumns() {
+	private static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultAbstractRoleColumns(QName type) {
 
+		String sortByDisplayName = null;
+		String sortByIdentifer = null;
+		if (OrgType.COMPLEX_TYPE.equals(type)) {
+			sortByDisplayName = AbstractRoleType.F_DISPLAY_NAME.getLocalPart();
+			sortByIdentifer = AbstractRoleType.F_IDENTIFIER.getLocalPart();
+		}
 		List<ColumnTypeDto> columnsDefs = Arrays.asList(
 				new ColumnTypeDto("AbstractRoleType.displayName",
-						AbstractRoleType.F_DISPLAY_NAME.getLocalPart(),
+						sortByDisplayName,
 						SelectableBean.F_VALUE + ".displayName", false),
 				new ColumnTypeDto("AbstractRoleType.description",
-						AbstractRoleType.F_DESCRIPTION.getLocalPart(),
+						null,
 						SelectableBean.F_VALUE + ".description", false),
-				new ColumnTypeDto("AbstractRoleType.identifier", AbstractRoleType.F_IDENTIFIER.getLocalPart(),
+				new ColumnTypeDto("AbstractRoleType.identifier", sortByIdentifer,
 						SelectableBean.F_VALUE + ".identifier", false)
 
 		);
@@ -305,22 +412,8 @@ public class ColumnUtils {
 
 	}
 
-	public static <T extends ObjectType> List<IColumn> getDefaultResourceColumns() {
-		List<IColumn> columns = new ArrayList<IColumn>();
-		columns.add(new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
-
-			@Override
-			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
-
-					@Override
-					public String getObject() {
-						T user = rowModel.getObject().getValue();
-						return WebComponentUtil.createResourceIcon(user.asPrismContainer());
-					}
-				};
-			}
-		});
+	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultResourceColumns() {
+		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
 
 		List<ColumnTypeDto> columnsDefs = Arrays.asList(
 				// new ColumnTypeDto("AbstractRoleType.displayName",
@@ -334,7 +427,7 @@ public class ColumnUtils {
 
 		);
 
-		columns.addAll(createColumns(columnsDefs));
+		columns.addAll((Collection) createColumns(columnsDefs));
 
 		return columns;
 

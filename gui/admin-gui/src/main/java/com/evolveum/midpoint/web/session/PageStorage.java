@@ -18,9 +18,20 @@ package com.evolveum.midpoint.web.session;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.web.component.search.Search;
+
 /**
  *  @author shood
  * */
-public class PageStorage implements Serializable{
+public interface PageStorage extends Serializable{
+	
+	public Search getSearch();
+	
+	public void setSearch(Search search);
+	
+	public void setPaging(ObjectPaging paging);
+	
+	public ObjectPaging getPaging();
 
 }

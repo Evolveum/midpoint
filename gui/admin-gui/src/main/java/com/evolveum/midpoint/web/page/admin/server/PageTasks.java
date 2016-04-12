@@ -15,6 +15,41 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.datetime.markup.html.basic.DateLabel;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -24,7 +59,12 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -45,7 +85,12 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.Table;
-import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -53,8 +98,14 @@ import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
 import com.evolveum.midpoint.web.component.refresh.Refreshable;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
-import com.evolveum.midpoint.web.page.admin.server.dto.*;
-import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
+import com.evolveum.midpoint.web.page.admin.server.dto.NodeDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.NodeDtoProvider;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatusFilter;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
+import com.evolveum.midpoint.web.page.admin.server.dto.TasksSearchDto;
 import com.evolveum.midpoint.web.session.TasksStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
@@ -64,35 +115,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.time.DurationFormatUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.datetime.markup.html.basic.DateLabel;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.markup.html.panel.Fragment;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
-import org.apache.wicket.util.time.Duration;
-
-import java.util.*;
 
 /**
  * @author lazyman
@@ -106,7 +128,7 @@ import java.util.*;
                 description = "PageTasks.auth.tasks.description")})
 public class PageTasks extends PageAdminTasks implements Refreshable {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageTasks.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PageTasks.class);
     private static final String DOT_CLASS = PageTasks.class.getName() + ".";
     private static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTasks";
     private static final String OPERATION_RESUME_TASKS = DOT_CLASS + "resumeTasks";
@@ -121,6 +143,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     private static final String OPERATION_DEACTIVATE_SERVICE_THREADS = DOT_CLASS + "deactivateServiceThreads";
     private static final String OPERATION_REACTIVATE_SERVICE_THREADS = DOT_CLASS + "reactivateServiceThreads";
     private static final String OPERATION_SYNCHRONIZE_TASKS = DOT_CLASS + "synchronizeTasks";
+    private static final String OPERATION_SYNCHRONIZE_WORKFLOW_REQUESTS = DOT_CLASS + "synchronizeWorkflowRequests";
     private static final String OPERATION_REFRESH_TASKS = DOT_CLASS + "refreshTasks";
     private static final String ALL_CATEGORIES = "";
 
@@ -138,6 +161,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     private static final String ID_DELETE_TASKS_POPUP = "deleteTasksPopup";
     private static final String ID_DELETE_ALL_CLOSED_TASKS_POPUP = "deleteAllClosedTasksPopup";
     private static final String ID_TABLE_HEADER = "tableHeader";
+	public static final String ID_SYNCHRONIZE_WORKFLOW_REQUESTS = "synchronizeWorkflowRequests";
 
     public static final String SELECTED_CATEGORY = "category";
 	private static final int REFRESH_INTERVAL = 10000;				// don't set too low to prevent refreshing open inline menus (TODO skip refresh if a menu is open)
@@ -231,7 +255,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             @Override
             protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
                 TasksStorage storage = getSessionStorage().getTasks();
-                storage.setTasksPaging(paging);
+                storage.setPaging(paging);
             }
 
             @Override
@@ -256,7 +280,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         taskTable.setOutputMarkupId(true);
 
         TasksStorage storage = getSessionStorage().getTasks();
-        taskTable.setCurrentPage(storage.getTasksPaging());
+        taskTable.setCurrentPage(storage.getPaging());
 
         mainForm.add(taskTable);
 
@@ -782,6 +806,16 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         };
         add(synchronize);
 
+		AjaxButton synchronizeWorkflowRequests = new AjaxButton(ID_SYNCHRONIZE_WORKFLOW_REQUESTS,
+				createStringResource("pageTasks.button.synchronizeWorkflowRequests")) {
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				synchronizeWorkflowRequestsPerformed(target);
+			}
+		};
+		add(synchronizeWorkflowRequests);
+
 //      adding Refresh button
         AjaxButton refresh = new AjaxButton("refreshTasks",
                 createStringResource("pageTasks.button.refreshTasks")) {
@@ -1155,6 +1189,24 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         //refresh feedback and table
         refreshTables(target);
     }
+
+	private void synchronizeWorkflowRequestsPerformed(AjaxRequestTarget target) {
+		OperationResult result = new OperationResult(OPERATION_SYNCHRONIZE_WORKFLOW_REQUESTS);
+
+		try {
+			getTaskService().synchronizeWorkflowRequests(result);
+			result.computeStatusIfUnknown();
+			if (result.isSuccess()) {       // brutal hack - the subresult's message contains statistics
+				result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
+			}
+		} catch (RuntimeException | SchemaException | SecurityViolationException e) {
+			result.recordFatalError("Couldn't synchronize tasks", e);
+		}
+		showResult(result);
+
+		//refresh feedback and table
+		refreshTables(target);
+	}
     //endregion
 
     private void refreshTasks(AjaxRequestTarget target) {
@@ -1248,7 +1300,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
         TasksStorage storage = getSessionStorage().getTasks();
         storage.setTasksSearch(searchModel.getObject());
-        panel.setCurrentPage(storage.getTasksPaging());
+        panel.setCurrentPage(storage.getPaging());
 
         target.add((Component) panel);
     }

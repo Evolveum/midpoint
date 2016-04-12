@@ -132,7 +132,7 @@ public class PageResources extends PageAdminResources {
             @Override
             protected Search load() {
                 ResourcesStorage storage = getSessionStorage().getResources();
-                Search dto = storage.getResourceSearch();
+                Search dto = storage.getSearch();
 
                 if (dto == null) {
                     dto = SearchFactory.createSearch(ResourceType.class, getPrismContext(), true);
@@ -175,7 +175,7 @@ public class PageResources extends PageAdminResources {
         resources.setOutputMarkupId(true);
 
         ResourcesStorage storage = getSessionStorage().getResources();
-        resources.setCurrentPage(storage.getResourcePaging());
+        resources.setCurrentPage(storage.getPaging());
 
         mainForm.add(resources);
 
@@ -234,7 +234,7 @@ public class PageResources extends PageAdminResources {
             @Override
             protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
                 ResourcesStorage storage = getSessionStorage().getResources();
-                storage.setResourcePaging(paging);
+                storage.setPaging(paging);
             }
 
             @Override
@@ -654,8 +654,8 @@ public class PageResources extends PageAdminResources {
         provider.setOptions(SelectorOptions.createCollection(GetOperationOptions.createNoFetch()));
 
         ResourcesStorage storage = getSessionStorage().getResources();
-        storage.setResourceSearch(searchModel.getObject());
-        panel.setCurrentPage(storage.getResourcePaging());
+        storage.setSearch(searchModel.getObject());
+        panel.setCurrentPage(storage.getPaging());
 
         target.add((Component) panel);
     }

@@ -29,12 +29,20 @@
 		<label>Deutsch</label>
 	</row>
 	<row>
+		<key>et_EE</key>
+		<label>Eesti</label>
+	</row>
+	<row>
 		<key>en_US</key>
 		<label>English (US)</label>
 	</row>
 	<row>
 		<key>es_ES</key>
 		<label>Español</label>
+	</row>
+	<row>
+		<key>hu_HU</key>
+		<label>Magyar</label>
 	</row>
 	<row>
 		<key>sk_SK</key>

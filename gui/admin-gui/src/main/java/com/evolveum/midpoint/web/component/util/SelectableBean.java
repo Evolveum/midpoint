@@ -17,15 +17,22 @@
 package com.evolveum.midpoint.web.component.util;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 
 /**
  * @author lazyman
  */
-public class SelectableBean<T extends Serializable> extends Selectable {
+public class SelectableBean<T extends Serializable> extends Selectable implements InlineMenuable{
 
     public static final String F_VALUE = "value";
 
     private T value;
+    
+    private List<InlineMenuItem> menuItems;
 
     public SelectableBean() {
     }
@@ -41,4 +48,11 @@ public class SelectableBean<T extends Serializable> extends Selectable {
     public void setValue(T value) {
         this.value = value;
     }
+    
+    public List<InlineMenuItem> getMenuItems() {
+    	if (menuItems == null) {
+    		menuItems = new ArrayList<InlineMenuItem>();
+    	}
+		return menuItems;
+	}
 }

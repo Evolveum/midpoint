@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.roles;
 
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -52,6 +53,9 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.event.Broadcast;
+import org.apache.wicket.event.IEventSink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -60,6 +64,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -92,26 +97,26 @@ public class PageRoles extends PageAdminRoles {
     }
 
     public PageRoles(boolean clearPagingInSession) {
-        searchModel = new LoadableModel<Search>(false) {
-
-            @Override
-            protected Search load() {
-                RolesStorage storage = getSessionStorage().getRoles();
-                Search dto = storage.getRolesSearch();
-
-                if (dto == null) {
-                    dto = SearchFactory.createSearch(RoleType.class, getPrismContext(), true);
-
-                    SchemaRegistry registry = getPrismContext().getSchemaRegistry();
-                    PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(RoleType.class);
-                    PrismPropertyDefinition def = objDef.findPropertyDefinition(RoleType.F_REQUESTABLE);
-
-                    dto.addItem(def);
-                }
-
-                return dto;
-            }
-        };
+//        searchModel = new LoadableModel<Search>(false) {
+//
+//            @Override
+//            protected Search load() {
+//                RolesStorage storage = getSessionStorage().getRoles();
+//                Search dto = storage.getSearch();
+//
+//                if (dto == null) {
+//                    dto = SearchFactory.createSearch(RoleType.class, getPrismContext(), true);
+//
+//                    SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+//                    PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(RoleType.class);
+//                    PrismPropertyDefinition def = objDef.findPropertyDefinition(RoleType.F_REQUESTABLE);
+//
+//                    dto.addItem(def);
+//                }
+//
+//                return dto;
+//            }
+//        };
 
         initLayout();
     }
@@ -119,42 +124,70 @@ public class PageRoles extends PageAdminRoles {
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
+        
+        MainObjectListPanel<RoleType> roleListPanel = new MainObjectListPanel<RoleType>(ID_TABLE, RoleType.class, null, this) {
+			
+			
+			@Override
+			protected List<InlineMenuItem> createInlineMenu() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			protected List<IColumn<SelectableBean<RoleType>, String>> createColumns() {
+				return PageRoles.this.initColumns();
+			}
+			
+			@Override
+			protected void objectDetailsPerformed(AjaxRequestTarget target, RoleType object) {
+				PageRoles.this.roleDetailsPerformed(target, object.getOid());;
+			}
+			
+			@Override
+			protected void newObjectPerformed(AjaxRequestTarget target) {
+			setResponsePage(PageRole.class);
+				
+			}
+		};
+		roleListPanel.setOutputMarkupId(true);
+		mainForm.add(roleListPanel);
 
-        ObjectDataProvider provider = new ObjectDataProvider(PageRoles.this, RoleType.class) {
-
-            @Override
-            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-                RolesStorage storage = getSessionStorage().getRoles();
-                storage.setRolesPaging(paging);
-            }
-        };
-        Search search = searchModel.getObject();
-        ObjectQuery query = search.createObjectQuery(getPrismContext());
-        provider.setQuery(query);
-
-        List<IColumn<RoleType, String>> columns = initColumns();
-
-        BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns,
-                UserProfileStorage.TableId.TABLE_ROLES,
-                (int) getItemsPerPage(UserProfileStorage.TableId.TABLE_ROLES)) {
-
-            @Override
-            protected WebMarkupContainer createHeader(String headerId) {
-                return new SearchFormPanel(headerId, searchModel) {
-
-                    @Override
-                    protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-                        PageRoles.this.listRolesPerformed(query, target);
-                    }
-                };
-            }
-        };
-        table.setOutputMarkupId(true);
-
-        RolesStorage storage = getSessionStorage().getRoles();
-        table.setCurrentPage(storage.getRolesPaging());
-
-        mainForm.add(table);
+//        ObjectDataProvider provider = new ObjectDataProvider(PageRoles.this, RoleType.class) {
+//
+//            @Override
+//            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
+//                RolesStorage storage = getSessionStorage().getRoles();
+//                storage.setPaging(paging);
+//            }
+//        };
+//        Search search = searchModel.getObject();
+//        ObjectQuery query = search.createObjectQuery(getPrismContext());
+//        provider.setQuery(query);
+//
+//        List<IColumn<RoleType, String>> columns = initColumns();
+//
+//        BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns,
+//                UserProfileStorage.TableId.TABLE_ROLES,
+//                (int) getItemsPerPage(UserProfileStorage.TableId.TABLE_ROLES)) {
+//
+//            @Override
+//            protected WebMarkupContainer createHeader(String headerId) {
+//                return new SearchFormPanel(headerId, searchModel) {
+//
+//                    @Override
+//                    protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+//                        PageRoles.this.listRolesPerformed(query, target);
+//                    }
+//                };
+//            }
+//        };
+//        table.setOutputMarkupId(true);
+//
+//        RolesStorage storage = getSessionStorage().getRoles();
+//        table.setCurrentPage(storage.getPaging());
+//
+//        mainForm.add(table);
 
         add(new ConfirmationDialog(DIALOG_CONFIRM_DELETE, createStringResource("pageRoles.dialog.title.confirmDelete"),
                 createDeleteConfirmString()) {
@@ -167,23 +200,23 @@ public class PageRoles extends PageAdminRoles {
         });
     }
 
-    private List<IColumn<RoleType, String>> initColumns() {
-        List<IColumn<RoleType, String>> columns = new ArrayList<>();
+    private List<IColumn<SelectableBean<RoleType>, String>> initColumns() {
+        List<IColumn<SelectableBean<RoleType>, String>> columns = new ArrayList<>();
 
-        IColumn column = new CheckBoxHeaderColumn<RoleType>();
-        columns.add(column);
+//        IColumn column = new CheckBoxHeaderColumn<RoleType>();
+//        columns.add(column);
+//
+//        column = new LinkColumn<SelectableBean<RoleType>>(createStringResource("ObjectType.name"), "name", "value.name") {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel) {
+//                RoleType role = rowModel.getObject().getValue();
+//                roleDetailsPerformed(target, role.getOid());
+//            }
+//        };
+//        columns.add(column);
 
-        column = new LinkColumn<SelectableBean<RoleType>>(createStringResource("ObjectType.name"), "name", "value.name") {
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel) {
-                RoleType role = rowModel.getObject().getValue();
-                roleDetailsPerformed(target, role.getOid());
-            }
-        };
-        columns.add(column);
-
-        column = new PropertyColumn(createStringResource("OrgType.displayName"), "value.displayName");
+        IColumn column = new PropertyColumn(createStringResource("OrgType.displayName"), "value.displayName");
         columns.add(column);
 
         column = new PropertyColumn(createStringResource("OrgType.identifier"), "value.identifier");
@@ -223,27 +256,28 @@ public class PageRoles extends PageAdminRoles {
         };
     }
 
-    private Table getRoleTable() {
-        return (Table) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    private MainObjectListPanel<RoleType> getRoleTable() {
+        return (MainObjectListPanel<RoleType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
-    private ObjectDataProvider<SelectableBean<RoleType>, RoleType> getRoleDataProvider() {
-        DataTable table = getRoleTable().getDataTable();
-        return (ObjectDataProvider<SelectableBean<RoleType>, RoleType>) table.getDataProvider();
-    }
+//    private ObjectDataProvider<SelectableBean<RoleType>, RoleType> getRoleDataProvider() {
+//        DataTable table = getRoleTable().getDataTable();
+//        return (ObjectDataProvider<SelectableBean<RoleType>, RoleType>) table.getDataProvider();
+//    }
 
     private List<RoleType> getSelectedRoles() {
-        ObjectDataProvider<SelectableBean<RoleType>, RoleType> provider = getRoleDataProvider();
+    	MainObjectListPanel<RoleType> table = getRoleTable();
+    	return table.getSelectedObjects();
 
-        List<SelectableBean<RoleType>> rows = provider.getAvailableData();
-        List<RoleType> selected = new ArrayList<RoleType>();
-        for (SelectableBean<RoleType> row : rows) {
-            if (row.isSelected()) {
-                selected.add(row.getValue());
-            }
-        }
-
-        return selected;
+//        List<SelectableBean<RoleType>> rows = provider.getAvailableData();
+//        List<RoleType> selected = new ArrayList<RoleType>();
+//        for (SelectableBean<RoleType> row : rows) {
+//            if (row.isSelected()) {
+//                selected.add(row.getValue());
+//            }
+//        }
+//
+//        return selected;
     }
 
     private void deletePerformed(AjaxRequestTarget target) {
@@ -282,8 +316,8 @@ public class PageRoles extends PageAdminRoles {
             result.recordStatus(OperationResultStatus.SUCCESS, "The role(s) have been successfully deleted.");
         }
 
-        ObjectDataProvider provider = getRoleDataProvider();
-        provider.clearCache();
+        MainObjectListPanel<RoleType> table = getRoleTable();
+        table.clearCache();
 
         showResult(result);
         target.add(getFeedbackPanel());
@@ -296,17 +330,17 @@ public class PageRoles extends PageAdminRoles {
         setResponsePage(PageRole.class, parameters);
     }
 
-    private void listRolesPerformed(ObjectQuery query, AjaxRequestTarget target) {
-        ObjectDataProvider provider = getRoleDataProvider();
-        provider.setQuery(query);
-
-        RolesStorage storage = getSessionStorage().getRoles();
-        storage.setRolesSearch(searchModel.getObject());
-        storage.setRolesPaging(null);
-
-        Table table = getRoleTable();
-        table.setCurrentPage(null);
-        target.add((Component) table);
-        target.add(getFeedbackPanel());
-    }
+//    private void listRolesPerformed(ObjectQuery query, AjaxRequestTarget target) {
+//        ObjectDataProvider provider = getRoleDataProvider();
+//        provider.setQuery(query);
+//
+//        RolesStorage storage = getSessionStorage().getRoles();
+//        storage.setSearch(searchModel.getObject());
+//        storage.setPaging(null);
+//
+//        Table table = getRoleTable();
+//        table.setCurrentPage(null);
+//        target.add((Component) table);
+//        target.add(getFeedbackPanel());
+//    }
 }
