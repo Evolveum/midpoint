@@ -186,7 +186,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> {
 		parentPage.hideMainPopup(target);
 	}
 
-	private Class<T> qnameToCompileTimeClass(QName typeName) {
+	private Class qnameToCompileTimeClass(QName typeName) {
 		return parentPage.getPrismContext().getSchemaRegistry().getCompileTimeClassForObjectType(typeName);
 	}
 
