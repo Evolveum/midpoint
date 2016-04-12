@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.IModel;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> {
@@ -51,6 +53,11 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> {
 	private static final String ID_SELECTED_RESOURCES = "resourcesSelected";
 	private static final String ID_SELECTED_ORGS = "orgSelected";
 
+	private static final String ID_TABLES_CONTAINER = "tablesContainer";
+	private static final String ID_COUNT_CONTAINER = "countContainer";
+	private static final String ID_SERVICE_TABLE = "serviceTable";
+	private static final String ID_SELECTED_SERVICES = "servicesSelected";
+	
 	private static final String ID_BUTTON_ASSIGN = "assignButton";
 
 	private IModel<QName> typeModel;
@@ -73,7 +80,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> {
 	}
 	
 	private List<T> getSelectedData(String id){
-		return ((ObjectListPanel) get(id)).getSelectedObjects();
+		return ((ObjectListPanel) get(createComponentPath(ID_TABLES_CONTAINER, id))).getSelectedObjects();
 	}
 	
 	private Label  createCountLabel(String id, ObjectListPanel panel){
@@ -81,6 +88,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> {
 		label.setOutputMarkupId(true);
 		return label;
 	}
+	
 
 	private void initLayout(Class<T> type, final boolean multiselect) {
 		DropDownChoice<QName> typeSelect = new DropDownChoice(ID_TYPE, typeModel,
@@ -89,37 +97,46 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				ObjectListPanel<T> listRolePanel = (ObjectListPanel<T>) get(ID_ROLE_TABLE);
-//				listRolePanel.setVisible(false);
-				ObjectListPanel<T> listResourcePanel = (ObjectListPanel<T>) get(ID_RESOURCE_TABLE);
-				ObjectListPanel<T> listOrgPanel = (ObjectListPanel<T>) get(ID_ORG_TABLE);
+//				ObjectListPanel<T> listRolePanel = (ObjectListPanel<T>) get(ID_ROLE_TABLE);
+////				listRolePanel.setVisible(false);
+//				ObjectListPanel<T> listResourcePanel = (ObjectListPanel<T>) get(ID_RESOURCE_TABLE);
+//				ObjectListPanel<T> listOrgPanel = (ObjectListPanel<T>) get(ID_ORG_TABLE);
 				
+				target.add(get(ID_TABLES_CONTAINER));
+				target.add(addOrReplace(createCountContainer()));
 //				listRolePanel.setVisible(true);
 				
 //				addOrReplace(listRolePanel);
 //				addOrReplace(listResourcePanel);
-				target.add(addOrReplace(listRolePanel));
-				target.add(addOrReplace(listResourcePanel));
-				target.add(addOrReplace(listOrgPanel));
-				target.add(addOrReplace(createCountLabel(ID_SELECTED_ORGS, listOrgPanel)));
-				target.add(addOrReplace(createCountLabel(ID_SELECTED_RESOURCES, listResourcePanel)));
-				target.add(addOrReplace(createCountLabel(ID_SELECTED_ROLES, listRolePanel)));
+//				target.add(addOrReplace(listRolePanel));
+//				target.add(addOrReplace(listResourcePanel));
+//				target.add(addOrReplace(listOrgPanel));
+//				target.add(addOrReplace(createCountLabel(ID_SELECTED_ORGS, listOrgPanel)));
+//				target.add(addOrReplace(createCountLabel(ID_SELECTED_RESOURCES, listResourcePanel)));
+//				target.add(addOrReplace(createCountLabel(ID_SELECTED_ROLES, listRolePanel)));
 			}
 		});
 		typeSelect.setOutputMarkupId(true);
 		add(typeSelect);
+		
+		WebMarkupContainer tablesContainer = new WebMarkupContainer(ID_TABLES_CONTAINER);
+		tablesContainer.setOutputMarkupId(true);
+		add(tablesContainer);
 
-		ObjectListPanel<T> listRolePanel = createObjectListPanel(ID_ROLE_TABLE, ID_SELECTED_ROLES, RoleType.COMPLEX_TYPE);
-		add(listRolePanel);
-		ObjectListPanel<T> listResourcePanel = createObjectListPanel(ID_RESOURCE_TABLE, ID_SELECTED_RESOURCES, ResourceType.COMPLEX_TYPE);
-		add(listResourcePanel);
-		ObjectListPanel<T> listOrgPanel = createObjectListPanel(ID_ORG_TABLE, ID_SELECTED_ORGS, OrgType.COMPLEX_TYPE);
-		add(listOrgPanel);
+		PopupObjectListPanel<T> listRolePanel = createObjectListPanel(ID_ROLE_TABLE, ID_SELECTED_ROLES, RoleType.COMPLEX_TYPE);
+		tablesContainer.add(listRolePanel);
+		PopupObjectListPanel<T> listResourcePanel = createObjectListPanel(ID_RESOURCE_TABLE, ID_SELECTED_RESOURCES, ResourceType.COMPLEX_TYPE);
+		tablesContainer.add(listResourcePanel);
+		PopupObjectListPanel<T> listOrgPanel = createObjectListPanel(ID_ORG_TABLE, ID_SELECTED_ORGS, OrgType.COMPLEX_TYPE);
+		tablesContainer.add(listOrgPanel);
+		PopupObjectListPanel<T> listServicePanel = createObjectListPanel(ID_SERVICE_TABLE, ID_SELECTED_SERVICES, ServiceType.COMPLEX_TYPE);
+		tablesContainer.add(listServicePanel);
 		
 		
-		add(createCountLabel(ID_SELECTED_ORGS, listOrgPanel));
-		add(createCountLabel(ID_SELECTED_RESOURCES, listResourcePanel));
-		add(createCountLabel(ID_SELECTED_ROLES, listRolePanel));
+		
+		WebMarkupContainer countContainer = createCountContainer();
+		add(countContainer);
+		
 		
 		AjaxButton addButton = new AjaxButton(ID_BUTTON_ASSIGN,
 				createStringResource("userBrowserDialog.button.addButton")) {
@@ -129,6 +146,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> {
 				List<T> selected = getSelectedData(ID_ROLE_TABLE);
 				selected.addAll(getSelectedData(ID_RESOURCE_TABLE));
 				selected.addAll(getSelectedData(ID_ORG_TABLE));
+				selected.addAll(getSelectedData(ID_SERVICE_TABLE));
 				TypedAssignablePanel.this.addPerformed(target, selected);
 			}
 		};
@@ -143,14 +161,27 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> {
 
 		add(addButton);
 	}
+	
+	private WebMarkupContainer createCountContainer(){
+		WebMarkupContainer countContainer = new WebMarkupContainer(ID_COUNT_CONTAINER);
+		countContainer.setOutputMarkupId(true);
+		countContainer.add(createCountLabel(ID_SELECTED_ORGS, (PopupObjectListPanel<T>)get(createComponentPath(ID_TABLES_CONTAINER, ID_ORG_TABLE))));
+		countContainer.add(createCountLabel(ID_SELECTED_RESOURCES, (PopupObjectListPanel<T>)get(createComponentPath(ID_TABLES_CONTAINER, ID_RESOURCE_TABLE))));
+		countContainer.add(createCountLabel(ID_SELECTED_ROLES, (PopupObjectListPanel<T>)get(createComponentPath(ID_TABLES_CONTAINER, ID_ROLE_TABLE))));
+		countContainer.add(createCountLabel(ID_SELECTED_SERVICES, (PopupObjectListPanel<T>)get(createComponentPath(ID_TABLES_CONTAINER, ID_SERVICE_TABLE))));
+		return countContainer;
+	}
 
 	protected void onClick(AjaxRequestTarget target, T focus) {
 		parentPage.hideMainPopup(target);
 	}
 
-	private ObjectListPanel<T> createObjectListPanel(String id, final String countId, final QName type) {
+	private PopupObjectListPanel<T> createObjectListPanel(String id, final String countId, final QName type) {
 		PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(id, qnameToCompileTimeClass(type), true, parentPage) {
-			
+			@Override
+			protected void onUpdateCheckbox(AjaxRequestTarget target) {
+				target.add(getParent().getParent().addOrReplace(createCountContainer()));
+			}
 		
 		};
 //		ObjectListPanel<T> listPanel = new ObjectListPanel<T>(id, qnameToCompileTimeClass(type), parentPage) {

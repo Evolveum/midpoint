@@ -318,10 +318,6 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		return PageBase.createStringResourceStatic(this, resourceKey, objects);
 	}
 
-	protected void onCheckboxUpdate(AjaxRequestTarget target) {
-
-	}
-
 	protected abstract IColumn<SelectableBean<T>, String> createCheckboxColumn();
 
 	protected abstract IColumn<SelectableBean<T>, String> createNameColumn();

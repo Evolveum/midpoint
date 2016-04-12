@@ -192,6 +192,7 @@ public final class WebComponentUtil {
 		focusTypeList.add(ResourceType.COMPLEX_TYPE);
 		focusTypeList.add(OrgType.COMPLEX_TYPE);
 		focusTypeList.add(RoleType.COMPLEX_TYPE);
+		focusTypeList.add(ServiceType.COMPLEX_TYPE);
 
 		return focusTypeList;
 	}

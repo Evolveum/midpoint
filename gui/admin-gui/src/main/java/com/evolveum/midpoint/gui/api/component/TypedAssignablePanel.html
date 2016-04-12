@@ -18,27 +18,35 @@
 
 	<div class="form-inline search-form">
 
-		<div class="form-group">
+		<div class="form-group col-md-12">
 			<label><wicket:message key="roleMemberPanel.type" /></label> 
 			<select class="form-control input-sm" wicket:id="type" />
 		</div>
-		
-		<div class="form-group col-md-4">
-			<label><wicket:message key="typedAssignablePanel.selectedResources" /></label> 
-			<label class="form-control input-sm" wicket:id="resourcesSelected" />
-		</div>
-		<div class="form-group col-md-4">
-			<label><wicket:message key="typedAssignablePanel.selectedRoles" /></label> 
-			<label class="form-control input-sm" wicket:id="rolesSelected" />
-		</div>
-		<div class="form-group col-md-4">
-			<label><wicket:message key="typedAssignablePanel.selectedOrgs" /></label> 
-			<label class="form-control input-sm" wicket:id="orgSelected" />
+		<div wicket:id="countContainer">
+			<div class="form-group col-md-3">
+				<label><wicket:message key="typedAssignablePanel.selectedResources" /></label> 
+				<label wicket:id="resourcesSelected" />
+			</div>
+			<div class="form-group col-md-3">
+				<label><wicket:message key="typedAssignablePanel.selectedRoles" /></label> 
+				<label wicket:id="rolesSelected" />
+			</div>
+			<div class="form-group col-md-3">
+				<label><wicket:message key="typedAssignablePanel.selectedOrgs" /></label> 
+				<label wicket:id="orgSelected" />
+			</div>
+			<div class="form-group col-md-3">
+				<label><wicket:message key="typedAssignablePanel.selectedServices" /></label> 
+				<label wicket:id="servicesSelected" />
+			</div>
 		</div>
 	</div>
 
-	<div wicket:id="roleTable"></div>
-	<div wicket:id="resourceTable"></div>
-	<div wicket:id="orgTable"></div>
+	<div wicket:id="tablesContainer">
+		<div wicket:id="roleTable"></div>
+		<div wicket:id="resourceTable"></div>
+		<div wicket:id="orgTable"></div>
+		<div wicket:id="serviceTable"></div>
+	</div>
 	<a class="btn btn-sm btn-primary"  wicket:id="assignButton"/>
 </wicket:panel>

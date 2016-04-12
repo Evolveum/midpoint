@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 import javax.xml.namespace.QName;
 
@@ -30,6 +31,8 @@ public enum AssignmentEditorDtoType {
     ORG_UNIT(OrgType.class, OrgType.COMPLEX_TYPE),
 
     ROLE(RoleType.class, RoleType.COMPLEX_TYPE),
+    
+    SERVICE(ServiceType.class, ServiceType.COMPLEX_TYPE),
 
     ACCOUNT_CONSTRUCTION(null, null);
 
