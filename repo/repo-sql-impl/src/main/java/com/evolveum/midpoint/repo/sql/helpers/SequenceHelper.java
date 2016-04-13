@@ -67,7 +67,7 @@ public class SequenceHelper {
         try {
             session = transactionHelper.beginTransaction();
 
-            PrismObject<SequenceType> prismObject = objectRetriever.getObjectInternal(session, SequenceType.class, oid, null, true);
+            PrismObject<SequenceType> prismObject = objectRetriever.getObjectInternal(session, SequenceType.class, oid, null, true, result);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT before:\n{}", prismObject.debugDump());
             }
@@ -125,7 +125,7 @@ public class SequenceHelper {
         } catch (SchemaException ex) {
             transactionHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
-        } catch (QueryException | DtoTranslationException | RuntimeException ex) {
+        } catch (DtoTranslationException | RuntimeException ex) {
             transactionHelper.handleGeneralException(ex, session, result);                                            // should always throw an exception
             throw new SystemException("Exception " + ex + " was not handled correctly", ex);        // ...so this shouldn't occur at all
         } finally {
@@ -144,7 +144,7 @@ public class SequenceHelper {
         try {
             session = transactionHelper.beginTransaction();
 
-            PrismObject<SequenceType> prismObject = objectRetriever.getObjectInternal(session, SequenceType.class, oid, null, true);
+            PrismObject<SequenceType> prismObject = objectRetriever.getObjectInternal(session, SequenceType.class, oid, null, true, result);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT before:\n{}", prismObject.debugDump());
             }
@@ -184,7 +184,7 @@ public class SequenceHelper {
         } catch (SchemaException ex) {
             transactionHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
-        } catch (QueryException | DtoTranslationException | RuntimeException ex) {
+        } catch (DtoTranslationException | RuntimeException ex) {
             transactionHelper.handleGeneralException(ex, session, result);                                            // should always throw an exception
             throw new SystemException("Exception " + ex + " was not handled correctly", ex);        // ...so this shouldn't occur at all
         } finally {

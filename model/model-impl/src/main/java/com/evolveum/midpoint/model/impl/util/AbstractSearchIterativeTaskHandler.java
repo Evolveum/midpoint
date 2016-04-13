@@ -73,7 +73,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     private boolean preserveStatistics = true;
     private boolean enableIterationStatistics = true;   // beware, this controls whether task stores these statistics; see also recordIterationStatistics in AbstractSearchIterativeResultHandler
     private boolean enableSynchronizationStatistics = false;
-    private boolean enableActionsExecutedStatistics = false;
+    private boolean enableActionsExecutedStatistics = true;
 
 	// If you need to store fields specific to task instance or task run the ResultHandler is a good place to do that.
 	

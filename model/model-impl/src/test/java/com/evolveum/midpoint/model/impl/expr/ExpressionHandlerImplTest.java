@@ -21,11 +21,10 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
-import com.evolveum.midpoint.security.impl.SecurityEnforcerImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -40,7 +39,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.model.impl.expr.ExpressionHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -132,7 +130,8 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
             // key = q:equal, value = map (path + expression)
             XNode expressionNode = ((MapXNode) clauseXNode.getSingleSubEntry("filter value").getValue()).get(new QName(SchemaConstants.NS_C, "expression"));
 
-            ExpressionType expression = PrismTestUtil.getPrismContext().getXnodeProcessor().parseAtomicValue(expressionNode, ExpressionType.COMPLEX_TYPE);
+            ExpressionType expression = PrismTestUtil.getPrismContext().getXnodeProcessor().parseAtomicValue(expressionNode, ExpressionType.COMPLEX_TYPE,
+					ParsingContext.createDefault());
             LOGGER.debug("Expression: {}",SchemaDebugUtil.prettyPrint(expression));
 
             OperationResult result = new OperationResult("testCorrelationRule");

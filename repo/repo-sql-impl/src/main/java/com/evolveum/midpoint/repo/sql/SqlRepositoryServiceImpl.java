@@ -178,7 +178,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    @Override
+	@Override
     @Deprecated
     public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult result)
             throws ObjectNotFoundException {
