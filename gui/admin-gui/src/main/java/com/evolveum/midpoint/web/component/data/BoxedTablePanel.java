@@ -56,6 +56,7 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 	private static final String ID_COUNT = "count";
 	private static final String ID_MENU = "menu";
 	private static final String ID_FOOTER_CONTAINER = "footerContainer";
+	private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
 
 	private UserProfileStorage.TableId tableId;
 	private boolean showPaging;
@@ -193,16 +194,23 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 		getDataTable().setCurrentPage(page);
 	}
 
+	protected WebMarkupContainer createButtonToolbar(String id) {
+		return new WebMarkupContainer(id);
+	}
+
 	private static class PagingFooter extends Fragment {
 
-		public PagingFooter(String id, String markupId, MarkupContainer markupProvider, Table table) {
+		public PagingFooter(String id, String markupId, BoxedTablePanel markupProvider, Table table) {
 			super(id, markupId, markupProvider);
 			setOutputMarkupId(true);
 
-			initLayout(table);
+			initLayout(markupProvider, table);
 		}
 
-		private void initLayout(final Table table) {
+		private void initLayout(final BoxedTablePanel boxedTablePanel, final Table table) {
+			WebMarkupContainer buttonToolbar = boxedTablePanel.createButtonToolbar(ID_BUTTON_TOOLBAR);
+			add(buttonToolbar);
+
 			final DataTable dataTable = table.getDataTable();
             WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
             footerContainer.setOutputMarkupId(true);
