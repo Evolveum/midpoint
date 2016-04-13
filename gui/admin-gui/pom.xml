@@ -169,6 +169,11 @@
                     <artifactId>jruby-core</artifactId>
                 </exclusion>
                 <exclusion>
+                    <!-- unused library -->
+                    <groupId>org.jruby</groupId>
+                    <artifactId>jruby-stdlib</artifactId>
+                </exclusion>
+                <exclusion>
                     <!-- unused library (500kb) -->
                     <groupId>me.n4u.sass</groupId>
                     <artifactId>sass-gems</artifactId>
@@ -217,6 +222,10 @@
                     <!-- unused library -->
                     <groupId>com.google.code.gson</groupId>
                     <artifactId>gson</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.darrinholst</groupId>
+                    <artifactId>sass-java-gems</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
