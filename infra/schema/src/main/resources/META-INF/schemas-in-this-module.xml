@@ -74,10 +74,6 @@ Notes:
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" uri="../xml/ns/public/model/scripting/scripting-3.xsd" />
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3" uri="../xml/ns/public/model/scripting/extension-3.xsd" />
 
-    <!-- workflow (temporary!) -->
-    <public publicId="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-3" uri="../xml/ns/public/model/workflow/common-forms-3.xsd" />
-    <public publicId="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-3" uri="../xml/ns/public/model/workflow/process-instance-state-3.xsd" />
-
     <!-- Experimental XSD schema file locations -->
     <public publicId="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd" uri="../xml/ns/experimental/unix-resource-1.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd" uri="../xml/ns/experimental/unix-resource-1.xsd" />
