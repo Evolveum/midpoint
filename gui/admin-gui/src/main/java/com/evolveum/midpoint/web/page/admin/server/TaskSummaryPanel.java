@@ -156,7 +156,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
 	@Override
 	protected String getIconCssClass() {
-		return GuiStyleConstants.STYLES_OBJECT_TASK_ICON;
+		return GuiStyleConstants.CLASS_OBJECT_TASK_ICON;
 	}
 
 	@Override
