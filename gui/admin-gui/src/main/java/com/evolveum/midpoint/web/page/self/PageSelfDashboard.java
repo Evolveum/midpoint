@@ -140,7 +140,9 @@ public class PageSelfDashboard extends PageSelf {
         });
         add(linksPanel);
 
+		// TODO is this correct? [med]
 		application = getApplication();
+		final Session session = Session.get();
 
 		AsyncDashboardPanel<Object, List<WorkItemDto>> workItemsPanel =
                 new AsyncDashboardPanel<Object, List<WorkItemDto>>(ID_WORK_ITEMS_PANEL, createStringResource("PageSelfDashboard.workItems"),
@@ -155,9 +157,7 @@ public class PageSelfDashboard extends PageSelf {
 
                             @Override
                             public CallableResult<List<WorkItemDto>> callWithContextPrepared() throws Exception {
-								if (!Application.exists()) {
-									ThreadContext.setApplication(application);
-								}
+								setupContext(application, session);	// TODO is this correct? [med]
                                 return loadWorkItems();
                             }
                         };
@@ -191,9 +191,7 @@ public class PageSelfDashboard extends PageSelf {
 
                             @Override
                             public CallableResult<List<ProcessInstanceDto>> callWithContextPrepared() throws Exception {
-								if (!Application.exists()) {
-									ThreadContext.setApplication(application);
-								}
+								setupContext(application, session);
                                 return loadMyRequests();
                             }
                         };
