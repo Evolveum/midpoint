@@ -49,6 +49,7 @@ import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider2;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
@@ -235,7 +236,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 
 			@Override
 			protected WebMarkupContainer createHeader(String headerId) {
-				return new SearchFormPanel(headerId, searchModel) {
+				SearchFormPanel searchPanel = new SearchFormPanel(headerId, searchModel) {
 
 					private static final long serialVersionUID = 1L;
 
@@ -245,6 +246,13 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 					}
 
 				};
+				searchPanel.add(new VisibleEnableBehaviour() {
+					@Override
+					public boolean isVisible() {
+						return !type.equals(ObjectType.class);
+					}
+				});
+				return searchPanel;
 			}
 
 		};
@@ -279,6 +287,28 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 	private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
 		BaseSortableDataProvider<SelectableBean<T>> provider = getDataProvider();
 		provider.setQuery(query);
+		String storageKey = getStorageKey();
+		if (StringUtils.isNotEmpty(storageKey)) {
+			PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
+			if (storage == null) {
+				storage = getSession().getSessionStorage().initPageStorage(storageKey);
+			}
+			if (storage != null) {
+				storage.setSearch(searchModel.getObject());
+				storage.setPaging(null);
+			}
+		}
+
+		Table table = getTable();
+		table.setCurrentPage(null);
+		target.add((Component) table);
+		target.add(parentPage.getFeedbackPanel());
+
+	}
+	
+	public void refreshTable(AjaxRequestTarget target) {
+		BaseSortableDataProvider<SelectableBean<T>> provider = getDataProvider();
+		provider.setQuery(getQuery());
 		String storageKey = getStorageKey();
 		if (StringUtils.isNotEmpty(storageKey)) {
 			PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);

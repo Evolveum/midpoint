@@ -117,6 +117,11 @@ public class ColumnUtils {
 	}
 	
 	public static <T extends ObjectType> IColumn<SelectableBean<T>, String> createIconColumn(Class<T> type){
+		
+		if (type.equals(ObjectType.class)){
+			return getDefaultIcons();
+		}
+		
 		if (type.equals(UserType.class)) {
 			return getUserIconColumn();
 		} else if (RoleType.class.equals(type)) {
@@ -132,6 +137,24 @@ public class ColumnUtils {
 		} else {
 			throw new UnsupportedOperationException("Will be implemented eventually");
 		}
+	}
+	
+	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getDefaultIcons(){
+		return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+
+			@Override
+			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
+				return new AbstractReadOnlyModel<String>() {
+
+					@Override
+					public String getObject() {
+						T object = rowModel.getObject().getValue();
+						return WebComponentUtil.createDefaultIcon(object);
+						
+					}
+				};
+			}
+		};
 	}
 	
 	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getUserIconColumn(){

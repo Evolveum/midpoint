@@ -26,6 +26,7 @@
             <form class="form-inline pull-right search-form" wicket:id="searchForm">
 	            <div class="form-group">
 	                <select class="form-control input-sm" wicket:id="searchScope"/>
+	                <select class="form-control input-sm" wicket:id="searchByType"/>
 	            </div>
                 <div wicket:id="basicSearch"/>
             </form>
@@ -52,17 +53,14 @@
             <div class="box box-success">
                 <div class="box-body">
                     <form class="clearfix form-horizontal" wicket:id="form">
-                        <div wicket:id="childOrgContainer">
-                            <div class="tree-table-header">
-                                <wicket:message key="TreeTablePanel.childOrg"/>
-                            </div>
-                            <div wicket:id="childUnitTable" about="childUnitTable"/>
-                        </div>
+<!--                         <div wicket:id="childOrgContainer"> -->
+<!--                             <div class="tree-table-header"> -->
+<!--                                 <wicket:message key="TreeTablePanel.childOrg"/> -->
+<!--                             </div> -->
+<!--                             <div wicket:id="childUnitTable" about="childUnitTable"/> -->
+<!--                         </div> -->
 
                         <div wicket:id="managerContainer">
-                            <div class="tree-table-header">
-                                <wicket:message key="TreeTablePanel.managers"/>
-                            </div>
                             <div wicket:id="managerTable"/>
                         </div>
 

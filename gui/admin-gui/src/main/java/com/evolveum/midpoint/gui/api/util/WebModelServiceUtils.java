@@ -212,6 +212,12 @@ public class WebModelServiceUtils {
                                                                             OperationResult result, PageBase page) {
         return searchObjects(type, query, null, result, page, null);
     }
+    
+    public static <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult result, PageBase page) {
+    	return searchObjects(type, query, options, result, page, null);
+    }
 
     public static <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
                                                                             Collection<SelectorOptions<GetOperationOptions>> options,
