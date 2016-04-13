@@ -19,7 +19,6 @@ package com.evolveum.midpoint.web.page.admin.server;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wf.WorkItemsTablePanel;
@@ -55,6 +54,7 @@ public class TaskWfChildPanel extends Panel {
 
 	private static final String ID_DELTAS_TO_BE_APPROVED = "deltasToBeApproved";
 	private static final String ID_HISTORY = "history";
+	private static final String ID_CURRENT_WORK_ITEMS_CONTAINER = "currentWorkItemsContainer";
 	private static final String ID_CURRENT_WORK_ITEMS = "currentWorkItems";
 	private static final String ID_RELATED_REQUESTS_CONTAINER = "relatedRequestsContainer";
 	private static final String ID_RELATED_REQUESTS = "relatedRequests";
@@ -70,7 +70,7 @@ public class TaskWfChildPanel extends Panel {
 
 	private void initLayout(final IModel<TaskDto> taskDtoModel, PageBase pageBase) {
 
-		final ScenePanel deltasToBeApproved = new ScenePanel(ID_DELTAS_TO_BE_APPROVED, new PropertyModel(taskDtoModel, TaskDto.F_WORKFLOW_DELTA_IN));
+		TaskChangesPanel deltasToBeApproved = new TaskChangesPanel(ID_DELTAS_TO_BE_APPROVED, new PropertyModel(taskDtoModel, TaskDto.F_CHANGE_BEING_APPROVED));
 		deltasToBeApproved.setOutputMarkupId(true);
 		add(deltasToBeApproved);
 
@@ -81,13 +81,22 @@ public class TaskWfChildPanel extends Panel {
 		history.setOutputMarkupId(true);
 		add(history);
 
-		ISortableDataProvider<WorkItemDto, String> provider = new ListDataProvider(this, new PropertyModel<List<WorkItemDto>>(taskDtoModel, TaskDto.F_WORK_ITEMS));
+		WebMarkupContainer workItemsContainer = new WebMarkupContainer(ID_CURRENT_WORK_ITEMS_CONTAINER);
+		final ISortableDataProvider<WorkItemDto, String> provider = new ListDataProvider(this, new PropertyModel<List<WorkItemDto>>(taskDtoModel, TaskDto.F_WORK_ITEMS));
 		final WorkItemsTablePanel workItemsPanel = new WorkItemsTablePanel(ID_CURRENT_WORK_ITEMS, provider,
 				UserProfileStorage.TableId.PAGE_TASK_CURRENT_WORK_ITEMS_PANEL,
 				(int) pageBase.getItemsPerPage(UserProfileStorage.TableId.PAGE_TASK_CURRENT_WORK_ITEMS_PANEL),
 				WorkItemsTablePanel.View.ITEMS_FOR_PROCESS);
 		workItemsPanel.setOutputMarkupId(true);
-		add(workItemsPanel);
+		workItemsContainer.add(workItemsPanel);
+		workItemsContainer.setOutputMarkupId(true);
+		workItemsContainer.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return provider.size() > 0;
+			}
+		});
+		add(workItemsContainer);
 
 		final PropertyModel<List<ProcessInstanceDto>> relatedRequestsModel = new PropertyModel<>(taskDtoModel, TaskDto.F_WORKFLOW_REQUESTS);
 
@@ -120,7 +129,7 @@ public class TaskWfChildPanel extends Panel {
 		return Arrays.asList(
 				get(ID_DELTAS_TO_BE_APPROVED),
 				get(ID_HISTORY),
-				get(ID_CURRENT_WORK_ITEMS),
+				get(ID_CURRENT_WORK_ITEMS_CONTAINER),
 				get(ID_RELATED_REQUESTS_CONTAINER)
 		);
 		// exclude 'show parent' link

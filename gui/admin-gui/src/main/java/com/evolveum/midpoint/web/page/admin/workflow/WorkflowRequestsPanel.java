@@ -89,6 +89,10 @@ public class WorkflowRequestsPanel extends BasePanel {
 		add(table);
 	}
 
+	public BoxedTablePanel<ProcessInstanceDto> getTablePanel() {
+		return (BoxedTablePanel<ProcessInstanceDto>) get(ID_REQUESTS_TABLE);
+	}
+
 	private List<IColumn<ProcessInstanceDto, String>> initColumns(View view) {
 
 		List<IColumn<ProcessInstanceDto, String>> columns = new ArrayList<>();
@@ -149,7 +153,7 @@ public class WorkflowRequestsPanel extends BasePanel {
 				return new AbstractReadOnlyModel<String>() {
 					@Override
 					public String getObject() {
-						return choose(rowModel, ApprovalOutcomeIcon.IN_PROGRESS.getIcon(), ApprovalOutcomeIcon.APPROVED.getIcon(), ApprovalOutcomeIcon.REJECTED.getIcon());
+						return choose(rowModel, null, ApprovalOutcomeIcon.IN_PROGRESS.getIcon(), ApprovalOutcomeIcon.APPROVED.getIcon(), ApprovalOutcomeIcon.REJECTED.getIcon());
 					}
 				};
 			}
@@ -160,6 +164,7 @@ public class WorkflowRequestsPanel extends BasePanel {
 					@Override
 					public String getObject() {
 						return choose(rowModel,
+								null,
 								createStringResource("MyRequestsPanel.inProgress").getString(),
 								createStringResource("MyRequestsPanel.approved").getString(),
 								createStringResource("MyRequestsPanel.rejected").getString());
@@ -167,11 +172,15 @@ public class WorkflowRequestsPanel extends BasePanel {
 				};
 			}
 
-			private String choose(IModel<ProcessInstanceDto> rowModel, String inProgress, String approved, String rejected) {
+			private String choose(IModel<ProcessInstanceDto> rowModel, String noReply, String inProgress, String approved, String rejected) {
 				ProcessInstanceDto dto = rowModel.getObject();
 				Boolean result = ApprovalUtils.approvalBooleanValue(dto.getAnswer());
 				if (result == null) {
-					return inProgress;
+					if (dto.getEndTimestamp() != null) {
+						return noReply;
+					} else {
+						return inProgress;
+					}
 				} else {
 					return result ? approved : rejected;
 				}

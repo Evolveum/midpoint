@@ -29,7 +29,7 @@ import java.io.Serializable;
 public class ChangesByState<F extends FocusType> {
 
 	@NotNull
-	final private ObjectTreeDeltas<F> applied, beingApplied, waitingToBeApplied, waitingToBeApproved, rejected;
+	final private ObjectTreeDeltas<F> applied, beingApplied, waitingToBeApplied, waitingToBeApproved, rejected, canceled;
 
 	public ChangesByState(PrismContext prismContext) {
 		applied = new ObjectTreeDeltas<>(prismContext);
@@ -37,6 +37,7 @@ public class ChangesByState<F extends FocusType> {
 		waitingToBeApplied = new ObjectTreeDeltas<>(prismContext);
 		waitingToBeApproved = new ObjectTreeDeltas<>(prismContext);
 		rejected = new ObjectTreeDeltas<>(prismContext);
+		canceled = new ObjectTreeDeltas<>(prismContext);
 	}
 
 	@NotNull
@@ -62,5 +63,10 @@ public class ChangesByState<F extends FocusType> {
 	@NotNull
 	public ObjectTreeDeltas<F> getRejected() {
 		return rejected;
+	}
+
+	@NotNull
+	public ObjectTreeDeltas<F> getCanceled() {
+		return canceled;
 	}
 }

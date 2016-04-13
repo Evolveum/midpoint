@@ -19,6 +19,7 @@ package com.evolveum.midpoint.wf.impl.activiti.dao;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -78,7 +79,7 @@ public class ProcessInstanceManager {
         }
     }
 
-    public void deleteProcessInstance(String instanceId, OperationResult parentResult) {
+    private void deleteProcessInstance(String instanceId, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OPERATION_DELETE_PROCESS_INSTANCE);
         result.addParam("instanceId", instanceId);
 
@@ -92,6 +93,26 @@ public class ProcessInstanceManager {
 			result.computeStatusIfUnknown();
 		}
     }
+
+	public void onTaskDelete(Task task, OperationResult result) {
+		try {
+			WfContextType wfc = task.getWorkflowContext();
+			if (wfc == null || wfc.getProcessInstanceId() == null) {
+				return;
+			}
+			String instanceId = wfc.getProcessInstanceId();
+			if (wfc.getEndTimestamp() == null) {
+				try {
+					stopProcessInstance(instanceId, "task delete action", result);
+				} catch (RuntimeException e) {
+					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop workflow process instance {} while processing task deletion event for task {}", e, instanceId, task);
+				}
+			}
+			deleteProcessInstance(instanceId, result);
+		} catch (RuntimeException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't process task deletion event for task {}", e, task);
+		}
+	}
 
 	class Statistics {
 		int processes = 0;
