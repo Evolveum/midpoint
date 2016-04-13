@@ -68,7 +68,7 @@ public class TestProtectedString {
 
         // THEN
         ProtectedStringType unmarshalled = new ProtectedStringType();
-        XNodeProcessorUtil.parseProtectedType(unmarshalled, protectedStringTypeXNode, ParsingContext.createDefault(prismContext));
+        XNodeProcessorUtil.parseProtectedType(unmarshalled, protectedStringTypeXNode, prismContext, ParsingContext.createDefault());
         System.out.println("Unmarshalled value: " + unmarshalled);
         assertEquals("Unmarshalled value differs from the original", protectedStringType, unmarshalled);
     }

@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -366,7 +365,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 				throws SchemaException {
 		PrismContext prismContext = definition.getPrismContext();
 		XNodeProcessor xnodeProcessor = prismContext.getXnodeProcessor();
-		T value = xnodeProcessor.parsePrismPropertyRealValue(prismPropertyValue.rawElement, definition, ParsingContext.createDefault(prismContext));
+		T value = xnodeProcessor.parsePrismPropertyRealValue(prismPropertyValue.rawElement, definition, ParsingContext.createDefault());
 		return value;
 	}
 

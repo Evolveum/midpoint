@@ -17,69 +17,77 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import org.apache.commons.lang.Validate;
+import com.evolveum.midpoint.util.logging.Trace;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author mederly
  */
 public class ParsingContext {
 
-	private XNodeProcessorEvaluationMode evaluationMode;
-	private final PrismContext prismContext;
-	private boolean allowMissingRefTypes = false;
+	private XNodeProcessorEvaluationMode evaluationMode = XNodeProcessorEvaluationMode.STRICT;
+	private boolean allowMissingRefTypes;
+	private final List<String> warnings = new ArrayList<>();
 
-	public ParsingContext(PrismContext prismContext) {
-		Validate.notNull(prismContext, "prismContext");
-		this.prismContext = prismContext;
+	private ParsingContext() {
 	}
 
-	public PrismContext getPrismContext() {
-		return prismContext;
+	private void setAllowMissingRefTypes(boolean allowMissingRefTypes) {
+		this.allowMissingRefTypes = allowMissingRefTypes;
+	}
+
+	private void setEvaluationMode(XNodeProcessorEvaluationMode evaluationMode) {
+		this.evaluationMode = evaluationMode;
 	}
 
 	public boolean isAllowMissingRefTypes() {
 		return allowMissingRefTypes;
 	}
 
-	public void setAllowMissingRefTypes(boolean allowMissingRefTypes) {
-		this.allowMissingRefTypes = allowMissingRefTypes;
-	}
-
 	public XNodeProcessorEvaluationMode getEvaluationMode() {
 		return evaluationMode;
 	}
 
-	public void setEvaluationMode(XNodeProcessorEvaluationMode evaluationMode) {
-		this.evaluationMode = evaluationMode;
-	}
-
-	public boolean isStrict() {
-		return evaluationMode == XNodeProcessorEvaluationMode.STRICT;
-	}
-
-	public static ParsingContext forMode(PrismContext prismContext, XNodeProcessorEvaluationMode mode) {
-		ParsingContext pc = new ParsingContext(prismContext);
+	public static ParsingContext forMode(XNodeProcessorEvaluationMode mode) {
+		ParsingContext pc = new ParsingContext();
 		pc.setEvaluationMode(mode);
 		return pc;
 	}
 
-	public static ParsingContext allowMissingRefTypes(PrismContext prismContext) {
-		ParsingContext pc = new ParsingContext(prismContext);
+	public static ParsingContext allowMissingRefTypes() {
+		ParsingContext pc = new ParsingContext();
 		pc.setAllowMissingRefTypes(true);
 		return pc;
 	}
 
-	public static ParsingContext createDefault(PrismContext prismContext) {
-		return new ParsingContext(prismContext);
+	public static ParsingContext createDefault() {
+		return new ParsingContext();
 	}
 
 	public boolean isCompat() {
 		return evaluationMode == XNodeProcessorEvaluationMode.COMPAT;
 	}
 
-	public SchemaRegistry getSchemaRegistry() {
-		return prismContext.getSchemaRegistry();
+	public boolean isStrict() {
+		return evaluationMode == XNodeProcessorEvaluationMode.STRICT;
+	}
+
+	public void warn(Trace logger, String message) {
+		logger.warn("{}", message);
+		warn(message);
+	}
+
+	public void warn(String message) {
+		warnings.add(message);
+	}
+
+	public List<String> getWarnings() {
+		return warnings;
+	}
+
+	public boolean hasWarnings() {
+		return !warnings.isEmpty();
 	}
 }

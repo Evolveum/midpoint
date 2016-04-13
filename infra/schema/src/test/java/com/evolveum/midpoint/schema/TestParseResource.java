@@ -25,12 +25,10 @@ import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ExpressionWrapper;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
@@ -131,7 +129,7 @@ public class TestParseResource {
 		// WHEN
 		DomParser parserDom = prismContext.getParserDom();
 		XNode xnode = parserDom.parse(TestConstants.RESOURCE_FILE);
-		PrismObject<ResourceType> resource = prismContext.getXnodeProcessor().parseObject(xnode, ParsingContext.createDefault(prismContext));
+		PrismObject<ResourceType> resource = prismContext.getXnodeProcessor().parseObject(xnode, ParsingContext.createDefault());
 		
 		// THEN
 		System.out.println("Parsed resource:");

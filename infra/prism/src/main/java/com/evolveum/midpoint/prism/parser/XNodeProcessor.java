@@ -22,13 +22,13 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
-import com.sun.istack.internal.Nullable;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -51,6 +51,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
+import org.jetbrains.annotations.Nullable;
 
 public class XNodeProcessor {
 
@@ -82,12 +83,12 @@ public class XNodeProcessor {
         QName rootElementName = rootXnode.getRootElementName();
         PrismObjectDefinition<O> objectDefinition;
         if (rootXnode.getTypeQName() != null) {
-            objectDefinition = pc.getSchemaRegistry().findObjectDefinitionByType(rootXnode.getTypeQName());
+            objectDefinition = getSchemaRegistry().findObjectDefinitionByType(rootXnode.getTypeQName());
             if (objectDefinition == null) {
                 throw new SchemaException("No object definition for type " + rootXnode.getTypeQName());
             }
         } else {
-            objectDefinition = pc.getSchemaRegistry().findObjectDefinitionByElementName(rootElementName);
+            objectDefinition = getSchemaRegistry().findObjectDefinitionByElementName(rootElementName);
             if (objectDefinition == null) {
                 throw new SchemaException("No object definition for element name " + rootElementName);
             }
@@ -99,13 +100,13 @@ public class XNodeProcessor {
         return parseObject((MapXNode) subnode, rootElementName, objectDefinition, pc);
     }
 
-    public <O extends Objectable> PrismObject<O> parseObject(MapXNode xmap, ParsingContext pc) throws SchemaException {
+	public <O extends Objectable> PrismObject<O> parseObject(MapXNode xmap, ParsingContext pc) throws SchemaException {
         // There is no top-level element to detect type. We have only one chance ...
         QName typeQName = xmap.getTypeQName();
         if (typeQName == null) {
             throw new SchemaException("No type specified in top-level xnode, cannot determine object type");
         }
-        PrismObjectDefinition<O> objectDefinition = pc.getSchemaRegistry().findObjectDefinitionByType(typeQName);
+        PrismObjectDefinition<O> objectDefinition = getSchemaRegistry().findObjectDefinitionByType(typeQName);
         return parseObject(xmap, objectDefinition, pc);
     }
 
@@ -153,7 +154,7 @@ public class XNodeProcessor {
         if (xnode instanceof RootXNode) {
             return parseContainer((RootXNode) xnode, pc);
         } else if (xnode.getTypeQName() != null) {
-            PrismContainerDefinition<C> definition = pc.getSchemaRegistry().findContainerDefinitionByType(xnode.getTypeQName());
+            PrismContainerDefinition<C> definition = getSchemaRegistry().findContainerDefinitionByType(xnode.getTypeQName());
             if (definition == null) {
                 throw new SchemaException("No container definition for type " + xnode.getTypeQName());
             }
@@ -169,12 +170,12 @@ public class XNodeProcessor {
         QName rootElementName = rootXnode.getRootElementName();
         PrismContainerDefinition<C> definition;
         if (rootXnode.getTypeQName() != null) {
-            definition = pc.getSchemaRegistry().findContainerDefinitionByType(rootXnode.getTypeQName());
+            definition = getSchemaRegistry().findContainerDefinitionByType(rootXnode.getTypeQName());
             if (definition == null) {
                 throw new SchemaException("No container definition for type " + rootXnode.getTypeQName());
             }
         } else {
-            definition = pc.getSchemaRegistry().findContainerDefinitionByElementName(rootElementName);
+            definition = getSchemaRegistry().findContainerDefinitionByElementName(rootElementName);
             if (definition == null) {
                 throw new SchemaException("No container definition for element name " + rootElementName);
             }
@@ -189,7 +190,7 @@ public class XNodeProcessor {
     public <C extends Containerable> PrismContainer<C> parseContainer(XNode xnode, Class<C> type, ParsingContext pc) throws SchemaException {
         Validate.notNull(xnode);
         Validate.notNull(type);
-        PrismContainerDefinition<C> definition = pc.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
+        PrismContainerDefinition<C> definition = getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
         if (definition == null) {
             throw new SchemaException("No container definition for class " + type);
         }
@@ -271,7 +272,7 @@ public class XNodeProcessor {
         // override container definition, if explicit type is specified
         PrismContainerDefinition valueDefinition = containerDef;
         if (xmap.getTypeQName() != null) {
-            PrismContainerDefinition specificDef = pc.getSchemaRegistry().findContainerDefinitionByType(xmap.getTypeQName());
+            PrismContainerDefinition specificDef = getSchemaRegistry().findContainerDefinitionByType(xmap.getTypeQName());
             if (specificDef != null) {
                 valueDefinition = specificDef;
             } else {
@@ -279,7 +280,7 @@ public class XNodeProcessor {
                 // by silently proceeding we risk losing some subclass-specific items
             }
         }
-        PrismContainerValue<C> cval = new PrismContainerValue<C>(null, null, null, id, xmap.getTypeQName(), pc.getPrismContext());
+        PrismContainerValue<C> cval = new PrismContainerValue<C>(null, null, null, id, xmap.getTypeQName(), prismContext);
         for (Entry<QName, XNode> xentry : xmap.entrySet()) {
             QName itemQName = xentry.getKey();
             if (QNameUtil.match(itemQName, XNode.KEY_CONTAINER_ID)) {
@@ -291,14 +292,17 @@ public class XNodeProcessor {
             ItemDefinition itemDef = locateItemDefinition(valueDefinition, itemQName, xentry.getValue());
             if (itemDef == null) {
                 if (valueDefinition.isRuntimeSchema()) {
-                    PrismSchema itemSchema = pc.getSchemaRegistry().findSchemaByNamespace(itemQName.getNamespaceURI());
+                    PrismSchema itemSchema = getSchemaRegistry().findSchemaByNamespace(itemQName.getNamespaceURI());
                     if (itemSchema != null) {
                         // If we already have schema for this namespace then a missing element is
                         // an error. We positively know that it is not in the schema.
+						String message =
+								"Item " + itemQName + " has no definition (schema present, in container " + containerDef + ")" + "while parsing "
+										+ xmap.debugDump();
                         if (pc.isStrict()) {
-                            throw new SchemaException("Item " + itemQName + " has no definition (schema present, in container " + containerDef + ")" + "while parsing " + xmap.debugDump(), itemQName);
+							throw new SchemaException(message, itemQName);
                         } else {
-                            // Just skip item
+							pc.warn(LOGGER, message);
                             continue;
                         }
                     } else {
@@ -306,10 +310,14 @@ public class XNodeProcessor {
                         // Null is OK here. The item will be parsed as "raw"
                     }
                 } else {
+					String message =
+							"Item " + itemQName + " has no definition (in container value " + valueDefinition + ")" + "while parsing " + xmap
+									.debugDump();
                     if (pc.isStrict()) {
-                        throw new SchemaException("Item " + itemQName + " has no definition (in container value " + valueDefinition + ")" + "while parsing " + xmap.debugDump(), itemQName);
+						throw new SchemaException(message, itemQName);
                     } else {
                         // Just skip item
+						pc.warn(LOGGER, message);
                         continue;
                     }
                 }
@@ -460,6 +468,7 @@ public class XNodeProcessor {
                 } else {
                     // just skip the value
                     LOGGER.error("Skipping unknown value of type {}. Value: {}", typeName, xprim.getStringValue());
+					pc.warn("Skipping unknown value of type " + typeName + ". Value: " + xprim.getStringValue());
                     return null;
                 }
             }
@@ -474,6 +483,8 @@ public class XNodeProcessor {
                     // just skip the value
                     LoggingUtils.logException(LOGGER, "Couldn't parse primitive value of type {}. Value: {}.\nDefinition: {}",
                             e, typeName, xprim.getStringValue(), def != null ? def.debugDump() : "(null)");
+					pc.warn("Couldn't parse primitive value of type " + typeName + ". Value: " + xprim.getStringValue()
+							+ ".\nDefinition: " + def != null ? def.debugDump() : "(null)");
                     return null;
                 }
             }
@@ -493,7 +504,7 @@ public class XNodeProcessor {
             realValue = (T) new PolyString(val);
         }
 
-        PrismUtil.recomputeRealValue(realValue, pc.getPrismContext());
+        PrismUtil.recomputeRealValue(realValue, prismContext);
         return realValue;
     }
 
@@ -548,7 +559,7 @@ public class XNodeProcessor {
         if (globalElementName == null) {
             throw new SchemaException("No global element name to look for");
         }
-        ItemDefinition itemDefinition = pc.getSchemaRegistry().resolveGlobalItemDefinition(globalElementName);
+        ItemDefinition itemDefinition = getSchemaRegistry().resolveGlobalItemDefinition(globalElementName);
         if (itemDefinition == null) {
             throw new SchemaException("No definition for item " + globalElementName);
         }
@@ -690,8 +701,8 @@ public class XNodeProcessor {
         boolean isComposite;
         if (subnode.getTypeQName() != null) {
             QName typeName = subnode.getTypeQName();
-            if (pc.getPrismContext() != null) {
-                ItemDefinition definition = pc.getSchemaRegistry().findItemDefinitionByType(typeName);
+            if (prismContext != null) {
+                ItemDefinition definition = getSchemaRegistry().findItemDefinitionByType(typeName);
                 isComposite = definition instanceof PrismObjectDefinition;
             } else {
                 isComposite = PrismConstants.REFERENCE_TYPE_NAME.equals(typeName.getLocalPart());
@@ -733,10 +744,10 @@ public class XNodeProcessor {
         } else {
             if (StringUtils.isBlank(type.getNamespaceURI())) {
                 // resolve type without namespace (only when prismContext is known)
-                if (pc.getPrismContext() == null) {
+                if (prismContext == null) {
                     throw new SchemaException("Couldn't parse unqualified type name '" + type + "' without prismContext");
                 }
-                type = pc.getSchemaRegistry().resolveUnqualifiedTypeName(type);
+                type = getSchemaRegistry().resolveUnqualifiedTypeName(type);
             }
 
             QName defTargetType = referenceDefinition.getTargetTypeName();
@@ -755,7 +766,7 @@ public class XNodeProcessor {
 
 		PrismObjectDefinition<Objectable> objectDefinition = null;
 		if (type != null) {
-			objectDefinition = pc.getSchemaRegistry().findObjectDefinitionByType(type);
+			objectDefinition = getSchemaRegistry().findObjectDefinitionByType(type);
 			if (objectDefinition == null) {
 				throw new SchemaException("No definition for type " + type + " in reference");
 			}
@@ -836,10 +847,10 @@ public class XNodeProcessor {
         QName targetTypeName = referenceDefinition.getTargetTypeName();
         PrismObjectDefinition<Objectable> objectDefinition = null;
         if (xmap.getTypeQName() != null) {
-            objectDefinition = pc.getSchemaRegistry().findObjectDefinitionByType(xmap.getTypeQName());
+            objectDefinition = getSchemaRegistry().findObjectDefinitionByType(xmap.getTypeQName());
         }
         if (objectDefinition == null && targetTypeName != null) {
-            objectDefinition = pc.getSchemaRegistry().findObjectDefinitionByType(targetTypeName);
+            objectDefinition = getSchemaRegistry().findObjectDefinitionByType(targetTypeName);
         }
         if (objectDefinition == null) {
             throw new SchemaException("No object definition for composite object in reference element "
@@ -867,11 +878,11 @@ public class XNodeProcessor {
         if (xnode.isEmpty()) {
             return null;
         }
-        return SearchFilterType.createFromXNode(xnode, pc.getPrismContext());
+        return SearchFilterType.createFromXNode(xnode, prismContext);
     }
 
     private Class qnameToClass(QName type, ParsingContext pc) {
-        Class c = pc.getSchemaRegistry().determineCompileTimeClass(type);
+        Class c = getSchemaRegistry().determineCompileTimeClass(type);
         if (c == null) {
             throw new IllegalStateException("No class for " + type);
         }
@@ -949,7 +960,7 @@ public class XNodeProcessor {
             throws SchemaException {
         if (itemDef == null) {
             // Assume property in a container with runtime definition
-            return (Item<IV, ID>) parsePrismPropertyRaw(xnode, itemName, pc.getPrismContext());
+            return (Item<IV, ID>) parsePrismPropertyRaw(xnode, itemName, prismContext);
         }
         if (itemDef instanceof PrismObjectDefinition) {
             return parseObject(xnode, itemName, (PrismObjectDefinition) itemDef, pc);
@@ -979,7 +990,7 @@ public class XNodeProcessor {
             typeName = DOMUtil.XSD_STRING;
         }
         if (typeName != null) {
-            ItemDefinition itemDefinition = pc.getSchemaRegistry().findItemDefinitionByType(typeName);
+            ItemDefinition itemDefinition = getSchemaRegistry().findItemDefinitionByType(typeName);
             if (itemDefinition != null) {
                 return parseItem(node, getElementName(node, itemDefinition), itemDefinition, pc);
             } else {
@@ -991,7 +1002,7 @@ public class XNodeProcessor {
                 throw new SchemaException("Couldn't parse general object with no type name and no root element name: " + node);
             }
             QName elementName = ((RootXNode) node).getRootElementName();
-            ItemDefinition itemDefinition = pc.getSchemaRegistry().findItemDefinitionByElementName(elementName);
+            ItemDefinition itemDefinition = getSchemaRegistry().findItemDefinitionByElementName(elementName);
             if (itemDefinition == null) {
                 throw new SchemaException("Couldn't parse general object with no type name and unknown element name: " + elementName);
             }
@@ -1007,7 +1018,7 @@ public class XNodeProcessor {
             typeName = DOMUtil.XSD_STRING;
         }
         if (typeName != null) {
-            ItemDefinition itemDefinition = pc.getSchemaRegistry().findItemDefinitionByType(typeName);
+            ItemDefinition itemDefinition = getSchemaRegistry().findItemDefinitionByType(typeName);
             if (itemDefinition != null) {
                 Item item = parseItem(node, getElementName(node, itemDefinition), itemDefinition, pc);
                 return (T) getItemRealValue(item);
@@ -1020,7 +1031,7 @@ public class XNodeProcessor {
                 throw new SchemaException("Couldn't parse general object with no type name and no root element name: " + node);
             }
             QName elementName = ((RootXNode) node).getRootElementName();
-            ItemDefinition itemDefinition = pc.getSchemaRegistry().findItemDefinitionByElementName(elementName);
+            ItemDefinition itemDefinition = getSchemaRegistry().findItemDefinitionByElementName(elementName);
             if (itemDefinition == null) {
                 throw new SchemaException("Couldn't parse general object with no type name and unknown element name: " + elementName);
             }
@@ -1037,7 +1048,7 @@ public class XNodeProcessor {
             typeName = DOMUtil.XSD_STRING;
         }
         if (typeName != null) {
-            ItemDefinition itemDefinition = pc.getSchemaRegistry().findItemDefinitionByType(typeName);
+            ItemDefinition itemDefinition = getSchemaRegistry().findItemDefinitionByType(typeName);
             if (itemDefinition != null) {
                 Item item = parseItem(node, getElementName(node, itemDefinition), itemDefinition, pc);
                 return getItemValueAsJAXBElement(item);
@@ -1059,7 +1070,7 @@ public class XNodeProcessor {
                 throw new SchemaException("Couldn't parse general object with no type name and no root element name: " + node);
             }
             QName elementName = ((RootXNode) node).getRootElementName();
-            ItemDefinition itemDefinition = pc.getSchemaRegistry().findItemDefinitionByElementName(elementName);
+            ItemDefinition itemDefinition = getSchemaRegistry().findItemDefinitionByElementName(elementName);
             if (itemDefinition == null) {
                 throw new SchemaException("Couldn't parse general object with no type name and unknown element name: " + elementName);
             }
@@ -1244,4 +1255,7 @@ public class XNodeProcessor {
         return prismContext.getBeanConverter();
     }
 
+	private SchemaRegistry getSchemaRegistry() {
+		return prismContext.getSchemaRegistry();
+	}
 }

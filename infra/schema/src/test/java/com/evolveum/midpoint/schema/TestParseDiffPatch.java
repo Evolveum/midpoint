@@ -769,7 +769,7 @@ public class TestParseDiffPatch {
 
        
         PolyStringType valueAsPoly = value.getPrismContext().getXnodeProcessor().parseAtomicValue(xnode, PolyStringType.COMPLEX_TYPE,
-				ParsingContext.createDefault(PrismTestUtil.getPrismContext()));
+				ParsingContext.createDefault());
         boolean found = false;
         for (PolyStringType expectedValue: expectedValues) {
             if (expectedValue.getOrig().equals(valueAsPoly.getOrig()) && expectedValue.getNorm().equals(valueAsPoly.getNorm())) {

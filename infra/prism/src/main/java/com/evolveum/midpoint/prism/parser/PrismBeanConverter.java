@@ -135,11 +135,11 @@ public class PrismBeanConverter {
             return (T) polyString;			// violates the method interface but ... TODO fix it
         } else if (ProtectedStringType.class.equals(beanClass)) {
             ProtectedStringType protectedType = new ProtectedStringType();
-            XNodeProcessorUtil.parseProtectedType(protectedType, xnode, pc);
+            XNodeProcessorUtil.parseProtectedType(protectedType, xnode, prismContext, pc);
             return (T) protectedType;
         } else if (ProtectedByteArrayType.class.equals(beanClass)) {
             ProtectedByteArrayType protectedType = new ProtectedByteArrayType();
-            XNodeProcessorUtil.parseProtectedType(protectedType, xnode, pc);
+            XNodeProcessorUtil.parseProtectedType(protectedType, xnode, prismContext, pc);
             return (T) protectedType;
         } else if (SchemaDefinitionType.class.equals(beanClass)) {
             SchemaDefinitionType schemaDefType = unmarshalSchemaDefinitionType(xnode);
@@ -186,7 +186,7 @@ public class PrismBeanConverter {
 			} else{
 				throw new SchemaException("Unexpected subtype of protected data type: " + bean.getClass());
 			}
-        	XNodeProcessorUtil.parseProtectedType(protectedDataType, xnode, pc);
+        	XNodeProcessorUtil.parseProtectedType(protectedDataType, xnode, prismContext, pc);
         	return (T) protectedDataType;
         }
 
@@ -217,7 +217,7 @@ public class PrismBeanConverter {
 					if (elementMethod == null) {
 						String m = "No field "+propName+" in class "+beanClass+" (and no element method in object factory too)";
 						if (pc.isCompat()) {
-							LOGGER.warn("{}", m);
+							pc.warn(LOGGER, m);
 							continue;
 						} else {
 							throw new SchemaException(m);
@@ -236,7 +236,7 @@ public class PrismBeanConverter {
 						if (elementMethod == null) {
 							String m = "No field "+propName+" in class "+beanClass+" (and no element method in object factory too)";
 							if (pc.isCompat()) {
-								LOGGER.warn("{}", m);
+								pc.warn(LOGGER, m);
 								continue;
 							} else {
 								throw new SchemaException(m);
@@ -278,7 +278,7 @@ public class PrismBeanConverter {
 				if (getter == null) {
 					String m = "Cannot find setter or getter for field " + fieldName + " in " + beanClass;
 					if (pc.isCompat()) {
-						LOGGER.warn("{}", m);
+						pc.warn(LOGGER, m);
 						continue;
 					} else {
 						throw new SchemaException(m);
@@ -509,7 +509,7 @@ public class PrismBeanConverter {
 					if (pc.isStrict()) {
 						throw new SchemaException(m);
 					} else {
-						LOGGER.warn("{}", m);
+						pc.warn(LOGGER, m);
 					}
 				}
 			}
@@ -521,6 +521,7 @@ public class PrismBeanConverter {
             throw e;
         } else {
             LoggingUtils.logException(LOGGER, "Couldn't parse part of the document. It will be ignored. Document part:\n{}", e, xsubnode);
+			pc.warn("Couldn't parse part of the document. It will be ignored. Document part:\n" + xsubnode);
             return true;
         }
 	}

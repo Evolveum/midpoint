@@ -325,7 +325,7 @@ public class QueryConvertor {
 					KEY_FILTER_VALUE, KEY_FILTER_EQUAL_MATCHING, KEY_FILTER_EQUAL_PATH);
 			if (expressionEntry != null) {
                 PrismPropertyValue expressionPropertyValue = prismContext.getXnodeProcessor().parsePrismPropertyFromGlobalXNodeValue(
-						expressionEntry, ParsingContext.createDefault(prismContext));
+						expressionEntry, ParsingContext.createDefault());
                 if (preliminaryParsingOnly) {
                     return null;
                 } else {
@@ -429,7 +429,7 @@ public class QueryConvertor {
 		if (valueXnode != null){
 		
 			Item<?,?> item = prismContext.getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition,
-					ParsingContext.allowMissingRefTypes(prismContext));
+					ParsingContext.allowMissingRefTypes());
         
 			  if (preliminaryParsingOnly) {
 		            return null;
@@ -481,7 +481,7 @@ public class QueryConvertor {
 				KEY_FILTER_VALUE, KEY_FILTER_EQUAL_MATCHING, KEY_FILTER_EQUAL_PATH);
 		if (expressionEntry != null) {
 			PrismPropertyValue expressionPropertyValue = prismContext.getXnodeProcessor()
-					.parsePrismPropertyFromGlobalXNodeValue(expressionEntry, ParsingContext.createDefault(prismContext));
+					.parsePrismPropertyFromGlobalXNodeValue(expressionEntry, ParsingContext.createDefault());
 			ExpressionWrapper expressionWrapper = new ExpressionWrapper();
 			expressionWrapper.setExpression(expressionPropertyValue.getValue());
 			return expressionWrapper;
@@ -622,7 +622,7 @@ public class QueryConvertor {
 		if (prismContext == null) {
 			item = (Item)XNodeProcessor.parsePrismPropertyRaw(valueXnode, itemName, null);
 		} else {
-			item = prismContext.getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition, ParsingContext.allowMissingRefTypes(prismContext));
+			item = prismContext.getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition, ParsingContext.allowMissingRefTypes());
 		}
 
 		if (item.getValues().size() < 1 ) {

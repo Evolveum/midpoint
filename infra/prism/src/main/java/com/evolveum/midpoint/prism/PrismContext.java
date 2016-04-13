@@ -235,7 +235,14 @@ public class PrismContext {
 		Parser parser = findParser(dataString);
 		XNode xnode = parser.parse(dataString);
 		XNodeProcessor myXnodeProcessor = new XNodeProcessor(this);
-		return myXnodeProcessor.parseObject(xnode, ParsingContext.forMode(this, mode));
+		return myXnodeProcessor.parseObject(xnode, ParsingContext.forMode(mode));
+	}
+
+	public <T extends Objectable> PrismObject<T> parseObject(String dataString, ParsingContext parsingContext) throws SchemaException {
+		Parser parser = findParser(dataString);
+		XNode xnode = parser.parse(dataString);
+		XNodeProcessor myXnodeProcessor = new XNodeProcessor(this);
+		return myXnodeProcessor.parseObject(xnode, parsingContext);
 	}
 	
 	/**
@@ -651,6 +658,6 @@ public class PrismContext {
 	}
 
 	protected ParsingContext newParsingContext() {
-		return ParsingContext.createDefault(this);
+		return ParsingContext.createDefault();
 	}
 }

@@ -913,9 +913,11 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
         Iterator<? extends DisplayableValue<String>> iterator = markDef.getAllowedValues().iterator();
+		DisplayableValue<String> braveryValue = null;
         while (iterator.hasNext()) {
         	DisplayableValue<String> disp = iterator.next();
         	if (disp.getValue().equals("bravery")) {
+				braveryValue = disp;
         		iterator.remove();
         	}
         }
@@ -935,6 +937,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         
         PrismProperty<String> markProp = user.findProperty(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
         assertEquals("Bad mark", null, markProp.getRealValue());
+
+		((Collection) markDef.getAllowedValues()).add(braveryValue);		// because of the following test
     }
     
     /**
@@ -974,7 +978,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
-        assertSuccess(result);        
+        assertSuccess(result);
     }
     
 	private <O extends ObjectType, T> void assertExtension(PrismObject<O> object, QName propName, T... expectedValues) {

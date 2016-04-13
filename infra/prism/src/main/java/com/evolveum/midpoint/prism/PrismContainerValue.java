@@ -1111,7 +1111,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		XNode origRawXnode = origCVal.rawXNode;
 		if (origRawXnode != null) {
 			XNodeProcessor xnodeProcessor = definition.getPrismContext().getXnodeProcessor();
-			PrismContainerValue<C> newCVal = xnodeProcessor.parsePrismContainerValue(origRawXnode, definition, ParsingContext.createDefault(definition.getPrismContext()));
+			PrismContainerValue<C> newCVal = xnodeProcessor.parsePrismContainerValue(origRawXnode, definition, ParsingContext.createDefault());
 			return newCVal;
 		}
 		
@@ -1187,7 +1187,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		if (rawXNode != null) {
 			PrismContext prismContext = valueDefinition.getPrismContext();
 			XNodeProcessor xnodeProcessor = prismContext.getXnodeProcessor();
-			PrismContainerValue<C> newCVal = xnodeProcessor.parsePrismContainerValue(rawXNode, valueDefinition, ParsingContext.createDefault(prismContext));
+			PrismContainerValue<C> newCVal = xnodeProcessor.parsePrismContainerValue(rawXNode, valueDefinition, ParsingContext.createDefault());
 			// Maybe we need to manually reset parent on items?
 			addAll(newCVal.getItems());
 			rawXNode = null;
