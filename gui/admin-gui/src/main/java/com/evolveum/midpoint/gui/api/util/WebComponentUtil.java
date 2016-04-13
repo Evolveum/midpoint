@@ -791,19 +791,19 @@ public final class WebComponentUtil {
 		ShadowType shadow = object.asObjectable();
 		
 		if (ShadowUtil.isProtected(object)){
-			return "fa fa-shield";
+			return GuiStyleConstants.CLASS_SHADOW_ICON_PROTECTED;
 		}
 		
 		switch (shadow.getKind()){
 			case ACCOUNT: 
-				return "fa fa-eye";
+				return GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT;
 			case GENERIC:
-				return "fa fa-institution";
+				return GuiStyleConstants.CLASS_SHADOW_ICON_GENERIC;
 			case ENTITLEMENT:
-				return "fa fa-group";
+				return GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT;
 					
 		}
-		return "fa fa-circle-o";
+		return GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN;
 	}
 
 	public static String createUserIconTitle(PrismObject<UserType> object) {

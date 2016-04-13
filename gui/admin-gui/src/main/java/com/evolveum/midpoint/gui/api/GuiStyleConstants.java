@@ -51,5 +51,11 @@ public class GuiStyleConstants {
 	public static final String CLASS_ICON_STYLE_WARNING = "icon-style-warning";
 	public static final String CLASS_ICON_STYLE_UP = "icon-style-up";
 	public static final String CLASS_ICON_STYLE_DOWN = "icon-style-down";
+	
+	public static final String CLASS_SHADOW_ICON_ACCOUNT = "fa fa-male";
+	public static final String CLASS_SHADOW_ICON_ENTITLEMENT = "fa fa-group";
+	public static final String CLASS_SHADOW_ICON_GENERIC = "fa fa-circle-o";
+	public static final String CLASS_SHADOW_ICON_PROTECTED = "fa fa-shield";
+	public static final String CLASS_SHADOW_ICON_UNKNOWN = "fa fa-eye";
 
 }
