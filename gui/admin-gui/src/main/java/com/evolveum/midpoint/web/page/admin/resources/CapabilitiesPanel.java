@@ -71,7 +71,7 @@ public class CapabilitiesPanel extends BasePanel<CapabilitiesDto>{
 	    		
 	    	};
 	    	
-	    	button.add(new AttributeModifier("class", button.getModelObject() ? "btn btn-app bg-light-blue" : "btn btn-app bg-gray text-light-blue"));
+	    	button.add(new AttributeModifier("class", button.getModelObject() ? "btn btn-app btn-resource-capability bg-light-blue" : "btn btn-app btn-resource-capability bg-gray text-light-blue"));
 	    	
 	    	button.add(new Label("label", getString("CapabilitiesType."+id)));
 	    	
