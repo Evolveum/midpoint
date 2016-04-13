@@ -26,7 +26,6 @@ import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -62,11 +61,11 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -98,9 +97,9 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public static final String F_PARENT_TASK_OID = "parentTaskOid";
 	public static final String F_OWNER_NAME = "ownerName";
 	public static final String F_OWNER_OID = "ownerOid";
-    public static final String F_WORKFLOW_DELTAS_IN = "workflowDeltasIn";
-    public static final String F_WORKFLOW_DELTA_IN = "workflowDeltaIn";
-    public static final String F_WORKFLOW_DELTAS_OUT = "workflowDeltasOut";
+    @Deprecated public static final String F_WORKFLOW_DELTAS_IN = "workflowDeltasIn";
+	@Deprecated public static final String F_WORKFLOW_DELTAS_OUT = "workflowDeltasOut";
+    public static final String F_CHANGE_BEING_APPROVED = "changesBeingApproved";
     public static final String F_IDENTIFIER = "identifier";
     public static final String F_HANDLER_URI_LIST = "handlerUriList";
     public static final String F_TASK_OPERATION_RESULT = "taskOperationResult";
@@ -149,10 +148,10 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	private OperationResult taskOperationResult;
 	private ModelOperationStatusDto modelOperationStatusDto;
 
-	private List<TaskChangesDto> changes;
+	private List<TaskChangesDto> changesCategorizationList;
 	private List<ProcessInstanceDto> workflowRequests;
 	private List<SceneDto> workflowDeltasIn, workflowDeltasOut;
-	private SceneDto workflowDeltaIn;
+	private TaskChangesDto changesBeingApproved;
 
 	// related objects
 	private TaskType parentTaskType;
@@ -326,14 +325,24 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			OperationResult thisOpResult) throws SchemaException, ObjectNotFoundException {
 
         workflowDeltasIn = retrieveDeltasToProcess(taskType, modelInteractionService, opTask, thisOpResult);
-        workflowDeltaIn = retrieveDeltaToProcess(taskType, modelInteractionService, opTask, thisOpResult);
-        workflowDeltasOut = retrieveResultingDeltas(taskType, modelInteractionService, opTask, thisOpResult);
+		workflowDeltasOut = retrieveResultingDeltas(taskType, modelInteractionService, opTask, thisOpResult);
 
 		final TaskType rootTask;
 		if (parentTaskType == null) {
 			rootTask = taskType;
 		} else {
 			rootTask = parentTaskType;
+		}
+
+		WfContextType wfc = taskType.getWorkflowContext();
+		if (wfc != null && parentTaskType != null && (wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
+			ChangesByState changesByState = workflowManager.getChangesByState(taskType, rootTask, modelInteractionService, prismContext, thisOpResult);
+			List<TaskChangesDto> changeCategories = computeChangesCategorizationList(changesByState, modelInteractionService, prismContext, opTask, thisOpResult);
+			if (changeCategories.size() > 1) {
+				throw new IllegalStateException("More than one task change category for task " + taskType + ": " + changeCategories);
+			} else if (changeCategories.size() == 1) {
+				changesBeingApproved = changeCategories.get(0);
+			}
 		}
 
 		workflowRequests = new ArrayList<>();
@@ -346,8 +355,15 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			}
 		}
 
-		changes = new ArrayList<>();
 		ChangesByState changesByState = workflowManager.getChangesByState(rootTask, modelInteractionService, prismContext, thisOpResult);
+		this.changesCategorizationList = computeChangesCategorizationList(changesByState, modelInteractionService, prismContext, opTask, thisOpResult);
+	}
+
+	@NotNull
+	private List<TaskChangesDto> computeChangesCategorizationList(ChangesByState changesByState, ModelInteractionService modelInteractionService,
+			PrismContext prismContext, Task opTask,
+			OperationResult thisOpResult) throws SchemaException {
+		List<TaskChangesDto> changes = new ArrayList<>();
 		if (!changesByState.getApplied().isEmpty()) {
 			changes.add(createTaskChangesDto("TaskDto.changesApplied", "box-solid box-success", changesByState.getApplied(), modelInteractionService, prismContext, opTask, thisOpResult));
 		}
@@ -358,11 +374,20 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApplied", "box-solid box-warning", changesByState.getWaitingToBeApplied(), modelInteractionService, prismContext, opTask, thisOpResult));
 		}
 		if (!changesByState.getWaitingToBeApproved().isEmpty()) {
-			changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApproved", "box-solid box-primary", changesByState.getWaitingToBeApproved(), modelInteractionService, prismContext, opTask, thisOpResult));
+			changes.add(createChangesToBeApproved(changesByState.getWaitingToBeApproved(), modelInteractionService, prismContext, opTask, thisOpResult));
 		}
 		if (!changesByState.getRejected().isEmpty()) {
 			changes.add(createTaskChangesDto("TaskDto.changesRejected", "box-solid box-danger", changesByState.getRejected(), modelInteractionService, prismContext, opTask, thisOpResult));
 		}
+		if (!changesByState.getCanceled().isEmpty()) {
+			changes.add(createTaskChangesDto("TaskDto.changesCanceled", "box-solid box-danger", changesByState.getCanceled(), modelInteractionService, prismContext, opTask, thisOpResult));
+		}
+		return changes;
+	}
+
+	private TaskChangesDto createChangesToBeApproved(ObjectTreeDeltas<?> deltas, ModelInteractionService modelInteractionService,
+			PrismContext prismContext, Task opTask, OperationResult thisOpResult) throws SchemaException {
+		return createTaskChangesDto("TaskDto.changesWaitingToBeApproved", "box-solid box-primary", deltas, modelInteractionService, prismContext, opTask, thisOpResult);
 	}
 
 	private TaskChangesDto createTaskChangesDto(String titleKey, String boxClassOverride, ObjectTreeDeltas deltas, ModelInteractionService modelInteractionService,
@@ -673,7 +698,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
 	public TaskChangesDto getChangesForIndex(int index) {
 		int realIndex = index-1;
-		return realIndex < changes.size() ? changes.get(realIndex) : null;
+		return realIndex < changesCategorizationList.size() ? changesCategorizationList.get(realIndex) : null;
 	}
 
 	public void addChildTaskDto(TaskDto taskDto) {
@@ -701,14 +726,16 @@ public class TaskDto extends Selectable implements InlineMenuable {
 				taskType.getWorkflowContext().getEndTimestamp() != null : false;
     }
 
-    public List<SceneDto> getWorkflowDeltasIn() {
+    @Deprecated
+	public List<SceneDto> getWorkflowDeltasIn() {
         return workflowDeltasIn;
     }
 
-	public SceneDto getWorkflowDeltaIn() {
-        return workflowDeltaIn;
+	public TaskChangesDto getChangesBeingApproved() {
+        return changesBeingApproved;
     }
 
+	@Deprecated
     public List<SceneDto> getWorkflowDeltasOut() {
         return workflowDeltasOut;
     }
@@ -874,7 +901,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
 				!modelOperationStatusDto.equals(taskDto.modelOperationStatusDto) :
 				taskDto.modelOperationStatusDto != null)
 			return false;
-		if (changes != null ? !changes.equals(taskDto.changes) : taskDto.changes != null)
+		if (changesCategorizationList != null ? !changesCategorizationList
+				.equals(taskDto.changesCategorizationList) : taskDto.changesCategorizationList != null)
 			return false;
 		if (workflowRequests != null ? !workflowRequests.equals(taskDto.workflowRequests) : taskDto.workflowRequests != null)
 			return false;
@@ -882,7 +910,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			return false;
 		if (workflowDeltasOut != null ? !workflowDeltasOut.equals(taskDto.workflowDeltasOut) : taskDto.workflowDeltasOut != null)
 			return false;
-		if (workflowDeltaIn != null ? !workflowDeltaIn.equals(taskDto.workflowDeltaIn) : taskDto.workflowDeltaIn != null)
+		if (changesBeingApproved != null ? !changesBeingApproved.equals(taskDto.changesBeingApproved) : taskDto.changesBeingApproved != null)
 			return false;
 		if (parentTaskType != null ? !parentTaskType.equals(taskDto.parentTaskType) : taskDto.parentTaskType != null)
 			return false;
@@ -920,11 +948,11 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		result = 31 * result + (opResult != null ? opResult.hashCode() : 0);
 		result = 31 * result + (taskOperationResult != null ? taskOperationResult.hashCode() : 0);
 		result = 31 * result + (modelOperationStatusDto != null ? modelOperationStatusDto.hashCode() : 0);
-		result = 31 * result + (changes != null ? changes.hashCode() : 0);
+		result = 31 * result + (changesCategorizationList != null ? changesCategorizationList.hashCode() : 0);
 		result = 31 * result + (workflowRequests != null ? workflowRequests.hashCode() : 0);
 		result = 31 * result + (workflowDeltasIn != null ? workflowDeltasIn.hashCode() : 0);
 		result = 31 * result + (workflowDeltasOut != null ? workflowDeltasOut.hashCode() : 0);
-		result = 31 * result + (workflowDeltaIn != null ? workflowDeltaIn.hashCode() : 0);
+		result = 31 * result + (changesBeingApproved != null ? changesBeingApproved.hashCode() : 0);
 		result = 31 * result + (parentTaskType != null ? parentTaskType.hashCode() : 0);
 		result = 31 * result + (objectRefType != null ? objectRefType.hashCode() : 0);
 		result = 31 * result + (objectRefName != null ? objectRefName.hashCode() : 0);

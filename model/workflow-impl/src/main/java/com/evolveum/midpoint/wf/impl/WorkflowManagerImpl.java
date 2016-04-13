@@ -236,6 +236,15 @@ public class WorkflowManagerImpl implements WorkflowManager {
 			OperationResult result) throws SchemaException, ObjectNotFoundException {
 
 		// TODO op subresult
-		return miscDataUtil.getChangesByState(rootTask, modelInteractionService, prismContext, result);
+		return miscDataUtil.getChangesByStateForRoot(rootTask, modelInteractionService, prismContext, result);
 	}
+
+	@Override
+	public ChangesByState getChangesByState(TaskType childTask, TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext,
+			OperationResult result) throws SchemaException, ObjectNotFoundException {
+
+		// TODO op subresult
+		return miscDataUtil.getChangesByStateForChild(childTask, rootTask, modelInteractionService, prismContext, result);
+	}
+
 }
