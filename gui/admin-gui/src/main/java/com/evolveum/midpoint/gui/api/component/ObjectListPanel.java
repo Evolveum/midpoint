@@ -49,6 +49,12 @@ import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider2;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.reports.PageReports;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
+import com.evolveum.midpoint.web.page.admin.services.PageService;
+import com.evolveum.midpoint.web.page.admin.services.PageServices;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
@@ -58,12 +64,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+/**
+ * @author katkav
+ */
 public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T> {
-
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
+
 	// private static final String ID_SEARCH_FORM = "searchForm";
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_BUTTON_CANCEL = "cancelButton";
@@ -95,10 +101,11 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 
 	static {
 		storageMap = new HashMap<Class, String>();
-		storageMap.put(UserType.class, SessionStorage.KEY_USERS);
-		storageMap.put(ResourceType.class, SessionStorage.KEY_RESOURCES);
-		storageMap.put(ReportType.class, SessionStorage.KEY_REPORTS);
-		storageMap.put(RoleType.class, SessionStorage.KEY_ROLES);
+		storageMap.put(PageUsers.class, SessionStorage.KEY_USERS);
+		storageMap.put(PageResources.class, SessionStorage.KEY_RESOURCES);
+		storageMap.put(PageReports.class, SessionStorage.KEY_REPORTS);
+		storageMap.put(PageRoles.class, SessionStorage.KEY_ROLES);
+		storageMap.put(PageServices.class, SessionStorage.KEY_SERVICES);
 		// storageMap.put(ObjectType.class, SessionStorage.KEY_CONFIGURATION);
 		// storageMap.put(FocusType.class, SessionStorage.KEY_ROLE_MEMBERS);
 
@@ -159,7 +166,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 
 			@Override
 			public Search load() {
-				String storageKey = storageMap.get(type);
+				String storageKey = getStorageKey();//storageMap.get(parentPage.getClass());
 				Search search = null;
 				if (StringUtils.isNotEmpty(storageKey)) {
 					PageStorage storage = getSession().getSessionStorage().getPageStorageMap()
@@ -189,7 +196,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 				parentPage, type) {
 			@Override
 			protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-				String storageKey = storageMap.get(type);
+				String storageKey = getStorageKey();//storageMap.get(type);
 				if (StringUtils.isNotEmpty(storageKey)) {
 					PageStorage storage = getSession().getSessionStorage().getPageStorageMap()
 							.get(storageKey);
@@ -242,7 +249,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 
 		};
 		table.setOutputMarkupId(true);
-		String storageKey = storageMap.get(type);
+		String storageKey = getStorageKey();//storageMap.get(type);
 		if (StringUtils.isNotEmpty(storageKey)) {
 			PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
 			if (storage != null) {
@@ -264,13 +271,20 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 	protected BoxedTablePanel<SelectableBean<T>> getTable() {
 		return (BoxedTablePanel<SelectableBean<T>>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
 	}
+	
+	private String getStorageKey(){
+		return storageMap.get(parentPage.getClass());
+	}
 
 	private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
 		BaseSortableDataProvider<SelectableBean<T>> provider = getDataProvider();
 		provider.setQuery(query);
-		String storageKey = storageMap.get(type);
+		String storageKey = getStorageKey();
 		if (StringUtils.isNotEmpty(storageKey)) {
 			PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
+			if (storage == null) {
+				storage = getSession().getSessionStorage().initPageStorage(storageKey);
+			}
 			if (storage != null) {
 				storage.setSearch(searchModel.getObject());
 				storage.setPaging(null);
@@ -302,10 +316,6 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 
 	public StringResourceModel createStringResource(String resourceKey, Object... objects) {
 		return PageBase.createStringResourceStatic(this, resourceKey, objects);
-	}
-
-	protected void onCheckboxUpdate(AjaxRequestTarget target) {
-
 	}
 
 	protected abstract IColumn<SelectableBean<T>, String> createCheckboxColumn();

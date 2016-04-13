@@ -520,6 +520,19 @@ public class ResourceTypeUtil {
 	public static boolean isDown(ResourceType resource){
 		return (resource.getOperationalState() != null && AvailabilityStatusType.DOWN == resource.getOperationalState().getLastAvailabilityStatus());
 	}
+	
+	public static AvailabilityStatusType getLastAvailabilityStatus(ResourceType resource){
+		if (resource.getOperationalState() == null) {
+			return null;
+		}
+		
+		if (resource.getOperationalState().getLastAvailabilityStatus() == null) {
+			return null;
+		}
+		
+		return resource.getOperationalState().getLastAvailabilityStatus();
+		
+	}
 
 	public static boolean isAvoidDuplicateValues(ResourceType resource) {
 		if (resource.getConsistency() == null) {

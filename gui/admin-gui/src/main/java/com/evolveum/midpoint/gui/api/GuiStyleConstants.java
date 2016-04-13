@@ -33,7 +33,7 @@ public class GuiStyleConstants {
 	public static final String STYLES_OBJECT_SERVICE_ICON = "fa fa-cloud";
 	public static final String STYLES_OBJECT_SERVICE_ICON_COLORED = STYLES_OBJECT_SERVICE_ICON + " object-service-color";
 	
-	public static final String STYLES_OBJECT_RESOURCE_ICON = "fa fa-laptop";
+	public static final String STYLES_OBJECT_RESOURCE_ICON = "fa fa-database";
 	public static final String STYLES_OBJECT_RESOURCE_ICON_COLORED = STYLES_OBJECT_RESOURCE_ICON + " object-resource-color";
 	
 	public static final String STYLES_OBJECT_TASK_ICON = "fa fa-tasks";

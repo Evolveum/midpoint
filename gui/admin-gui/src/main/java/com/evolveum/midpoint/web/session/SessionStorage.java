@@ -53,6 +53,7 @@ public class SessionStorage implements Serializable {
     public static final String KEY_REPORTS = "reports";
     public static final String KEY_RESOURCES = "resources";
     public static final String KEY_ROLES = "roles";
+    public static final String KEY_SERVICES = "services";
     public static final String KEY_ROLE_MEMBERS = "roleMembers";
     
     private static final String KEY_TASKS = "tasks";
@@ -118,6 +119,13 @@ public class SessionStorage implements Serializable {
         return (RolesStorage)pageStorageMap.get(KEY_ROLES);
     }
     
+    public ServicesStorage getServices() {
+        if (pageStorageMap.get(KEY_SERVICES) == null) {
+            pageStorageMap.put(KEY_SERVICES, new ServicesStorage());
+        }
+        return (ServicesStorage)pageStorageMap.get(KEY_SERVICES);
+    }
+    
     public RoleMembersStorage getRoleMembers() {
     	if (pageStorageMap.get(KEY_ROLE_MEMBERS) == null) {
             pageStorageMap.put(KEY_ROLE_MEMBERS, new RoleMembersStorage());
@@ -144,6 +152,23 @@ public class SessionStorage implements Serializable {
             userProfile = new UserProfileStorage();
         }
         return userProfile;
+    }
+    
+    public PageStorage initPageStorage(String key){
+    	PageStorage pageStorage = null;
+    	if (KEY_USERS.equals(key)){
+    		pageStorage = new UsersStorage();
+    		pageStorageMap.put(KEY_USERS, pageStorage);
+    		
+    	} else if (KEY_ROLES.equals(key)){
+    		pageStorage = new RolesStorage();
+    		pageStorageMap.put(KEY_ROLES, pageStorage);
+    	} else if (KEY_SERVICES.equals(key)) {
+    		pageStorage = new ServicesStorage();
+    		pageStorageMap.put(KEY_SERVICES, pageStorage);
+    	}
+    	return pageStorage;
+    	//TODO: fixme
     }
 
     public void setUserProfile(UserProfileStorage profile){

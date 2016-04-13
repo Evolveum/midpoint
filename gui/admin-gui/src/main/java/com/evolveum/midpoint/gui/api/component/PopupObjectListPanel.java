@@ -1,9 +1,9 @@
 package com.evolveum.midpoint.gui.api.component;
 
-import java.util.Collection;
 import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.model.IModel;
@@ -26,7 +26,19 @@ public abstract class PopupObjectListPanel<T extends ObjectType> extends ObjectL
 	@Override
 	protected IColumn<SelectableBean<T>, String> createCheckboxColumn() {
 		if (isMultiselect()) {
-			return new CheckBoxHeaderColumn<SelectableBean<T>>();
+			return new CheckBoxHeaderColumn<SelectableBean<T>>() {
+				@Override
+				protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<SelectableBean<T>> rowModel) {
+					super.onUpdateRow(target, table, rowModel);
+					onUpdateCheckbox(target);
+				};
+				
+				@Override
+				protected void onUpdateHeader(AjaxRequestTarget target, boolean selected, DataTable table) {
+					super.onUpdateHeader(target, selected, table);
+					onUpdateCheckbox(target);
+				}
+			};
 		}
 		return null;
 	}
@@ -64,6 +76,10 @@ public abstract class PopupObjectListPanel<T extends ObjectType> extends ObjectL
 	@Override
 	protected List<InlineMenuItem> createInlineMenu() {
 		return null;
+	}
+	
+	protected void onUpdateCheckbox(AjaxRequestTarget target){
+		
 	}
 
 }

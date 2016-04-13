@@ -368,7 +368,7 @@ private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getReso
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
 		
 
-		columns.addAll((Collection)getDefaultAbstractRoleColumns());
+		columns.addAll((Collection)getDefaultAbstractRoleColumns(RoleType.COMPLEX_TYPE));
 
 		return columns;
 	}
@@ -376,7 +376,7 @@ private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getReso
 	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultServiceColumns() {
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
 	
-		columns.addAll((Collection)getDefaultAbstractRoleColumns());
+		columns.addAll((Collection)getDefaultAbstractRoleColumns(ServiceType.COMPLEX_TYPE));
 
 		return columns;
 	}
@@ -384,21 +384,27 @@ private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getReso
 	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultOrgColumns() {
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
 
-		columns.addAll((Collection)getDefaultAbstractRoleColumns());
+		columns.addAll((Collection)getDefaultAbstractRoleColumns(OrgType.COMPLEX_TYPE));
 
 		return columns;
 	}
 
-	private static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultAbstractRoleColumns() {
+	private static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultAbstractRoleColumns(QName type) {
 
+		String sortByDisplayName = null;
+		String sortByIdentifer = null;
+		if (OrgType.COMPLEX_TYPE.equals(type)) {
+			sortByDisplayName = AbstractRoleType.F_DISPLAY_NAME.getLocalPart();
+			sortByIdentifer = AbstractRoleType.F_IDENTIFIER.getLocalPart();
+		}
 		List<ColumnTypeDto> columnsDefs = Arrays.asList(
 				new ColumnTypeDto("AbstractRoleType.displayName",
-						AbstractRoleType.F_DISPLAY_NAME.getLocalPart(),
+						sortByDisplayName,
 						SelectableBean.F_VALUE + ".displayName", false),
 				new ColumnTypeDto("AbstractRoleType.description",
-						AbstractRoleType.F_DESCRIPTION.getLocalPart(),
+						null,
 						SelectableBean.F_VALUE + ".description", false),
-				new ColumnTypeDto("AbstractRoleType.identifier", AbstractRoleType.F_IDENTIFIER.getLocalPart(),
+				new ColumnTypeDto("AbstractRoleType.identifier", sortByIdentifer,
 						SelectableBean.F_VALUE + ".identifier", false)
 
 		);
