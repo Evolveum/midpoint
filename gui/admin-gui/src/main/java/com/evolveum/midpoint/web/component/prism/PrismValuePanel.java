@@ -43,6 +43,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.LockoutStatusPanel;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.input.*;
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
@@ -434,7 +435,7 @@ public class PrismValuePanel extends Panel {
               if (ActivationType.F_ADMINISTRATIVE_STATUS.equals(definition.getName())) {
                   return WebComponentUtil.createEnumPanel(ActivationStatusType.class, id, new PropertyModel<ActivationStatusType>(model, baseExpression), this);
               } else if(ActivationType.F_LOCKOUT_STATUS.equals(definition.getName())){
-                  return WebComponentUtil.createEnumPanel(LockoutStatusType.class, id, new PropertyModel<LockoutStatusType>(model, baseExpression), this);
+                  return new LockoutStatusPanel(id, new PropertyModel<LockoutStatusType>(model, baseExpression));
               } else {
               	// nothing to do
               }
