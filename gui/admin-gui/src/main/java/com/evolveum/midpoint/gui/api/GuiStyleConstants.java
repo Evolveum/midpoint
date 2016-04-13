@@ -42,7 +42,7 @@ public class GuiStyleConstants {
 	public static final String CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES = "box object-resource-box";
 	
 	public static final String CLASS_OBJECT_TASK_ICON = "fa fa-tasks";
-	public static final String CLASS_OBJECT_TASK_ICON_COLORED = CLASS_OBJECT_TASK_ICON;
+	public static final String CLASS_OBJECT_TASK_ICON_COLORED = CLASS_OBJECT_TASK_ICON + " object-task-color";;
 	public static final String CLASS_OBJECT_TASK_BOX_CSS_CLASSES = "box object-task-box";
 	
 	public static final String CLASS_ICON_STYLE_NORMAL = "icon-style-normal";

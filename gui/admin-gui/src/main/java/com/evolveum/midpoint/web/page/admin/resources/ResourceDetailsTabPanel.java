@@ -315,7 +315,7 @@ public class ResourceDetailsTabPanel extends Panel{
 				int numAllDefinitions = refinedDefinitions.size();
 				numberMessage = numObjectTypes + " " + getString("PageResource.resource.objectTypes");
 				if (numAllDefinitions != 0) {
-					progress = numObjectTypes / numAllDefinitions;
+					progress = numObjectTypes * 100 / numAllDefinitions;
 					if (progress > 100) {
 						progress = 100;
 					}

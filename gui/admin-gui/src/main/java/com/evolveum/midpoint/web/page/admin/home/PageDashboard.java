@@ -29,6 +29,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.springframework.security.core.Authentication;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -37,17 +38,28 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
+import com.evolveum.midpoint.web.component.box.InfoBoxPanel;
+import com.evolveum.midpoint.web.component.box.InfoBoxType;
 import com.evolveum.midpoint.web.component.util.CallableResult;
 import com.evolveum.midpoint.web.page.admin.home.component.AsyncDashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.DashboardColor;
@@ -59,14 +71,21 @@ import com.evolveum.midpoint.web.page.admin.home.component.SystemInfoPanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
 import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -85,6 +104,13 @@ public class PageDashboard extends PageAdminHome {
     private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
     private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
 
+    private static final String ID_INFO_BOX_USERS = "infoBoxUsers";
+    private static final String ID_INFO_BOX_ORGS = "infoBoxOrgs";
+    private static final String ID_INFO_BOX_ROLES = "infoBoxRoles";
+    private static final String ID_INFO_BOX_SERVICES = "infoBoxServices";
+    private static final String ID_INFO_BOX_RESOURCES = "infoBoxResources";
+    private static final String ID_INFO_BOX_TASKS = "infoBoxTasks";
+    
     private static final String ID_PERSONAL_INFO = "personalInfo";
     private static final String ID_ACCOUNTS = "accounts";
     private static final String ID_ASSIGNMENTS = "assignments";
@@ -107,6 +133,7 @@ public class PageDashboard extends PageAdminHome {
     }
 
     private void initLayout() {
+    	initInfoBoxes();
         initPersonalInfo();
         initMyAccounts();
         initAssignments();
@@ -135,7 +162,7 @@ public class PageDashboard extends PageAdminHome {
 //        add(new DroppableElement("droppable2", defaultValues));
     }
 
-    private AccountCallableResult<List<SimpleAccountDto>> loadAccounts() throws Exception {
+	private AccountCallableResult<List<SimpleAccountDto>> loadAccounts() throws Exception {
         LOGGER.debug("Loading accounts.");
 
         AccountCallableResult callableResult = new AccountCallableResult();
@@ -182,6 +209,138 @@ public class PageDashboard extends PageAdminHome {
 
         return callableResult;
     }
+	
+    private void initInfoBoxes() {
+    	Task task = createSimpleTask("PageDashboard.infobox");
+    	OperationResult result = task.getResult();
+    	
+    	add(createFocusInfoBoxPanel(ID_INFO_BOX_USERS, UserType.class, "object-user-bg", 
+    			GuiStyleConstants.CLASS_OBJECT_USER_ICON, "PageDashboard.infobox.users", result, task));
+    	
+    	add(createFocusInfoBoxPanel(ID_INFO_BOX_ORGS, OrgType.class, "object-org-bg", 
+    			GuiStyleConstants.CLASS_OBJECT_ORG_ICON, "PageDashboard.infobox.orgs", result, task));
+    	
+    	add(createFocusInfoBoxPanel(ID_INFO_BOX_ROLES, RoleType.class, "object-role-bg", 
+    			GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, "PageDashboard.infobox.roles", result, task));
+    	
+    	add(createFocusInfoBoxPanel(ID_INFO_BOX_SERVICES, ServiceType.class, "object-service-bg", 
+    			GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, "PageDashboard.infobox.services", result, task));
+    	
+    	add(createResourceInfoBoxPanel(result, task));
+    	add(createTaskInfoBoxPanel(result, task));
+    	
+	}
+
+	private <F extends FocusType> InfoBoxPanel createFocusInfoBoxPanel(String id, Class<F> type, String bgColor, String icon, String keyPrefix, OperationResult result, Task task) {
+    	InfoBoxType infoBoxType = new InfoBoxType(bgColor, icon, getString(keyPrefix + ".label"));
+    	Integer totalCount;
+		try {
+			totalCount = getModelService().countObjects(type, null, null, task, result);
+			if (totalCount == null) {
+				totalCount = 0;
+			}
+			
+			EqualFilter<ActivationStatusType> filter = EqualFilter.createEqual(SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS, 
+					type, getPrismContext(), ActivationStatusType.ENABLED);
+			ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+			Integer activeCount = getModelService().countObjects(type, query, null, task, result);
+			if (activeCount == null) {
+				activeCount = 0;
+			}
+			
+			infoBoxType.setNumber(activeCount + " " + getString(keyPrefix + ".number"));
+			
+			int progress = 0;
+			if (totalCount != 0) {
+				progress = activeCount * 100 / totalCount;
+			}
+			infoBoxType.setProgress(progress);
+			
+			infoBoxType.setDescription(totalCount + " " + getString(keyPrefix + ".total"));
+			
+		} catch (Exception e) {
+			infoBoxType.setNumber("ERROR: "+e.getMessage());
+		}
+
+		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
+
+		return new InfoBoxPanel(id, boxModel);
+    }
+	
+    private Component createResourceInfoBoxPanel(OperationResult result, Task task) {
+    	InfoBoxType infoBoxType = new InfoBoxType("object-resource-bg", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, 
+    			getString("PageDashboard.infobox.resources.label"));
+    	Integer totalCount;
+		try {
+			totalCount = getModelService().countObjects(ResourceType.class, null, null, task, result);
+			if (totalCount == null) {
+				totalCount = 0;
+			}
+			
+			EqualFilter<AvailabilityStatusType> filter = EqualFilter.createEqual(SchemaConstants.PATH_OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS, 
+					ResourceType.class, getPrismContext(), AvailabilityStatusType.UP);
+			ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+			Integer activeCount = getModelService().countObjects(ResourceType.class, query, null, task, result);
+			if (activeCount == null) {
+				activeCount = 0;
+			}
+			
+			infoBoxType.setNumber(activeCount + " " + getString("PageDashboard.infobox.resources.number"));
+			
+			int progress = 0;
+			if (totalCount != 0) {
+				progress = activeCount * 100 / totalCount;
+			}
+			infoBoxType.setProgress(progress);
+			
+			infoBoxType.setDescription(totalCount + " " + getString("PageDashboard.infobox.resources.total"));
+			
+		} catch (Exception e) {
+			infoBoxType.setNumber("ERROR: "+e.getMessage());
+		}
+
+		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
+
+		return new InfoBoxPanel(ID_INFO_BOX_RESOURCES, boxModel);
+	}
+    
+    private Component createTaskInfoBoxPanel(OperationResult result, Task task) {
+    	InfoBoxType infoBoxType = new InfoBoxType("object-task-bg", GuiStyleConstants.CLASS_OBJECT_TASK_ICON, 
+    			getString("PageDashboard.infobox.tasks.label"));
+    	Integer totalCount;
+		try {
+			totalCount = getModelService().countObjects(TaskType.class, null, null, task, result);
+			if (totalCount == null) {
+				totalCount = 0;
+			}
+			
+			EqualFilter<TaskExecutionStatusType> filter = EqualFilter.createEqual(TaskType.F_EXECUTION_STATUS, 
+					TaskType.class, getPrismContext(), TaskExecutionStatusType.RUNNABLE);
+			ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+			Integer activeCount = getModelService().countObjects(TaskType.class, query, null, task, result);
+			if (activeCount == null) {
+				activeCount = 0;
+			}
+			
+			infoBoxType.setNumber(activeCount + " " + getString("PageDashboard.infobox.tasks.number"));
+			
+			int progress = 0;
+			if (totalCount != 0) {
+				progress = activeCount * 100 / totalCount;
+			}
+			infoBoxType.setProgress(progress);
+			
+			infoBoxType.setDescription(totalCount + " " + getString("PageDashboard.infobox.tasks.total"));
+			
+		} catch (Exception e) {
+			infoBoxType.setNumber("ERROR: "+e.getMessage());
+		}
+
+		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
+
+		return new InfoBoxPanel(ID_INFO_BOX_TASKS, boxModel);
+	}
+
 
     private void initPersonalInfo() {
         DashboardPanel personalInfo = new DashboardPanel(ID_PERSONAL_INFO, null,
