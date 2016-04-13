@@ -77,6 +77,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
+/**
+ * @author katkav
+ */
 @PageDescriptor(url = "/admin/resource", encoder = OnePageParameterEncoder.class, action = {
 		@AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL, label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL, description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
 		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCE_URL, label = "PageResource.auth.resource.label", description = "PageResource.auth.resource.description") })
@@ -372,7 +375,7 @@ public class PageResource extends PageAdminResources {
 		// this provides some additional tests, namely a test for schema
 		// handling section
 		Component component = get(
-				createComponentPath(ID_TAB_PANEL, "panel", ResourceDetailsTabPanel.FIELD_LAST_AVAILABILITY_STATUS));
+				createComponentPath(ID_TAB_PANEL, "panel", ResourceDetailsTabPanel.ID_LAST_AVAILABILITY_STATUS));
 		if (component != null) {
 			target.add(component);
 		}

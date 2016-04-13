@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -28,6 +30,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.box.InfoBoxPanel;
 import com.evolveum.midpoint.web.component.box.InfoBoxType;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
@@ -63,12 +66,9 @@ public class ResourceDetailsTabPanel extends Panel{
 	private static final String DOT_CLASS = ResourceDetailsTabPanel.class.getName() + ".";
 	private static final String OPERATION_SEARCH_TASKS_FOR_RESOURCE = DOT_CLASS + "seachTasks";
 	
-	private static final String FIELD_SOURCE_TARGET = "sourceTarget";
-	private static final String FIELD_CREDENTIALS_MAPPING = "credentialsMapping";
-	private static final String FIELD_ACTIVATION_MAPPING = "activationMapping";
-	public static final String FIELD_LAST_AVAILABILITY_STATUS = "lastStatus";
-	
-	
+	public static final String ID_LAST_AVAILABILITY_STATUS = "lastStatus";
+	private static final String ID_SOURCE_TARGET = "sourceTarget";
+	private static final String ID_SCHEMA_STATUS = "schemaStatus";	
 	
 	private static final String PANEL_CAPABILITIES = "capabilities";
 	
@@ -99,15 +99,12 @@ public class ResourceDetailsTabPanel extends Panel{
 		PrismObject<ResourceType> resourceObject = (PrismObject<ResourceType>) model.getObject();
 		ResourceType resource = resourceObject.asObjectable();
 
-		add(addLastAvailabilityStatusInfo(resource));
+		add(createLastAvailabilityStatusInfo(resource));
 
-		add(addSourceTargetInfo(resource));
+		add(createSourceTargetInfo(resource));
 
-		add(addCapabilityMappingInfo(FIELD_CREDENTIALS_MAPPING, determineCredentialsMappings(resource),
-				"PageResource.resource.mapping.credentials"));
-		add(addCapabilityMappingInfo(FIELD_ACTIVATION_MAPPING, determineActivationMappings(resource),
-				"PageResource.resource.mapping.activation"));
-
+		add(createSchemaStatusInfo(resource));
+		
 		CapabilitiesPanel capabilities = new CapabilitiesPanel(PANEL_CAPABILITIES, capabilitiesModel);
 		add(capabilities);
 
@@ -154,7 +151,14 @@ public class ResourceDetailsTabPanel extends Panel{
 		tableColumns.add(tasksColumn);
 
 		BoxedTablePanel<ResourceConfigurationDto> resourceConfig = new BoxedTablePanel(
-				"resourceConfig", resourceConfigProvider, tableColumns);
+				"resourceConfig", resourceConfigProvider, tableColumns) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected String getBoxCssClasses() {
+				return "box box-success";
+			}
+		};
 		add(resourceConfig);
 		
 		
@@ -206,77 +210,134 @@ public class ResourceDetailsTabPanel extends Panel{
 	private InfoBoxPanel addCapabilityMappingInfo(String fieldId, SourceTarget sourceTarget, String messageKey) {
 		String backgroundColor = "bg-green";
 
-		List<String> description = new ArrayList<>();
-		description.add(getString(messageKey));
-
-		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, sourceTarget.getCssClass(), description);
+		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, sourceTarget.getCssClass(), getString(messageKey));
 		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
 
 		return new InfoBoxPanel(fieldId, boxModel);
 	}
 
-	private InfoBoxPanel addSourceTargetInfo(ResourceType resource) {
+	private InfoBoxPanel createSourceTargetInfo(ResourceType resource) {
 
-		String backgroundColor = "bg-green";
+		String backgroundColor = "bg-aqua";
 		SourceTarget sourceTarget = determineIfSourceOrTarget(resource);
-		List<String> description = new ArrayList<>();
 
+		String numberKey = null;
 		switch (sourceTarget) {
 		case SOURCE:
-			description.add(getString("PageResource.resource.source"));
+			numberKey = "PageResource.resource.source";
 			break;
 		case TARGET:
-			description.add(getString("PageResource.resource.target"));
+			numberKey = "PageResource.resource.target";
 			break;
 		case SOURCE_TARGET:
-			description.add(getString("PageResource.resource.source"));
-			description.add(getString("PageResource.resource.target"));
+			numberKey = "PageResource.resource.sourceAndTarget";
 			break;
 
 		default:
-			description.add("No");
-			description.add("mappings");
-			description.add("defined");
+			backgroundColor = "bg-gray";
+			numberKey = "PageResource.resource.noMappings";
 			break;
 		}
-
-		// TODO: credentials and activation mappings
+		
+		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, sourceTarget.getCssClass(), getString("PageResource.resource.mappings"));
+		infoBoxType.setNumber(getString(numberKey));
 
 		if (isSynchronizationDefined(resource)) {
-			description.add(getString("PageResource.resource.sync"));
+			infoBoxType.setDescription(getString("PageResource.resource.sync"));
 		}
 
-		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, sourceTarget.getCssClass(), description);
 		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
 
-		return new InfoBoxPanel(FIELD_SOURCE_TARGET, boxModel);
+		return new InfoBoxPanel(ID_SOURCE_TARGET, boxModel);
 		
 	}
 
-	private InfoBoxPanel addLastAvailabilityStatusInfo(ResourceType resource) {
+	private InfoBoxPanel createLastAvailabilityStatusInfo(ResourceType resource) {
 
-		String backgroundColor = "bg-green";
-
-		if (ResourceTypeUtil.isDown(resource)) {
-			backgroundColor = "bg-red";
+		String messageKey = "PageResource.resource.availabilityUnknown";
+		String backgroundColor = "bg-gray";
+		String icon = "fa-question";
+		
+		OperationalStateType operationalState = resource.getOperationalState();
+		if (operationalState != null) {
+			AvailabilityStatusType lastAvailabilityStatus = operationalState.getLastAvailabilityStatus();
+			if (lastAvailabilityStatus != null) {
+				if (lastAvailabilityStatus == AvailabilityStatusType.UP) {
+					messageKey = "PageResource.resource.up";
+					backgroundColor = "bg-green";
+					icon = "fa-power-off";
+				} else if (lastAvailabilityStatus == AvailabilityStatusType.DOWN) {
+					backgroundColor = "bg-red";
+					messageKey = "PageResource.resource.down";
+					icon = "fa-ban";
+				}
+			}
 		}
-
-		List<String> description = new ArrayList<>();
 		
+		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon, getString(messageKey));
+
 		ConnectorType connectorType = resource.getConnector();
-		description.add(StringUtils
-				.substringAfterLast(WebComponentUtil.getEffectiveName(connectorType, ConnectorType.F_CONNECTOR_TYPE), "."));
+		String connectorName = StringUtils.substringAfterLast(WebComponentUtil.getEffectiveName(connectorType, ConnectorType.F_CONNECTOR_TYPE), ".");
+		String connectorVersion = connectorType.getConnectorVersion();
+		infoBoxType.setNumber(connectorName);
+		infoBoxType.setDescription(connectorVersion);
 		
-		description.add(connectorType.getConnectorVersion());
-		description.add(connectorType.getConnectorBundle());
-
-		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, "fa-power-off", description);
 		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
 
-		InfoBoxPanel lastAvailabilityStatus = new InfoBoxPanel(FIELD_LAST_AVAILABILITY_STATUS, boxModel);
+		InfoBoxPanel lastAvailabilityStatus = new InfoBoxPanel(ID_LAST_AVAILABILITY_STATUS, boxModel);
 		lastAvailabilityStatus.setOutputMarkupId(true);
 		
 		return lastAvailabilityStatus;
+		
+	}
+	
+	private InfoBoxPanel createSchemaStatusInfo(ResourceType resource) {
+
+		String backgroundColor = "bg-gray";
+		String icon = "fa-times";
+		String numberMessage = null;
+		String description = null;
+
+		Integer progress = null;
+		RefinedResourceSchema refinedSchema = null;
+		try {
+			refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+			if (refinedSchema != null) {
+				backgroundColor = "bg-purple";
+				icon = "fa-cubes";
+				int numObjectTypes = 0;
+				List<? extends RefinedObjectClassDefinition> refinedDefinitions = refinedSchema.getRefinedDefinitions();
+				for (RefinedObjectClassDefinition refinedDefinition: refinedDefinitions) {
+					if (refinedDefinition.getKind() != null) {
+						numObjectTypes++;
+					}
+				}
+				int numAllDefinitions = refinedDefinitions.size();
+				numberMessage = numObjectTypes + " " + getString("PageResource.resource.objectTypes");
+				if (numAllDefinitions != 0) {
+					progress = numObjectTypes / numAllDefinitions;
+					if (progress > 100) {
+						progress = 100;
+					}
+				}
+				description = numAllDefinitions + " " + getString("PageResource.resource.schemaDefinitions");
+			} else {
+				numberMessage = getString("PageResource.resource.noSchema");
+			}
+		} catch (SchemaException e) {
+			backgroundColor = "bg-danger";
+			icon = "fa-warning";
+			numberMessage = getString("PageResource.resource.schemaError");
+		}
+		
+		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon, getString("PageResource.resource.schema"));
+		infoBoxType.setNumber(numberMessage);
+		infoBoxType.setProgress(progress);
+		infoBoxType.setDescription(description);
+
+		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
+
+		return new InfoBoxPanel(ID_SCHEMA_STATUS, boxModel);
 		
 	}
 	
