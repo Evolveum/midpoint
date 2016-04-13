@@ -77,8 +77,6 @@ public interface WorkflowManager {
 
 	void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
 
-	void deleteProcessInstance(String instanceId, OperationResult parentResult);
-
     /*
      * MISC
      * ====
