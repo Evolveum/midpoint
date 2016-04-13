@@ -247,6 +247,12 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 				};
 			}
 
+			@Override
+			protected WebMarkupContainer createButtonToolbar(String id) {
+				WebMarkupContainer bar =  ObjectListPanel.this.createTableButtonToolbar(id);
+
+				return bar != null ? bar : super.createButtonToolbar(id);
+			}
 		};
 		table.setOutputMarkupId(true);
 		String storageKey = getStorageKey();//storageMap.get(type);
@@ -258,6 +264,14 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		}
 
 		return table;
+	}
+
+	/**
+	 * there's no way to do it properly...
+     */
+	@Deprecated
+	protected WebMarkupContainer createTableButtonToolbar(String id) {
+		return null;
 	}
 
 	private BaseSortableDataProvider<SelectableBean<T>> getDataProvider() {

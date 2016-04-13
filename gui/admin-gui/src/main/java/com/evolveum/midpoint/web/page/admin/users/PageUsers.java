@@ -76,7 +76,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class PageUsers extends PageAdminUsers {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);
+
 	private static final String DOT_CLASS = PageUsers.class.getName() + ".";
+
 	private static final String OPERATION_DELETE_USERS = DOT_CLASS + "deleteUsers";
 	private static final String OPERATION_DELETE_USER = DOT_CLASS + "deleteUser";
 	private static final String OPERATION_DISABLE_USERS = DOT_CLASS + "disableUsers";
@@ -87,14 +89,11 @@ public class PageUsers extends PageAdminUsers {
 	private static final String OPERATION_RECONCILE_USER = DOT_CLASS + "reconcileUser";
 	private static final String OPERATION_UNLOCK_USERS = DOT_CLASS + "unlockUsers";
 	private static final String OPERATION_UNLOCK_USER = DOT_CLASS + "unlockUser";
+
 	private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
 
-	private static final String ID_EXECUTE_OPTIONS = "executeOptions";
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_TABLE = "table";
-	private static final String ID_SEARCH = "search";
-	private static final String ID_SEARCH_FORM = "searchForm";
-	private static final String ID_TABLE_HEADER = "tableHeader";
 
 	private UserType singleDelete;
 	private LoadableModel<Search> searchModel;
