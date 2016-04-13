@@ -1001,7 +1001,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	private MainMenuItem createServerTasksItems() {
-		MainMenuItem item = new MainMenuItem(GuiStyleConstants.STYLES_OBJECT_TASK_ICON_COLORED, createStringResource("PageAdmin.menu.top.serverTasks"),
+		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_TASK_ICON_COLORED, createStringResource("PageAdmin.menu.top.serverTasks"),
 				null);
 
 		List<MenuItem> submenu = item.getItems();
@@ -1019,7 +1019,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	private MainMenuItem createResourcesItems() {
-		MainMenuItem item = new MainMenuItem(GuiStyleConstants.STYLES_OBJECT_RESOURCE_ICON_COLORED, createStringResource("PageAdmin.menu.top.resources"),
+		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED, createStringResource("PageAdmin.menu.top.resources"),
 				null);
 
 		List<MenuItem> submenu = item.getItems();
@@ -1279,7 +1279,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	private MainMenuItem createUsersItems() {
-		MainMenuItem item = new MainMenuItem(GuiStyleConstants.STYLES_OBJECT_USER_ICON_COLORED, createStringResource("PageAdmin.menu.top.users"), null);
+		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED, createStringResource("PageAdmin.menu.top.users"), null);
 
 		List<MenuItem> submenu = item.getItems();
 
@@ -1366,7 +1366,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	private MainMenuItem createOrganizationsMenu() {
-		MainMenuItem item = new MainMenuItem(GuiStyleConstants.STYLES_OBJECT_ORG_ICON_COLORED, createStringResource("PageAdmin.menu.top.users.org"),
+		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_ORG_ICON_COLORED, createStringResource("PageAdmin.menu.top.users.org"),
 				null);
 
 		List<MenuItem> submenu = item.getItems();
@@ -1380,7 +1380,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	private MainMenuItem createRolesItems() {
-		MainMenuItem item = new MainMenuItem(GuiStyleConstants.STYLES_OBJECT_ROLE_ICON_COLORED, createStringResource("PageAdmin.menu.top.roles"),
+		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED, createStringResource("PageAdmin.menu.top.roles"),
 				null);
 
 		List<MenuItem> submenu = item.getItems();
@@ -1394,7 +1394,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 	
 	private MainMenuItem createServicesItems() {
-		MainMenuItem item = new MainMenuItem(GuiStyleConstants.STYLES_OBJECT_SERVICE_ICON_COLORED, createStringResource("PageAdmin.menu.top.services"),
+		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED, createStringResource("PageAdmin.menu.top.services"),
 				null);
 
 		List<MenuItem> submenu = item.getItems();

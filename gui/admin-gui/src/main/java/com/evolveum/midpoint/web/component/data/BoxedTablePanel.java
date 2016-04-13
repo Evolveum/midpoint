@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.data;
 
 import java.util.List;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -44,6 +45,7 @@ import org.apache.wicket.model.IModel;
  */
 public class BoxedTablePanel<T> extends BasePanel implements Table {
 
+	private static final String ID_BOX = "box";
 	private static final String ID_HEADER = "header";
 	private static final String ID_FOOTER = "footer";
 	private static final String ID_TABLE = "table";
@@ -54,6 +56,7 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 	private static final String ID_COUNT = "count";
 	private static final String ID_MENU = "menu";
 	private static final String ID_FOOTER_CONTAINER = "footerContainer";
+	private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
 
 	private UserProfileStorage.TableId tableId;
 	private boolean showPaging;
@@ -76,6 +79,13 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 	}
 
 	private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider, int pageSize) {
+		WebMarkupContainer box = new WebMarkupContainer(ID_BOX);
+		String boxCssClasses = getBoxCssClasses();
+		if (boxCssClasses != null) {
+			box.add(new AttributeModifier("class", boxCssClasses));
+		}
+		add(box);
+		
         WebMarkupContainer tableContainer = new WebMarkupContainer(ID_TABLE_CONTAINER);
         tableContainer.setOutputMarkupId(true);
 
@@ -88,14 +98,18 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 		};
 		table.setOutputMarkupId(true);
         tableContainer.add(table);
-		add(tableContainer);
+		box.add(tableContainer);
 
 		TableHeadersToolbar headersTop = new TableHeadersToolbar(table, provider);
 		headersTop.setOutputMarkupId(true);
 		table.addTopToolbar(headersTop);
 
-		add(createHeader(ID_HEADER));
-		add(createFooter(ID_FOOTER));
+		box.add(createHeader(ID_HEADER));
+		box.add(createFooter(ID_FOOTER));
+	}
+
+	protected String getBoxCssClasses() {
+		return null;
 	}
 
 	// TODO better name?
@@ -105,11 +119,11 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 
 	@Override
 	public DataTable getDataTable() {
-		return (DataTable) get(ID_TABLE_CONTAINER).get(ID_TABLE);
+		return (DataTable) get(ID_BOX).get(ID_TABLE_CONTAINER).get(ID_TABLE);
 	}
 
 	public WebMarkupContainer getDataTableContainer() {
-		return (WebMarkupContainer) get(ID_TABLE_CONTAINER);
+		return (WebMarkupContainer) get(ID_BOX).get(ID_TABLE_CONTAINER);
 	}
 
 	@Override
@@ -180,16 +194,23 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 		getDataTable().setCurrentPage(page);
 	}
 
+	protected WebMarkupContainer createButtonToolbar(String id) {
+		return new WebMarkupContainer(id);
+	}
+
 	private static class PagingFooter extends Fragment {
 
-		public PagingFooter(String id, String markupId, MarkupContainer markupProvider, Table table) {
+		public PagingFooter(String id, String markupId, BoxedTablePanel markupProvider, Table table) {
 			super(id, markupId, markupProvider);
 			setOutputMarkupId(true);
 
-			initLayout(table);
+			initLayout(markupProvider, table);
 		}
 
-		private void initLayout(final Table table) {
+		private void initLayout(final BoxedTablePanel boxedTablePanel, final Table table) {
+			WebMarkupContainer buttonToolbar = boxedTablePanel.createButtonToolbar(ID_BUTTON_TOOLBAR);
+			add(buttonToolbar);
+
 			final DataTable dataTable = table.getDataTable();
             WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
             footerContainer.setOutputMarkupId(true);

@@ -42,7 +42,7 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType>{
 	
 	@Override
 	protected String getIconCssClass() {
-		return GuiStyleConstants.STYLES_OBJECT_RESOURCE_ICON;
+		return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON;
 	}
 
 	@Override

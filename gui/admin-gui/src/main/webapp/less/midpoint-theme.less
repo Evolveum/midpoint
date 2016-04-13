@@ -139,6 +139,32 @@ th.cog, td.cog {
   vertical-align: middle;
 }
 
+// Classes that can be used to change icon styles (enabled, disabled, privileged, etc.)
+
+.icon-style-normal {
+	
+}
+
+.icon-style-disabled {
+	color: #909090;
+}
+
+.icon-style-privileged {
+	color: #a94442;
+}
+
+.icon-style-warning {
+	color: #8a6d3b;
+}
+
+.icon-style-up {
+	color: #2b542c;
+}
+
+.icon-style-down {
+	color: #a94442;
+}
+
 // Classes that can be added to color icons for particular object types
 
 .object-user-color {
@@ -159,6 +185,32 @@ th.cog, td.cog {
 
 .object-resource-color {
 	color: @object-resource-color;
+}
+
+// Colored boxes for each object type
+
+#box-object(@color) {
+	border-top-color: @color;
+}
+
+.object-user-box {
+	#box-object(@object-user-color);
+}
+
+.object-role-box {
+	#box-object(@object-role-color);
+}
+
+.object-org-box {
+	#box-object(@object-org-color);
+}
+
+.object-service-box {
+	#box-object(@object-service-color);
+}
+
+.object-resource-box {
+	#box-object(@object-resource-color);
 }
 
 // Summary panel (panel above the edit user/role/org forms)

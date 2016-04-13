@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -145,6 +146,11 @@ public class ResourceTasksPanel extends Panel{
 			protected List<IColumn<SelectableBean<TaskType>, String>> createColumns() {
 				return ColumnUtils.getDefaultTaskColumns();
 			}
+			
+			@Override
+        	protected String getBoxCssClasses() {
+        		return GuiStyleConstants.CLASS_OBJECT_TASK_BOX_CSS_CLASSES;
+        	}
 		};
 //		final ObjectListPanel<TaskType> tasksPanel = new ObjectListPanel<TaskType>(ID_TASKS_TABLE, TaskType.class, pageBase){
 //			

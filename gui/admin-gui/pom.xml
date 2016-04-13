@@ -141,10 +141,20 @@
     		<scope>runtime</scope> <!-- used for loading js/css from webjars -->
         </dependency>
         <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>less</artifactId>
+            <version>2.5.3</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>ro.isdc.wro4j</groupId>
             <artifactId>wro4j-extensions</artifactId>
             <scope>runtime</scope> <!-- used to compile less files -->
             <exclusions>
+                <exclusion>
+                    <groupId>org.webjars</groupId>
+                    <artifactId>less</artifactId>
+                </exclusion>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-api</artifactId>
@@ -157,6 +167,11 @@
                     <!-- unused library (13mb) -->
                     <groupId>org.jruby</groupId>
                     <artifactId>jruby-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- unused library -->
+                    <groupId>org.jruby</groupId>
+                    <artifactId>jruby-stdlib</artifactId>
                 </exclusion>
                 <exclusion>
                     <!-- unused library (500kb) -->
@@ -207,6 +222,10 @@
                     <!-- unused library -->
                     <groupId>com.google.code.gson</groupId>
                     <artifactId>gson</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.darrinholst</groupId>
+                    <artifactId>sass-java-gems</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

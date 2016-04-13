@@ -17,7 +17,7 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="box">
+    <div class="box" wicket:id="box">
         <div class="box-header" wicket:id="header"/>
         <div wicket:id="tableContainer" class="box-body no-padding">
             <table class="table table-striped table-hover table-bordered" wicket:id="table" about="table"/>
@@ -28,9 +28,7 @@
 
 <wicket:fragment wicket:id="pagingFooter">
     <div class="row">
-        <div class="col-md-6">
-            <!--buttons here [lazyman]-->
-        </div>
+        <div class="col-md-6" wicket:id="buttonToolbar"/>
         <div wicket:id="footerContainer" class="col-md-6">
             <div wicket:id="menu"/>
             <div wicket:id="paging" class="dataTables_paginate paging_bootstrap" />

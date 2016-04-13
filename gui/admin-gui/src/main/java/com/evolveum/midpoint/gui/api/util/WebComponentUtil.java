@@ -734,33 +734,39 @@ public final class WebComponentUtil {
 				continue;
 			}
 			if (StringUtils.equals(targetRef.getOid(), SystemObjectsType.ROLE_SUPERUSER.value())) {
-				return GuiStyleConstants.STYLES_OBJECT_USER_ICON + " text-danger";
+				return GuiStyleConstants.CLASS_OBJECT_USER_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_PRIVILEGED;
 			}
 		}
 
-		return getIconEnabledDisabled(object, GuiStyleConstants.STYLES_OBJECT_USER_ICON);
+		return getIconEnabledDisabled(object, GuiStyleConstants.CLASS_OBJECT_USER_ICON);
 	}
 	
 	
 	public static String createRoleIcon(PrismObject<RoleType> object) {
-		return getIconEnabledDisabled(object, GuiStyleConstants.STYLES_OBJECT_ROLE_ICON);
+		for (AuthorizationType authorization: object.asObjectable().getAuthorization()) {
+			if (authorization.getAction().contains(AuthorizationConstants.AUTZ_ALL_URL)) {
+				return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_PRIVILEGED;
+			}
+		}
+		
+		return getIconEnabledDisabled(object, GuiStyleConstants.CLASS_OBJECT_ROLE_ICON);
 	}
 	
 	public static String createOrgIcon(PrismObject<OrgType> object) {
-		return getIconEnabledDisabled(object, GuiStyleConstants.STYLES_OBJECT_ORG_ICON);
+		return getIconEnabledDisabled(object, GuiStyleConstants.CLASS_OBJECT_ORG_ICON);
 	}
 	
 	public static String createServiceIcon(PrismObject<ServiceType> object) {
-		return getIconEnabledDisabled(object, GuiStyleConstants.STYLES_OBJECT_SERVICE_ICON);
+		return getIconEnabledDisabled(object, GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON);
 	}
 
 	private static <F extends FocusType> String getIconEnabledDisabled(PrismObject<F> object, String baseIcon) {
 		ActivationType activation = object.asObjectable().getActivation();
 		if (activation != null && ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())) {
-			return baseIcon + " text-muted";
+			return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_DISABLED;
 		}
 
-		return baseIcon;
+		return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
 	}
 
 	public static String createResourceIcon(PrismObject<ResourceType> object) {
@@ -768,17 +774,17 @@ public final class WebComponentUtil {
 		if (operationalState != null) {
 			AvailabilityStatusType lastAvailabilityStatus = operationalState.getLastAvailabilityStatus();
 			if (lastAvailabilityStatus == AvailabilityStatusType.UP) {
-				return GuiStyleConstants.STYLES_OBJECT_RESOURCE_ICON + " text-success";
+				return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_UP;
 			}
 			if (lastAvailabilityStatus == AvailabilityStatusType.DOWN) {
-				return GuiStyleConstants.STYLES_OBJECT_RESOURCE_ICON + " text-danger";
+				return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_DOWN;
 			}
 		}
-		return GuiStyleConstants.STYLES_OBJECT_RESOURCE_ICON;
+		return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
 	}
 	
 	public static String createTaskIcon(PrismObject<TaskType> object) {
-		return GuiStyleConstants.STYLES_OBJECT_TASK_ICON;
+		return GuiStyleConstants.CLASS_OBJECT_TASK_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
 	}
 	
 	public static String createShadowIcon(PrismObject<ShadowType> object) {
