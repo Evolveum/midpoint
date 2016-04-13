@@ -46,7 +46,7 @@ public class RoleSummaryPanel extends FocusSummaryPanel<RoleType> {
 
 	@Override
 	protected String getIconCssClass() {
-		return GuiStyleConstants.STYLES_OBJECT_ROLE_ICON;
+		return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
 	}
 
 	@Override

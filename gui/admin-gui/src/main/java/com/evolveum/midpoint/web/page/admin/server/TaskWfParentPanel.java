@@ -44,7 +44,7 @@ public class TaskWfParentPanel extends Panel {
 	private static final String ID_REQUESTS = "requests";
 	private static final String ID_CHANGES_PREFIX = "changes";				// e.g. changes3Content
 	public static final String ID_CHANGES_CONTENT_SUFFIX = "Content";
-	public static final int CHANGES_NUMBER = 5;
+	public static final int CHANGES_NUMBER = 6;
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskApprovalsTabPanel.class);
 

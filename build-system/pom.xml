@@ -82,7 +82,7 @@
         <connid.version>1.4.3.0-SNAPSHOT</connid.version>
         <jasper.version>6.1.1</jasper.version>
         <derby.version>10.11.1.1</derby.version>
-        <wro4j.version>1.7.1</wro4j.version>
+        <wro4j.version>1.8.0</wro4j.version>
         <jackson.version>2.3.3</jackson.version>
         <surefire.version>2.19</surefire.version>
     </properties>
@@ -1395,6 +1395,9 @@
 										<ignoredUnusedDeclaredDependency>com.evolveum.midpoint.tools:test-ng</ignoredUnusedDeclaredDependency>
 										<ignoredUnusedDeclaredDependency>org.testng:testng</ignoredUnusedDeclaredDependency>
 										<ignoredUnusedDeclaredDependency>commons-lang:commons-lang</ignoredUnusedDeclaredDependency>
+										
+										<!-- Declared, but not used if building only with the "default" profile -->
+										<ignoredUnusedDeclaredDependency>org.aspectj:aspectjweaver</ignoredUnusedDeclaredDependency>
 										
 										<!-- There is some kind of conflict between these. TODO: clean up -->
 										<ignoredUnusedDeclaredDependency>xml-apis:xml-apis</ignoredUnusedDeclaredDependency>

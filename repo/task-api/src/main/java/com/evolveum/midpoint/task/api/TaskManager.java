@@ -675,6 +675,6 @@ public interface TaskManager {
      */
     void registerHandler(String uri, TaskHandler handler);
 
-
+	void registerTaskDeletionListener(TaskDeletionListener listener);
     //endregion
 }

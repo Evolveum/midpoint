@@ -21,55 +21,35 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismInternalTestUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.foo.EventHandlerChainType;
 import com.evolveum.midpoint.prism.foo.EventHandlerType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
-import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.foo.ActivationType;
-import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.ResourceType;
 import com.evolveum.midpoint.prism.foo.UserType;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -112,17 +92,16 @@ public abstract class AbstractParserTest {
 		
 		// GIVEN
 		Parser parser = createParser();
-		XNodeProcessor processor = new XNodeProcessor();
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		processor.setPrismContext(prismContext);
-		
+		XNodeProcessor processor = new XNodeProcessor(prismContext);
+
 		// WHEN (parse to xnode)
 		XNode xnode = parser.parse(getFile(USER_JACK_FILE_BASENAME));
 		System.out.println("XNode after parsing:");
 		System.out.println(xnode.debugDump());
 		
 		// WHEN (parse to prism)
-		PrismObject<UserType> user = processor.parseObject(xnode);
+		PrismObject<UserType> user = processor.parseObject(xnode, ParsingContext.createDefault());
 		
 		// THEN
 		System.out.println("Parsed user:");
@@ -141,15 +120,14 @@ public abstract class AbstractParserTest {
 		
 		// GIVEN
 		Parser parser = createParser();
-		XNodeProcessor processor = new XNodeProcessor();
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		processor.setPrismContext(prismContext);
-		
+		XNodeProcessor processor = new XNodeProcessor(prismContext);
+
 		// WHEN (parse)
 		XNode xnode = parser.parse(getFile(USER_JACK_FILE_BASENAME));
 		System.out.println("\nParsed xnode:");
 		System.out.println(xnode.debugDump());
-		PrismObject<UserType> user = processor.parseObject(xnode);
+		PrismObject<UserType> user = processor.parseObject(xnode, ParsingContext.createDefault());
 		
 		// THEN
 		System.out.println("\nParsed user:");
@@ -193,7 +171,7 @@ public abstract class AbstractParserTest {
 		
 		// WHEN (re-parse)
 		XNode reparsedXnode = parser.parse(serializedString);
-		PrismObject<UserType> reparsedUser = processor.parseObject(reparsedXnode);
+		PrismObject<UserType> reparsedUser = processor.parseObject(reparsedXnode, ParsingContext.createDefault());
 		
 		// THEN
 		System.out.println("\nXNode after re-parsing:");
@@ -226,9 +204,8 @@ public abstract class AbstractParserTest {
 		
 		// GIVEN
 		Parser parser = createParser();
-		XNodeProcessor processor = new XNodeProcessor();
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		processor.setPrismContext(prismContext);
+		XNodeProcessor processor = new XNodeProcessor(prismContext);
 		
 		// WHEN (parse to xnode)
 		XNode xnode = parser.parse(getFile(RESOURCE_RUM_FILE_BASENAME));
@@ -236,7 +213,7 @@ public abstract class AbstractParserTest {
 		System.out.println(xnode.debugDump());
 		
 		// WHEN (parse to prism)
-		PrismObject<ResourceType> resource = processor.parseObject(xnode);
+		PrismObject<ResourceType> resource = processor.parseObject(xnode, ParsingContext.createDefault());
 		
 		// THEN
 		System.out.println("Parsed resource:");
@@ -253,13 +230,12 @@ public abstract class AbstractParserTest {
 		
 		// GIVEN
 		Parser parser = createParser();
-		XNodeProcessor processor = new XNodeProcessor();
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		processor.setPrismContext(prismContext);
+		XNodeProcessor processor = new XNodeProcessor(prismContext);
 		
 		// WHEN (parse)
 		XNode xnode = parser.parse(getFile(RESOURCE_RUM_FILE_BASENAME));
-		PrismObject<ResourceType> resource = processor.parseObject(xnode);
+		PrismObject<ResourceType> resource = processor.parseObject(xnode, ParsingContext.createDefault());
 		
 		// THEN
 		System.out.println("\nParsed resource:");
@@ -304,7 +280,7 @@ public abstract class AbstractParserTest {
 		
 		// WHEN (re-parse)
 		XNode reparsedXnode = parser.parse(serializedString);
-		PrismObject<ResourceType> reparsedResource = processor.parseObject(reparsedXnode);
+		PrismObject<ResourceType> reparsedResource = processor.parseObject(reparsedXnode, ParsingContext.createDefault());
 		
 		// THEN
 		System.out.println("\nXNode after re-parsing:");
@@ -404,9 +380,8 @@ public abstract class AbstractParserTest {
 
         // GIVEN
         Parser parser = createParser();
-        XNodeProcessor processor = new XNodeProcessor();
-        PrismContext prismContext = PrismTestUtil.getPrismContext();
-        processor.setPrismContext(prismContext);
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		XNodeProcessor processor = new XNodeProcessor(prismContext);
 
         // WHEN (parse to xnode)
         RootXNode xnode = (RootXNode) parser.parse(getFile(EVENT_HANDLER_FILE_BASENAME));
@@ -414,14 +389,15 @@ public abstract class AbstractParserTest {
         System.out.println(xnode.debugDump());
 
         // WHEN (parse to prism)
-        EventHandlerType eventHandlerType = processor.getPrismContext().getBeanConverter().unmarshall((MapXNode) xnode.getSubnode(), EventHandlerChainType.class);
+		EventHandlerType eventHandlerType = prismContext.getBeanConverter().unmarshall((MapXNode) xnode.getSubnode(), EventHandlerChainType.class,
+				ParsingContext.createDefault());
 
         // THEN
         System.out.println("Parsed object:");
         System.out.println(eventHandlerType);
 
         // WHEN2 (marshalling)
-        MapXNode marshalled = (MapXNode) processor.getPrismContext().getBeanConverter().marshall(eventHandlerType);
+        MapXNode marshalled = (MapXNode) prismContext.getBeanConverter().marshall(eventHandlerType);
 
         System.out.println("XNode after unmarshalling and marshalling back:");
         System.out.println(marshalled.debugDump());

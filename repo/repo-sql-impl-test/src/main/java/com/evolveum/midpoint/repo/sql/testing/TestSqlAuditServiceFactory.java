@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.testing;
 
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory;
 
 /**
@@ -24,4 +25,9 @@ import com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory;
  * @author lazyman
  */
 public class TestSqlAuditServiceFactory extends SqlAuditServiceFactory {
+	
+	// fake method. just for the dependency analyze plugin to properly detect dependency
+	private void fake() {
+		Class foo = AuditService.class;
+	}
 }

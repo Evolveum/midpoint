@@ -33,6 +33,7 @@ import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -280,15 +281,15 @@ public class CertificationCaseHelper {
 
     // TODO find a better name
     public AccessCertificationCaseType updateLoadedCertificationCase(GetContainerableResult result, Map<String, PrismObject> ownersMap,
-                                                                     Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                     Session session) throws SchemaException {
+			Collection<SelectorOptions<GetOperationOptions>> options,
+			Session session, OperationResult operationResult) throws SchemaException {
 
         AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(result.getFullObject(), prismContext, false);
         nameResolutionHelper.resolveNamesIfRequested(session, aCase.asPrismContainerValue(), options);
         generalHelper.validateContainerable(aCase, AccessCertificationCaseType.class);
 
         String ownerOid = result.getOwnerOid();
-        PrismObject<AccessCertificationCampaignType> campaign = resolveCampaign(ownerOid, ownersMap, session);
+        PrismObject<AccessCertificationCampaignType> campaign = resolveCampaign(ownerOid, ownersMap, session, operationResult);
         if (campaign != null) {
             campaign.asObjectable().getCase().add(aCase);
         }
@@ -296,14 +297,15 @@ public class CertificationCaseHelper {
         return aCase;
     }
 
-    private PrismObject<AccessCertificationCampaignType> resolveCampaign(String campaignOid, Map<String, PrismObject> campaignsCache, Session session) {
+    private PrismObject<AccessCertificationCampaignType> resolveCampaign(String campaignOid, Map<String, PrismObject> campaignsCache, Session session,
+			OperationResult operationResult) {
         PrismObject campaign = campaignsCache.get(campaignOid);
         if (campaign != null) {
             return campaign;
         }
         try {
-            campaign = objectRetriever.getObjectInternal(session, AccessCertificationCampaignType.class, campaignOid, null, false);
-        } catch (ObjectNotFoundException|SchemaException|DtoTranslationException|QueryException|RuntimeException e) {
+            campaign = objectRetriever.getObjectInternal(session, AccessCertificationCampaignType.class, campaignOid, null, false, operationResult);
+        } catch (ObjectNotFoundException|SchemaException|DtoTranslationException|RuntimeException e) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get campaign with OID {}", e, campaignOid);
             return null;
         }

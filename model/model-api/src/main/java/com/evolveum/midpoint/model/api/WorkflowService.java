@@ -20,8 +20,6 @@ public interface WorkflowService {
 
     void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
 
-    void deleteProcessInstance(String instanceId, OperationResult parentResult);
-
     void claimWorkItem(String workItemId, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException;
 
     void releaseWorkItem(String workItemId, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException;

@@ -18,6 +18,9 @@ package com.evolveum.midpoint.web.component;
 
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.Application;
+import org.apache.wicket.Session;
+import org.apache.wicket.ThreadContext;
 import org.springframework.security.core.Authentication;
 
 import java.util.concurrent.Callable;
@@ -48,6 +51,15 @@ public abstract class SecurityContextAwareCallable<V> implements Callable<V> {
             //todo cleanup security context
         }
     }
+
+	protected void setupContext(Application application, Session session) {
+		if (!Application.exists() && application != null) {
+			ThreadContext.setApplication(application);
+		}
+		if (!Session.exists() && session != null) {
+			ThreadContext.setSession(session);
+		}
+	}
 
     public abstract V callWithContextPrepared() throws Exception;
 }

@@ -511,12 +511,12 @@ public class SchemaTransformer {
 			if (type == ResourceType.class || ShadowType.class.isAssignableFrom(type) || type == ReportType.class) {
 				// We tolarate raw values for resource and shadows in case the user has requested so
 				tolerateRaw = options.isRaw(options);
-				if (hasError(object, result)) {
-					// If there is an error then the object might not be complete.
-					// E.g. we do not have a complete dynamic schema to apply to the object
-					// Tolerate some raw meat in that case.
-					tolerateRaw = true;
-				}
+			}
+			if (hasError(object, result)) {
+				// If there is an error then the object might not be complete.
+				// E.g. we do not have a complete dynamic schema to apply to the object
+				// Tolerate some raw meat in that case.
+				tolerateRaw = true;
 			}
 			object.checkConsistence(true, !tolerateRaw, ConsistencyCheckScope.THOROUGH);
 		} catch (RuntimeException e) {
@@ -526,7 +526,7 @@ public class SchemaTransformer {
 	}
 	
 	private <T extends ObjectType> boolean hasError(PrismObject<T> object, OperationResult result) {
-		if (result != null && result.isError()) {
+		if (result != null && result.isError()) {		// actually, result is pretty tiny here - does not include object fetch/get operation
 			return true;
 		}
 		OperationResultType fetchResult = object.asObjectable().getFetchResult();

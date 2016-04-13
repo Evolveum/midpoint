@@ -24,27 +24,6 @@
         <css>/WEB-INF/classes/com/evolveum/midpoint/web/component/assignment/AssignmentHeaderPanel.less</css>
     </group>
 
-    <group name="bootstrap">
-        <css>/less/bootstrap/bootstrap.less</css>
-        <!-- must be enumerated for proper order -->
-        <js>/js/bootstrap/transition.js</js>
-        <js>/js/bootstrap/alert.js</js>
-        <js>/js/bootstrap/button.js</js>
-        <js>/js/bootstrap/carousel.js</js>
-        <js>/js/bootstrap/collapse.js</js>
-        <js>/js/bootstrap/dropdown.js</js>
-        <js>/js/bootstrap/modal.js</js>
-        <js>/js/bootstrap/tooltip.js</js>
-        <js>/js/bootstrap/popover.js</js>
-        <js>/js/bootstrap/scrollspy.js</js>
-        <js>/js/bootstrap/tab.js</js>
-        <js>/js/bootstrap/affix.js</js>
-    </group>
-
-    <group name="bootstrap-override">
-        <css>/less/midpoint/bootstrap-override.less</css>
-    </group>
-
     <group name="midpoint">
         <css>/less/midpoint/midpoint.less</css>
         <js>/js/midpoint/ace-editor.js</js>
@@ -55,5 +34,9 @@
     <group name="midpoint-theme">
         <css>/less/midpoint-theme.less</css>
         <js>/js/midpoint-theme.js</js>
+    </group>
+
+    <group name="admin-lte">
+        <css>/less/admin-lte/less/AdminLTE.less</css>
     </group>
 </groups>

@@ -35,6 +35,7 @@ import java.util.List;
 /**
  * @author mederly
  */
+@Deprecated
 public class WfDeltasPanel extends SimplePanel<TaskDto> {
 
     private static final String ID_DELTA_IN_LIST = "deltaInList";

@@ -1829,11 +1829,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public void deleteProcessInstance(String instanceId, OperationResult parentResult) {
-        getWorkflowManagerChecked().deleteProcessInstance(instanceId, parentResult);
-    }
-
-    @Override
     public void claimWorkItem(String workItemId, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException {
         getWorkflowManagerChecked().claimWorkItem(workItemId, parentResult);
     }

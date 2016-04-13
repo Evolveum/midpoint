@@ -6,6 +6,7 @@ import java.security.CryptoPrimitive;
 import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ParsingContext;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -36,14 +37,18 @@ public class XNodeProcessorUtil {
 //        }
 //        return null;
 //    }
-	
+
 	public static <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap, PrismContext prismContext) throws SchemaException {
+		parseProtectedType(protectedType, xmap, prismContext, ParsingContext.createDefault());
+	}
+
+	public static <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap, PrismContext prismContext, ParsingContext pc) throws SchemaException {
 		XNode xEncryptedData = xmap.get(ProtectedDataType.F_ENCRYPTED_DATA);
         if (xEncryptedData != null) {
             if (!(xEncryptedData instanceof MapXNode)) {
                 throw new SchemaException("Cannot parse encryptedData from "+xEncryptedData);
             }
-            EncryptedDataType encryptedDataType = prismContext.getBeanConverter().unmarshall((MapXNode)xEncryptedData, EncryptedDataType.class);
+            EncryptedDataType encryptedDataType = prismContext.getBeanConverter().unmarshall((MapXNode)xEncryptedData, EncryptedDataType.class, pc);
             protectedType.setEncryptedData(encryptedDataType);
         } else {
             // Check for legacy EncryptedData
@@ -68,7 +73,7 @@ public class XNodeProcessorUtil {
                     }
                 });
                 
-                EncryptedDataType encryptedDataType = prismContext.getBeanConverter().unmarshall(xConvertedEncryptedData, EncryptedDataType.class);
+                EncryptedDataType encryptedDataType = prismContext.getBeanConverter().unmarshall(xConvertedEncryptedData, EncryptedDataType.class, pc);
                 protectedType.setEncryptedData(encryptedDataType);
        
                 if (protectedType instanceof ProtectedStringType){

@@ -36,7 +36,7 @@ public class ApprovingDummyResourceChangesScenarioBean extends BaseGcpScenarioBe
 
     private static final Trace LOGGER = TraceManager.getTrace(ApprovingDummyResourceChangesScenarioBean.class);
 
-    public static final QName DUMMY_RESOURCE_DELTA_QNAME = new QName(SchemaConstants.NS_WFCF, "dummyResourceDelta");
+//    public static final QName DUMMY_RESOURCE_DELTA_QNAME = new QName(SchemaConstants.NS_WFCF, "dummyResourceDelta");
 
     @Autowired
     private PrismContext prismContext;

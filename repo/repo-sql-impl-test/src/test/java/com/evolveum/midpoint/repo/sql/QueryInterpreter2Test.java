@@ -673,8 +673,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    s3.value = :value2 or\n" +
                     "    (\n" +
                     "      s.resourceRef.targetOid = :targetOid and\n" +
-                    "      s.resourceRef.relation = :relation and\n" +
-                    "      s.resourceRef.type = :type\n" +
+                    "      s.resourceRef.relation = :relation\n" +
                     "    )\n" +
                     "  )\n";
 
@@ -979,8 +978,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  (\n" +
                     "    (\n" +
                     "      s.resourceRef.targetOid = :targetOid and\n" +
-                    "      s.resourceRef.relation = :relation and\n" +
-                    "      s.resourceRef.type = :type\n" +
+                    "      s.resourceRef.relation = :relation\n" +
                     "    ) and\n" +
                     "    s2.value = :value\n" +
                     "  )\n";
