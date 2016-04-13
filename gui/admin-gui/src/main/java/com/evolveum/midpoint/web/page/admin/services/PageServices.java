@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 
 /**
+ * @author katkav
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/users", action = {
@@ -47,7 +49,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
                 label = "PageUsers.auth.users.label",
                 description = "PageUsers.auth.users.description")})
 public class PageServices extends PageAdminServices {
-	
+	private static final long serialVersionUID = 1L;
+
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_TABLE = "table";
 
@@ -88,6 +91,11 @@ public class PageServices extends PageAdminServices {
 	        	@Override
 	        	protected void newObjectPerformed(AjaxRequestTarget target) {
 	        		setResponsePage(PageService.class);	
+	        	}
+	        	
+	        	@Override
+	        	protected String getBoxCssClasses() {
+	        		return GuiStyleConstants.CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES;
 	        	}
 	        	
 	        };

@@ -33,6 +33,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -172,6 +173,11 @@ public class PageResources extends PageAdminResources {
 				setResponsePage(PageResourceWizard.class);
 
 			}
+			
+			@Override
+        	protected String getBoxCssClasses() {
+        		return GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES;
+        	}
 		};
 		resourceListPanel.setOutputMarkupId(true);
 		mainForm.add(resourceListPanel);

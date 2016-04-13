@@ -33,6 +33,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -167,10 +168,15 @@ public class PageUsers extends PageAdminUsers {
 			}
 			
 			@Override
-					protected void newObjectPerformed(AjaxRequestTarget target) {
-					setResponsePage(PageUser.class);
-						
-					}
+			protected void newObjectPerformed(AjaxRequestTarget target) {
+			setResponsePage(PageUser.class);
+				
+			}
+			
+			@Override
+        	protected String getBoxCssClasses() {
+        		return GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES;
+        	}
 		};
 
 		userListPanel.setOutputMarkupId(true);

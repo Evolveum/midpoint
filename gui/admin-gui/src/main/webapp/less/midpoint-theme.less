@@ -187,6 +187,32 @@ th.cog, td.cog {
 	color: @object-resource-color;
 }
 
+// Colored boxes for each object type
+
+#box-object(@color) {
+	border-top-color: @color;
+}
+
+.object-user-box {
+	#box-object(@object-user-color);
+}
+
+.object-role-box {
+	#box-object(@object-role-color);
+}
+
+.object-org-box {
+	#box-object(@object-org-color);
+}
+
+.object-service-box {
+	#box-object(@object-service-color);
+}
+
+.object-resource-box {
+	#box-object(@object-resource-color);
+}
+
 // Summary panel (panel above the edit user/role/org forms)
 
 #info-box-summary-panel(@color) {

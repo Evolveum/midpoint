@@ -230,7 +230,6 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 
 		BoxedTablePanel<SelectableBean<T>> table = new BoxedTablePanel<SelectableBean<T>>(ID_TABLE, provider,
 				columns, tableId, pageSize) {
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -246,6 +245,11 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 
 				};
 			}
+			
+			@Override
+			protected String getBoxCssClasses() {
+				return ObjectListPanel.this.getBoxCssClasses();
+			}
 
 		};
 		table.setOutputMarkupId(true);
@@ -258,6 +262,10 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		}
 
 		return table;
+	}
+
+	protected String getBoxCssClasses() {
+		return null;
 	}
 
 	private BaseSortableDataProvider<SelectableBean<T>> getDataProvider() {

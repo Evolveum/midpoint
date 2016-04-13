@@ -23,21 +23,27 @@ public class GuiStyleConstants {
 	
 	public static final String CLASS_OBJECT_USER_ICON = "fa fa-user";
 	public static final String CLASS_OBJECT_USER_ICON_COLORED = CLASS_OBJECT_USER_ICON + " object-user-color";
+	public static final String CLASS_OBJECT_USER_BOX_CSS_CLASSES = "box object-user-box";
 	
 	public static final String CLASS_OBJECT_ROLE_ICON = "fa fa-street-view";
 	public static final String CLASS_OBJECT_ROLE_ICON_COLORED = CLASS_OBJECT_ROLE_ICON + " object-role-color";
+	public static final String CLASS_OBJECT_ROLE_BOX_CSS_CLASSES = "box object-role-box";
 	
 	public static final String CLASS_OBJECT_ORG_ICON = "fa fa-building";
 	public static final String CLASS_OBJECT_ORG_ICON_COLORED = CLASS_OBJECT_ORG_ICON + " object-org-color";
+	public static final String CLASS_OBJECT_ORG_BOX_CSS_CLASSES = "box object-org-box";
 	
 	public static final String CLASS_OBJECT_SERVICE_ICON = "fa fa-cloud";
 	public static final String CLASS_OBJECT_SERVICE_ICON_COLORED = CLASS_OBJECT_SERVICE_ICON + " object-service-color";
+	public static final String CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES = "box object-service-box";
 	
 	public static final String CLASS_OBJECT_RESOURCE_ICON = "fa fa-database";
 	public static final String CLASS_OBJECT_RESOURCE_ICON_COLORED = CLASS_OBJECT_RESOURCE_ICON + " object-resource-color";
+	public static final String CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES = "box object-resource-box";
 	
 	public static final String CLASS_OBJECT_TASK_ICON = "fa fa-tasks";
 	public static final String CLASS_OBJECT_TASK_ICON_COLORED = CLASS_OBJECT_TASK_ICON;
+	public static final String CLASS_OBJECT_TASK_BOX_CSS_CLASSES = "box object-task-box";
 	
 	public static final String CLASS_ICON_STYLE_NORMAL = "icon-style-normal";
 	public static final String CLASS_ICON_STYLE_DISABLED = "icon-style-disabled";
