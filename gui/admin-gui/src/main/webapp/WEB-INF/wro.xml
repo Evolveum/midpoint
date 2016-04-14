@@ -16,14 +16,8 @@
   -->
 
 <groups xmlns="http://www.isdc.ro/wro">
-    <!-- this group is obsolete, will be removed -->
-    <group name="all">
-        <css>/less/config.less</css>
-        <css>/less/evolveum-obsolete.less</css>
-        <css>/less/global.less</css>
-        <css>/WEB-INF/classes/com/evolveum/midpoint/web/component/assignment/AssignmentHeaderPanel.less</css>
-    </group>
 
+    <!-- obsolete will be removed -->
     <group name="midpoint">
         <css>/less/midpoint/midpoint.less</css>
         <js>/js/midpoint/ace-editor.js</js>

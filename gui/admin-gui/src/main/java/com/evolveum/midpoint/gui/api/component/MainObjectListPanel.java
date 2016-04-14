@@ -111,7 +111,7 @@ public abstract class MainObjectListPanel<T extends ObjectType> extends ObjectLi
             };
             add(newObjectIcon);
 
-            AjaxIconButton importObject = new AjaxIconButton(ID_IMPORT_OBJECT, new Model<>("fa fa-download"),
+            AjaxIconButton importObject = new AjaxIconButton(ID_IMPORT_OBJECT, new Model<>("fa fa-upload"),
                     mainObjectListPanel.createStringResource("MainObjectListPanel.import")) {
 
                 @Override
