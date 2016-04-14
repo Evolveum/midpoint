@@ -52,7 +52,7 @@ import java.util.Date;
 public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	private static final long serialVersionUID = -5077637168906420769L;
 
-	//private static final String ID_TAG_EXECUTION_STATUS = "summaryTagExecutionStatus";
+	private static final String ID_TAG_EXECUTION_STATUS = "summaryTagExecutionStatus";
 	private static final String ID_TAG_RESULT = "summaryTagResult";
 	private static final String ID_TAG_WF_OUTCOME = "wfOutcomeTag";
 	private static final String ID_TAG_EMPTY = "emptyTag";
@@ -65,7 +65,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		this.parentPage = parentPage;
 		IModel<TaskType> containerModel = new ContainerableFromPrismObjectModel<>(model);
 
-		SummaryTagSimple<TaskType> tagExecutionStatus = new SummaryTagSimple<TaskType>(ID_FIRST_SUMMARY_TAG, containerModel) {
+		SummaryTagSimple<TaskType> tagExecutionStatus = new SummaryTagSimple<TaskType>(ID_TAG_EXECUTION_STATUS, containerModel) {
 			@Override
 			protected void initialize(TaskType taskType) {
 				TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);

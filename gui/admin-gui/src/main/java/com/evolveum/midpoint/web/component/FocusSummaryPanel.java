@@ -37,7 +37,8 @@ import java.util.Collection;
  */
 public abstract class FocusSummaryPanel<O extends ObjectType> extends AbstractSummaryPanel<O> {
 	private static final long serialVersionUID = 1L;
-	
+
+	private static final String ID_ACTIVATION_TAG = "activationTag";
 	protected static final String ICON_CLASS_ACTIVATION_ACTIVE = "fa fa-check";
 	protected static final String ICON_CLASS_ACTIVATION_INACTIVE = "fa fa-times";
 
@@ -49,7 +50,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends AbstractSu
 		this.wrapperModel = model;
 		initLayoutCommon();				// calls getParentOrgModel that depends on wrapperModel
 
-		SummaryTag<O> tagActivation = new SummaryTag<O>(ID_FIRST_SUMMARY_TAG, model) {
+		SummaryTag<O> tagActivation = new SummaryTag<O>(ID_ACTIVATION_TAG, model) {
 			@Override
 			protected void initialize(ObjectWrapper<O> wrapper) {
 				ActivationType activation = null;

@@ -34,6 +34,8 @@ import javax.xml.namespace.QName;
 public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 	private static final long serialVersionUID = -5077637168906420769L;
 
+	private static final String ID_ASSIGNED_TAG = "assignedTag";
+
 	private final IModel<WorkItemDto> dtoModel;
 
 	public WorkItemSummaryPanel(String id, IModel<WorkItemType> model, IModel<WorkItemDto> dtoModel) {
@@ -42,7 +44,7 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 
 		initLayoutCommon();
 
-		SummaryTagSimple<WorkItemType> isAssignedTag = new SummaryTagSimple<WorkItemType>(ID_FIRST_SUMMARY_TAG, model) {
+		SummaryTagSimple<WorkItemType> isAssignedTag = new SummaryTagSimple<WorkItemType>(ID_ASSIGNED_TAG, model) {
 			@Override
 			protected void initialize(WorkItemType workItem) {
 				if (workItem.getAssigneeRef() != null) {
