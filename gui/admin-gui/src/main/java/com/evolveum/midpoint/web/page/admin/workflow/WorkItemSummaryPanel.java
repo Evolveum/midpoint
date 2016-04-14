@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.AbstractSummaryPanel;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
@@ -60,13 +61,8 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 	}
 
 	@Override
-	protected QName getDisplayNamePropertyName() {
-		return WorkItemType.F_NAME;
-	}
-
-	@Override
 	protected String getIconCssClass() {
-		return "fa fa-inbox";
+		return GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON;
 	}
 
 	@Override

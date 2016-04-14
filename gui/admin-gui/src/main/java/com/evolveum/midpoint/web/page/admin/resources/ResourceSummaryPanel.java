@@ -58,8 +58,7 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType>{
 	}
 
 	@Override
-	protected QName getDisplayNamePropertyName() {
-		return ResourceType.F_NAME;
+	protected boolean isIdentifierVisible() {
+		return false;
 	}
-
 }

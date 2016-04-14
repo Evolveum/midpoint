@@ -5,6 +5,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromContainerableModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -157,7 +158,9 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         return FocusType.F_NAME;
     }
 
-    protected abstract QName getDisplayNamePropertyName();
+    protected QName getDisplayNamePropertyName() {
+		return ObjectType.F_NAME;
+	}
 
     protected QName getTitlePropertyName() {
         return null;

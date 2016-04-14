@@ -36,7 +36,7 @@ public class RoleSummaryPanel extends FocusSummaryPanel<RoleType> {
 
 	@Override
 	protected QName getDisplayNamePropertyName() {
-		return RoleType.F_NAME;
+		return RoleType.F_NAME;			// TODO F_DISPLAY_NAME ?
 	}
 
 	@Override

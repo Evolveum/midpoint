@@ -151,11 +151,6 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	}
 
 	@Override
-	protected QName getDisplayNamePropertyName() {
-		return TaskType.F_NAME;
-	}
-
-	@Override
 	protected String getIconCssClass() {
 		return GuiStyleConstants.CLASS_OBJECT_TASK_ICON;
 	}

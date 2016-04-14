@@ -85,22 +85,8 @@ public class PageCertDefinition extends PageAdminCertification {
 
 	private static final String OPERATION_LOAD_DEFINITION = DOT_CLASS + "loadDefinition";
 
+	private static final String ID_SUMMARY_PANEL = "summaryPanel";
 	private static final String ID_MAIN_FORM = "mainForm";
-
-	private static final String ID_NAME = "name";
-	private static final String ID_DESCRIPTION = "description";
-	private static final String ID_OWNER = "owner";
-	private static final String ID_NUMBER_OF_STAGES = "numberOfStages";
-	private static final String ID_REVIEW_STAGE_CAMPAIGNS = "campaignsInReviewStage";
-	private static final String ID_CAMPAIGNS_TOTAL = "campaignsTotal";
-	private static final String ID_LAST_STARTED = "campaignLastStarted";
-	private static final String ID_LAST_CLOSED = "campaignLastClosed";
-//	private static final String ID_OWNER_VALUE_CONTAINER = "ownerValueContainer";
-//	private static final String ID_OWNER_INPUT = "ownerInput";
-	private static final String ID_OWNER_REF_CHOOSER = "ownerRefChooser";
-	private static final String ID_REMEDIATION = "remediation";
-	private static final String ID_OUTCOME_STRATEGY = "outcomeStrategy";
-	private static final String ID_STOP_REVIEW_ON = "stopReviewOn";
 
 	private static final String ID_BACK_BUTTON = "backButton";
 	private static final String ID_SAVE_BUTTON = "saveButton";
@@ -190,10 +176,13 @@ public class PageCertDefinition extends PageAdminCertification {
 
 	//region Layout
 	private void initLayout() {
+		CertDefinitionSummaryPanel summaryPanel = new CertDefinitionSummaryPanel(ID_SUMMARY_PANEL,
+				new PropertyModel<PrismObject<AccessCertificationDefinitionType>>(definitionModel, CertDefinitionDto.F_PRISM_OBJECT));
+		add(summaryPanel);
+
 		Form mainForm = new Form(ID_MAIN_FORM);
 		add(mainForm);
 
-		initBasicInfoLayout(mainForm);
 		initTabs(mainForm);
 		initButtons(mainForm);
 	}
@@ -201,6 +190,12 @@ public class PageCertDefinition extends PageAdminCertification {
 	private void initTabs(Form mainForm) {
 
 		List<ITab> tabs = new ArrayList<>();
+		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.basic")) {
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return new DefinitionBasicPanel(panelId, definitionModel);
+			}
+		});
 		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.scopeDefinition")) {
             @Override
             public WebMarkupContainer getPanel(String panelId) {
@@ -229,86 +224,6 @@ public class PageCertDefinition extends PageAdminCertification {
 		});
 		TabbedPanel tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, this, tabs, null);
 		mainForm.add(tabPanel);
-	}
-
-	private void initBasicInfoLayout(Form mainForm) {
-        final TextField nameField = new TextField(ID_NAME, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NAME));
-        nameField.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isEnabled() {
-                return true;
-            }
-        });
-        mainForm.add(nameField);
-
-		final TextArea descriptionField = new TextArea(ID_DESCRIPTION, new PropertyModel<>(definitionModel, CertDefinitionDto.F_DESCRIPTION));
-        descriptionField.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isEnabled() {
-                return true;
-            }
-        });
-        mainForm.add(descriptionField);
-
-        final WebMarkupContainer ownerRefChooser = createOwnerRefChooser(ID_OWNER_REF_CHOOSER);
-        ownerRefChooser.setOutputMarkupId(true);
-        mainForm.add(ownerRefChooser);
-
-        mainForm.add(new Label(ID_NUMBER_OF_STAGES, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
-
-        DropDownChoice remediation = new DropDownChoice<>(ID_REMEDIATION, new Model<AccessCertificationRemediationStyleType>() {
-
-            @Override
-            public AccessCertificationRemediationStyleType getObject() {
-                return definitionModel.getObject().getRemediationStyle();
-            }
-
-            @Override
-            public void setObject(AccessCertificationRemediationStyleType object) {
-                definitionModel.getObject().setRemediationStyle(object);
-            }
-        }, WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationRemediationStyleType.class),
-                new EnumChoiceRenderer<AccessCertificationRemediationStyleType>(this));
-        mainForm.add(remediation);
-
-		DropDownChoice outcomeStrategy =
-				new DropDownChoice<>(ID_OUTCOME_STRATEGY,
-						new PropertyModel<AccessCertificationCaseOutcomeStrategyType>(definitionModel, CertDefinitionDto.F_OUTCOME_STRATEGY),
-						WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationCaseOutcomeStrategyType.class),
-				new EnumChoiceRenderer<AccessCertificationCaseOutcomeStrategyType>(this));
-		mainForm.add(outcomeStrategy);
-
-		Label stopReviewOn = new Label(ID_STOP_REVIEW_ON, new AbstractReadOnlyModel<String>() {
-			@Override
-			public String getObject() {
-				List<AccessCertificationResponseType> stopOn = definitionModel.getObject().getStopReviewOn();
-				return CertMiscUtil.getStopReviewOnText(stopOn, PageCertDefinition.this);
-			}
-		});
-		mainForm.add(stopReviewOn);
-
-//        mainForm.add(new Label(ID_REVIEW_STAGE_CAMPAIGNS, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
-//        mainForm.add(new Label(ID_CAMPAIGNS_TOTAL, new PropertyModel<>(definitionModel, CertDefinitionDto.F_NUMBER_OF_STAGES)));
-        mainForm.add(new Label(ID_LAST_STARTED, new PropertyModel<>(definitionModel, CertDefinitionDto.F_LAST_STARTED)));
-        mainForm.add(new Label(ID_LAST_CLOSED, new PropertyModel<>(definitionModel, CertDefinitionDto.F_LAST_CLOSED)));
-	}
-
-	private WebMarkupContainer createOwnerRefChooser(String id) {
-		ChooseTypePanel tenantRef = new ChooseTypePanel(id,
-				new PropertyModel<ObjectViewDto>(definitionModel, CertDefinitionDto.F_OWNER)) {
-
-			@Override
-			protected boolean isSearchEnabled() {
-				return true;
-			}
-
-			@Override
-			protected QName getSearchProperty() {
-				return UserType.F_NAME;
-			}
-		};
-
-		return tenantRef;
 	}
 
 
