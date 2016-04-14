@@ -383,6 +383,16 @@
 		    <version>1.2.1</version>
             <scope>test</scope>
 		</dependency>
+		<dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
+			<groupId>org.springframework</groupId> 
+			<artifactId>spring-aspects</artifactId>
+			<scope>test</scope> 
+		</dependency>
+        <dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
+			<groupId>org.springframework</groupId> 
+			<artifactId>spring-aop</artifactId>
+			<scope>test</scope> 
+		</dependency>
 	</dependencies>
     <build>
         <plugins>
