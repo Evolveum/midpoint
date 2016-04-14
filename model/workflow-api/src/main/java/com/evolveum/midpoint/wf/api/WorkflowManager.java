@@ -77,8 +77,6 @@ public interface WorkflowManager {
 
 	void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
 
-	void deleteProcessInstance(String instanceId, OperationResult parentResult);
-
     /*
      * MISC
      * ====
@@ -108,6 +106,9 @@ public interface WorkflowManager {
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result);
 
 	ChangesByState getChangesByState(TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext, OperationResult result)
+			throws SchemaException, ObjectNotFoundException;
+
+	ChangesByState getChangesByState(TaskType childTask, TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext, OperationResult result)
 			throws SchemaException, ObjectNotFoundException;
 
 	void synchronizeWorkflowRequests(OperationResult parentResult);

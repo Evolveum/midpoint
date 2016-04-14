@@ -26,9 +26,13 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskDeletionListener;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.ProcessListener;
 import com.evolveum.midpoint.wf.api.WorkItemListener;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
@@ -45,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.Collection;
 import java.util.List;
 
@@ -52,9 +57,9 @@ import java.util.List;
  * @author mederly
  */
 @Component("workflowManager")
-public class WorkflowManagerImpl implements WorkflowManager {
+public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListener {
 
-    //private static final transient Trace LOGGER = TraceManager.getTrace(WorkflowManagerImpl.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(WorkflowManagerImpl.class);
 
     @Autowired
     private PrismContext prismContext;
@@ -83,8 +88,16 @@ public class WorkflowManagerImpl implements WorkflowManager {
     @Autowired
     private MiscDataUtil miscDataUtil;
 
+	@Autowired
+	private TaskManager taskManager;
+
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
+	@PostConstruct
+	public void initialize() {
+		LOGGER.debug("Workflow manager starting.");
+		taskManager.registerTaskDeletionListener(this);
+	}
 
     /*
      * Work items
@@ -156,11 +169,6 @@ public class WorkflowManagerImpl implements WorkflowManager {
         processInstanceManager.stopProcessInstance(instanceId, username, parentResult);
     }
 
-    @Override
-    public void deleteProcessInstance(String instanceId, OperationResult parentResult) {
-        processInstanceManager.deleteProcessInstance(instanceId, parentResult);
-    }
-
 	@Override
 	public void synchronizeWorkflowRequests(OperationResult parentResult) {
 		processInstanceManager.synchronizeWorkflowRequests(parentResult);
@@ -182,6 +190,11 @@ public class WorkflowManagerImpl implements WorkflowManager {
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) {
         processInstanceProvider.augmentTaskObjectList(list, options, task, result);
     }
+
+	@Override
+	public void onTaskDelete(Task task, OperationResult result) {
+		processInstanceManager.onTaskDelete(task, result);
+	}
 
     /*
      * Other
@@ -236,6 +249,15 @@ public class WorkflowManagerImpl implements WorkflowManager {
 			OperationResult result) throws SchemaException, ObjectNotFoundException {
 
 		// TODO op subresult
-		return miscDataUtil.getChangesByState(rootTask, modelInteractionService, prismContext, result);
+		return miscDataUtil.getChangesByStateForRoot(rootTask, modelInteractionService, prismContext, result);
 	}
+
+	@Override
+	public ChangesByState getChangesByState(TaskType childTask, TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext,
+			OperationResult result) throws SchemaException, ObjectNotFoundException {
+
+		// TODO op subresult
+		return miscDataUtil.getChangesByStateForChild(childTask, rootTask, modelInteractionService, prismContext, result);
+	}
+
 }

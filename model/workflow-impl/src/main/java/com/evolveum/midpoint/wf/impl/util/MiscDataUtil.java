@@ -59,7 +59,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -466,7 +465,47 @@ public class MiscDataUtil {
 	}
 
 	// TODO move somewhere else?
-	public ChangesByState getChangesByState(TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext, OperationResult result)
+	public ChangesByState getChangesByStateForChild(TaskType childTask, TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext, OperationResult result)
+			throws SchemaException, ObjectNotFoundException {
+		ChangesByState rv = new ChangesByState(prismContext);
+
+		final WfContextType wfc = childTask.getWorkflowContext();
+		if (wfc != null && wfc.getProcessInstanceId() != null) {
+			if (wfc.isApproved() == null) {
+				if (wfc.getEndTimestamp() == null) {
+					recordChangesWaitingToBeApproved(rv, wfc, prismContext);
+				} else {
+					recordChangesCanceled(rv, wfc, prismContext);
+				}
+			} else if (wfc.isApproved()) {
+				if (rootTask.getModelOperationContext() != null) {
+					// this is "execute after all approvals"
+					if (rootTask.getModelOperationContext().getState() == ModelStateType.FINAL) {
+						recordResultingChanges(rv.getApplied(), wfc, prismContext);
+					} else if (!containsHandler(rootTask, WfPrepareRootOperationTaskHandler.HANDLER_URI)) {
+						recordResultingChanges(rv.getBeingApplied(), wfc, prismContext);
+					} else {
+						recordResultingChanges(rv.getWaitingToBeApplied(), wfc, prismContext);
+					}
+				} else {
+					// "execute immediately"
+					if (childTask.getModelOperationContext().getState() == ModelStateType.FINAL) {
+						recordResultingChanges(rv.getApplied(), wfc, prismContext);
+					} else if (!containsHandler(childTask, WfPrepareChildOperationTaskHandler.HANDLER_URI)) {
+						recordResultingChanges(rv.getBeingApplied(), wfc, prismContext);
+					} else {
+						recordResultingChanges(rv.getWaitingToBeApplied(), wfc, prismContext);
+					}
+				}
+			} else {
+				recordChangesRejected(rv, wfc, prismContext);
+			}
+		}
+		return rv;
+	}
+
+	// TODO move somewhere else?
+	public ChangesByState getChangesByStateForRoot(TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
 		ChangesByState rv = new ChangesByState(prismContext);
 		recordChanges(rv, rootTask.getModelOperationContext(), modelInteractionService, result);
@@ -475,9 +514,13 @@ public class MiscDataUtil {
 			final WfContextType wfc = subtask.getWorkflowContext();
 			if (wfc != null && wfc.getProcessInstanceId() != null) {
 				if (wfc.isApproved() == null) {
-					recordChangesWaitingToBeApproved(rv, wfc, prismContext);
+					if (wfc.getEndTimestamp() == null) {
+						recordChangesWaitingToBeApproved(rv, wfc, prismContext);
+					} else {
+						recordChangesCanceled(rv, wfc, prismContext);
+					}
 				} else if (wfc.isApproved()) {
-					recordChangesApproved(rv, subtask, rootTask, prismContext);
+					recordChangesApprovedIfNeeded(rv, subtask, rootTask, prismContext);
 				} else {
 					recordChangesRejected(rv, wfc, prismContext);
 				}
@@ -486,7 +529,7 @@ public class MiscDataUtil {
 		return rv;
 	}
 
-	private void recordChangesApproved(ChangesByState rv, TaskType subtask, TaskType rootTask, PrismContext prismContext) throws SchemaException {
+	private void recordChangesApprovedIfNeeded(ChangesByState rv, TaskType subtask, TaskType rootTask, PrismContext prismContext) throws SchemaException {
 		if (!containsHandler(rootTask, WfPrepareRootOperationTaskHandler.HANDLER_URI) &&
 				!containsHandler(subtask, WfPrepareChildOperationTaskHandler.HANDLER_URI)) {
 			return;			// these changes were already incorporated into one of model contexts
@@ -540,6 +583,14 @@ public class MiscDataUtil {
 		}
 	}
 
+	protected void recordChangesCanceled(ChangesByState rv, WfContextType wfc, PrismContext prismContext)
+			throws SchemaException {
+		if (wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType) {
+			WfPrimaryChangeProcessorStateType ps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
+			rv.getCanceled().merge(fromObjectTreeDeltasType(ps.getDeltasToProcess(), prismContext));
+		}
+	}
+
 	private void recordChangesRejected(ChangesByState rv, WfContextType wfc, PrismContext prismContext) throws SchemaException {
 		if (wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType) {
 			WfPrimaryChangeProcessorStateType ps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
@@ -549,6 +600,13 @@ public class MiscDataUtil {
 				// it's actually hard to decide what to display as 'rejected' - because the delta was partly approved
 				// however, this situation will not currently occur
 			}
+		}
+	}
+
+	private void recordResultingChanges(ObjectTreeDeltas<?> target, WfContextType wfc, PrismContext prismContext) throws SchemaException {
+		if (wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType) {
+			WfPrimaryChangeProcessorStateType ps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
+			target.merge(fromObjectTreeDeltasType(ps.getResultingDeltas(), prismContext));
 		}
 	}
 

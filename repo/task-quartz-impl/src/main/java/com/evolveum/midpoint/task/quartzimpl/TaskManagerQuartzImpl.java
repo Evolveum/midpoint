@@ -35,19 +35,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.LightweightIdentifier;
-import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.task.api.LightweightTaskHandler;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskListener;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskManagerException;
-import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
-import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
-import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.task.api.TaskWaitingReason;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.task.quartzimpl.execution.ExecutionManager;
@@ -142,6 +130,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     // task handlers (mapped from their URIs)
     private Map<String,TaskHandler> handlers = new HashMap<String, TaskHandler>();
 
+	private final Set<TaskDeletionListener> taskDeletionListeners = new HashSet<>();
+
     // cached task prism definition
 	private PrismObjectDefinition<TaskType> taskPrismDefinition;
 
@@ -149,7 +139,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     private NodeErrorStatusType nodeErrorStatus = NodeErrorStatusType.OK;
 
     // task listeners
-    private Set<TaskListener> taskListeners = new HashSet<TaskListener>();
+    private Set<TaskListener> taskListeners = new HashSet<>();
 
     /**
      * Registered transient tasks. Here we put all transient tasks that are to be managed by the task manager.
@@ -776,9 +766,12 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             if (task.getNode() != null) {
                 result.recordWarning("Deleting a task that seems to be currently executing on node " + task.getNode());
             }
+			for (TaskDeletionListener listener : taskDeletionListeners) {
+				listener.onTaskDelete(task, result);
+			}
             repositoryService.deleteObject(TaskType.class, oid, result);
             executionManager.removeTaskFromQuartz(oid, result);
-            result.recordSuccessIfUnknown();
+            result.computeStatusIfUnknown();
         } catch (ObjectNotFoundException e) {
             result.recordFatalError("Cannot delete the task because it does not exist.", e);
             throw e;
@@ -1215,6 +1208,16 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 //        return repositoryService.countObjects(TaskType.class, query, result);
 //    }
     //endregion
+
+	//region Deletion listeners
+
+	@Override
+	public void registerTaskDeletionListener(TaskDeletionListener listener) {
+		Validate.notNull(listener, "Task deletion listener is null");
+		taskDeletionListeners.add(listener);
+	}
+
+	//endregion
 
     //region Managing handlers and task categories
     /*

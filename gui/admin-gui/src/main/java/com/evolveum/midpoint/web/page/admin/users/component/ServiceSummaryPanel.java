@@ -47,7 +47,7 @@ public class ServiceSummaryPanel extends FocusSummaryPanel<ServiceType> {
 
 	@Override
 	protected String getIconCssClass() {
-		return GuiStyleConstants.STYLES_OBJECT_SERVICE_ICON;
+		return GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON;
 	}
 
 	@Override

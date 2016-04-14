@@ -15,15 +15,14 @@
   -->
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-<div>
- <span wicket:id="refresh"/><span wicket:id="newObject"/><span wicket:id="importObject"/>
- </div>
-<wicket:child/>
-	<form  class="clearfix" wicket:id="mainForm" style="margin: 5px;">
-            <div wicket:id="table"/>
+    <wicket:child/>
+    <form class="clearfix" wicket:id="mainForm" style="margin: 5px;">
+        <div wicket:id="table"/>
+    </form>
 
-<!--             <p align="right"> -->
-<!--                 <a class="btn btn-sm btn-default"  wicket:id="cancelButton"/> -->
-<!--             </p> -->
-        </form>
+    <wicket:fragment wicket:id="buttonBar">
+        <a wicket:id="newObject" class="btn btn-success btn-sm"/>
+        <a wicket:id="refresh" class="btn btn-default btn-sm"/>
+        <a wicket:id="importObject" class="btn btn-primary btn-sm"/>
+    </wicket:fragment>
 </wicket:panel>

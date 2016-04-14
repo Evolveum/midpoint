@@ -1,31 +1,19 @@
 package com.evolveum.prism.xml.ns._public.types_3;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Revivable;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-
 import org.apache.commons.lang.Validate;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
 import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 
 import javax.xml.namespace.QName;
-
-import java.beans.Transient;
 import java.io.Serializable;
 
 /**
@@ -98,7 +86,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
                     itemName = itemDefinition.getName();
                 }
                 checkPrismContext();
-				Item<IV,ID> subItem = PrismUtil.getXnodeProcessor(prismContext).parseItem(xnode, itemName, itemDefinition);
+				Item<IV,ID> subItem = PrismUtil.getXnodeProcessor(prismContext).parseItem(xnode, itemName, itemDefinition, ParsingContext.createDefault());
 				if (!subItem.isEmpty()){
 					value = subItem.getValue(0);
 				} else {
@@ -120,7 +108,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
         if (parsed == null && xnode != null){
         	
 			if (itemDefinition == null){
-        			return PrismUtil.getXnodeProcessor(prismContext).parseAnyValue(xnode);
+        			return PrismUtil.getXnodeProcessor(prismContext).parseAnyValue(xnode, ParsingContext.createDefault());
         	} else {
         		QName itemName = ItemPath.getName(itemPath.lastNamed());
 	        	getParsedValue(itemDefinition, itemName);
@@ -163,7 +151,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
         	QName type = xnode.getTypeQName();
         	if (xnode instanceof PrimitiveXNode && type != null){
         		if (!((PrimitiveXNode)xnode).isParsed()){
-        			Object realValue = PrismUtil.getXnodeProcessor(prismContext).parseAnyValue(xnode);
+        			Object realValue = PrismUtil.getXnodeProcessor(prismContext).parseAnyValue(xnode, ParsingContext.createDefault());
         			((PrimitiveXNode)xnode).setValue(realValue, type);
         		}
         	}

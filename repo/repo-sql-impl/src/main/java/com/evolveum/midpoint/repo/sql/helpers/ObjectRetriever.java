@@ -18,14 +18,7 @@ package com.evolveum.midpoint.repo.sql.helpers;
 
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ExistsFilter;
@@ -87,6 +80,9 @@ import java.util.*;
 @Component
 public class ObjectRetriever {
 
+	public static final String CLASS_DOT = ObjectRetriever.class.getName() + ".";
+	public static final String OPERATION_GET_OBJECT_INTERNAL = CLASS_DOT + "getObjectInternal";
+
     private static final Trace LOGGER = TraceManager.getTrace(ObjectRetriever.class);
     private static final Trace LOGGER_PERFORMANCE = TraceManager.getTrace(SqlRepositoryServiceImpl.PERFORMANCE_LOG_NAME);
 
@@ -120,7 +116,7 @@ public class ObjectRetriever {
         try {
             session = transactionHelper.beginReadOnlyTransaction();
 
-            objectType = getObjectInternal(session, type, oid, options, false);
+            objectType = getObjectInternal(session, type, oid, options, false, result);
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
@@ -131,7 +127,7 @@ public class ObjectRetriever {
             transactionHelper.rollbackTransaction(session, ex, "Schema error while getting object with oid: "
                     + oid + ". Reason: " + ex.getMessage(), result, true);
             throw ex;
-        } catch (QueryException | DtoTranslationException | RuntimeException ex) {
+        } catch (DtoTranslationException | RuntimeException ex) {
             transactionHelper.handleGeneralException(ex, session, result);
         } finally {
             transactionHelper.cleanupSessionAndResult(session, result);
@@ -145,85 +141,96 @@ public class ObjectRetriever {
     }
 
     public <T extends ObjectType> PrismObject<T> getObjectInternal(Session session, Class<T> type, String oid,
-                                                                   Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                   boolean lockForUpdate)
-            throws ObjectNotFoundException, SchemaException, DtoTranslationException, QueryException {
+			Collection<SelectorOptions<GetOperationOptions>> options,
+			boolean lockForUpdate, OperationResult operationResult)
+            throws ObjectNotFoundException, SchemaException, DtoTranslationException {
 
-        boolean lockedForUpdateViaHibernate = false;
-        boolean lockedForUpdateViaSql = false;
+		OperationResult subResult = operationResult.createMinorSubresult(OPERATION_GET_OBJECT_INTERNAL);
+		try {
 
-        LockOptions lockOptions = new LockOptions();
-        //todo fix lock for update!!!!!
-        if (lockForUpdate) {
-            if (getConfiguration().isLockForUpdateViaHibernate()) {
-                lockOptions.setLockMode(LockMode.PESSIMISTIC_WRITE);
-                lockedForUpdateViaHibernate = true;
-            } else if (getConfiguration().isLockForUpdateViaSql()) {
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Trying to lock object " + oid + " for update (via SQL)");
-                }
-                long time = System.currentTimeMillis();
-                SQLQuery q = session.createSQLQuery("select oid from m_object where oid = ? for update");
-                q.setString(0, oid);
-                Object result = q.uniqueResult();
-                if (result == null) {
-                    return throwObjectNotFoundException(type, oid);
-                }
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Locked via SQL (in " + (System.currentTimeMillis() - time) + " ms)");
-                }
-                lockedForUpdateViaSql = true;
-            }
-        }
+			boolean lockedForUpdateViaHibernate = false;
+			boolean lockedForUpdateViaSql = false;
 
-        if (LOGGER.isTraceEnabled()) {
-            if (lockedForUpdateViaHibernate) {
-                LOGGER.trace("Getting object " + oid + " with locking for update (via hibernate)");
-            } else if (lockedForUpdateViaSql) {
-                LOGGER.trace("Getting object " + oid + ", already locked for update (via SQL)");
-            } else {
-                LOGGER.trace("Getting object " + oid + " without locking for update");
-            }
-        }
+			LockOptions lockOptions = new LockOptions();
+			//todo fix lock for update!!!!!
+			if (lockForUpdate) {
+				if (getConfiguration().isLockForUpdateViaHibernate()) {
+					lockOptions.setLockMode(LockMode.PESSIMISTIC_WRITE);
+					lockedForUpdateViaHibernate = true;
+				} else if (getConfiguration().isLockForUpdateViaSql()) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Trying to lock object " + oid + " for update (via SQL)");
+					}
+					long time = System.currentTimeMillis();
+					SQLQuery q = session.createSQLQuery("select oid from m_object where oid = ? for update");
+					q.setString(0, oid);
+					Object result = q.uniqueResult();
+					if (result == null) {
+						return throwObjectNotFoundException(type, oid);
+					}
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Locked via SQL (in " + (System.currentTimeMillis() - time) + " ms)");
+					}
+					lockedForUpdateViaSql = true;
+				}
+			}
 
-        GetObjectResult fullObject = null;
-        if (!lockForUpdate) {
-            Query query = session.getNamedQuery("get.object");
-            query.setString("oid", oid);
-            query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
-            query.setLockOptions(lockOptions);
+			if (LOGGER.isTraceEnabled()) {
+				if (lockedForUpdateViaHibernate) {
+					LOGGER.trace("Getting object " + oid + " with locking for update (via hibernate)");
+				} else if (lockedForUpdateViaSql) {
+					LOGGER.trace("Getting object " + oid + ", already locked for update (via SQL)");
+				} else {
+					LOGGER.trace("Getting object " + oid + " without locking for update");
+				}
+			}
 
-            fullObject = (GetObjectResult) query.uniqueResult();
-        } else {
-            // we're doing update after this get, therefore we load full object right now
-            // (it would be loaded during merge anyway)
-            // this just loads object to hibernate session, probably will be removed later. Merge after this get
-            // will be faster. Read and use object only from fullObject column.
-            // todo remove this later [lazyman]
-            Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-            criteria.add(Restrictions.eq("oid", oid));
+			GetObjectResult fullObject = null;
+			if (!lockForUpdate) {
+				Query query = session.getNamedQuery("get.object");
+				query.setString("oid", oid);
+				query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
+				query.setLockOptions(lockOptions);
 
-            criteria.setLockMode(lockOptions.getLockMode());
-            RObject obj = (RObject) criteria.uniqueResult();
+				fullObject = (GetObjectResult) query.uniqueResult();
+			} else {
+				// we're doing update after this get, therefore we load full object right now
+				// (it would be loaded during merge anyway)
+				// this just loads object to hibernate session, probably will be removed later. Merge after this get
+				// will be faster. Read and use object only from fullObject column.
+				// todo remove this later [lazyman]
+				Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
+				criteria.add(Restrictions.eq("oid", oid));
 
-            if (obj != null) {
-                obj.toJAXB(prismContext, null).asPrismObject();
-                fullObject = new GetObjectResult(obj.getFullObject(), obj.getStringsCount(), obj.getLongsCount(),
-                        obj.getDatesCount(), obj.getReferencesCount(), obj.getPolysCount(), obj.getBooleansCount());
-            }
-        }
+				criteria.setLockMode(lockOptions.getLockMode());
+				RObject obj = (RObject) criteria.uniqueResult();
 
-        LOGGER.trace("Got it.");
-        if (fullObject == null) {
-            throwObjectNotFoundException(type, oid);
-        }
+				if (obj != null) {
+					obj.toJAXB(prismContext, null).asPrismObject();
+					fullObject = new GetObjectResult(obj.getFullObject(), obj.getStringsCount(), obj.getLongsCount(),
+							obj.getDatesCount(), obj.getReferencesCount(), obj.getPolysCount(), obj.getBooleansCount());
+				}
+			}
 
+			LOGGER.trace("Got it.");
+			if (fullObject == null) {
+				throwObjectNotFoundException(type, oid);
+			}
 
-        LOGGER.trace("Transforming data to JAXB type.");
-        PrismObject<T> prismObject = updateLoadedObject(fullObject, type, options, session);
-        validateObjectType(prismObject, type);
+			LOGGER.trace("Transforming data to JAXB type.");
+			PrismObject<T> prismObject = updateLoadedObject(fullObject, type, options, session, subResult);
+			validateObjectType(prismObject, type);
 
-        return prismObject;
+			subResult.computeStatusIfUnknown();
+			if (subResult.isWarning() || subResult.isError() || subResult.isInProgress()) {
+				prismObject.asObjectable().setFetchResult(subResult.createOperationResultType());
+			}
+
+			return prismObject;
+		} catch (RuntimeException|ObjectNotFoundException|SchemaException|DtoTranslationException e) {
+			subResult.recordFatalError(e.getMessage(), e);
+			throw e;
+		}
     }
 
     protected SqlRepositoryConfiguration getConfiguration() {
@@ -262,7 +269,7 @@ public class ObjectRetriever {
             }
 
             GetObjectResult focus = focuses.get(0);
-            owner = updateLoadedObject(focus, (Class<F>) FocusType.class, options, session);
+            owner = updateLoadedObject(focus, (Class<F>) FocusType.class, options, session, result);
 
             session.getTransaction().commit();
 
@@ -301,7 +308,7 @@ public class ObjectRetriever {
             }
 
             GetObjectResult user = users.get(0);
-            userType = updateLoadedObject(user, UserType.class, null, session);
+            userType = updateLoadedObject(user, UserType.class, null, session, result);
 
             session.getTransaction().commit();
         } catch (SchemaException | RuntimeException ex) {
@@ -375,7 +382,7 @@ public class ObjectRetriever {
             LOGGER.trace("Found {} objects, translating to JAXB.", new Object[]{(objects != null ? objects.size() : 0)});
 
             for (GetObjectResult object : objects) {
-                PrismObject<T> prismObject = updateLoadedObject(object, type, options, session);
+                PrismObject<T> prismObject = updateLoadedObject(object, type, options, session, result);
                 list.add(prismObject);
             }
 
@@ -411,7 +418,7 @@ public class ObjectRetriever {
 
             Map<String,PrismObject> ownersCache = new HashMap<>();
             for (GetContainerableResult item : items) {
-                C value = (C) caseHelper.updateLoadedCertificationCase(item, ownersCache, options, session);
+                C value = (C) caseHelper.updateLoadedCertificationCase(item, ownersCache, options, session, result);
                 list.add(value);
             }
 
@@ -429,14 +436,21 @@ public class ObjectRetriever {
      * This method provides object parsing from String and validation.
      */
     private <T extends ObjectType> PrismObject<T> updateLoadedObject(GetObjectResult result, Class<T> type,
-                                                                     Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                     Session session) throws SchemaException {
+			Collection<SelectorOptions<GetOperationOptions>> options,
+			Session session, OperationResult operationResult) throws SchemaException {
 
         String xml = RUtil.getXmlFromByteArray(result.getFullObject(), getConfiguration().isUseZip());
         PrismObject<T> prismObject;
         try {
             // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
-            prismObject = prismContext.parseObject(xml, XNodeProcessorEvaluationMode.COMPAT);
+			ParsingContext parsingContext = ParsingContext.forMode(XNodeProcessorEvaluationMode.COMPAT);
+            prismObject = prismContext.parseObject(xml, parsingContext);
+			// TODO enable if needed
+//			if (parsingContext.hasWarnings()) {
+//				for (String warning : parsingContext.getWarnings()) {
+//					operationResult.createSubresult("parseObject").recordWarning(warning);
+//				}
+//			}
         } catch (SchemaException e) {
             LOGGER.debug("Couldn't parse object because of schema exception ({}):\nObject: {}", e, xml);
             throw e;
@@ -543,7 +557,7 @@ public class ObjectRetriever {
 
             if (shadows != null) {
                 for (GetObjectResult shadow : shadows) {
-                    PrismObject<T> prismObject = updateLoadedObject(shadow, resourceObjectShadowType, null, session);
+                    PrismObject<T> prismObject = updateLoadedObject(shadow, resourceObjectShadowType, null, session, result);
                     list.add(prismObject);
                 }
             }
@@ -620,7 +634,7 @@ public class ObjectRetriever {
                 while (iterator.hasNext()) {
                     GetObjectResult object = iterator.next();
 
-                    PrismObject<T> prismObject = updateLoadedObject(object, type, options, session);
+                    PrismObject<T> prismObject = updateLoadedObject(object, type, options, session, result);
                     if (!handler.handle(prismObject, result)) {
                         break;
                     }

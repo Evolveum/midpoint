@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.roles;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -149,6 +150,11 @@ public class PageRoles extends PageAdminRoles {
 			setResponsePage(PageRole.class);
 				
 			}
+			
+			@Override
+        	protected String getBoxCssClasses() {
+        		return GuiStyleConstants.CLASS_OBJECT_ROLE_BOX_CSS_CLASSES;
+        	}
 		};
 		roleListPanel.setOutputMarkupId(true);
 		mainForm.add(roleListPanel);

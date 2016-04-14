@@ -1,75 +1,89 @@
+/**
+ * Copyright (c) 2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.component.box;
-
-import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressbarPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+/**
+ * @author katkav
+ * @author semancik
+ */
 public class InfoBoxPanel extends Panel{
-	
-	
 	private static final long serialVersionUID = 1L;
-	private static final String BACKGROUND_COLOR = "backgroundColor";
-	private static final String IMAGE_ID = "imageId";
-	private static final String DESCRIPTION = "description";
 	
+	private static final String ID_INFO_BOX = "infoBox";
+	private static final String ID_INFO_BOX_ICON = "infoBoxIcon";
+	private static final String ID_IMAGE_ID = "imageId";
+	private static final String ID_MESSAGE = "message";
+	private static final String ID_NUMBER = "number";
+	private static final String ID_PROGRESS = "progress";
+	private static final String ID_PROGRESS_BAR = "progressBar";
+	private static final String ID_DESCRIPTION = "description";
 
 	public InfoBoxPanel(String id, IModel<InfoBoxType> model) {
 		super(id, model);
 		initLayout(model);
 	}
 	
-	private void initLayout(IModel<InfoBoxType> model){
+	private void initLayout(final IModel<InfoBoxType> model){
 		
+		WebMarkupContainer infoBox = new WebMarkupContainer(ID_INFO_BOX);
+		add(infoBox);
+		infoBox.add(AttributeModifier.append("class", new PropertyModel<String>(model, InfoBoxType.BOX_BACKGROUND_COLOR)));
 		
-        WebMarkupContainer background = new WebMarkupContainer(BACKGROUND_COLOR);
-        background.add(AttributeModifier.append("class", new PropertyModel<String>(model, BACKGROUND_COLOR)));
-        add(background);
+		WebMarkupContainer infoBoxIcon = new WebMarkupContainer(ID_INFO_BOX_ICON);
+		infoBox.add(infoBoxIcon);
+		infoBoxIcon.add(AttributeModifier.append("class", new PropertyModel<String>(model, InfoBoxType.ICON_BACKGROUND_COLOR)));
         
         
-        WebMarkupContainer image = new WebMarkupContainer(IMAGE_ID);
-        image.add(AttributeModifier.append("class", new PropertyModel<String>(model, IMAGE_ID)));
-        background.add(image);
+        WebMarkupContainer image = new WebMarkupContainer(ID_IMAGE_ID);
+        image.add(AttributeModifier.append("class", new PropertyModel<String>(model, InfoBoxType.IMAGE_ID)));
+        infoBoxIcon.add(image);
         
-        ListView<String> description = new ListView<String>(DESCRIPTION, new PropertyModel<List<String>>(model, DESCRIPTION)) {
-        	
-        	@Override
-        	protected void populateItem(ListItem<String> item) {
-        		Label l = new Label("desc", item.getModel());
-        		l.setOutputMarkupId(true);
-        		item.add(l);
-        	}
-		};
-		description.setOutputMarkupId(true);
-       
-        add(description);
-		
+        Label message = new Label(ID_MESSAGE, new PropertyModel<String>(model, InfoBoxType.MESSAGE));
+        infoBox.add(message);
+        
+        Label number = new Label(ID_NUMBER, new PropertyModel<String>(model, InfoBoxType.NUMBER));
+        infoBox.add(number);
+        
+        WebMarkupContainer progress = new WebMarkupContainer(ID_PROGRESS);
+        infoBox.add(progress);
+        progress.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				return model.getObject().getProgress() != null;
+			}
+        });
+        ProgressbarPanel progressBar = new ProgressbarPanel(ID_PROGRESS_BAR, new PropertyModel<Integer>(model, InfoBoxType.PROGRESS));
+        progress.add(progressBar);
+
+        Label description = new Label(ID_DESCRIPTION, new PropertyModel<String>(model, InfoBoxType.DESCRIPTION));
+        infoBox.add(description);
+
 	}
-
-	/**
-	 * 
-	 * <div class="col-md-3 col-sm-6 col-xs-12">
-		<div class="info-box">
-			<span class="info-box-icon bg-aqua" wicket:id="backgroundColor">
-				<i class="fa fa-star-o" wicket:id="imageId"/>
-			</span>
-
-			<div class="info-box-content">
-				<span class="info-box-text" wicket:id="description" /> 
-			</div>
-
-		</div>
-
-	</div>
-	 * 
-	 */
 	
 	
 }

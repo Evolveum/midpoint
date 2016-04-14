@@ -132,7 +132,7 @@ public class ObjectUpdater {
             closureContext = closureManager.onBeginTransactionAdd(session, object, options.isOverwrite());
 
             if (options.isOverwrite()) {
-                oid = overwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext);
+                oid = overwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext, result);
             } else {
                 oid = nonOverwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext);
             }
@@ -173,7 +173,7 @@ public class ObjectUpdater {
     }
 
     private <T extends ObjectType> String overwriteAddObjectAttempt(PrismObject<T> object, RObject rObject,
-                                                                    String originalOid, Session session, OrgClosureManager.Context closureContext)
+			String originalOid, Session session, OrgClosureManager.Context closureContext, OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException, DtoTranslationException {
 
         PrismObject<T> oldObject = null;
@@ -182,7 +182,7 @@ public class ObjectUpdater {
         Collection<? extends ItemDelta> modifications = null;
         if (originalOid != null) {
             try {
-                oldObject = objectRetriever.getObjectInternal(session, object.getCompileTimeClass(), originalOid, null, true);
+                oldObject = objectRetriever.getObjectInternal(session, object.getCompileTimeClass(), originalOid, null, true, result);
                 ObjectDelta<T> delta = object.diff(oldObject);
                 modifications = delta.getModifications();
 
@@ -193,8 +193,8 @@ public class ObjectUpdater {
                 version = (version == null) ? 0 : ++version;
 
                 rObject.setVersion(version);
-            } catch (QueryException ex) {
-                transactionHelper.handleGeneralCheckedException(ex, session, null);
+//            } catch (QueryException ex) {
+//                transactionHelper.handleGeneralCheckedException(ex, session, null);
             } catch (ObjectNotFoundException ex) {
                 //it's ok that object was not found, therefore we won't be overwriting it
             }
@@ -387,7 +387,7 @@ public class ObjectUpdater {
                 }
 
                 // get object
-                PrismObject<T> prismObject = objectRetriever.getObjectInternal(session, type, oid, options, true);
+                PrismObject<T> prismObject = objectRetriever.getObjectInternal(session, type, oid, options, true, result);
                 // apply diff
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("OBJECT before:\n{}", new Object[]{prismObject.debugDump()});
@@ -453,7 +453,7 @@ public class ObjectUpdater {
         } catch (SchemaException ex) {
             transactionHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
-        } catch (QueryException | DtoTranslationException | RuntimeException ex) {
+        } catch (DtoTranslationException | RuntimeException ex) {
             transactionHelper.handleGeneralException(ex, session, result);
         } finally {
             cleanupClosureAndSessionAndResult(closureContext, session, result);

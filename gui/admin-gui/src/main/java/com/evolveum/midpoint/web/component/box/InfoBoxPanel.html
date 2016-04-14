@@ -18,16 +18,19 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-	<div class="col-md-3 col-sm-6 col-xs-12">
-		<div class="info-box">
-			<span class="info-box-icon " wicket:id="backgroundColor">
+	<div class="col-md-4 col-sm-8 col-xs-16">
+		<div class="info-box" wicket:id="infoBox">
+			<span class="info-box-icon " wicket:id="infoBoxIcon">
 				<i class="fa "wicket:id="imageId"></i>
 			</span>
 
 			<div class="info-box-content">
-				<span class="info-box-text" wicket:id="description">
-					<div wicket:id="desc" />
-				</span>
+				<span class="info-box-text" wicket:id="message"/>
+				<span class="info-box-number" wicket:id="number"/>
+				<div class="progress" wicket:id="progress">
+					<div class="progress-bar" wicket:id="progressBar"/>
+				</div>
+				<span class="progress-description" wicket:id="description"/>
 			</div>
 
 		</div>

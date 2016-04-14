@@ -26,27 +26,9 @@ public class ImgResources {
     public static final String BASE_PATH = "/img";
 
     public static final String USER_PRISM = "user_prism.png";
-    public static final String DECISION_PRISM = "decision_prism.png";
-    public static final String ROLE_PRISM = "role_prism.png";
-    public static final String TRACKING_PRISM = "tracking_prism.png";
     public static final String HDD_PRISM = "hdd_prism.png";
-    public static final String USER_SUIT = "user_suit.png";
-    public static final String DRIVE = "drive.png";
-
-    public static final String BUILDING = "building.png";
-    public static final String MEDAL_GOLD_3 = "medal_gold_3.png";
-    public static final String MEDAL_SILVER_2 = "medal_silver_2.png";
     public static final String ERROR = "error.png";
-
-    public static final String TOOLTIP_INFO = "tooltip_info.png";
-
-    public static final String DELETED_VALUE = "DeletedValue.png";
-    public static final String PRIMARY_VALUE = "PrimaryValue.png";
-    public static final String SECONDARY_VALUE = "SecondaryValue.png";
-
     public static final String SHIELD = "shield.png";
-
-    public static final String AJAX_LOADER = "ajax-loader.gif";
 
     public static PackageResourceReference createReference(String value) {
         return new PackageResourceReference(ImgResources.class, value);
