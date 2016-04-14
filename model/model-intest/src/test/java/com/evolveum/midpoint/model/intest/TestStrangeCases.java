@@ -25,6 +25,7 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -41,6 +42,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -129,6 +131,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	private static String treasureIsland;
 	
 	private String accountGuybrushDummyRedOid;
+
+	private String accountGuybrushOid;
 	
 	public TestStrangeCases() throws JAXBException {
 		super();
@@ -428,7 +432,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(ChangeType.ADD, UserType.class);
         dummyAuditService.assertExecutionSuccess();
         
-        assertBasicGeGhoulashExtension(userDeGhoulash);
+        assertBasicDeGhoulashExtension(userDeGhoulash);
 	}
 	
 	@Test
@@ -517,10 +521,10 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		display("Found user", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
                         
-		assertBasicGeGhoulashExtension(userDeGhoulash);
+		assertBasicDeGhoulashExtension(userDeGhoulash);
 	}
     
-    private void assertBasicGeGhoulashExtension(PrismObject<UserType> userDeGhoulash) {
+    private void assertBasicDeGhoulashExtension(PrismObject<UserType> userDeGhoulash) {
     	assertExtension(userDeGhoulash, PIRACY_SHIP, "The Undead Pot");
         assertExtension(userDeGhoulash, PIRACY_TALES, treasureIsland);
         assertExtension(userDeGhoulash, PIRACY_WEAPON, "fork", "spoon");
@@ -980,6 +984,81 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         assertSuccess(result);
     }
+    
+    @Test
+    public void test600AddUserGuybrushAssignAccount() throws Exception {
+		final String TEST_NAME="test600AddUserGuybrushAssignAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+		display("User before", userBefore);
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID, null, true);
+        deltas.add(accountAssignmentUserDelta);
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("User after change execution", userAfter);
+        accountGuybrushOid = getSingleLinkOid(userAfter);
+        
+		// Check shadow
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountGuybrushOid, null, result);
+        assertDummyAccountShadowRepo(accountShadow, accountGuybrushOid, USER_GUYBRUSH_USERNAME);
+        
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountGuybrushOid, null, task, result);
+        assertDummyAccountShadowModel(accountModel, accountGuybrushOid, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
+        
+        // Check account in dummy resource
+        assertDefaultDummyAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
+    }
+    
+    /**
+     * Set attribute that is not in the schema directly into dummy resource.
+     * Get that account. Make sure that the operations does not die.
+     */
+    @Test(enabled=false) // MID-2880
+    public void test610GetAccountGuybrushRogueAttribute() throws Exception {
+    	final String TEST_NAME="test600AddUserGuybrushAssignAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        dummyResource.setEnforceSchema(false);
+    	DummyAccount dummyAccount = getDummyAccount(null, USER_GUYBRUSH_USERNAME);
+    	dummyAccount.addAttributeValues("rogue", "habakuk");
+    	dummyResource.setEnforceSchema(true);
+    	
+    	// WHEN
+    	TestUtil.displayWhen(TEST_NAME);
+		PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountGuybrushOid, null, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+		
+        display("Shadow after", shadow);
+        assertDummyAccountShadowModel(shadow, accountGuybrushOid, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
+        
+        assertDummyAccountAttribute(null, USER_GUYBRUSH_USERNAME, "rogue", "habakuk");
+    }
+
     
 	private <O extends ObjectType, T> void assertExtension(PrismObject<O> object, QName propName, T... expectedValues) {
 		PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
