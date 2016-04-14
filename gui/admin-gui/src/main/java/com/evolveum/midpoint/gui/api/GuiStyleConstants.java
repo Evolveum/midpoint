@@ -42,9 +42,18 @@ public class GuiStyleConstants {
 	public static final String CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES = "box object-resource-box";
 	
 	public static final String CLASS_OBJECT_TASK_ICON = "fa fa-tasks";
-	public static final String CLASS_OBJECT_TASK_ICON_COLORED = CLASS_OBJECT_TASK_ICON + " object-task-color";;
+	public static final String CLASS_OBJECT_TASK_ICON_COLORED = CLASS_OBJECT_TASK_ICON + " object-task-color";
 	public static final String CLASS_OBJECT_TASK_BOX_CSS_CLASSES = "box object-task-box";
-	
+
+	public static final String CLASS_OBJECT_WORK_ITEM_ICON = "fa fa-inbox";
+	public static final String CLASS_OBJECT_WORK_ITEM_ICON_COLORED = CLASS_OBJECT_WORK_ITEM_ICON + " object-task-color";		// TODO
+
+	public static final String CLASS_OBJECT_CERT_DEF_ICON = "fa fa-certificate";
+	public static final String CLASS_OBJECT_CERT_DEF_ICON_COLORED = CLASS_OBJECT_CERT_DEF_ICON + " object-task-color";		// TODO
+
+	public static final String CLASS_OBJECT_CERT_CAMPAIGN_ICON = "fa fa-gavel";
+	public static final String CLASS_OBJECT_CERT_CAMPAIGN_ICON_COLORED = CLASS_OBJECT_CERT_CAMPAIGN_ICON + " object-task-color";		// TODO
+
 	public static final String CLASS_ICON_STYLE_NORMAL = "icon-style-normal";
 	public static final String CLASS_ICON_STYLE_DISABLED = "icon-style-disabled";
 	public static final String CLASS_ICON_STYLE_ARCHIVED = "icon-style-archived";
