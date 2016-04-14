@@ -29,7 +29,11 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -53,7 +57,9 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 		
 		String enteredUsername = (String) authentication.getPrincipal();
-		ConnectionEnvironment connEnv = createConnectionEnvironment();
+		LOGGER.trace("Authenticating username '{}'", enteredUsername);
+		
+		ConnectionEnvironment connEnv = createConnectionEnvironment(authentication);
 		
 		Authentication token;
 		if (authentication instanceof UsernamePasswordAuthenticationToken) {
@@ -85,28 +91,15 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 		return false;
 	}
 	
-	private ConnectionEnvironment createConnectionEnvironment() {
+	private ConnectionEnvironment createConnectionEnvironment(Authentication authentication) {
 		ConnectionEnvironment connEnv = new ConnectionEnvironment();
 		connEnv.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
-		connEnv.setRemoteHost(getRemoteHost());
+		connEnv.setRemoteHost(getRemoteHost(authentication));
 		return connEnv;
 	}
 
-	private static String getRemoteHost() {
-        WebRequest req = (WebRequest) RequestCycle.get().getRequest();
-        HttpServletRequest httpReq = (HttpServletRequest) req.getContainerRequest();
-        String remoteIp = httpReq.getRemoteHost();
-
-        String localIp = httpReq.getLocalAddr();
-
-        if (remoteIp.equals(localIp)){
-            try {
-                InetAddress inetAddress = InetAddress.getLocalHost();
-                remoteIp = inetAddress.getHostAddress();
-            } catch (UnknownHostException ex) {
-                LOGGER.error("Can't get local host: " + ex.getMessage());
-            }
-        }
-        return remoteIp;
+	private String getRemoteHost(Authentication authentication) {
+		WebAuthenticationDetails details = (WebAuthenticationDetails)authentication.getDetails();
+		return details.getRemoteAddress();
     }
 }

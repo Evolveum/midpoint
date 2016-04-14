@@ -477,7 +477,7 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
-            <scope>runtime</scope> <!-- TODO: review if we need this dependency -->
+            <scope>runtime</scope>
         </dependency>
 
         <!--  WICKET DEPENDENCIES -->
