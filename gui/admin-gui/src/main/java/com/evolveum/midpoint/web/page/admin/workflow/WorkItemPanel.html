@@ -20,7 +20,7 @@
 <wicket:panel>
 
     <div class="row">
-        <div class="col-md-5">
+        <div wicket:id="primaryInfoColumn"> <!-- class = col-md-5 or col-md-12 depending on additional info column visibility -->
             <div class="box box-info">
                 <div class="box-header">
                     <h3 class="box-title"><wicket:message key="workItemPanel.mainInfo"/></h3>
@@ -55,9 +55,9 @@
             <div wicket:id="deltasToBeApproved" />
 
         </div>
-        <div class="col-md-7">
+        <div class="col-md-7" wicket:id="additionalInfoColumn">
 
-            <div class="box box-info">
+            <div class="box box-info" wicket:id="historyContainer">
                 <div class="box-header">
                     <h3 class="box-title"><wicket:message key="workItemPanel.approvalHistory"/></h3>
                 </div>
@@ -77,7 +77,7 @@
 
             <div class="box box-info" wicket:id="relatedRequestsContainer">
                 <div class="box-header">
-                    <h3 class="box-title"><wicket:message key="workItemPanel.relatedRequestsIncluding"/></h3>
+                    <h3 class="box-title"><wicket:message key="workItemPanel.relatedRequests"/></h3>
                 </div>
                 <div class="box-body">
                     <div wicket:id="relatedRequests"/>

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskChangesDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -295,5 +296,14 @@ public class WorkItemDto extends Selectable {
 	public String getTaskOid() {
 		final TaskType task = getTaskType();
 		return task != null ? task.getOid() : null;
+	}
+
+	public boolean hasHistory() {
+		WfContextType wfc = getWorkflowContext();
+		if (wfc == null || !(wfc.getProcessSpecificState() instanceof ItemApprovalProcessStateType)) {
+			return false;
+		}
+		ItemApprovalProcessStateType instanceState = (ItemApprovalProcessStateType) wfc.getProcessSpecificState();
+		return CollectionUtils.isNotEmpty(instanceState.getDecisions());
 	}
 }
