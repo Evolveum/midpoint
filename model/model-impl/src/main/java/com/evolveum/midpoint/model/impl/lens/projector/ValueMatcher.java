@@ -53,6 +53,11 @@ public class ValueMatcher<T> {
 		return new ValueMatcher<T>((MatchingRule<T>) matchingRule);
 	}
 	
+	public static <T> ValueMatcher<T> createDefaultMatcher(QName type, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+		MatchingRule<Object> matchingRule = matchingRuleRegistry.getMatchingRule(null, type);
+		return new ValueMatcher<T>((MatchingRule<T>) matchingRule);
+	}
+	
 	public boolean match(T realA, T realB) throws SchemaException {
 		return matchingRule.match(realA, realB);
 	}
