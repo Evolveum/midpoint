@@ -20,6 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.page.self.PageSelfProfile;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -184,13 +185,15 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 						return createFocusAssignmentsTabPanel(panelId, parentPage); 
 					}
 				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageAdminFocus.request")){
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return createRequestAssignmentTabPanel(panelId, parentPage);
-                    }
-				});
+        if (!(parentPage instanceof PageSelfProfile)) {
+            tabs.add(
+                    new AbstractTab(parentPage.createStringResource("pageAdminFocus.request")) {
+                        @Override
+                        public WebMarkupContainer getPanel(String panelId) {
+                            return createRequestAssignmentTabPanel(panelId, parentPage);
+                        }
+                    });
+        }
 	}
 
     private IModel<String> getProjectionsTabTitleModel(final PageAdminObjectDetails<F> parentPage){
