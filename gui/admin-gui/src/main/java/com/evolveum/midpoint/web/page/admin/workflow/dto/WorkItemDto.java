@@ -42,6 +42,7 @@ import java.util.Date;
  */
 public class WorkItemDto extends Selectable {
 
+    public static final String F_WORK_ITEM = "workItem";
     public static final String F_NAME = "name";
     public static final String F_CREATED = "created";
     public static final String F_PROCESS_STARTED = "processStarted";

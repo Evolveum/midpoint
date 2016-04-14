@@ -40,10 +40,12 @@ import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ConnectorHostTypeComparator;
-import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromObjectWrapperModel;
-import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromPrismObjectModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
+import com.evolveum.midpoint.web.model.ContainerableFromPrismObjectModel;
+import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromContainerableModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -103,13 +105,14 @@ public class NameStep extends WizardStep {
     }
 
     private void initLayout() {
+        IModel<ResourceType> resourceContainerableModel = new ContainerableFromPrismObjectModel<>(resourceModel);
         TextFormGroup name = new TextFormGroup(ID_NAME, 
-        		new PrismPropertyRealValueFromPrismObjectModel<String,ResourceType>(resourceModel, UserType.F_NAME),
+        		new PrismPropertyRealValueFromContainerableModel<String, ResourceType>(resourceContainerableModel, UserType.F_NAME),
                 createStringResource("NameStep.name"), "col-md-3", "col-md-3", true);
         add(name);
 
         TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
-                new PrismPropertyRealValueFromPrismObjectModel<String,ResourceType>(resourceModel, UserType.F_DESCRIPTION),
+                new PrismPropertyRealValueFromContainerableModel<String, ResourceType>(resourceContainerableModel, UserType.F_DESCRIPTION),
                 createStringResource("NameStep.description"), "col-md-3", "col-md-3");
         description.setRows(3);
         add(description);

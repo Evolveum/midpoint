@@ -15,8 +15,7 @@
  */
 package com.evolveum.midpoint.web.component.util;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.prism.Containerable;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -24,13 +23,13 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 /**
- * The same as SummaryTag, but based on PrismObject model, not ObjectWrapper one.
+ * The same as SummaryTag, but based on Containerable model, not ObjectWrapper one.
  * TODO fix somehow
  *
  * @author semancik
  * @author mederly
  */
-public abstract class SummaryTagSimple<O extends ObjectType> extends Panel {
+public abstract class SummaryTagSimple<C extends Containerable> extends Panel {
 
 	private static final String ID_TAG_ICON = "summaryTagIcon";
 	private static final String ID_TAG_LABEL = "summaryTagLabel";
@@ -41,7 +40,7 @@ public abstract class SummaryTagSimple<O extends ObjectType> extends Panel {
 	private String color = null;
 	private boolean hideTag = false;
 
-	public SummaryTagSimple(String id, final IModel<PrismObject<O>> model) {
+	public SummaryTagSimple(String id, final IModel<C> model) {
 		super(id, model);
 		
 		Label tagIcon = new Label(ID_TAG_ICON, "");
@@ -113,13 +112,13 @@ public abstract class SummaryTagSimple<O extends ObjectType> extends Panel {
 		this.hideTag = hideTag;
 	}
 
-	protected abstract void initialize(PrismObject<O> object);
+	protected abstract void initialize(C object);
 
 	abstract class SummaryTagModel<T> extends AbstractReadOnlyModel<T> {
 
-		IModel<PrismObject<O>> objectModel;
+		IModel<C> objectModel;
 
-		public SummaryTagModel(IModel<PrismObject<O>> objectModel) {
+		public SummaryTagModel(IModel<C> objectModel) {
 			this.objectModel = objectModel;
 		}
 

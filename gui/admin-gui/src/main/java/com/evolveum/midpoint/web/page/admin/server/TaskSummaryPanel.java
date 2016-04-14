@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
 import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.ContainerableFromPrismObjectModel;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
@@ -62,11 +63,11 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	public TaskSummaryPanel(String id, IModel<PrismObject<TaskType>> model, IModel<AutoRefreshDto> refreshModel, final PageTaskEdit parentPage) {
 		super(id, model);
 		this.parentPage = parentPage;
+		IModel<TaskType> containerModel = new ContainerableFromPrismObjectModel<>(model);
 
-		SummaryTagSimple<TaskType> tagExecutionStatus = new SummaryTagSimple<TaskType>(ID_FIRST_SUMMARY_TAG, model) {
+		SummaryTagSimple<TaskType> tagExecutionStatus = new SummaryTagSimple<TaskType>(ID_FIRST_SUMMARY_TAG, containerModel) {
 			@Override
-			protected void initialize(PrismObject<TaskType> taskObject) {
-				TaskType taskType = taskObject.asObjectable();
+			protected void initialize(TaskType taskType) {
 				TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
 				String icon = getIconForExecutionStatus(status);
 				setIconCssClass(icon);
@@ -78,10 +79,10 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		};
 		addTag(tagExecutionStatus);
 
-		SummaryTagSimple<TaskType> tagResult = new SummaryTagSimple<TaskType>(ID_TAG_RESULT, model) {
+		SummaryTagSimple<TaskType> tagResult = new SummaryTagSimple<TaskType>(ID_TAG_RESULT, containerModel) {
 			@Override
-			protected void initialize(PrismObject<TaskType> taskObject) {
-				OperationResultStatusType resultStatus = taskObject.asObjectable().getResultStatus();
+			protected void initialize(TaskType taskType) {
+				OperationResultStatusType resultStatus = taskType.getResultStatus();
 				String icon = OperationResultStatusIcon.parseOperationalResultStatus(resultStatus).getIcon();
 				setIconCssClass(icon);
 				if (resultStatus != null) {
@@ -92,9 +93,9 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		};
 		addTag(tagResult);
 
-		SummaryTagSimple<TaskType> tagOutcome = new SummaryTagSimple<TaskType>(ID_TAG_WF_OUTCOME, model) {
+		SummaryTagSimple<TaskType> tagOutcome = new SummaryTagSimple<TaskType>(ID_TAG_WF_OUTCOME, containerModel) {
 			@Override
-			protected void initialize(PrismObject<TaskType> object) {
+			protected void initialize(TaskType taskType) {
 				String icon, name;
 				if (parentPage.getTaskDto().getWorkflowOutcome() == null) {
 					// shouldn't occur!
@@ -188,7 +189,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 				if (taskDto.isWorkflow()) {
 					return getString("TaskSummaryPanel.requestedBy", parentPage.getTaskDto().getRequestedBy());
 				} else {
-					TaskType taskType = getModelObject().asObjectable();
+					TaskType taskType = getModelObject();
 					String rv;
 					if (taskType.getExpectedTotal() != null) {
 						rv = createStringResource("TaskSummaryPanel.progressWithTotalKnown", taskType.getProgress(), taskType.getExpectedTotal())
@@ -217,9 +218,10 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 			@Override
 			public String getObject() {
 				if (parentPage.getTaskDto().isWorkflow()) {
-					return getString("TaskSummaryPanel.requestedOn", WebComponentUtil.formatDate(parentPage.getTaskDto().getRequestedOn()));
+					return getString("TaskSummaryPanel.requestedOn",
+							WebComponentUtil.getLocalizedDate(parentPage.getTaskDto().getRequestedOn(), DateLabelComponent.MEDIUM_MEDIUM_STYLE));
 				} else {
-					TaskType taskType = getModelObject().asObjectable();
+					TaskType taskType = getModelObject();
 					if (taskType.getOperationStats() != null && taskType.getOperationStats().getIterativeTaskInformation() != null &&
 							taskType.getOperationStats().getIterativeTaskInformation().getLastSuccessObjectName() != null) {
 						return createStringResource("TaskSummaryPanel.lastProcessed",
@@ -241,7 +243,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 					return "";
 				}
 
-				TaskType taskType = getModel().getObject().asObjectable();
+				TaskType taskType = getModel().getObject();
 				if (taskType == null) {
 					return null;
 				}
@@ -270,13 +272,6 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 				}
 			}
 		};
-	}
-
-	private String formatDate(Date date) {
-		if (date == null) {
-			return null;
-		}
-		return date.toLocaleString();
 	}
 
 	public AutoRefreshPanel getRefreshPanel() {
