@@ -252,58 +252,10 @@ public class CertDefinitionDto implements Serializable {
     private StageDefinitionDto createStageDefinitionDto(AccessCertificationStageDefinitionType stageDefObj,
             PrismContext prismContext)
             throws SchemaException {
-        StageDefinitionDto dto = new StageDefinitionDto();
-        if (stageDefObj != null) {
-            dto.setNumber(stageDefObj.getNumber());
-            dto.setName(stageDefObj.getName());
-            dto.setDescription(stageDefObj.getDescription());
-            if (stageDefObj.getDuration() != null) {
-                dto.setDuration(stageDefObj.getDuration().toString());
-            }
-            dto.setNotifyBeforeDeadline(convertDurationListToString(stageDefObj.getNotifyBeforeDeadline()));
-            dto.setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefObj.isNotifyOnlyWhenNoDecision()));
-            dto.setReviewerDto(createAccessCertificationReviewerDto(stageDefObj.getReviewerSpecification(), prismContext));
-            dto.setOutcomeStrategy(stageDefObj.getOutcomeStrategy());
-            dto.setOutcomeIfNoReviewers(stageDefObj.getOutcomeIfNoReviewers());
-            dto.setStopReviewOnRaw(new ArrayList<>(stageDefObj.getStopReviewOn()));
-            dto.setAdvanceToNextStageOnRaw(new ArrayList<>(stageDefObj.getAdvanceToNextStageOn()));
-        } else {
-            dto.setReviewerDto(createAccessCertificationReviewerDto(null, prismContext));
-        }
+        StageDefinitionDto dto = new StageDefinitionDto(stageDefObj, prismContext);
         return dto;
     }
 
-    private AccessCertificationReviewerDto createAccessCertificationReviewerDto(
-            AccessCertificationReviewerSpecificationType reviewer, PrismContext prismContext)
-            throws SchemaException {
-        AccessCertificationReviewerDto dto = new AccessCertificationReviewerDto();
-        final PrismReference defaultReviewersReference;
-        final PrismReference additionalReviewersReference;
-        if (reviewer != null) {
-            dto.setName(reviewer.getName());
-            dto.setDescription(reviewer.getDescription());
-            dto.setUseTargetOwner(Boolean.TRUE.equals(reviewer.isUseTargetOwner()));
-            dto.setUseTargetApprover(Boolean.TRUE.equals(reviewer.isUseTargetApprover()));
-            dto.setUseObjectOwner(Boolean.TRUE.equals(reviewer.isUseObjectOwner()));
-            dto.setUseObjectApprover(Boolean.TRUE.equals(reviewer.isUseObjectApprover()));
-            dto.setUseObjectManager(createManagerSearchDto(reviewer.getUseObjectManager()));
-            defaultReviewersReference = reviewer.asPrismContainerValue().findOrCreateReference(AccessCertificationReviewerSpecificationType.F_DEFAULT_REVIEWER_REF);
-            additionalReviewersReference = reviewer.asPrismContainerValue().findOrCreateReference(AccessCertificationReviewerSpecificationType.F_ADDITIONAL_REVIEWER_REF);
-        } else {
-            PrismReferenceDefinition defReviewerDef = prismContext.getSchemaRegistry().findItemDefinitionByFullPath(AccessCertificationDefinitionType.class,
-                    PrismReferenceDefinition.class,
-                    AccessCertificationDefinitionType.F_STAGE_DEFINITION, F_REVIEWER_SPECIFICATION, F_DEFAULT_REVIEWER_REF);
-            defaultReviewersReference = defReviewerDef.instantiate();
-            PrismReferenceDefinition additionalReviewerDef = prismContext.getSchemaRegistry().findItemDefinitionByFullPath(AccessCertificationDefinitionType.class,
-                    PrismReferenceDefinition.class,
-                    AccessCertificationDefinitionType.F_STAGE_DEFINITION, F_REVIEWER_SPECIFICATION, F_ADDITIONAL_REVIEWER_REF);
-            additionalReviewersReference = additionalReviewerDef.instantiate();
-
-        }
-        dto.setDefaultReviewers(new ReferenceWrapper(null, defaultReviewersReference, false, ValueStatus.NOT_CHANGED));
-        dto.setAdditionalReviewers(new ReferenceWrapper(null, additionalReviewersReference, false, ValueStatus.NOT_CHANGED));
-        return dto;
-    }
 
     private List<ObjectReferenceType> cloneListObjects(List<ObjectReferenceType> listToClone){
         List<ObjectReferenceType> list = new ArrayList<>();
@@ -417,20 +369,6 @@ public class CertDefinitionDto implements Serializable {
             managerSearchType.setAllowSelf(managerSearchDto.isAllowSelf());
         }
         return  managerSearchType;
-    }
-
-    private ManagerSearchDto createManagerSearchDto(ManagerSearchType managerSearchType){
-        ManagerSearchDto managerSearchDto = new ManagerSearchDto();
-        if (managerSearchType != null){
-            managerSearchDto.setOrgType(managerSearchType.getOrgType());
-            managerSearchDto.setAllowSelf(managerSearchType.isAllowSelf());
-        }
-        return managerSearchDto;
-    }
-
-    private String convertDurationListToString(List<Duration> list){
-        String result = StringUtils.join(list, ", ");
-        return result;
     }
 
     private List<Duration> convertStringToDurationList(String object){

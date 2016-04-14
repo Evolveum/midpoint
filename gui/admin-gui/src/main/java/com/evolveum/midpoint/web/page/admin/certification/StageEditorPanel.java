@@ -84,7 +84,7 @@ public class StageEditorPanel extends BasePanel<StageDefinitionDto> {
         tabsList.add(new AbstractTab(tabNameModel) {
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new StageDefinitionPanel(panelId, getModel(), getPageBase());
+                return new DefinitionStagePanel(panelId, getModel(), getPageBase());
             }
         });
         tabbedPanel.setSelectedTab(tabsList.size() - 1);

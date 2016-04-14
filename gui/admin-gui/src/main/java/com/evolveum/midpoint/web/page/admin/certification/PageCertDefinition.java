@@ -205,7 +205,7 @@ public class PageCertDefinition extends PageAdminCertification {
 		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.stagesDefinition")) {
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new DefinitionStagesPanel(panelId, new PropertyModel<List<StageDefinitionDto>>(definitionModel, CertDefinitionDto.F_STAGE_DEFINITION));
+                return new DefinitionStagesPanel(panelId, new PropertyModel<List<StageDefinitionDto>>(definitionModel, CertDefinitionDto.F_STAGE_DEFINITION), PageCertDefinition.this);
             }
         });
 
