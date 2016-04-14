@@ -45,6 +45,7 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,26 +104,28 @@ public class WfTaskController {
     //region Job creation & re-creation
     /**
      * Creates a background task, just as prescribed by the task creation instruction.
-     *
-     * @param instruction the job creation instruction
+     *  @param instruction the job creation instruction
      * @param parentWfTask the job that will be the parent of newly created one; it may be null
-     */
+	 * @param wfConfigurationType
+	 */
 
-    public WfTask submitWfTask(WfTaskCreationInstruction instruction, WfTask parentWfTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return submitWfTask(instruction, parentWfTask.getTask(), result);
+    public WfTask submitWfTask(WfTaskCreationInstruction instruction, WfTask parentWfTask, WfConfigurationType wfConfigurationType,
+			OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return submitWfTask(instruction, parentWfTask.getTask(), wfConfigurationType, result);
     }
 
     /**
      * As before, but this time we know only the parent task (not a job).
-     *
-     * @param instruction the job creation instruction
+     *  @param instruction the job creation instruction
      * @param parentTask the task that will be the parent of the task of newly created job; it may be null
-     */
-    public WfTask submitWfTask(WfTaskCreationInstruction instruction, Task parentTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	 * @param wfConfigurationType
+	 */
+    public WfTask submitWfTask(WfTaskCreationInstruction instruction, Task parentTask, WfConfigurationType wfConfigurationType,
+			OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Processing start instruction:\n{}", instruction.debugDump());
         }
-        Task task = submitTask(instruction, parentTask, result);
+        Task task = submitTask(instruction, parentTask, wfConfigurationType, result);
 		WfTask wfTask = recreateWfTask(task, instruction.getChangeProcessor());
         if (!instruction.isNoProcess()) {
             startWorkflowProcessInstance(wfTask, instruction, result);
@@ -170,8 +173,8 @@ public class WfTaskController {
 
     //region Working with midPoint tasks
 
-    private Task submitTask(WfTaskCreationInstruction instruction, Task parentTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		Task wfTask = instruction.createTask(this, parentTask);
+    private Task submitTask(WfTaskCreationInstruction instruction, Task parentTask, WfConfigurationType wfConfigurationType, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		Task wfTask = instruction.createTask(this, parentTask, wfConfigurationType);
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Switching workflow root or child task to background:\n{}", wfTask.debugDump());
         }
