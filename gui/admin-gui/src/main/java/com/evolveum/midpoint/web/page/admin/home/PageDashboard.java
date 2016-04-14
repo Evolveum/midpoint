@@ -233,20 +233,29 @@ public class PageDashboard extends PageAdminHome {
 
 	private <F extends FocusType> InfoBoxPanel createFocusInfoBoxPanel(String id, Class<F> type, String bgColor, String icon, String keyPrefix, OperationResult result, Task task) {
     	InfoBoxType infoBoxType = new InfoBoxType(bgColor, icon, getString(keyPrefix + ".label"));
-    	Integer totalCount;
+    	Integer allCount;
 		try {
-			totalCount = getModelService().countObjects(type, null, null, task, result);
-			if (totalCount == null) {
-				totalCount = 0;
+			allCount = getModelService().countObjects(type, null, null, task, result);
+			if (allCount == null) {
+				allCount = 0;
 			}
 			
-			EqualFilter<ActivationStatusType> filter = EqualFilter.createEqual(SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS, 
-					type, getPrismContext(), ActivationStatusType.ENABLED);
-			ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-			Integer activeCount = getModelService().countObjects(type, query, null, task, result);
-			if (activeCount == null) {
-				activeCount = 0;
+			EqualFilter<ActivationStatusType> filterDisabled = EqualFilter.createEqual(SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS, 
+					type, getPrismContext(), ActivationStatusType.DISABLED);
+			Integer disabledCount = getModelService().countObjects(type, ObjectQuery.createObjectQuery(filterDisabled), null, task, result);
+			if (disabledCount == null) {
+				disabledCount = 0;
 			}
+			
+			EqualFilter<ActivationStatusType> filterArchived = EqualFilter.createEqual(SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS, 
+					type, getPrismContext(), ActivationStatusType.ARCHIVED);
+			Integer archivedCount = getModelService().countObjects(type, ObjectQuery.createObjectQuery(filterArchived), null, task, result);
+			if (archivedCount == null) {
+				archivedCount = 0;
+			}
+			
+			int activeCount = allCount - disabledCount - archivedCount;
+			int totalCount = allCount - archivedCount;
 			
 			infoBoxType.setNumber(activeCount + " " + getString(keyPrefix + ".number"));
 			
@@ -256,7 +265,12 @@ public class PageDashboard extends PageAdminHome {
 			}
 			infoBoxType.setProgress(progress);
 			
-			infoBoxType.setDescription(totalCount + " " + getString(keyPrefix + ".total"));
+			StringBuilder descSb = new StringBuilder();
+			descSb.append(totalCount).append(" ").append(getString(keyPrefix + ".total"));
+			if (archivedCount != 0) {
+				descSb.append(" ( + ").append(archivedCount).append(" ").append(getString(keyPrefix + ".archived")).append(")");
+			}
+			infoBoxType.setDescription(descSb.toString());
 			
 		} catch (Exception e) {
 			infoBoxType.setNumber("ERROR: "+e.getMessage());

@@ -54,6 +54,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -505,6 +506,7 @@ public class TestUnix extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
+        
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
@@ -688,6 +690,385 @@ public class TestUnix extends AbstractStoryTest {
         
         openDJController.assertNoEntry(accountLargoDn);
 	}
+	
+	@Test
+    public void test130AssignUserLargoUnix() throws Exception {
+		final String TEST_NAME = "test130AssignUserLargoUnix";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        assignRole(userBefore.getOid(), ROLE_UNIX_OID);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
+        assertNotNull("No user after", userAfter);
+        display("User after", userAfter);
+        assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
+        
+        String accountOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+        display("Shadow (model)", shadow);
+        accountLargoDn = assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
+	}
+	
+	@Test
+    public void test131ReconcileUserLargo() throws Exception {
+		final String TEST_NAME = "test131ReconcileUserLargo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
+        
+        dummyAuditService.clear();
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		reconcileUser(userBefore.getOid(), task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
+        assertNotNull("No user after", userAfter);
+        display("User after", userAfter);
+        assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
+        
+        String accountOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+        display("Shadow (model)", shadow);
+        assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
+        
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertExecutionDeltas(0);
+	}
+	
+	/**
+	 * Modify the account directly on resource: remove aux object class, remove the
+	 * attributes. Then reconcile the user. The recon should fix it.
+	 */
+	@Test
+    public void test132MeddleWithAccountAndReconcileUserLargo() throws Exception {
+		final String TEST_NAME = "test132MeddleWithAccountAndReconcileUserLargo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
+        
+        openDJController.executeLdifChange(
+        		"dn: "+accountLargoDn+"\n"+
+        		"changetype: modify\n" +
+        		"delete: objectClass\n" +
+        		"objectClass: posixAccount\n" +
+        		"-\n" +
+        		"delete: homeDirectory\n" +
+        		"homeDirectory: /home/largo\n" +
+        		"-\n" +
+        		"delete: uidNumber\n" +
+        		"uidNumber: "+ USER_LARGO_UID_NUMBER +"\n" +
+        		"-\n" +
+        		"delete: gidNumber\n" +
+        		"gidNumber: "+ USER_LARGO_UID_NUMBER +"\n"        		
+        );
+        
+        Entry entryBefore = openDJController.fetchEntry(accountLargoDn);
+        display("Entry before", entryBefore);
+        
+        dummyAuditService.clear();
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		reconcileUser(userBefore.getOid(), task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
+        assertNotNull("No user after", userAfter);
+        display("User after", userAfter);
+        assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
+        
+        String accountOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+        display("Shadow (model)", shadow);
+        assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
+        
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
+	}
+
+	/**
+	 * Reconcile user again. Without any meddling. 
+	 * Just to make sure that the second run will not destroy anything.
+	 */
+	@Test
+    public void test133ReconcileUserLargoAgain() throws Exception {
+		final String TEST_NAME = "test133ReconcileUserLargoAgain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
+        
+        Entry entryBefore = openDJController.fetchEntry(accountLargoDn);
+        display("Entry before", entryBefore);
+        
+        dummyAuditService.clear();
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		reconcileUser(userBefore.getOid(), task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
+        assertNotNull("No user after", userAfter);
+        display("User after", userAfter);
+        assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
+        
+        String accountOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+        display("Shadow (model)", shadow);
+        assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
+        
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertExecutionDeltas(0);
+	}
+
+	@Test
+    public void test134AssignUserLargoBasic() throws Exception {
+		final String TEST_NAME = "test134AssignUserLargoBasic";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
+        
+        dummyAuditService.clear();
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        assignRole(userBefore.getOid(), ROLE_BASIC_OID);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
+        assertNotNull("No user after", userAfter);
+        display("User after", userAfter);
+        assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
+        
+        String accountOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+        display("Shadow (model)", shadow);
+        assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
+        
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+	}
+	
+	@Test
+    public void test135UnAssignUserLargoUnix() throws Exception {
+		final String TEST_NAME = "test135UnAssignUserLargoUnix";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
+        
+        dummyAuditService.clear();
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        unassignRole(userBefore.getOid(), ROLE_UNIX_OID);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
+        assertNotNull("No user after", userAfter);
+        display("User after", userAfter);
+        assertUser(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME);
+        
+        accountLargoOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountLargoOid);
+        display("Shadow (model)", shadow);
+        assertBasicAccount(shadow);
+        
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
+	}
+	
+	/**
+	 * Modify the account directly on resource: add aux object class, add the
+	 * attributes. Then reconcile the user. The recon should fix it.
+	 */
+	@Test(enabled=false) // MID-2883
+    public void test136MeddleWithAccountAndReconcileUserLargo() throws Exception {
+		final String TEST_NAME = "test136MeddleWithAccountAndReconcileUserLargo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
+        
+        openDJController.executeLdifChange(
+        		"dn: "+accountLargoDn+"\n"+
+        		"changetype: modify\n" +
+        		"add: objectClass\n" +
+        		"objectClass: posixAccount\n" +
+        		"-\n" +
+        		"add: homeDirectory\n" +
+        		"homeDirectory: /home/largo\n" +
+        		"-\n" +
+        		"add: uidNumber\n" +
+        		"uidNumber: "+ USER_LARGO_UID_NUMBER +"\n" +
+        		"-\n" +
+        		"add: gidNumber\n" +
+        		"gidNumber: "+ USER_LARGO_UID_NUMBER +"\n"        		
+        );
+        
+        Entry entryBefore = openDJController.fetchEntry(accountLargoDn);
+        display("Entry before", entryBefore);
+        
+        dummyAuditService.clear();
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		reconcileUser(userBefore.getOid(), task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
+        assertNotNull("No user after", userAfter);
+        display("User after", userAfter);
+        assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
+        
+        String accountOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+        display("Shadow (model)", shadow);
+        assertBasicAccount(shadow);
+        
+        // TODO: check audit
+	}
+	
+	/**
+	 * Reconcile user again. Without any meddling.
+	 * Just to make sure that the second run will not destroy anything.
+	 */
+	@Test
+    public void test137ReconcileUserLargoAgain() throws Exception {
+		final String TEST_NAME = "test137ReconcileUserLargoAgain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
+        
+        Entry entryBefore = openDJController.fetchEntry(accountLargoDn);
+        display("Entry before", entryBefore);
+        
+        dummyAuditService.clear();
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		reconcileUser(userBefore.getOid(), task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
+        assertNotNull("No user after", userAfter);
+        display("User after", userAfter);
+        assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
+        
+        String accountOid = getSingleLinkOid(userAfter);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+        display("Shadow (model)", shadow);
+        assertBasicAccount(shadow);
+        
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertExecutionDeltas(0);
+	}
+	
+	@Test
+    public void test138UnAssignUserLargoBasic() throws Exception {
+		final String TEST_NAME = "test138UnAssignUserLargoUnix";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        unassignRole(userBefore.getOid(), ROLE_BASIC_OID);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
+        assertNotNull("No user after", userAfter);
+        display("User after", userAfter);
+        assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
+        assertLinks(userAfter, 0);
+        
+        assertNoObject(ShadowType.class, accountLargoOid, task, result);
+        
+        openDJController.assertNoEntry(accountLargoDn);
+	}
+	
 	@Test
     public void test200AddLdapGroupMonkeyIsland() throws Exception {
 		final String TEST_NAME = "test200AddLdapGroupMonkeyIsland";
