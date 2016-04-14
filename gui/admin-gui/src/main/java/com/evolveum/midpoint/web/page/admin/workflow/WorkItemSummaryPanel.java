@@ -1,0 +1,121 @@
+/*
+ * Copyright (c) 2010-2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.evolveum.midpoint.web.page.admin.workflow;
+
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.AbstractSummaryPanel;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+
+import javax.xml.namespace.QName;
+
+/**
+ * @author mederly
+ *
+ */
+public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
+	private static final long serialVersionUID = -5077637168906420769L;
+
+	public WorkItemSummaryPanel(String id, IModel<WorkItemType> model) {
+		super(id, model);
+
+		initLayoutCommon();
+
+		SummaryTagSimple<WorkItemType> isAssignedTag = new SummaryTagSimple<WorkItemType>(ID_FIRST_SUMMARY_TAG, model) {
+			@Override
+			protected void initialize(WorkItemType workItem) {
+				String icon = "";
+				setIconCssClass(icon);
+				setLabel(workItem.getAssigneeRef() != null ? "assigned" : "NOT assigned");
+			}
+		};
+		addTag(isAssignedTag);
+	}
+
+	@Override
+	protected QName getDisplayNamePropertyName() {
+		return WorkItemType.F_NAME;
+	}
+
+	@Override
+	protected String getIconCssClass() {
+		return "fa fa-inbox";
+	}
+
+	@Override
+	protected String getIconBoxAdditionalCssClass() {		// TODO
+		return "summary-panel-task"; // TODO
+	}
+
+	@Override
+	protected String getBoxAdditionalCssClass() {			// TODO
+		return "summary-panel-task"; // TODO
+	}
+
+	@Override
+	protected boolean isIdentifierVisible() {
+		return false;
+	}
+
+	@Override
+	protected String getTagBoxCssClass() {
+		return "summary-tag-box";
+	}
+
+	@Override
+	protected IModel<String> getTitleModel() {
+		return new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				WorkItemType workItem = getModelObject();
+				TaskType task = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
+				if (task == null || task.getWorkflowContext() == null) {
+					return null;
+				}
+				return getString("TaskSummaryPanel.requestedBy",
+						WebComponentUtil.getName(task.getWorkflowContext().getRequesterRef()));
+			}
+		};
+	}
+
+	@Override
+	protected IModel<String> getTitle2Model() {
+		return new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				WorkItemType workItem = getModelObject();
+				return getString("TaskSummaryPanel.requestedOn",
+						WebComponentUtil.getLocalizedDate(workItem.getProcessStartedTimestamp(), DateLabelComponent.MEDIUM_MEDIUM_STYLE));
+			}
+		};
+	}
+
+//	@Override
+//	protected IModel<String> getTitle3Model() {
+//		return new AbstractReadOnlyModel<String>() {
+//			@Override
+//			public String getObject() {
+//				WorkItemType workItem = getModelObject();
+//				return getString("WorkItemSummaryPanel.createdOn",
+//						workItem.getWorkItemCreatedTimestamp());		// todo formatting
+//			}
+//		};
+//	}
+}

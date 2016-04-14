@@ -25,7 +25,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.IModel;
@@ -33,27 +32,27 @@ import org.apache.wicket.model.IModel;
 import javax.xml.namespace.QName;
 
 /**
- * Model that returns property real values. This implementation works on PrismObject models (not wrappers).
+ * Model that returns property real values. This implementation works on containerable models (not wrappers).
  * 
  * Simple implementation, now it can't handle multivalue properties.
  * 
  * @author lazyman
  * @author semancik
+ * @author mederly
  */
-@Deprecated     // use combination of PrismPropertyRealValueFromContainerableModel and ContainerableFromPrismObjectModel instead
-public class PrismPropertyRealValueFromPrismObjectModel<T,O extends ObjectType> implements IModel<T> {
+public class PrismPropertyRealValueFromContainerableModel<T, C extends Containerable> implements IModel<T> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyRealValueFromPrismObjectModel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyRealValueFromContainerableModel.class);
 
-    private IModel<PrismObject<O>> model;
+    private IModel<C> model;
     private ItemPath path;
 
-    public PrismPropertyRealValueFromPrismObjectModel(IModel<PrismObject<O>> model, QName item) {
+    public PrismPropertyRealValueFromContainerableModel(IModel<C> model, QName item) {
         this(model, new ItemPath(item));
     }
 
-    public PrismPropertyRealValueFromPrismObjectModel(IModel<PrismObject<O>> model, ItemPath path) {
-        Validate.notNull(model, "Prism object model must not be null.");
+    public PrismPropertyRealValueFromContainerableModel(IModel<C> model, ItemPath path) {
+        Validate.notNull(model, "Containerable model must not be null.");
         Validate.notNull(path, "Item path must not be null.");
 
         this.model = model;
@@ -62,10 +61,10 @@ public class PrismPropertyRealValueFromPrismObjectModel<T,O extends ObjectType> 
 
     @Override
     public T getObject() {
-        PrismObject<O> object = model.getObject();
+        C object = model.getObject();
         PrismProperty<T> property;
         try {
-            property = object.findOrCreateProperty(path);
+            property = object.asPrismContainerValue().findOrCreateProperty(path);
         } catch (SchemaException ex) {
             LoggingUtils.logException(LOGGER, "Couldn't create property in path {}", ex, path);
             //todo show message in page error [lazyman]
@@ -78,8 +77,8 @@ public class PrismPropertyRealValueFromPrismObjectModel<T,O extends ObjectType> 
     @Override
     public void setObject(T object) {
         try {
-            PrismObject<O> obj = model.getObject();
-            PrismProperty<T> property = obj.findOrCreateProperty(path);
+            C obj = model.getObject();
+            PrismProperty<T> property = obj.asPrismContainerValue().findOrCreateProperty(path);
 
             if (object != null) {
                 PrismPropertyDefinition<T> def = property.getDefinition();

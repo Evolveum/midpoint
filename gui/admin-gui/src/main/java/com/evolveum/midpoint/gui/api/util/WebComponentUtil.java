@@ -671,10 +671,16 @@ public final class WebComponentUtil {
         return locale;
     }
 
-    public static String getLocalizedDate(Date date, String style){
+	public static String getLocalizedDate(XMLGregorianCalendar date, String style) {
+		return getLocalizedDate(XmlTypeConverter.toDate(date), style);
+	}
+
+    public static String getLocalizedDate(Date date, String style) {
+		if (date == null) {
+			return null;
+		}
         PatternDateConverter converter = new PatternDateConverter(getLocalizedDatePattern(style), true );
         return converter.convertToString(date, WebComponentUtil.getCurrentLocale());
-
     }
 
     public static boolean isActivationEnabled(PrismObject object) {

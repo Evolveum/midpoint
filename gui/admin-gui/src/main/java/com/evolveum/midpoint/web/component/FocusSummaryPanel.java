@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.ContainerableFromPrismObjectModel;
 import com.evolveum.midpoint.web.model.ReadOnlyPrismObjectFromObjectWrapperModel;
 import com.evolveum.midpoint.web.model.ReadOnlyWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -43,7 +44,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends AbstractSu
 	private IModel<ObjectWrapper<O>> wrapperModel;
 	
 	public FocusSummaryPanel(String id, final IModel<ObjectWrapper<O>> model) {
-		super(id, new ReadOnlyPrismObjectFromObjectWrapperModel<O>(model));
+		super(id, new ContainerableFromPrismObjectModel<O>(new ReadOnlyPrismObjectFromObjectWrapperModel<O>(model)));
 
 		this.wrapperModel = model;
 		initLayoutCommon();				// calls getParentOrgModel that depends on wrapperModel
@@ -108,7 +109,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends AbstractSu
 			@Override
 			public AbstractResource getObject() {
 				byte[] jpegPhoto = null;
-				O object = getModel().getObject().asObjectable();
+				O object = getModel().getObject();
 				if (object instanceof FocusType) {
 					jpegPhoto = ((FocusType) object).getJpegPhoto();
 				}
