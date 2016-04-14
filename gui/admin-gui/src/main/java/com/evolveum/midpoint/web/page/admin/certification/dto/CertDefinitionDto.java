@@ -50,6 +50,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
  */
 public class CertDefinitionDto implements Serializable {
 
+    public static final String F_PRISM_OBJECT = "prismObject";
     public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
     public static final String F_NUMBER_OF_STAGES = "numberOfStages";
@@ -480,4 +481,8 @@ public class CertDefinitionDto implements Serializable {
         }
         return CertCampaignTypeUtil.getOutcomesToStopOn(strategy.getStopReviewOn(), strategy.getAdvanceToNextStageOn());
     }
+
+	public PrismObject<AccessCertificationDefinitionType> getPrismObject() {
+		return definition.asPrismObject();
+	}
 }

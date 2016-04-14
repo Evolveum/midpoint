@@ -19,20 +19,13 @@ package com.evolveum.midpoint.web.component.wf;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseOrDecisionDto;
-import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItem;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoProvider;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
@@ -40,13 +33,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.datetime.PatternDateConverter;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
 import org.apache.wicket.markup.html.basic.Label;
@@ -54,7 +42,6 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
@@ -133,7 +120,7 @@ public class WorkItemsTablePanel extends BasePanel {
 		} else {
 			columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.assigned"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
 			columns.add(createNameColumn());
-            columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.created"), WorkItemDto.F_CREATED));
+            columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.created"), WorkItemDto.F_CREATED_FORMATTED));
 		}
 
         BoxedTablePanel<WorkItemDto> workItemsTable = new BoxedTablePanel<>(ID_WORK_ITEMS_TABLE, provider, columns, tableId, pageSize);

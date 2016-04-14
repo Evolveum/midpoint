@@ -385,12 +385,12 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		return changes;
 	}
 
-	private TaskChangesDto createChangesToBeApproved(ObjectTreeDeltas<?> deltas, ModelInteractionService modelInteractionService,
+	public static TaskChangesDto createChangesToBeApproved(ObjectTreeDeltas<?> deltas, ModelInteractionService modelInteractionService,
 			PrismContext prismContext, Task opTask, OperationResult thisOpResult) throws SchemaException {
 		return createTaskChangesDto("TaskDto.changesWaitingToBeApproved", "box-solid box-primary", deltas, modelInteractionService, prismContext, opTask, thisOpResult);
 	}
 
-	private TaskChangesDto createTaskChangesDto(String titleKey, String boxClassOverride, ObjectTreeDeltas deltas, ModelInteractionService modelInteractionService,
+	private static TaskChangesDto createTaskChangesDto(String titleKey, String boxClassOverride, ObjectTreeDeltas deltas, ModelInteractionService modelInteractionService,
 			PrismContext prismContext, Task opTask, OperationResult result) throws SchemaException {
 		ObjectTreeDeltasType deltasType = ObjectTreeDeltas.toObjectTreeDeltasType(deltas);
 		Scene scene = SceneUtil.visualizeObjectTreeDeltas(deltasType, titleKey, prismContext, modelInteractionService, opTask, result);

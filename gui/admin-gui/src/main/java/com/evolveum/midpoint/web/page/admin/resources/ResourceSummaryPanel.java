@@ -32,11 +32,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType>{
 	private static final long serialVersionUID = 1L;
 
+	private static final String ID_UP_DOWN_TAG = "upDownTag";
+
 	public ResourceSummaryPanel(String id, IModel<PrismObject<ResourceType>> model) {
 		super(id, model);
 		
 		boolean down = ResourceTypeUtil.isDown(model.getObject().asObjectable());
-		Label summaryTag  = new Label(ID_FIRST_SUMMARY_TAG, down ? "DOWN" : "UP");
+		Label summaryTag  = new Label(ID_UP_DOWN_TAG, down ? "DOWN" : "UP");
 		addTag(summaryTag);
 	}
 	
@@ -56,8 +58,7 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType>{
 	}
 
 	@Override
-	protected QName getDisplayNamePropertyName() {
-		return ResourceType.F_NAME;
+	protected boolean isIdentifierVisible() {
+		return false;
 	}
-
 }

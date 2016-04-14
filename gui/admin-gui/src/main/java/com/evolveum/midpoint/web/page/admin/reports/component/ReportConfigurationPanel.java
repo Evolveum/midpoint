@@ -15,37 +15,22 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.web.component.DateInput;
-import com.evolveum.midpoint.web.component.form.CheckFormGroup;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromPrismObjectModel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author shood

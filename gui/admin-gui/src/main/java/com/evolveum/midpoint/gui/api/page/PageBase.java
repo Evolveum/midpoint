@@ -977,7 +977,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	private MainMenuItem createWorkItemsItems() {
-		MainMenuItem item = new MainMenuItem("fa fa-inbox", createStringResource("PageAdmin.menu.top.workItems"), null);
+		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON_COLORED, createStringResource("PageAdmin.menu.top.workItems"), null);
 
 		List<MenuItem> submenu = item.getItems();
 

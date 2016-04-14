@@ -671,10 +671,16 @@ public final class WebComponentUtil {
         return locale;
     }
 
-    public static String getLocalizedDate(Date date, String style){
+	public static String getLocalizedDate(XMLGregorianCalendar date, String style) {
+		return getLocalizedDate(XmlTypeConverter.toDate(date), style);
+	}
+
+    public static String getLocalizedDate(Date date, String style) {
+		if (date == null) {
+			return null;
+		}
         PatternDateConverter converter = new PatternDateConverter(getLocalizedDatePattern(style), true );
         return converter.convertToString(date, WebComponentUtil.getCurrentLocale());
-
     }
 
     public static boolean isActivationEnabled(PrismObject object) {
@@ -762,8 +768,12 @@ public final class WebComponentUtil {
 
 	private static <F extends FocusType> String getIconEnabledDisabled(PrismObject<F> object, String baseIcon) {
 		ActivationType activation = object.asObjectable().getActivation();
-		if (activation != null && ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())) {
-			return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_DISABLED;
+		if (activation != null) {
+			if (ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())) {
+				return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_DISABLED;
+			} else if (ActivationStatusType.ARCHIVED.equals(activation.getEffectiveStatus())) {
+				return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_ARCHIVED;
+			}
 		}
 
 		return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
@@ -791,19 +801,19 @@ public final class WebComponentUtil {
 		ShadowType shadow = object.asObjectable();
 		
 		if (ShadowUtil.isProtected(object)){
-			return "fa fa-shield";
+			return GuiStyleConstants.CLASS_SHADOW_ICON_PROTECTED;
 		}
 		
 		switch (shadow.getKind()){
 			case ACCOUNT: 
-				return "fa fa-eye";
+				return GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT;
 			case GENERIC:
-				return "fa fa-institution";
+				return GuiStyleConstants.CLASS_SHADOW_ICON_GENERIC;
 			case ENTITLEMENT:
-				return "fa fa-group";
+				return GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT;
 					
 		}
-		return "fa fa-circle-o";
+		return GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN;
 	}
 
 	public static String createUserIconTitle(PrismObject<UserType> object) {

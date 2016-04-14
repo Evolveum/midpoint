@@ -134,12 +134,23 @@ public class ColumnUtils {
 		}
 	}
 	
+	private static IModel<String> createIconColumnHeaderModel() {
+		return new Model<String>() {
+			@Override
+			public String getObject() {
+				return "";
+			}
+		};
+	}
+	
 	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getUserIconColumn(){
-		return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
 				return new AbstractReadOnlyModel<String>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public String getObject() {
@@ -152,11 +163,13 @@ public class ColumnUtils {
 	}
 	
 	public static <T extends ObjectType> IColumn<SelectableBean<T>, String> getShadowIconColumn(){
-		return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
 				return new AbstractReadOnlyModel<String>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public String getObject() {
@@ -169,11 +182,13 @@ public class ColumnUtils {
 	}
 	
 private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getRoleIconColumn(){
-	return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+	return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
+		private static final long serialVersionUID = 1L;
 
 		@Override
 		protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
 			return new AbstractReadOnlyModel<String>() {
+				private static final long serialVersionUID = 1L;
 
 				@Override
 				public String getObject() {
@@ -186,11 +201,13 @@ private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getRole
 	}
 
 private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getOrgIconColumn(){
-	return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+	return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
+		private static final long serialVersionUID = 1L;
 
 		@Override
 		protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
 			return new AbstractReadOnlyModel<String>() {
+				private static final long serialVersionUID = 1L;
 
 				@Override
 				public String getObject() {
@@ -203,7 +220,7 @@ private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getOrgI
 }
 
 private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getServiceIconColumn(){
-	return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+	return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
 
 		/**
 		 * 
@@ -230,7 +247,7 @@ private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getServ
 }
 
 private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getTaskIconColumn(){
-	return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+	return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
 
 		/**
 		 * 
@@ -254,11 +271,13 @@ private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getTask
 }
 
 private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getResourceIconColumn(){
-	return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+	return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
+		private static final long serialVersionUID = 1L;
 
 		@Override
 		protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
 			return new AbstractReadOnlyModel<String>() {
+				private static final long serialVersionUID = 1L;
 
 				@Override
 				public String getObject() {
@@ -300,6 +319,7 @@ private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getReso
 
 		columns.add(
 				new AbstractColumn<SelectableBean<T>, String>(createStringResource("TaskType.kind")) {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,

@@ -154,11 +154,11 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 	}
 
 	public WebMarkupContainer getHeader() {
-		return (WebMarkupContainer) get(ID_HEADER);
+		return (WebMarkupContainer) get(ID_BOX).get(ID_HEADER);
 	}
 
 	public WebMarkupContainer getFooter() {
-		return (WebMarkupContainer) get(ID_FOOTER);
+		return (WebMarkupContainer) get(ID_BOX).get(ID_FOOTER);
 	}
 
 	protected WebMarkupContainer createHeader(String headerId) {
