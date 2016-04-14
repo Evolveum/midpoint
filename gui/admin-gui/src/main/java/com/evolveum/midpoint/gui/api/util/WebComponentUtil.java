@@ -768,8 +768,12 @@ public final class WebComponentUtil {
 
 	private static <F extends FocusType> String getIconEnabledDisabled(PrismObject<F> object, String baseIcon) {
 		ActivationType activation = object.asObjectable().getActivation();
-		if (activation != null && ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())) {
-			return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_DISABLED;
+		if (activation != null) {
+			if (ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())) {
+				return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_DISABLED;
+			} else if (ActivationStatusType.ARCHIVED.equals(activation.getEffectiveStatus())) {
+				return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_ARCHIVED;
+			}
 		}
 
 		return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
