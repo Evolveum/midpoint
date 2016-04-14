@@ -129,6 +129,20 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		initLayout();
 	}
 
+	@Override
+	protected IModel<String> createPageTitleModel() {
+		TaskDto taskDto = taskDtoModel != null ? taskDtoModel.getObject() : null;
+		String suffix;
+		if (taskDto != null && taskDto.isWorkflowParent()) {
+			suffix = ".wfOperation";
+		} else if (taskDto != null && taskDto.isWorkflowChild()) {
+			suffix = ".wfRequest";
+		} else {
+			suffix = "";
+		}
+		return createStringResource("PageTaskEdit.title" + suffix);
+	}
+
 	private TaskType loadTaskTypeChecked(String taskOid, Task operationTask, OperationResult result) {
 		TaskType taskType = loadTaskType(taskOid, operationTask, result);
 

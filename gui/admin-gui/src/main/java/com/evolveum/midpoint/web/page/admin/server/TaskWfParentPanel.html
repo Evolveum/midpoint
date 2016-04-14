@@ -44,8 +44,14 @@
         </div>
     </div>
 
-    <h3><wicket:message key="workItemPanel.requests"/></h3>
-    <div wicket:id="requests"/>
+    <div class="box">
+        <div class="box-header">
+            <h3 class="box-title"><wicket:message key="workItemPanel.requests"/></h3> <i wicket:id="requestsHelp" wicket:message="title:TaskWfParentPanel.requestsHelp"/>
+        </div>
+        <div class="box-body">
+            <div wicket:id="requests"/>
+        </div>
+    </div>
 
 </wicket:panel>
 </body>

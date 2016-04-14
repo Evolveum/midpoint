@@ -236,9 +236,9 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
             instruction.setObjectRef(modelContext, result);
             instruction.setTargetRef(createObjectRef(target), result);
 
-            String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";
-            instruction.setTaskName("Workflow for approving " + andExecuting + "adding " + targetName + " to " + assigneeName);
-            instruction.setProcessInstanceName("Adding " + targetName + " to " + assigneeName);
+            String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";
+            instruction.setTaskName("Approval " + andExecuting + "of assigning " + targetName + " to " + assigneeName);
+            instruction.setProcessInstanceName("Assigning " + targetName + " to " + assigneeName);
 
             itemApprovalProcessInterface.prepareStartInstruction(instruction);
 

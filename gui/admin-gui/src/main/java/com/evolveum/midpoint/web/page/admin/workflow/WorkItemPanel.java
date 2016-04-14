@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskChangesDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.apache.wicket.AttributeModifier;
@@ -64,12 +66,16 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
     private static final String ID_DELTAS_TO_BE_APPROVED = "deltasToBeApproved";
     private static final String ID_HISTORY_CONTAINER = "historyContainer";
     private static final String ID_HISTORY = "history";
+    private static final String ID_HISTORY_HELP = "approvalHistoryHelp";
     private static final String ID_RELATED_WORK_ITEMS_CONTAINER = "relatedWorkItemsContainer";
     private static final String ID_RELATED_WORK_ITEMS = "relatedWorkItems";
+	private static final String ID_RELATED_WORK_ITEMS_HELP = "otherWorkItemsHelp";
     private static final String ID_RELATED_REQUESTS_CONTAINER = "relatedRequestsContainer";
     private static final String ID_RELATED_REQUESTS = "relatedRequests";
+    private static final String ID_RELATED_REQUESTS_HELP = "relatedRequestsHelp";
     private static final String ID_APPROVER_COMMENT = "approverComment";
 	private static final String ID_SHOW_REQUEST = "showRequest";
+	private static final String ID_SHOW_REQUEST_HELP = "showRequestHelp";
 
 	public WorkItemPanel(String id, IModel<WorkItemDto> model, PageBase pageBase) {
         super(id, model);
@@ -89,6 +95,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 			}
 		};
 		historyContainer.add(historyContainerVisible);
+		historyContainer.add(WebComponentUtil.createHelp(ID_HISTORY_HELP));
 		additionalInfoColumn.add(historyContainer);
 
 		WebMarkupContainer relatedWorkItemsContainer = new WebMarkupContainer(ID_RELATED_WORK_ITEMS_CONTAINER);
@@ -102,6 +109,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 			}
 		};
 		relatedWorkItemsContainer.add(relatedWorkItemsContainerVisible);
+		relatedWorkItemsContainer.add(WebComponentUtil.createHelp(ID_RELATED_WORK_ITEMS_HELP));
 		additionalInfoColumn.add(relatedWorkItemsContainer);
 
 		final WebMarkupContainer relatedWorkflowRequestsContainer = new WebMarkupContainer(ID_RELATED_REQUESTS_CONTAINER);
@@ -117,6 +125,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 			}
 		};
 		relatedWorkflowRequestsContainer.add(relatedWorkflowRequestsContainerVisible);
+		relatedWorkflowRequestsContainer.add(WebComponentUtil.createHelp(ID_RELATED_REQUESTS_HELP));
 		additionalInfoColumn.add(relatedWorkflowRequestsContainer);
 		final VisibleEnableBehaviour additionalInfoColumnVisible = new VisibleEnableBehaviour() {
 			@Override
@@ -157,6 +166,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 				}
 			}
 		});
+		add(WebComponentUtil.createHelp(ID_SHOW_REQUEST_HELP));
 
         add(new TextArea<>(ID_APPROVER_COMMENT, new PropertyModel<String>(getModel(), WorkItemDto.F_APPROVER_COMMENT)));
     }

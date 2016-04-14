@@ -110,10 +110,16 @@ public class BaseModelInvocationProcessingHelper {
     private String determineRootTaskName(ModelContext context) {
 
         String operation;
-        if (context.getFocusContext() != null && context.getFocusContext().getPrimaryDelta() != null) {
-            operation = context.getFocusContext().getPrimaryDelta().getChangeType().toString().toLowerCase();
+        if (context.getFocusContext() != null && context.getFocusContext().getPrimaryDelta() != null
+				&& context.getFocusContext().getPrimaryDelta().getChangeType() != null) {
+            switch (context.getFocusContext().getPrimaryDelta().getChangeType()) {
+				case ADD: operation = "creation of"; break;
+				case DELETE: operation = "deletion of"; break;
+				case MODIFY: operation = "change of"; break;
+				default: throw new IllegalStateException();
+			}
         } else {
-            operation = "processing";
+            operation = "change of";
         }
         String name = MiscDataUtil.getFocusObjectName(context);
 
@@ -123,7 +129,7 @@ public class BaseModelInvocationProcessingHelper {
 //        DateFormat dateFormat = DateFormat.getDateTimeInstance();
 //        String time = dateFormat.format(new Date());
 
-        return "Workflow for " + operation + " " + name + " (started " + time + ")";
+        return "Approving and executing " + operation + " " + name + " (started " + time + ")";
     }
 
     /**

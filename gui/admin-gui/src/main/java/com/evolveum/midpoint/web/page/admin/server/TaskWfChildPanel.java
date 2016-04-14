@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.web.page.admin.workflow.WorkflowRequestsPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.apache.commons.collections.CollectionUtils;
@@ -36,6 +38,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -54,11 +57,15 @@ public class TaskWfChildPanel extends Panel {
 
 	private static final String ID_DELTAS_TO_BE_APPROVED = "deltasToBeApproved";
 	private static final String ID_HISTORY = "history";
+	private static final String ID_HISTORY_HELP = "approvalHistoryHelp";
 	private static final String ID_CURRENT_WORK_ITEMS_CONTAINER = "currentWorkItemsContainer";
 	private static final String ID_CURRENT_WORK_ITEMS = "currentWorkItems";
+	private static final String ID_CURRENT_WORK_ITEMS_HELP = "currentWorkItemsHelp";
 	private static final String ID_RELATED_REQUESTS_CONTAINER = "relatedRequestsContainer";
 	private static final String ID_RELATED_REQUESTS = "relatedRequests";
+	private static final String ID_RELATED_REQUESTS_HELP = "relatedRequestsHelp";
 	private static final String ID_SHOW_PARENT = "showParent";
+	private static final String ID_SHOW_PARENT_HELP = "showParentHelp";
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskApprovalsTabPanel.class);
 
@@ -80,6 +87,7 @@ public class TaskWfChildPanel extends Panel {
 				(int) pageBase.getItemsPerPage(UserProfileStorage.TableId.PAGE_TASK_HISTORY_PANEL));
 		history.setOutputMarkupId(true);
 		add(history);
+		add(WebComponentUtil.createHelp(ID_HISTORY_HELP));
 
 		WebMarkupContainer workItemsContainer = new WebMarkupContainer(ID_CURRENT_WORK_ITEMS_CONTAINER);
 		final ISortableDataProvider<WorkItemDto, String> provider = new ListDataProvider(this, new PropertyModel<List<WorkItemDto>>(taskDtoModel, TaskDto.F_WORK_ITEMS));
@@ -96,6 +104,7 @@ public class TaskWfChildPanel extends Panel {
 				return provider.size() > 0;
 			}
 		});
+		workItemsContainer.add(WebComponentUtil.createHelp(ID_CURRENT_WORK_ITEMS_HELP));
 		add(workItemsContainer);
 
 		final PropertyModel<List<ProcessInstanceDto>> relatedRequestsModel = new PropertyModel<>(taskDtoModel, TaskDto.F_WORKFLOW_REQUESTS);
@@ -112,6 +121,7 @@ public class TaskWfChildPanel extends Panel {
 		ISortableDataProvider<ProcessInstanceDto, String> requestsProvider = new ListDataProvider(this, relatedRequestsModel);
 		relatedRequestsContainer.add(new WorkflowRequestsPanel(ID_RELATED_REQUESTS, requestsProvider, null, 10,
 				WorkflowRequestsPanel.View.TASKS_FOR_PROCESS, null));
+		relatedRequestsContainer.add(WebComponentUtil.createHelp(ID_RELATED_REQUESTS_HELP));
 
 		add(new AjaxFallbackLink(ID_SHOW_PARENT) {
 			public void onClick(AjaxRequestTarget target) {
@@ -123,6 +133,7 @@ public class TaskWfChildPanel extends Panel {
 				}
 			}
 		});
+		add(WebComponentUtil.createHelp(ID_SHOW_PARENT_HELP));
 	}
 
 	public Collection<Component> getComponentsToUpdate() {
