@@ -40,6 +40,7 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -280,7 +281,7 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
 
     private void initUserDialog(IModel<String> title, AjaxRequestTarget target) {
 
-    	FocusBrowserPanel<F> focusBrowser = new FocusBrowserPanel<F>(getPageBase().getMainPopupBodyId(), targetFocusClass, false, getPageBase()){
+    	FocusBrowserPanel<F> focusBrowser = new FocusBrowserPanel<F>(getPageBase().getMainPopupBodyId(), targetFocusClass, WebComponentUtil.createFocusTypeList(), false, getPageBase()){
     		
     		protected void onClick(AjaxRequestTarget target, F focus) {
     			 filterByUserPerformed(focus);

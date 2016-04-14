@@ -29,7 +29,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -37,6 +40,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
@@ -61,8 +65,10 @@ import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
@@ -142,6 +148,50 @@ public final class WebComponentUtil {
 	}
 
 	private WebComponentUtil() {
+	}
+	
+	public static TaskType createSingleRecurenceTask(String taskName, QName applicableType, ObjectQuery query, ObjectDelta delta, String category, PageBase pageBase) throws SchemaException{
+			
+			TaskType task = new TaskType();
+
+			MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
+
+			ObjectReferenceType ownerRef = new ObjectReferenceType();
+			ownerRef.setOid(owner.getOid());
+			ownerRef.setType(owner.getUser().COMPLEX_TYPE);
+			task.setOwnerRef(ownerRef);
+
+			task.setBinding(TaskBindingType.LOOSE);
+			task.setCategory(category);
+			task.setExecutionStatus(TaskExecutionStatusType.RUNNABLE);
+			task.setRecurrence(TaskRecurrenceType.SINGLE);
+			task.setThreadStopAction(ThreadStopActionType.RESTART);
+			task.setHandlerUri(pageBase.getTaskService().getHandlerUriForCategory(category));
+			ScheduleType schedule = new ScheduleType();
+			schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
+			task.setSchedule(schedule);
+
+			task.setName(WebComponentUtil.createPolyFromOrigString(taskName));
+
+		
+				PrismObject<TaskType> prismTask = task.asPrismObject();
+				ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+				PrismProperty objectQuery = prismTask.findOrCreateProperty(path);
+				QueryType queryType = QueryJaxbConvertor.createQueryType(query, pageBase.getPrismContext());
+				objectQuery.addRealValue(queryType);
+
+				path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
+				PrismProperty objectType = prismTask.findOrCreateProperty(path);
+				objectType.setRealValue(applicableType);
+
+				if (delta != null) {
+					path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
+					PrismProperty objectDelta = prismTask.findOrCreateProperty(path);
+					objectDelta.setRealValue(DeltaConvertor.toObjectDeltaType(delta));
+				}
+			
+			return task;
+		
 	}
 
 	public static boolean isAuthorized(String... action) {
@@ -722,6 +772,25 @@ public final class WebComponentUtil {
 		}
 
 		return result.isSuccess() || result.isHandledError() || result.isInProgress();
+	}
+	
+	public static <T extends ObjectType> String createDefaultIcon(PrismObject<T> object){
+		Class<T> type = object.getCompileTimeClass();
+		if (type.equals(UserType.class)) {
+			return createUserIcon((PrismObject<UserType>) object);
+		} else if (RoleType.class.equals(type)) {
+			return createRoleIcon((PrismObject<RoleType>) object);
+		} else if (OrgType.class.equals(type)) {
+			return createOrgIcon((PrismObject<OrgType>) object);
+		} else if (ServiceType.class.equals(type)) {
+			return createServiceIcon((PrismObject<ServiceType>) object);
+		} else if (type.equals(TaskType.class)) {
+			return createTaskIcon((PrismObject<TaskType>) object);
+		} else if (type.equals(ResourceType.class)) {
+			return createResourceIcon((PrismObject<ResourceType>) object);
+		}
+		
+		return "";
 	}
 
 	public static String createUserIcon(PrismObject<UserType> object) {

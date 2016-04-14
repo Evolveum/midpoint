@@ -34,9 +34,10 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class FocusBrowserPanel<T extends FocusType> extends BasePanel<T> {
+public class FocusBrowserPanel<T extends ObjectType> extends BasePanel<T> {
 
 	private static final String ID_TYPE = "type";
 	private static final String ID_TABLE = "table";
@@ -47,10 +48,10 @@ public class FocusBrowserPanel<T extends FocusType> extends BasePanel<T> {
 
 	private PageBase parentPage;
 
-	public FocusBrowserPanel(String id, final Class<T> type, boolean multiselect, PageBase parentPage) {
+	public FocusBrowserPanel(String id, final Class<T> type, List<QName> supportedTypes, boolean multiselect, PageBase parentPage) {
 		super(id);
 		this.parentPage = parentPage;
-		typeModel = new LoadableModel<QName>(true) {
+		typeModel = new LoadableModel<QName>(false) {
 
 			@Override
 			protected QName load() {
@@ -59,16 +60,17 @@ public class FocusBrowserPanel<T extends FocusType> extends BasePanel<T> {
 
 		};
 
-		initLayout(type, multiselect);
+		initLayout(type, supportedTypes, multiselect);
 	}
 
-	private void initLayout(Class<T> type, final boolean multiselect) {
+	private void initLayout(Class<T> type, List<QName> supportedTypes, final boolean multiselect) {
 		DropDownChoice<QName> typeSelect = new DropDownChoice(ID_TYPE, typeModel,
-				new ListModel(WebComponentUtil.createFocusTypeList()), new QNameChoiceRenderer());
+				new ListModel(supportedTypes), new QNameChoiceRenderer());
 		typeSelect.add(new OnChangeAjaxBehavior() {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
+
 				ObjectListPanel<T> listPanel = (ObjectListPanel<T>) get(ID_TABLE);
 
 				listPanel = createObjectListPanel(qnameToCompileTimeClass(typeModel.getObject()),
@@ -88,7 +90,8 @@ public class FocusBrowserPanel<T extends FocusType> extends BasePanel<T> {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				List<T> selected = ((PopupObjectListPanel) getParent().get(ID_TABLE)).getSelectedObjects();
-				FocusBrowserPanel.this.addPerformed(target, selected);
+				QName type =FocusBrowserPanel.this.typeModel.getObject();
+				FocusBrowserPanel.this.addPerformed(target, type, selected);
 			}
 		};
 		
@@ -137,7 +140,7 @@ public class FocusBrowserPanel<T extends FocusType> extends BasePanel<T> {
 		return listPanel;
 	}
 
-	protected void addPerformed(AjaxRequestTarget target, List<T> selected) {
+	protected void addPerformed(AjaxRequestTarget target, QName type, List<T> selected) {
 		parentPage.hideMainPopup(target);
 	}
 
