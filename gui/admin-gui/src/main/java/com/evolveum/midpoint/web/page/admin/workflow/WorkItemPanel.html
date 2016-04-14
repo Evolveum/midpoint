@@ -21,8 +21,10 @@
 
     <div class="row">
         <div class="col-md-5">
-            <h3><wicket:message key="workItemPanel.mainInfo"/></h3>
-            <div class="box">
+            <div class="box box-info">
+                <div class="box-header">
+                    <h3 class="box-title"><wicket:message key="workItemPanel.mainInfo"/></h3>
+                </div>
                 <div class="box-body no-padding">
                     <table class="table table-condensed table-striped">
                         <tr>
@@ -50,25 +52,43 @@
                 </div>
             </div>
 
-            <h3><wicket:message key="workItemPanel.changesToBeApproved"/></h3>
             <div wicket:id="deltasToBeApproved" />
 
         </div>
         <div class="col-md-7">
-            <h3><wicket:message key="workItemPanel.approvalHistory"/></h3>
-            <div wicket:id="history" />
 
-            <div wicket:id="relatedWorkItemsContainer">
-                <h3><wicket:message key="workItemPanel.otherWorkItems"/></h3>
-                <div wicket:id="relatedWorkItems"/>
+            <div class="box box-info">
+                <div class="box-header">
+                    <h3 class="box-title"><wicket:message key="workItemPanel.approvalHistory"/></h3>
+                </div>
+                <div class="box-body">
+                    <div wicket:id="history" />
+                </div>
             </div>
 
-            <div wicket:id="relatedRequestsContainer">
-                <h3><wicket:message key="workItemPanel.relatedRequestsIncluding"/></h3>
-                <div wicket:id="relatedRequests"/>
+            <div class="box box-info" wicket:id="relatedWorkItemsContainer">
+                <div class="box-header">
+                    <h3 class="box-title"><wicket:message key="workItemPanel.otherWorkItems"/></h3>
+                </div>
+                <div class="box-body">
+                    <div wicket:id="relatedWorkItems"/>
+                </div>
             </div>
+
+            <div class="box box-info" wicket:id="relatedRequestsContainer">
+                <div class="box-header">
+                    <h3 class="box-title"><wicket:message key="workItemPanel.relatedRequestsIncluding"/></h3>
+                </div>
+                <div class="box-body">
+                    <div wicket:id="relatedRequests"/>
+                </div>
+            </div>
+
         </div>
     </div>
+
+    <p/>
+    <a href="#" wicket:id="showRequest"><wicket:message key="WorkItemPanel.showRequest"/></a>
 
     <h3><wicket:message key="workItemPanel.approverComment"/></h3>
     <textarea wicket:id="approverComment" class="form-control input-sm" rows="2"></textarea>

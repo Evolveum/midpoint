@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.AbstractSummaryPanel;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -33,17 +34,24 @@ import javax.xml.namespace.QName;
 public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 	private static final long serialVersionUID = -5077637168906420769L;
 
-	public WorkItemSummaryPanel(String id, IModel<WorkItemType> model) {
+	private final IModel<WorkItemDto> dtoModel;
+
+	public WorkItemSummaryPanel(String id, IModel<WorkItemType> model, IModel<WorkItemDto> dtoModel) {
 		super(id, model);
+		this.dtoModel = dtoModel;
 
 		initLayoutCommon();
 
 		SummaryTagSimple<WorkItemType> isAssignedTag = new SummaryTagSimple<WorkItemType>(ID_FIRST_SUMMARY_TAG, model) {
 			@Override
 			protected void initialize(WorkItemType workItem) {
-				String icon = "";
-				setIconCssClass(icon);
-				setLabel(workItem.getAssigneeRef() != null ? "assigned" : "NOT assigned");
+				if (workItem.getAssigneeRef() != null) {
+					setIconCssClass("fa fa-fw fa-lg fa-lock");
+					setLabel(getString("WorkItemSummaryPanel.assigned"));
+				} else {
+					setIconCssClass("fa fa-fw fa-lg fa-unlock");
+					setLabel(getString("WorkItemSummaryPanel.notAssigned"));
+				}
 			}
 		};
 		addTag(isAssignedTag);
@@ -84,13 +92,8 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 		return new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
-				WorkItemType workItem = getModelObject();
-				TaskType task = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
-				if (task == null || task.getWorkflowContext() == null) {
-					return null;
-				}
 				return getString("TaskSummaryPanel.requestedBy",
-						WebComponentUtil.getName(task.getWorkflowContext().getRequesterRef()));
+						WebComponentUtil.getName(dtoModel.getObject().getRequester()));
 			}
 		};
 	}

@@ -19,23 +19,27 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.show.SceneDto;
-import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wf.WorkItemsTablePanel;
 import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalHistoryPanel;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.server.TaskChangesPanel;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskChangesDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.List;
 
@@ -59,8 +63,9 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
     private static final String ID_RELATED_REQUESTS_CONTAINER = "relatedRequestsContainer";
     private static final String ID_RELATED_REQUESTS = "relatedRequests";
     private static final String ID_APPROVER_COMMENT = "approverComment";
+	private static final String ID_SHOW_REQUEST = "showRequest";
 
-    public WorkItemPanel(String id, IModel<WorkItemDto> model, PageBase pageBase) {
+	public WorkItemPanel(String id, IModel<WorkItemDto> model, PageBase pageBase) {
         super(id, model);
         initLayout(pageBase);
     }
@@ -68,13 +73,14 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
     protected void initLayout(PageBase pageBase) {
         add(new Label(ID_REQUESTED_BY, new PropertyModel(getModel(), WorkItemDto.F_REQUESTER_NAME)));
         add(new Label(ID_REQUESTED_BY_FULL_NAME, new PropertyModel(getModel(), WorkItemDto.F_REQUESTER_FULL_NAME)));
-        add(new Label(ID_REQUESTED_ON, new PropertyModel(getModel(), WorkItemDto.F_PROCESS_STARTED)));
-        add(new Label(ID_WORK_ITEM_CREATED_ON, new PropertyModel(getModel(), WorkItemDto.F_CREATED)));
+        add(new Label(ID_REQUESTED_ON, new PropertyModel(getModel(), WorkItemDto.F_STARTED_FORMATTED_FULL)));
+        add(new Label(ID_WORK_ITEM_CREATED_ON, new PropertyModel(getModel(), WorkItemDto.F_CREATED_FORMATTED_FULL)));
         add(new Label(ID_ASSIGNEE, new PropertyModel(getModel(), WorkItemDto.F_ASSIGNEE)));
         add(new Label(ID_CANDIDATES, new PropertyModel(getModel(), WorkItemDto.F_CANDIDATES)));
         add(new ItemApprovalHistoryPanel(ID_HISTORY, new PropertyModel<WfContextType>(getModel(), WorkItemDto.F_WORKFLOW_CONTEXT),
 				UserProfileStorage.TableId.PAGE_WORK_ITEM_HISTORY_PANEL, (int) pageBase.getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEM_HISTORY_PANEL)));
-        add(new ScenePanel(ID_DELTAS_TO_BE_APPROVED, new PropertyModel<SceneDto>(getModel(), WorkItemDto.F_DELTAS)));
+        //add(new ScenePanel(ID_DELTAS_TO_BE_APPROVED, new PropertyModel<SceneDto>(getModel(), WorkItemDto.F_DELTAS)));
+		add(new TaskChangesPanel(ID_DELTAS_TO_BE_APPROVED, new PropertyModel<TaskChangesDto>(getModel(), WorkItemDto.F_CHANGES)));
 
 		final IModel<List<WorkItemDto>> relatedWorkItemsModel = new PropertyModel<>(getModel(), WorkItemDto.F_OTHER_WORK_ITEMS);
 		WebMarkupContainer relatedWorkItemsContainer = new WebMarkupContainer(ID_RELATED_WORK_ITEMS_CONTAINER);
@@ -101,7 +107,18 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		relatedWorkflowRequestsContainer.add(
 				new WorkflowRequestsPanel(ID_RELATED_REQUESTS, relatedWorkflowRequestsProvider, null, 10,
 						WorkflowRequestsPanel.View.TASKS_FOR_PROCESS, new PropertyModel<String>(getModel(), WorkItemDto.F_PROCESS_INSTANCE_ID)));
-		
+
+		add(new AjaxFallbackLink(ID_SHOW_REQUEST) {
+			public void onClick(AjaxRequestTarget target) {
+				String oid = WorkItemPanel.this.getModelObject().getTaskOid();
+				if (oid != null) {
+					PageParameters parameters = new PageParameters();
+					parameters.add(OnePageParameterEncoder.PARAMETER, oid);
+					setResponsePage(new PageTaskEdit(parameters));
+				}
+			}
+		});
+
         add(new TextArea<>(ID_APPROVER_COMMENT, new PropertyModel<String>(getModel(), WorkItemDto.F_APPROVER_COMMENT)));
     }
 
