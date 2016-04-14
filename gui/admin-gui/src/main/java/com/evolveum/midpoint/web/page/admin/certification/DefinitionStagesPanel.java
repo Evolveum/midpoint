@@ -19,7 +19,7 @@ package com.evolveum.midpoint.web.page.admin.certification;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -30,6 +30,7 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -71,9 +72,10 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 		tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, parentPage, tabs, null);
 		add(tabPanel);
 
-        AjaxButton addNewStage = new AjaxButton(ID_ADD_NEW_STAGE, createStringResource("StageDefinitionPanel.addNewStageButton")) {
+        AjaxSubmitButton addNewStage = new AjaxSubmitButton(ID_ADD_NEW_STAGE, createStringResource("StageDefinitionPanel.addNewStageButton")) {
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            public void onSubmit(AjaxRequestTarget target, Form form) {
+				super.onSubmit(target, form);
                 addPerformed(target);
             }
         };
@@ -88,9 +90,10 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 			}
 		};
 
-		AjaxButton moveLeft = new AjaxButton(ID_MOVE_STAGE_LEFT, createStringResource("StageDefinitionPanel.moveStageLeftButton")) {
+		AjaxSubmitButton moveLeft = new AjaxSubmitButton(ID_MOVE_STAGE_LEFT, createStringResource("StageDefinitionPanel.moveStageLeftButton")) {
 			@Override
-			public void onClick(AjaxRequestTarget target) {
+			public void onSubmit(AjaxRequestTarget target, Form form) {
+				super.onSubmit(target, form);
 				moveLeftPerformed(target);
 			}
 		};
@@ -103,9 +106,10 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 //		});
 		add(moveLeft);
 
-		AjaxButton moveRight = new AjaxButton(ID_MOVE_STAGE_RIGHT, createStringResource("StageDefinitionPanel.moveStageRightButton")) {
+		AjaxSubmitButton moveRight = new AjaxSubmitButton(ID_MOVE_STAGE_RIGHT, createStringResource("StageDefinitionPanel.moveStageRightButton")) {
 			@Override
-			public void onClick(AjaxRequestTarget target) {
+			public void onSubmit(AjaxRequestTarget target, Form form) {
+				super.onSubmit(target, form);
 				moveRightPerformed(target);
 			}
 		};
@@ -118,9 +122,10 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 //		});
 		add(moveRight);
 
-		AjaxButton delete = new AjaxButton(ID_DELETE_STAGE, createStringResource("StageDefinitionPanel.deleteStageButton")) {
+		AjaxSubmitButton delete = new AjaxSubmitButton(ID_DELETE_STAGE, createStringResource("StageDefinitionPanel.deleteStageButton")) {
 			@Override
-			public void onClick(AjaxRequestTarget target) {
+			public void onSubmit(AjaxRequestTarget target, Form form) {
+				super.onSubmit(target, form);
 				deletePerformed(target);
 			}
 		};
@@ -223,5 +228,4 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 			throw new IllegalStateException(e);
 		}
     }
-
 }
