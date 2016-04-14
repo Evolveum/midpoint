@@ -29,10 +29,12 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Application;
 
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -72,7 +74,6 @@ public class CertDefinitionDto implements Serializable {
     private AccessCertificationRemediationStyleType remediationStyle;
     private AccessCertificationCaseOutcomeStrategyType outcomeStrategy;
     //private List<AccessCertificationResponseType> stopReviewOn, advanceToNextStageOn;
-    private String xml;
     private ObjectViewDto owner;
 
     public CertDefinitionDto(AccessCertificationDefinitionType definition, PageBase page,
@@ -81,12 +82,6 @@ public class CertDefinitionDto implements Serializable {
         this.oldDefinition = definition.clone();
         this.definition = definition;
         owner = loadOwnerReference(definition.getOwnerRef());
-
-        try {
-            xml = page.getPrismContext().serializeObjectToString(definition.asPrismObject(), PrismContext.LANG_XML);
-        } catch (SchemaException e) {
-            throw new SystemException("Couldn't serialize campaign definition to XML", e);
-        }
 
         definitionScopeDto = createDefinitionScopeDto(definition.getScopeDefinition(), page.getPrismContext());
         stageDefinition = new ArrayList<>();
@@ -126,8 +121,18 @@ public class CertDefinitionDto implements Serializable {
     }
 
     public String getXml() {
-        return xml;
-    }
+		try {
+			PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
+			return prismContext.serializeObjectToString(getUpdatedDefinition(prismContext).asPrismObject(), PrismContext.LANG_XML);
+		} catch (SchemaException|RuntimeException e) {
+			return "Couldn't serialize campaign definition to XML: " + e.getMessage();
+		}
+
+	}
+
+	public void setXml(String s) {
+		// ignore
+	}
 
     public String getName() {
         return WebComponentUtil.getName(definition);
