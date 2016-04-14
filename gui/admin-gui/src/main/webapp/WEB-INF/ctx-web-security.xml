@@ -68,7 +68,7 @@ http://www.springframework.org/schema/security http://www.springframework.org/sc
 		<custom-filter ref="singleLogoutFilter" before="CAS_FILTER"/>
 		-->
 		
-        <form-login login-page="/login" default-target-url="/home" />
+        <form-login login-page="/login" default-target-url="/self" />
         
         <csrf disabled="true"/>
     </http>
