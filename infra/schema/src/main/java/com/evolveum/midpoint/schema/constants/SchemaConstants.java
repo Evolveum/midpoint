@@ -29,7 +29,9 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -139,6 +141,7 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_ACTIVATION_VALID_TO = new ItemPath(C_ACTIVATION, ActivationType.F_VALID_TO);
 	public static final ItemPath PATH_ACTIVATION_DISABLE_REASON = new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_REASON);
 	public static final ItemPath PATH_ACTIVATION_LOCKOUT_STATUS = new ItemPath(C_ACTIVATION, ActivationType.F_LOCKOUT_STATUS);
+	public static final ItemPath PATH_OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS = new ItemPath(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS);
 	public static final ItemPath PATH_ATTRIBUTES = new ItemPath(C_ATTRIBUTES);
     public static final ItemPath PATH_ASSOCIATION = new ItemPath(C_ASSOCIATION);
 	public static final ItemPath PATH_TRIGGER = new ItemPath(ObjectType.F_TRIGGER);

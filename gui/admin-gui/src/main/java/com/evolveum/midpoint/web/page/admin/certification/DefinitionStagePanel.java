@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * Created by Kate Honchar.
  */
-public class StageDefinitionPanel extends SimplePanel<StageDefinitionDto> {
+public class DefinitionStagePanel extends SimplePanel<StageDefinitionDto> {
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_DURATION = "duration";
@@ -56,7 +56,7 @@ public class StageDefinitionPanel extends SimplePanel<StageDefinitionDto> {
     private static final String ID_STOP_REVIEW_ON = "stopReviewOn";
 
     // TODO remove pageBase from the constructor -- replace with delayed layout initialization
-    public StageDefinitionPanel(String id, IModel<StageDefinitionDto> model, PageBase pageBase) {
+    public DefinitionStagePanel(String id, IModel<StageDefinitionDto> model, PageBase pageBase) {
         super(id, model);
         initLayoutDeferred(pageBase);
     }

@@ -1,13 +1,22 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import java.io.Serializable;
 import java.util.List;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType.F_ADDITIONAL_REVIEWER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType.F_DEFAULT_REVIEWER_REF;
 
 /**
  * Created by Kate on 15.12.2015.
@@ -34,7 +43,35 @@ public class AccessCertificationReviewerDto implements Serializable {
     private ReferenceWrapper defaultReviewers;
     private ReferenceWrapper additionalReviewers;
 
-    public String getName() {
+	public AccessCertificationReviewerDto(AccessCertificationReviewerSpecificationType reviewerType, PrismContext prismContext) throws SchemaException {
+		final PrismReference defaultReviewersReference;
+		final PrismReference additionalReviewersReference;
+		if (reviewerType != null) {
+			name = reviewerType.getName();
+			description = reviewerType.getDescription();
+			useTargetOwner = Boolean.TRUE.equals(reviewerType.isUseTargetOwner());
+			useTargetApprover = Boolean.TRUE.equals(reviewerType.isUseTargetApprover());
+			useObjectOwner = Boolean.TRUE.equals(reviewerType.isUseObjectOwner());
+			useObjectApprover = Boolean.TRUE.equals(reviewerType.isUseObjectApprover());
+			useObjectManager = new ManagerSearchDto(reviewerType.getUseObjectManager());
+			defaultReviewersReference = reviewerType.asPrismContainerValue().findOrCreateReference(AccessCertificationReviewerSpecificationType.F_DEFAULT_REVIEWER_REF);
+			additionalReviewersReference = reviewerType.asPrismContainerValue().findOrCreateReference(AccessCertificationReviewerSpecificationType.F_ADDITIONAL_REVIEWER_REF);
+		} else {
+			useObjectManager = new ManagerSearchDto(null);
+			PrismReferenceDefinition defReviewerDef = prismContext.getSchemaRegistry().findItemDefinitionByFullPath(AccessCertificationDefinitionType.class,
+					PrismReferenceDefinition.class,
+					AccessCertificationDefinitionType.F_STAGE_DEFINITION, AccessCertificationStageDefinitionType.F_REVIEWER_SPECIFICATION, F_DEFAULT_REVIEWER_REF);
+			defaultReviewersReference = defReviewerDef.instantiate();
+			PrismReferenceDefinition additionalReviewerDef = prismContext.getSchemaRegistry().findItemDefinitionByFullPath(AccessCertificationDefinitionType.class,
+					PrismReferenceDefinition.class,
+					AccessCertificationDefinitionType.F_STAGE_DEFINITION, AccessCertificationStageDefinitionType.F_REVIEWER_SPECIFICATION, F_ADDITIONAL_REVIEWER_REF);
+			additionalReviewersReference = additionalReviewerDef.instantiate();
+		}
+		setDefaultReviewers(new ReferenceWrapper(null, defaultReviewersReference, false, ValueStatus.NOT_CHANGED));
+		setAdditionalReviewers(new ReferenceWrapper(null, additionalReviewersReference, false, ValueStatus.NOT_CHANGED));
+	}
+
+	public String getName() {
         return name;
     }
 

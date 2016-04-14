@@ -83,6 +83,7 @@ public class PageWorkItem extends PageAdminWorkItems {
     private static final String OPERATION_CLAIM_WORK_ITEM = DOT_CLASS + "claimWorkItem";
     private static final String OPERATION_RELEASE_WORK_ITEM = DOT_CLASS + "releaseWorkItem";
 
+    private static final String ID_SUMMARY_PANEL = "summaryPanel";
     private static final String ID_WORK_ITEM_PANEL = "workItemPanel";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageWorkItem.class);
@@ -115,17 +116,6 @@ public class PageWorkItem extends PageAdminWorkItems {
         };
 
         initLayout();
-    }
-
-    @Override
-    protected IModel<String> createPageTitleModel() {
-        return new LoadableModel<String>(false) {
-
-            @Override
-            protected String load() {
-                return new PropertyModel<String>(workItemDtoModel, "name").getObject();
-            }
-        };
     }
 
 	@Override
@@ -189,6 +179,10 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     private void initLayout() {
+        WorkItemSummaryPanel summaryPanel = new WorkItemSummaryPanel(ID_SUMMARY_PANEL,
+                new PropertyModel<WorkItemType>(workItemDtoModel, WorkItemDto.F_WORK_ITEM), workItemDtoModel);
+        add(summaryPanel);
+
         Form mainForm = new Form("mainForm");
         mainForm.setMultiPart(true);
         add(mainForm);

@@ -4,7 +4,7 @@
 @object-org-color: #F39C12;
 @object-service-color: #00C0EF;
 @object-resource-color: #605CA8;
-
+@object-task-color: #001f3f;
 
 .skin-blue-light .main-header {
   & .logo {
@@ -149,6 +149,10 @@ th.cog, td.cog {
 	color: #909090;
 }
 
+.icon-style-archived {
+	color: #c0c0c0;
+}
+
 .icon-style-privileged {
 	color: #a94442;
 }
@@ -165,7 +169,7 @@ th.cog, td.cog {
 	color: #a94442;
 }
 
-// Classes that can be added to color icons for particular object types
+// Classes that can be added to color icons, info boxes and other widgets for particular object types
 
 .object-user-color {
 	color: @object-user-color;
@@ -185,6 +189,40 @@ th.cog, td.cog {
 
 .object-resource-color {
 	color: @object-resource-color;
+}
+
+.object-task-color {
+	color: @object-task-color;
+}
+
+.object-user-bg {
+	background-color: @object-user-color !important;
+	color: #fff !important;
+}
+
+.object-role-bg {
+	background-color: @object-role-color !important;
+	color: #fff !important;
+}
+
+.object-org-bg {
+	background-color: @object-org-color !important;
+	color: #fff !important;
+}
+
+.object-service-bg {
+	background-color: @object-service-color !important;
+	color: #fff !important;
+}
+
+.object-resource-bg {
+	background-color: @object-resource-color !important;
+	color: #fff !important;
+}
+
+.object-task-bg {
+	background-color: @object-task-color !important;
+	color: #fff !important;
 }
 
 // Colored boxes for each object type
@@ -429,7 +467,7 @@ th.cog, td.cog {
   //.border-radius(2px);
 
   > li > a {
-    color: #444;
+    color: #ddd;
     text-decoration: none;
     display: inline-block;
 

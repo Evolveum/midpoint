@@ -721,10 +721,16 @@ public final class WebComponentUtil {
         return locale;
     }
 
-    public static String getLocalizedDate(Date date, String style){
+	public static String getLocalizedDate(XMLGregorianCalendar date, String style) {
+		return getLocalizedDate(XmlTypeConverter.toDate(date), style);
+	}
+
+    public static String getLocalizedDate(Date date, String style) {
+		if (date == null) {
+			return null;
+		}
         PatternDateConverter converter = new PatternDateConverter(getLocalizedDatePattern(style), true );
         return converter.convertToString(date, WebComponentUtil.getCurrentLocale());
-
     }
 
     public static boolean isActivationEnabled(PrismObject object) {
@@ -831,8 +837,12 @@ public final class WebComponentUtil {
 
 	private static <F extends FocusType> String getIconEnabledDisabled(PrismObject<F> object, String baseIcon) {
 		ActivationType activation = object.asObjectable().getActivation();
-		if (activation != null && ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())) {
-			return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_DISABLED;
+		if (activation != null) {
+			if (ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())) {
+				return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_DISABLED;
+			} else if (ActivationStatusType.ARCHIVED.equals(activation.getEffectiveStatus())) {
+				return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_ARCHIVED;
+			}
 		}
 
 		return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;

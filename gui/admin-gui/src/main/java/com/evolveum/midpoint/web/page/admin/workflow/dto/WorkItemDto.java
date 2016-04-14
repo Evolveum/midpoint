@@ -22,13 +22,19 @@ import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskChangesDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
@@ -42,9 +48,11 @@ import java.util.Date;
  */
 public class WorkItemDto extends Selectable {
 
+    public static final String F_WORK_ITEM = "workItem";
     public static final String F_NAME = "name";
-    public static final String F_CREATED = "created";
-    public static final String F_PROCESS_STARTED = "processStarted";
+    public static final String F_CREATED_FORMATTED = "createdFormatted";
+    public static final String F_CREATED_FORMATTED_FULL = "createdFormattedFull";
+    public static final String F_STARTED_FORMATTED_FULL = "startedFormattedFull";
     public static final String F_ASSIGNEE_OR_CANDIDATES = "assigneeOrCandidates";
     public static final String F_ASSIGNEE = "assignee";
     public static final String F_CANDIDATES = "candidates";
@@ -60,8 +68,9 @@ public class WorkItemDto extends Selectable {
     public static final String F_APPROVER_COMMENT = "approverComment";
 
     public static final String F_WORKFLOW_CONTEXT = "workflowContext";          // use with care
-	public static final String F_DELTAS = "deltas";
+	@Deprecated public static final String F_DELTAS = "deltas";
 	public static final String F_PROCESS_INSTANCE_ID = "processInstanceId";
+	public static final String F_CHANGES = "changes";
 
 	// workItem may or may not contain resolved taskRef;
     // and this task may or may not contain filled-in workflowContext -> and then requesterRef object
@@ -71,7 +80,8 @@ public class WorkItemDto extends Selectable {
     protected WorkItemType workItem;
 	protected TaskType taskType;
 	protected List<TaskType> relatedTasks;
-	protected SceneDto deltas;
+	@Deprecated protected SceneDto deltas;
+	protected TaskChangesDto changes;
     protected String approverComment;
 
     public WorkItemDto(WorkItemType workItem) {
@@ -96,6 +106,10 @@ public class WorkItemDto extends Selectable {
 		WfPrimaryChangeProcessorStateType state = (WfPrimaryChangeProcessorStateType) task.getWorkflowContext().getProcessorSpecificState();
 		Scene deltasScene = SceneUtil.visualizeObjectTreeDeltas(state.getDeltasToProcess(), sceneNameKey, prismContext, modelInteractionService, opTask, result);
 		deltas = new SceneDto(deltasScene);
+
+		ObjectTreeDeltas deltas = ObjectTreeDeltas.fromObjectTreeDeltasType(state.getDeltasToProcess(), prismContext);
+		changes = TaskDto.createChangesToBeApproved(deltas, modelInteractionService,
+				prismContext, opTask, result);
 	}
 
 	@Nullable
@@ -111,11 +125,15 @@ public class WorkItemDto extends Selectable {
         return workItem.getName();
     }
 
-    public String getCreated() {
-        return WebComponentUtil.formatDate(XmlTypeConverter.toDate(workItem.getWorkItemCreatedTimestamp()));
+    public String getCreatedFormatted() {
+        return WebComponentUtil.getLocalizedDate(workItem.getWorkItemCreatedTimestamp(), DateLabelComponent.MEDIUM_MEDIUM_STYLE);
     }
 
-    public Date getCreatedDate() {
+	public String getCreatedFormattedFull() {
+		return WebComponentUtil.getLocalizedDate(workItem.getWorkItemCreatedTimestamp(), DateLabelComponent.FULL_FULL_STYLE);
+	}
+
+	public Date getCreatedDate() {
         return XmlTypeConverter.toDate(workItem.getWorkItemCreatedTimestamp());
     }
 
@@ -123,8 +141,8 @@ public class WorkItemDto extends Selectable {
         return XmlTypeConverter.toDate(workItem.getProcessStartedTimestamp());
     }
 
-    public String getProcessStarted() {
-        return WebComponentUtil.formatDate(XmlTypeConverter.toDate(workItem.getProcessStartedTimestamp()));
+    public String getStartedFormattedFull() {
+        return WebComponentUtil.getLocalizedDate(workItem.getProcessStartedTimestamp(), DateLabelComponent.FULL_FULL_STYLE);
     }
 
     public String getAssigneeOrCandidates() {
@@ -223,6 +241,7 @@ public class WorkItemDto extends Selectable {
         return workItem;
     }
 
+	@Deprecated
 	public SceneDto getDeltas() {
 		return deltas;
 	}
@@ -251,7 +270,7 @@ public class WorkItemDto extends Selectable {
 		return rv;
 	}
 
-	// all including the current task
+	// all excluding the current task
 	public List<ProcessInstanceDto> getRelatedWorkflowRequests() {
 		final List<ProcessInstanceDto> rv = new ArrayList<>();
 		if (relatedTasks == null) {
@@ -259,6 +278,9 @@ public class WorkItemDto extends Selectable {
 		}
 		for (TaskType task : relatedTasks) {
 			if (task.getWorkflowContext() == null || task.getWorkflowContext().getProcessInstanceId() == null) {
+				continue;
+			}
+			if (StringUtils.equals(getProcessInstanceId(), task.getWorkflowContext().getProcessInstanceId())) {
 				continue;
 			}
 			rv.add(new ProcessInstanceDto(task));
@@ -269,5 +291,19 @@ public class WorkItemDto extends Selectable {
 	public String getProcessInstanceId() {
 		final TaskType task = getTaskType();
 		return task != null && task.getWorkflowContext() != null ? task.getWorkflowContext().getProcessInstanceId() : null;
+	}
+
+	public String getTaskOid() {
+		final TaskType task = getTaskType();
+		return task != null ? task.getOid() : null;
+	}
+
+	public boolean hasHistory() {
+		WfContextType wfc = getWorkflowContext();
+		if (wfc == null || !(wfc.getProcessSpecificState() instanceof ItemApprovalProcessStateType)) {
+			return false;
+		}
+		ItemApprovalProcessStateType instanceState = (ItemApprovalProcessStateType) wfc.getProcessSpecificState();
+		return CollectionUtils.isNotEmpty(instanceState.getDecisions());
 	}
 }
