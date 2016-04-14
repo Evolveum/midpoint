@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package com.evolveum.midpoint.util.aspect;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.aspectj.lang.ProceedingJoinPoint;
 
 import java.util.Date;
 
@@ -34,6 +33,7 @@ import java.util.Date;
  *
  *  @author shood
  * */
+@Deprecated
 public class ProfilingDataLog {
 
     private static Trace LOGGER = TraceManager.getTrace(ProfilingDataManager.class);
@@ -111,9 +111,9 @@ public class ProfilingDataLog {
         this.methodName = methodName;
     }
 
-    public Object[] retrieveMethodArguments(ProceedingJoinPoint pjp){
-        return pjp.getArgs();
-    }
+//    public Object[] retrieveMethodArguments(ProceedingJoinPoint pjp){
+//        return pjp.getArgs();
+//    }
 
     public void logProfilingEvent(Trace LOGGER){
         LOGGER.info(className + "->" + methodName + " est: " + formatExecutionTime(estimatedTime));

@@ -195,10 +195,6 @@
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.aspectj</groupId>
-			<artifactId>aspectjweaver</artifactId>
-		</dependency>
-		<dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
         </dependency>
@@ -388,31 +384,6 @@
             <scope>test</scope>
 		</dependency>
 	</dependencies>
-	<profiles>
-		<profile>
-			<id>aspectj</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>aspectj-maven-plugin</artifactId>
-                        <version>1.6</version>
-						<configuration>
-							<aspectLibraries>
-								<aspectLibrary>
-									<groupId>com.evolveum.midpoint.infra</groupId>
-									<artifactId>util</artifactId>
-								</aspectLibrary>
-							</aspectLibraries>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
     <build>
         <plugins>
             <plugin>

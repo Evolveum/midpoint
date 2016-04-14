@@ -46,7 +46,6 @@
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>EEE, d MMM yyyy HH:mm:ss Z</maven.build.timestamp.format>
         <!-- Dependencies global versions -->
-        <aspectj.version>1.7.3</aspectj.version>
         <commons.io.version>2.0.1</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
         <commons.lang3.version>3.1</commons.lang3.version>
@@ -64,8 +63,8 @@
         <quartz.version>2.1.3</quartz.version>
         <selenium.version>1.0.1</selenium.version>
         <slf4j.version>1.7.12</slf4j.version>
-        <spring.version>4.0.6.RELEASE</spring.version>
-        <spring.security.version>3.2.5.RELEASE</spring.security.version>
+        <spring.version>4.2.5.RELEASE</spring.version>
+        <spring.security.version>4.0.4.RELEASE</spring.security.version>
         <testng.version>6.8.8</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
         <cron4j.version>2.2.3</cron4j.version>
@@ -168,26 +167,6 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <dependency>
-	            <groupId>org.aspectj</groupId>
-	            <artifactId>aspectjtools</artifactId>
-	            <version>${aspectj.version}</version>
-	        </dependency>
-	        <dependency>
-	            <groupId>org.aspectj</groupId>
-	            <artifactId>aspectjrt</artifactId>
-	            <version>${aspectj.version}</version>
-	        </dependency>
-	        <dependency>
-	            <groupId>org.springframework</groupId>
-	            <artifactId>spring-aspects</artifactId>
-	            <version>${spring.version}</version>
-	        </dependency>
-            <dependency>
-				<groupId>org.aspectj</groupId>
-				<artifactId>aspectjweaver</artifactId>
-				<version>1.8.1</version>
-			</dependency>
             <dependency> <!-- Explicit version -->
                 <groupId>javax.activation</groupId>
                 <artifactId>activation</artifactId>
@@ -680,11 +659,6 @@
 			</dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
-                <artifactId>spring-aspects</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
                 <artifactId>spring-beans</artifactId>
                 <version>${spring.version}</version>
             </dependency>
@@ -715,11 +689,6 @@
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
-                <artifactId>spring-aop</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
                 <artifactId>spring-jdbc</artifactId>
                 <version>${spring.version}</version>
             </dependency>
@@ -738,6 +707,16 @@
                 <artifactId>spring-orm</artifactId>
                 <version>${spring.version}</version>
             </dependency>
+            <dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
+				<groupId>org.springframework</groupId> 
+				<artifactId>spring-aspects</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+	        <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
+				<groupId>org.springframework</groupId> 
+				<artifactId>spring-aop</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
             <dependency>
                 <groupId>org.springframework.security</groupId>
                 <artifactId>spring-security-config</artifactId>
@@ -753,7 +732,7 @@
                 <artifactId>spring-security-core</artifactId>
                 <version>${spring.security.version}</version>
             </dependency>
-            <dependency>
+            <dependency> <!-- Needed for MethodInvocation object in security-impl, used by Spring Security -->
 	            <groupId>aopalliance</groupId>
 	            <artifactId>aopalliance</artifactId>
 	            <version>1.0</version>
@@ -1387,17 +1366,12 @@
 									<ignoredUnusedDeclaredDependencies>
 									
 										<!-- There are dependencies in this master POM. So they are projected everywhere, used or unused. -->
-										<ignoredUnusedDeclaredDependency>org.aspectj:aspectjtools</ignoredUnusedDeclaredDependency>
-										<ignoredUnusedDeclaredDependency>org.aspectj:aspectjrt</ignoredUnusedDeclaredDependency>
 										<ignoredUnusedDeclaredDependency>org.springframework</ignoredUnusedDeclaredDependency>
 										
 										<!-- Common "drill" for all modules. -->
 										<ignoredUnusedDeclaredDependency>com.evolveum.midpoint.tools:test-ng</ignoredUnusedDeclaredDependency>
 										<ignoredUnusedDeclaredDependency>org.testng:testng</ignoredUnusedDeclaredDependency>
 										<ignoredUnusedDeclaredDependency>commons-lang:commons-lang</ignoredUnusedDeclaredDependency>
-										
-										<!-- Declared, but not used if building only with the "default" profile -->
-										<ignoredUnusedDeclaredDependency>org.aspectj:aspectjweaver</ignoredUnusedDeclaredDependency>
 										
 										<!-- There is some kind of conflict between these. TODO: clean up -->
 										<ignoredUnusedDeclaredDependency>xml-apis:xml-apis</ignoredUnusedDeclaredDependency>
@@ -1438,58 +1412,6 @@
                         <includeTestSourceDirectory>false</includeTestSourceDirectory> 
                         </configuration>
                         </plugin -->
-                </plugins>
-            </reporting>
-        </profile>
-        <profile>
-            <id>aspectj</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>aspectj-maven-plugin</artifactId>
-                        <version>1.6</version>
-                        <configuration>
-                            <encoding>${project.build.sourceEncoding}</encoding>
-                            <source>${project.source.version}</source>
-                            <complianceLevel>${project.source.version}</complianceLevel>
-                            <verbose>false</verbose>
-                            <showWeaveInfo>false</showWeaveInfo>
-                            <outxml>false</outxml>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>compile</goal>
-                                    <!-- <goal>test-compile</goal> -->
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-            <reporting>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>aspectj-maven-plugin</artifactId>
-                        <version>1.6</version>
-                        <configuration>
-                            <verbose>false</verbose>
-                            <privateScope>true</privateScope>
-                            <complianceLevel>${project.source.version}</complianceLevel>
-                        </configuration>
-                        <reportSets>
-                            <reportSet>
-                                <reports>
-                                    <report>aspectj-report</report>
-                                </reports>
-                            </reportSet>
-                        </reportSets>
-                    </plugin>
                 </plugins>
             </reporting>
         </profile>
@@ -1579,21 +1501,6 @@
 		</profile>
     </profiles>
     <dependencies>
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjtools</artifactId>
-            <version>${aspectj.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjrt</artifactId>
-            <version>${aspectj.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-aspects</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
     	<dependency> <!-- Not used, but required for surefire plugin not to complain -->
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
