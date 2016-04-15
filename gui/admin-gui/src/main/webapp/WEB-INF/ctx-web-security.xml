@@ -68,10 +68,19 @@ http://www.springframework.org/schema/security http://www.springframework.org/sc
 		<custom-filter ref="singleLogoutFilter" before="CAS_FILTER"/>
 		-->
 		
-        <form-login login-page="/login" default-target-url="/self" />
+        <form-login login-page="/login"
+                    authentication-success-handler-ref="authenticationSuccessHandler" />
         
         <csrf disabled="true"/>
     </http>
+
+    <beans:bean id="authenticationSuccessHandler"
+                class="com.evolveum.midpoint.web.security.MidpointAuthenticationSuccessHandler">
+        <!-- After login, return to the last visited page -->
+        <beans:property name="useReferer" value="true" />
+        <beans:property name="defaultTargetUrl" value="/self"/>
+    </beans:bean>
+
 
     <beans:bean id="accessDecisionManager" class="com.evolveum.midpoint.web.security.MidPointGuiAuthorizationEvaluator">
     	<beans:constructor-arg name="securityEnforcer" ref="securityEnforcer"/>
