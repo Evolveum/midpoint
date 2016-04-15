@@ -272,8 +272,6 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
     protected void onClickPerformed(AjaxRequestTarget target) {
         ObjectWrapper<O> wrapper = getModelObject();
         wrapper.setMinimalized(!wrapper.isMinimalized());
-
-        target.add(findParent(PrismObjectPanel.class));
     }
 
     protected void onShowMorePerformed(AjaxRequestTarget target){
