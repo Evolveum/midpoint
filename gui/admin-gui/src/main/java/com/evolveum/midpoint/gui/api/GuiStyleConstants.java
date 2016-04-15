@@ -67,10 +67,23 @@ public class GuiStyleConstants {
 	public static final String CLASS_SHADOW_ICON_GENERIC = "fa fa-circle-o";
 	public static final String CLASS_SHADOW_ICON_PROTECTED = "fa fa-shield";
 	public static final String CLASS_SHADOW_ICON_UNKNOWN = "fa fa-eye";
-	
+
+	public static final String CLASS_APPROVAL_OUTCOME_ICON_UNKNOWN_COLORED = "fa fa-check text-warning";
+	public static final String CLASS_APPROVAL_OUTCOME_ICON_APPROVED_COLORED = "fa fa-check text-success";
+	public static final String CLASS_APPROVAL_OUTCOME_ICON_REJECTED_COLORED = "fa fa-times text-danger";
+	public static final String CLASS_APPROVAL_OUTCOME_ICON_IN_PROGRESS_COLORED = "fa fa-clock-o text-info";
+
 	public static final String CLASS_ICON_SORT_AMOUNT_ASC = "fa fa-sort-amount-asc";
 	public static final String CLASS_ICON_SORT_ALPHA_ASC = "fa fa-sort-alpha-asc";
 	public static final String CLASS_ICON_SHOW_EMPTY_FIELDS = "fa fa-square-o";
 	public static final String CLASS_ICON_NOT_SHOW_EMPTY_FIELDS = "fa fa-square";
 
+	public static final String CLASS_OP_RESULT_STATUS_ICON_UNKNOWN_COLORED = "fa fa-question-circle text-warning";
+	public static final String CLASS_OP_RESULT_STATUS_ICON_SUCCESS_COLORED = "fa fa-check-circle text-success";
+	public static final String CLASS_OP_RESULT_STATUS_ICON_WARNING_COLORED = "fa fa-exclamation-circle text-warning";
+	public static final String CLASS_OP_RESULT_STATUS_ICON_PARTIAL_ERROR_COLORED = "fa fa-minus-circle text-danger";
+	public static final String CLASS_OP_RESULT_STATUS_ICON_FATAL_ERROR_COLORED = "fa fa-times-circle text-danger";
+	public static final String CLASS_OP_RESULT_STATUS_ICON_HANDLED_ERROR_COLORED = "fa fa-minus-circle text-warning";
+	public static final String CLASS_OP_RESULT_STATUS_ICON_NOT_APPLICABLE_COLORED = "fa fa-check-circle text-muted";
+	public static final String CLASS_OP_RESULT_STATUS_ICON_IN_PROGRESS_COLORED = "fa fa-clock-o text-info";
 }

@@ -81,6 +81,10 @@ public class CertCaseOrDecisionDto extends Selectable {
         return objectName;
     }
 
+	public QName getObjectType() {
+		return certCase.getObjectRef().getType();
+	}
+
     public String getTargetName() {
         return targetName;
     }

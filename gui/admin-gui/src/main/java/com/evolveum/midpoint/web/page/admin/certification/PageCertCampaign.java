@@ -279,10 +279,13 @@ public class PageCertCampaign extends PageAdminCertification {
 		
 		IColumn column;
 
+		column = helper.createObjectOrTargetTypeColumn(true, this);
+		columns.add(column);
+
 		column = helper.createObjectNameColumn(this, "PageCertCampaign.table.objectName");
 		columns.add(column);
 
-		column = helper.createTargetTypeColumn(this);
+		column = helper.createObjectOrTargetTypeColumn(false, this);
 		columns.add(column);
 
 		column = helper.createTargetNameColumn(this, "PageCertCampaign.table.targetName");
