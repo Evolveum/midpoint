@@ -77,10 +77,6 @@
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.aspectj</groupId>
-			<artifactId>aspectjweaver</artifactId>
-		</dependency>
         
         <dependency>
             <groupId>org.testng</groupId>
@@ -158,6 +154,16 @@
 			<artifactId>jaxb-api</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
+			<groupId>org.springframework</groupId> 
+			<artifactId>spring-aspects</artifactId>
+			<scope>test</scope> 
+		</dependency>
+        <dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
+			<groupId>org.springframework</groupId> 
+			<artifactId>spring-aop</artifactId>
+			<scope>test</scope> 
+		</dependency>
 
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -167,29 +173,6 @@
         </dependency>
     </dependencies>
     <profiles>
-        <profile>
-            <id>aspectj</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>aspectj-maven-plugin</artifactId>
-                        <version>1.6</version>
-                        <configuration>
-                            <aspectLibraries>
-                                <aspectLibrary>
-                                    <groupId>com.evolveum.midpoint.infra</groupId>
-                                    <artifactId>util</artifactId>
-                                </aspectLibrary>
-                            </aspectLibraries>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
         <profile>
             <id>dbtest</id>
             <activation>

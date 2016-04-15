@@ -16,12 +16,9 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
-import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -45,7 +42,6 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import org.apache.wicket.AttributeModifier;
@@ -185,10 +181,13 @@ public class PageCertDecisions extends PageAdminCertification {
         column = new CheckBoxHeaderColumn<>();
         columns.add(column);
 
-        column = helper.createObjectNameColumn(this, "PageCertDecisions.table.objectName");
+		column = helper.createObjectOrTargetTypeColumn(true, this);
+		columns.add(column);
+
+		column = helper.createObjectNameColumn(this, "PageCertDecisions.table.objectName");
         columns.add(column);
 
-        column = helper.createTargetTypeColumn(this);
+        column = helper.createObjectOrTargetTypeColumn(false, this);
         columns.add(column);
 
         column = helper.createTargetNameColumn(this, "PageCertDecisions.table.targetName");

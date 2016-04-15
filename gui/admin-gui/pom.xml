@@ -309,6 +309,16 @@
             <version>3.4-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
+        <dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
+			<groupId>org.springframework</groupId> 
+			<artifactId>spring-aspects</artifactId>
+			<scope>runtime</scope> 
+		</dependency>
+        <dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
+			<groupId>org.springframework</groupId> 
+			<artifactId>spring-aop</artifactId>
+			<scope>runtime</scope> 
+		</dependency>
         <dependency>
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy-all</artifactId>
@@ -439,10 +449,6 @@
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
-            <artifactId>spring-aspects</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
         </dependency>
         <dependency>
@@ -466,7 +472,7 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
-            <scope>runtime</scope> <!-- TODO: review if we need this dependency -->
+            <scope>runtime</scope>
         </dependency>
 
         <!--  WICKET DEPENDENCIES -->
@@ -747,30 +753,6 @@
         </dependency>
     </dependencies>
     <profiles>
-        <profile>
-            <id>aspectj</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>aspectj-maven-plugin</artifactId>
-                        <version>1.6</version>
-                        <configuration>
-                            <aspectLibraries>
-                                <aspectLibrary>
-                                    <groupId>com.evolveum.midpoint.infra</groupId>
-                                    <artifactId>util</artifactId>
-                                </aspectLibrary>
-                            </aspectLibraries>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
         <profile>
             <id>tomcat</id>
             <activation>
