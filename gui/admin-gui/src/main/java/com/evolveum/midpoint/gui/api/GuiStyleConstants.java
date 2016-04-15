@@ -67,5 +67,10 @@ public class GuiStyleConstants {
 	public static final String CLASS_SHADOW_ICON_GENERIC = "fa fa-circle-o";
 	public static final String CLASS_SHADOW_ICON_PROTECTED = "fa fa-shield";
 	public static final String CLASS_SHADOW_ICON_UNKNOWN = "fa fa-eye";
+	
+	public static final String CLASS_ICON_SORT_AMOUNT_ASC = "fa fa-sort-amount-asc";
+	public static final String CLASS_ICON_SORT_ALPHA_ASC = "fa fa-sort-alpha-asc";
+	public static final String CLASS_ICON_SHOW_EMPTY_FIELDS = "fa fa-square-o";
+	public static final String CLASS_ICON_NOT_SHOW_EMPTY_FIELDS = "fa fa-square";
 
 }
