@@ -523,6 +523,43 @@ div.dashAssignmentHeader {
 
 // Prism containers and attributes
 
+.prism-object {
+	
+}
+
+.prism-container {
+	border-bottom: 1px solid @table-divider-color;
+	margin-bottom: 15px;
+	padding-bottom: 15px;
+}
+
+.prism-properties {
+	padding-left: 30px;
+}
+
+.prism-header {
+	margin-bottom: 15px;
+	display: block;
+}
+
+.prism-title {
+	font-size: 16px;
+	font-weight: 600;
+	color: #3c8dbc; // TODO: variable
+}
+
+.prism-property {
+	
+	&.visible { 
+    border-bottom: 1px solid @table-divider-color;
+  }
+
+  &.striped {
+    background-color: @table-stripe-bg-color;
+  }
+	
+}
+
 div.attributeComponent > div { // attribute label-value row: outer
 
   &.visible { 

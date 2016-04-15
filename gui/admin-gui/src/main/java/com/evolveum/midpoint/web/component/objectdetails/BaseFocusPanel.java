@@ -168,13 +168,7 @@ public abstract class BaseFocusPanel<F extends FocusType> extends Panel {
 	protected void initLayout() {
 
 		PrismObjectPanel userForm = new PrismObjectPanel<F>(ID_FOCUS_FORM, focusModel,
-				new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm, page) {
-
-			@Override
-			protected IModel<String> createDescription(IModel<ObjectWrapper<F>> model) {
-				return createStringResource("pageAdminFocus.description");
-			}
-		};
+				new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm, page);
 		add(userForm);
 
 		WebMarkupContainer shadows = new WebMarkupContainer(ID_SHADOWS);

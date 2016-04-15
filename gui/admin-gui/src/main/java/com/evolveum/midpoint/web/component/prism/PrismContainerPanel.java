@@ -16,46 +16,36 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.objectdetails.FocusDetailsTabPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import org.apache.commons.lang.math.NumberUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author lazyman
+ * @author semancik
  */
 public class PrismContainerPanel extends Panel {
+	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismContainerPanel.class);
-    private static final String ID_SHOW_EMPTY_FIELDS = "showEmptyFields";
-    private static final String ID_SORT_PROPERTIES = "sortProperties";
+    private static final String ID_HEADER = "header";
     private static final String STRIPED_CLASS = "striped";
 
-    private boolean showHeader;
     private PageBase pageBase;
 
     public PrismContainerPanel(String id, IModel<ContainerWrapper> model, Form form) {
@@ -64,7 +54,6 @@ public class PrismContainerPanel extends Panel {
 
     public PrismContainerPanel(String id, final IModel<ContainerWrapper> model, boolean showHeader, Form form, PageBase pageBase) {
         super(id);
-        this.showHeader = showHeader;
         this.pageBase = pageBase;
 
         LOGGER.trace("Creating container panel for {}", model.getObject());
@@ -98,6 +87,28 @@ public class PrismContainerPanel extends Panel {
 
         initLayout(model, form);
     }
+    
+    private void initLayout(final IModel<ContainerWrapper> model, final Form form) {
+    	PrismHeaderPanel header = new PrismHeaderPanel(ID_HEADER, model, true) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void onButtonClick(AjaxRequestTarget target) {
+				target.add(PrismContainerPanel.this.findParent(PrismObjectPanel.class));
+			}
+    		
+    	};
+        header.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return !model.getObject().isMain();
+            }
+        });
+        add(header);
+
+        addOrReplaceProperties(model, form, false);
+    }
 
     @Override
     public void renderHead(IHeaderResponse response) {
@@ -106,143 +117,6 @@ public class PrismContainerPanel extends Panel {
         StringBuilder sb = new StringBuilder();
         sb.append("fixStripingOnPrismForm('").append(getMarkupId()).append("', '").append(STRIPED_CLASS).append("');");
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
-    }
-
-    private void initLayout(final IModel<ContainerWrapper> model, final Form form) {
-        WebMarkupContainer header = new WebMarkupContainer("header");
-        header.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return isShowHeader();
-            }
-        });
-
-
-        AjaxLink showEmptyFieldsButton = new AjaxLink(ID_SHOW_EMPTY_FIELDS) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                ContainerWrapper containerWrapper = model.getObject();
-                ObjectWrapper objectWrapper = containerWrapper.getObject();
-                objectWrapper.setShowEmpty(!objectWrapper.isShowEmpty());
-                target.add(PrismContainerPanel.this.findParent(PrismObjectPanel.class));
-            }
-        };
-        showEmptyFieldsButton.setEscapeModelStrings(false);
-        showEmptyFieldsButton.setBody(new Model<String>(){
-			@Override
-			public String getObject() {
-				if (model.getObject().getObject().isShowEmpty()) {
-					return "<i class=\""+GuiStyleConstants.CLASS_ICON_SHOW_EMPTY_FIELDS+"\"></i>";
-				} else {
-					return "<i class=\""+GuiStyleConstants.CLASS_ICON_NOT_SHOW_EMPTY_FIELDS+"\"></i>";
-				}
-			}
-        });
-        header.add(showEmptyFieldsButton);
-
-        AjaxLink sortProperties = new AjaxLink(ID_SORT_PROPERTIES) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                ContainerWrapper containerWrapper = model.getObject();
-                ObjectWrapper objectWrapper = containerWrapper.getObject();
-                objectWrapper.setSorted(!objectWrapper.isSorted());
-
-                PropertyModel propertiesModel = new PropertyModel(model, "properties");
-                List<PropertyOrReferenceWrapper> propertiesList = (List<PropertyOrReferenceWrapper>)propertiesModel.getObject();
-
-                if (objectWrapper.isSorted()){
-                    Collections.sort(propertiesList, new Comparator<PropertyOrReferenceWrapper>(){
-                        @Override
-                        public int compare(PropertyOrReferenceWrapper pw1, PropertyOrReferenceWrapper pw2) {
-                            ItemDefinition id1 = pw1.getItemDefinition();
-                            ItemDefinition id2 = pw2.getItemDefinition();
-                            String str1 =(id1 != null ? (id1.getDisplayName() != null ? id1.getDisplayName() :
-                                    (id1.getName() != null && id1.getName().getLocalPart() != null ? id1.getName().getLocalPart() : "")) : "");
-                            String str2 =(id2 != null ? (id2.getDisplayName() != null ? id2.getDisplayName() :
-                                    (id2.getName() != null && id2.getName().getLocalPart() != null ? id2.getName().getLocalPart() : "")) : "");
-                            return str1.compareToIgnoreCase(str2);
-                        }
-                    });
-                }
-                else {
-                    final int[] maxOrderArray = new int[3];
-                    Collections.sort(propertiesList, new Comparator<PropertyOrReferenceWrapper>(){
-                        @Override
-                        public int compare(PropertyOrReferenceWrapper pw1, PropertyOrReferenceWrapper pw2) {
-                            ItemDefinition id1 = pw1.getItemDefinition();
-                            ItemDefinition id2 = pw2.getItemDefinition();
-
-                            //we need to find out the value of the biggest displayOrder to put
-                            //properties with null display order to the end of the list
-                            int displayOrder1 = (id1 != null && id1.getDisplayOrder() != null) ? id1.getDisplayOrder() : 0;
-                            int displayOrder2 = (id2 != null && id2.getDisplayOrder() != null) ? id2.getDisplayOrder() : 0;
-                            if (maxOrderArray[0] == 0){
-                                maxOrderArray[0] = displayOrder1 > displayOrder2 ? displayOrder1 + 1 : displayOrder2 + 1;
-                            }
-                            maxOrderArray[1] = displayOrder1;
-                            maxOrderArray[2] = displayOrder2;
-
-                            int maxDisplayOrder = NumberUtils.max(maxOrderArray);
-                            maxOrderArray[0] = maxDisplayOrder + 1;
-
-                            return Integer.compare(id1 != null  && id1.getDisplayOrder() != null ? id1.getDisplayOrder() : maxDisplayOrder,
-                                    id2 != null && id2.getDisplayOrder() != null ? id2.getDisplayOrder() : maxDisplayOrder);
-                        }
-                    });
-                }
-                addOrReplaceProperties(model, form, true);
-                target.add(PrismContainerPanel.this);
-            }
-        };
-        sortProperties.setEscapeModelStrings(false);
-        sortProperties.setBody(new Model<String>(){
-			@Override
-			public String getObject() {
-				if (model.getObject().getObject().isSorted()) {
-					return "<i class=\""+GuiStyleConstants.CLASS_ICON_SORT_ALPHA_ASC+"\"></i>";
-				} else {
-					return "<i class=\""+GuiStyleConstants.CLASS_ICON_SORT_AMOUNT_ASC+"\"></i>";
-				}
-			}
-        });
-        header.add(sortProperties);
-        add(header);
-
-        IModel headerLabelModel;
-
-        if (model.getObject().isMain()){
-//            headerLabelModel = new StringResourceModel(resourceKey, this);
-            ContainerWrapper wrappper = model.getObject();
-            ObjectWrapper objwrapper = wrappper.getObject();
-            final String key = objwrapper != null ? objwrapper.getDisplayName() : "";
-
-            headerLabelModel = new IModel<String>() {
-                @Override
-                public String getObject() {
-                    String displayName = PageBase.createStringResourceStatic(getPage(), key).getString();
-                    if (displayName.equals(key)){
-                        displayName = (new PropertyModel<String>(model, "displayName")).getObject();
-                    }
-                    return displayName;
-                }
-
-                @Override
-                public void setObject(String o) {
-
-                }
-
-                @Override
-                public void detach() {
-
-                }
-            };
-        } else {
-            headerLabelModel = new PropertyModel<>(model, "displayName");
-        }
-        header.add(new Label("label", headerLabelModel));
-
-        addOrReplaceProperties(model, form, false);
     }
 
     public PageBase getPageBase(){
@@ -258,14 +132,6 @@ public class PrismContainerPanel extends Panel {
                 return property.isVisible() ? "visible" : null;
             }
         };
-    }
-
-    public boolean isShowHeader() {
-        return showHeader;
-    }
-
-    public void setShowHeader(boolean showHeader) {
-        this.showHeader = showHeader;
     }
 
     private void addOrReplaceProperties(IModel<ContainerWrapper> model, final Form form, boolean isToBeReplaced){

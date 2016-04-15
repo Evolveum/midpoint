@@ -41,7 +41,6 @@ public class GenericHandlerPanel extends BasePanel<GenericHandlerDto> {
 		PrismContainerPanel containerPanel = new PrismContainerPanel(
 				ID_CONTAINER, new PropertyModel<ContainerWrapper>(getModel(), GenericHandlerDto.F_CONTAINER),
 				false, parentPage.getForm(), parentPage);
-		containerPanel.setShowHeader(false);
 		add(containerPanel);
 
 	}

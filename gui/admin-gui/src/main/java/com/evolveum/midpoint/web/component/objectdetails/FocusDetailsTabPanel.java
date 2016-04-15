@@ -79,13 +79,7 @@ public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabP
 	private void initLayout() {
 
 		PrismObjectPanel<F> panel = new PrismObjectPanel<F>(ID_FOCUS_FORM, getObjectWrapperModel(),
-				new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), getMainForm(), getPageBase()) {
-
-			@Override
-			protected IModel<String> createDescription(IModel<ObjectWrapper<F>> model) {
-				return createStringResource("pageAdminFocus.description");
-			}
-		};
+				new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), getMainForm(), getPageBase());
 		add(panel);
 
 		WebMarkupContainer tasks = new WebMarkupContainer(ID_TASKS);
