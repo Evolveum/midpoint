@@ -72,6 +72,7 @@ http://www.springframework.org/schema/security http://www.springframework.org/sc
                     authentication-success-handler-ref="authenticationSuccessHandler" />
         
         <csrf disabled="true"/>
+        <headers disabled="true"/>
     </http>
 
     <beans:bean id="authenticationSuccessHandler"
