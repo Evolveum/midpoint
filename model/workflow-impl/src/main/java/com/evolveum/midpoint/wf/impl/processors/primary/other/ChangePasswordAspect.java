@@ -134,7 +134,7 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
         instruction.setTargetRef(null, result);
 
         // set the names of midPoint task and activiti process instance
-        instruction.setTaskName("Workflow for approving password change for " + userName);
+        instruction.setTaskName("Approval of password change for " + userName);
         instruction.setProcessInstanceName("Changing password for " + userName);
 
         // setup general item approval process

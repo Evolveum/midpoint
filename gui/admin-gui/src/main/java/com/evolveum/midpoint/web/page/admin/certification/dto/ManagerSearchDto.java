@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ManagerSearchType;
+
 import java.io.Serializable;
 
 /**
@@ -12,7 +14,14 @@ public class ManagerSearchDto implements Serializable{
     private String orgType;
     private boolean allowSelf;
 
-    public String getOrgType() {
+	public ManagerSearchDto(ManagerSearchType manager) {
+		if (manager != null) {
+			orgType = manager.getOrgType();
+			allowSelf = Boolean.TRUE.equals(manager.isAllowSelf());
+		}
+	}
+
+	public String getOrgType() {
         return orgType;
     }
 

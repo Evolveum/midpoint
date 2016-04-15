@@ -1,12 +1,16 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseReviewStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.datatype.Duration;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,8 +39,36 @@ public class StageDefinitionDto implements Serializable {
     private AccessCertificationResponseType outcomeIfNoReviewers;
     private List<AccessCertificationResponseType> stopReviewOnRaw;
     private List<AccessCertificationResponseType> advanceToNextStageOnRaw;
+	
+	public StageDefinitionDto(AccessCertificationStageDefinitionType stageDefObj, PrismContext prismContext) throws SchemaException {
+		if (stageDefObj != null) {
+			setNumber(stageDefObj.getNumber());
+			setName(stageDefObj.getName());
+			setDescription(stageDefObj.getDescription());
+			if (stageDefObj.getDuration() != null) {
+				setDuration(stageDefObj.getDuration().toString());
+			}
+			setNotifyBeforeDeadline(convertDurationListToString(stageDefObj.getNotifyBeforeDeadline()));
+			setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefObj.isNotifyOnlyWhenNoDecision()));
+			setReviewerDto(new AccessCertificationReviewerDto(stageDefObj.getReviewerSpecification(), prismContext));
+			setOutcomeStrategy(stageDefObj.getOutcomeStrategy());
+			setOutcomeIfNoReviewers(stageDefObj.getOutcomeIfNoReviewers());
+			setStopReviewOnRaw(new ArrayList<>(stageDefObj.getStopReviewOn()));
+			setAdvanceToNextStageOnRaw(new ArrayList<>(stageDefObj.getAdvanceToNextStageOn()));
+		} else {
+			setReviewerDto(new AccessCertificationReviewerDto(null, prismContext));
+		}
+	}
 
-    public int getNumber() {
+	private String convertDurationListToString(List<Duration> list){
+		String result = StringUtils.join(list, ", ");
+		return result;
+	}
+
+
+
+
+	public int getNumber() {
         return number;
     }
 

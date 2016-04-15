@@ -18,7 +18,9 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -26,13 +28,14 @@ import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Application;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -40,10 +43,6 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType.F_ADDITIONAL_REVIEWER_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType.F_DEFAULT_REVIEWER_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType.F_REVIEWER_SPECIFICATION;
 
 /**
  * @author mederly
@@ -68,11 +67,10 @@ public class CertDefinitionDto implements Serializable {
     private AccessCertificationDefinitionType oldDefinition;            // to be able to compute the delta when saving
     private AccessCertificationDefinitionType definition;               // definition that is (at least partially) dynamically updated when editing the form
     private final DefinitionScopeDto definitionScopeDto;
-    private final List<StageDefinitionDto> stageDefinition;
+    @NotNull private final List<StageDefinitionDto> stageDefinition;
     private AccessCertificationRemediationStyleType remediationStyle;
     private AccessCertificationCaseOutcomeStrategyType outcomeStrategy;
     //private List<AccessCertificationResponseType> stopReviewOn, advanceToNextStageOn;
-    private String xml;
     private ObjectViewDto owner;
 
     public CertDefinitionDto(AccessCertificationDefinitionType definition, PageBase page,
@@ -81,12 +79,6 @@ public class CertDefinitionDto implements Serializable {
         this.oldDefinition = definition.clone();
         this.definition = definition;
         owner = loadOwnerReference(definition.getOwnerRef());
-
-        try {
-            xml = page.getPrismContext().serializeObjectToString(definition.asPrismObject(), PrismContext.LANG_XML);
-        } catch (SchemaException e) {
-            throw new SystemException("Couldn't serialize campaign definition to XML", e);
-        }
 
         definitionScopeDto = createDefinitionScopeDto(definition.getScopeDefinition(), page.getPrismContext());
         stageDefinition = new ArrayList<>();
@@ -126,8 +118,18 @@ public class CertDefinitionDto implements Serializable {
     }
 
     public String getXml() {
-        return xml;
-    }
+		try {
+			PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
+			return prismContext.serializeObjectToString(getUpdatedDefinition(prismContext).asPrismObject(), PrismContext.LANG_XML);
+		} catch (SchemaException|RuntimeException e) {
+			return "Couldn't serialize campaign definition to XML: " + e.getMessage();
+		}
+
+	}
+
+	public void setXml(String s) {
+		// ignore
+	}
 
     public String getName() {
         return WebComponentUtil.getName(definition);
@@ -138,7 +140,7 @@ public class CertDefinitionDto implements Serializable {
     }
 
     public int getNumberOfStages() {
-        return definition.getStageDefinition().size();
+        return stageDefinition.size();
     }
 
     public AccessCertificationDefinitionType getDefinition() {
@@ -252,58 +254,10 @@ public class CertDefinitionDto implements Serializable {
     private StageDefinitionDto createStageDefinitionDto(AccessCertificationStageDefinitionType stageDefObj,
             PrismContext prismContext)
             throws SchemaException {
-        StageDefinitionDto dto = new StageDefinitionDto();
-        if (stageDefObj != null) {
-            dto.setNumber(stageDefObj.getNumber());
-            dto.setName(stageDefObj.getName());
-            dto.setDescription(stageDefObj.getDescription());
-            if (stageDefObj.getDuration() != null) {
-                dto.setDuration(stageDefObj.getDuration().toString());
-            }
-            dto.setNotifyBeforeDeadline(convertDurationListToString(stageDefObj.getNotifyBeforeDeadline()));
-            dto.setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefObj.isNotifyOnlyWhenNoDecision()));
-            dto.setReviewerDto(createAccessCertificationReviewerDto(stageDefObj.getReviewerSpecification(), prismContext));
-            dto.setOutcomeStrategy(stageDefObj.getOutcomeStrategy());
-            dto.setOutcomeIfNoReviewers(stageDefObj.getOutcomeIfNoReviewers());
-            dto.setStopReviewOnRaw(new ArrayList<>(stageDefObj.getStopReviewOn()));
-            dto.setAdvanceToNextStageOnRaw(new ArrayList<>(stageDefObj.getAdvanceToNextStageOn()));
-        } else {
-            dto.setReviewerDto(createAccessCertificationReviewerDto(null, prismContext));
-        }
+        StageDefinitionDto dto = new StageDefinitionDto(stageDefObj, prismContext);
         return dto;
     }
 
-    private AccessCertificationReviewerDto createAccessCertificationReviewerDto(
-            AccessCertificationReviewerSpecificationType reviewer, PrismContext prismContext)
-            throws SchemaException {
-        AccessCertificationReviewerDto dto = new AccessCertificationReviewerDto();
-        final PrismReference defaultReviewersReference;
-        final PrismReference additionalReviewersReference;
-        if (reviewer != null) {
-            dto.setName(reviewer.getName());
-            dto.setDescription(reviewer.getDescription());
-            dto.setUseTargetOwner(Boolean.TRUE.equals(reviewer.isUseTargetOwner()));
-            dto.setUseTargetApprover(Boolean.TRUE.equals(reviewer.isUseTargetApprover()));
-            dto.setUseObjectOwner(Boolean.TRUE.equals(reviewer.isUseObjectOwner()));
-            dto.setUseObjectApprover(Boolean.TRUE.equals(reviewer.isUseObjectApprover()));
-            dto.setUseObjectManager(createManagerSearchDto(reviewer.getUseObjectManager()));
-            defaultReviewersReference = reviewer.asPrismContainerValue().findOrCreateReference(AccessCertificationReviewerSpecificationType.F_DEFAULT_REVIEWER_REF);
-            additionalReviewersReference = reviewer.asPrismContainerValue().findOrCreateReference(AccessCertificationReviewerSpecificationType.F_ADDITIONAL_REVIEWER_REF);
-        } else {
-            PrismReferenceDefinition defReviewerDef = prismContext.getSchemaRegistry().findItemDefinitionByFullPath(AccessCertificationDefinitionType.class,
-                    PrismReferenceDefinition.class,
-                    AccessCertificationDefinitionType.F_STAGE_DEFINITION, F_REVIEWER_SPECIFICATION, F_DEFAULT_REVIEWER_REF);
-            defaultReviewersReference = defReviewerDef.instantiate();
-            PrismReferenceDefinition additionalReviewerDef = prismContext.getSchemaRegistry().findItemDefinitionByFullPath(AccessCertificationDefinitionType.class,
-                    PrismReferenceDefinition.class,
-                    AccessCertificationDefinitionType.F_STAGE_DEFINITION, F_REVIEWER_SPECIFICATION, F_ADDITIONAL_REVIEWER_REF);
-            additionalReviewersReference = additionalReviewerDef.instantiate();
-
-        }
-        dto.setDefaultReviewers(new ReferenceWrapper(null, defaultReviewersReference, false, ValueStatus.NOT_CHANGED));
-        dto.setAdditionalReviewers(new ReferenceWrapper(null, additionalReviewersReference, false, ValueStatus.NOT_CHANGED));
-        return dto;
-    }
 
     private List<ObjectReferenceType> cloneListObjects(List<ObjectReferenceType> listToClone){
         List<ObjectReferenceType> list = new ArrayList<>();
@@ -362,11 +316,9 @@ public class CertDefinitionDto implements Serializable {
 
     public void updateStageDefinition(PrismContext prismContext) throws SchemaException {
         List<AccessCertificationStageDefinitionType> stageDefinitionTypeList = new ArrayList<>();
-        if (stageDefinition != null && stageDefinition.size() > 0) {
-            for (StageDefinitionDto stageDefinitionDto : stageDefinition){
-                stageDefinitionTypeList.add(createStageDefinitionType(stageDefinitionDto, prismContext));
-            }
-        }
+		for (StageDefinitionDto stageDefinitionDto : stageDefinition){
+			stageDefinitionTypeList.add(createStageDefinitionType(stageDefinitionDto, prismContext));
+		}
         definition.getStageDefinition().clear();
         definition.getStageDefinition().addAll(stageDefinitionTypeList);
     }
@@ -417,20 +369,6 @@ public class CertDefinitionDto implements Serializable {
             managerSearchType.setAllowSelf(managerSearchDto.isAllowSelf());
         }
         return  managerSearchType;
-    }
-
-    private ManagerSearchDto createManagerSearchDto(ManagerSearchType managerSearchType){
-        ManagerSearchDto managerSearchDto = new ManagerSearchDto();
-        if (managerSearchType != null){
-            managerSearchDto.setOrgType(managerSearchType.getOrgType());
-            managerSearchDto.setAllowSelf(managerSearchType.isAllowSelf());
-        }
-        return managerSearchDto;
-    }
-
-    private String convertDurationListToString(List<Duration> list){
-        String result = StringUtils.join(list, ", ");
-        return result;
     }
 
     private List<Duration> convertStringToDurationList(String object){

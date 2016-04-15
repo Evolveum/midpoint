@@ -1212,6 +1212,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	        
 	        sb.append("\n");
 	        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("squeezed associations"), squeezedAssociations, indent + 1);
+	        
+	        sb.append("\n");
+	        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("squeezed auxiliary object classes"), squeezedAuxiliaryObjectClasses, indent + 1);
 
 	        // This is just a debug thing
 //	        sb.append("\n");

@@ -65,6 +65,7 @@
         </mail>
     </notificationConfiguration>
     <workflowConfiguration>
+        <allowApproveOthersItems>true</allowApproveOthersItems>
         <primaryChangeProcessor>
             <enabled>true</enabled>
             <addAbstractRoleAspect>
