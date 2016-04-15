@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.impl.util;
 
+import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
@@ -279,7 +280,9 @@ public class MiscDataUtil {
         }
         // 2) is the current user allowed to approve any item?
         try {
-			if (wfConfiguration.isAllowApproveOthersItems()
+			WfConfigurationType wfConfig = SystemConfigurationHolder.getWorkflowConfiguration();
+			boolean allowedOthersItemsApproval = wfConfig != null ? wfConfig.isAllowApproveOthersItems() : false;
+			if (allowedOthersItemsApproval
 					&& securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_APPROVE_OTHERS_ITEMS_URL, null, null, null, null, null)) {
                 return true;
             }

@@ -147,7 +147,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             LOGGER.trace("There are no workflow processes to be started, exiting.");
             return null;
         }
-		return submitTasks(childTaskInstructions, context, changesBeingDecomposed, taskFromModel, result);
+		return submitTasks(childTaskInstructions, context, changesBeingDecomposed, taskFromModel, wfConfigurationType, result);
     }
 
 	private List<PcpChildWfTaskCreationInstruction> gatherStartInstructions(ModelContext<? extends ObjectType> context,
@@ -190,15 +190,16 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
     }
 
-    private HookOperationMode submitTasks(List<PcpChildWfTaskCreationInstruction> instructions, final ModelContext context, final ObjectTreeDeltas changesWithoutApproval, Task taskFromModel, OperationResult result) {
+    private HookOperationMode submitTasks(List<PcpChildWfTaskCreationInstruction> instructions, final ModelContext context,
+			final ObjectTreeDeltas changesWithoutApproval, Task taskFromModel, WfConfigurationType wfConfigurationType, OperationResult result) {
 
         try {
 
 			ExecutionMode executionMode = determineExecutionMode(instructions);
 
 			// prepare root task and task0
-            WfTask rootWfTask = submitRootTask(context, changesWithoutApproval, taskFromModel, executionMode, result);
-            WfTask wfTask0 = submitTask0(context, changesWithoutApproval, rootWfTask, executionMode, result);
+            WfTask rootWfTask = submitRootTask(context, changesWithoutApproval, taskFromModel, executionMode, wfConfigurationType, result);
+            WfTask wfTask0 = submitTask0(context, changesWithoutApproval, rootWfTask, executionMode, wfConfigurationType, result);
 
             // start the jobs
             List<WfTask> wfTasks = new ArrayList<>(instructions.size());
@@ -209,7 +210,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 					// TODO CONSIDER THIS... when OID is no longer transferred
 					instruction.addHandlersAfterWfProcessAtEnd(WfTaskUtil.WAIT_FOR_TASKS_HANDLER_URI, WfPrepareChildOperationTaskHandler.HANDLER_URI);
 				}
-				WfTask wfTask = wfTaskController.submitWfTask(instruction, rootWfTask.getTask(), result);
+				WfTask wfTask = wfTaskController.submitWfTask(instruction, rootWfTask.getTask(), wfConfigurationType, result);
                 wfTasks.add(wfTask);
             }
 
@@ -235,23 +236,24 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
     private WfTask submitRootTask(ModelContext context, ObjectTreeDeltas changesWithoutApproval, Task taskFromModel, ExecutionMode executionMode,
-			OperationResult result)
+			WfConfigurationType wfConfigurationType, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         LensContext lensContextForRootTask = determineLensContextForRootTask(context, changesWithoutApproval, executionMode);
         WfTaskCreationInstruction instructionForRoot = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel, lensContextForRootTask, result);
 		if (executionMode != ALL_IMMEDIATELY) {
 			instructionForRoot.setHandlersBeforeModelOperation(WfPrepareRootOperationTaskHandler.HANDLER_URI);      // gather all deltas from child objects
 		}
-		return baseModelInvocationProcessingHelper.submitRootTask(instructionForRoot, taskFromModel, result);
+		return baseModelInvocationProcessingHelper.submitRootTask(instructionForRoot, taskFromModel, wfConfigurationType, result);
     }
 
     // Child task0 - in modes 2, 3 we have to prepare first child that executes all changes that do not require approval
-    private WfTask submitTask0(ModelContext context, ObjectTreeDeltas changesWithoutApproval, WfTask rootWfTask, ExecutionMode executionMode, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private WfTask submitTask0(ModelContext context, ObjectTreeDeltas changesWithoutApproval, WfTask rootWfTask, ExecutionMode executionMode,
+			WfConfigurationType wfConfigurationType, OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (changesWithoutApproval != null && !changesWithoutApproval.isEmpty() && executionMode != ALL_AFTERWARDS) {
             ModelContext task0context = contextCopyWithDeltasReplaced(context, changesWithoutApproval);
             WfTaskCreationInstruction instruction0 = WfTaskCreationInstruction.createModelOnly(rootWfTask.getChangeProcessor(), task0context);
             instruction0.setTaskName("Executing changes that do not require approval");
-			return wfTaskController.submitWfTask(instruction0, rootWfTask, result);
+			return wfTaskController.submitWfTask(instruction0, rootWfTask, wfConfigurationType, result);
         } else {
             return null;
         }

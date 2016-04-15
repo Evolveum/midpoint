@@ -221,8 +221,8 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
             instruction.setTargetRef(ObjectTypeUtil.createObjectRef(target), result);
 
             // set the names of midPoint task and activiti process instance
-            String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";
-            instruction.setTaskName("Workflow for approving " + andExecuting + "modifying assignment of " + targetName + " to " + focusName);
+            String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";
+            instruction.setTaskName("Approval " + andExecuting + " of modifying assignment of " + targetName + " to " + focusName);
             instruction.setProcessInstanceName("Modifying assignment of " + targetName + " to " + focusName);
 
             // setup general item approval process

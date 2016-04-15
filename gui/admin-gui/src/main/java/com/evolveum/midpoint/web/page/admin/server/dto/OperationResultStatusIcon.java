@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
@@ -23,16 +24,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
  * */
 public enum OperationResultStatusIcon {
 
-    UNKNOWN("fa fa-fw fa-question-circle fa-lg text-warning"),
-    SUCCESS("fa fa-fw fa-check-circle fa-lg text-success"),
-    WARNING("fa fa-fw fa-exclamation-circle fa-lg text-warning"),
-    PARTIAL_ERROR("fa fa-fw fa-minus-circle fa-lg text-danger"),
-    FATAL_ERROR("fa fa-fw fa-times-circle fa-lg text-danger"),
-    HANDLED_ERROR("fa fa-fw fa-minus-circle fa-lg text-warning"),
-    NOT_APPLICABLE("fa fa-fw fa-check-circle fa-lg text-muted"),
-    IN_PROGRESS("fa fa-fw fa-clock-o fa-lg text-info");
+    UNKNOWN("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_UNKNOWN_COLORED),
+    SUCCESS("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_SUCCESS_COLORED),
+    WARNING("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_WARNING_COLORED),
+    PARTIAL_ERROR("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_PARTIAL_ERROR_COLORED),
+    FATAL_ERROR("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_FATAL_ERROR_COLORED),
+    HANDLED_ERROR("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_HANDLED_ERROR_COLORED),
+    NOT_APPLICABLE("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_NOT_APPLICABLE_COLORED),
+    IN_PROGRESS("fa-fw fa-lg " + GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_IN_PROGRESS_COLORED);
 
-    private String icon;
+	private String icon;
 
     private OperationResultStatusIcon(String icon){
         this.icon = icon;

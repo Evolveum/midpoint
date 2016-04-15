@@ -27,7 +27,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.wf.WorkItemsTablePanel;
+import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoProvider;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -78,9 +78,9 @@ public class PageWorkItems extends PageAdminWorkItems {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        WorkItemsTablePanel panel = new WorkItemsTablePanel(ID_WORK_ITEMS_PANEL, new WorkItemDtoProvider(PageWorkItems.this, assigned),
+        WorkItemsPanel panel = new WorkItemsPanel(ID_WORK_ITEMS_PANEL, new WorkItemDtoProvider(PageWorkItems.this, assigned),
                 UserProfileStorage.TableId.PAGE_WORK_ITEMS, (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEMS),
-				WorkItemsTablePanel.View.FULL_LIST);
+				WorkItemsPanel.View.FULL_LIST);
 
         panel.setOutputMarkupId(true);
         mainForm.add(panel);
@@ -141,8 +141,8 @@ public class PageWorkItems extends PageAdminWorkItems {
         return false;
     }
 
-    private WorkItemsTablePanel getWorkItemsPanel() {
-        return (WorkItemsTablePanel) get(ID_MAIN_FORM).get(ID_WORK_ITEMS_PANEL);
+    private WorkItemsPanel getWorkItemsPanel() {
+        return (WorkItemsPanel) get(ID_MAIN_FORM).get(ID_WORK_ITEMS_PANEL);
     }
 
     private void approveOrRejectWorkItemsPerformed(AjaxRequestTarget target, boolean approve) {

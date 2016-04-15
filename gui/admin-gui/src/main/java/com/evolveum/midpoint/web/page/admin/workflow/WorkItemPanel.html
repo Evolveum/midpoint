@@ -59,7 +59,7 @@
 
             <div class="box box-info" wicket:id="historyContainer">
                 <div class="box-header">
-                    <h3 class="box-title"><wicket:message key="workItemPanel.approvalHistory"/></h3>
+                    <h3 class="box-title"><wicket:message key="workItemPanel.approvalHistory"/></h3> <i wicket:id="approvalHistoryHelp" wicket:message="title:workItemPanel.approvalHistoryHelp"/>
                 </div>
                 <div class="box-body">
                     <div wicket:id="history" />
@@ -68,7 +68,7 @@
 
             <div class="box box-info" wicket:id="relatedWorkItemsContainer">
                 <div class="box-header">
-                    <h3 class="box-title"><wicket:message key="workItemPanel.otherWorkItems"/></h3>
+                    <h3 class="box-title"><wicket:message key="workItemPanel.otherWorkItems"/></h3> <i wicket:id="otherWorkItemsHelp" wicket:message="title:workItemPanel.otherWorkItemsHelp"/>
                 </div>
                 <div class="box-body">
                     <div wicket:id="relatedWorkItems"/>
@@ -77,7 +77,7 @@
 
             <div class="box box-info" wicket:id="relatedRequestsContainer">
                 <div class="box-header">
-                    <h3 class="box-title"><wicket:message key="workItemPanel.relatedRequests"/></h3>
+                    <h3 class="box-title"><wicket:message key="workItemPanel.relatedRequests"/></h3> <i wicket:id="relatedRequestsHelp" wicket:message="title:workItemPanel.relatedRequestsHelp"/>
                 </div>
                 <div class="box-body">
                     <div wicket:id="relatedRequests"/>
@@ -88,7 +88,7 @@
     </div>
 
     <p/>
-    <a href="#" wicket:id="showRequest"><wicket:message key="WorkItemPanel.showRequest"/></a>
+    <a href="#" wicket:id="showRequest"><wicket:message key="WorkItemPanel.showRequest"/></a> <i wicket:id="showRequestHelp" wicket:message="title:workItemPanel.showRequestHelp"/>
 
     <h3><wicket:message key="workItemPanel.approverComment"/></h3>
     <textarea wicket:id="approverComment" class="form-control input-sm" rows="2"></textarea>

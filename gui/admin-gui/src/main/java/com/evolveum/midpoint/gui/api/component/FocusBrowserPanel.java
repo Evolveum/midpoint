@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.util.ListModel;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class FocusBrowserPanel<T extends FocusType> extends BasePanel<T> {
 
 	private static final String ID_TYPE = "type";
+	private static final String ID_TYPE_PANEL = "typePanel";
 	private static final String ID_TABLE = "table";
 
 	private static final String ID_BUTTON_ADD = "addButton";
@@ -63,6 +65,16 @@ public class FocusBrowserPanel<T extends FocusType> extends BasePanel<T> {
 	}
 
 	private void initLayout(Class<T> type, final boolean multiselect) {
+        WebMarkupContainer typePanel = new WebMarkupContainer(ID_TYPE_PANEL);
+        typePanel.setOutputMarkupId(true);
+        typePanel.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                return multiselect;
+            }
+        });
+        add(typePanel);
+
 		DropDownChoice<QName> typeSelect = new DropDownChoice(ID_TYPE, typeModel,
 				new ListModel(WebComponentUtil.createFocusTypeList()), new QNameChoiceRenderer());
 		typeSelect.add(new OnChangeAjaxBehavior() {
@@ -77,7 +89,7 @@ public class FocusBrowserPanel<T extends FocusType> extends BasePanel<T> {
 				target.add(listPanel);
 			}
 		});
-		add(typeSelect);
+		typePanel.add(typeSelect);
 
 		ObjectListPanel<T> listPanel = createObjectListPanel(type, multiselect);
 		add(listPanel);
@@ -107,10 +119,18 @@ public class FocusBrowserPanel<T extends FocusType> extends BasePanel<T> {
 		parentPage.hideMainPopup(target);
 	}
 
-	private ObjectListPanel<T> createObjectListPanel(Class<T> type, final boolean multiselect) {
+    protected void onSelectPerformed(AjaxRequestTarget target, T focus) {
+        parentPage.hideMainPopup(target);
+    }
+
+
+    private ObjectListPanel<T> createObjectListPanel(Class<T> type, final boolean multiselect) {
 		
 		PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(ID_TABLE, type, multiselect, parentPage){
-			
+			@Override
+            protected void onSelectPerformed(AjaxRequestTarget target, T object){
+                FocusBrowserPanel.this.onSelectPerformed(target, object);
+            }
 		};
 		
 //		ObjectListPanel<T> listPanel = new ObjectListPanel<T>(ID_TABLE, type, parentPage) {

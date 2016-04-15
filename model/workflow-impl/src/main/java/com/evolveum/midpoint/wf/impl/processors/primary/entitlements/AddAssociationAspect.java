@@ -263,8 +263,8 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             instruction.setTargetRef(ObjectTypeUtil.createObjectRef(target), result);
 
             // set the names of midPoint task and activiti process instance
-            String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";
-            instruction.setTaskName("Workflow for approving " + andExecuting + "adding " + targetName + " to " + assigneeName);
+            String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";
+            instruction.setTaskName("Approval " + andExecuting + "of adding " + targetName + " to " + assigneeName);
             instruction.setProcessInstanceName("Adding " + targetName + " to " + assigneeName);
 
             // setup general item approval process

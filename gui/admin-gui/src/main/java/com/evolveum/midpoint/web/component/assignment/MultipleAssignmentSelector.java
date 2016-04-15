@@ -281,9 +281,11 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
     private void initUserDialog(IModel<String> title, AjaxRequestTarget target) {
 
     	FocusBrowserPanel<F> focusBrowser = new FocusBrowserPanel<F>(getPageBase().getMainPopupBodyId(), targetFocusClass, false, getPageBase()){
-    		
-    		protected void onClick(AjaxRequestTarget target, F focus) {
-    			 filterByUserPerformed(focus);
+
+            @Override
+    		protected void onSelectPerformed(AjaxRequestTarget target, F focus) {
+                super.onSelectPerformed(target, focus);
+                filterByUserPerformed(focus);
                  replaceTable(target);
 
                  labelValue += " " + focus.getName().toString();

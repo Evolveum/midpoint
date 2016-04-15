@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.util;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
@@ -32,27 +33,27 @@ public enum ObjectTypeGuiDescriptor {
 
     GENERIC_OBJECT(ObjectTypes.GENERIC_OBJECT, "ObjectTypeGuiDescriptor.genericObject", "silk-page_white_code"),
 
-    RESOURCE(ObjectTypes.RESOURCE, "ObjectTypeGuiDescriptor.resource", "silk-drive"),
+    RESOURCE(ObjectTypes.RESOURCE, "ObjectTypeGuiDescriptor.resource", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED),
 
-    USER(ObjectTypes.USER, "ObjectTypeGuiDescriptor.user", "silk-user"),
+    USER(ObjectTypes.USER, "ObjectTypeGuiDescriptor.user", GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED),		// TODO or use black one here? (to allow use of red to denote managers/administrators?)
 
     OBJECT_TEMPLATE(ObjectTypes.OBJECT_TEMPLATE, "ObjectTypeGuiDescriptor.objectTemplate", "silk-layout"),
 
     SYSTEM_CONFIGURATION(ObjectTypes.SYSTEM_CONFIGURATION, "ObjectTypeGuiDescriptor.systemConfiguration", "silk-page_white_gear"),
 
-    TASK(ObjectTypes.TASK, "ObjectTypeGuiDescriptor.task", "silk-script"),
+    TASK(ObjectTypes.TASK, "ObjectTypeGuiDescriptor.task", GuiStyleConstants.CLASS_OBJECT_TASK_ICON_COLORED),
 
     SHADOW(ObjectTypes.SHADOW, "ObjectTypeGuiDescriptor.shadow", "silk-status_online"),
 
     OBJECT(ObjectTypes.OBJECT, "ObjectTypeGuiDescriptor.object", "silk-page_white"),
 
-    ROLE(ObjectTypes.ROLE, "ObjectTypeGuiDescriptor.role", "silk-user_suit"),
+    ROLE(ObjectTypes.ROLE, "ObjectTypeGuiDescriptor.role", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED),
 
     VALUE_POLICY(ObjectTypes.PASSWORD_POLICY, "ObjectTypeGuiDescriptor.valuePolicy", "silk-lock"),
 
     NODE(ObjectTypes.NODE, "ObjectTypeGuiDescriptor.node", "silk-computer"),
 
-    ORG(ObjectTypes.ORG, "ObjectTypeGuiDescriptor.org", "silk-building"),
+    ORG(ObjectTypes.ORG, "ObjectTypeGuiDescriptor.org", GuiStyleConstants.CLASS_OBJECT_ORG_ICON_COLORED),
 
     ABSTRACT_ROLE(ObjectTypes.ABSTRACT_ROLE, "ObjectTypeGuiDescriptor.abstractRole", "silk-award_star_gold_3"),
 
