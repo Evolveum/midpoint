@@ -69,7 +69,6 @@ public class PrismContainerPanel extends Panel {
 
         LOGGER.trace("Creating container panel for {}", model.getObject());
         
-        add(new AttributeAppender("class", new Model<>("attributeComponent"), " "));
         add(new VisibleEnableBehaviour() {
 
             @Override
