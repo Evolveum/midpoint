@@ -119,9 +119,12 @@ import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.dialog.ChooseFocusTypeDialogPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -229,27 +232,27 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 	}
 
 	protected void initLayout() {
-		add(new ConfirmationDialog(ID_CONFIRM_DELETE_POPUP,
-				createStringResource("TreeTablePanel.dialog.title.confirmDelete"),
-				createDeleteConfirmString()) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-
-				switch (getConfirmType()) {
-					case CONFIRM_DELETE:
-					case CONFIRM_DELETE_MANAGER:
-					case CONFIRM_DELETE_MEMBER:
-						deleteConfirmedPerformed(target);
-						break;
-					case CONFIRM_DELETE_ROOT:
-						deleteRootConfirmedPerformed(target);
-						break;
-				}
-
-			}
-		});
+//		add(new ConfirmationDialog(ID_CONFIRM_DELETE_POPUP,
+//				createStringResource("TreeTablePanel.dialog.title.confirmDelete"),
+//				createDeleteConfirmString()) {
+//
+//			@Override
+//			public void yesPerformed(AjaxRequestTarget target) {
+//				close(target);
+//
+//				switch (getConfirmType()) {
+//					case CONFIRM_DELETE:
+//					case CONFIRM_DELETE_MANAGER:
+//					case CONFIRM_DELETE_MEMBER:
+//						deleteConfirmedPerformed(target);
+//						break;
+//					case CONFIRM_DELETE_ROOT:
+//						deleteRootConfirmedPerformed(target);
+//						break;
+//				}
+//
+//			}
+//		});
 
 		add(new OrgUnitBrowser(ID_MOVE_POPUP) {
 
@@ -314,10 +317,17 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 		InlineMenu treeMenu = new InlineMenu(ID_TREE_MENU, new Model<>((Serializable) createTreeMenu()));
 		treeHeader.add(treeMenu);
 
-		ISortableTreeProvider provider = new OrgTreeProvider(this, getModel());
+		ISortableTreeProvider provider = new OrgTreeProvider(this, getModel()) {
+			@Override
+			protected List<InlineMenuItem> createInlineMenuItems() {
+				// TODO Auto-generated method stub
+				return createTreeChildrenMenu();
+			}
+		};
 		List<IColumn<OrgTreeDto, String>> columns = new ArrayList<>();
 		columns.add(new TreeColumn<OrgTreeDto, String>(createStringResource("TreeTablePanel.hierarchy")));
-
+		columns.add(new InlineMenuHeaderColumn(createTreeChildrenMenu()));
+		
 		WebMarkupContainer treeContainer = new WebMarkupContainer(ID_TREE_CONTAINER) {
 
 			@Override
@@ -622,7 +632,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						moveRootPerformed(target);
+						moveRootPerformed(null, target);
 					}
 				});
 		items.add(item);
@@ -632,7 +642,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						deleteRootPerformed(target);
+						deleteRootPerformed(null, target);
 					}
 				});
 		items.add(item);
@@ -642,7 +652,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						recomputeRootPerformed(target, OrgUnitBrowser.Operation.RECOMPUTE);
+						recomputeRootPerformed(null, target);
 					}
 				});
 		items.add(item);
@@ -652,7 +662,66 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						editRootPerformed(target);
+						editRootPerformed(null, target);
+					}
+				});
+		items.add(item);
+
+		return items;
+	}
+	
+	private List<InlineMenuItem> createTreeChildrenMenu() {
+		List<InlineMenuItem> items = new ArrayList<>();
+
+		
+		InlineMenuItem item = new InlineMenuItem(createStringResource("TreeTablePanel.move"),
+				new ColumnMenuAction<OrgTreeDto>() {
+
+
+			@Override
+					public void onClick(AjaxRequestTarget target) {
+						moveRootPerformed(getRowModel().getObject(), target);
+					}
+				});
+		items.add(item);
+
+		item = new InlineMenuItem(createStringResource("TreeTablePanel.delete"),
+				new ColumnMenuAction<OrgTreeDto>() {
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						deleteRootPerformed(getRowModel().getObject(), target);
+					}
+				});
+		items.add(item);
+
+		item = new InlineMenuItem(createStringResource("TreeTablePanel.recompute"),
+				new ColumnMenuAction<OrgTreeDto>() {
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						recomputeRootPerformed(getRowModel().getObject(), target);
+					}
+				});
+		items.add(item);
+
+		item = new InlineMenuItem(createStringResource("TreeTablePanel.edit"),
+				new ColumnMenuAction<OrgTreeDto>() {
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						editRootPerformed(getRowModel().getObject(), target);
+					}
+				});
+		items.add(item);
+		
+		item = new InlineMenuItem(createStringResource("TreeTablePanel.createChild"),
+				new ColumnMenuAction<OrgTreeDto>() {
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						initObjectForAdd(ObjectTypeUtil.createObjectRef(getRowModel().getObject().getObject()),OrgType.COMPLEX_TYPE, null, target);
+//						editRootPerformed(getRowModel().getObject(), target);
 					}
 				});
 		items.add(item);
@@ -907,7 +976,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 				getPageBase().getMainPopupBodyId()) {
 
 			protected void okPerformed(QName type, AjaxRequestTarget target) {
-				initObjectForAdd(type, relation, target);
+				initObjectForAdd(null, type, relation, target);
 
 			};
 		};
@@ -1205,14 +1274,16 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
 	}
 
-	private void initObjectForAdd(QName type, QName relation, AjaxRequestTarget target) {
+	private void initObjectForAdd(ObjectReferenceType parentOrgRef, QName type, QName relation, AjaxRequestTarget target) {
 		TreeTablePanel.this.getPageBase().hideMainPopup(target);
 		PrismContext prismContext = TreeTablePanel.this.getPageBase().getPrismContext();
 		PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);
 		PrismObject obj = def.instantiate();
+		if (parentOrgRef == null){
 		ObjectType org = selected.getObject().getObject();
-		ObjectReferenceType parentOrgRef = ObjectTypeUtil.createObjectRef(org);
+		 parentOrgRef = ObjectTypeUtil.createObjectRef(org);
 		parentOrgRef.setRelation(relation);
+		}
 		ObjectType objType = (ObjectType) obj.asObjectable();
 		objType.getParentOrgRef().add(parentOrgRef);
 
@@ -1245,148 +1316,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
 	}
 
-	private List<InlineMenuItem> initOrgChildInlineMenu() {
-		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addOrgUnit"), false,
-				new HeaderMenuAction(this) {
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						addOrgUnitPerformed(target);
-					}
-				}));
-		headerMenuItems.add(new InlineMenuItem());
-
-		// TODO - disabled until issue MID-1809 is resolved. Uncomment when
-		// finished
-		// headerMenuItems.add(new
-		// InlineMenuItem(createStringResource("TreeTablePanel.menu.addToHierarchy"),
-		// true,
-		// new HeaderMenuAction(this) {
-		//
-		// @Override
-		// public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-		// addToHierarchyPerformed(target);
-		// }
-		// }));
-		// headerMenuItems.add(new
-		// InlineMenuItem(createStringResource("TreeTablePanel.menu.removeFromHierarchy"),
-		// true,
-		// new HeaderMenuAction(this) {
-		//
-		// @Override
-		// public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-		// removeFromHierarchyPerformed(target);
-		// }
-		// }));
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.enable"), true,
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						updateActivationPerformed(getOrgChildTable(), target, true);
-					}
-				}));
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.disable"), true,
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						updateActivationPerformed(getOrgChildTable(), target, false);
-					}
-				}));
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.move"), true,
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						movePerformed(getOrgChildTable(), target, OrgUnitBrowser.Operation.MOVE);
-					}
-				}));
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.delete"), true,
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						deletePerformed(getOrgChildTable(), target);
-					}
-				}));
-
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel,menu.recompute"), true,
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						recomputePerformed(getOrgChildTable(), target, OrgUnitBrowser.Operation.RECOMPUTE);
-					}
-				}));
-
-		return headerMenuItems;
-	}
-
-	private List<InlineMenuItem> initOrgMemberInlineMenu() {
-		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addMember"), false,
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						addUserPerformed(target, false);
-					}
-				}));
-		headerMenuItems.add(new InlineMenuItem());
-
-		return headerMenuItems;
-	}
-
-	private List<InlineMenuItem> initOrgManagerInlineMenu() {
-		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addManager"), false,
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						addUserPerformed(target, true);
-					}
-				}));
-		headerMenuItems.add(new InlineMenuItem());
-
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.enable"), true,
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						updateActivationPerformed(getManagerTable(), target, true);
-					}
-				}));
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.disable"), true,
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						updateActivationPerformed(getManagerTable(), target, false);
-					}
-				}));
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.delete"), true,
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						deletePerformed(getManagerTable(), target);
-					}
-				}));
-
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel,menu.recompute"), true,
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						recomputePerformed(getManagerTable(), target, OrgUnitBrowser.Operation.RECOMPUTE);
-					}
-				}));
-
-		return headerMenuItems;
-	}
 
 	private void addOrgUnitPerformed(AjaxRequestTarget target) {
 		PrismObject<OrgType> object = addChildOrgUnitPerformed(target, new OrgType());
@@ -1737,8 +1667,10 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 		target.add(tree);
 	}
 
-	private void moveRootPerformed(AjaxRequestTarget target) {
-		OrgTreeDto root = getRootFromProvider();
+	private void moveRootPerformed(OrgTreeDto root, AjaxRequestTarget target) {
+		if (root == null){
+			root = getRootFromProvider();
+		}
 		OrgTableDto dto = new OrgTableDto(root.getOid(), root.getType());
 		movePerformed(getOrgChildTable(), target, OrgUnitBrowser.Operation.MOVE, dto, true);
 	}
@@ -1776,51 +1708,52 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 		getMemberTable().refreshTable(target);
 	}
 
-	private void recomputeRootPerformed(AjaxRequestTarget target, OrgUnitBrowser.Operation operation) {
-		OrgTreeDto root = getRootFromProvider();
-		OrgTableDto dto = new OrgTableDto(root.getOid(), root.getType());
-		recomputePerformed(null, target, operation, dto);
-	}
-
-	private void recomputePerformed(TablePanel table, AjaxRequestTarget target,
-			OrgUnitBrowser.Operation operation) {
-		recomputePerformed(table, target, operation, null);
-	}
-
-	private void recomputePerformed(TablePanel table, AjaxRequestTarget target,
-			OrgUnitBrowser.Operation operation, OrgTableDto orgDto) {
-		List<OrgTableDto> objects;
-		if (orgDto == null) {
-			objects = isAnythingSelected(table, target);
-			if (objects.isEmpty()) {
-				return;
-			}
-		} else {
-			objects = new ArrayList<>();
-			objects.add(orgDto);
+	private void recomputeRootPerformed(OrgTreeDto root, AjaxRequestTarget target) {
+		if (root == null){
+		 root = getRootFromProvider();
 		}
+		
+		recomputePerformed(root, target);
+	}
+
+//	private void recomputePerformed(AjaxRequestTarget target,
+//			OrgUnitBrowser.Operation operation) {
+//		recomputePerformed(target);
+//	}
+
+	private void recomputePerformed(OrgTreeDto orgToRecompute, AjaxRequestTarget target) {
+//		List<OrgTableDto> objects;
+//		if (orgDto == null) {
+//			objects = isAnythingSelected(table, target);
+//			if (objects.isEmpty()) {
+//				return;
+//			}
+//		} else {
+//			objects = new ArrayList<>();
+//			objects.add(orgDto);
+//		}
 
 		Task task = getPageBase().createSimpleTask(OPERATION_RECOMPUTE);
 		OperationResult result = new OperationResult(OPERATION_RECOMPUTE);
 
 		try {
-			for (OrgTableDto org : objects) {
+//			for (OrgTableDto org : objects) {
 
-				PrismObject<TaskType> recomputeTask = prepareRecomputeTask(org);
+//				PrismObject<TaskType> recomputeTask = prepareRecomputeTask(org);
+//
+//				ObjectDelta taskDelta = ObjectDelta.createAddDelta(recomputeTask);
+//
+//				if (LOGGER.isTraceEnabled()) {
+//					LOGGER.trace(taskDelta.debugDump());
+//				}
 
-				ObjectDelta taskDelta = ObjectDelta.createAddDelta(recomputeTask);
-
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace(taskDelta.debugDump());
-				}
-
-				ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(OrgType.class, org.getOid(),
+				ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(OrgType.class, orgToRecompute.getOid(),
 						getPageBase().getPrismContext());
 				ModelExecuteOptions options = new ModelExecuteOptions();
 				options.setReconcile(true);
 				getPageBase().getModelService().executeChanges(
-						WebComponentUtil.createDeltaCollection(emptyDelta, taskDelta), options, task, result);
-			}
+						WebComponentUtil.createDeltaCollection(emptyDelta), options, task, result);
+//			}
 
 			result.recordSuccess();
 		} catch (Exception e) {
@@ -1876,25 +1809,36 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 		return taskType.asPrismObject();
 	}
 
-	private void deleteRootPerformed(AjaxRequestTarget target) {
-		if (selected.getObject() == null) {
-			warn(getString("TreeTablePanel.message.nothingSelected"));
-			target.add(getPageBase().getFeedbackPanel());
-			return;
-		}
-
-		ConfirmationDialog dialog = (ConfirmationDialog) get(ID_CONFIRM_DELETE_POPUP);
-		dialog.setConfirmType(CONFIRM_DELETE_ROOT);
-		dialog.show(target);
+	private void deleteRootPerformed(final OrgTreeDto orgToDelete, AjaxRequestTarget target) {
+//		if (selected.getObject() == null) {
+//			warn(getString("TreeTablePanel.message.nothingSelected"));
+//			target.add(getPageBase().getFeedbackPanel());
+//			return;
+//		}
+		
+		ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId()) {
+			@Override
+			public void yesPerformed(AjaxRequestTarget target) {
+				deleteRootConfirmedPerformed(orgToDelete, target);
+			}
+		};
+		
+//		ConfirmationDialog dialog = (ConfirmationDialog) get(ID_CONFIRM_DELETE_POPUP);
+//		dialog.setConfirmType(CONFIRM_DELETE_ROOT);
+//		dialog.show(target);
+		confirmationPanel.setOutputMarkupId(true);
+		getPageBase().showMainPopup(confirmationPanel, new Model<String>("Delete org?"), target, 150, 100);
 	}
 
-	private void deleteRootConfirmedPerformed(AjaxRequestTarget target) {
+	private void deleteRootConfirmedPerformed(OrgTreeDto orgToDelete, AjaxRequestTarget target) {
 		OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
 
 		PageBase page = getPageBase();
 
-		OrgTreeDto dto = getRootFromProvider();
-		WebModelServiceUtils.deleteObject(OrgType.class, dto.getOid(), result, page);
+		if (orgToDelete == null){
+			orgToDelete = getRootFromProvider();
+		}
+		WebModelServiceUtils.deleteObject(OrgType.class, orgToDelete.getOid(), result, page);
 
 		result.computeStatusIfUnknown();
 		page.showResult(result);
@@ -1953,8 +1897,10 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 		}
 	}
 
-	private void editRootPerformed(AjaxRequestTarget target) {
-		OrgTreeDto root = getRootFromProvider();
+	private void editRootPerformed(OrgTreeDto root, AjaxRequestTarget target) {
+		if (root == null){
+		 root = getRootFromProvider();
+		}
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, root.getOid());
 		setResponsePage(PageOrgUnit.class, parameters);
