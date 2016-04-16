@@ -18,7 +18,9 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -26,8 +28,6 @@ import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -35,6 +35,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Application;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -42,10 +43,6 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType.F_ADDITIONAL_REVIEWER_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType.F_DEFAULT_REVIEWER_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType.F_REVIEWER_SPECIFICATION;
 
 /**
  * @author mederly
@@ -70,7 +67,7 @@ public class CertDefinitionDto implements Serializable {
     private AccessCertificationDefinitionType oldDefinition;            // to be able to compute the delta when saving
     private AccessCertificationDefinitionType definition;               // definition that is (at least partially) dynamically updated when editing the form
     private final DefinitionScopeDto definitionScopeDto;
-    private final List<StageDefinitionDto> stageDefinition;
+    @NotNull private final List<StageDefinitionDto> stageDefinition;
     private AccessCertificationRemediationStyleType remediationStyle;
     private AccessCertificationCaseOutcomeStrategyType outcomeStrategy;
     //private List<AccessCertificationResponseType> stopReviewOn, advanceToNextStageOn;
@@ -143,7 +140,7 @@ public class CertDefinitionDto implements Serializable {
     }
 
     public int getNumberOfStages() {
-        return definition.getStageDefinition().size();
+        return stageDefinition.size();
     }
 
     public AccessCertificationDefinitionType getDefinition() {
@@ -319,11 +316,9 @@ public class CertDefinitionDto implements Serializable {
 
     public void updateStageDefinition(PrismContext prismContext) throws SchemaException {
         List<AccessCertificationStageDefinitionType> stageDefinitionTypeList = new ArrayList<>();
-        if (stageDefinition != null && stageDefinition.size() > 0) {
-            for (StageDefinitionDto stageDefinitionDto : stageDefinition){
-                stageDefinitionTypeList.add(createStageDefinitionType(stageDefinitionDto, prismContext));
-            }
-        }
+		for (StageDefinitionDto stageDefinitionDto : stageDefinition){
+			stageDefinitionTypeList.add(createStageDefinitionType(stageDefinitionDto, prismContext));
+		}
         definition.getStageDefinition().clear();
         definition.getStageDefinition().addAll(stageDefinitionTypeList);
     }

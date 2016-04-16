@@ -129,8 +129,8 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
             instruction.setTargetRef(null, result);
 
             // set the names of midPoint task and activiti process instance
-            String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";
-            instruction.setTaskName("Workflow for approving " + andExecuting + "creation of " + objectLabel);
+            String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";
+            instruction.setTaskName("Approval " + andExecuting + "of creation of " + objectLabel);
             instruction.setProcessInstanceName("Creating " + objectLabel);
 
             // setup general item approval process

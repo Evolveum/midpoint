@@ -122,25 +122,26 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
                 LOGGER.trace("scenarioBean decided to skip scenario named {}", scenarioType.getName());
             } else {
                 LOGGER.trace("Applying scenario {} (process name {})", scenarioType.getName(), scenarioType.getProcessName());
-                return applyScenario(scenarioType, scenarioBean, context, taskFromModel, result);
+                return applyScenario(scenarioType, scenarioBean, context, taskFromModel, wfConfigurationType, result);
             }
         }
         LOGGER.trace("No scenario found to be applicable, exiting the change processor.");
         return null;
     }
 
-    private HookOperationMode applyScenario(GeneralChangeProcessorScenarioType scenarioType, GcpScenarioBean scenarioBean, ModelContext context, Task taskFromModel, OperationResult result) {
+    private HookOperationMode applyScenario(GeneralChangeProcessorScenarioType scenarioType, GcpScenarioBean scenarioBean, ModelContext context,
+			Task taskFromModel, WfConfigurationType wfConfigurationType, OperationResult result) {
 
         try {
             // ========== preparing root task ===========
 
             WfTaskCreationInstruction rootInstruction = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel, result);
-            WfTask rootWfTask = baseModelInvocationProcessingHelper.submitRootTask(rootInstruction, taskFromModel, result);
+            WfTask rootWfTask = baseModelInvocationProcessingHelper.submitRootTask(rootInstruction, taskFromModel, wfConfigurationType, result);
 
             // ========== preparing child task, starting WF process ===========
 
             WfTaskCreationInstruction instruction = scenarioBean.prepareJobCreationInstruction(scenarioType, (LensContext<?>) context, rootWfTask, taskFromModel, result);
-            wfTaskController.submitWfTask(instruction, rootWfTask, result);
+            wfTaskController.submitWfTask(instruction, rootWfTask, wfConfigurationType, result);
 
             // ========== complete the action ===========
 

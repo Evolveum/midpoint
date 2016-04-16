@@ -55,6 +55,7 @@ import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariab
 public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS extends ProcessSpecificContent> implements DebugDumpable {
 
 	private static final Trace LOGGER = TraceManager.getTrace(WfTaskCreationInstruction.class);
+	private static final Integer DEFAULT_PROCESS_CHECK_INTERVAL = 30;
 
 	private final ChangeProcessor changeProcessor;
 
@@ -312,7 +313,7 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
     //endregion
 
 	//region "Output" methods
-	public Task createTask(WfTaskController taskController, Task parentTask) throws SchemaException {
+	public Task createTask(WfTaskController taskController, Task parentTask, WfConfigurationType wfConfigurationType) throws SchemaException {
 
 		LOGGER.trace("createTask starting; parent task = {}", parentTask);
 
@@ -351,7 +352,8 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 		if (!noProcess) {
 			if (simple) {
 				ScheduleType schedule = new ScheduleType();
-				schedule.setInterval(taskController.getWfConfiguration().getProcessCheckInterval());
+				Integer processCheckInterval = wfConfigurationType != null ? wfConfigurationType.getProcessCheckInterval() : null;
+				schedule.setInterval(processCheckInterval != null ? processCheckInterval : DEFAULT_PROCESS_CHECK_INTERVAL);
 				schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(new Date(System.currentTimeMillis() + WfTaskController.TASK_START_DELAY)));
 				task.pushHandlerUri(WfProcessInstanceShadowTaskHandler.HANDLER_URI, schedule, TaskBinding.LOOSE);
 			} else {

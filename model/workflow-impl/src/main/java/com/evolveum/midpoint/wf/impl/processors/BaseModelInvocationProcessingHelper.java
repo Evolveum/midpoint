@@ -33,6 +33,7 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,10 +110,16 @@ public class BaseModelInvocationProcessingHelper {
     private String determineRootTaskName(ModelContext context) {
 
         String operation;
-        if (context.getFocusContext() != null && context.getFocusContext().getPrimaryDelta() != null) {
-            operation = context.getFocusContext().getPrimaryDelta().getChangeType().toString().toLowerCase();
+        if (context.getFocusContext() != null && context.getFocusContext().getPrimaryDelta() != null
+				&& context.getFocusContext().getPrimaryDelta().getChangeType() != null) {
+            switch (context.getFocusContext().getPrimaryDelta().getChangeType()) {
+				case ADD: operation = "creation of"; break;
+				case DELETE: operation = "deletion of"; break;
+				case MODIFY: operation = "change of"; break;
+				default: throw new IllegalStateException();
+			}
         } else {
-            operation = "processing";
+            operation = "change of";
         }
         String name = MiscDataUtil.getFocusObjectName(context);
 
@@ -122,7 +129,7 @@ public class BaseModelInvocationProcessingHelper {
 //        DateFormat dateFormat = DateFormat.getDateTimeInstance();
 //        String time = dateFormat.format(new Date());
 
-        return "Workflow for " + operation + " " + name + " (started " + time + ")";
+        return "Approving and executing " + operation + " " + name + " (started " + time + ")";
     }
 
     /**
@@ -160,14 +167,16 @@ public class BaseModelInvocationProcessingHelper {
      *
      * @param rootInstruction instruction to use
      * @param taskFromModel (potential) parent task
-     * @param result
-     * @return reference to a newly created job
+     * @param wfConfigurationType
+	 * @param result
+	 * @return reference to a newly created job
      * @throws SchemaException
      * @throws ObjectNotFoundException
      */
-    public WfTask submitRootTask(WfTaskCreationInstruction rootInstruction, Task taskFromModel, OperationResult result)
+    public WfTask submitRootTask(WfTaskCreationInstruction rootInstruction, Task taskFromModel, WfConfigurationType wfConfigurationType,
+			OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        WfTask rootWfTask = wfTaskController.submitWfTask(rootInstruction, determineParentTaskForRoot(taskFromModel), result);
+        WfTask rootWfTask = wfTaskController.submitWfTask(rootInstruction, determineParentTaskForRoot(taskFromModel), wfConfigurationType, result);
 		result.setBackgroundTaskOid(rootWfTask.getTask().getOid());
 		wfTaskUtil.setRootTaskOidImmediate(taskFromModel, rootWfTask.getTask().getOid(), result);
         return rootWfTask;

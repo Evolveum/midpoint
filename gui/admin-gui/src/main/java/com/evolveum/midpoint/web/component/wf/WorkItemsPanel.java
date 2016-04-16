@@ -51,14 +51,14 @@ import java.util.Date;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
-import static com.evolveum.midpoint.web.component.wf.WorkItemsTablePanel.View.FULL_LIST;
-import static com.evolveum.midpoint.web.component.wf.WorkItemsTablePanel.View.ITEMS_FOR_PROCESS;
+import static com.evolveum.midpoint.web.component.wf.WorkItemsPanel.View.FULL_LIST;
+import static com.evolveum.midpoint.web.component.wf.WorkItemsPanel.View.ITEMS_FOR_PROCESS;
 
 /**
  * @author lazyman
  * @author mederly
  */
-public class WorkItemsTablePanel extends BasePanel {
+public class WorkItemsPanel extends BasePanel {
 
     private static final String ID_WORK_ITEMS_TABLE = "workItemsTable";
 
@@ -70,7 +70,7 @@ public class WorkItemsTablePanel extends BasePanel {
 
     private ISortableDataProvider<WorkItemDto, String> provider;
 
-    public WorkItemsTablePanel(String id, ISortableDataProvider<WorkItemDto, String> provider,
+    public WorkItemsPanel(String id, ISortableDataProvider<WorkItemDto, String> provider,
             UserProfileStorage.TableId tableId, int pageSize, View view) {
         super(id);
         this.provider = provider;
@@ -138,7 +138,7 @@ public class WorkItemsTablePanel extends BasePanel {
 				public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
 					PageParameters parameters = new PageParameters();
 					parameters.add(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getWorkItemId());
-					setResponsePage(new PageWorkItem(parameters, (PageBase) WorkItemsTablePanel.this.getPage()));
+					setResponsePage(new PageWorkItem(parameters, (PageBase) WorkItemsPanel.this.getPage()));
 				}
 			};
         } else {

@@ -64,10 +64,9 @@ public class WfConfiguration implements BeanFactoryAware {
     public static final String KEY_ALLOW_APPROVE_OTHERS_ITEMS = "allowApproveOthersItems";
 
     public static final List<String> KNOWN_KEYS = Arrays.asList("midpoint.home", KEY_ENABLED, KEY_JDBC_DRIVER, KEY_JDBC_URL,
-            KEY_JDBC_USERNAME, KEY_JDBC_PASSWORD, KEY_DATA_SOURCE, KEY_ACTIVITI_SCHEMA_UPDATE, KEY_PROCESS_CHECK_INTERVAL,
-            KEY_AUTO_DEPLOYMENT_FROM, KEY_ALLOW_APPROVE_OTHERS_ITEMS);
+            KEY_JDBC_USERNAME, KEY_JDBC_PASSWORD, KEY_DATA_SOURCE, KEY_ACTIVITI_SCHEMA_UPDATE, KEY_AUTO_DEPLOYMENT_FROM);
 
-    public static final List<String> DEPRECATED_KEYS = Collections.singletonList(CHANGE_PROCESSORS_SECTION);
+    public static final List<String> DEPRECATED_KEYS = Arrays.asList(CHANGE_PROCESSORS_SECTION, KEY_PROCESS_CHECK_INTERVAL, KEY_ALLOW_APPROVE_OTHERS_ITEMS);
 
     @Autowired
     private MidpointConfiguration midpointConfiguration;
@@ -92,11 +91,8 @@ public class WfConfiguration implements BeanFactoryAware {
 
     private String dataSource;
 
-    private boolean allowApproveOthersItems;
-
     private List<ChangeProcessor> changeProcessors = new ArrayList<>();
 
-    private int processCheckInterval;
     private String[] autoDeploymentFrom;
 
     @PostConstruct
@@ -163,15 +159,9 @@ public class WfConfiguration implements BeanFactoryAware {
         jdbcUser = c.getString(KEY_JDBC_USERNAME, sqlConfig != null ? sqlConfig.getJdbcUsername() : null);
         jdbcPassword = c.getString(KEY_JDBC_PASSWORD, sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
 
-        processCheckInterval = c.getInt(KEY_PROCESS_CHECK_INTERVAL, 10);    // todo set to bigger default for production use
         autoDeploymentFrom = c.getStringArray(KEY_AUTO_DEPLOYMENT_FROM);
         if (autoDeploymentFrom.length == 0) {
             autoDeploymentFrom = new String[] { AUTO_DEPLOYMENT_FROM_DEFAULT };
-        }
-        allowApproveOthersItems = c.getBoolean(KEY_ALLOW_APPROVE_OTHERS_ITEMS, false);
-
-        if (allowApproveOthersItems) {
-            LOGGER.info("allowApproveOthersItems parameter is set to true, therefore authorized users CAN approve/reject work items assigned to other users.");
         }
 
 //        hibernateDialect = sqlConfig != null ? sqlConfig.getHibernateDialect() : "";
@@ -258,16 +248,8 @@ public class WfConfiguration implements BeanFactoryAware {
         return dataSource;
     }
 
-    public int getProcessCheckInterval() {
-        return processCheckInterval;
-    }
-
     public String[] getAutoDeploymentFrom() {
         return autoDeploymentFrom;
-    }
-
-    public boolean isAllowApproveOthersItems() {
-        return allowApproveOthersItems;
     }
 
     public ChangeProcessor findChangeProcessor(String processorClassName) {

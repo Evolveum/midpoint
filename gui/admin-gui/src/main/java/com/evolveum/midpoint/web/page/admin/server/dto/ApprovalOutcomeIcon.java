@@ -15,15 +15,18 @@
  */
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+
 /**
  *  @author mederly
  */
 public enum ApprovalOutcomeIcon {
 
-    UNKNOWN("fa fa-fw fa-question fa-lg text-warning"),
-    APPROVED("fa fa-fw fa-check fa-lg text-success"),
-    REJECTED("fa fa-fw fa-times fa-lg text-danger"),
-    IN_PROGRESS("fa fa-fw fa-clock-o fa-lg text-info");
+	// TODO move 'fa-fw fa-lg' to style constants as well?
+    UNKNOWN("fa-fw fa-lg " + GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_UNKNOWN_COLORED),
+    APPROVED("fa-fw fa-lg " + GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_APPROVED_COLORED),
+    REJECTED("fa-fw fa-lg " + GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_REJECTED_COLORED),
+    IN_PROGRESS("fa-fw fa-lg " + GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_IN_PROGRESS_COLORED);
 
     private String icon;
 

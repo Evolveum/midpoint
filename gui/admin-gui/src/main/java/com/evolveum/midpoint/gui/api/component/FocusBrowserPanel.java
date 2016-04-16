@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.util.ListModel;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class FocusBrowserPanel<T extends ObjectType> extends BasePanel<T> {
 
 	private static final String ID_TYPE = "type";
+	private static final String ID_TYPE_PANEL = "typePanel";
 	private static final String ID_TABLE = "table";
 
 	private static final String ID_BUTTON_ADD = "addButton";
@@ -48,7 +50,8 @@ public class FocusBrowserPanel<T extends ObjectType> extends BasePanel<T> {
 
 	private PageBase parentPage;
 
-	public FocusBrowserPanel(String id, final Class<T> type, List<QName> supportedTypes, boolean multiselect, PageBase parentPage) {
+	public FocusBrowserPanel(String id, final Class<T> type, List<QName> supportedTypes, boolean multiselect,
+			PageBase parentPage) {
 		super(id);
 		this.parentPage = parentPage;
 		typeModel = new LoadableModel<QName>(false) {
@@ -63,7 +66,17 @@ public class FocusBrowserPanel<T extends ObjectType> extends BasePanel<T> {
 		initLayout(type, supportedTypes, multiselect);
 	}
 
-	private void initLayout(Class<T> type, List<QName> supportedTypes, final boolean multiselect) {
+	private void initLayout(Class<T> type, final List<QName> supportedTypes, final boolean multiselect) {
+
+		WebMarkupContainer typePanel = new WebMarkupContainer(ID_TYPE_PANEL);
+		typePanel.setOutputMarkupId(true);
+		typePanel.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return supportedTypes.size() != 1;
+			}
+		});
+		add(typePanel);
 		DropDownChoice<QName> typeSelect = new DropDownChoice(ID_TYPE, typeModel,
 				new ListModel(supportedTypes), new QNameChoiceRenderer());
 		typeSelect.add(new OnChangeAjaxBehavior() {
@@ -79,7 +92,7 @@ public class FocusBrowserPanel<T extends ObjectType> extends BasePanel<T> {
 				target.add(listPanel);
 			}
 		});
-		add(typeSelect);
+		typePanel.add(typeSelect);
 
 		ObjectListPanel<T> listPanel = createObjectListPanel(type, multiselect);
 		add(listPanel);
@@ -90,13 +103,13 @@ public class FocusBrowserPanel<T extends ObjectType> extends BasePanel<T> {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				List<T> selected = ((PopupObjectListPanel) getParent().get(ID_TABLE)).getSelectedObjects();
-				QName type =FocusBrowserPanel.this.typeModel.getObject();
+				QName type = FocusBrowserPanel.this.typeModel.getObject();
 				FocusBrowserPanel.this.addPerformed(target, type, selected);
 			}
 		};
-		
+
 		addButton.add(new VisibleEnableBehaviour() {
-			
+
 			@Override
 			public boolean isVisible() {
 				return multiselect;
@@ -110,32 +123,43 @@ public class FocusBrowserPanel<T extends ObjectType> extends BasePanel<T> {
 		parentPage.hideMainPopup(target);
 	}
 
+	protected void onSelectPerformed(AjaxRequestTarget target, T focus) {
+		parentPage.hideMainPopup(target);
+	}
+
 	private ObjectListPanel<T> createObjectListPanel(Class<T> type, final boolean multiselect) {
-		
-		PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(ID_TABLE, type, multiselect, parentPage){
-			
+
+		PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(ID_TABLE, type, multiselect,
+				parentPage) {
+			@Override
+			protected void onSelectPerformed(AjaxRequestTarget target, T object) {
+				FocusBrowserPanel.this.onSelectPerformed(target, object);
+			}
 		};
-		
-//		ObjectListPanel<T> listPanel = new ObjectListPanel<T>(ID_TABLE, type, parentPage) {
-//
-//			@Override
-//			public void objectDetailsPerformed(AjaxRequestTarget target, T focus) {
-//				super.objectDetailsPerformed(target, focus);
-//				FocusBrowserPanel.this.onClick(target, focus);
-//			}
-//
-//			@Override
-//			public void addPerformed(AjaxRequestTarget target, List<T> selected) {
-//				super.addPerformed(target, selected);
-//				FocusBrowserPanel.this.addPerformed(target, selected);
-//			}
-//			
-//			@Override
-//			public boolean isMultiSelect() {
-//				return multiselect;
-//			}
-//		};
-//		listPanel.setMultiSelect(multiselect);
+
+		// ObjectListPanel<T> listPanel = new ObjectListPanel<T>(ID_TABLE, type,
+		// parentPage) {
+		//
+		// @Override
+		// public void objectDetailsPerformed(AjaxRequestTarget target, T focus)
+		// {
+		// super.objectDetailsPerformed(target, focus);
+		// FocusBrowserPanel.this.onClick(target, focus);
+		// }
+		//
+		// @Override
+		// public void addPerformed(AjaxRequestTarget target, List<T> selected)
+		// {
+		// super.addPerformed(target, selected);
+		// FocusBrowserPanel.this.addPerformed(target, selected);
+		// }
+		//
+		// @Override
+		// public boolean isMultiSelect() {
+		// return multiselect;
+		// }
+		// };
+		// listPanel.setMultiSelect(multiselect);
 		listPanel.setOutputMarkupId(true);
 		return listPanel;
 	}

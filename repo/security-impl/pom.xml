@@ -78,7 +78,7 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
         </dependency>
-        <dependency>
+        <dependency> <!-- Needed for MethodInvocation object used by Spring Security -->
             <groupId>aopalliance</groupId>
             <artifactId>aopalliance</artifactId>
         </dependency>

@@ -26,7 +26,7 @@
         <div class="col-md-7">
             <div class="box box-info">
                 <div class="box-header">
-                    <h3 class="box-title"><wicket:message key="workItemPanel.approvalHistory"/></h3>
+                    <h3 class="box-title"><wicket:message key="workItemPanel.approvalHistory"/></h3> <i wicket:id="approvalHistoryHelp" wicket:message="title:TaskWfChildPanel.approvalHistoryHelp"/>
                 </div>
                 <div class="box-body">
                     <div wicket:id="history" />
@@ -34,7 +34,7 @@
             </div>
             <div class="box box-warning" wicket:id="currentWorkItemsContainer">
                 <div class="box-header">
-                    <h3 class="box-title"><wicket:message key="ItemApprovalPanel.currentWorkItems"/></h3>
+                    <h3 class="box-title"><wicket:message key="ItemApprovalPanel.currentWorkItems"/></h3> <i wicket:id="currentWorkItemsHelp" wicket:message="title:TaskWfChildPanel.currentWorkItemsHelp"/>
                 </div>
                 <div class="box-body">
                     <div wicket:id="currentWorkItems" />
@@ -42,12 +42,16 @@
             </div>
         </div>
     </div>
-    <div wicket:id="relatedRequestsContainer">
-        <h3><wicket:message key="workItemPanel.relatedRequests"/></h3>
-        <div wicket:id="relatedRequests"/>
+    <div class="box" wicket:id="relatedRequestsContainer">
+        <div class="box-header">
+            <h3 class="box-title"><wicket:message key="workItemPanel.relatedRequests"/></h3> <i wicket:id="relatedRequestsHelp" wicket:message="title:TaskWfChildPanel.relatedRequestsHelp"/>
+        </div>
+        <div class="box-body">
+            <div wicket:id="relatedRequests"/>
+        </div>
     </div>
     <br/>
-    <a href="#" wicket:id="showParent"><wicket:message key="taskWfChildPanel.showParent"/></a>
+    <a href="#" wicket:id="showParent"><wicket:message key="taskWfChildPanel.showParent"/></a> <i wicket:id="showParentHelp" wicket:message="title:TaskWfChildPanel.showParentHelp"/>
 </wicket:panel>
 </body>
 </html>
