@@ -61,7 +61,17 @@
 <!--                         </div> -->
 
                         <div wicket:id="managerContainer">
-                            <div wicket:id="managerTable"/>
+                        <div class="tree-table-header">
+                                <wicket:message key="TreeTablePanel.managers"/>
+                            </div>
+                            <div class="col-md-6" wicket:id="managerTable">
+                            <div class="pull-right">
+                            	<div wicket:id="editManager" class="fa fa-edit"></div>
+                            	<div wicket:id="removeManager" class="fa fa-trash-o"></div>
+                            	</div>
+                            	<div wicket:id="managerSummary" ></div>
+                            	
+                            </div>
                         </div>
 
                         <div wicket:id="memberContainer">

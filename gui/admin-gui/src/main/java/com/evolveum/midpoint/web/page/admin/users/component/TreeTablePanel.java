@@ -15,103 +15,35 @@
  */
 package com.evolveum.midpoint.web.page.admin.users.component;
 
-import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
-import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
-import com.evolveum.midpoint.prism.parser.QueryConvertor;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.BasicSearchPanel;
-import com.evolveum.midpoint.web.component.FocusSummaryPanel;
-import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
-import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.dialog.ChooseFocusTypeDialogPanel;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
-import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
-import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
-import com.evolveum.midpoint.web.page.admin.resources.PageResource;
-import com.evolveum.midpoint.web.page.admin.roles.PageRole;
-import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
-import com.evolveum.midpoint.web.page.admin.services.PageService;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.dto.*;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import java.io.Serializable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.event.Broadcast;
 import org.apache.wicket.event.IEventSink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.tree.ISortableTreeProvider;
-import org.apache.wicket.extensions.markup.html.repeater.tree.ITreeProvider;
 import org.apache.wicket.extensions.markup.html.repeater.tree.TableTree;
 import org.apache.wicket.extensions.markup.html.repeater.tree.table.TreeColumn;
 import org.apache.wicket.extensions.markup.html.repeater.tree.theme.WindowsTheme;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -123,23 +55,112 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.io.Serializable;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.SubstringFilter;
+import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.BasicSearchPanel;
+import com.evolveum.midpoint.web.component.FocusSummaryPanel;
+import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
+import com.evolveum.midpoint.web.component.dialog.ChooseFocusTypeDialogPanel;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.page.admin.resources.PageResource;
+import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.services.PageService;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * Used as a main component of the Org tree page.
@@ -171,6 +192,10 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 		return parentPage;
 	}
 
+	private static final String ID_MANAGER_SUMMARY = "managerSummary";
+	private static final String ID_REMOVE_MANAGER = "removeManager";
+	private static final String ID_EDIT_MANAGER = "editManager";
+	
 	private static final Trace LOGGER = TraceManager.getTrace(TreeTablePanel.class);
 
 	public TreeTablePanel(String id, IModel<String> rootOid, PageBase parentPage) {
@@ -379,6 +404,18 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 		initTables();
 
 	}
+	
+	private void detailsPerformed(AjaxRequestTarget targer, ObjectType object) {
+		Class responsePage = objectDetailsMap.get(object.getClass());
+		if (responsePage == null) {
+			error("Could not find proper response page");
+			throw new RestartResponseException(getPageBase());
+		}
+
+		PageParameters parameters = new PageParameters();
+		parameters.add(OnePageParameterEncoder.PARAMETER, object.getOid());
+		setResponsePage(responsePage, parameters);
+	}
 
 	private void initTables() {
 		Form form = new Form(ID_FORM);
@@ -395,15 +432,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 
 			@Override
 			protected void objectDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
-				Class responsePage = objectDetailsMap.get(object.getClass());
-				if (responsePage == null) {
-					error("Could not find proper response page");
-					throw new RestartResponseException(getPageBase());
-				}
-
-				PageParameters parameters = new PageParameters();
-				parameters.add(OnePageParameterEncoder.PARAMETER, object.getOid());
-				setResponsePage(responsePage, parameters);
+				detailsPerformed(target, object);
 
 			}
 
@@ -473,15 +502,46 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 			ObjectWrapper<FocusType> managerWrapper = ObjectWrapperUtil.createObjectWrapper(
 					WebComponentUtil.getEffectiveName(manager, RoleType.F_DISPLAY_NAME), "", manager,
 					ContainerStatus.MODIFYING, getPageBase());
+			WebMarkupContainer managerMarkup = new WebMarkupContainer(view.newChildId());
+			
+			AjaxLink link = new AjaxLink(ID_EDIT_MANAGER) {
+				@Override
+				public void onClick(AjaxRequestTarget target) {
+					FocusSummaryPanel<FocusType> summary = (FocusSummaryPanel<FocusType>) getParent().get(ID_MANAGER_SUMMARY);
+					detailsPerformed(target, summary.getModelObject());
+					
+				}
+			};
 			if (manager.getCompileTimeClass().equals(UserType.class)) {
-				view.add(new UserSummaryPanel(view.newChildId(), new Model(managerWrapper)));
+				managerMarkup.add(new UserSummaryPanel(ID_MANAGER_SUMMARY, new Model(managerWrapper)));
 			} else if (manager.getCompileTimeClass().equals(RoleType.class)) {
-				view.add(new RoleSummaryPanel(view.newChildId(), new Model(managerWrapper)));
+				managerMarkup.add(new RoleSummaryPanel(ID_MANAGER_SUMMARY, new Model(managerWrapper)));
 			} else if (manager.getCompileTimeClass().equals(OrgType.class)) {
-				view.add(new OrgSummaryPanel(view.newChildId(), new Model(managerWrapper)));
+				managerMarkup.add(new OrgSummaryPanel(ID_MANAGER_SUMMARY, new Model(managerWrapper)));
 			} else if (manager.getCompileTimeClass().equals(ServiceType.class)) {
-				view.add(new ServiceSummaryPanel(view.newChildId(), new Model(managerWrapper)));
+				managerMarkup.add(new ServiceSummaryPanel(ID_MANAGER_SUMMARY, new Model(managerWrapper)));
 			}
+			link.setOutputMarkupId(true);
+			managerMarkup.setOutputMarkupId(true);
+			managerMarkup.add(link);
+			view.add(managerMarkup);
+			
+			AjaxButton removeManager = new AjaxButton(ID_REMOVE_MANAGER) {
+				
+				
+				@Override
+				public void onClick(AjaxRequestTarget target) {
+					FocusSummaryPanel<FocusType> summary = (FocusSummaryPanel<FocusType>) getParent().get(ID_MANAGER_SUMMARY);
+					removeManagerPerformed(summary.getModelObject(), target);
+//					summary.setVisible(false);
+//					get(ID_REMOVE_MANAGER).setVisible(false);
+					getParent().setVisible(false);
+					target.add(getParent());
+					
+				}
+			};
+			removeManager.setOutputMarkupId(true);
+			managerMarkup.add(removeManager);
 		}
 
 		managerContainer.add(view);
@@ -803,6 +863,40 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 					}
 				}));
 		headerMenuItems.add(new InlineMenuItem());
+		
+		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.removeMembersSelected"), false,
+				new HeaderMenuAction(this) {
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						 removeMembersPerformed(null, target);
+					}
+				}));
+		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.removeMembersAll"), false,
+				new HeaderMenuAction(this) {
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						removAllMembersPerformed(null, target);
+					}
+				}));
+		
+		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeMembersSelected"), false,
+				new HeaderMenuAction(this) {
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						recomputeMembersPerformed(target);
+					}
+				}));
+		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeMembersAll"), false,
+				new HeaderMenuAction(this) {
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						recomputeAllMembersPerformed(target);
+					}
+				}));
 
 		return headerMenuItems;
 	}
@@ -822,88 +916,293 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 				200);
 
 	}
-	
+
 	private void addMemberPerformed(final QName relation, AjaxRequestTarget target) {
-		
+
 		List<QName> types = new ArrayList<>(ObjectTypes.values().length);
-		for (ObjectTypes t : ObjectTypes.values()){
+		for (ObjectTypes t : ObjectTypes.values()) {
 			types.add(t.getTypeQName());
 		}
-		FocusBrowserPanel<ObjectType> browser = new FocusBrowserPanel(getPageBase().getMainPopupBodyId(), UserType.class, types, true, getPageBase()){
-			
+		FocusBrowserPanel<ObjectType> browser = new FocusBrowserPanel(getPageBase().getMainPopupBodyId(),
+				UserType.class, types, true, getPageBase()) {
+
 			@Override
 			protected void addPerformed(AjaxRequestTarget target, QName type, List selected) {
-			TreeTablePanel.this.addMembers(type, relation, selected, target);
-				
+				TreeTablePanel.this.addMembers(type, relation, selected, target);
+
 			}
 		};
 		browser.setOutputMarkupId(true);
-		
+
 		getPageBase().showMainPopup(browser, new Model<String>("Select members"), target, 900, 700);
-		
+
 	}
-	private boolean isFocus(QName type){
-		return FocusType.COMPLEX_TYPE.equals(type) || UserType.COMPLEX_TYPE.equals(type) || RoleType.COMPLEX_TYPE.equals(type) || OrgType.COMPLEX_TYPE.equals(type) || ServiceType.COMPLEX_TYPE.equals(type);
+
+	private boolean isFocus(QName type) {
+		return FocusType.COMPLEX_TYPE.equals(type) || UserType.COMPLEX_TYPE.equals(type)
+				|| RoleType.COMPLEX_TYPE.equals(type) || OrgType.COMPLEX_TYPE.equals(type)
+				|| ServiceType.COMPLEX_TYPE.equals(type);
 	}
-	
-	
+
 	private AssignmentType createAssignmentToModify(QName type, QName relation) throws SchemaException {
-		
+
 		AssignmentType assignmentToModify = new AssignmentType();
-		
+
 		assignmentToModify.setTargetRef(createReference(relation));
-		
 
 		getPageBase().getPrismContext().adopt(assignmentToModify);
-		
+
 		return assignmentToModify;
 	}
-	
-	private ObjectReferenceType createReference(QName relation){
+
+	private ObjectReferenceType createReference(QName relation) {
 		ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(selected.getObject().getObject());
 		ref.setRelation(relation);
 		return ref;
 	}
-	
+
+	private Class qnameToClass(QName type) {
+		return getPageBase().getPrismContext().getSchemaRegistry().determineCompileTimeClass(type);
+	}
+
 	private void addMembers(QName type, QName relation, List selected, AjaxRequestTarget target) {
 		OperationResult parentResult = new OperationResult("Add members");
 		Task operationalTask = getPageBase().createSimpleTask("Add members");
 
 		try {
 			ObjectDelta delta = null;
-			Class classType = getPageBase().getPrismContext().getSchemaRegistry().determineCompileTimeClass(type);
-			if (isFocus(type)){
-				
-			delta = ObjectDelta.createModificationAddContainer(classType, "fakeOid",
-					FocusType.F_ASSIGNMENT, getPageBase().getPrismContext(), createAssignmentToModify(type, relation));
-		} else {
-			delta = ObjectDelta.createModificationAddReference(classType, "fakeOid", ObjectType.F_PARENT_ORG_REF, getPageBase().getPrismContext(), createReference(relation).asReferenceValue());
-		}
-			TaskType task = WebComponentUtil.createSingleRecurenceTask("Add member(s)", type, createQueryForAdd(selected), delta, TaskCategory.EXECUTE_CHANGES, getPageBase());
+			Class classType = qnameToClass(type);
+			if (isFocus(type)) {
+
+				delta = ObjectDelta.createModificationAddContainer(classType, "fakeOid",
+						FocusType.F_ASSIGNMENT, getPageBase().getPrismContext(),
+						createAssignmentToModify(type, relation));
+			} else {
+				delta = ObjectDelta.createModificationAddReference(classType, "fakeOid",
+						ObjectType.F_PARENT_ORG_REF, getPageBase().getPrismContext(),
+						createReference(relation).asReferenceValue());
+			}
+			TaskType task = WebComponentUtil.createSingleRecurenceTask("Add member(s)", type,
+					createQueryForAdd(selected), delta, TaskCategory.EXECUTE_CHANGES, getPageBase());
 			WebModelServiceUtils.runTask(task, operationalTask, parentResult, getPageBase());
-//			execute("Add member(s)", getActionQuery(QueryScope.TO_ADD, selected), delta, parentResult, target);
-//			parentResult.setBackgroundTaskOid(taskOid);
 		} catch (SchemaException e) {
 			parentResult.recordFatalError("Failed to add members " + e.getMessage(), e);
 			LoggingUtils.logException(LOGGER, "Failed to remove members", e);
 			getPageBase().showResult(parentResult);
 		}
-//		parentResult.recordInProgress();		// TODO don't do this in case of error
-//		pageBase.showResult(parentResult);
+
 		target.add(getPageBase().getFeedbackPanel());
 
 	}
+
+	private void removeMembersPerformed(QName relation, AjaxRequestTarget target) {
+		OperationResult parentResult = new OperationResult("Remove members");
+		Task operationalTask = getPageBase().createSimpleTask("Remove members");
+		try {
+//			Class classType = qnameToClass(type);
+
+			ObjectDelta delta = ObjectDelta.createModificationDeleteContainer(FocusType.class, "fakeOid",
+					FocusType.F_ASSIGNMENT, getPageBase().getPrismContext(),
+					createAssignmentToModify(FocusType.COMPLEX_TYPE, relation));
+
+			TaskType task = WebComponentUtil.createSingleRecurenceTask("Remove focus member(s)",
+					FocusType.COMPLEX_TYPE, createQueryForFocusRemove(), delta, TaskCategory.EXECUTE_CHANGES,
+					getPageBase());
+			WebModelServiceUtils.runTask(task, operationalTask, parentResult, getPageBase());
+
+			delta = ObjectDelta.createModificationDeleteReference(ObjectType.class, "fakeOid",
+					ObjectType.F_PARENT_ORG_REF, getPageBase().getPrismContext(),
+					createReference(relation).asReferenceValue());
+
+			task = WebComponentUtil.createSingleRecurenceTask("Remove non-focus member(s)",
+					ObjectType.COMPLEX_TYPE, createQueryForNonFocusRemove(), delta,
+					TaskCategory.EXECUTE_CHANGES, getPageBase());
+			WebModelServiceUtils.runTask(task, operationalTask, parentResult, getPageBase());
+		} catch (SchemaException e) {
+
+			parentResult.recordFatalError("Failed to remove members " + e.getMessage(), e);
+			LoggingUtils.logException(LOGGER, "Failed to remove members", e);
+			getPageBase().showResult(parentResult);
+		}
+		target.add(getPageBase().getFeedbackPanel());
+	}
 	
+	private void removeManagerPerformed(FocusType manager, AjaxRequestTarget target) {
+		OperationResult parentResult = new OperationResult("Remove manager");
+		Task task = getPageBase().createSimpleTask("Remove manager");
+		try {
+//			Class classType = qnameToClass(type);
+
+			ObjectDelta delta = ObjectDelta.createModificationDeleteContainer(manager.asPrismObject().getCompileTimeClass(), manager.getOid(),
+					FocusType.F_ASSIGNMENT, getPageBase().getPrismContext(),
+					createAssignmentToModify(manager.asPrismObject().getDefinition().getTypeName(), SchemaConstants.ORG_MANAGER));
+
+			getPageBase().getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, parentResult);
+			parentResult.computeStatus();
+		} catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+
+			parentResult.recordFatalError("Failed to remove manager " + e.getMessage(), e);
+			LoggingUtils.logException(LOGGER, "Failed to remove manager", e);
+			getPageBase().showResult(parentResult);
+		}
+		target.add(getPageBase().getFeedbackPanel());
+	}
+
+	private void removAllMembersPerformed(QName relation, AjaxRequestTarget target) {
+		OperationResult parentResult = new OperationResult("Remove members");
+		Task operationalTask = getPageBase().createSimpleTask("Remove members");
+		try {
+//			Class classType = qnameToClass(type);
+
+			ObjectDelta delta = ObjectDelta.createModificationDeleteContainer(FocusType.class, "fakeOid",
+					FocusType.F_ASSIGNMENT, getPageBase().getPrismContext(),
+					createAssignmentToModify(FocusType.COMPLEX_TYPE, relation));
+
+			TaskType task = WebComponentUtil.createSingleRecurenceTask("Remove focus member(s)",
+					FocusType.COMPLEX_TYPE, createQueryForAllRemove(FocusType.COMPLEX_TYPE), delta,
+					TaskCategory.EXECUTE_CHANGES, getPageBase());
+			WebModelServiceUtils.runTask(task, operationalTask, parentResult, getPageBase());
+
+			delta = ObjectDelta.createModificationDeleteReference(ObjectType.class, "fakeOid",
+					ObjectType.F_PARENT_ORG_REF, getPageBase().getPrismContext(),
+					createReference(relation).asReferenceValue());
+
+			task = WebComponentUtil.createSingleRecurenceTask("Remove non-focus member(s)",
+					ObjectType.COMPLEX_TYPE, createQueryForAllRemove(null), delta,
+					TaskCategory.EXECUTE_CHANGES, getPageBase());
+			WebModelServiceUtils.runTask(task, operationalTask, parentResult, getPageBase());
+		} catch (SchemaException e) {
+
+			parentResult.recordFatalError("Failed to remove members " + e.getMessage(), e);
+			LoggingUtils.logException(LOGGER, "Failed to remove members", e);
+			getPageBase().showResult(parentResult);
+		}
+		target.add(getPageBase().getFeedbackPanel());
+	}
+
+	private void recomputeMembersPerformed(AjaxRequestTarget target) {
+		Task operationalTask = getPageBase().createSimpleTask("Recompute selected members");
+		OperationResult parentResult = operationalTask.getResult();
+
+		try {
+			TaskType task = WebComponentUtil.createSingleRecurenceTask("Recompute member(s)",
+					ObjectType.COMPLEX_TYPE, createQueryForRecompute(), null, TaskCategory.RECOMPUTATION,
+					getPageBase());
+			WebModelServiceUtils.runTask(task, operationalTask, parentResult, getPageBase());
+		} catch (SchemaException e) {
+			parentResult.recordFatalError("Failed to remove members " + e.getMessage(), e);
+			LoggingUtils.logException(LOGGER, "Failed to remove members", e);
+			target.add(getPageBase().getFeedbackPanel());
+		}
+
+		target.add(getPageBase().getFeedbackPanel());
+	}
+
+	private void recomputeAllMembersPerformed(AjaxRequestTarget target) {
+		Task operationalTask = getPageBase().createSimpleTask("Recompute all members");
+		OperationResult parentResult = operationalTask.getResult();
+
+		try {
+			TaskType task = WebComponentUtil.createSingleRecurenceTask("Recompute member(s)",
+					ObjectType.COMPLEX_TYPE, createQueryForRecomputeAll(), null, TaskCategory.RECOMPUTATION,
+					getPageBase());
+			WebModelServiceUtils.runTask(task, operationalTask, parentResult, getPageBase());
+		} catch (SchemaException e) {
+			parentResult.recordFatalError("Failed to remove members " + e.getMessage(), e);
+			LoggingUtils.logException(LOGGER, "Failed to remove members", e);
+			target.add(getPageBase().getFeedbackPanel());
+		}
+
+		target.add(getPageBase().getFeedbackPanel());
+	}
+
 	private ObjectQuery createQueryForAdd(List selected) {
 		List<String> oids = new ArrayList<>();
 		for (Object selectable : selected) {
-			if (selectable instanceof ObjectType){
+			if (selectable instanceof ObjectType) {
 				oids.add(((ObjectType) selectable).getOid());
 			}
-			
+
 		}
 
 		return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
+	}
+
+	private ObjectQuery createQueryForFocusRemove() {
+
+		List<ObjectType> objects = getMemberTable().getSelectedObjects();
+		List<String> oids = new ArrayList<>();
+		for (ObjectType object : objects) {
+			if (FocusType.class.isAssignableFrom(object.getClass())) {
+				oids.add(object.getOid());
+			}
+		}
+
+		return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
+	}
+
+	private ObjectQuery createQueryForNonFocusRemove() {
+
+		List<ObjectType> objects = getMemberTable().getSelectedObjects();
+		List<String> oids = new ArrayList<>();
+		for (ObjectType object : objects) {
+			if (!FocusType.class.isAssignableFrom(object.getClass())) {
+				oids.add(object.getOid());
+			}
+		}
+
+		return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
+	}
+
+	private ObjectQuery createQueryForAllRemove(QName type) {
+		OrgType org = (OrgType) selected.getObject().getObject();
+		if (type == null) {
+
+			PrismReferenceDefinition def = org.asPrismObject().getDefinition()
+					.findReferenceDefinition(UserType.F_PARENT_ORG_REF);
+			ObjectFilter orgFilter = RefFilter.createReferenceEqual(new ItemPath(ObjectType.F_PARENT_ORG_REF),
+					def, ObjectTypeUtil.createObjectRef(org).asReferenceValue());
+			TypeFilter typeFilter = TypeFilter.createType(FocusType.COMPLEX_TYPE, null);
+			return ObjectQuery
+					.createObjectQuery(AndFilter.createAnd(NotFilter.createNot(typeFilter), orgFilter));
+
+		}
+
+		if (FocusType.COMPLEX_TYPE.equals(type)) {
+			PrismReferenceDefinition def = org.asPrismObject().getDefinition()
+					.findReferenceDefinition(new ItemPath(OrgType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF));
+			ObjectFilter orgASsignmentFilter = RefFilter.createReferenceEqual(
+					new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), def,
+					ObjectTypeUtil.createObjectRef(org).asReferenceValue());
+			return ObjectQuery
+					.createObjectQuery(TypeFilter.createType(FocusType.COMPLEX_TYPE, orgASsignmentFilter));
+		}
+		
+		return null;
+
+	}
+
+	private ObjectQuery createQueryForRecompute() {
+
+		List<ObjectType> objects = getMemberTable().getSelectedObjects();
+		List<String> oids = new ArrayList<>();
+		for (ObjectType object : objects) {
+			oids.add(object.getOid());
+
+		}
+
+		return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
+	}
+
+	private ObjectQuery createQueryForRecomputeAll() {
+		OrgType org = (OrgType) selected.getObject().getObject();
+		PrismReferenceDefinition def = org.asPrismObject().getDefinition()
+				.findReferenceDefinition(UserType.F_PARENT_ORG_REF);
+		ObjectFilter orgFilter = RefFilter.createReferenceEqual(new ItemPath(ObjectType.F_PARENT_ORG_REF),
+				def, ObjectTypeUtil.createObjectRef(org).asReferenceValue());
+
+		return ObjectQuery.createObjectQuery(orgFilter);
+
 	}
 
 	private void initObjectForAdd(QName type, QName relation, AjaxRequestTarget target) {
