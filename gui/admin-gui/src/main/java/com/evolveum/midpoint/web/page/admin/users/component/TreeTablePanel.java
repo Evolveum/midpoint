@@ -1831,6 +1831,7 @@ public class TreeTablePanel extends AbstractTreeTablePanel {
 	}
 
 	private void deleteRootConfirmedPerformed(OrgTreeDto orgToDelete, AjaxRequestTarget target) {
+		getPageBase().hideMainPopup(target);
 		OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
 
 		PageBase page = getPageBase();
