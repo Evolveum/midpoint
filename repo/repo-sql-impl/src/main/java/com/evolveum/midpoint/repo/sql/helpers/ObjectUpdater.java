@@ -32,7 +32,6 @@ import com.evolveum.midpoint.repo.sql.SerializationRelatedException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
@@ -85,7 +84,7 @@ public class ObjectUpdater {
     private RepositoryService repositoryService;
 
     @Autowired
-    private TransactionHelper transactionHelper;
+    private BaseHelper baseHelper;
 
     @Autowired
     private ObjectRetriever objectRetriever;
@@ -127,7 +126,7 @@ public class ObjectUpdater {
 
             RObject rObject = createDataObjectFromJAXB(object, operation);
 
-            session = transactionHelper.beginTransaction();
+            session = baseHelper.beginTransaction();
 
             closureContext = closureManager.onBeginTransactionAdd(session, object, options.isOverwrite());
 
@@ -144,7 +143,7 @@ public class ObjectUpdater {
             object.setOid(oid);
         } catch (ConstraintViolationException ex) {
             handleConstraintViolationException(session, ex, result);
-            transactionHelper.rollbackTransaction(session, ex, result, true);
+            baseHelper.rollbackTransaction(session, ex, result, true);
 
             LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", ex);
             // we don't know if it's only name uniqueness violation, or something else,
@@ -161,10 +160,10 @@ public class ObjectUpdater {
             throw new ObjectAlreadyExistsException("Conflicting object already exists"
                     + (constraintName == null ? "" : " (violated constraint '" + constraintName + "')"), ex);
         } catch (ObjectAlreadyExistsException | SchemaException ex) {
-            transactionHelper.rollbackTransaction(session, ex, result, true);
+            baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
         } catch (DtoTranslationException | RuntimeException ex) {
-            transactionHelper.handleGeneralException(ex, session, result);
+            baseHelper.handleGeneralException(ex, session, result);
         } finally {
             cleanupClosureAndSessionAndResult(closureContext, session, result);
         }
@@ -194,7 +193,7 @@ public class ObjectUpdater {
 
                 rObject.setVersion(version);
 //            } catch (QueryException ex) {
-//                transactionHelper.handleGeneralCheckedException(ex, session, null);
+//                baseHelper.handleGeneralCheckedException(ex, session, null);
             } catch (ObjectNotFoundException ex) {
                 //it's ok that object was not found, therefore we won't be overwriting it
             }
@@ -258,7 +257,7 @@ public class ObjectUpdater {
     }
 
     protected SqlRepositoryConfiguration getConfiguration() {
-        return ((SqlRepositoryServiceImpl) repositoryService).getConfiguration();
+        return baseHelper.getConfiguration();
     }
 
     private <T extends ObjectType> String nonOverwriteAddObjectAttempt(PrismObject<T> object, RObject rObject,
@@ -304,7 +303,7 @@ public class ObjectUpdater {
         Session session = null;
         OrgClosureManager.Context closureContext = null;
         try {
-            session = transactionHelper.beginTransaction();
+            session = baseHelper.beginTransaction();
 
             closureContext = closureManager.onBeginTransactionDelete(session, type, oid);
 
@@ -328,10 +327,10 @@ public class ObjectUpdater {
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
-            transactionHelper.rollbackTransaction(session, ex, result, true);
+            baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
         } catch (RuntimeException ex) {
-            transactionHelper.handleGeneralException(ex, session, result);
+            baseHelper.handleGeneralException(ex, session, result);
         } finally {
             cleanupClosureAndSessionAndResult(closureContext, session, result);
         }
@@ -356,7 +355,7 @@ public class ObjectUpdater {
         Session session = null;
         OrgClosureManager.Context closureContext = null;
         try {
-            session = transactionHelper.beginTransaction();
+            session = baseHelper.beginTransaction();
 
             closureContext = closureManager.onBeginTransactionModify(session, type, oid, modifications);
 
@@ -437,12 +436,12 @@ public class ObjectUpdater {
             session.getTransaction().commit();
             LOGGER.trace("Committed!");
         } catch (ObjectNotFoundException ex) {
-            transactionHelper.rollbackTransaction(session, ex, result, true);
+            baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
         } catch (ConstraintViolationException ex) {
             handleConstraintViolationException(session, ex, result);
 
-            transactionHelper.rollbackTransaction(session, ex, result, true);
+            baseHelper.rollbackTransaction(session, ex, result, true);
 
             LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", ex);
             // we don't know if it's only name uniqueness violation, or something else,
@@ -451,10 +450,10 @@ public class ObjectUpdater {
             //todo improve (we support only 5 DB, so we should probably do some hacking in here)
             throw new ObjectAlreadyExistsException(ex);
         } catch (SchemaException ex) {
-            transactionHelper.rollbackTransaction(session, ex, result, true);
+            baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
         } catch (DtoTranslationException | RuntimeException ex) {
-            transactionHelper.handleGeneralException(ex, session, result);
+            baseHelper.handleGeneralException(ex, session, result);
         } finally {
             cleanupClosureAndSessionAndResult(closureContext, session, result);
             LOGGER.trace("Session cleaned up.");
@@ -479,7 +478,7 @@ public class ObjectUpdater {
         if (closureContext != null) {
             closureManager.cleanUpAfterOperation(closureContext, session);
         }
-        transactionHelper.cleanupSessionAndResult(session, result);
+        baseHelper.cleanupSessionAndResult(session, result);
     }
 
     private void handleConstraintViolationException(Session session, ConstraintViolationException ex, OperationResult result) {
@@ -490,7 +489,7 @@ public class ObjectUpdater {
         //
         // TODO: somewhat generalize this approach - perhaps by retrying all operations not dealing with OID/name uniqueness
 
-        SQLException sqlException = transactionHelper.findSqlException(ex);
+        SQLException sqlException = baseHelper.findSqlException(ex);
         if (sqlException != null) {
             SQLException nextException = sqlException.getNextException();
             LOGGER.debug("ConstraintViolationException = {}; SQL exception = {}; embedded SQL exception = {}", new Object[]{ex, sqlException, nextException});
@@ -512,7 +511,7 @@ public class ObjectUpdater {
             }
             for (int i = 0; i < ok.length; i++) {
                 if (msg1.contains(ok[i]) || msg2.contains(ok[i])) {
-                    transactionHelper.rollbackTransaction(session, ex, result, false);
+                    baseHelper.rollbackTransaction(session, ex, result, false);
                     throw new SerializationRelatedException(ex);
                 }
             }

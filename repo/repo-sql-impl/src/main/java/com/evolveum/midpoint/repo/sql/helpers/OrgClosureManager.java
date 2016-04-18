@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
@@ -48,6 +49,7 @@ import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 import org.hibernate.type.IntegerType;
 import org.hibernate.type.StringType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
@@ -84,7 +86,11 @@ public class OrgClosureManager {
     private static final Trace LOGGER = TraceManager.getTrace(OrgClosureManager.class);
 
     @Autowired
-    private SqlRepositoryServiceImpl sqlRepositoryService;
+	@Qualifier("repositoryService")
+    private RepositoryService repositoryService;
+
+	@Autowired
+	private BaseHelper baseHelper;
 
     private static boolean DUMP_TABLES = false;
     private static final boolean COUNT_CLOSURE_RECORDS = false;
@@ -226,15 +232,15 @@ public class OrgClosureManager {
             return;
         }
 
-        SqlRepositoryConfiguration repoConfiguration = sqlRepositoryService.getConfiguration();
+        SqlRepositoryConfiguration repoConfiguration = baseHelper.getConfiguration();
 
         if (isOracle()) {
-            initializeOracleTemporaryTable(sqlRepositoryService);
+            initializeOracleTemporaryTable();
         }
 
-        if (autoUpdateClosureTableStructure(sqlRepositoryService)) {
+        if (autoUpdateClosureTableStructure()) {
             // need to rebuild the content of the closure table after re-creating it anew
-            checkAndOrRebuild(sqlRepositoryService, false, true, repoConfiguration.isStopOnOrgClosureStartupFailure(), true, result);
+            checkAndOrRebuild(false, true, repoConfiguration.isStopOnOrgClosureStartupFailure(), true, result);
         } else {
             boolean check, rebuild;
             switch (repoConfiguration.getOrgClosureStartupAction()) {
@@ -255,7 +261,7 @@ public class OrgClosureManager {
                 default:
                     throw new IllegalArgumentException("Invalid value: " + repoConfiguration.getOrgClosureStartupAction());
             }
-            checkAndOrRebuild(sqlRepositoryService, check, rebuild, repoConfiguration.isStopOnOrgClosureStartupFailure(), true, result);
+            checkAndOrRebuild(check, rebuild, repoConfiguration.isStopOnOrgClosureStartupFailure(), true, result);
         }
     }
 
@@ -267,14 +273,14 @@ public class OrgClosureManager {
     // This code removes and re-creates the m_org_closure table if hbm2ddl is set to "update".
     //
     // returns true if the table was re-created
-    private boolean autoUpdateClosureTableStructure(SqlRepositoryServiceImpl service) {
+    private boolean autoUpdateClosureTableStructure() {
 
-        if (sqlRepositoryService.getConfiguration().isSkipOrgClosureStructureCheck()) {
+        if (baseHelper.getConfiguration().isSkipOrgClosureStructureCheck()) {
             LOGGER.debug("Skipping org closure structure check.");
             return false;
         }
 
-        SessionFactory sf = service.getSessionFactory();
+        SessionFactory sf = baseHelper.getSessionFactory();
         if (sf instanceof SessionFactoryImpl) {
             SessionFactoryImpl sfi = ((SessionFactoryImpl) sf);
             LOGGER.debug("SessionFactoryImpl.getSettings() = {}; auto update schema = {}", sfi.getSettings(), sfi.getSettings() != null ? sfi.getSettings().isAutoUpdateSchema() : null);
@@ -282,7 +288,7 @@ public class OrgClosureManager {
 
                 LOGGER.info("Checking the closure table structure.");
 
-                final Session session = service.getSessionFactory().openSession();
+                final Session session = baseHelper.getSessionFactory().openSession();
                 final Holder<Boolean> wrongNumberOfColumns = new Holder<>(false);
                 session.doWork(new Work() {
                     @Override
@@ -333,7 +339,7 @@ public class OrgClosureManager {
                     session.getTransaction().commit();
 
                     LOGGER.info("Calling hibernate hbm2ddl SchemaUpdate tool to create the table in the necessary form.");
-                    new SchemaUpdate(sfi.getServiceRegistry(), service.getSessionFactoryBean().getConfiguration()).execute(false, true);
+                    new SchemaUpdate(sfi.getServiceRegistry(), baseHelper.getSessionFactoryBean().getConfiguration()).execute(false, true);
                     LOGGER.info("Done, table was (hopefully) created. If not, please fix your database structure manually using DB scripts in 'config' folder.");
                     return true;
                 }
@@ -347,7 +353,7 @@ public class OrgClosureManager {
     }
 
     public boolean isEnabled() {
-        return !sqlRepositoryService.getConfiguration().isIgnoreOrgClosure();
+        return !baseHelper.getConfiguration().isIgnoreOrgClosure();
     }
 
     /**
@@ -358,7 +364,7 @@ public class OrgClosureManager {
      *
      * Thorough check is conducted by recomputing the closure table.
      */
-    public void checkAndOrRebuild(SqlRepositoryServiceImpl service, boolean check, boolean rebuild, boolean stopOnFailure, boolean quickCheckOnly, OperationResult result) {
+    public void checkAndOrRebuild(boolean check, boolean rebuild, boolean stopOnFailure, boolean quickCheckOnly, OperationResult result) {
         LOGGER.debug("Org closure check/rebuild request: check={}, rebuild={}", check?(quickCheckOnly?"quick":"thorough"):"none", rebuild);
         if (!isEnabled()) {
             result.recordWarning("Organizational closure processing is disabled.");
@@ -368,7 +374,7 @@ public class OrgClosureManager {
             result.recordWarning("Neither 'check' nor 'rebuild' option was requested.");
             return;         // nothing to do here
         }
-        Session session = service.getSessionFactory().openSession();
+        Session session = baseHelper.getSessionFactory().openSession();
         Context context = null;
         boolean rebuilt = false;
         try {
@@ -393,12 +399,12 @@ public class OrgClosureManager {
                     }
                 }
                 if (!ok && rebuild) {
-                    rebuild(false, true, service, stopOnFailure, context, session, result);
+                    rebuild(false, true, stopOnFailure, context, session, result);
                     rebuilt = true;
                 }
             } else {
                 // if the check has to be thorough
-                rebuild(check, rebuild, service, stopOnFailure, context, session, result);
+                rebuild(check, rebuild, stopOnFailure, context, session, result);
                 rebuilt = rebuild;          // if we are here this means the CL was rebuilt if it was to be rebuilt
                 if (stopOnFailure && result.isError()) {
                     throw new IllegalStateException(result.getMessage());
@@ -435,7 +441,7 @@ public class OrgClosureManager {
 
     // we are already in the context of a transaction (and the org struct table is locked if possible)
     // "check" here means "thorough check" (i.e. comparing with recomputed closure)
-    private void rebuild(boolean check, boolean rebuild, SqlRepositoryServiceImpl service, boolean stopOnFailure, final Context context, final Session session, OperationResult result) throws SchemaException {
+    private void rebuild(boolean check, boolean rebuild, boolean stopOnFailure, final Context context, final Session session, OperationResult result) throws SchemaException {
 
         List existingEntries = null;
         if (check) {
@@ -454,7 +460,7 @@ public class OrgClosureManager {
         deleteQuery.executeUpdate();
         LOGGER.trace("Closure table content deleted");
 
-        final int orgsTotal = service.countObjects(OrgType.class, new ObjectQuery(), result);
+        final int orgsTotal = repositoryService.countObjects(OrgType.class, new ObjectQuery(), result);
         final MutableInt orgsProcessed = new MutableInt(0);
 
         ResultHandler<OrgType> handler = new ResultHandler<OrgType>() {
@@ -470,7 +476,7 @@ public class OrgClosureManager {
                 return true;
             }
         };
-        service.searchObjectsIterative(OrgType.class, new ObjectQuery(), handler, null, false, result);
+        repositoryService.searchObjectsIterative(OrgType.class, new ObjectQuery(), handler, null, false, result);
 
         LOGGER.info("Org closure table was successfully recomputed (not committed yet); all {} organizations processed", orgsTotal);
 
@@ -1141,8 +1147,8 @@ public class OrgClosureManager {
         }
     }
 
-    private void initializeOracleTemporaryTable(SqlRepositoryServiceImpl service) {
-        Session session = service.getSessionFactory().openSession();
+    private void initializeOracleTemporaryTable() {
+        Session session = baseHelper.getSessionFactory().openSession();
         Query qCheck = session.createSQLQuery("select table_name from user_tables where table_name = upper('" + TEMP_DELTA_TABLE_NAME_FOR_ORACLE + "')");
         if (qCheck.list().isEmpty()) {
             LOGGER.info("Creating temporary table {}", TEMP_DELTA_TABLE_NAME_FOR_ORACLE);
@@ -1315,23 +1321,23 @@ public class OrgClosureManager {
     }
 
     private boolean isMySQL() {
-        return sqlRepositoryService.getConfiguration().isUsingMySQL();
+        return baseHelper.getConfiguration().isUsingMySQL();
     }
 
     private boolean isOracle() {
-        return sqlRepositoryService.getConfiguration().isUsingOracle();
+        return baseHelper.getConfiguration().isUsingOracle();
     }
 
     private boolean isSQLServer() {
-        return sqlRepositoryService.getConfiguration().isUsingSQLServer();
+        return baseHelper.getConfiguration().isUsingSQLServer();
     }
 
     private boolean isH2() {
-        return sqlRepositoryService.getConfiguration().isUsingH2();
+        return baseHelper.getConfiguration().isUsingH2();
     }
 
     private boolean isPostgreSQL() {
-        return sqlRepositoryService.getConfiguration().isUsingPostgreSQL();
+        return baseHelper.getConfiguration().isUsingPostgreSQL();
     }
 
     //endregion

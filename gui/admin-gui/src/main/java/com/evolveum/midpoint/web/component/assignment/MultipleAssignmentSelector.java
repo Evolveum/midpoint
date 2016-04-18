@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -293,7 +294,8 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
 
     private void initUserDialog(IModel<String> title, AjaxRequestTarget target) {
 
-    	FocusBrowserPanel<F> focusBrowser = new FocusBrowserPanel<F>(getPageBase().getMainPopupBodyId(), targetFocusClass, false, getPageBase()){
+    	FocusBrowserPanel<F> focusBrowser = new FocusBrowserPanel<F>(getPageBase().getMainPopupBodyId(), targetFocusClass,
+				null, false, getPageBase()){
 
             @Override
     		protected void onSelectPerformed(AjaxRequestTarget target, F filterUser) {

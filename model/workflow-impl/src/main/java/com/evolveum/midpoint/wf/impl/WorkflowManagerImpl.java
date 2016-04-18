@@ -55,6 +55,8 @@ import java.util.List;
 
 /**
  * @author mederly
+ *
+ * Note: don't autowire this class - because of Spring AOP use it couldn't be found by implementation class; only by its interface.
  */
 @Component("workflowManager")
 public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListener {

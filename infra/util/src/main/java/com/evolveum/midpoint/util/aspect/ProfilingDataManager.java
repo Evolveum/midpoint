@@ -107,9 +107,9 @@ public class ProfilingDataManager {
         isPerformanceProfiled = performance;
 
         if(subsystemProfilingActive || isPerformanceProfiled || request){
-            MidpointAspect.activateSubsystemProfiling();
+            MidpointInterceptor.activateSubsystemProfiling();
         }else {
-            MidpointAspect.deactivateSubsystemProfiling();
+            MidpointInterceptor.deactivateSubsystemProfiling();
         }
 
         subsystemConfiguration(profiledSubsystems);
@@ -352,11 +352,11 @@ public class ProfilingDataManager {
     }
 
     public void appendProfilingToTest(){
-        MidpointAspect.activateSubsystemProfiling();
+        MidpointInterceptor.activateSubsystemProfiling();
     }
 
     public void stopProfilingAfterTest(){
-        MidpointAspect.deactivateSubsystemProfiling();
+        MidpointInterceptor.deactivateSubsystemProfiling();
     }
 
     public void printMapAfterTest(){

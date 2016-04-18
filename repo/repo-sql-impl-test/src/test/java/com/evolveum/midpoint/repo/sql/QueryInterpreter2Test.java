@@ -3535,7 +3535,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             LOGGER.info("QUERY TYPE TO CONVERT :\n{}", (query.getFilter() != null ? query.getFilter().debugDump(3) : null));
         }
 
-        QueryEngine2 engine = new QueryEngine2(repositoryService.getConfiguration(), prismContext);
+        QueryEngine2 engine = new QueryEngine2(baseHelper.getConfiguration(), prismContext);
         RQuery rQuery = engine.interpret(query, type, null, interpretCount, session);
         //just test if DB will handle it or throws some exception
         if (interpretCount) {
