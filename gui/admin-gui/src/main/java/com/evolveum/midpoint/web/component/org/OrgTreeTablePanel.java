@@ -91,9 +91,11 @@ public class OrgTreeTablePanel extends AbstractTreeTablePanel{
                 return getRootFromProvider();
             }
         };
+        
+        initLayout();
     }
 
-    @Override
+    
     protected void initLayout() {
         WebMarkupContainer treeHeader = new WebMarkupContainer(ID_TREE_HEADER);
         treeHeader.setOutputMarkupId(true);

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
@@ -132,9 +133,15 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
         String identifier = unit.getPropertyRealValue(OrgType.F_IDENTIFIER, String.class);
 
         //todo relation [lazyman]
-        return new OrgTreeDto(parent, unit);
+        OrgTreeDto orgDto = new OrgTreeDto(parent, unit);
+        orgDto.getMenuItems().addAll(createInlineMenuItems());
+        return orgDto;
     }
 
+    protected List<InlineMenuItem> createInlineMenuItems(){
+    	return null;
+    }
+    
     @Override
     public Iterator<? extends OrgTreeDto> getRoots() {
         OperationResult result = null;

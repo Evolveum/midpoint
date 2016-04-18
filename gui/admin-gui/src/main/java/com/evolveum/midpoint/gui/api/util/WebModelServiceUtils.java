@@ -25,6 +25,7 @@ import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -40,6 +41,13 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -49,6 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.Session;
 import org.apache.wicket.protocol.http.WebSession;
@@ -137,11 +146,31 @@ public class WebModelServiceUtils {
         // }
 
         return null;
-        
 
-       
     }
 
+    public static String runTask(TaskType taskToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase){
+    	try {
+			ObjectDelta<TaskType> delta = ObjectDelta.createAddDelta(taskToRun.asPrismObject());
+			pageBase.getPrismContext().adopt(delta);
+			pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
+					operationalTask, parentResult);
+			parentResult.recordInProgress();
+			parentResult.setBackgroundTaskOid(delta.getOid());
+			pageBase.showResult(parentResult);
+	    	return delta.getOid();
+		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+				| ExpressionEvaluationException | CommunicationException | ConfigurationException
+				| PolicyViolationException | SecurityViolationException e) {
+			// TODO Auto-generated catch block
+//			error(pageBase.getString("pageUsers.message.nothingSelected") + e.getMessage());
+			parentResult.recordFatalError("Couldn't run task " + e.getMessage(), e);
+			LoggingUtils.logException(LOGGER, "Couldn't run task " + e.getMessage(), e);
+			return null;
+		}
+    	
+    }
+    
 
     public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
                                                                    PageBase page, Task task, OperationResult result) {
@@ -211,6 +240,12 @@ public class WebModelServiceUtils {
     public static <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
                                                                             OperationResult result, PageBase page) {
         return searchObjects(type, query, null, result, page, null);
+    }
+    
+    public static <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult result, PageBase page) {
+    	return searchObjects(type, query, options, result, page, null);
     }
 
     public static <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,

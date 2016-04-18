@@ -82,6 +82,9 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -122,6 +125,8 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		ALL, SELECTED, TO_ADD
 	}
 
+	private static final Trace LOGGER = TraceManager.getTrace(RoleMemberPanel.class);
+	
 	private static String ID_OBJECT_TYPE = "type";
 	private static String ID_TABLE = "table";
 	private static String ID_TENANT = "tenant";
@@ -270,11 +275,11 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 
 	private void initDialog(AjaxRequestTarget target) {
 		
-		FocusBrowserPanel<T> focusBrowser = new FocusBrowserPanel<T>(pageBase.getMainPopupBodyId(), getClassFromType(), true, pageBase){
+		FocusBrowserPanel<T> focusBrowser = new FocusBrowserPanel<T>(pageBase.getMainPopupBodyId(), getClassFromType(), WebComponentUtil.createFocusTypeList(), true, pageBase){
 			
 			@Override
-			protected void addPerformed(AjaxRequestTarget target, List<T> selected) {
-				addMembers(selected, target);
+			protected void addPerformed(AjaxRequestTarget target, QName type, List<T> selected) {
+				addMembers(type, selected, target);
 				target.add(getFeedbackPanel());
 			}
 			
@@ -763,39 +768,48 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		return assignmentToModify;
 	}
 
-	private void addMembers(List<T> selected, AjaxRequestTarget target) {
+	private void addMembers(QName type, List<T> selected, AjaxRequestTarget target) {
 		OperationResult parentResult = new OperationResult("Add members");
+		Task operationalTask = pageBase.createSimpleTask("Add members");
 
 		try {
 			ObjectDelta delta = ObjectDelta.createModificationAddContainer(UserType.class, "fakeOid",
 					FocusType.F_ASSIGNMENT, getPrismContext(), createAssignmentToModify());
 
-			String taskOid = execute("Add member(s)", getActionQuery(QueryScope.TO_ADD, selected), delta, parentResult, target);
-			parentResult.setBackgroundTaskOid(taskOid);
+			TaskType task = WebComponentUtil.createSingleRecurenceTask("Add member(s)", type, getActionQuery(QueryScope.TO_ADD, selected), delta, TaskCategory.EXECUTE_CHANGES, getPageBase());
+			WebModelServiceUtils.runTask(task, operationalTask, parentResult, pageBase);
+//			execute("Add member(s)", getActionQuery(QueryScope.TO_ADD, selected), delta, parentResult, target);
+//			parentResult.setBackgroundTaskOid(taskOid);
 		} catch (SchemaException e) {
-			error(getString("pageUsers.message.nothingSelected") + e.getMessage());
-			target.add(getFeedbackPanel());
+			parentResult.recordFatalError("Failed to add members " + e.getMessage(), e);
+			LoggingUtils.logException(LOGGER, "Failed to remove members", e);
+			pageBase.showResult(parentResult);
 		}
-		parentResult.recordInProgress();		// TODO don't do this in case of error
-		pageBase.showResult(parentResult);
+//		parentResult.recordInProgress();		// TODO don't do this in case of error
+//		pageBase.showResult(parentResult);
 		target.add(getFeedbackPanel());
 
 	}
 
 	private void removeMembersPerformed(AjaxRequestTarget target, QueryScope scope) {
 		OperationResult parentResult = new OperationResult("Remove members");
+		Task operationalTask = pageBase.createSimpleTask("Remove members");
 		try {
 			ObjectDelta delta = ObjectDelta.createModificationDeleteContainer(UserType.class, "fakeOid",
 					FocusType.F_ASSIGNMENT, getPrismContext(), createAssignmentToModify());
-
-			String taskOid = execute("Remove member(s)", getActionQuery(scope, null), delta, parentResult, target);
-			parentResult.setBackgroundTaskOid(taskOid);
+			TaskType task = WebComponentUtil.createSingleRecurenceTask("Remove member(s)", searchModel.getObject().getType(), getActionQuery(scope, null), delta, TaskCategory.EXECUTE_CHANGES, getPageBase());
+			WebModelServiceUtils.runTask(task, operationalTask, parentResult, pageBase);
+			//			execute("Remove member(s)", getActionQuery(scope, null), delta, parentResult, target);
+//			String taskOid = execute("Remove member(s)", getActionQuery(scope, null), delta, parentResult, target);
+//			parentResult.setBackgroundTaskOid(taskOid);
 		} catch (SchemaException e) {
-			error(getString("pageUsers.message.nothingSelected") + e.getMessage());
-			target.add(getFeedbackPanel());
+//			error(getString("pageUsers.message.nothingSelected") + e.getMessage());
+			parentResult.recordFatalError("Failed to remove members " + e.getMessage(), e);
+			LoggingUtils.logException(LOGGER, "Failed to remove members", e);
+			pageBase.showResult(parentResult);
 		}
-		parentResult.recordInProgress();		// TODO don't do this in case of error
-		pageBase.showResult(parentResult);
+//		parentResult.recordInProgress();		// TODO don't do this in case of error
+//		pageBase.showResult(parentResult);
 		target.add(getFeedbackPanel());
 	}
 
@@ -803,47 +817,58 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		Task operationalTask = pageBase.createSimpleTask("Recompute all members");
 		OperationResult parentResult = operationalTask.getResult();
 
-		TaskType task = createTask("Recompute member(s)", getActionQuery(scope, null), null,
-				TaskCategory.RECOMPUTATION, target);
+		 
 		try {
-			ObjectDelta<TaskType> delta = ObjectDelta.createAddDelta(task.asPrismObject());
-			pageBase.getPrismContext().adopt(delta);
-			pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
-					operationalTask, parentResult);
-			parentResult.setBackgroundTaskOid(delta.getOid());
-		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-				| ExpressionEvaluationException | CommunicationException | ConfigurationException
-				| PolicyViolationException | SecurityViolationException e) {
-			// TODO Auto-generated catch block
-			error(getString("pageUsers.message.nothingSelected") + e.getMessage());
+			TaskType task = WebComponentUtil.createSingleRecurenceTask("Recompute member(s)", searchModel.getObject().getType(), getActionQuery(scope, null), null,
+					TaskCategory.RECOMPUTATION, getPageBase());
+			WebModelServiceUtils.runTask(task, operationalTask, parentResult, pageBase);
+		} catch (SchemaException e) {
+			parentResult.recordFatalError("Failed to remove members " + e.getMessage(), e);
+			LoggingUtils.logException(LOGGER, "Failed to remove members", e);
 			target.add(getFeedbackPanel());
 		}
-		parentResult.recordInProgress();		// TODO don't this if error
-		pageBase.showResult(parentResult);
+		
+//		try {
+//			ObjectDelta<TaskType> delta = ObjectDelta.createAddDelta(task.asPrismObject());
+//			pageBase.getPrismContext().adopt(delta);
+//			pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
+//					operationalTask, parentResult);
+//			parentResult.setBackgroundTaskOid(delta.getOid());
+//		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+//				| ExpressionEvaluationException | CommunicationException | ConfigurationException
+//				| PolicyViolationException | SecurityViolationException e) {
+//			// TODO Auto-generated catch block
+//			error(getString("pageUsers.message.nothingSelected") + e.getMessage());
+//			target.add(getFeedbackPanel());
+//		}
+//		parentResult.recordInProgress();		// TODO don't this if error
+//		pageBase.showResult(parentResult);
 		target.add(getFeedbackPanel());
 	}
 
-	private String execute(String taskName, ObjectQuery query, ObjectDelta deltaToExecute,
-			OperationResult parentResult, AjaxRequestTarget target) {
-		Task operationalTask = pageBase.createSimpleTask("Execute changes");
+//	private void execute(String taskName, ObjectQuery query, ObjectDelta deltaToExecute,
+//			OperationResult parentResult, AjaxRequestTarget target) {
+//		Task operationalTask = pageBase.createSimpleTask("Execute changes");
 
-		TaskType task = createTask(taskName, query, deltaToExecute, TaskCategory.EXECUTE_CHANGES, target);
-		try {
-			ObjectDelta<TaskType> delta = ObjectDelta.createAddDelta(task.asPrismObject());
-			pageBase.getPrismContext().adopt(delta);
-			pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
-					operationalTask, parentResult);
-			return delta.getOid();
-		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-				| ExpressionEvaluationException | CommunicationException | ConfigurationException
-				| PolicyViolationException | SecurityViolationException e) {
-			// TODO Auto-generated catch block
-			error(getString("pageUsers.message.nothingSelected") + e.getMessage());
-			target.add(getFeedbackPanel());
-			return null;
-		}
+//		TaskType task = WebComponentUtil.createSingleRecurenceTask(taskName, searchModel.getObject().getType(), query, deltaToExecute, TaskCategory.EXECUTE_CHANGES, getPageBase());
+//		WebModelServiceUtils.runTask(task, operationalTask, parentResult, pageBase);
+//		target.add(getFeedbackPanel());
+//		try {
+//			ObjectDelta<TaskType> delta = ObjectDelta.createAddDelta(task.asPrismObject());
+//			pageBase.getPrismContext().adopt(delta);
+//			pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
+//					operationalTask, parentResult);
+//			return delta.getOid();
+//		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+//				| ExpressionEvaluationException | CommunicationException | ConfigurationException
+//				| PolicyViolationException | SecurityViolationException e) {
+//			// TODO Auto-generated catch block
+//			error(getString("pageUsers.message.nothingSelected") + e.getMessage());
+//			target.add(getFeedbackPanel());
+//			return null;
+//		}
 		// pageBase.showResult(parentResult);
-	}
+//	}
 
 	private ObjectQuery getActionQuery(QueryScope scope, List<T> selected) {
 		switch (scope) {
@@ -896,52 +921,52 @@ public class RoleMemberPanel<T extends FocusType> extends BasePanel<T> {
 		return oids;
 	}
 
-	private TaskType createTask(String taskName, ObjectQuery query, ObjectDelta delta, String category,
-			AjaxRequestTarget target) {
-		TaskType task = new TaskType();
-
-		MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
-
-		ObjectReferenceType ownerRef = new ObjectReferenceType();
-		ownerRef.setOid(owner.getOid());
-		ownerRef.setType(owner.getUser().COMPLEX_TYPE);
-		task.setOwnerRef(ownerRef);
-
-		task.setBinding(TaskBindingType.LOOSE);
-		task.setCategory(category);
-		task.setExecutionStatus(TaskExecutionStatusType.RUNNABLE);
-		task.setRecurrence(TaskRecurrenceType.SINGLE);
-		task.setThreadStopAction(ThreadStopActionType.RESTART);
-		task.setHandlerUri(pageBase.getTaskService().getHandlerUriForCategory(category));
-		ScheduleType schedule = new ScheduleType();
-		schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
-		task.setSchedule(schedule);
-
-		task.setName(WebComponentUtil.createPolyFromOrigString(taskName));
-
-		try {
-			PrismObject<TaskType> prismTask = task.asPrismObject();
-			ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-			PrismProperty objectQuery = prismTask.findOrCreateProperty(path);
-			QueryType queryType = QueryJaxbConvertor.createQueryType(query, getPrismContext());
-			objectQuery.addRealValue(queryType);
-
-			path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
-			PrismProperty objectType = prismTask.findOrCreateProperty(path);
-			objectType.setRealValue(searchModel.getObject().getType());
-
-			if (delta != null) {
-				path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
-				PrismProperty objectDelta = prismTask.findOrCreateProperty(path);
-				objectDelta.setRealValue(DeltaConvertor.toObjectDeltaType(delta));
-			}
-		} catch (SchemaException e) {
-			error(getString("pageUsers.message.nothingSelected"));
-			target.add(getFeedbackPanel());
-		}
-
-		return task;
-	}
+//	private TaskType createTask(String taskName, ObjectQuery query, ObjectDelta delta, String category,
+//			AjaxRequestTarget target) {
+//		TaskType task = new TaskType();
+//
+//		MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
+//
+//		ObjectReferenceType ownerRef = new ObjectReferenceType();
+//		ownerRef.setOid(owner.getOid());
+//		ownerRef.setType(owner.getUser().COMPLEX_TYPE);
+//		task.setOwnerRef(ownerRef);
+//
+//		task.setBinding(TaskBindingType.LOOSE);
+//		task.setCategory(category);
+//		task.setExecutionStatus(TaskExecutionStatusType.RUNNABLE);
+//		task.setRecurrence(TaskRecurrenceType.SINGLE);
+//		task.setThreadStopAction(ThreadStopActionType.RESTART);
+//		task.setHandlerUri(pageBase.getTaskService().getHandlerUriForCategory(category));
+//		ScheduleType schedule = new ScheduleType();
+//		schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
+//		task.setSchedule(schedule);
+//
+//		task.setName(WebComponentUtil.createPolyFromOrigString(taskName));
+//
+//		try {
+//			PrismObject<TaskType> prismTask = task.asPrismObject();
+//			ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+//			PrismProperty objectQuery = prismTask.findOrCreateProperty(path);
+//			QueryType queryType = QueryJaxbConvertor.createQueryType(query, getPrismContext());
+//			objectQuery.addRealValue(queryType);
+//
+//			path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
+//			PrismProperty objectType = prismTask.findOrCreateProperty(path);
+//			objectType.setRealValue(searchModel.getObject().getType());
+//
+//			if (delta != null) {
+//				path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
+//				PrismProperty objectDelta = prismTask.findOrCreateProperty(path);
+//				objectDelta.setRealValue(DeltaConvertor.toObjectDeltaType(delta));
+//			}
+//		} catch (SchemaException e) {
+//			error(getString("pageUsers.message.nothingSelected"));
+//			target.add(getFeedbackPanel());
+//		}
+//
+//		return task;
+//	}
 
 	private void userDetailsPerformed(AjaxRequestTarget target, String oid) {
 		setPreviousPage();

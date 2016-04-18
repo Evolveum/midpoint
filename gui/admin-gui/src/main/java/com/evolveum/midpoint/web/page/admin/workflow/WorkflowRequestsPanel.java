@@ -194,7 +194,7 @@ public class WorkflowRequestsPanel extends BasePanel {
         setResponsePage(new PageTaskEdit(parameters));
     }
 
-	// copied and adapted from WorkItemsTablePanel - TODO deduplicate
+	// copied and adapted from WorkItemsPanel - TODO deduplicate
 	
 	IColumn<ProcessInstanceDto, String> createObjectNameColumn(final String headerKey) {
 		return new LinkColumn<ProcessInstanceDto>(createStringResource(headerKey), ProcessInstanceDto.F_OBJECT_NAME) {

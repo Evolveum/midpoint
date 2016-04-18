@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.page.self;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -35,7 +34,7 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.util.CallableResult;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.component.wf.WorkItemsTablePanel;
+import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.AsyncDashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.DashboardColor;
 import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
@@ -47,27 +46,21 @@ import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.page.self.component.LinksPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
 import org.apache.wicket.Component;
 import org.apache.wicket.Session;
-import org.apache.wicket.ThreadContext;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.protocol.http.WebSession;
 import org.springframework.security.core.Authentication;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TimeZone;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_WORK_ITEM_CREATED_TIMESTAMP;
 
 /**
@@ -166,7 +159,7 @@ public class PageSelfDashboard extends PageSelf {
                     @Override
                     protected Component getMainComponent(String markupId) {
 						ISortableDataProvider provider = new ListDataProvider(this, new PropertyModel<List<WorkItemDto>>(getModel(), CallableResult.F_VALUE));
-						return new WorkItemsTablePanel(markupId, provider, null, 10, WorkItemsTablePanel.View.INFO_ONLY);
+						return new WorkItemsPanel(markupId, provider, null, 10, WorkItemsPanel.View.INFO_ONLY);
                     }
                 };
 

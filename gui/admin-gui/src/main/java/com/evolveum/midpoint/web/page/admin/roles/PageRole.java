@@ -86,6 +86,10 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
 		initialize(null);
 	}
 
+	public PageRole(PrismObject<RoleType> roleToEdit){
+		initialize(roleToEdit);
+	}
+	
 	public PageRole(PageParameters parameters, PageBase previousPage) {
 		getPageParameters().overwriteWith(parameters);
 		setPreviousPage(previousPage);

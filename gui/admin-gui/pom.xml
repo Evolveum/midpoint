@@ -101,31 +101,26 @@
         <dependency>
             <groupId>org.webjars.bower</groupId>
             <artifactId>adminlte</artifactId>
-            <version>2.3.0</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>respond</artifactId>
-            <version>1.4.2</version>
             <scope>runtime</scope> <!-- needed for javascripts for IE8 -->
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>html5shiv</artifactId>
-            <version>3.7.2</version>
             <scope>runtime</scope> <!-- needed for javascripts for IE8 -->
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>font-awesome</artifactId>
-            <version>4.3.0-2</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>ionicons</artifactId>
-            <version>2.0.1</version>
             <scope>runtime</scope>
         </dependency>
 
@@ -314,6 +309,16 @@
             <version>3.4-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
+        <dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
+			<groupId>org.springframework</groupId> 
+			<artifactId>spring-aspects</artifactId>
+			<scope>runtime</scope> 
+		</dependency>
+        <dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
+			<groupId>org.springframework</groupId> 
+			<artifactId>spring-aop</artifactId>
+			<scope>runtime</scope> 
+		</dependency>
         <dependency>
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy-all</artifactId>
@@ -444,10 +449,6 @@
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
-            <artifactId>spring-aspects</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
         </dependency>
         <dependency>
@@ -471,7 +472,7 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
-            <scope>runtime</scope> <!-- TODO: review if we need this dependency -->
+            <scope>runtime</scope>
         </dependency>
 
         <!--  WICKET DEPENDENCIES -->
@@ -752,30 +753,6 @@
         </dependency>
     </dependencies>
     <profiles>
-        <profile>
-            <id>aspectj</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>aspectj-maven-plugin</artifactId>
-                        <version>1.6</version>
-                        <configuration>
-                            <aspectLibraries>
-                                <aspectLibrary>
-                                    <groupId>com.evolveum.midpoint.infra</groupId>
-                                    <artifactId>util</artifactId>
-                                </aspectLibrary>
-                            </aspectLibraries>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
         <profile>
             <id>tomcat</id>
             <activation>

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -128,6 +129,17 @@ public class PrismContainerPanel extends Panel {
                 target.add(PrismContainerPanel.this.findParent(PrismObjectPanel.class));
             }
         };
+        showEmptyFieldsButton.setEscapeModelStrings(false);
+        showEmptyFieldsButton.setBody(new Model<String>(){
+			@Override
+			public String getObject() {
+				if (model.getObject().getObject().isShowEmpty()) {
+					return "<i class=\""+GuiStyleConstants.CLASS_ICON_SHOW_EMPTY_FIELDS+"\"></i>";
+				} else {
+					return "<i class=\""+GuiStyleConstants.CLASS_ICON_NOT_SHOW_EMPTY_FIELDS+"\"></i>";
+				}
+			}
+        });
         header.add(showEmptyFieldsButton);
 
         AjaxLink sortProperties = new AjaxLink(ID_SORT_PROPERTIES) {
@@ -184,6 +196,17 @@ public class PrismContainerPanel extends Panel {
                 target.add(PrismContainerPanel.this);
             }
         };
+        sortProperties.setEscapeModelStrings(false);
+        sortProperties.setBody(new Model<String>(){
+			@Override
+			public String getObject() {
+				if (model.getObject().getObject().isSorted()) {
+					return "<i class=\""+GuiStyleConstants.CLASS_ICON_SORT_ALPHA_ASC+"\"></i>";
+				} else {
+					return "<i class=\""+GuiStyleConstants.CLASS_ICON_SORT_AMOUNT_ASC+"\"></i>";
+				}
+			}
+        });
         header.add(sortProperties);
         add(header);
 
