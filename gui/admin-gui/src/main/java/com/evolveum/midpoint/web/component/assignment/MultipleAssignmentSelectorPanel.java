@@ -79,7 +79,6 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
     private Class<F> type;
 
     private BaseSortableDataProvider dataProvider;
-    private BaseSortableDataProvider currentAssignmentsProvider;
     private List<OrgType> tenantEditorObject = new ArrayList<>();
     private List<OrgType> orgEditorObject = new ArrayList<>();
     private PrismObject<UserType> user;
@@ -106,10 +105,9 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         IModel<List<AssignmentEditorDto>> availableAssignmentModel = createAvailableAssignmentModel();
         dataProvider = getAvailableAssignmentsDataProvider();
         final MultipleAssignmentSelector availableAssignmentsPanel = new MultipleAssignmentSelector<H>(ID_AVAILABLE_ASSIGNMENTS,
-                availableAssignmentModel, dataProvider, targetFocusClass, type);
-        currentAssignmentsProvider = getListDataProvider(null);
+                availableAssignmentModel, dataProvider, targetFocusClass, type, user);
         final MultipleAssignmentSelector currentAssignmentsPanel = new MultipleAssignmentSelector<H>(ID_CURRENT_ASSIGNMENTS,
-                assignmentsModel, currentAssignmentsProvider, targetFocusClass, type);
+                assignmentsModel, null, targetFocusClass, type, user);
         currentAssignmentsPanel.setFilterButtonVisibility(false);
 
         AjaxButton add = new AjaxButton(ID_BUTTON_ADD) {
@@ -290,25 +288,6 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         if (!result.isSuccess() && !result.isHandledError()) {
             getPageBase().showResult(result);
         }
-    }
-
-    public <T extends FocusType> ListDataProvider<AssignmentEditorDto> getListDataProvider(final T user) {
-        final ListDataProvider<AssignmentEditorDto> provider = new ListDataProvider<AssignmentEditorDto>(this, new IModel<List<AssignmentEditorDto>>() {
-            @Override
-            public List<AssignmentEditorDto> getObject() {
-                return getAvailableAssignmentsDataList(user);
-            }
-
-            @Override
-            public void setObject(List<AssignmentEditorDto> list) {
-            }
-
-            @Override
-            public void detach() {
-
-            }
-        });
-        return provider;
     }
 
     private GenericMultiValueLabelEditPanel createTenantContainer(){
@@ -494,63 +473,6 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
             }
         }
         return currentUsersAssignments;
-    }
-
-    private List<AssignmentEditorDto> applyQueryToListProvider(ObjectQuery query, List<AssignmentEditorDto> providerList){
-        ObjectDataProvider temporaryProvider = new ObjectDataProvider(MultipleAssignmentSelectorPanel.this, type);
-        List<AssignmentEditorDto> displayAssignmentsList = new ArrayList<>();
-        temporaryProvider.setQuery(query);
-        for (AssignmentEditorDto dto : providerList) {
-            Iterator it = temporaryProvider.internalIterator(0, temporaryProvider.size());
-            while (it.hasNext()) {
-                SelectableBean selectableBean = (SelectableBean) it.next();
-                F object = (F) selectableBean.getValue();
-                if (object.getOid().equals(dto.getTargetRef().getOid())) {
-                    displayAssignmentsList.add(dto);
-                    break;
-                }
-            }
-        }
-        return displayAssignmentsList;
-    }
-
-    private <T extends FocusType> List<AssignmentEditorDto> getAvailableAssignmentsDataList(T user){
-        ObjectQuery query = null;
-        List<AssignmentEditorDto> currentAssignments;
-        if (user == null) {
-            currentAssignments = getAssignmentsByType(assignmentsModel.getObject());
-            if (currentAssignmentsProvider != null) {
-                query = currentAssignmentsProvider.getQuery() == null ? new ObjectQuery() :
-                        currentAssignmentsProvider.getQuery();
-            }
-        } else {
-            List<AssignmentEditorDto> assignmentsList = getAssignmentEditorDtoList(user.getAssignment());
-            currentAssignments = getAssignmentsByType(assignmentsList);
-            if (type.equals(RoleType.class)){
-                for (AssignmentEditorDto dto : currentAssignments){
-                    dto.setTenantRef(null);
-                    dto.setOrgRef(null);
-                }
-            }
-            query = dataProvider.getQuery();
-        }
-        if (query != null){
-            if (filterModel != null && filterModel.getObject() != null){
-                query.addFilter(filterModel.getObject());
-            }
-            return applyQueryToListProvider(query, currentAssignments);
-        }
-        return currentAssignments;
-    }
-
-
-    private List<AssignmentEditorDto> getAssignmentEditorDtoList(List<AssignmentType> assignmentTypeList){
-        List<AssignmentEditorDto> assignmentEditorDtoList = new ArrayList<>();
-        for (AssignmentType assignmentType : assignmentTypeList){
-            AssignmentEditorDto assignmentEditorDto = new AssignmentEditorDto(UserDtoStatus.MODIFY, assignmentType, getPageBase());
-            assignmentEditorDtoList.add(assignmentEditorDto);
-        }
-        return assignmentEditorDtoList;
     }
 
     private IModel<List<OrgType>> createTenantModel(){

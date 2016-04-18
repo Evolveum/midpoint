@@ -16,7 +16,7 @@
   ~ limitations under the License.
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <div wicket:id="confirmDeletePopup" />
+<!--     <div wicket:id="confirmDeletePopup" /> -->
     <div wicket:id="movePopup" />
     <div wicket:id="addDeletePopup" />
 
@@ -26,6 +26,7 @@
             <form class="form-inline pull-right search-form" wicket:id="searchForm">
 	            <div class="form-group">
 	                <select class="form-control input-sm" wicket:id="searchScope"/>
+	                <select class="form-control input-sm" wicket:id="searchByType"/>
 	            </div>
                 <div wicket:id="basicSearch"/>
             </form>
@@ -52,18 +53,25 @@
             <div class="box box-success">
                 <div class="box-body">
                     <form class="clearfix form-horizontal" wicket:id="form">
-                        <div wicket:id="childOrgContainer">
-                            <div class="tree-table-header">
-                                <wicket:message key="TreeTablePanel.childOrg"/>
-                            </div>
-                            <div wicket:id="childUnitTable" about="childUnitTable"/>
-                        </div>
+<!--                         <div wicket:id="childOrgContainer"> -->
+<!--                             <div class="tree-table-header"> -->
+<!--                                 <wicket:message key="TreeTablePanel.childOrg"/> -->
+<!--                             </div> -->
+<!--                             <div wicket:id="childUnitTable" about="childUnitTable"/> -->
+<!--                         </div> -->
 
                         <div wicket:id="managerContainer">
-                            <div class="tree-table-header">
+                        <div class="tree-table-header">
                                 <wicket:message key="TreeTablePanel.managers"/>
                             </div>
-                            <div wicket:id="managerTable"/>
+                            <div class="col-md-12" wicket:id="managerTable">
+                            <div class="pull-right">
+                            	<div wicket:id="editManager" class="fa fa-edit"></div>
+                            	<div wicket:id="removeManager" class="fa fa-trash-o"></div>
+                            	</div>
+                            	<div wicket:id="managerSummary" ></div>
+                            	
+                            </div>
                         </div>
 
                         <div wicket:id="memberContainer">

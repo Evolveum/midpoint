@@ -22,15 +22,19 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.event.IEvent;
 import org.apache.wicket.extensions.markup.html.repeater.tree.ITreeProvider;
 import org.apache.wicket.extensions.markup.html.repeater.tree.TableTree;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -60,7 +64,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
  *
  * @author semancik
  */
-public abstract class AbstractTreeTablePanel extends SimplePanel<String> {
+public abstract class AbstractTreeTablePanel extends BasePanel<String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractTreeTablePanel.class);
 
@@ -77,6 +81,7 @@ public abstract class AbstractTreeTablePanel extends SimplePanel<String> {
     protected static final String OPERATION_UPDATE_OBJECTS = DOT_CLASS + "updateObjects";
     protected static final String OPERATION_UPDATE_OBJECT = DOT_CLASS + "updateObject";
     protected static final String OPERATION_RECOMPUTE = DOT_CLASS + "recompute";
+    protected static final String OPERATION_SEARCH_MANAGERS = DOT_CLASS + "searchManagers";
 
     protected static final String ID_TREE = "tree";
     protected static final String ID_TREE_CONTAINER = "treeContainer";
@@ -95,9 +100,13 @@ public abstract class AbstractTreeTablePanel extends SimplePanel<String> {
     protected static final String ID_SEARCH_FORM = "searchForm";
     protected static final String ID_BASIC_SEARCH = "basicSearch";
     protected static final String ID_SEARCH_SCOPE = "searchScope";
+    protected static final String ID_SEARCH_BY_TYPE = "searchByType";
 
     protected static final String SEARCH_SCOPE_SUBTREE = "subtree";
     protected static final String SEARCH_SCOPE_ONE = "one";
+    
+    protected static final ObjectTypes OBJECT_TYPES_DEFAULT = ObjectTypes.OBJECT;
+    
     protected static final List<String> SEARCH_SCOPE_VALUES = Arrays.asList( SEARCH_SCOPE_SUBTREE, SEARCH_SCOPE_ONE);
     
     protected IModel<OrgTreeDto> selected;
@@ -114,8 +123,27 @@ public abstract class AbstractTreeTablePanel extends SimplePanel<String> {
         
         DropDownChoice<String> seachScrope = new DropDownChoice<String>(ID_SEARCH_SCOPE, Model.of(SEARCH_SCOPE_SUBTREE),
         		SEARCH_SCOPE_VALUES, new StringResourceChoiceRenderer("TreeTablePanel.search.scope"));
+        seachScrope.add(new OnChangeAjaxBehavior(){
+        	@Override
+        	protected void onUpdate(AjaxRequestTarget target) {
+        		tableSearchPerformed(target);
+        	}
+        });
         form.add(seachScrope);
+        
+        DropDownChoice<ObjectTypes> objectType = new DropDownChoice<ObjectTypes>(ID_SEARCH_BY_TYPE, Model.of(OBJECT_TYPES_DEFAULT),
+        		Arrays.asList(ObjectTypes.values()), new EnumChoiceRenderer<ObjectTypes>());
+        objectType.add(new OnChangeAjaxBehavior() {
+			
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				tableSearchPerformed(target);
+				
+			}
+		});
+        form.add(objectType);
 
+        
         BasicSearchPanel basicSearch = new BasicSearchPanel(ID_BASIC_SEARCH, new Model()) {
 
             @Override

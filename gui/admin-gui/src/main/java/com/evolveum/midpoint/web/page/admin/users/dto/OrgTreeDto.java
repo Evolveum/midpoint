@@ -18,17 +18,21 @@ package com.evolveum.midpoint.web.page.admin.users.dto;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 import javax.xml.namespace.QName;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
  */
-public class OrgTreeDto implements Serializable, Comparable<OrgTreeDto>, OrgDto {
+public class OrgTreeDto implements Serializable, Comparable<OrgTreeDto>, OrgDto, InlineMenuable {
 
     private OrgTreeDto parent;
     private String oid;
@@ -37,6 +41,8 @@ public class OrgTreeDto implements Serializable, Comparable<OrgTreeDto>, OrgDto 
     private String displayName;
     private String identifier;
     private QName relation;
+    
+    private List<InlineMenuItem> menuItems;
     
     private ObjectType object;
 
@@ -153,4 +159,12 @@ this.identifier = org.getIdentifier();
     public void setParent(OrgTreeDto parent) {
         this.parent = parent;
     }
+
+	@Override
+	public List<InlineMenuItem> getMenuItems() {
+		if (menuItems == null){
+			menuItems = new ArrayList<>();
+		}
+		return menuItems;
+	}
 }

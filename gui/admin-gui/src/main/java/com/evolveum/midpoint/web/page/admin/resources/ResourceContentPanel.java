@@ -620,7 +620,7 @@ public abstract class ResourceContentPanel extends Panel {
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
 
 						FocusBrowserPanel<UserType> browser = new FocusBrowserPanel<UserType>(
-								pageBase.getMainPopupBodyId(), UserType.class, false, pageBase) {
+								pageBase.getMainPopupBodyId(), UserType.class, WebComponentUtil.createFocusTypeList(), false, pageBase) {
 							protected void onClick(AjaxRequestTarget target, UserType focus) {
 								changeOwner(target, focus, Operation.MODIFY);
 							}

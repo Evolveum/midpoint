@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.web.component.data.column;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -112,11 +111,17 @@ public class ColumnUtils {
 		} else if (type.equals(ResourceType.class)) {
 			return getDefaultResourceColumns();
 		} else {
-			throw new UnsupportedOperationException("Will be implemented eventually");
+			return new ArrayList<>();
+//			throw new UnsupportedOperationException("Will be implemented eventually");
 		}
 	}
 	
 	public static <T extends ObjectType> IColumn<SelectableBean<T>, String> createIconColumn(Class<T> type){
+		
+		if (type.equals(ObjectType.class)){
+			return getDefaultIcons();
+		}
+		
 		if (type.equals(UserType.class)) {
 			return getUserIconColumn();
 		} else if (RoleType.class.equals(type)) {
@@ -130,8 +135,45 @@ public class ColumnUtils {
 		} else if (type.equals(ResourceType.class)) {
 			return getResourceIconColumn();
 		} else {
-			throw new UnsupportedOperationException("Will be implemented eventually");
+			return getEmptyIconColumn();
+//			throw new UnsupportedOperationException("Will be implemented eventually");
 		}
+	}
+	
+	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getEmptyIconColumn(){
+		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
+				return new AbstractReadOnlyModel<String>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public String getObject() {
+						return "";
+					}
+				};
+			}
+		};
+	}
+	
+	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getDefaultIcons(){
+		return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
+
+			@Override
+			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
+				return new AbstractReadOnlyModel() {
+					@Override
+					public String getObject() {
+						T object = rowModel.getObject().getValue();
+						return WebComponentUtil.createDefaultIcon(object.asPrismObject());
+						
+					}
+				};
+
+			}
+		};
 	}
 	
 	private static IModel<String> createIconColumnHeaderModel() {
