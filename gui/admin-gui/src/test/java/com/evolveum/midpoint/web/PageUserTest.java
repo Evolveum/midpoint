@@ -29,7 +29,7 @@ import org.testng.annotations.Test;
         "file:src/main/webapp/WEB-INF/ctx-init.xml",
         "file:src/main/webapp/WEB-INF/ctx-security.xml",
         "classpath:ctx-repo-cache.xml",
-        "classpath*:ctx-repository.xml",
+        "classpath*:ctx-repository-test.xml",
         "classpath:ctx-task.xml",
         "classpath:ctx-audit.xml",
         "classpath:ctx-configuration-test.xml",

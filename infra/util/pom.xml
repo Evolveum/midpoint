@@ -80,6 +80,10 @@
             <groupId>org.jvnet.jaxb2_commons</groupId>
             <artifactId>jaxb2-basics-runtime</artifactId>
         </dependency>
+        <dependency>
+            <groupId>aopalliance</groupId>
+            <artifactId>aopalliance</artifactId>
+        </dependency>
         <!-- Test -->
 		<dependency>
 			<groupId>org.testng</groupId>
