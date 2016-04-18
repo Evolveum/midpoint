@@ -12,7 +12,7 @@
 @object-resource-color: #605CA8;
 @object-task-color: #001f3f;
 
-@box-projection-color: #e8e8e8;
+@box-projection-color: #001F3F;
 
 .skin-blue-light .main-header {
   & .logo {
@@ -635,7 +635,7 @@ div.dashAssignmentHeader {
 	& > small {
 		margin-left: 6px;
 		position: relative;
-		top: 3px;
+		top: 1px;
 	}
 }
 
@@ -655,9 +655,9 @@ div.dashAssignmentHeader {
 
 .projection {
 	margin-bottom: 10px;
+	border-top-color: @box-projection-color; 
 	
 	.box-header {
-		background: @box-projection-color;
 		
 		.box-tools {
 			margin-top: 5px;
