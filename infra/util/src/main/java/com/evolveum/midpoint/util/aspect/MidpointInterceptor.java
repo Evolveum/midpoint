@@ -203,16 +203,16 @@ public class MidpointInterceptor implements MethodInterceptor {
 	}
 
 	private ProfilingDataManager.Subsystem getSubsystem(MethodInvocation invocation) {
-		String methodName = invocation.getMethod().getName();
-		if (methodName.startsWith("com.evolveum.midpoint.repo")) {
+		String className = getFullClassName(invocation);
+		if (className.startsWith("com.evolveum.midpoint.repo")) {
 			return ProfilingDataManager.Subsystem.REPOSITORY;
-		} else if (methodName.startsWith("com.evolveum.midpoint.model")) {
+		} else if (className.startsWith("com.evolveum.midpoint.model")) {
 			return ProfilingDataManager.Subsystem.MODEL;
-		} else if (methodName.startsWith("com.evolveum.midpoint.provisioning")) {
+		} else if (className.startsWith("com.evolveum.midpoint.provisioning")) {
 			return ProfilingDataManager.Subsystem.PROVISIONING;
-		} else if (methodName.startsWith("com.evolveum.midpoint.task")) {
+		} else if (className.startsWith("com.evolveum.midpoint.task")) {
 			return ProfilingDataManager.Subsystem.TASK_MANAGER;
-		} else if (methodName.startsWith("com.evolveum.midpoint.wf")) {
+		} else if (className.startsWith("com.evolveum.midpoint.wf")) {
 			return ProfilingDataManager.Subsystem.WORKFLOW;
 		} else {
 			return null;
@@ -224,13 +224,17 @@ public class MidpointInterceptor implements MethodInterceptor {
      *
      */
     private String getClassName(MethodInvocation invocation) {
-        String className = null;
-        if (invocation.getThis() != null) {
-            className = invocation.getThis().getClass().getName();
-            className = className.replaceFirst("com.evolveum.midpoint", "..");
-        }
-        return className;
-    }
+		String className = getFullClassName(invocation);
+		return className != null ? className.replaceFirst("com.evolveum.midpoint", "..") : null;
+	}
+
+	private String getFullClassName(MethodInvocation invocation) {
+		String className = null;
+		if (invocation.getThis() != null) {
+			className = invocation.getThis().getClass().getName();
+		}
+		return className;
+	}
 
     /*
     *   Stores current depth value to MDC
