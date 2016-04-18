@@ -1,4 +1,7 @@
 
+@text-label-color: #3c8dbc;
+@text-dimmed-color: #808080;
+
 @table-divider-color:  #ddd;
 @table-stripe-bg-color: #f9f9f9;
 
@@ -8,6 +11,8 @@
 @object-service-color: #00C0EF;
 @object-resource-color: #605CA8;
 @object-task-color: #001f3f;
+
+@box-projection-color: #e8e8e8;
 
 .skin-blue-light .main-header {
   & .logo {
@@ -388,7 +393,7 @@ th.cog, td.cog {
 
 .summary-panel-identifier {
 	white-space: pre-wrap;
-	color: #808080;
+	color: @text-dimmed-color;
 	font-weight: normal;
 }
 
@@ -545,7 +550,7 @@ div.dashAssignmentHeader {
 .prism-title {
 	font-size: 16px;
 	font-weight: 600;
-	color: #3c8dbc; // TODO: variable
+	color: @text-label-color;
 }
 
 .prism-property {
@@ -560,6 +565,7 @@ div.dashAssignmentHeader {
 	
 }
 
+// DEPRECATED
 div.attributeComponent > div { // attribute label-value row: outer
 
   &.visible { 
@@ -580,4 +586,92 @@ div.attributeComponent > div { // attribute label-value row: outer
   div.col-md-offset-2.prism-value {
     margin-top: 5px;
   }
+}
+
+// Common styles for object detail pages
+
+.assignable-header {
+  border-bottom: 2px solid @table-divider-color;
+  margin: 0px;
+  margin-bottom: 10px;
+
+  div.col-xs-10 {
+    padding: 0 5px;
+
+    & > input {
+      display: inline-block;
+    }
+
+    > h3 {
+      display: inline-block;
+      margin-bottom: 5px;
+      margin-left: 5px;
+    }
+  }
+
+  & > div.cog {
+    margin-top: 18px;
+    padding-right: 5px;
+  }
+}
+
+.check-table-header {
+	padding-left: 20px;
+	
+	& > input[type="checkbox"] {
+		position: absolute;
+		margin-left: -20px;
+		margin-top: 6px;
+    }
+    
+    .check-table-label {
+    
+	    .check-table-header-icon {
+		    margin-left: 4px;
+		    position: relative;
+		    bottom: 1px;
+	    }
+	    
+	    .check-table-header-name {
+	    	margin-left: 5px;
+	    	font-size: 18px;
+	    	color: @text-label-color !important;
+	    }
+	    
+	    .check-table-header-description {
+	    	margin-left: 10px;
+	    }
+	    
+	    .check-table-header-status {
+	    	margin-left: 10px;
+	    	position: relative;
+			bottom: 2px;
+	    }
+    
+    	.check-table-header-show-more {
+	    	color: @text-dimmed-color !important;
+	    }
+    }
+}
+
+// Projection tab (focus pages)
+
+.projections {
+	
+}
+
+.projections-header {
+	
+	& > div {
+		padding-left: 20px; // align with the checkboxes below
+	}
+	
+}
+
+.projection {
+	margin-bottom: 10px;
+	
+	.box-header {
+		background: @box-projection-color;
+	}
 }

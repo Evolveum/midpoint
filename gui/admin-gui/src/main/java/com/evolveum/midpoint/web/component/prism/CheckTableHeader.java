@@ -54,12 +54,12 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
     private static final String ID_ICON = "icon";
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
+    @Deprecated
     private static final String ID_MENU = "menu";
     private static final String ID_LINK = "link";
     private static final String ID_STATUS = "status";
     private static final String ID_SHOW_MORE = "showMore";
     private static final String ID_TRIGGER = "trigger";
-    private static final String ID_PROTECTED = "protected";
 
     public CheckTableHeader(String id, IModel<ObjectWrapper<O>> model) {
         super(id, model);
@@ -86,7 +86,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
 
 			@Override
             public String getObject() {
-                return createAccountIcon();
+                return "check-table-header-icon " + createAccountIcon();
             }
         }));
         add(icon);
@@ -110,18 +110,6 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
             }
         });
         add(trigger);
-
-        Label protectedIcon = new Label(ID_PROTECTED);
-        protectedIcon.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-            public boolean isVisible() {
-                ObjectWrapper<O> wrapper = getModelObject();
-                return wrapper.isProtectedAccount();
-            }
-        });
-        add(protectedIcon);
 
         BootstrapLabel status = new BootstrapLabel(ID_STATUS, createStringResource("CheckTableHeader.label.error"),
                 new Model<>(BootstrapLabel.State.DANGER));
@@ -265,6 +253,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
 //        return new StringResourceModel(key, getPage(), null, key).getString();
     }
 
+    @Deprecated
     protected List<InlineMenuItem> createMenuItems() {
         return new ArrayList<>();
     }
