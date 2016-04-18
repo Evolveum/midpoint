@@ -59,8 +59,9 @@ public class PrismContainerPanel extends Panel {
         LOGGER.trace("Creating container panel for {}", model.getObject());
         
         add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public boolean isVisible() {
                 ContainerWrapper<? extends PrismContainer> containerWrapper = model.getObject();
                 PrismContainer prismContainer = containerWrapper.getItem();
@@ -104,6 +105,7 @@ public class PrismContainerPanel extends Panel {
     		
     	};
         header.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -130,6 +132,7 @@ public class PrismContainerPanel extends Panel {
 
     private IModel<String> createStyleClassModel(final IModel<ItemWrapper> wrapper) {
         return new AbstractReadOnlyModel<String>() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {

@@ -46,12 +46,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -67,7 +65,8 @@ import java.util.List;
 /**
  * @author semancik
  */
-public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
+public class FocusProjectionsTabPanel<F extends FocusType> 
+		extends AbstractObjectTabPanel<F> {
 	private static final long serialVersionUID = 1L;
 	
 	private static final String ID_SHADOW_LIST = "shadowList";
