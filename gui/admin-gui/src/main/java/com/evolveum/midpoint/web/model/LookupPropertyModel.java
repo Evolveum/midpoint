@@ -65,11 +65,11 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
         final Object target = getInnermostModelOrObject();
 
         if (target != null) {
-            String key = (String) PropertyResolver.getValue(expression, target);
-
-            if (key == null) {
-                return null;
-            }
+        	Object value = PropertyResolver.getValue(expression, target);
+        	if (value == null) {
+        		return null;
+        	}
+            String key = value.toString(); 
 
             if (lookupTable != null) {
                 for (LookupTableRowType row : lookupTable.getRow()) {

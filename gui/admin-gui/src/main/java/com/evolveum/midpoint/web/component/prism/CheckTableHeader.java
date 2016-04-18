@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleButton;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -26,8 +28,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.BootstrapLabel;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -40,7 +40,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,12 +53,11 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
     private static final String ID_ICON = "icon";
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
-    private static final String ID_MENU = "menu";
     private static final String ID_LINK = "link";
     private static final String ID_STATUS = "status";
     private static final String ID_SHOW_MORE = "showMore";
     private static final String ID_TRIGGER = "trigger";
-    private static final String ID_PROTECTED = "protected";
+    private static final String ID_EXPAND = "expand";
 
     public CheckTableHeader(String id, IModel<ObjectWrapper<O>> model) {
         super(id, model);
@@ -86,7 +84,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
 
 			@Override
             public String getObject() {
-                return createAccountIcon();
+                return "check-table-header-icon " + createAccountIcon();
             }
         }));
         add(icon);
@@ -110,18 +108,6 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
             }
         });
         add(trigger);
-
-        Label protectedIcon = new Label(ID_PROTECTED);
-        protectedIcon.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-            public boolean isVisible() {
-                ObjectWrapper<O> wrapper = getModelObject();
-                return wrapper.isProtectedAccount();
-            }
-        });
-        add(protectedIcon);
 
         BootstrapLabel status = new BootstrapLabel(ID_STATUS, createStringResource("CheckTableHeader.label.error"),
                 new Model<>(BootstrapLabel.State.DANGER));
@@ -166,19 +152,23 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
             }
         });
         add(description);
-
-        final IModel<List<InlineMenuItem>> items = new Model((Serializable) createMenuItems());
-        InlineMenu menu = new InlineMenu(ID_MENU, items, true);
-        menu.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-            public boolean isVisible() {
-                List<InlineMenuItem> list = items.getObject();
-                return list != null && !list.isEmpty();
+        
+        ToggleButton expandButton = new ToggleButton(ID_EXPAND,
+        		GuiStyleConstants.CLASS_ICON_EXPAND, GuiStyleConstants.CLASS_ICON_COLLAPSE) {
+        	private static final long serialVersionUID = 1L;
+        	
+        	@Override
+            public void onClick(AjaxRequestTarget target) {
+        		onClickPerformed(target);
             }
-        });
-        add(menu);
+        	
+        	@Override
+			public boolean isOn() {
+				return !CheckTableHeader.this.getModelObject().isMinimalized();
+			}
+        };
+        add(expandButton);
+
     }
 
     private String createAccountIcon() {
@@ -265,15 +255,9 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
 //        return new StringResourceModel(key, getPage(), null, key).getString();
     }
 
-    protected List<InlineMenuItem> createMenuItems() {
-        return new ArrayList<>();
-    }
-
     protected void onClickPerformed(AjaxRequestTarget target) {
         ObjectWrapper<O> wrapper = getModelObject();
         wrapper.setMinimalized(!wrapper.isMinimalized());
-
-        target.add(findParent(PrismObjectPanel.class));
     }
 
     protected void onShowMorePerformed(AjaxRequestTarget target){

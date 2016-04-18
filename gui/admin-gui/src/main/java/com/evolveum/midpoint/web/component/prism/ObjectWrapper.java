@@ -54,6 +54,8 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
     public static final String F_SELECTED = "selected";
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectWrapper.class);
+    
+	public static final String PROPERTY_CONTAINERS = "containers";
 
     private PrismObject<O> object;
     private PrismObject<O> objectOld;
@@ -300,6 +302,13 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         } else {
             delta.applyTo(object);
         }
+    }
+    
+    public void sort() {
+    	ContainerWrapper main = findMainContainerWrapper();
+    	if (main != null) {
+    		main.sort(isSorted());
+    	}
     }
 
     public ObjectDelta<O> getObjectDelta() throws SchemaException {
