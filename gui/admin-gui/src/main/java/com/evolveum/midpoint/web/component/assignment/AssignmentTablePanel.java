@@ -29,6 +29,8 @@ import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -39,6 +41,8 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
+import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
 import com.evolveum.midpoint.web.page.admin.users.component.*;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -267,9 +271,20 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assignOrg"),
 				new InlineMenuItemAction() {
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						showAssignableOrgPopupPerformed(target);
+			@Override
+			public void onClick(AjaxRequestTarget target){
+						OrgTreeAssignablePanel orgTreePanel = new OrgTreeAssignablePanel(getPageBase().getMainPopupBodyId(), true, getPageBase()){
+							
+							@Override
+							protected void assignSelectedOrgPerformed(List<OrgType> selectedOrgs,
+									AjaxRequestTarget target) {
+								// TODO Auto-generated method stub
+								addSelectedAssignablePerformed(target, (List)selectedOrgs, getPageBase().getMainPopup().getId());
+							}
+						};
+				        orgTreePanel.setOutputMarkupId(true);
+						getPageBase().showMainPopup(orgTreePanel, new Model<String>("Select Org"), target, 900, 500);
+					
 					}
 				});
 		items.add(item);
@@ -394,6 +409,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		if (window != null) {
 		window.close(target);
 		}
+		getPageBase().hideMainPopup(target);
 		if (newAssignments.isEmpty()) {
 			warn(getString("AssignmentTablePanel.message.noAssignmentSelected"));
 			//target.add(getPageBase().getFeedbackPanel());
@@ -442,7 +458,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, assignment, getPageBase());
 		assignments.add(dto);
 
-		dto.setMinimized(false);
+		dto.setMinimized(true);
 		dto.setShowEmpty(true);
 	}
 

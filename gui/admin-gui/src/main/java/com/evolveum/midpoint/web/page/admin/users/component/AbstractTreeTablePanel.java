@@ -52,6 +52,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
@@ -109,73 +110,73 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
     
     protected static final List<String> SEARCH_SCOPE_VALUES = Arrays.asList( SEARCH_SCOPE_SUBTREE, SEARCH_SCOPE_ONE);
     
-    protected IModel<OrgTreeDto> selected;
+    protected IModel<SelectableBean<OrgType>> selected;
     
     public AbstractTreeTablePanel(String id, IModel<String> rootOid) {
         super(id, rootOid);
     }
 
-    protected void initSearch() {
-        Form form = new Form(ID_SEARCH_FORM);
-        form.setOutputMarkupId(true);
-        add(form);
-        
-        
-        DropDownChoice<String> seachScrope = new DropDownChoice<String>(ID_SEARCH_SCOPE, Model.of(SEARCH_SCOPE_SUBTREE),
-        		SEARCH_SCOPE_VALUES, new StringResourceChoiceRenderer("TreeTablePanel.search.scope"));
-        seachScrope.add(new OnChangeAjaxBehavior(){
-        	@Override
-        	protected void onUpdate(AjaxRequestTarget target) {
-        		tableSearchPerformed(target);
-        	}
-        });
-        form.add(seachScrope);
-        
-        DropDownChoice<ObjectTypes> objectType = new DropDownChoice<ObjectTypes>(ID_SEARCH_BY_TYPE, Model.of(OBJECT_TYPES_DEFAULT),
-        		Arrays.asList(ObjectTypes.values()), new EnumChoiceRenderer<ObjectTypes>());
-        objectType.add(new OnChangeAjaxBehavior() {
-			
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				tableSearchPerformed(target);
-				
-			}
-		});
-        form.add(objectType);
+//    protected void initSearch() {
+//        Form form = new Form(ID_SEARCH_FORM);
+//        form.setOutputMarkupId(true);
+//        add(form);
+//        
+//        
+//        DropDownChoice<String> seachScrope = new DropDownChoice<String>(ID_SEARCH_SCOPE, Model.of(SEARCH_SCOPE_SUBTREE),
+//        		SEARCH_SCOPE_VALUES, new StringResourceChoiceRenderer("TreeTablePanel.search.scope"));
+//        seachScrope.add(new OnChangeAjaxBehavior(){
+//        	@Override
+//        	protected void onUpdate(AjaxRequestTarget target) {
+//        		tableSearchPerformed(target);
+//        	}
+//        });
+//        form.add(seachScrope);
+//        
+//        DropDownChoice<ObjectTypes> objectType = new DropDownChoice<ObjectTypes>(ID_SEARCH_BY_TYPE, Model.of(OBJECT_TYPES_DEFAULT),
+//        		Arrays.asList(ObjectTypes.values()), new EnumChoiceRenderer<ObjectTypes>());
+//        objectType.add(new OnChangeAjaxBehavior() {
+//			
+//			@Override
+//			protected void onUpdate(AjaxRequestTarget target) {
+//				tableSearchPerformed(target);
+//				
+//			}
+//		});
+//        form.add(objectType);
+//
+//        
+//        BasicSearchPanel basicSearch = new BasicSearchPanel(ID_BASIC_SEARCH, new Model()) {
+//
+//            @Override
+//            protected void clearSearchPerformed(AjaxRequestTarget target) {
+//                clearTableSearchPerformed(target);
+//            }
+//
+//            @Override
+//            protected void searchPerformed(AjaxRequestTarget target) {
+//                tableSearchPerformed(target);
+//            }
+//        };
+//        form.add(basicSearch);
+//    }
 
-        
-        BasicSearchPanel basicSearch = new BasicSearchPanel(ID_BASIC_SEARCH, new Model()) {
 
-            @Override
-            protected void clearSearchPerformed(AjaxRequestTarget target) {
-                clearTableSearchPerformed(target);
-            }
-
-            @Override
-            protected void searchPerformed(AjaxRequestTarget target) {
-                tableSearchPerformed(target);
-            }
-        };
-        form.add(basicSearch);
-    }
-
-
-    protected OrgTreeDto getRootFromProvider() {
-        TableTree<OrgTreeDto, String> tree = getTree();
-        ITreeProvider<OrgTreeDto> provider = tree.getProvider();
-        Iterator<? extends OrgTreeDto> iterator = provider.getRoots();
+    protected SelectableBean<OrgType> getRootFromProvider() {
+        TableTree<SelectableBean<OrgType>, String> tree = getTree();
+        ITreeProvider<SelectableBean<OrgType>> provider = tree.getProvider();
+        Iterator<? extends SelectableBean<OrgType>> iterator = provider.getRoots();
 
         return iterator.hasNext() ? iterator.next() : null;
     }
 
 
-    protected PrismReferenceValue createPrismRefValue(OrgDto dto) {
-        PrismReferenceValue value = new PrismReferenceValue();
-        value.setOid(dto.getOid());
-        value.setRelation(dto.getRelation());
-        value.setTargetType(ObjectTypes.getObjectType(dto.getType()).getTypeQName());
-        return value;
-    }
+//    protected PrismReferenceValue createPrismRefValue(OrgDto dto) {
+//        PrismReferenceValue value = new PrismReferenceValue();
+//        value.setOid(dto.getOid());
+//        value.setRelation(dto.getRelation());
+//        value.setTargetType(ObjectTypes.getObjectType(dto.getType()).getTypeQName());
+//        return value;
+//    }
 
 
     protected void refreshTabbedPanel(AjaxRequestTarget target) {
@@ -196,8 +197,8 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
         target.add(page.getFeedbackPanel());
     }
 
-    protected TableTree<OrgTreeDto, String> getTree() {
-        return (TableTree<OrgTreeDto, String>) get(createComponentPath(ID_TREE_CONTAINER, ID_TREE));
+    protected TableTree<SelectableBean<OrgType>, String> getTree() {
+        return (TableTree<SelectableBean<OrgType>, String>) get(createComponentPath(ID_TREE_CONTAINER, ID_TREE));
     }
 
     protected WebMarkupContainer getOrgChildContainer() {
@@ -209,8 +210,8 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
     }
 
     protected ObjectQuery createOrgChildQuery() {
-        OrgTreeDto dto = selected.getObject();
-        String oid = dto != null ? dto.getOid() : getModel().getObject();
+    	SelectableBean<OrgType> dto = selected.getObject();
+        String oid = dto != null ? dto.getValue().getOid() : getModel().getObject();
 
         BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
         String object = basicSearch.getModelObject();

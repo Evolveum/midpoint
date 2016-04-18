@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
 import com.evolveum.midpoint.web.component.org.OrgTreeTablePanel;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
@@ -174,9 +175,9 @@ public class AssignableOrgSelectionPanel <T extends ObjectType> extends Abstract
 	    List<ObjectType> selected = new ArrayList<>();
 	    AjaxTabbedPanel orgPanel = (AjaxTabbedPanel) getTablePanel();
 	    OrgTreeTablePanel orgPanels = (OrgTreeTablePanel) orgPanel.get("panel");
-    	List<OrgTableDto> orgs = orgPanels.getSelectedOrgs();
-     	for (OrgTableDto org : orgs){
-     		selected.add(org.getObject());
+    	List<SelectableBean<OrgType>> orgs = orgPanels.getSelectedOrgs();
+     	for (SelectableBean<OrgType> org : orgs){
+     		selected.add(org.getValue());
      	}
         return selected;
 	}
@@ -187,8 +188,8 @@ public class AssignableOrgSelectionPanel <T extends ObjectType> extends Abstract
 //	    int selectedTab = orgPanel.getSelectedTab();
 //	    OrgTreeTablePanel orgPanels = (OrgTreeTablePanel) orgPanel.get(selectedTab);
 	    OrgTreeTablePanel orgPanels = (OrgTreeTablePanel) orgPanel.get("panel");
-    	OrgTreeDto org = orgPanels.getRootFromProvider();
-     	selected.add(org.getObject());
+	    SelectableBean<OrgType> org = orgPanels.getRootFromProvider();
+     	selected.add(org.getValue());
         return selected;
 	}
 	
