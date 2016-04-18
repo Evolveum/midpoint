@@ -100,7 +100,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
     }
 
     protected Component createHeader(String id, IModel<ObjectWrapper<O>> model) {
-    	PrismHeaderPanel header = new PrismHeaderPanel(ID_HEADER, model, true) {
+    	PrismHeaderPanel header = new PrismHeaderPanel(ID_HEADER, model) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -108,6 +108,10 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
 				target.add(PrismObjectPanel.this);
 			}
     		
+			@Override
+			public boolean isButtonsVisible() {
+				return true;
+			}
     	};
         return header;
     }

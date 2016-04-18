@@ -89,12 +89,17 @@ public class PrismContainerPanel extends Panel {
     }
     
     private void initLayout(final IModel<ContainerWrapper> model, final Form form) {
-    	PrismHeaderPanel header = new PrismHeaderPanel(ID_HEADER, model, true) {
+    	PrismHeaderPanel header = new PrismHeaderPanel(ID_HEADER, model) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onButtonClick(AjaxRequestTarget target) {
 				target.add(PrismContainerPanel.this.findParent(PrismObjectPanel.class));
+			}
+			
+			@Override
+			public boolean isButtonsVisible() {
+				return false;
 			}
     		
     	};

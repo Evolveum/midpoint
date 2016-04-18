@@ -663,7 +663,7 @@ div.attributeComponent > div { // attribute label-value row: outer
 .projections-header {
 	
 	& > div {
-		padding-left: 20px; // align with the checkboxes below
+		padding-left: 20px !important; // align with the checkboxes below
 	}
 	
 }
@@ -673,5 +673,9 @@ div.attributeComponent > div { // attribute label-value row: outer
 	
 	.box-header {
 		background: @box-projection-color;
+		
+		.box-tools {
+			margin-top: 5px;
+		}
 	}
 }
