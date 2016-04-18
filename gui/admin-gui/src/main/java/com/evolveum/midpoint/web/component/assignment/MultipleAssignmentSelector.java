@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -63,6 +62,8 @@ import com.evolveum.midpoint.web.component.search.SearchPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import javax.xml.namespace.QName;
 
 /**
  * Created by Honchar
@@ -294,9 +295,11 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
 
     private void initUserDialog(IModel<String> title, AjaxRequestTarget target) {
 
-    	FocusBrowserPanel<F> focusBrowser = new FocusBrowserPanel<F>(getPageBase().getMainPopupBodyId(), targetFocusClass,
-				null, false, getPageBase()){
-
+        List<QName> supportedTypes = new ArrayList<>();
+        supportedTypes.add(getPageBase().getPrismContext().getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(targetFocusClass).getTypeName());
+        FocusBrowserPanel<F> focusBrowser = new FocusBrowserPanel<F>(getPageBase().getMainPopupBodyId(),
+                targetFocusClass, supportedTypes, false, getPageBase()) {
             @Override
     		protected void onSelectPerformed(AjaxRequestTarget target, F filterUser) {
                 super.onSelectPerformed(target, filterUser);
