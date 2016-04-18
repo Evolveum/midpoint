@@ -137,7 +137,7 @@ public class PrismContainerPanel extends Panel {
             @Override
             public String getObject() {
             	ItemWrapper property = wrapper.getObject();
-                return property.isVisible() ? "visible" : null;
+                return property.isStripe() ? "stripe" : null;
             }
         };
     }
@@ -145,16 +145,20 @@ public class PrismContainerPanel extends Panel {
     private void addOrReplaceProperties(IModel<ContainerWrapper> model, final Form form, boolean isToBeReplaced){
         ListView<ItemWrapper> properties = new ListView<ItemWrapper>("properties",
                 new PropertyModel(model, "properties")) {
+			private static final long serialVersionUID = 1L;
 
-            @Override
-            protected void populateItem(ListItem<ItemWrapper> item) {
-//            	if (item.getModel().getObject() instanceof PropertyWrapper){
+			@Override
+            protected void populateItem(final ListItem<ItemWrapper> item) {
                 item.add(new PrismPropertyPanel("property", item.getModel(), form, pageBase));
+                item.add(new VisibleEnableBehaviour() {
+                	private static final long serialVersionUID = 1L;
+                	
+                	@Override
+                	public boolean isVisible() {
+                		return item.getModel().getObject().isVisible();
+                	}
+                });
                 item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
-//            	} else if (item.getModel().getObject() instanceof ReferenceWrapper){
-//            		 item.add(new PrismReferencePanel("property", item.getModel(), form, pageBase));
-// 	                item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
-//            	}
             }
         };
         properties.setReuseItems(true);

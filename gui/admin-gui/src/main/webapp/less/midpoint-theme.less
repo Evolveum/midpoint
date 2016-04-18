@@ -539,7 +539,14 @@ div.dashAssignmentHeader {
 }
 
 .prism-properties {
-	padding-left: 30px;
+	
+	& > div {
+		padding-left: 30px;
+	}
+	
+	.stripe {
+		background-color: @table-stripe-bg-color;
+	}
 }
 
 .prism-header {
@@ -554,14 +561,13 @@ div.dashAssignmentHeader {
 }
 
 .prism-property {
+	padding-top: 5px;
+	padding-bottom: 5px;
 	
-	&.visible { 
-    border-bottom: 1px solid @table-divider-color;
-  }
-
-  &.striped {
-    background-color: @table-stripe-bg-color;
-  }
+	&.visible {
+		// DEPRECATED 
+		border-bottom: 1px solid @table-divider-color;
+	}
 	
 }
 

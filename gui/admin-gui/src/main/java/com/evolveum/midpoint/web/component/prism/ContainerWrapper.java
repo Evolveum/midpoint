@@ -177,6 +177,20 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
         }
     }
 
+    public void computeStripes() {
+    	int visibleProperties = 0;
+    	for (ItemWrapper item: properties) {
+    		if (item.isVisible()) {
+    			visibleProperties++;
+    		}
+    		if (visibleProperties % 2 == 0) {
+    			item.setStripe(true);
+    		} else {
+    			item.setStripe(false);
+    		}
+    	}
+    }
+    
 	public boolean isShowInheritedObjectAttributes() {
 		return showInheritedObjectAttributes;
 	}
@@ -421,5 +435,16 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
         DebugUtil.debugDump(sb, properties, indent + 2, false);
         return sb.toString();
     }
+
+	@Override
+	public boolean isStripe() {
+		// Does not make much sense, but it is given by the interface
+		return false;
+	}
+
+	@Override
+	public void setStripe(boolean isStripe) {
+		// Does not make much sense, but it is given by the interface
+	}
 
 }

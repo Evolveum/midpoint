@@ -225,6 +225,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 
     public void setShowEmpty(boolean showEmpty) {
         this.showEmpty = showEmpty;
+        computeStripes();
     }
 
     public boolean isSelectable() {
@@ -309,9 +310,16 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
     	if (main != null) {
     		main.sort(isSorted());
     	}
+    	computeStripes();
     }
 
-    public ObjectDelta<O> getObjectDelta() throws SchemaException {
+    private void computeStripes() {
+		for (ContainerWrapper<? extends Containerable> container: containers) {
+			container.computeStripes();
+		}
+	}
+
+	public ObjectDelta<O> getObjectDelta() throws SchemaException {
     	if (LOGGER.isTraceEnabled()) {
     		LOGGER.trace("Wrapper before creating delta:\n{}", this.debugDump());
     	}

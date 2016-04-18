@@ -50,6 +50,10 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends 
     
     public boolean isVisible();
     
+    public boolean isStripe();
+    
+    void setStripe(boolean isStripe);
+    
     ContainerWrapper getContainer();
     
     public void addValue();
