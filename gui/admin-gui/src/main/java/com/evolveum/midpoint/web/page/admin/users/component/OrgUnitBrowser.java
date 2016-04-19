@@ -59,7 +59,9 @@ import java.util.List;
 
 /**
  * @author lazyman
+ * use OrgTreeAssignablePanel
  */
+@Deprecated
 public class OrgUnitBrowser extends ModalWindow {
 
     public static enum Operation {MOVE, ADD, REMOVE, RECOMPUTE}
