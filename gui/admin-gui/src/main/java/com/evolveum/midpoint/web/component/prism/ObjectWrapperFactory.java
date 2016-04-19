@@ -169,6 +169,7 @@ public class ObjectWrapperFactory {
                 addReportContainers(containerWrappers, oWrapper, object, result);
             } else {
                 ContainerWrapper mainContainerWrapper = cwf.createContainerWrapper(oWrapper, object, cStatus, null);
+                mainContainerWrapper.setDisplayName("prismContainer.mainPanelDisplayName");
                 result.addSubresult(cwf.getResult());
                 containerWrappers.add(mainContainerWrapper);
 
@@ -355,6 +356,7 @@ public class ObjectWrapperFactory {
         result.addSubresult(cwf.getResult());
 
         attributesContainerWrapper.setMain(true);
+        attributesContainerWrapper.setDisplayName("prismContainer.shadow.mainPanelDisplayName");
         containers.add(attributesContainerWrapper);
 
         if (hasResourceCapability(((ShadowType) object.asObjectable()).getResource(),
