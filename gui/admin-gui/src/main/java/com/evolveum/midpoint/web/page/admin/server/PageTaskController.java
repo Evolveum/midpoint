@@ -30,12 +30,16 @@ import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddResourcesDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstances;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -185,6 +189,24 @@ public class PageTaskController implements Serializable {
 	void runNowPerformed(AjaxRequestTarget target) {
 		String oid = parentPage.getTaskDto().getOid();
 		OperationResult result = TaskOperationUtils.runNowPerformed(parentPage.getTaskService(), Arrays.asList(oid));
+		afterStateChangingOperation(target, result);
+	}
+
+	void stopApprovalProcessPerformed(AjaxRequestTarget target) {
+		String instanceId = parentPage.getTaskDto().getProcessInstanceId();
+		if (instanceId == null) {
+			return;
+		}
+		OperationResult result = new OperationResult(PageProcessInstances.OPERATION_STOP_PROCESS_INSTANCE);
+		try {
+			parentPage.getWorkflowService().stopProcessInstance(instanceId,
+					WebComponentUtil.getOrigStringFromPoly(SecurityUtils.getPrincipalUser().getName()),
+					result);
+			result.computeStatusIfUnknown();
+		} catch (SchemaException|ObjectNotFoundException|SecurityViolationException|RuntimeException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop approval process instance {}", e, instanceId);
+			result.recordFatalError("Couldn't stop approval process instance " + instanceId + ": " + e.getMessage(), e);
+		}
 		afterStateChangingOperation(target, result);
 	}
 

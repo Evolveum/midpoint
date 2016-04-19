@@ -42,6 +42,7 @@ import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
@@ -1824,7 +1825,20 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public void stopProcessInstance(String instanceId, String username, OperationResult parentResult) {
+    public void stopProcessInstance(String instanceId, String username, OperationResult parentResult) throws SchemaException,
+			ObjectNotFoundException, SecurityViolationException {
+		if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
+			ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+					.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_PROCESS_INSTANCE_ID).eq(instanceId)
+					.build();
+			List<PrismObject<TaskType>> tasks = cacheRepositoryService.searchObjects(TaskType.class, query, GetOperationOptions.createRawCollection(), parentResult);
+			if (tasks.size() > 1) {
+				throw new IllegalStateException("More than one task for process instance ID " + instanceId);
+			} else if (tasks.size() == 0) {
+				throw new ObjectNotFoundException("No task for process instance ID " + instanceId, instanceId);
+			}
+			securityEnforcer.authorize(ModelAuthorizationAction.STOP_APPROVAL_PROCESS_INSTANCE.getUrl(), null, tasks.get(0), null, null, null, parentResult);
+		}
         getWorkflowManagerChecked().stopProcessInstance(instanceId, username, parentResult);
     }
 

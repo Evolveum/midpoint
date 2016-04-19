@@ -2,6 +2,7 @@ package com.evolveum.midpoint.model.api;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 /**
@@ -18,7 +19,8 @@ public interface WorkflowService {
      */
     void approveOrRejectWorkItem(String workItemId, boolean decision, String comment, OperationResult parentResult) throws SecurityViolationException;
 
-    void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
+    void stopProcessInstance(String instanceId, String username, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
     void claimWorkItem(String workItemId, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException;
 
