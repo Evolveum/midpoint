@@ -43,6 +43,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	protected List<ValueWrapper> values;
 	protected String displayName;
 	protected boolean readonly;
+	private boolean isStripe;
 
 	public PropertyOrReferenceWrapper(@Nullable ContainerWrapper container, I item, boolean readonly, ValueStatus status) {
 		Validate.notNull(item, "Item must not be null.");
@@ -91,6 +92,14 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		} else {
 			return true;
 		}
+	}
+
+	public boolean isStripe() {
+		return isStripe;
+	}
+
+	public void setStripe(boolean isStripe) {
+		this.isStripe = isStripe;
 	}
 
 	public ContainerWrapper getContainer() {

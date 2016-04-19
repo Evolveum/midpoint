@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.*;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
@@ -64,11 +65,13 @@ import java.util.List;
 /**
  * @author semancik
  */
-public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
+public class FocusProjectionsTabPanel<F extends FocusType> 
+		extends AbstractObjectTabPanel<F> {
 	private static final long serialVersionUID = 1L;
 	
 	private static final String ID_SHADOW_LIST = "shadowList";
 	private static final String ID_SHADOWS = "shadows";
+	private static final String ID_SHADOW_HEADER = "shadowHeader";
 	private static final String ID_SHADOW = "shadow";
 	private static final String ID_SHADOW_MENU = "shadowMenu";
 	private static final String ID_SHADOW_CHECK_ALL = "shadowCheckAll";
@@ -104,32 +107,18 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 			protected void populateItem(final ListItem<FocusSubwrapperDto<ShadowType>> item) {
 				PackageResourceReference packageRef;
 				final FocusSubwrapperDto<ShadowType> dto = item.getModelObject();
-
-				Panel panel;
+				final PropertyModel<ObjectWrapper<F>> objectWrapperModel = new PropertyModel<ObjectWrapper<F>>(item.getModel(), "object");
+				
+				final Panel shadowPanel;
 
 				if (dto.isLoadedOK()) {
 					packageRef = new PackageResourceReference(ImgResources.class, ImgResources.HDD_PRISM);
 
-					panel = new PrismObjectPanel<F>(ID_SHADOW,
+					shadowPanel = new PrismObjectPanel<F>(ID_SHADOW,
 							new PropertyModel<ObjectWrapper<F>>(item.getModel(), "object"), packageRef,
-							getMainForm(), getPageBase()) {
-								private static final long serialVersionUID = 1L;
-
-								@Override
-								protected Component createHeader(String id, IModel<ObjectWrapper<F>> model) {
-									return new CheckTableHeader(id, (IModel) model) {
-										private static final long serialVersionUID = 1L;
-
-										@Override
-										protected void onClickPerformed(AjaxRequestTarget target) {
-											super.onClickPerformed(target);
-											onExpandCollapse(target, item.getModel());
-										}
-									};
-								}
-					};
+							getMainForm(), getPageBase());
 				} else {
-					panel = new SimpleErrorPanel<ShadowType>(ID_SHADOW, item.getModel()) {
+					shadowPanel = new SimpleErrorPanel<ShadowType>(ID_SHADOW, item.getModel()) {
 						private static final long serialVersionUID = 1L;
 
 						@Override
@@ -143,8 +132,33 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 					};
 				}
 
-				panel.setOutputMarkupId(true);
-				item.add(panel);
+				shadowPanel.setOutputMarkupId(true);
+				
+				shadowPanel.add(new VisibleEnableBehaviour() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public boolean isVisible() {
+						FocusSubwrapperDto<ShadowType> shadowWrapperDto = item.getModelObject();
+						ObjectWrapper<ShadowType> shadowWrapper = shadowWrapperDto.getObject();
+						return !shadowWrapper.isMinimalized();
+					}
+					
+				});
+				
+				item.add(shadowPanel);
+				
+				CheckTableHeader<F> shadowHeader = new CheckTableHeader<F>(ID_SHADOW_HEADER, objectWrapperModel) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected void onClickPerformed(AjaxRequestTarget target) {
+						super.onClickPerformed(target);
+						onExpandCollapse(target, item.getModel());
+						target.add(shadows);
+					}
+				};
+				item.add(shadowHeader);
 			}
 		};
 

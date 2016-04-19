@@ -26,12 +26,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.math.NumberUtils;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -174,6 +177,20 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
         }
     }
 
+    public void computeStripes() {
+    	int visibleProperties = 0;
+    	for (ItemWrapper item: properties) {
+    		if (item.isVisible()) {
+    			visibleProperties++;
+    		}
+    		if (visibleProperties % 2 == 0) {
+    			item.setStripe(true);
+    		} else {
+    			item.setStripe(false);
+    		}
+    	}
+    }
+    
 	public boolean isShowInheritedObjectAttributes() {
 		return showInheritedObjectAttributes;
 	}
@@ -343,6 +360,50 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
         return wrapper.getItem();
     }
 
+    
+	public void sort(boolean alphaSorting) {
+		if (objectWrapper.isSorted()){
+            Collections.sort(properties, new Comparator<ItemWrapper>(){
+                @Override
+                public int compare(ItemWrapper pw1, ItemWrapper pw2) {
+                    ItemDefinition id1 = pw1.getItemDefinition();
+                    ItemDefinition id2 = pw2.getItemDefinition();
+                    String str1 =(id1 != null ? (id1.getDisplayName() != null ? id1.getDisplayName() :
+                            (id1.getName() != null && id1.getName().getLocalPart() != null ? id1.getName().getLocalPart() : "")) : "");
+                    String str2 =(id2 != null ? (id2.getDisplayName() != null ? id2.getDisplayName() :
+                            (id2.getName() != null && id2.getName().getLocalPart() != null ? id2.getName().getLocalPart() : "")) : "");
+                    return str1.compareToIgnoreCase(str2);
+                }
+            });
+        }
+        else {
+            final int[] maxOrderArray = new int[3];
+            Collections.sort(properties, new Comparator<ItemWrapper>(){
+                @Override
+                public int compare(ItemWrapper pw1, ItemWrapper pw2) {
+                    ItemDefinition id1 = pw1.getItemDefinition();
+                    ItemDefinition id2 = pw2.getItemDefinition();
+
+                    //we need to find out the value of the biggest displayOrder to put
+                    //properties with null display order to the end of the list
+                    int displayOrder1 = (id1 != null && id1.getDisplayOrder() != null) ? id1.getDisplayOrder() : 0;
+                    int displayOrder2 = (id2 != null && id2.getDisplayOrder() != null) ? id2.getDisplayOrder() : 0;
+                    if (maxOrderArray[0] == 0){
+                        maxOrderArray[0] = displayOrder1 > displayOrder2 ? displayOrder1 + 1 : displayOrder2 + 1;
+                    }
+                    maxOrderArray[1] = displayOrder1;
+                    maxOrderArray[2] = displayOrder2;
+
+                    int maxDisplayOrder = NumberUtils.max(maxOrderArray);
+                    maxOrderArray[0] = maxDisplayOrder + 1;
+
+                    return Integer.compare(id1 != null  && id1.getDisplayOrder() != null ? id1.getDisplayOrder() : maxDisplayOrder,
+                            id2 != null && id2.getDisplayOrder() != null ? id2.getDisplayOrder() : maxDisplayOrder);
+                }
+            });
+        }
+	}
+    
     @Override
     public String debugDump() {
         return debugDump(0);
@@ -374,5 +435,16 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
         DebugUtil.debugDump(sb, properties, indent + 2, false);
         return sb.toString();
     }
+
+	@Override
+	public boolean isStripe() {
+		// Does not make much sense, but it is given by the interface
+		return false;
+	}
+
+	@Override
+	public void setStripe(boolean isStripe) {
+		// Does not make much sense, but it is given by the interface
+	}
 
 }

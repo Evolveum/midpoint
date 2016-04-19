@@ -91,6 +91,8 @@ public class ContainerWrapperFactory {
         List<ItemWrapper> properties = createProperties(cWrapper, result);
         cWrapper.setProperties(properties);
 
+        cWrapper.computeStripes();
+        
         return cWrapper;
     }
 
@@ -102,6 +104,8 @@ public class ContainerWrapperFactory {
 
 		List<ItemWrapper> properties = createProperties(cWrapper, result);
 		cWrapper.setProperties(properties);
+		
+		cWrapper.computeStripes();
 
 		return cWrapper;
 	}

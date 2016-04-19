@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,30 +17,11 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div>
-        <div class="tableForm" >
-            <div class="tableFormHead" style="display: none;">
-                <div class="objectFormHeader" wicket:id="headerPanel">
-                    <div class="objectFormHeaderOptionButtons" wicket:id="optionButtons" />
-                    <img class="objectFormHeaderIcon" wicket:id="headerImg"/>
-
-                    <div class="objectFormHeaderText">
-                        <img wicket:id="shield" wicket:message="title:PrismObjectPanel.protectedAccount" style="margin-right: 2px;"/>
-                        <span class="objectFormHeaderName" wicket:id="header"/>
-                        <br>
-                        <span class="objectFormHeaderDescription" wicket:id="description"/>
-                    </div>
-                    <div class="objectFormHeaderOperationButtons" wicket:id="operationButtons" />
-                </div>
-            </div>
-
-            <div class="row header" wicket:id="header"/>
-            <div wicket:id="body">
-                <div wicket:id="containers">
-                    <div wicket:id="container"/>
-                </div>
-            </div>
-        </div>
-    </div>
+	<div class="container-fluid prism-object" >
+	    <div class="row prism-header" wicket:id="header"/>
+	    <div class="row" wicket:id="containers">
+	        <div class="container-fluid prism-container" wicket:id="container"/>
+	    </div>
+	</div>
 </wicket:panel>
 </html>
