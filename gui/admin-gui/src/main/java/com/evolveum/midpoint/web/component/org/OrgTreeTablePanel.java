@@ -40,13 +40,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
@@ -57,17 +54,16 @@ import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractTreeTablePanel;
 import com.evolveum.midpoint.web.page.admin.users.component.OrgTreeProvider;
 import com.evolveum.midpoint.web.page.admin.users.component.SelectableFolderContent;
 import com.evolveum.midpoint.web.page.admin.users.component.TreeTablePanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 /**
@@ -85,9 +81,9 @@ public class OrgTreeTablePanel extends AbstractTreeTablePanel{
     public OrgTreeTablePanel(String id, IModel<String> rootOid) {
         super(id, rootOid);
         
-        selected = new LoadableModel<OrgTreeDto>() {
+        selected = new LoadableModel<SelectableBean<OrgType>>() {
             @Override
-            protected OrgTreeDto load() {
+            protected SelectableBean<OrgType> load() {
                 return getRootFromProvider();
             }
         };
@@ -105,8 +101,8 @@ public class OrgTreeTablePanel extends AbstractTreeTablePanel{
         treeHeader.add(treeMenu);
 
         ISortableTreeProvider provider = new OrgTreeProvider(this, getModel());
-        List<IColumn<OrgTreeDto, String>> columns = new ArrayList<>();
-        columns.add(new TreeColumn<OrgTreeDto, String>(createStringResource("TreeTablePanel.hierarchy")));
+        List<IColumn<SelectableBean<OrgType>, String>> columns = new ArrayList<>();
+        columns.add(new TreeColumn<SelectableBean<OrgType>, String>(createStringResource("TreeTablePanel.hierarchy")));
 
         WebMarkupContainer treeContainer = new WebMarkupContainer(ID_TREE_CONTAINER) {
 
@@ -120,11 +116,11 @@ public class OrgTreeTablePanel extends AbstractTreeTablePanel{
         };
         add(treeContainer);
 
-        TableTree<OrgTreeDto, String> tree = new TableTree<OrgTreeDto, String>(ID_TREE, columns, provider,
+        TableTree<SelectableBean<OrgType>, String> tree = new TableTree<SelectableBean<OrgType>, String>(ID_TREE, columns, provider,
                 Integer.MAX_VALUE, new TreeStateModel(provider)) {
 
             @Override
-            protected Component newContentComponent(String id, IModel<OrgTreeDto> model) {
+            protected Component newContentComponent(String id, IModel<SelectableBean<OrgType>> model) {
                 return new SelectableFolderContent(id, this, model, selected) {
 
                     @Override
@@ -137,13 +133,13 @@ public class OrgTreeTablePanel extends AbstractTreeTablePanel{
             }
 
             @Override
-            protected Item<OrgTreeDto> newRowItem(String id, int index, final IModel<OrgTreeDto> model) {
-                Item<OrgTreeDto> item = super.newRowItem(id, index, model);
+            protected Item<SelectableBean<OrgType>> newRowItem(String id, int index, final IModel<SelectableBean<OrgType>> model) {
+                Item<SelectableBean<OrgType>> item = super.newRowItem(id, index, model);
                 item.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
 
                     @Override
                     public String getObject() {
-                        OrgTreeDto itemObject = model.getObject();
+                    	SelectableBean<OrgType> itemObject = model.getObject();
                         if (itemObject != null && itemObject.equals(selected.getObject())) {
                             return "success";
                         }
@@ -160,7 +156,7 @@ public class OrgTreeTablePanel extends AbstractTreeTablePanel{
         treeContainer.add(tree);
 
         initTables();
-        initSearch();
+//        initSearch();
     }
 
     protected CharSequence computeTreeHeight() {
@@ -268,8 +264,8 @@ public class OrgTreeTablePanel extends AbstractTreeTablePanel{
     /**
      * This method check selection in table.
      */
-    public List<OrgTableDto> getSelectedOrgs(AjaxRequestTarget target) {
-        List<OrgTableDto> objects = WebComponentUtil.getSelectedData(getOrgChildTable());
+    public List<SelectableBean<OrgType>> getSelectedOrgs(AjaxRequestTarget target) {
+        List<SelectableBean<OrgType>> objects = WebComponentUtil.getSelectedData(getOrgChildTable());
         if (objects.isEmpty()) {
             warn(getString("TreeTablePanel.message.nothingSelected"));
             target.add(getPageBase().getFeedbackPanel());
@@ -278,8 +274,8 @@ public class OrgTreeTablePanel extends AbstractTreeTablePanel{
         return objects;
     }
     
-    public List<OrgTableDto> getSelectedOrgs() {
-        List<OrgTableDto> objects = WebComponentUtil.getSelectedData(getOrgChildTable());
+    public List<SelectableBean<OrgType>> getSelectedOrgs() {
+        List<SelectableBean<OrgType>> objects = WebComponentUtil.getSelectedData(getOrgChildTable());
         if (objects.isEmpty()) {
 //            warn(getString("TreeTablePanel.message.nothingSelected"));
 //            target.add(getPageBase().getFeedbackPanel());
@@ -305,43 +301,43 @@ public class OrgTreeTablePanel extends AbstractTreeTablePanel{
     }
   
    
-    private void updateActivationPerformed(AjaxRequestTarget target, boolean enable) {
-        List<OrgTableDto> objects = getSelectedOrgs(target);
-        if (objects.isEmpty()) {
-            return;
-        }
+//    private void updateActivationPerformed(AjaxRequestTarget target, boolean enable) {
+//        List<SelectableBean<OrgType>> objects = getSelectedOrgs(target);
+//        if (objects.isEmpty()) {
+//            return;
+//        }
+//
+//        PageBase page = getPageBase();
+//        OperationResult result = new OperationResult(OPERATION_UPDATE_OBJECTS);
+//        for (SelectableBean<OrgType> object : objects) {
+////            if (!(FocusType.class.isAssignableFrom(object.getType()))) {
+////                continue;
+////            }
+//
+//            OperationResult subResult = result.createSubresult(OPERATION_UPDATE_OBJECT);
+//            ObjectDelta delta = WebModelServiceUtils.createActivationAdminStatusDelta(object.getType(), object.getOid(),
+//                    enable, page.getPrismContext());
+//
+//            WebModelServiceUtils.save(delta, subResult, page);
+//        }
+//        result.computeStatusComposite();
+//
+//        page.showResult(result);
+//        target.add(page.getFeedbackPanel());
+//
+//        refreshTable(target);
+//    }
 
-        PageBase page = getPageBase();
-        OperationResult result = new OperationResult(OPERATION_UPDATE_OBJECTS);
-        for (OrgTableDto object : objects) {
-            if (!(FocusType.class.isAssignableFrom(object.getType()))) {
-                continue;
-            }
-
-            OperationResult subResult = result.createSubresult(OPERATION_UPDATE_OBJECT);
-            ObjectDelta delta = WebModelServiceUtils.createActivationAdminStatusDelta(object.getType(), object.getOid(),
-                    enable, page.getPrismContext());
-
-            WebModelServiceUtils.save(delta, subResult, page);
-        }
-        result.computeStatusComposite();
-
-        page.showResult(result);
-        target.add(page.getFeedbackPanel());
-
-        refreshTable(target);
-    }
-
-    @Override
-    protected void refreshTable(AjaxRequestTarget target) {
-        ObjectDataProvider orgProvider = (ObjectDataProvider) getOrgChildTable().getDataTable().getDataProvider();
-        orgProvider.clearCache();
-
-        target.add(getOrgChildContainer());
-    }
+//    @Override
+//    protected void refreshTable(AjaxRequestTarget target) {
+//        ObjectDataProvider orgProvider = (ObjectDataProvider) getOrgChildTable().getDataTable().getDataProvider();
+//        orgProvider.clearCache();
+//
+//        target.add(getOrgChildContainer());
+//    }
 
     private void collapseAllPerformed(AjaxRequestTarget target) {
-        TableTree<OrgTreeDto, String> tree = getTree();
+        TableTree<SelectableBean<OrgType>, String> tree = getTree();
         TreeStateModel model = (TreeStateModel) tree.getDefaultModel();
         model.collapseAll();
 
@@ -349,16 +345,16 @@ public class OrgTreeTablePanel extends AbstractTreeTablePanel{
     }
 
     private void expandAllPerformed(AjaxRequestTarget target) {
-        TableTree<OrgTreeDto, String> tree = getTree();
+        TableTree<SelectableBean<OrgType>, String> tree = getTree();
         TreeStateModel model = (TreeStateModel) tree.getDefaultModel();
         model.expandAll();
 
         target.add(tree);
     }
     
-    private static class TreeStateModel extends AbstractReadOnlyModel<Set<OrgTreeDto>> {
+    private static class TreeStateModel extends AbstractReadOnlyModel<Set<SelectableBean<OrgType>>> {
 
-        private TreeStateSet<OrgTreeDto> set = new TreeStateSet<>();
+        private TreeStateSet<SelectableBean<OrgType>> set = new TreeStateSet<>();
         private ISortableTreeProvider provider;
 
         TreeStateModel(ISortableTreeProvider provider) {
@@ -366,10 +362,10 @@ public class OrgTreeTablePanel extends AbstractTreeTablePanel{
         }
 
         @Override
-        public Set<OrgTreeDto> getObject() {
+        public Set<SelectableBean<OrgType>> getObject() {
             //just to have root expanded at all time
             if (set.isEmpty()) {
-                Iterator<OrgTreeDto> iterator = provider.getRoots();
+                Iterator<SelectableBean<OrgType>> iterator = provider.getRoots();
                 if (iterator.hasNext()) {
                     set.add(iterator.next());
                 }

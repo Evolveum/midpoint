@@ -16,24 +16,26 @@
 
 package com.evolveum.midpoint.web.page.admin.users.component;
 
-import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.tree.AbstractTree;
 import org.apache.wicket.extensions.markup.html.repeater.tree.content.Folder;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+
 /**
  * @author lazyman
  */
-public class SelectableFolderContent extends Folder<OrgTreeDto> {
+public class SelectableFolderContent extends Folder<SelectableBean<OrgType>> {
 
     private AbstractTree tree;
-    private IModel<OrgTreeDto> selected;
+    private IModel<SelectableBean<OrgType>> selected;
 
-    public SelectableFolderContent(String id, AbstractTree<OrgTreeDto> tree, IModel<OrgTreeDto> model,
-                                   IModel<OrgTreeDto> selected) {
+    public SelectableFolderContent(String id, AbstractTree<SelectableBean<OrgType>> tree, IModel<SelectableBean<OrgType>> model,
+                                   IModel<SelectableBean<OrgType>> selected) {
         super(id, tree, model);
 
         this.tree = tree;
@@ -41,16 +43,14 @@ public class SelectableFolderContent extends Folder<OrgTreeDto> {
     }
 
     @Override
-    protected IModel<?> newLabelModel(final IModel<OrgTreeDto> model) {
+    protected IModel<?> newLabelModel(final IModel<SelectableBean<OrgType>> model) {
         return new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
-                OrgTreeDto dto = model.getObject();
-                if (StringUtils.isNotEmpty(dto.getDisplayName())) {
-                    return dto.getDisplayName();
-                }
-                return dto.getName();
+            	SelectableBean<OrgType> dto = model.getObject();
+            	return WebComponentUtil.getEffectiveName(dto.getValue(), OrgType.F_DISPLAY_NAME);
+            
             }
         };
     }
@@ -61,7 +61,7 @@ public class SelectableFolderContent extends Folder<OrgTreeDto> {
             tree.updateNode(selected.getObject(), target);
         }
 
-        OrgTreeDto dto = getModelObject();
+        SelectableBean<OrgType> dto = getModelObject();
         selected.setObject(dto);
         tree.updateNode(dto, target);
     }
@@ -73,7 +73,7 @@ public class SelectableFolderContent extends Folder<OrgTreeDto> {
 
     @Override
     protected boolean isSelected() {
-        OrgTreeDto dto = getModelObject();
+    	SelectableBean<OrgType> dto = getModelObject();
         return dto.equals(selected.getObject());
     }
 

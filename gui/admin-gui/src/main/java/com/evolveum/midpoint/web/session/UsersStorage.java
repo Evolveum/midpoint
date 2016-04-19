@@ -16,13 +16,14 @@
 
 package com.evolveum.midpoint.web.session;
 
+import java.util.Set;
+
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgUnitSearchDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
-import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
-
-import java.util.Set;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 /**
  * @author lazyman
@@ -54,10 +55,10 @@ public class UsersStorage implements PageStorage {
      */
     private ObjectPaging usersPaging;
 
-    private OrgTreeDto selectedItem;                //selected tree item on the Org. structure page
-    private TreeStateSet<OrgTreeDto> expandedItems; //expanded tree items on the Org. structure page
+    private SelectableBean<OrgType> selectedItem;                //selected tree item on the Org. structure page
+    private TreeStateSet<SelectableBean<OrgType>> expandedItems; //expanded tree items on the Org. structure page
     private int selectedTabId = -1;                 //selected tab id on the Org. structure page
-    private OrgTreeDto collapsedItem = null;                 //selected tab id on the Org. structure page
+    private SelectableBean<OrgType> collapsedItem = null;                 //selected tab id on the Org. structure page
 
     @Override
     public ObjectPaging getPaging() {
@@ -95,19 +96,19 @@ public class UsersStorage implements PageStorage {
         this.orgUnitPaging = orgUnitPaging;
     }
 
-    public Set<OrgTreeDto> getExpandedItems() {
+    public Set<SelectableBean<OrgType>> getExpandedItems() {
         return expandedItems;
     }
 
-    public void setExpandedItems(TreeStateSet<OrgTreeDto> expandedItems) {
+    public void setExpandedItems(TreeStateSet<SelectableBean<OrgType>> expandedItems) {
         this.expandedItems = expandedItems != null ? expandedItems.clone() : null;
     }
 
-    public OrgTreeDto getSelectedItem() {
+    public SelectableBean<OrgType> getSelectedItem() {
         return selectedItem;
     }
 
-    public void setSelectedItem(OrgTreeDto selectedItem) {
+    public void setSelectedItem(SelectableBean<OrgType> selectedItem) {
         this.selectedItem = selectedItem;
     }
 
@@ -119,11 +120,11 @@ public class UsersStorage implements PageStorage {
         this.selectedTabId = selectedTabId;
     }
 
-    public OrgTreeDto getCollapsedItem() {
+    public SelectableBean<OrgType> getCollapsedItem() {
         return collapsedItem;
     }
 
-    public void setCollapsedItem(OrgTreeDto collapsedItem) {
+    public void setCollapsedItem(SelectableBean<OrgType> collapsedItem) {
         this.collapsedItem = collapsedItem;
     }
 }
