@@ -15,13 +15,38 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.Validate;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.resource.PackageResourceReference;
+
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -33,34 +58,28 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.prism.CheckTableHeader;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
+import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
+import com.evolveum.midpoint.web.component.prism.SimpleErrorPanel;
+import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.admin.users.component.*;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang.Validate;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.*;
-import org.apache.wicket.request.resource.PackageResourceReference;
-
-import javax.xml.namespace.QName;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -180,44 +199,8 @@ public class FocusProjectionsTabPanel<F extends FocusType>
 		shadows.add(accountCheckAll);
 
 		shadows.add(projectionList);
-
-		initResourceModal();
 	}
 
-	private void initResourceModal() {
-		ModalWindow window = new ModalWindow(MODAL_ID_RESOURCE);
-
-		final SimpleUserResourceProvider provider = new SimpleUserResourceProvider(this, projectionModel) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void handlePartialError(OperationResult result) {
-				showResult(result);
-			}
-		};
-
-		ResourcesSelectionPanel.Context context = new ResourcesSelectionPanel.Context(this) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public FocusProjectionsTabPanel<F> getRealParent() {
-				return WebComponentUtil.theSameForPage(FocusProjectionsTabPanel.this, getCallingPageReference());
-			}
-
-			@Override
-			public SimpleUserResourceProvider getProvider() {
-				return provider;
-			}
-
-			@Override
-			public void addPerformed(AjaxRequestTarget target, List<ResourceType> newResources) {
-				getRealParent().addSelectedAccountPerformed(target, newResources);
-			}
-		};
-		ResourcesSelectionPage.prepareDialog(window, context, this, "pageAdminFocus.title.selectResource", ID_SHADOWS);
-
-		add(window);
-	}
 	
 	private void onExpandCollapse(AjaxRequestTarget target, IModel<FocusSubwrapperDto<ShadowType>> dtoModel) {
 		FocusSubwrapperDto<ShadowType> shadowWrapperDto = dtoModel.getObject();
@@ -231,8 +214,7 @@ public class FocusProjectionsTabPanel<F extends FocusType>
 	}
 
 	private void addSelectedAccountPerformed(AjaxRequestTarget target, List<ResourceType> newResources) {
-		ModalWindow window = (ModalWindow) get(MODAL_ID_RESOURCE);
-		window.close(target);
+		getPageBase().hideMainPopup(target);
 
 		if (newResources.isEmpty()) {
 			warn(getString("pageUser.message.noResourceSelected"));
@@ -299,7 +281,20 @@ public class FocusProjectionsTabPanel<F extends FocusType>
 
 						@Override
                         public void onClick(AjaxRequestTarget target) {
-                            showModalWindow(MODAL_ID_RESOURCE, target);
+							List<QName> supportedTypes = new ArrayList<>(1);
+							supportedTypes.add(ResourceType.COMPLEX_TYPE);
+							PageBase pageBase = FocusProjectionsTabPanel.this.getPageBase();
+							FocusBrowserPanel<ResourceType> resourceSelectionPanel = new FocusBrowserPanel<ResourceType>(pageBase.getMainPopupBodyId(), ResourceType.class, supportedTypes, true, pageBase){
+								
+								@Override
+								protected void addPerformed(AjaxRequestTarget target, QName type,
+										List<ResourceType> selected) {
+									// TODO Auto-generated method stub
+									FocusProjectionsTabPanel.this.addSelectedAccountPerformed(target, selected);
+								}
+							};
+							resourceSelectionPanel.setOutputMarkupId(true);
+                            pageBase.showMainPopup(resourceSelectionPanel, new Model<String>("Select resrouces"), target, 900, 700);
                         }
                     });
             items.add(item);

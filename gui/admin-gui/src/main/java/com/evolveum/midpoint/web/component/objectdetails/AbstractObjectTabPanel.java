@@ -131,12 +131,6 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 		return object;
 	}
 
-	protected void showModalWindow(String id, AjaxRequestTarget target) {
-		ModalWindow window = (ModalWindow) get(id);
-		window.show(target);
-		target.add(getFeedbackPanel());
-	}
-	
 	protected void showModalWindow(Component body, IModel<String> title, AjaxRequestTarget target) {
         getPageBase().showMainPopup(body, title, target);
 		target.add(getFeedbackPanel());
