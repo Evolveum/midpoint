@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
@@ -40,7 +41,13 @@ public class OrgTreeAssignablePanel extends BasePanel{
 			
 			@Override
 			protected Panel createTreePanel(String id, Model<String> model, PageBase pageBase) {
-				return  new OrgTreePanel(id, model, selectable);
+				return  new OrgTreePanel(id, model, selectable) {
+					
+					@Override
+					protected void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
+						onItemSelect(selected, target);
+					}
+				};
 				
 			}
 		};
@@ -72,6 +79,10 @@ public class OrgTreeAssignablePanel extends BasePanel{
 	}
 	
 	protected void assignSelectedOrgPerformed(List<OrgType> selectedOrgs, AjaxRequestTarget target) {
+		
+	}
+	
+	protected void onItemSelect(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
 		
 	}
 	

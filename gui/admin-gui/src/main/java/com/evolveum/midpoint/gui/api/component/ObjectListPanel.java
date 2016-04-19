@@ -47,6 +47,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchFormPanel;
+import com.evolveum.midpoint.web.component.search.SearchPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider2;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -235,23 +236,24 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 
 			@Override
 			protected WebMarkupContainer createHeader(String headerId) {
-				SearchFormPanel searchPanel = new SearchFormPanel(headerId, searchModel) {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-						ObjectListPanel.this.searchPerformed(query, target);
-					}
-
-				};
-				searchPanel.add(new VisibleEnableBehaviour() {
-					@Override
-					public boolean isVisible() {
-						return !type.equals(ObjectType.class);
-					}
-				});
-				return searchPanel;
+				return initSearch(headerId);
+//				SearchFormPanel searchPanel = new SearchFormPanel(headerId, searchModel) {
+//
+//					private static final long serialVersionUID = 1L;
+//
+//					@Override
+//					protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+//						ObjectListPanel.this.searchPerformed(query, target);
+//					}
+//
+//				};
+////				searchPanel.add(new VisibleEnableBehaviour() {
+////					@Override
+////					public boolean isVisible() {
+////						return !type.equals(ObjectType.class);
+////					}
+////				});
+//				return searchPanel;
 			}
 			
 			@Override
@@ -328,9 +330,51 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 
 	}
 	
-	public void refreshTable(AjaxRequestTarget target) {
+	public void refreshTable(Class<T> newType, AjaxRequestTarget target) {
 		BaseSortableDataProvider<SelectableBean<T>> provider = getDataProvider();
 		provider.setQuery(getQuery());
+		if (newType !=null && provider instanceof ObjectDataProvider2){
+			((ObjectDataProvider2) provider).setType(newType);
+		}
+		
+		if (newType != null && !this.type.equals(newType)){
+			this.type = newType;
+			searchModel.reset();
+		} else {
+			saveSearchModel();
+		}
+		
+		
+		BoxedTablePanel table = getTable();
+		
+		((WebMarkupContainer)table.get("box")).addOrReplace(initSearch("header"));
+		table.setCurrentPage(null);
+		target.add((Component) table);
+		target.add(parentPage.getFeedbackPanel());
+
+	}
+	
+	private SearchFormPanel initSearch(String headerId){
+		SearchFormPanel searchPanel = new SearchFormPanel(headerId, searchModel) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+				ObjectListPanel.this.searchPerformed(query, target);
+			}
+
+		};
+//		searchPanel.add(new VisibleEnableBehaviour() {
+//			@Override
+//			public boolean isVisible() {
+//				return !type.equals(ObjectType.class);
+//			}
+//		});
+		return searchPanel;
+	}
+	
+	private void saveSearchModel(){
 		String storageKey = getStorageKey();
 		if (StringUtils.isNotEmpty(storageKey)) {
 			PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
@@ -342,11 +386,6 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 				storage.setPaging(null);
 			}
 		}
-
-		Table table = getTable();
-		table.setCurrentPage(null);
-		target.add((Component) table);
-		target.add(parentPage.getFeedbackPanel());
 
 	}
 

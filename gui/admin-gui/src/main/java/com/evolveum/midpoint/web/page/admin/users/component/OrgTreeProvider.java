@@ -105,7 +105,8 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
 
         OperationResult result = new OperationResult(LOAD_ORG_UNITS);
         try {
-            Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils.createOptionsForParentOrgRefs();
+//            Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils.createOptionsForParentOrgRefs();
+        	Collection<SelectorOptions<GetOperationOptions>> options = null;
             Task task = getPageBase().createSimpleTask(LOAD_ORG_UNITS);
 
             List<PrismObject<OrgType>> units = getModelService().searchObjects(OrgType.class, query, options,
@@ -155,6 +156,7 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
 //        OrgTreeDto orgDto = new OrgTreeDto(parent, unit);
         OrgType org = unit.asObjectable();
         if (parent != null){
+        	org.getParentOrg().clear();
         org.getParentOrg().add(parent.getValue());
         }
         SelectableBean<OrgType> orgDto = new SelectableBean<OrgType>(org);

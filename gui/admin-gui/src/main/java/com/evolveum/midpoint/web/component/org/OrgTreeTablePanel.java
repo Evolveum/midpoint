@@ -333,13 +333,13 @@ public class OrgTreeTablePanel extends AbstractTreeTablePanel{
 //        refreshTable(target);
 //    }
 
-    @Override
-    protected void refreshTable(AjaxRequestTarget target) {
-        ObjectDataProvider orgProvider = (ObjectDataProvider) getOrgChildTable().getDataTable().getDataProvider();
-        orgProvider.clearCache();
-
-        target.add(getOrgChildContainer());
-    }
+//    @Override
+//    protected void refreshTable(AjaxRequestTarget target) {
+//        ObjectDataProvider orgProvider = (ObjectDataProvider) getOrgChildTable().getDataTable().getDataProvider();
+//        orgProvider.clearCache();
+//
+//        target.add(getOrgChildContainer());
+//    }
 
     private void collapseAllPerformed(AjaxRequestTarget target) {
         TableTree<SelectableBean<OrgType>, String> tree = getTree();

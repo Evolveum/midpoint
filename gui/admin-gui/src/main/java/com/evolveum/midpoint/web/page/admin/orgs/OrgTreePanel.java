@@ -145,7 +145,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel{
 						SessionStorage storage = session.getSessionStorage();
 						storage.getUsers().setSelectedItem(selected.getObject());
 
-						selectTreeItemPerformed(target);
+						selectTreeItemPerformed(selected.getObject(), target);
 					}
 				};
 			}
@@ -287,7 +287,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel{
 		return new ArrayList<>();
 	}
 	
-	protected void selectTreeItemPerformed(AjaxRequestTarget target){
+	protected void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target){
 		
 	}
 //	private List<InlineMenuItem> createTreeMenu() {
@@ -432,11 +432,11 @@ public class OrgTreePanel extends AbstractTreeTablePanel{
 
 
 
-	@Override
-	protected void refreshTable(AjaxRequestTarget target) {
-		// TODO Auto-generated method stub
-		
-	}
+//	@Override
+//	protected void refreshTable(AjaxRequestTarget target) {
+//		// TODO Auto-generated method stub
+//		
+//	}
 
 
 

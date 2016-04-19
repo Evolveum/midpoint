@@ -259,16 +259,16 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
         return query;
     }
 
-    protected abstract void refreshTable(AjaxRequestTarget target);
+//    protected abstract void refreshTable(AjaxRequestTarget target);
     
-    protected void clearTableSearchPerformed(AjaxRequestTarget target) {
-        BasicSearchPanel basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
-        basicSearch.getModel().setObject(null);
-
-        refreshTable(target);
-    }
-
-    protected void tableSearchPerformed(AjaxRequestTarget target) {
-        refreshTable(target);
-    }
+//    protected void clearTableSearchPerformed(AjaxRequestTarget target) {
+//        BasicSearchPanel basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
+//        basicSearch.getModel().setObject(null);
+//
+//        refreshTable(target);
+//    }
+//
+//    protected void tableSearchPerformed(AjaxRequestTarget target) {
+//        refreshTable(target);
+//    }
 }
