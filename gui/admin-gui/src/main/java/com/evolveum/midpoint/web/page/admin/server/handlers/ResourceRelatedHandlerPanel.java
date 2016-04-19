@@ -222,7 +222,7 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 			}
 		});
 		optionsContainer.add(dryRunContainer);
-		CheckBox dryRun = new CheckBox(ID_DRY_RUN, new PropertyModel<Boolean>(getModelObject(), ResourceRelatedHandlerDto.F_DRY_RUN));
+		CheckBox dryRun = new CheckBox(ID_DRY_RUN, new PropertyModel<Boolean>(getModel(), ResourceRelatedHandlerDto.F_DRY_RUN));
 		dryRun.add(enabledIfEdit);
 		dryRunContainer.add(dryRun);
 	}

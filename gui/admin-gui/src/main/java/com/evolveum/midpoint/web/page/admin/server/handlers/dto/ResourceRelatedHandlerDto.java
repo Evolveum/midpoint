@@ -40,8 +40,8 @@ public class ResourceRelatedHandlerDto extends HandlerDto {
 	public static final String F_OBJECT_CLASS = "objectClass";
 	public static final String F_RESOURCE_REFERENCE = "resourceRef";
 
-	public static final String CLASS_DOT = ResourceRelatedHandlerDto.class.getName() + ".";
-	public static final String OPERATION_LOAD_RESOURCE = CLASS_DOT + "loadResource";
+	private static final String CLASS_DOT = ResourceRelatedHandlerDto.class.getName() + ".";
+	private static final String OPERATION_LOAD_RESOURCE = CLASS_DOT + "loadResource";
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(ResourceRelatedHandlerDto.class);
 

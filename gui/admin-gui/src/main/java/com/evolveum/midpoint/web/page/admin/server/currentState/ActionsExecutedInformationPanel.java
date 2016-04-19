@@ -138,7 +138,7 @@ public class ActionsExecutedInformationPanel extends BasePanel<ActionsExecutedIn
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 showResultingActionsOnly = !showResultingActionsOnly;
-                ajaxRequestTarget.add(this);
+                ajaxRequestTarget.add(ActionsExecutedInformationPanel.this);
             }
         });
 
