@@ -1,10 +1,18 @@
 
+@text-label-color: #3c8dbc;
+@text-dimmed-color: #808080;
+
+@table-divider-color:  #ddd;
+@table-stripe-bg-color: #f9f9f9;
+
 @object-user-color: #dd4b39;
 @object-role-color: #00a65a;
 @object-org-color: #F39C12;
 @object-service-color: #00C0EF;
 @object-resource-color: #605CA8;
 @object-task-color: #001f3f;
+
+@box-projection-color: #001F3F;
 
 .skin-blue-light .main-header {
   & .logo {
@@ -385,7 +393,7 @@ th.cog, td.cog {
 
 .summary-panel-identifier {
 	white-space: pre-wrap;
-	color: #808080;
+	color: @text-dimmed-color;
 	font-weight: normal;
 }
 
@@ -515,5 +523,144 @@ div.dashAssignmentHeader {
 
 	span.targetRelation {
 		margin-left: 10px;
+	}
+}
+
+// Prism containers and attributes
+
+.prism-object {
+	
+}
+
+.prism-container {
+	border-bottom: 1px solid @table-divider-color;
+	margin-bottom: 15px;
+	padding-bottom: 15px;
+}
+
+.prism-properties {
+	
+	& > div {
+		padding-left: 30px;
+	}
+	
+	.stripe {
+		background-color: @table-stripe-bg-color;
+	}
+}
+
+.prism-header {
+	margin-bottom: 15px;
+	display: block;
+}
+
+.prism-title {
+	font-size: 16px;
+	font-weight: 600;
+	color: @text-label-color;
+}
+
+.prism-property {
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+
+// Common styles for object detail pages
+
+.assignable-header {
+  border-bottom: 2px solid @table-divider-color;
+  margin: 0px;
+  margin-bottom: 10px;
+
+  div.col-xs-10 {
+    padding: 0 5px;
+
+    & > input {
+      display: inline-block;
+    }
+
+    > h3 {
+      display: inline-block;
+      margin-bottom: 5px;
+      margin-left: 5px;
+    }
+  }
+
+  & > div.cog {
+    margin-top: 18px;
+    padding-right: 5px;
+  }
+}
+
+.check-table-header {
+	padding-left: 20px;
+	
+	& > input[type="checkbox"] {
+		position: absolute;
+		margin-left: -20px;
+		margin-top: 6px;
+    }
+    
+    .check-table-label {
+    
+	    .check-table-header-icon {
+		    margin-left: 4px;
+		    position: relative;
+		    bottom: 1px;
+	    }
+	    
+	    .check-table-header-name {
+	    	margin-left: 5px;
+	    	font-size: 18px;
+	    	color: @text-label-color !important;
+	    }
+	    
+	    .check-table-header-description {
+	    	margin-left: 10px;
+	    }
+	    
+	    .check-table-header-status {
+	    	margin-left: 10px;
+	    	position: relative;
+			bottom: 2px;
+	    }
+    
+    	.check-table-header-show-more {
+	    	color: @text-dimmed-color !important;
+	    }
+    }
+}
+
+.tab-label {
+	& > small {
+		margin-left: 6px;
+		position: relative;
+		top: 1px;
+	}
+}
+
+// Projection tab (focus pages)
+
+.projections {
+	
+}
+
+.projections-header {
+	
+	& > div {
+		padding-left: 20px !important; // align with the checkboxes below
+	}
+	
+}
+
+.projection {
+	margin-bottom: 10px;
+	border-top-color: @box-projection-color; 
+	
+	.box-header {
+		
+		.box-tools {
+			margin-top: 5px;
+		}
 	}
 }

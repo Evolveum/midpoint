@@ -26,12 +26,17 @@ import org.apache.commons.lang.Validate;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -48,6 +53,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  */
 public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel<F> {
+	private static final long serialVersionUID = 1L;
+
+	private static final Trace LOGGER = TraceManager.getTrace(FocusMainPanel.class);
 
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
 	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
@@ -165,74 +173,53 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 	protected void addDefaultTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
 		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageAdminFocus.basic")){
+				new PanelTab(parentPage.createStringResource("pageAdminFocus.basic")){
+					private static final long serialVersionUID = 1L;
+
 					@Override
-					public WebMarkupContainer getPanel(String panelId) {
+					public WebMarkupContainer createPanel(String panelId) {
 						return createFocusDetailsTabPanel(panelId, parentPage); 
 					}
 				});
 		tabs.add(
-                new AbstractTab(getProjectionsTabTitleModel(parentPage)){
+                new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.projections")){
+                	private static final long serialVersionUID = 1L;
+                	
 					@Override
-					public WebMarkupContainer getPanel(String panelId) {
+					public WebMarkupContainer createPanel(String panelId) {
 						return createFocusProjectionsTabPanel(panelId, parentPage); 
+					}
+
+					@Override
+					public String getCount() {
+						return Integer.toString(projectionModel.getObject() == null ? 0 : projectionModel.getObject().size());
 					}
 				});
 		tabs.add(
-				new AbstractTab(getAssignmentsTabTitleModel(parentPage)){
+				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.assignments")) {
+					private static final long serialVersionUID = 1L;
+					
 					@Override
-					public WebMarkupContainer getPanel(String panelId) {
+					public WebMarkupContainer createPanel(String panelId) {
 						return createFocusAssignmentsTabPanel(panelId, parentPage); 
+					}
+
+					@Override
+					public String getCount() {
+						return Integer.toString(assignmentsModel.getObject() == null ? 0 : assignmentsModel.getObject().size());
 					}
 				});
         if (!(parentPage instanceof PageSelfProfile)) {
             tabs.add(
-                    new AbstractTab(parentPage.createStringResource("pageAdminFocus.request")) {
+                    new PanelTab(parentPage.createStringResource("pageAdminFocus.request")) {
+                    	private static final long serialVersionUID = 1L;
+                    	
                         @Override
-                        public WebMarkupContainer getPanel(String panelId) {
+                        public WebMarkupContainer createPanel(String panelId) {
                             return createRequestAssignmentTabPanel(panelId, parentPage);
                         }
                     });
         }
 	}
 
-    private IModel<String> getProjectionsTabTitleModel(final PageAdminObjectDetails<F> parentPage){
-        return new IModel<String>() {
-            @Override
-            public String getObject() {
-                return parentPage.createStringResource("pageAdminFocus.projections").getString()
-                        + " (" + (projectionModel.getObject() == null ? 0 : projectionModel.getObject().size()) + ")";
-            }
-
-            @Override
-            public void setObject(String s) {
-
-            }
-
-            @Override
-            public void detach() {
-
-            }
-        };
-    }
-
-    private IModel<String> getAssignmentsTabTitleModel(final PageAdminObjectDetails<F> parentPage){
-        return new IModel<String>() {
-            @Override
-            public String getObject() {
-                return parentPage.createStringResource("pageAdminFocus.assignments").getString()
-                        + " (" + (assignmentsModel.getObject() == null ? 0 : assignmentsModel.getObject().size()) + ")";
-            }
-
-            @Override
-            public void setObject(String s) {
-
-            }
-
-            @Override
-            public void detach() {
-
-            }
-        };
-    }
 }
