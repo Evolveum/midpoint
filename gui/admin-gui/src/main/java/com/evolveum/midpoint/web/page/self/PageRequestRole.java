@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.self;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -42,15 +43,12 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.MultipleAssignmentSelectorPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
-import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.Model;
@@ -97,7 +95,7 @@ public class PageRequestRole extends PageSelf {
         Form mainForm = new org.apache.wicket.markup.html.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
-        MultipleAssignmentSelectorPanel<RoleType, UserType> panel = new MultipleAssignmentSelectorPanel<>(ID_MAIN_PANEL, assignmentsModel,
+        MultipleAssignmentSelectorPanel<UserType, UserType, RoleType> panel = new MultipleAssignmentSelectorPanel<>(ID_MAIN_PANEL, assignmentsModel,
                 user, UserType.class, RoleType.class);
         mainForm.add(panel);
 
@@ -153,7 +151,8 @@ public class PageRequestRole extends PageSelf {
         try {
             String userOid = SecurityUtils.getPrincipalUser().getOid();
             Task task = createSimpleTask(OPERATION_LOAD_USER);
-            user = getModelService().getObject(UserType.class, userOid, null, task, result);
+            user = WebModelServiceUtils.loadObject(UserType.class, userOid, null, (PageBase) getPage(),
+                    task, result);
             result.recordSuccessIfUnknown();
 
             result.recordSuccessIfUnknown();
@@ -268,5 +267,4 @@ public class PageRequestRole extends PageSelf {
             focusDelta.addModification(delta);
         }
     }
-
 }

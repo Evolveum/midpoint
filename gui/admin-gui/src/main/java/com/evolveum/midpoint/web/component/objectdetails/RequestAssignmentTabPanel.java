@@ -48,14 +48,14 @@ public class RequestAssignmentTabPanel<F extends FocusType> extends AbstractObje
                                     LoadableModel<List<AssignmentEditorDto>> assignmentsModel, PageBase page) {
         super(id, mainForm, focusWrapperModel, page);
         this.assignmentsModel = assignmentsModel;
-        loadUser();
-        initLayout();
+//        loadUser();
+        initLayout(focusWrapperModel);
     }
 
-    private void initLayout() {
+    private void initLayout(LoadableModel<ObjectWrapper<F>> focusWrapperModel) {
     	Class targetFocusClass = getObjectWrapper().getObject().getCompileTimeClass();
-        MultipleAssignmentSelectorPanel<RoleType, UserType> panel = new MultipleAssignmentSelectorPanel<>(ID_MAIN_PANEL, assignmentsModel,
-                user, targetFocusClass, RoleType.class);
+        MultipleAssignmentSelectorPanel<F, UserType, RoleType> panel = new MultipleAssignmentSelectorPanel<F, UserType, RoleType>(ID_MAIN_PANEL,
+                assignmentsModel, focusWrapperModel.getObject().getObject(), targetFocusClass, RoleType.class);
         add(panel);
     }
 
