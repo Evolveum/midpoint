@@ -10,7 +10,6 @@ import javax.xml.namespace.QName;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
@@ -19,7 +18,6 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -60,14 +58,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
-import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel.MemberOperation;
-import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel.QueryScope;
 import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -75,17 +69,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
-
-	// protected static final String ID_CONTAINER_MANAGER = "managerContainer";
-	// protected static final String ID_CONTAINER_MEMBER = "memberContainer";
-	// protected static final String ID_CHILD_TABLE = "childUnitTable";
-	// protected static final String ID_MANAGER_TABLE = "managerTable";
-	// protected static final String ID_MEMBER_TABLE = "memberTable";
-	// protected static final String ID_FORM = "form";
 
 	private static final Trace LOGGER = TraceManager.getTrace(OrgMemberPanel.class);
 
@@ -143,72 +129,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		form.add(seachScrope);
 
 	}
-
-	// private void initTables(Form form) {
-
-	// WebMarkupContainer memberContainer = new
-	// WebMarkupContainer(ID_CONTAINER_MEMBER);
-	// memberContainer.setOutputMarkupId(true);
-	// memberContainer.setOutputMarkupPlaceholderTag(true);
-	// form.add(memberContainer);
-	//
-	// MainObjectListPanel<ObjectType> childrenListPanel = new
-	// MainObjectListPanel<ObjectType>(
-	// ID_MEMBER_TABLE, ObjectType.class, null, parentPage) {
-	//
-	// @Override
-	// protected void objectDetailsPerformed(AjaxRequestTarget target,
-	// ObjectType object) {
-	// detailsPerformed(target, object);
-	//
-	// }
-	//
-	// @Override
-	// protected void newObjectPerformed(AjaxRequestTarget target) {
-	// // TODO Auto-generated method stub
-	//
-	// }
-	//
-	// @Override
-	// protected List<IColumn<SelectableBean<ObjectType>, String>>
-	// createColumns() {
-	// return createMembersColumns();
-	// }
-	//
-	// @Override
-	// protected List<InlineMenuItem> createInlineMenu() {
-	// return new ArrayList<>();
-	// }
-	//
-	// @Override
-	// protected ObjectQuery createContentQuery() {
-	// ObjectQuery q = super.createContentQuery();
-	//
-	// ObjectQuery members = createMemberQuery();
-	//
-	// List<ObjectFilter> filters = new ArrayList<>();
-	//
-	// if (q != null && q.getFilter() != null) {
-	// filters.add(q.getFilter());
-	// }
-	//
-	// if (members != null && members.getFilter() != null) {
-	// filters.add(members.getFilter());
-	// }
-	//
-	// if (filters.size() == 1) {
-	// return ObjectQuery.createObjectQuery(filters.iterator().next());
-	// }
-	//
-	// return ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
-	// }
-	// };
-	// childrenListPanel.setOutputMarkupId(true);
-	// memberContainer.add(childrenListPanel);
-	//
-	// WebMarkupContainer managerContainer = createManagerContainer();
-	// form.addOrReplace(managerContainer);
-	// }
 
 	@Override
 	protected void initCustomLayout(Form form) {
@@ -375,10 +295,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	@Override
 	protected void addMembersPerformed(QName type, List selected, AjaxRequestTarget target) {
-		// OperationResult parentResult = new OperationResult("Add members");
-		// Task operationalTask = getPageBase().createSimpleTask("Add members");
-		//
-		// try {
 		Task operationalTask = getPageBase().createSimpleTask("Add members");
 		ObjectDelta delta = prepareDelta(MemberOperation.ADD, type, null, operationalTask.getResult(),
 				target);
@@ -387,45 +303,20 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		}
 		executeMemberOperation(operationalTask, type, createQueryForAdd(selected), delta,
 				TaskCategory.EXECUTE_CHANGES, target);
-				// TaskType task =
-				// WebComponentUtil.createSingleRecurenceTask("Add member(s)",
-				// type,
-				// createQueryForAdd(selected), delta,
-				// TaskCategory.EXECUTE_CHANGES, getPageBase());
-				// //createQueryForAdd(selected)
-				// WebModelServiceUtils.runTask(task, operationalTask,
-				// parentResult, getPageBase());
-				// } catch (SchemaException e) {
-				// parentResult.recordFatalError("Failed to add members " +
-				// e.getMessage(), e);
-				// LoggingUtils.logException(LOGGER, "Failed to remove members",
-				// e);
-				// getPageBase().showResult(parentResult);
-				// }
-
-		// target.add(getPageBase().getFeedbackPanel());
 
 	}
 
 	@Override
 	protected void removeMembersPerformed(QueryScope scope, AjaxRequestTarget target) {
-		// OperationResult parentResult = new OperationResult("Remove members "
-		// + scope.name());
+	
 		Task operationalTask = getPageBase().createSimpleTask("Remove members " + scope.name());
-		// try {
-
+		
 		ObjectDelta delta = prepareDelta(MemberOperation.REMOVE, FocusType.COMPLEX_TYPE, null,
 				operationalTask.getResult(), target);
 		if (delta != null) {
 			executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE,
 					createQueryForMemberAction(scope, true), delta, TaskCategory.EXECUTE_CHANGES, target);
 		}
-
-		// TaskType task = WebComponentUtil.createSingleRecurenceTask("Remove
-		// focus member(s)",
-		// FocusType.COMPLEX_TYPE, createQueryForMemberAction(scope, true),
-		// delta, TaskCategory.EXECUTE_CHANGES, //createQueryForFocusRemove()
-		// getPageBase());
 
 		delta = prepareDelta(MemberOperation.REMOVE, ObjectType.COMPLEX_TYPE, null,
 				operationalTask.getResult(), target);
@@ -434,30 +325,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		}
 		executeMemberOperation(operationalTask, ObjectType.COMPLEX_TYPE,
 				createQueryForMemberAction(scope, false), delta, TaskCategory.EXECUTE_CHANGES, target);
-		// WebModelServiceUtils.runTask(task, operationalTask, parentResult,
-		// getPageBase());
-		//
-		// delta =
-		// ObjectDelta.createModificationDeleteReference(ObjectType.class,
-		// "fakeOid",
-		// ObjectType.F_PARENT_ORG_REF, getPageBase().getPrismContext(),
-		// createReference(null).asReferenceValue());
-		//
-		// task = WebComponentUtil.createSingleRecurenceTask("Remove non-focus
-		// member(s)",
-		// ObjectType.COMPLEX_TYPE, createQueryForMemberAction(scope, false),
-		// delta, //createQueryForNonFocusRemove()
-		// TaskCategory.EXECUTE_CHANGES, getPageBase());
-		// WebModelServiceUtils.runTask(task, operationalTask, parentResult,
-		// getPageBase());
-		// } catch (SchemaException e) {
-		//
-		// parentResult.recordFatalError("Failed to remove members " +
-		// e.getMessage(), e);
-		// LoggingUtils.logException(LOGGER, "Failed to remove members", e);
-		// getPageBase().showResult(parentResult);
-		// }
-		// target.add(getPageBase().getFeedbackPanel());
+	
 	}
 
 	@Override
@@ -465,26 +333,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		Task operationalTask = getPageBase().createSimpleTask("Recompute members " + scope.name());
 		executeMemberOperation(operationalTask, ObjectType.COMPLEX_TYPE,
 				createQueryForMemberAction(scope, true), null, TaskCategory.RECOMPUTATION, target);
-		// Task operationalTask = getPageBase().createSimpleTask("Recompute
-		// members " + scope.name());
-		// OperationResult parentResult = operationalTask.getResult();
-		//
-		// try {
-		// TaskType task = WebComponentUtil.createSingleRecurenceTask("Recompute
-		// member(s)",
-		// ObjectType.COMPLEX_TYPE, createQueryForMemberAction(scope, true),
-		// null, TaskCategory.RECOMPUTATION,
-		// getPageBase());
-		// WebModelServiceUtils.runTask(task, operationalTask, parentResult,
-		// getPageBase());
-		// } catch (SchemaException e) {
-		// parentResult.recordFatalError("Failed to remove members " +
-		// e.getMessage(), e);
-		// LoggingUtils.logException(LOGGER, "Failed to remove members", e);
-		// target.add(getPageBase().getFeedbackPanel());
-		// }
-		//
-		// target.add(getPageBase().getFeedbackPanel());
 	}
 
 	@Override
@@ -611,18 +459,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 		return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
 	}
-
-	// private ObjectQuery createQueryForRecomputeAll() {
-	// OrgType org = getTreePanel().getSelected().getValue();
-	// PrismReferenceDefinition def = org.asPrismObject().getDefinition()
-	// .findReferenceDefinition(UserType.F_PARENT_ORG_REF);
-	// ObjectFilter orgFilter = RefFilter.createReferenceEqual(new
-	// ItemPath(ObjectType.F_PARENT_ORG_REF),
-	// def, ObjectTypeUtil.createObjectRef(org).asReferenceValue());
-	//
-	// return ObjectQuery.createObjectQuery(orgFilter);
-	//
-	// }
 
 	
 	protected ObjectDelta createMemberDelta(MemberOperation operation, QName type, QName relation)

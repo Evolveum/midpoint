@@ -386,10 +386,6 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		target.add(getPageBase().getFeedbackPanel());
 	}
 	
-//	protected abstract ObjectQuery createQueryForMemberAction(QueryScope scope, boolean isFocus);
-	
-//	protected abstract ObjectDelta createMemberDelta(QName type, QName relation) throws SchemaException;
-	
 	protected AssignmentType createAssignmentToModify(QName type, QName relation) throws SchemaException {
 
 		AssignmentType assignmentToModify = new AssignmentType();
