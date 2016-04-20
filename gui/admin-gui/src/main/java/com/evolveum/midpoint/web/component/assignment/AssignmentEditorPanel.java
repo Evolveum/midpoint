@@ -18,7 +18,9 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleButton;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -41,6 +43,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.TwoStateBooleanPanel;
+import com.evolveum.midpoint.web.component.prism.CheckTableHeader;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
@@ -95,6 +98,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     private static final String ID_NAME = "name";
     private static final String ID_ACTIVATION = "activation";
     private static final String ID_ACTIVATION_BLOCK = "activationBlock";
+    private static final String ID_EXPAND = "expand";
     private static final String ID_BODY = "body";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_RELATION_CONTAINER = "relationContainer";
@@ -203,6 +207,22 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
         Label activation = new Label(ID_ACTIVATION, createActivationModel());
         headerRow.add(activation);
+        
+        ToggleButton expandButton = new ToggleButton(ID_EXPAND,
+        		GuiStyleConstants.CLASS_ICON_EXPAND, GuiStyleConstants.CLASS_ICON_COLLAPSE) {
+        	private static final long serialVersionUID = 1L;
+        	
+        	@Override
+            public void onClick(AjaxRequestTarget target) {
+        		nameClickPerformed(target);
+            }
+        	
+        	@Override
+			public boolean isOn() {
+				return !AssignmentEditorPanel.this.getModelObject().isMinimized();
+			}
+        };
+        headerRow.add(expandButton);
 
         WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
         body.setOutputMarkupId(true);
