@@ -2269,7 +2269,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				// .. and pass it to the handler
 				boolean cont = handler.handle(resourceObject);
 				if (!cont) {
-					result.recordPartialError("Stopped on request from the handler");
+					result.recordWarning("Stopped on request from the handler");
 				}
 				recordResume();
 				return cont;

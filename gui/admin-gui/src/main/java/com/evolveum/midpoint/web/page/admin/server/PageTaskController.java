@@ -77,9 +77,9 @@ public class PageTaskController implements Serializable {
 						DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
 								.item(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition()).replace()
 								.asObjectDelta(parentPage.getTaskDto().getOid());
-				//if (LOGGER.isTraceEnabled()) {
-				LOGGER.info("Deleting sync token:\n{}", delta.debugDump());
-				//}
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Deleting sync token:\n{}", delta.debugDump());
+				}
 				parentPage.getModelService()
 						.executeChanges(Collections.<ObjectDelta<? extends ObjectType>>singleton(delta), null, operationTask, result);
 				result.recomputeStatus();

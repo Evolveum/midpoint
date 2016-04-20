@@ -413,7 +413,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
     }
 
     private void processInterruption(TaskRunResult runResult, PrismObject<ResourceType> resource, Task task, OperationResult opResult) {
-        opResult.recordPartialError("Interrupted");
+        opResult.recordWarning("Interrupted");
         if (LOGGER.isWarnEnabled()) {
             LOGGER.warn("Reconciliation on {} interrupted", resource);
         }
