@@ -66,7 +66,6 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
     }
 
     private void initLayout() {
-    	add(AttributeModifier.append("class", "check-table-header"));
     	
         AjaxCheckBox check = new AjaxCheckBox(ID_CHECK,
                 new PropertyModel<Boolean>(getModel(), ObjectWrapper.F_SELECTED)) {
