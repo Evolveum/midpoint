@@ -126,6 +126,9 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType
  * 
  * @author lazyman
  * @author Radovan Semancik
+ *
+ * Note: don't autowire this bean by implementing class (ModelController), as it is proxied by Spring AOP.
+ * Use its interfaces instead.
  */
 @Component
 public class ModelController implements ModelService, TaskService, WorkflowService, ScriptingService, AccessCertificationService {

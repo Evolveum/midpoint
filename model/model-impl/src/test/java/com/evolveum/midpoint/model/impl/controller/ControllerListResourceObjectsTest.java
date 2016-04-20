@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl.controller;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -45,7 +46,7 @@ public class ControllerListResourceObjectsTest extends AbstractTestNGSpringConte
 
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerListResourceObjectsTest.class);
 	@Autowired(required = true)
-	private ModelController controller;
+	private ModelService controller;
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repository;

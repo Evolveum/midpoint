@@ -16,62 +16,20 @@
 
 package com.evolveum.midpoint.model.impl.sync.action;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.w3c.dom.Element;
-
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.common.InternalsConfig;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.impl.controller.ModelController;
+import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.sync.Action;
-import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @author lazyman
@@ -82,7 +40,7 @@ public abstract class BaseAction implements Action {
 
     private Clockwork clockwork;
     private ChangeExecutor executor;
-    private ModelController model;
+    private ModelObjectResolver modelObjectResolver;
     private ProvisioningService provisioningService;
     private PrismContext prismContext;
     private AuditService auditService;
@@ -126,22 +84,22 @@ public abstract class BaseAction implements Action {
         }
 
         try {
-            return model.getObjectResolver().getObjectSimple(UserType.class, oid, null, null, result);
+            return modelObjectResolver.getObjectSimple(UserType.class, oid, null, null, result);
         } catch (ObjectNotFoundException ex) {
             // user was not found, we return null
         	return null;
         }
     }
 
-    public void setModel(ModelController model) {
-        this.model = model;
-    }
+	public ModelObjectResolver getModelObjectResolver() {
+		return modelObjectResolver;
+	}
 
-    protected ModelController getModel() {
-        return model;
-    }
+	public void setModelObjectResolver(ModelObjectResolver modelObjectResolver) {
+		this.modelObjectResolver = modelObjectResolver;
+	}
 
-    public void setClockwork(Clockwork clockwork) {
+	public void setClockwork(Clockwork clockwork) {
         this.clockwork = clockwork;
     }
 
