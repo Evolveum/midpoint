@@ -253,7 +253,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 				opResult.addSubresult(workerSpecificResult);
 			}
 		}
-		opResult.computeStatus("Errors during processing");
+		opResult.computeStatus("Issues during processing");
 
 		if (getErrors() > 0) {
 			opResult.setStatus(OperationResultStatus.PARTIAL_ERROR);
