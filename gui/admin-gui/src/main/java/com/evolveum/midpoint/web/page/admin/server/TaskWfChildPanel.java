@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -24,6 +23,7 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalHistoryPanel;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskChangesDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkflowRequestsPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
@@ -42,7 +42,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -53,7 +53,7 @@ public class TaskWfChildPanel extends Panel {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final String ID_DELTAS_TO_BE_APPROVED = "deltasToBeApproved";
+	private static final String ID_CHANGES = "changes";
 	private static final String ID_HISTORY = "history";
 	private static final String ID_HISTORY_HELP = "approvalHistoryHelp";
 	private static final String ID_CURRENT_WORK_ITEMS_CONTAINER = "currentWorkItemsContainer";
@@ -67,22 +67,27 @@ public class TaskWfChildPanel extends Panel {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskApprovalsTabPanel.class);
 
-	public TaskWfChildPanel(String id, IModel<TaskDto> taskDtoModel, PageBase pageBase) {
+	private PropertyModel<TaskChangesDto> changesModel;
+	private PageTaskEdit parentPage;
+
+	public TaskWfChildPanel(String id, IModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
 		super(id);
-		initLayout(taskDtoModel, pageBase);
+		this.parentPage = parentPage;
+		initLayout(taskDtoModel);
 		setOutputMarkupId(true);
 	}
 
-	private void initLayout(final IModel<TaskDto> taskDtoModel, PageBase pageBase) {
+	private void initLayout(final IModel<TaskDto> taskDtoModel) {
 
-		TaskChangesPanel deltasToBeApproved = new TaskChangesPanel(ID_DELTAS_TO_BE_APPROVED, new PropertyModel(taskDtoModel, TaskDto.F_CHANGE_BEING_APPROVED));
-		deltasToBeApproved.setOutputMarkupId(true);
-		add(deltasToBeApproved);
+		changesModel = new PropertyModel<>(taskDtoModel, TaskDto.F_CHANGE_BEING_APPROVED);
+		TaskChangesPanel changesPanel = new TaskChangesPanel(ID_CHANGES, changesModel);
+		changesPanel.setOutputMarkupId(true);
+		add(changesPanel);
 
 		final ItemApprovalHistoryPanel history = new ItemApprovalHistoryPanel(ID_HISTORY,
 				new PropertyModel<WfContextType>(taskDtoModel, TaskDto.F_WORKFLOW_CONTEXT),
 				UserProfileStorage.TableId.PAGE_TASK_HISTORY_PANEL,
-				(int) pageBase.getItemsPerPage(UserProfileStorage.TableId.PAGE_TASK_HISTORY_PANEL));
+				(int) parentPage.getItemsPerPage(UserProfileStorage.TableId.PAGE_TASK_HISTORY_PANEL));
 		history.setOutputMarkupId(true);
 		add(history);
 		add(WebComponentUtil.createHelp(ID_HISTORY_HELP));
@@ -91,7 +96,7 @@ public class TaskWfChildPanel extends Panel {
 		final ISortableDataProvider<WorkItemDto, String> provider = new ListDataProvider(this, new PropertyModel<List<WorkItemDto>>(taskDtoModel, TaskDto.F_WORK_ITEMS));
 		final WorkItemsPanel workItemsPanel = new WorkItemsPanel(ID_CURRENT_WORK_ITEMS, provider,
 				UserProfileStorage.TableId.PAGE_TASK_CURRENT_WORK_ITEMS_PANEL,
-				(int) pageBase.getItemsPerPage(UserProfileStorage.TableId.PAGE_TASK_CURRENT_WORK_ITEMS_PANEL),
+				(int) parentPage.getItemsPerPage(UserProfileStorage.TableId.PAGE_TASK_CURRENT_WORK_ITEMS_PANEL),
 				WorkItemsPanel.View.ITEMS_FOR_PROCESS);
 		workItemsPanel.setOutputMarkupId(true);
 		workItemsContainer.add(workItemsPanel);
@@ -135,12 +140,18 @@ public class TaskWfChildPanel extends Panel {
 	}
 
 	public Collection<Component> getComponentsToUpdate() {
-		return Arrays.asList(
-				get(ID_DELTAS_TO_BE_APPROVED),
-				get(ID_HISTORY),
-				get(ID_CURRENT_WORK_ITEMS_CONTAINER),
-				get(ID_RELATED_REQUESTS_CONTAINER)
-		);
-		// exclude 'show parent' link
+
+		TaskDto curr = parentPage.getCurrentTaskDto();
+		TaskDto prev = parentPage.getPreviousTaskDto();
+		boolean changesChanged = prev == null || prev.getChangesBeingApproved() == null || !prev.getChangesBeingApproved().equals(curr.getChangesBeingApproved());
+
+		List<Component> rv = new ArrayList<>();
+		if (changesChanged) {
+			rv.add(get(ID_CHANGES));
+		}
+		rv.add(get(ID_HISTORY));
+		rv.add(get(ID_CURRENT_WORK_ITEMS_CONTAINER));
+		rv.add(get(ID_RELATED_REQUESTS_CONTAINER));
+		return rv; // we exclude 'show parent' link
 	}
 }

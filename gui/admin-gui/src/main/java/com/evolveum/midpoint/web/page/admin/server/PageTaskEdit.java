@@ -97,6 +97,8 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	private LoadableModel<ObjectWrapper<TaskType>> objectWrapperModel;
 	private boolean edit = false;
 
+	private TaskDto currentTaskDto, previousTaskDto;
+
 	private PageTaskController controller = new PageTaskController(this);
 
 	private TaskMainPanel mainPanel;
@@ -110,10 +112,12 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 			@Override
 			protected TaskDto load() {
 				try {
+					previousTaskDto = currentTaskDto;
 					final OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
 					final Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
 					final TaskType taskType = loadTaskTypeChecked(taskOid, operationTask, result);
-					return prepareTaskDto(taskType, operationTask, result);
+					currentTaskDto = prepareTaskDto(taskType, operationTask, result);
+					return currentTaskDto;
 				} catch (SchemaException|ObjectNotFoundException e) {
 					throw new SystemException("Couldn't prepare task DTO: " + e.getMessage(), e);
 				}
@@ -268,6 +272,14 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		}
 	}
 
+	public TaskDto getCurrentTaskDto() {
+		return currentTaskDto;
+	}
+
+	public TaskDto getPreviousTaskDto() {
+		return previousTaskDto;
+	}
+
 	@Override
 	public Component getRefreshingBehaviorParent() {
 		return getRefreshPanel();
@@ -288,6 +300,8 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 			TaskType taskType = loadTaskType(oldTaskDto.getOid(), operationTask, result);
 			TaskDto newTaskDto = prepareTaskDto(taskType, operationTask, result);
 			final ObjectWrapper<TaskType> newWrapper = loadObjectWrapper(taskType.asPrismObject(), result);
+			previousTaskDto = currentTaskDto;
+			currentTaskDto = newTaskDto;
 			taskDtoModel.setObject(newTaskDto);
 			objectWrapperModel.setObject(newWrapper);
 		} catch (ObjectNotFoundException|SchemaException|RuntimeException e) {

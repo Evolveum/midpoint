@@ -75,4 +75,27 @@ public class NameImpl implements Name {
 	public String toDebugDump() {
 		return simpleName + " (" + displayName + "), id=" + id;
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		NameImpl name = (NameImpl) o;
+
+		if (simpleName != null ? !simpleName.equals(name.simpleName) : name.simpleName != null) return false;
+		if (displayName != null ? !displayName.equals(name.displayName) : name.displayName != null) return false;
+		if (id != null ? !id.equals(name.id) : name.id != null) return false;
+		return !(description != null ? !description.equals(name.description) : name.description != null);
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = simpleName != null ? simpleName.hashCode() : 0;
+		result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
+		result = 31 * result + (id != null ? id.hashCode() : 0);
+		result = 31 * result + (description != null ? description.hashCode() : 0);
+		return result;
+	}
 }

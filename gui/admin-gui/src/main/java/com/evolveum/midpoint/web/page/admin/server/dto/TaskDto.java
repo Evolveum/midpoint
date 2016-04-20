@@ -692,6 +692,10 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		return realIndex < changesCategorizationList.size() ? changesCategorizationList.get(realIndex) : null;
 	}
 
+	public List<TaskChangesDto> getChangesCategorizationList() {
+		return changesCategorizationList;
+	}
+
 	public void addChildTaskDto(TaskDto taskDto) {
         if (taskDto.getOid() != null) {
             subtasks.add(taskDto);
