@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleButton;
+import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -59,7 +59,7 @@ public class PrismHeaderPanel extends Panel {
 			}
 		};
 		
-		ToggleButton showEmptyFieldsButton = new ToggleButton(ID_SHOW_EMPTY_FIELDS,
+		ToggleIconButton showEmptyFieldsButton = new ToggleIconButton(ID_SHOW_EMPTY_FIELDS,
 				GuiStyleConstants.CLASS_ICON_SHOW_EMPTY_FIELDS, GuiStyleConstants.CLASS_ICON_NOT_SHOW_EMPTY_FIELDS) {
 			private static final long serialVersionUID = 1L;
 
@@ -78,7 +78,7 @@ public class PrismHeaderPanel extends Panel {
         showEmptyFieldsButton.add(buttonsVisibleBehaviour);
         add(showEmptyFieldsButton);
 
-        ToggleButton sortPropertiesButton = new ToggleButton(ID_SORT_PROPERTIES,
+        ToggleIconButton sortPropertiesButton = new ToggleIconButton(ID_SORT_PROPERTIES,
         		GuiStyleConstants.CLASS_ICON_SORT_ALPHA_ASC, GuiStyleConstants.CLASS_ICON_SORT_AMOUNT_ASC) {
         	private static final long serialVersionUID = 1L;
         	
