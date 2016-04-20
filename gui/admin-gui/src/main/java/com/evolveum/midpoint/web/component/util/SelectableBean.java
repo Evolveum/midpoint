@@ -55,4 +55,20 @@ public class SelectableBean<T extends Serializable> extends Selectable implement
     	}
 		return menuItems;
 	}
+    
+    @Override
+    public boolean equals(Object obj) {
+    	if (!(obj instanceof SelectableBean)){
+    		return false;
+    	}
+    	
+    	T object = ((SelectableBean<T>) obj).getValue();
+    	return object.equals(value);
+    }
+    
+    @Override
+    public int hashCode() {
+    	int result = (value != null ? value.hashCode() : 0);
+    	return result;
+    }
 }

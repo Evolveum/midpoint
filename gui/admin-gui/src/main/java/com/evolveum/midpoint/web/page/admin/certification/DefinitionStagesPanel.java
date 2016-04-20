@@ -98,12 +98,6 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 			}
 		};
 		moveLeft.add(visibleIfMoreTabs);
-//		moveLeft.add(new VisibleEnableBehaviour() {
-//			@Override
-//			public boolean isEnabled() {
-//				return tabPanel.getSelectedTab() > 0;
-//			}
-//		});
 		add(moveLeft);
 
 		AjaxSubmitButton moveRight = new AjaxSubmitButton(ID_MOVE_STAGE_RIGHT, createStringResource("StageDefinitionPanel.moveStageRightButton")) {
@@ -114,12 +108,6 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 			}
 		};
 		moveRight.add(visibleIfMoreTabs);
-//		moveRight.add(new VisibleEnableBehaviour() {
-//			@Override
-//			public boolean isEnabled() {
-//				return tabPanel.getSelectedTab() < getModelObject().size()-1;
-//			}
-//		});
 		add(moveRight);
 
 		AjaxSubmitButton delete = new AjaxSubmitButton(ID_DELETE_STAGE, createStringResource("StageDefinitionPanel.deleteStageButton")) {
@@ -176,8 +164,11 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 
 	private void moveLeftPerformed(AjaxRequestTarget target) {
 		int selected = tabPanel.getSelectedTab();
+		List<StageDefinitionDto> list = getModelObject();
 		if (selected > 0) {
-			Collections.swap(getModelObject(), selected-1, selected);
+			Collections.swap(list, selected-1, selected);
+			setOrder(list, selected-1);
+			setOrder(list, selected);
 			recreateTabs();
 			tabPanel.setSelectedTab(selected-1);
 			target.add(this);
@@ -189,10 +180,16 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 		List<StageDefinitionDto> list = getModelObject();
 		if (selected < list.size()-1) {
 			Collections.swap(list, selected, selected+1);
+			setOrder(list, selected);
+			setOrder(list, selected+1);
 			recreateTabs();
 			tabPanel.setSelectedTab(selected+1);
 			target.add(this);
 		}
+	}
+
+	private void setOrder(List<StageDefinitionDto> list, int i) {
+		list.get(i).setNumber(i+1);
 	}
 
 	private void recreateTabs() {

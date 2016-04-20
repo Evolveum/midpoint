@@ -252,6 +252,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		ObjectWrapper<ShadowType> shadowWrapperOld = shadowWrapperDto.getObject();
 		Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
 		FocusSubwrapperDto<ShadowType> shadowWrapperDtoNew = loadSubWrapperDto(ShadowType.class, shadowWrapperOld.getObject().getOid(), false, task);
+		if (shadowWrapperDtoNew == null) {
+			// No access or error. The status is in the last subresult of task result. TODO: pass the result explicitly to loadSubWrapperDto
+			OperationResult subresult = task.getResult().getLastSubresult();
+			shadowWrapperDto.getObject().setFetchResult(subresult);
+			return;
+		}
 		ObjectWrapper<ShadowType> shadowWrapperNew = shadowWrapperDtoNew.getObject();
 		shadowWrapperOld.copyRuntimeStateTo(shadowWrapperNew);
 		shadowWrapperDto.setObject(shadowWrapperNew);
@@ -310,7 +316,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			PrismObject<S> projection = WebModelServiceUtils.loadObject(type, oid, loadOptions, this,
 					task, subResult);
 			if (projection == null) {
-				// No access, just skip it
+				// No access or error
 				return null;
 			}
 			S projectionType = projection.asObjectable();
@@ -349,6 +355,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		} catch (Exception ex) {
 			subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
 			LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
+			subResult.computeStatus();
 			return new FocusSubwrapperDto<S>(false, resourceName, subResult);
 		}
 	}
@@ -371,30 +378,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return list;
 	}
 
-	private PrismObject getReference(ObjectReferenceType ref, OperationResult result) {
-		OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
-		subResult.addParam("targetRef", ref.getOid());
-		PrismObject target = null;
-		try {
-			Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENT);
-			Class type = ObjectType.class;
-			if (ref.getType() != null) {
-				type = getPrismContext().getSchemaRegistry().determineCompileTimeClass(ref.getType());
-			}
-			target = getModelService().getObject(type, ref.getOid(), null, task, subResult);
-			subResult.recordSuccess();
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get assignment target ref", ex);
-			subResult.recordFatalError("Couldn't get assignment target ref.", ex);
-		}
-
-		if (!subResult.isHandledError() && !subResult.isSuccess()) {
-			showResult(subResult);
-		}
-
-		return target;
-	}
-	
 	@Override
 	protected void prepareObjectForAdd(PrismObject<F> focus) throws SchemaException {
 		super.prepareObjectForAdd(focus);
@@ -983,284 +966,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return dto;
 	}
 
-	private List<FocusSubwrapperDto<ShadowType>> getSelectedProjections() {
-		List<FocusSubwrapperDto<ShadowType>> selected = new ArrayList<>();
-
-		List<FocusSubwrapperDto<ShadowType>> all = projectionModel.getObject();
-		for (FocusSubwrapperDto<ShadowType> shadow : all) {
-			if (shadow.isLoadedOK() && shadow.getObject().isSelected()) {
-				selected.add(shadow);
-			}
-		}
-
-		return selected;
-	}
-
-	private List<AssignmentEditorDto> getSelectedAssignments() {
-		List<AssignmentEditorDto> selected = new ArrayList<AssignmentEditorDto>();
-
-		List<AssignmentEditorDto> all = assignmentsModel.getObject();
-		for (AssignmentEditorDto wrapper : all) {
-			if (wrapper.isSelected()) {
-				selected.add(wrapper);
-			}
-		}
-
-		return selected;
-	}
-
-	private void addSelectedResourceAssignPerformed(ResourceType resource) {
-		AssignmentType assignment = new AssignmentType();
-		ConstructionType construction = new ConstructionType();
-		assignment.setConstruction(construction);
-
-		try {
-			getPrismContext().adopt(assignment, getCompileTimeClass(), new ItemPath(FocusType.F_ASSIGNMENT));
-		} catch (SchemaException e) {
-			error(getString("Could not create assignment", resource.getName(), e.getMessage()));
-			LoggingUtils.logException(LOGGER, "Couldn't create assignment", e);
-			return;
-		}
-
-		construction.setResource(resource);
-
-		List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
-		AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, assignment, this);
-		assignments.add(dto);
-
-		dto.setMinimized(false);
-		dto.setShowEmpty(true);
-	}
-
-	private void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignables,
-			String popupId) {
-		ModalWindow window = (ModalWindow) get(popupId);
-		window.close(target);
-
-		if (newAssignables.isEmpty()) {
-			warn(getString("pageAdminFocus.message.noAssignableSelected"));
-			target.add(getFeedbackPanel());
-			return;
-		}
-
-		List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
-		for (ObjectType object : newAssignables) {
-			try {
-				if (object instanceof ResourceType) {
-					addSelectedResourceAssignPerformed((ResourceType) object);
-					continue;
-				}
-
-				AssignmentEditorDtoType aType = AssignmentEditorDtoType.getType(object.getClass());
-
-				ObjectReferenceType targetRef = new ObjectReferenceType();
-				targetRef.setOid(object.getOid());
-				targetRef.setType(aType.getQname());
-				targetRef.setTargetName(object.getName());
-
-				AssignmentType assignment = new AssignmentType();
-				assignment.setTargetRef(targetRef);
-
-				AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, assignment, this);
-				dto.setMinimized(false);
-				dto.setShowEmpty(true);
-
-				assignments.add(dto);
-			} catch (Exception ex) {
-				error(getString("pageAdminFocus.message.couldntAssignObject", object.getName(),
-						ex.getMessage()));
-				LoggingUtils.logException(LOGGER, "Couldn't assign object", ex);
-			}
-		}
-
-		target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_PANEL, ID_ASSIGNMENTS)));
-	}
-
-	private void updateShadowActivation(AjaxRequestTarget target, List<FocusSubwrapperDto> accounts,
-			boolean enabled) {
-		if (!isAnyAccountSelected(target)) {
-			return;
-		}
-
-		for (FocusSubwrapperDto account : accounts) {
-			if (!account.isLoadedOK()) {
-				continue;
-			}
-
-			ObjectWrapper wrapper = account.getObject();
-			ContainerWrapper activation = wrapper.findContainerWrapper(new ItemPath(ShadowType.F_ACTIVATION));
-			if (activation == null) {
-				warn(getString("pageAdminFocus.message.noActivationFound", wrapper.getDisplayName()));
-				continue;
-			}
-
-			PropertyWrapper enabledProperty = (PropertyWrapper) activation
-					.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
-			if (enabledProperty == null || enabledProperty.getValues().size() != 1) {
-				warn(getString("pageAdminFocus.message.noEnabledPropertyFound", wrapper.getDisplayName()));
-				continue;
-			}
-			ValueWrapper value = (ValueWrapper) enabledProperty.getValues().get(0);
-			ActivationStatusType status = enabled ? ActivationStatusType.ENABLED
-					: ActivationStatusType.DISABLED;
-			((PrismPropertyValue) value.getValue()).setValue(status);
-
-			wrapper.setSelected(false);
-		}
-
-		target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_PANEL, ID_SHADOWS)));
-	}
-
-	private boolean isAnyAccountSelected(AjaxRequestTarget target) {
-		List<FocusSubwrapperDto<ShadowType>> selected = getSelectedProjections();
-		if (selected.isEmpty()) {
-			warn(getString("pageAdminFocus.message.noAccountSelected"));
-			target.add(getFeedbackPanel());
-			return false;
-		}
-
-		return true;
-	}
-
-	private void deleteShadowPerformed(AjaxRequestTarget target) {
-		if (!isAnyAccountSelected(target)) {
-			return;
-		}
-
-		showModalWindow(MODAL_ID_CONFIRM_DELETE_SHADOW, target);
-	}
-
-	private void showModalWindow(String id, AjaxRequestTarget target) {
-		ModalWindow window = (ModalWindow) get(id);
-		window.show(target);
-		target.add(getFeedbackPanel());
-	}
-
-	private void deleteAccountConfirmedPerformed(AjaxRequestTarget target,
-			List<FocusSubwrapperDto<ShadowType>> selected) {
-		List<FocusSubwrapperDto<ShadowType>> accounts = projectionModel.getObject();
-		for (FocusSubwrapperDto<ShadowType> account : selected) {
-			if (UserDtoStatus.ADD.equals(account.getStatus())) {
-				accounts.remove(account);
-			} else {
-				account.setStatus(UserDtoStatus.DELETE);
-			}
-		}
-		target.add(get(createComponentPath(ID_MAIN_PANEL, ID_SHADOWS)));
-	}
-
-	private void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target,
-			List<AssignmentEditorDto> selected) {
-		List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
-		for (AssignmentEditorDto assignment : selected) {
-			if (UserDtoStatus.ADD.equals(assignment.getStatus())) {
-				assignments.remove(assignment);
-			} else {
-				assignment.setStatus(UserDtoStatus.DELETE);
-				assignment.setSelected(false);
-			}
-		}
-
-		target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_PANEL, ID_ASSIGNMENTS)));
-	}
-
-	private void unlinkShadowPerformed(AjaxRequestTarget target, List<FocusSubwrapperDto<ShadowType>> selected) {
-		if (!isAnyAccountSelected(target)) {
-			return;
-		}
-
-		for (FocusSubwrapperDto account : selected) {
-			if (UserDtoStatus.ADD.equals(account.getStatus())) {
-				continue;
-			}
-			account.setStatus(UserDtoStatus.UNLINK);
-		}
-		target.add(get(createComponentPath(ID_MAIN_PANEL, ID_SHADOWS)));
-	}
-
-	private void unlockShadowPerformed(AjaxRequestTarget target, List<FocusSubwrapperDto> selected) {
-		if (!isAnyAccountSelected(target)) {
-			return;
-		}
-
-		for (FocusSubwrapperDto account : selected) {
-			// TODO: implement unlock
-		}
-	}
-
-	private void deleteAssignmentPerformed(AjaxRequestTarget target) {
-		List<AssignmentEditorDto> selected = getSelectedAssignments();
-		if (selected.isEmpty()) {
-			warn(getString("pageAdminFocus.message.noAssignmentSelected"));
-			target.add(getFeedbackPanel());
-			return;
-		}
-
-		showModalWindow(MODAL_ID_CONFIRM_DELETE_ASSIGNMENT, target);
-	}
-
-	private void initConfirmationDialogs() {
-		ConfirmationDialog dialog = new ConfirmationDialog(MODAL_ID_CONFIRM_DELETE_SHADOW,
-				createStringResource("pageAdminFocus.title.confirmDelete"),
-				new AbstractReadOnlyModel<String>() {
-
-					@Override
-					public String getObject() {
-						return createStringResource("pageAdminFocus.message.deleteAccountConfirm",
-								getSelectedProjections().size()).getString();
-					}
-				}) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-				deleteAccountConfirmedPerformed(target, getSelectedProjections());
-			}
-		};
-		add(dialog);
-
-		dialog = new ConfirmationDialog(MODAL_ID_CONFIRM_DELETE_ASSIGNMENT,
-				createStringResource("pageAdminFocus.title.confirmDelete"),
-				new AbstractReadOnlyModel<String>() {
-
-					@Override
-					public String getObject() {
-						return createStringResource("pageAdminFocus.message.deleteAssignmentConfirm",
-								getSelectedAssignments().size()).getString();
-					}
-				}) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-				deleteAssignmentConfirmedPerformed(target, getSelectedAssignments());
-			}
-		};
-		add(dialog);
-
-		// TODO: uncoment later -> check for unsaved changes
-		// dialog = new ConfirmationDialog(MODAL_ID_CONFIRM_CANCEL,
-		// createStringResource("pageUser.title.confirmCancel"), new
-		// AbstractReadOnlyModel<String>() {
-		//
-		// @Override
-		// public String getObject() {
-		// return createStringResource("pageUser.message.cancelConfirm",
-		// getSelectedAssignments().size()).getString();
-		// }
-		// }) {
-		//
-		// @Override
-		// public void yesPerformed(AjaxRequestTarget target) {
-		// close(target);
-		// setResponsePage(PageUsers.class);
-		// // deleteAssignmentConfirmedPerformed(target,
-		// getSelectedAssignments());
-		// }
-		// };
-		// add(dialog);
-	}
-	
 	@Override
 	protected void performAdditionalValidation(PrismObject<F> object,
 			Collection<ObjectDelta<? extends ObjectType>> deltas, Collection<SimpleValidationError> errors) throws SchemaException {

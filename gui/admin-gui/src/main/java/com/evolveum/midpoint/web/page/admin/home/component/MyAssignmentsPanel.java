@@ -62,7 +62,7 @@ public class MyAssignmentsPanel extends SimplePanel<List<AssignmentItemDto>> {
                         }
 
                         switch (item.getType()) {
-                            case ACCOUNT_CONSTRUCTION:
+                            case CONSTRUCTION:
                                 return "silk-drive";
                             case ORG_UNIT:
                                 return "silk-building";
@@ -87,7 +87,7 @@ public class MyAssignmentsPanel extends SimplePanel<List<AssignmentItemDto>> {
                         }
 
                         switch (item.getType()) {
-                            case ACCOUNT_CONSTRUCTION:
+                            case CONSTRUCTION:
                                 return MyAssignmentsPanel.this.getString("MyAssignmentsPanel.type.accountConstruction");
                             case ORG_UNIT:
                                 return MyAssignmentsPanel.this.getString("MyAssignmentsPanel.type.orgUnit");

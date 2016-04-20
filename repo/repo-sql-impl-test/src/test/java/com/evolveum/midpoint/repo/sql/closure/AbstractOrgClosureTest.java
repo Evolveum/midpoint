@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sql.BaseSQLRepoTest;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -52,6 +53,7 @@ import org.hibernate.type.StringType;
 import org.jgrapht.alg.TransitiveClosure;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleDirectedGraph;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -71,6 +73,9 @@ import static org.testng.AssertJUnit.assertTrue;
  * @author mederly
  */
 public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
+
+	@Autowired
+	private OrgClosureManager closureManager;
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractOrgClosureTest.class);
 
@@ -103,13 +108,13 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     protected Session getSession() {
         Session session = sessionTl.get();
         if (session == null || !session.isConnected()) {
-            session = repositoryService.getSessionFactory().openSession();
+            session = baseHelper.getSessionFactory().openSession();
             sessionTl.set(session);
         }
         return session;
     }
 
-    protected void checkClosure(Set<String> oidsToCheck) {
+    protected void checkClosure(Set<String> oidsToCheck) throws SchemaException {
         boolean matrixProblem = false;
         if (getConfiguration().isCheckClosureMatrix()) {
             matrixProblem = checkClosureMatrix();
@@ -157,7 +162,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
      */
     private static final boolean DUMP_TC_MATRIX_DETAILS = true;
 
-    protected boolean checkClosureMatrix() {
+    protected boolean checkClosureMatrix() throws SchemaException {
         Session session = getSession();
         // we compute the closure table "by hand" as 1 + A + A^2 + A^3 + ... + A^n where n is the greatest expected path length
         int vertices = getVertices().size();
@@ -243,7 +248,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
     // checks org graph w.r.t. real org/parentref situation in repo
-    protected void checkOrgGraph() {
+    protected void checkOrgGraph() throws SchemaException {
         OperationResult result = new OperationResult("temp");
         int numberOfOrgsInRepo = repositoryService.countObjects(OrgType.class, new ObjectQuery(), result);
         info("Checking graph with repo. Orgs in repo: " + numberOfOrgsInRepo + ", orgs in graph: " + orgGraph.vertexSet().size());
@@ -795,7 +800,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
     protected long getNetDuration() {
-        return repositoryService.getClosureManager().getLastOperationDuration();
+        return closureManager.getLastOperationDuration();
     }
 
     public abstract OrgClosureTestConfiguration getConfiguration();
@@ -921,7 +926,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
                 removeObjectParent(org, parentOrgRef, useReplace, opResult);
                 long timeRemoval = System.currentTimeMillis() - start;
                 info(" ... done in " + timeRemoval + " ms " + getNetDurationMessage());
-                stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveLinks", level, false, getNetDuration());
+                stat.recordExtended(baseHelper.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveLinks", level, false, getNetDuration());
                 totalTimeLinkRemovals += getNetDuration();
 
                 checkClosure(getVertices());
@@ -932,7 +937,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
                 addOrgParent(org, parentOrgRef, useReplace, opResult);
                 long timeAddition = System.currentTimeMillis() - start;
                 info(" ... done in " + timeAddition + " ms " + getNetDurationMessage());
-                stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveLinks", level, true, getNetDuration());
+                stat.recordExtended(baseHelper.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveLinks", level, true, getNetDuration());
 
                 checkClosure(getVertices());
 
@@ -946,7 +951,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             System.out.println("Avg time for an arbitrary link re-addition: " + ((double) totalTimeLinkAdditions / totalRounds) + " ms");
             LOGGER.info("===================================================");
             LOGGER.info("Statistics for org link removal/addition:");
-            stat.dump(LOGGER, repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveLinks");
+            stat.dump(LOGGER, baseHelper.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveLinks");
         }
     }
 
@@ -975,7 +980,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
                 removeOrg(org.getOid(), opResult);
                 long timeRemoval = System.currentTimeMillis() - start;
                 System.out.println(" ... done in " + timeRemoval + " ms" + getNetDurationMessage());
-                stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveOrgs", level, false, getNetDuration());
+                stat.recordExtended(baseHelper.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveOrgs", level, false, getNetDuration());
                 totalTimeNodeRemovals += getNetDuration();
 
                 checkClosure(getVertices());
@@ -986,7 +991,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
                 reAddOrg(org, opResult);
                 long timeAddition = System.currentTimeMillis() - start;
                 System.out.println(" ... done in " + timeAddition + "ms" + getNetDurationMessage());
-                stat.recordExtended(repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveOrgs", level, true, getNetDuration());
+                stat.recordExtended(baseHelper.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveOrgs", level, true, getNetDuration());
 
                 checkClosure(getVertices());
 
@@ -1000,7 +1005,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             System.out.println("Avg time for an arbitrary node re-addition: " + ((double) totalTimeNodeAdditions / totalRounds) + " ms");
             LOGGER.info("===================================================");
             LOGGER.info("Statistics for org node removal/addition:");
-            stat.dump(LOGGER, repositoryService.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveOrgs");
+            stat.dump(LOGGER, baseHelper.getConfiguration().getHibernateDialect(), allOrgCreated.size(), allUsersCreated.size(), closureSize, "AddRemoveOrgs");
         }
     }
 

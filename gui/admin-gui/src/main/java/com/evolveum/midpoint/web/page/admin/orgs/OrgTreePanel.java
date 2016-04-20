@@ -1,0 +1,437 @@
+package com.evolveum.midpoint.web.page.admin.orgs;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.tree.ISortableTreeProvider;
+import org.apache.wicket.extensions.markup.html.repeater.tree.TableTree;
+import org.apache.wicket.extensions.markup.html.repeater.tree.table.TreeColumn;
+import org.apache.wicket.extensions.markup.html.repeater.tree.theme.WindowsTheme;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.ReuseIfModelsEqualStrategy;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.users.component.AbstractTreeTablePanel;
+import com.evolveum.midpoint.web.page.admin.users.component.OrgTreeProvider;
+import com.evolveum.midpoint.web.page.admin.users.component.SelectableFolderContent;
+import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+
+public class OrgTreePanel extends AbstractTreeTablePanel{
+
+	
+	private boolean selectable;
+	
+	public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable) {
+		super(id, rootOid);
+		
+		this.selectable = selectable;
+		selected = new LoadableModel<SelectableBean<OrgType>>() {
+			@Override
+			protected SelectableBean<OrgType> load() {
+				TabbedPanel currentTabbedPanel = null;
+				MidPointAuthWebSession session = OrgTreePanel.this.getSession();
+				SessionStorage storage = session.getSessionStorage();
+				if (getTree().findParent(TabbedPanel.class) != null) {
+					currentTabbedPanel = getTree().findParent(TabbedPanel.class);
+					int tabId = currentTabbedPanel.getSelectedTab();
+					if (storage.getUsers().getSelectedTabId() != -1
+							&& tabId != storage.getUsers().getSelectedTabId()) {
+						storage.getUsers().setSelectedItem(null);
+					}
+				}
+				if (storage.getUsers().getSelectedItem() != null) {
+					return storage.getUsers().getSelectedItem();
+				} else {
+					return getRootFromProvider();
+				}
+			}
+		};
+		
+		initLayout();
+	}
+	
+	public SelectableBean<OrgType> getSelected(){
+		return selected.getObject();
+	}
+	
+	public List<OrgType> getSelectedOrgs(){
+		return ((OrgTreeProvider)getTree().getProvider()).getSelectedObjects();
+	}
+
+
+
+	private static final long serialVersionUID = 1L;
+  
+	
+	private void initLayout(){
+		WebMarkupContainer treeHeader = new WebMarkupContainer(ID_TREE_HEADER);
+		treeHeader.setOutputMarkupId(true);
+		add(treeHeader);
+
+		InlineMenu treeMenu = new InlineMenu(ID_TREE_MENU, new Model<>((Serializable) createTreeMenuInternal()));
+		treeHeader.add(treeMenu);
+
+		ISortableTreeProvider provider = new OrgTreeProvider(this, getModel()) {
+			@Override
+			protected List<InlineMenuItem> createInlineMenuItems() {
+				return createTreeChildrenMenu();
+			}
+		};
+		List<IColumn<SelectableBean<OrgType>, String>> columns = new ArrayList<>();
+		
+		if (selectable){
+			columns.add(new CheckBoxHeaderColumn<SelectableBean<OrgType>>());
+		}
+		
+		columns.add(new TreeColumn<SelectableBean<OrgType>, String>(createStringResource("TreeTablePanel.hierarchy")));
+		columns.add(new InlineMenuHeaderColumn(createTreeChildrenMenu()));
+
+		WebMarkupContainer treeContainer = new WebMarkupContainer(ID_TREE_CONTAINER) {
+
+			@Override
+			public void renderHead(IHeaderResponse response) {
+				super.renderHead(response);
+
+				// method computes height based on document.innerHeight() -
+				// screen height;
+				response.render(OnDomReadyHeaderItem.forScript("updateHeight('" + getMarkupId() + "', ['#"
+//						+ OrgTreePanel.this.getParent().get(ID_FORM).getMarkupId() + "'], ['#"
+						+ OrgTreePanel.this.get(ID_TREE_HEADER).getMarkupId() + "'])"));
+			}
+		};
+		add(treeContainer);
+
+		TableTree<SelectableBean<OrgType>, String> tree = new TableTree<SelectableBean<OrgType>, String>(ID_TREE, columns, provider,
+				Integer.MAX_VALUE, new TreeStateModel(this, provider)) {
+
+			@Override
+			protected Component newContentComponent(String id, IModel<SelectableBean<OrgType>> model) {
+				return new SelectableFolderContent(id, this, model, selected) {
+
+					@Override
+					protected void onClick(AjaxRequestTarget target) {
+						super.onClick(target);
+
+						MidPointAuthWebSession session = OrgTreePanel.this.getSession();
+						SessionStorage storage = session.getSessionStorage();
+						storage.getUsers().setSelectedItem(selected.getObject());
+
+						selectTreeItemPerformed(selected.getObject(), target);
+					}
+				};
+			}
+
+			
+			@Override
+			protected Item<SelectableBean<OrgType>> newRowItem(String id, int index, final IModel<SelectableBean<OrgType>> model) {
+				Item<SelectableBean<OrgType>> item = super.newRowItem(id, index, model);
+				item.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+
+					@Override
+					public String getObject() {
+						SelectableBean<OrgType> itemObject = model.getObject();
+						if (itemObject != null && itemObject.equals(selected.getObject())) {
+							return "success";
+						}
+
+						return null;
+					}
+				}));
+				return item;
+			}
+
+			@Override
+			public void collapse(SelectableBean<OrgType> collapsedItem) {
+				super.collapse(collapsedItem);
+				MidPointAuthWebSession session = OrgTreePanel.this.getSession();
+				SessionStorage storage = session.getSessionStorage();
+				Set<SelectableBean<OrgType>> items = storage.getUsers().getExpandedItems();
+				if (items != null && items.contains(collapsedItem)) {
+					items.remove(collapsedItem);
+				}
+				storage.getUsers().setExpandedItems((TreeStateSet) items);
+				storage.getUsers().setCollapsedItem(collapsedItem);
+			}
+
+			@Override
+			protected void onModelChanged() {
+				super.onModelChanged();
+
+				Set<SelectableBean<OrgType>> items = getModelObject();
+
+				MidPointAuthWebSession session = OrgTreePanel.this.getSession();
+				SessionStorage storage = session.getSessionStorage();
+				storage.getUsers().setExpandedItems((TreeStateSet<SelectableBean<OrgType>>) items);
+			}
+		};
+		tree.setItemReuseStrategy(new ReuseIfModelsEqualStrategy());
+		tree.getTable().add(AttributeModifier.replace("class", "table table-striped table-condensed"));
+		tree.add(new WindowsTheme());
+		// tree.add(AttributeModifier.replace("class", "tree-midpoint"));
+		treeContainer.add(tree);
+	}
+	
+	private static class TreeStateModel extends AbstractReadOnlyModel<Set<SelectableBean<OrgType>>> {
+
+		private TreeStateSet<SelectableBean<OrgType>> set = new TreeStateSet<SelectableBean<OrgType>>();
+		private ISortableTreeProvider provider;
+		private OrgTreePanel panel;
+
+		TreeStateModel(OrgTreePanel panel, ISortableTreeProvider provider) {
+			this.panel = panel;
+			this.provider = provider;
+		}
+
+		@Override
+		public Set<SelectableBean<OrgType>> getObject() {
+			MidPointAuthWebSession session = panel.getSession();
+			SessionStorage storage = session.getSessionStorage();
+			Set<SelectableBean<OrgType>> dtos = storage.getUsers().getExpandedItems();
+			SelectableBean<OrgType> collapsedItem = storage.getUsers().getCollapsedItem();
+			Iterator<SelectableBean<OrgType>> iterator = provider.getRoots();
+
+			if (collapsedItem != null) {
+				if (set.contains(collapsedItem)) {
+					set.remove(collapsedItem);
+					storage.getUsers().setCollapsedItem(null);
+				}
+			}
+			if (dtos != null && (dtos instanceof TreeStateSet)) {
+				for (SelectableBean<OrgType> orgTreeDto : dtos) {
+					if (!set.contains(orgTreeDto)) {
+						set.add(orgTreeDto);
+					}
+				}
+			}
+			// just to have root expanded at all time
+			if (iterator.hasNext()) {
+				SelectableBean<OrgType> root = iterator.next();
+				if (set.isEmpty() || !set.contains(root)) {
+					set.add(root);
+				}
+			}
+			return set;
+		}
+
+		public void expandAll() {
+			set.expandAll();
+		}
+
+		public void collapseAll() {
+			set.collapseAll();
+		}
+	}
+	private List<InlineMenuItem> createTreeMenuInternal(){
+		List<InlineMenuItem> items = new ArrayList<>();
+
+		InlineMenuItem item = new InlineMenuItem(createStringResource("TreeTablePanel.collapseAll"),
+				new InlineMenuItemAction() {
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						collapseAllPerformed(target);
+					}
+				});
+		items.add(item);
+		item = new InlineMenuItem(createStringResource("TreeTablePanel.expandAll"),
+				new InlineMenuItemAction() {
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						expandAllPerformed(target);
+					}
+				});
+		items.add(item);
+		
+		List<InlineMenuItem> additionalActions = createTreeMenu();
+		if (additionalActions != null) {
+			items.addAll(additionalActions);
+		}
+		return items;
+	}
+	
+	protected List<InlineMenuItem> createTreeMenu(){
+		return null;
+	}
+	
+	protected List<InlineMenuItem> createTreeChildrenMenu() {
+		return new ArrayList<>();
+	}
+	
+	protected void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target){
+		
+	}
+//	private List<InlineMenuItem> createTreeMenu() {
+//		List<InlineMenuItem> items = new ArrayList<>();
+//
+//		InlineMenuItem item = new InlineMenuItem(createStringResource("TreeTablePanel.collapseAll"),
+//				new InlineMenuItemAction() {
+//
+//					@Override
+//					public void onClick(AjaxRequestTarget target) {
+//						collapseAllPerformed(target);
+//					}
+//				});
+//		items.add(item);
+//		item = new InlineMenuItem(createStringResource("TreeTablePanel.expandAll"),
+//				new InlineMenuItemAction() {
+//
+//					@Override
+//					public void onClick(AjaxRequestTarget target) {
+//						expandAllPerformed(target);
+//					}
+//				});
+//		items.add(item);
+//		items.add(new InlineMenuItem());
+//		item = new InlineMenuItem(createStringResource("TreeTablePanel.moveRoot"),
+//				new InlineMenuItemAction() {
+//
+//					@Override
+//					public void onClick(AjaxRequestTarget target) {
+//						moveRootPerformed(null, target);
+//					}
+//				});
+//		items.add(item);
+//
+//		item = new InlineMenuItem(createStringResource("TreeTablePanel.deleteRoot"),
+//				new InlineMenuItemAction() {
+//
+//					@Override
+//					public void onClick(AjaxRequestTarget target) {
+//						deleteRootPerformed(null, target);
+//					}
+//				});
+//		items.add(item);
+//
+//		item = new InlineMenuItem(createStringResource("TreeTablePanel.recomputeRoot"),
+//				new InlineMenuItemAction() {
+//
+//					@Override
+//					public void onClick(AjaxRequestTarget target) {
+//						recomputeRootPerformed(null, target);
+//					}
+//				});
+//		items.add(item);
+//
+//		item = new InlineMenuItem(createStringResource("TreeTablePanel.editRoot"),
+//				new InlineMenuItemAction() {
+//
+//					@Override
+//					public void onClick(AjaxRequestTarget target) {
+//						editRootPerformed(null, target);
+//					}
+//				});
+//		items.add(item);
+//
+//		return items;
+//	}
+
+//	private List<InlineMenuItem> createTreeChildrenMenu() {
+//		List<InlineMenuItem> items = new ArrayList<>();
+//
+//		InlineMenuItem item = new InlineMenuItem(createStringResource("TreeTablePanel.move"),
+//				new ColumnMenuAction<SelectableBean<OrgType>>() {
+//
+//					@Override
+//					public void onClick(AjaxRequestTarget target) {
+//						moveRootPerformed(getRowModel().getObject(), target);
+//					}
+//				});
+//		items.add(item);
+//
+//		item = new InlineMenuItem(createStringResource("TreeTablePanel.delete"),
+//				new ColumnMenuAction<SelectableBean<OrgType>>() {
+//
+//					@Override
+//					public void onClick(AjaxRequestTarget target) {
+//						deleteRootPerformed(getRowModel().getObject(), target);
+//					}
+//				});
+//		items.add(item);
+//
+//		item = new InlineMenuItem(createStringResource("TreeTablePanel.recompute"),
+//				new ColumnMenuAction<SelectableBean<OrgType>>() {
+//
+//					@Override
+//					public void onClick(AjaxRequestTarget target) {
+//						recomputeRootPerformed(getRowModel().getObject(), target);
+//					}
+//				});
+//		items.add(item);
+//
+//		item = new InlineMenuItem(createStringResource("TreeTablePanel.edit"),
+//				new ColumnMenuAction<SelectableBean<OrgType>>() {
+//
+//					@Override
+//					public void onClick(AjaxRequestTarget target) {
+//						editRootPerformed(getRowModel().getObject(), target);
+//					}
+//				});
+//		items.add(item);
+//
+//		item = new InlineMenuItem(createStringResource("TreeTablePanel.createChild"),
+//				new ColumnMenuAction<OrgTreeDto>() {
+//
+//					@Override
+//					public void onClick(AjaxRequestTarget target) {
+//						initObjectForAdd(
+//								ObjectTypeUtil.createObjectRef(getRowModel().getObject().getObject()),
+//								OrgType.COMPLEX_TYPE, null, target);
+//					}
+//				});
+//		items.add(item);
+//
+//		return items;
+//	}
+
+	
+	private void collapseAllPerformed(AjaxRequestTarget target) {
+		TableTree<SelectableBean<OrgType>, String> tree = getTree();
+		TreeStateModel model = (TreeStateModel) tree.getDefaultModel();
+		model.collapseAll();
+
+		target.add(tree);
+	}
+
+	private void expandAllPerformed(AjaxRequestTarget target) {
+		TableTree<SelectableBean<OrgType>, String> tree = getTree();
+		TreeStateModel model = (TreeStateModel) tree.getDefaultModel();
+		model.expandAll();
+
+		target.add(tree);
+	}
+
+
+
+//	@Override
+//	protected void refreshTable(AjaxRequestTarget target) {
+//		// TODO Auto-generated method stub
+//		
+//	}
+
+
+
+}

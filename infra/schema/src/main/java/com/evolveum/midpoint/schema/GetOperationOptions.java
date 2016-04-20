@@ -269,8 +269,11 @@ public class GetOperationOptions implements Serializable, Cloneable {
         return opts;
     }
 
+	public static Collection<SelectorOptions<GetOperationOptions>> createRawCollection() {
+		return SelectorOptions.createCollection(createRaw());
+	}
 
-    public Boolean getDoNotDiscovery() {
+	public Boolean getDoNotDiscovery() {
 		return doNotDiscovery;
 	}
 

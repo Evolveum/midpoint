@@ -15,34 +15,14 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.page.admin.users.component.*;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -55,17 +35,44 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import javax.xml.namespace.QName;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author shood
  */
 public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<AssignmentEditorDto>> {
+	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentTablePanel.class);
 
@@ -77,11 +84,8 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 	private static final String ID_MENU = "assignmentsMenu";
 	private static final String ID_LIST = "assignmentList";
 	private static final String ID_ROW = "assignmentEditor";
-	private static final String ID_MODAL_ASSIGN = "assignablePopup";
-	private static final String ID_MODAL_ASSIGN_ORG = "assignableOrgPopup";
-
-	AssignableSelectionPanel.Context assignableSelectionContext;
-	AbstractAssignableSelectionPanel.Context assignableOrgSelectionContext;
+	// private static final String ID_MODAL_ASSIGN = "assignablePopup";
+	// private static final String ID_MODAL_ASSIGN_ORG = "assignableOrgPopup";
 
 	public AssignmentTablePanel(String id, IModel<String> label,
 			IModel<List<AssignmentEditorDto>> assignmentModel) {
@@ -114,11 +118,27 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		assignments.add(assignmentMenu);
 
 		ListView<AssignmentEditorDto> list = new ListView<AssignmentEditorDto>(ID_LIST, getModel()) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(ListItem<AssignmentEditorDto> item) {
+			protected void populateItem(final ListItem<AssignmentEditorDto> item) {
 				AssignmentEditorPanel editor = new AssignmentEditorPanel(ID_ROW, item.getModel());
 				item.add(editor);
+				
+				editor.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+		            public String getObject() {
+		                AssignmentEditorDto dto = item.getModel().getObject();
+		                ObjectReferenceType targetRef = dto.getTargetRef();
+		                if (targetRef != null && targetRef.getType() != null) {
+		                	return WebComponentUtil.getBoxThinCssClasses(targetRef.getType());
+		                } else {
+		                	return GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_THIN_CSS_CLASSES;
+		                }
+		            }
+		        }));
 			}
 		};
 		list.setOutputMarkupId(true);
@@ -139,95 +159,6 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		};
 		assignments.add(checkAll);
 
-		initModalWindows();
-	}
-
-	private void initModalWindows() {
-
-		ModalWindow assignWindowOrg = new ModalWindow(ID_MODAL_ASSIGN_ORG);
-		assignableOrgSelectionContext = new AbstractAssignableSelectionPanel.Context(this) {
-
-			@Override
-			public AssignmentTablePanel getRealParent() {
-				return WebComponentUtil.theSameForPage(AssignmentTablePanel.this, getCallingPageReference());
-			}
-
-			@Override
-			protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected) {
-				getRealParent().addSelectedAssignablePerformed(target, selected, ID_MODAL_ASSIGN_ORG);
-			}
-
-			@Override
-			public ObjectQuery getProviderQuery() {
-				String excludeOid = getRealParent().getExcludeOid();
-				if (excludeOid == null) {
-					return null;
-				} else {
-					ObjectQuery query = new ObjectQuery();
-					List<String> oids = new ArrayList<>();
-					oids.add(excludeOid);
-
-					ObjectFilter oidFilter = InOidFilter.createInOid(oids);
-					query.setFilter(NotFilter.createNot(oidFilter));
-					return query;
-				}
-			}
-
-			@Override
-			protected void handlePartialError(OperationResult result) {
-				getRealParent().handlePartialError(result);
-			}
-		};
-		AssignableOrgSelectionPage.prepareDialog(assignWindowOrg, assignableOrgSelectionContext, this, "AssignmentTablePanel.modal.title.selectAssignment", ID_ASSIGNMENTS);
-		add(assignWindowOrg);
-
-
-		ModalWindow assignWindow = new ModalWindow(ID_MODAL_ASSIGN);
-		assignableSelectionContext = new AssignableSelectionPanel.Context(this) {
-
-			@Override
-			public AssignmentTablePanel getRealParent() {
-				return WebComponentUtil.theSameForPage(AssignmentTablePanel.this, getCallingPageReference());
-			}
-
-			@Override
-			protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected) {
-				getRealParent().addSelectedAssignablePerformed(target, selected, ID_MODAL_ASSIGN);
-			}
-
-			@Override
-			public ObjectQuery getProviderQuery() {
-				String excludeOid = getRealParent().getExcludeOid();
-				if (excludeOid == null) {
-					return null;
-				} else {
-					ObjectQuery query = new ObjectQuery();
-					List<String> oids = new ArrayList<>();
-					oids.add(excludeOid);
-
-					ObjectFilter oidFilter = InOidFilter.createInOid(oids);
-					query.setFilter(NotFilter.createNot(oidFilter));
-					return query;
-				}
-			}
-
-			@Override
-			protected void handlePartialError(OperationResult result) {
-				getRealParent().handlePartialError(result);
-			}
-
-			@Override
-			public PrismObject<UserType> getUserDefinition() {
-				try {
-					return getRealParent().getPageBase().getSecurityEnforcer().getPrincipal().getUser().asPrismObject();
-				} catch (SecurityViolationException e) {
-					LOGGER.error("Could not retrieve logged user for security evaluation.", e);
-				}
-				return null;
-			}
-		};
-		AssignableSelectionPage.prepareDialog(assignWindow, assignableSelectionContext, this, "AssignmentTablePanel.modal.title.selectAssignment", ID_ASSIGNMENTS);
-		add(assignWindow);
 	}
 
 	private List<InlineMenuItem> createAssignmentMenu() {
@@ -238,38 +169,43 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						TypedAssignablePanel panel = new TypedAssignablePanel(getPageBase().getMainPopupBodyId(), RoleType.class, true, getPageBase()) {
-							 
+						TypedAssignablePanel panel = new TypedAssignablePanel(
+								getPageBase().getMainPopupBodyId(), RoleType.class, true, getPageBase()) {
+
 							@Override
 							protected void addPerformed(AjaxRequestTarget target, List selected) {
 								super.addPerformed(target, selected);
-								addSelectedAssignablePerformed(target, selected, getPageBase().getMainPopup().getId());
+								addSelectedAssignablePerformed(target, selected,
+										getPageBase().getMainPopup().getId());
 							}
-							
+
 						};
 						panel.setOutputMarkupId(true);
 						getPageBase().showMainPopup(panel, new Model<String>("Select"), target, 900, 500);
-//						showAssignablePopupPerformed(target, ResourceType.class, ResourceType.F_NAME);
 					}
 				});
 		items.add(item);
-
-//		item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assignRole"),
-//				new InlineMenuItemAction() {
-//
-//					@Override
-//					public void onClick(AjaxRequestTarget target) {
-//						showAssignablePopupPerformed(target, RoleType.class, RoleType.F_NAME);
-//					}
-//				});
-//		items.add(item);
 
 		item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assignOrg"),
 				new InlineMenuItemAction() {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						showAssignableOrgPopupPerformed(target);
+						OrgTreeAssignablePanel orgTreePanel = new OrgTreeAssignablePanel(
+								getPageBase().getMainPopupBodyId(), true, getPageBase()) {
+
+							@Override
+							protected void assignSelectedOrgPerformed(List<OrgType> selectedOrgs,
+									AjaxRequestTarget target) {
+								// TODO Auto-generated method stub
+								addSelectedAssignablePerformed(target, (List) selectedOrgs,
+										getPageBase().getMainPopup().getId());
+							}
+						};
+						orgTreePanel.setOutputMarkupId(true);
+						getPageBase().showMainPopup(orgTreePanel, new Model<String>("Select Org"), target,
+								900, 500);
+
 					}
 				});
 		items.add(item);
@@ -285,7 +221,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 					}
 				});
 		items.add(item);
-		
+
 		item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.showAllAssignments"),
 				new InlineMenuItemAction() {
 
@@ -299,10 +235,10 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		return items;
 	}
 
-	protected void showAllAssignments(AjaxRequestTarget target){
-		
+	protected void showAllAssignments(AjaxRequestTarget target) {
+
 	}
-	
+
 	private List<AssignmentEditorDto> getSelectedAssignments() {
 		List<AssignmentEditorDto> selected = new ArrayList<>();
 
@@ -317,25 +253,8 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		return selected;
 	}
 
-	private void showModalWindow(String id, AjaxRequestTarget target) {
-		ModalWindow window = (ModalWindow) get(id);
-		window.show(target);
-	}
-
-    protected void showModalWindow(Component body, IModel<String> title, AjaxRequestTarget target) {
-        getPageBase().showMainPopup(body, title, target);
-    }
-
-    private void showAssignablePopupPerformed(AjaxRequestTarget target, Class<? extends ObjectType> type,
-			QName searchParameter) {
-		assignableSelectionContext.setType(type);
-		assignableSelectionContext.setSearchParameter(searchParameter);
-		showModalWindow(ID_MODAL_ASSIGN, target);
-	}
-
-	private void showAssignableOrgPopupPerformed(AjaxRequestTarget target) {
-		assignableOrgSelectionContext.setType(OrgType.class);
-		showModalWindow(ID_MODAL_ASSIGN_ORG, target);
+	protected void showModalWindow(Component body, IModel<String> title, AjaxRequestTarget target) {
+		getPageBase().showMainPopup(body, title, target);
 	}
 
 	private void deleteAssignmentPerformed(AjaxRequestTarget target) {
@@ -347,30 +266,30 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 			return;
 		}
 
-		showModalWindow(getDeleteAssignmentPopupContent(), createStringResource("AssignmentTablePanel.modal.title.confirmDeletion"), target);
+		showModalWindow(getDeleteAssignmentPopupContent(),
+				createStringResource("AssignmentTablePanel.modal.title.confirmDeletion"), target);
 	}
 
-    private Component getDeleteAssignmentPopupContent(){
-        return new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                new AbstractReadOnlyModel<String>() {
+	private Component getDeleteAssignmentPopupContent() {
+		return new ConfirmationPanel(getPageBase().getMainPopupBodyId(), new AbstractReadOnlyModel<String>() {
 
-                    @Override
-                    public String getObject() {
-                        return createStringResource("AssignmentTablePanel.modal.message.delete",
-                                getSelectedAssignments().size()).getString();
-                    }
-                }) {
+			@Override
+			public String getObject() {
+				return createStringResource("AssignmentTablePanel.modal.message.delete",
+						getSelectedAssignments().size()).getString();
+			}
+		}) {
 
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                ModalWindow modalWindow = findParent(ModalWindow.class);
-                if (modalWindow != null) {
-                    modalWindow.close(target);
-                    deleteAssignmentConfirmedPerformed(target, getSelectedAssignments());
-                }
-            }
-        };
-    }
+			@Override
+			public void yesPerformed(AjaxRequestTarget target) {
+				ModalWindow modalWindow = findParent(ModalWindow.class);
+				if (modalWindow != null) {
+					modalWindow.close(target);
+					deleteAssignmentConfirmedPerformed(target, getSelectedAssignments());
+				}
+			}
+		};
+	}
 
 	private void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target,
 			List<AssignmentEditorDto> toDelete) {
@@ -392,11 +311,12 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 			String popupId) {
 		ModalWindow window = (ModalWindow) get(popupId);
 		if (window != null) {
-		window.close(target);
+			window.close(target);
 		}
+		getPageBase().hideMainPopup(target);
 		if (newAssignments.isEmpty()) {
 			warn(getString("AssignmentTablePanel.message.noAssignmentSelected"));
-			//target.add(getPageBase().getFeedbackPanel());
+			// target.add(getPageBase().getFeedbackPanel());
 			return;
 		}
 
@@ -410,7 +330,8 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 					continue;
 				}
 
-				AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(object, getPageBase());
+				AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(object,
+						getPageBase());
 				assignments.add(dto);
 			} catch (Exception e) {
 				error(getString("AssignmentTablePanel.message.couldntAssignObject", object.getName(),
@@ -442,7 +363,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, assignment, getPageBase());
 		assignments.add(dto);
 
-		dto.setMinimized(false);
+		dto.setMinimized(true);
 		dto.setShowEmpty(true);
 	}
 
@@ -535,7 +456,8 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 			ItemPath deltaPath = delta.getPath().rest();
 			ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
 
-			delta.setParentPath(WebComponentUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
+			delta.setParentPath(
+					WebComponentUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
 			delta.applyDefinition(deltaDef);
 
 			userDelta.addModification(delta);

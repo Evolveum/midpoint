@@ -1,10 +1,18 @@
 
+@text-label-color: #3c8dbc;
+@text-dimmed-color: #808080;
+
+@table-divider-color:  #ddd;
+@table-stripe-bg-color: #f9f9f9;
+
 @object-user-color: #dd4b39;
 @object-role-color: #00a65a;
 @object-org-color: #F39C12;
 @object-service-color: #00C0EF;
 @object-resource-color: #605CA8;
 @object-task-color: #001f3f;
+
+@box-projection-color: #001F3F;
 
 .skin-blue-light .main-header {
   & .logo {
@@ -247,8 +255,40 @@ th.cog, td.cog {
 	#box-object(@object-service-color);
 }
 
+.object-task-box {
+	#box-object(@object-task-color);
+}
+
 .object-resource-box {
 	#box-object(@object-resource-color);
+}
+
+#box-thin-object(@color) {
+	border: 1px solid @color;
+	
+	.box-header {
+		border-bottom: 1px solid @color;
+	}
+}
+
+.object-user-box-thin {
+	#box-thin-object(@object-user-color);
+}
+
+.object-role-box-thin {
+	#box-thin-object(@object-role-color);
+}
+
+.object-org-box-thin {
+	#box-thin-object(@object-org-color);
+}
+
+.object-service-box-thin {
+	#box-thin-object(@object-service-color);
+}
+
+.object-resource-box-thin {
+	#box-thin-object(@object-resource-color);
 }
 
 // Summary panel (panel above the edit user/role/org forms)
@@ -385,7 +425,7 @@ th.cog, td.cog {
 
 .summary-panel-identifier {
 	white-space: pre-wrap;
-	color: #808080;
+	color: @text-dimmed-color;
 	font-weight: normal;
 }
 
@@ -515,5 +555,188 @@ div.dashAssignmentHeader {
 
 	span.targetRelation {
 		margin-left: 10px;
+	}
+}
+
+// Prism containers and attributes
+
+.prism-object {
+	& > div.prism-header {
+		padding-left: 15px; // to match container header padding
+	}
+}
+
+.prism-container {
+	border-bottom: 1px solid @table-divider-color;
+	margin-bottom: 15px;
+	padding-bottom: 15px;
+}
+
+.prism-properties {
+	
+	& > div {
+		padding-left: 30px;
+	}
+	
+	.stripe {
+		background-color: @table-stripe-bg-color;
+	}
+}
+
+.prism-header {
+	margin-bottom: 15px;
+	display: block;
+}
+
+.prism-title {
+	font-size: 16px;
+	font-weight: 600;
+	color: @text-label-color;
+}
+
+.prism-property {
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+
+// Common styles for object detail pages
+
+.assignable-header {
+  border-bottom: 2px solid @table-divider-color;
+  margin: 0px;
+  margin-bottom: 10px;
+  padding-left: 5px; // align with the checkboxes below
+
+  div.col-xs-10 {
+    padding: 0 5px;
+
+    & > input {
+      display: inline-block;
+    }
+
+    > h3 {
+      display: inline-block;
+      margin-bottom: 5px;
+      margin-left: 5px;
+    }
+  }
+
+  & > div.cog {
+    margin-top: 18px;
+    padding-right: 5px;
+  }
+}
+
+.check-table-header {
+	padding-left: 20px;
+	
+	& > input[type="checkbox"] {
+		position: absolute;
+		margin-left: -20px;
+		margin-top: 6px;
+    }
+    
+    .check-table-label {
+    
+	    .check-table-header-icon {
+		    margin-left: 4px;
+		    position: relative;
+		    bottom: 1px;
+	    }
+	    
+	    .check-table-header-name {
+	    	margin-left: 5px;
+	    	font-size: 18px;
+	    	color: @text-label-color !important;
+	    }
+	    
+	    .check-table-header-description {
+	    	margin-left: 10px;
+	    }
+	    
+	    .check-table-header-status {
+	    	margin-left: 10px;
+	    	position: relative;
+			bottom: 2px;
+	    }
+    
+    	.check-table-header-show-more {
+	    	color: @text-dimmed-color !important;
+	    }
+    }
+}
+
+.tab-label {
+	& > small {
+		margin-left: 6px;
+		position: relative;
+		top: 1px;
+	}
+}
+
+.box-header.add {
+	background-color: #caffca;
+}
+
+.box-header.delete {
+	background-color: #ffcaca;
+}
+
+.option-checkbox {
+	float: left;
+	border: 1px solid @table-divider-color;
+	margin-right: 10px;
+	padding-bottom: 5px;
+	padding-left: 6px;
+	padding-right: 6px;
+}
+
+// Badge colors used in object details tabs (and maybe elsewhere)
+
+.badge-active {
+	background-color: #3c8dbc !important;
+}
+
+.badge-passive {
+	color: #fff;
+	background-color: #d2d6de !important;
+}
+
+// Projections tab (focus pages)
+
+.projections {
+	
+}
+
+.projections-header {
+	
+}
+
+.projection {
+	margin-bottom: 10px;
+	#box-thin-object(@box-projection-color); 
+	
+	.box-header {
+		
+		.box-tools {
+			margin-top: 5px;
+		}
+	}
+}
+
+// Assignments tab (focus pages)
+
+.assignments {
+	
+}
+
+.assignment {
+	margin-bottom: 10px;
+	
+	.box-header {
+		
+		.box-tools {
+			margin-top: 5px;
+		}
 	}
 }

@@ -106,6 +106,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -831,7 +832,7 @@ public final class WebComponentUtil {
 		return result.isSuccess() || result.isHandledError() || result.isInProgress();
 	}
 	
-	public static <T extends ObjectType> String createDefaultIcon(PrismObject<T> object){
+	public static <T extends ObjectType> String createDefaultIcon(PrismObject<T> object) {
 		Class<T> type = object.getCompileTimeClass();
 		if (type.equals(UserType.class)) {
 			return createUserIcon((PrismObject<UserType>) object);
@@ -848,6 +849,60 @@ public final class WebComponentUtil {
 		}
 		
 		return "";
+	}
+	
+	public static <T extends ObjectType> String createDefaultColoredIcon(QName objectType) {
+		if (QNameUtil.match(UserType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED;
+		} else if (QNameUtil.match(RoleType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED;
+		} else if (QNameUtil.match(OrgType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_ORG_ICON_COLORED;
+		} else if (QNameUtil.match(ServiceType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED;
+		} else if (QNameUtil.match(TaskType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_TASK_ICON_COLORED;
+		} else if (QNameUtil.match(ResourceType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED;
+		} else {
+			return "";
+		}
+	}
+	
+	public static <T extends ObjectType> String getBoxCssClasses(QName objectType) {
+		if (QNameUtil.match(UserType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES;
+		} else if (QNameUtil.match(RoleType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_ROLE_BOX_CSS_CLASSES;
+		} else if (QNameUtil.match(OrgType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_ORG_BOX_CSS_CLASSES;
+		} else if (QNameUtil.match(ServiceType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES;
+		} else if (QNameUtil.match(TaskType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_TASK_BOX_CSS_CLASSES;
+		} else if (QNameUtil.match(ResourceType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES;
+		} else {
+			return "";
+		}
+	}
+	
+	public static <T extends ObjectType> String getBoxThinCssClasses(QName objectType) {
+		if (QNameUtil.match(UserType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_USER_BOX_THIN_CSS_CLASSES;
+		} else if (QNameUtil.match(RoleType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_ROLE_BOX_THIN_CSS_CLASSES;
+		} else if (QNameUtil.match(OrgType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_ORG_BOX_THIN_CSS_CLASSES;
+		} else if (QNameUtil.match(ServiceType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_SERVICE_BOX_THIN_CSS_CLASSES;
+		} else if (QNameUtil.match(TaskType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_TASK_BOX_THIN_CSS_CLASSES;
+		} else if (QNameUtil.match(ResourceType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_THIN_CSS_CLASSES;
+		} else {
+			return "";
+		}
 	}
 
 	public static String createUserIcon(PrismObject<UserType> object) {

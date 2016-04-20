@@ -127,20 +127,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
 	private TaskType taskType;
 
-	// editable properties
-	private String name;
-	private String description;
-
-	private boolean bound;
-	private boolean recurring;
-	private Integer interval;
-	private String cronSpecification;
-	private Date notStartBefore;
-	private Date notStartAfter;
-	private MisfireActionType misfireActionType;
-	private ThreadStopActionType threadStopActionType;
-
-	private Integer workerThreads;
+	private TaskEditableState currentEditableState = new TaskEditableState();
+	private TaskEditableState originalEditableState;
 
 	// simple computed properties (optimization)
 	private List<String> handlerUriList;
@@ -179,8 +167,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
         Validate.notNull(pageBase);
 
         this.taskType = taskType;
-		this.name = taskType.getName() != null ? taskType.getName().getOrig() : null;
-		this.description = taskType.getDescription();
+		this.currentEditableState.name = taskType.getName() != null ? taskType.getName().getOrig() : null;
+		this.currentEditableState.description = taskType.getDescription();
 
 		fillInScheduleAttributes(taskType);
 
@@ -210,6 +198,9 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		} else {
 			handlerDto = new HandlerDto(this);		// just to avoid NPEs
 		}
+		currentEditableState.handlerSpecificState = handlerDto.getEditableState();
+
+		originalEditableState = currentEditableState.clone();
     }
 
     @Override
@@ -223,7 +214,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     private void fillFromExtension() {
         PrismProperty<Integer> workerThreadsItem = getExtensionProperty(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
         if (workerThreadsItem != null) {
-            workerThreads = workerThreadsItem.getRealValue();
+            currentEditableState.workerThreads = workerThreadsItem.getRealValue();
         }
     }
 
@@ -247,19 +238,19 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     private void fillInScheduleAttributes(TaskType taskType) {
-		this.recurring = taskType.getRecurrence() == TaskRecurrenceType.RECURRING;
-		this.bound = taskType.getBinding() == TaskBindingType.TIGHT;
-		this.threadStopActionType = taskType.getThreadStopAction();
+		this.currentEditableState.recurring = taskType.getRecurrence() == TaskRecurrenceType.RECURRING;
+		this.currentEditableState.bound = taskType.getBinding() == TaskBindingType.TIGHT;
+		this.currentEditableState.threadStopActionType = taskType.getThreadStopAction();
 		if (taskType.getSchedule() != null) {
-            interval = taskType.getSchedule().getInterval();
-            cronSpecification = taskType.getSchedule().getCronLikePattern();
+			currentEditableState.interval = taskType.getSchedule().getInterval();
+			currentEditableState.cronSpecification = taskType.getSchedule().getCronLikePattern();
             if (taskType.getSchedule().getMisfireAction() == null){
-                misfireActionType = MisfireActionType.EXECUTE_IMMEDIATELY;
+				currentEditableState.misfireActionType = MisfireActionType.EXECUTE_IMMEDIATELY;
             } else {
-                misfireActionType = taskType.getSchedule().getMisfireAction();
+				currentEditableState.misfireActionType = taskType.getSchedule().getMisfireAction();
             }
-            notStartBefore = MiscUtil.asDate(taskType.getSchedule().getEarliestStartTime());
-            notStartAfter = MiscUtil.asDate(taskType.getSchedule().getLatestStartTime());
+			currentEditableState.notStartBefore = MiscUtil.asDate(taskType.getSchedule().getEarliestStartTime());
+			currentEditableState.notStartAfter = MiscUtil.asDate(taskType.getSchedule().getLatestStartTime());
         }
     }
 
@@ -450,83 +441,83 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	//region Getters and setters for read-write properties
 
 	public String getName() {
-		return name;
+		return currentEditableState.name;
 	}
 
 	public void setName(String name) {
-		this.name = name;
+		this.currentEditableState.name = name;
 	}
 
 	public String getDescription() {
-		return description;
+		return currentEditableState.description;
 	}
 
 	public void setDescription(String description) {
-		this.description = description;
+		this.currentEditableState.description = description;
 	}
 
 	public boolean isRecurring() {
-		return recurring;
+		return currentEditableState.recurring;
 	}
 
 	public void setRecurring(boolean recurring) {
-		this.recurring = recurring;
+		this.currentEditableState.recurring = recurring;
 	}
 
 	public boolean isBound() {
-		return bound;
+		return currentEditableState.bound;
 	}
 
 	public void setBound(boolean bound) {
-		this.bound = bound;
+		this.currentEditableState.bound = bound;
 	}
 
 	public Integer getInterval() {
-		return interval;
+		return currentEditableState.interval;
 	}
 
 	public void setInterval(Integer interval) {
-		this.interval = interval;
+		this.currentEditableState.interval = interval;
 	}
 
 	public String getCronSpecification() {
-		return cronSpecification;
+		return currentEditableState.cronSpecification;
 	}
 
 	public void setCronSpecification(String cronSpecification) {
-		this.cronSpecification = cronSpecification;
+		this.currentEditableState.cronSpecification = cronSpecification;
 	}
 
 	public Date getNotStartBefore() {
-		return notStartBefore;
+		return currentEditableState.notStartBefore;
 	}
 
 	public void setNotStartBefore(Date notStartBefore) {
-		this.notStartBefore = notStartBefore;
+		this.currentEditableState.notStartBefore = notStartBefore;
 	}
 
 	public Date getNotStartAfter() {
-		return notStartAfter;
+		return currentEditableState.notStartAfter;
 	}
 
 	public void setNotStartAfter(Date notStartAfter) {
-		this.notStartAfter = notStartAfter;
+		this.currentEditableState.notStartAfter = notStartAfter;
 	}
 
 	public MisfireActionType getMisfireActionType() {
-		return misfireActionType;
+		return currentEditableState.misfireActionType;
 	}
 
 	public void setMisfireActionType(MisfireActionType misfireActionType) {
-		this.misfireActionType = misfireActionType;
+		this.currentEditableState.misfireActionType = misfireActionType;
 	}
 
 	public ThreadStopActionType getThreadStopActionType() {
-		return threadStopActionType;
+		return currentEditableState.threadStopActionType;
 	}
 
 	public void setThreadStopActionType(ThreadStopActionType threadStopActionType) {
-		this.threadStopActionType = threadStopActionType;
+		this.currentEditableState.threadStopActionType = threadStopActionType;
 	}
 
 	public String getObjectRefName() {
@@ -553,10 +544,10 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		}
 	}
 
-	public Integer getWorkerThreads() { return workerThreads; }
+	public Integer getWorkerThreads() { return currentEditableState.workerThreads; }
 
 	public void setWorkerThreads(Integer workerThreads) {
-		this.workerThreads = workerThreads;
+		this.currentEditableState.workerThreads = workerThreads;
 	}
 
 	//endregion
@@ -644,9 +635,9 @@ public class TaskDto extends Selectable implements InlineMenuable {
         long current = System.currentTimeMillis();
 
         if (getExecution() == TaskDtoExecutionStatus.RUNNING) {
-            if (!recurring) {
+            if (!currentEditableState.recurring) {
                 return null;
-            } else if (bound) {
+            } else if (currentEditableState.bound) {
                 return -1L;             // runs continually; todo provide some information also in this case
             }
         }
@@ -867,29 +858,11 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
 		TaskDto taskDto = (TaskDto) o;
 
-		if (bound != taskDto.bound)
-			return false;
-		if (recurring != taskDto.recurring)
-			return false;
 		if (taskType != null ? !taskType.equals(taskDto.taskType) : taskDto.taskType != null)
 			return false;
-		if (name != null ? !name.equals(taskDto.name) : taskDto.name != null)
+		if (currentEditableState != null ? !currentEditableState.equals(taskDto.currentEditableState) : taskDto.currentEditableState != null)
 			return false;
-		if (description != null ? !description.equals(taskDto.description) : taskDto.description != null)
-			return false;
-		if (interval != null ? !interval.equals(taskDto.interval) : taskDto.interval != null)
-			return false;
-		if (cronSpecification != null ? !cronSpecification.equals(taskDto.cronSpecification) : taskDto.cronSpecification != null)
-			return false;
-		if (notStartBefore != null ? !notStartBefore.equals(taskDto.notStartBefore) : taskDto.notStartBefore != null)
-			return false;
-		if (notStartAfter != null ? !notStartAfter.equals(taskDto.notStartAfter) : taskDto.notStartAfter != null)
-			return false;
-		if (misfireActionType != taskDto.misfireActionType)
-			return false;
-		if (threadStopActionType != taskDto.threadStopActionType)
-			return false;
-		if (workerThreads != null ? !workerThreads.equals(taskDto.workerThreads) : taskDto.workerThreads != null)
+		if (originalEditableState != null ? !originalEditableState.equals(taskDto.originalEditableState) : taskDto.originalEditableState != null)
 			return false;
 		if (handlerUriList != null ? !handlerUriList.equals(taskDto.handlerUriList) : taskDto.handlerUriList != null)
 			return false;
@@ -901,8 +874,9 @@ public class TaskDto extends Selectable implements InlineMenuable {
 				!modelOperationStatusDto.equals(taskDto.modelOperationStatusDto) :
 				taskDto.modelOperationStatusDto != null)
 			return false;
-		if (changesCategorizationList != null ? !changesCategorizationList
-				.equals(taskDto.changesCategorizationList) : taskDto.changesCategorizationList != null)
+		if (changesCategorizationList != null ?
+				!changesCategorizationList.equals(taskDto.changesCategorizationList) :
+				taskDto.changesCategorizationList != null)
 			return false;
 		if (workflowRequests != null ? !workflowRequests.equals(taskDto.workflowRequests) : taskDto.workflowRequests != null)
 			return false;
@@ -933,17 +907,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	@Override
 	public int hashCode() {
 		int result = taskType != null ? taskType.hashCode() : 0;
-		result = 31 * result + (name != null ? name.hashCode() : 0);
-		result = 31 * result + (description != null ? description.hashCode() : 0);
-		result = 31 * result + (bound ? 1 : 0);
-		result = 31 * result + (recurring ? 1 : 0);
-		result = 31 * result + (interval != null ? interval.hashCode() : 0);
-		result = 31 * result + (cronSpecification != null ? cronSpecification.hashCode() : 0);
-		result = 31 * result + (notStartBefore != null ? notStartBefore.hashCode() : 0);
-		result = 31 * result + (notStartAfter != null ? notStartAfter.hashCode() : 0);
-		result = 31 * result + (misfireActionType != null ? misfireActionType.hashCode() : 0);
-		result = 31 * result + (threadStopActionType != null ? threadStopActionType.hashCode() : 0);
-		result = 31 * result + (workerThreads != null ? workerThreads.hashCode() : 0);
+		result = 31 * result + (currentEditableState != null ? currentEditableState.hashCode() : 0);
+		result = 31 * result + (originalEditableState != null ? originalEditableState.hashCode() : 0);
 		result = 31 * result + (handlerUriList != null ? handlerUriList.hashCode() : 0);
 		result = 31 * result + (opResult != null ? opResult.hashCode() : 0);
 		result = 31 * result + (taskOperationResult != null ? taskOperationResult.hashCode() : 0);
@@ -1107,5 +1072,13 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
 	public boolean isNoOp() {		// temporary implementation
 		return TaskCategory.DEMO.equals(getCategory());
+	}
+
+	public TaskEditableState getCurrentEditableState() {
+		return currentEditableState;
+	}
+
+	public TaskEditableState getOriginalEditableState() {
+		return originalEditableState;
 	}
 }

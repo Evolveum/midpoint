@@ -29,7 +29,7 @@ import java.io.Serializable;
  *
  * @author mserbak
  */
-public class TaskAddResourcesDto implements Serializable, Choiceable {
+public class TaskAddResourcesDto implements Serializable, Choiceable, Cloneable {
 	private String name;
 	private String oid;
 
@@ -77,5 +77,9 @@ public class TaskAddResourcesDto implements Serializable, Choiceable {
 
 	public ObjectReferenceType asObjectReferenceType() {
 		return ObjectTypeUtil.createObjectRef(oid, PolyStringType.fromOrig(name), ObjectTypes.RESOURCE);
+	}
+
+	public TaskAddResourcesDto clone() {
+		return new TaskAddResourcesDto(oid, name);
 	}
 }

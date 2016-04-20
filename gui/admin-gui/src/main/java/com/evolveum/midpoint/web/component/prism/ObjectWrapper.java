@@ -54,6 +54,8 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
     public static final String F_SELECTED = "selected";
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectWrapper.class);
+    
+	public static final String PROPERTY_CONTAINERS = "containers";
 
     private PrismObject<O> object;
     private PrismObject<O> objectOld;
@@ -223,6 +225,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 
     public void setShowEmpty(boolean showEmpty) {
         this.showEmpty = showEmpty;
+        computeStripes();
     }
 
     public boolean isSelectable() {
@@ -301,8 +304,22 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
             delta.applyTo(object);
         }
     }
+    
+    public void sort() {
+    	ContainerWrapper main = findMainContainerWrapper();
+    	if (main != null) {
+    		main.sort(isSorted());
+    	}
+    	computeStripes();
+    }
 
-    public ObjectDelta<O> getObjectDelta() throws SchemaException {
+    private void computeStripes() {
+		for (ContainerWrapper<? extends Containerable> container: containers) {
+			container.computeStripes();
+		}
+	}
+
+	public ObjectDelta<O> getObjectDelta() throws SchemaException {
     	if (LOGGER.isTraceEnabled()) {
     		LOGGER.trace("Wrapper before creating delta:\n{}", this.debugDump());
     	}

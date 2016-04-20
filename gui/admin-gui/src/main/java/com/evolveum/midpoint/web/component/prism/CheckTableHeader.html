@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,19 +17,21 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="col-xs-10">
+    <div class="check-table-header">
         <input type="checkbox" wicket:id="check"/>
-
-        <i wicket:id="icon"/>
-        <span wicket:id="status"/>
-        <i class="fa fa-clock-o text-success" wicket:id="trigger"/>
-        <i class="fa fa-shield text-warning" wicket:id="protected" wicket:message="title:CheckTableHeader.protected"/>
-
-        <a wicket:id="link"><span class="name" wicket:id="name"/></a>
-        <span class="description" wicket:id="description"/>
-
-        <a wicket:id="showMore"><wicket:message key="CheckTableHeader.showMore"/></a>
+		<div class="check-table-label">
+	        <i wicket:id="icon"/>
+	
+	        <a class="check-table-header-name" wicket:id="link"><span class="name" wicket:id="name"/></a>
+	        <span class="check-table-header-description" wicket:id="description"/>
+	
+	        <i class="check-table-header-additional-icon fa fa-clock-o text-success" wicket:id="trigger"/>
+	        <span class="check-table-header-status" wicket:id="status"/>
+	        <a class="check-table-header-show-more" wicket:id="showMore"><wicket:message key="CheckTableHeader.showMore"/></a>
+        </div>
     </div>
-    <div class="col-xs-2 cog" wicket:id="menu"/>
+    <div class="box-tools pull-right">
+    	<button wicket:id="expand" class="btn btn-box-tool"><i class="fa fa-plus"></i></button>
+    </div>
 </wicket:panel>
 </html>

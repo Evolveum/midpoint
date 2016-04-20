@@ -121,6 +121,7 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 
 		final WebMarkupContainer resourceRefContainer = new WebMarkupContainer(ID_RESOURCE_REF_CONTAINER);
 		resourceRefContainer.add(visibleForResourceCoordinates);
+		resourceRefContainer.setOutputMarkupId(true);
 		add(resourceRefContainer);
 
 		final DropDownChoice<TaskAddResourcesDto> resourceRef = new DropDownChoice<>(ID_RESOURCE_REF,
@@ -222,7 +223,7 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 			}
 		});
 		optionsContainer.add(dryRunContainer);
-		CheckBox dryRun = new CheckBox(ID_DRY_RUN, new PropertyModel<Boolean>(getModelObject(), ResourceRelatedHandlerDto.F_DRY_RUN));
+		CheckBox dryRun = new CheckBox(ID_DRY_RUN, new PropertyModel<Boolean>(getModel(), ResourceRelatedHandlerDto.F_DRY_RUN));
 		dryRun.add(enabledIfEdit);
 		dryRunContainer.add(dryRun);
 	}

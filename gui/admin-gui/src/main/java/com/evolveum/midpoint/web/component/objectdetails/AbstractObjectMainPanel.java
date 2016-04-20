@@ -96,7 +96,6 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	protected void initLayoutTabs(final PageAdminObjectDetails<O> parentPage) {
 		List<ITab> tabs = createTabs(parentPage);
 		TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, parentPage, tabs, null);
-		LOGGER.info("Adding {} to {}", tabPanel, mainForm);
 		mainForm.add(tabPanel);
 	}
 

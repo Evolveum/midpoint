@@ -34,10 +34,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.helpers.ObjectRetriever;
-import com.evolveum.midpoint.repo.sql.helpers.ObjectUpdater;
-import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
-import com.evolveum.midpoint.repo.sql.helpers.SequenceHelper;
+import com.evolveum.midpoint.repo.sql.helpers.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RepositoryDiag;
@@ -60,6 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.jdbc.Work;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,9 +75,10 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 
-
 /**
  * @author lazyman
+ *
+ * Note: don't autowire this class - because of Spring AOP use it couldn't be found by implementation class; only by its interface.
  */
 @Repository
 public class SqlRepositoryServiceImpl extends SqlBaseService implements RepositoryService {
@@ -110,6 +109,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @Autowired
     private OrgClosureManager closureManager;
+
+	@Autowired
+	private BaseHelper baseHelper;
 
     public SqlRepositoryServiceImpl(SqlRepositoryFactory repositoryFactory) {
         super(repositoryFactory);
@@ -147,7 +149,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 try {
                     return objectRetriever.getObjectAttempt(type, oid, options, subResult);
                 } catch (RuntimeException ex) {
-                    attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
+                    attempt = baseHelper.logOperationAttempt(oid, operation, attempt, ex, subResult);
                     pm.registerOperationNewTrial(opHandle, attempt);
                 }
             }
@@ -173,7 +175,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             try {
                 return objectRetriever.searchShadowOwnerAttempt(shadowOid, options, subResult);
             } catch (RuntimeException ex) {
-                attempt = logOperationAttempt(shadowOid, operation, attempt, ex, subResult);
+                attempt = baseHelper.logOperationAttempt(shadowOid, operation, attempt, ex, subResult);
             }
         }
     }
@@ -197,7 +199,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             try {
                 return objectRetriever.listAccountShadowOwnerAttempt(accountOid, subResult);
             } catch (RuntimeException ex) {
-                attempt = logOperationAttempt(accountOid, operation, attempt, ex, subResult);
+                attempt = baseHelper.logOperationAttempt(accountOid, operation, attempt, ex, subResult);
             }
         }
     }
@@ -242,7 +244,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 try {
                     return objectRetriever.searchObjectsAttempt(type, query, options, subResult);
                 } catch (RuntimeException ex) {
-                    attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
+                    attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, subResult);
                     pm.registerOperationNewTrial(opHandle, attempt);
                 }
             }
@@ -289,7 +291,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 try {
                     return objectRetriever.searchContainersAttempt(type, query, options, result);
                 } catch (RuntimeException ex) {
-                    attempt = logOperationAttempt(null, operation, attempt, ex, result);
+                    attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, result);
                     pm.registerOperationNewTrial(opHandle, attempt);
                 }
             }
@@ -364,7 +366,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             try {
                 return objectUpdater.addObjectAttempt(object, options, subResult);
             } catch (RuntimeException ex) {
-                attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
+                attempt = baseHelper.logOperationAttempt(oid, operation, attempt, ex, subResult);
             }
         }
     }
@@ -401,7 +403,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     objectUpdater.deleteObjectAttempt(type, oid, subResult);
                     return;
                 } catch (RuntimeException ex) {
-                    attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
+                    attempt = baseHelper.logOperationAttempt(oid, operation, attempt, ex, subResult);
                     pm.registerOperationNewTrial(opHandle, attempt);
                 }
             }
@@ -442,7 +444,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             try {
                 return objectRetriever.countObjectsAttempt(type, query, subResult);
             } catch (RuntimeException ex) {
-                attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
+                attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, subResult);
             }
         }
     }
@@ -506,7 +508,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     objectUpdater.modifyObjectAttempt(type, oid, modifications, subResult);
                     return;
                 } catch (RuntimeException ex) {
-                    attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
+                    attempt = baseHelper.logOperationAttempt(oid, operation, attempt, ex, subResult);
                     pm.registerOperationNewTrial(opHandle, attempt);
                 }
             }
@@ -542,7 +544,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 try {
                     return objectRetriever.listResourceObjectShadowsAttempt(resourceOid, resourceObjectShadowType, subResult);
                 } catch (RuntimeException ex) {
-                    attempt = logOperationAttempt(resourceOid, operation, attempt, ex, subResult);
+                    attempt = baseHelper.logOperationAttempt(resourceOid, operation, attempt, ex, subResult);
                     pm.registerOperationNewTrial(opHandle, attempt);
                 }
             }
@@ -598,7 +600,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private void readDetailsFromConnection(RepositoryDiag diag, final SqlRepositoryConfiguration config) {
         final List<LabeledString> details = diag.getAdditionalDetails();
 
-        Session session = getSessionFactory().openSession();
+        Session session = baseHelper.getSessionFactory().openSession();
         try {
             session.beginTransaction();
             session.doWork(new Work() {
@@ -621,19 +623,20 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             });
             session.getTransaction().commit();
 
-            if (!(getSessionFactory() instanceof SessionFactoryImpl)) {
+			SessionFactory sessionFactory = baseHelper.getSessionFactory();
+            if (!(sessionFactory instanceof SessionFactoryImpl)) {
                 return;
             }
-            SessionFactoryImpl factory = (SessionFactoryImpl) getSessionFactory();
+            SessionFactoryImpl sessionFactoryImpl = (SessionFactoryImpl) sessionFactory;
             // we try to override configuration which was read from sql repo configuration with
             // real configuration from session factory
-            String dialect = factory.getDialect() != null ? factory.getDialect().getClass().getName() : null;
+            String dialect = sessionFactoryImpl.getDialect() != null ? sessionFactoryImpl.getDialect().getClass().getName() : null;
             details.add(new LabeledString(DETAILS_HIBERNATE_DIALECT, dialect));
         } catch (Throwable th) {
             //nowhere to report error (no operation result available)
             session.getTransaction().rollback();
         } finally {
-            cleanupSessionAndResult(session, null);
+            baseHelper.cleanupSessionAndResult(session, null);
         }
     }
 
@@ -679,7 +682,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @Override
     public void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult testResult) {
-        getClosureManager().checkAndOrRebuild(this, true, repairIfNecessary, false, false, testResult);
+        getClosureManager().checkAndOrRebuild(true, repairIfNecessary, false, false, testResult);
     }
 
     @Override
@@ -705,7 +708,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 try {
                     return objectRetriever.getVersionAttempt(type, oid, subResult);
                 } catch (RuntimeException ex) {
-                    attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
+                    attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, subResult);
                     pm.registerOperationNewTrial(opHandle, attempt);
                 }
             }
@@ -767,7 +770,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     objectRetriever.searchObjectsIterativeAttempt(type, query, handler, options, subResult);
                     return null;
                 } catch (RuntimeException ex) {
-                    attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
+                    attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, subResult);
 //                    pm.registerOperationNewTrial(opHandle, attempt);
                 }
             }
@@ -798,7 +801,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 try {
                     return objectRetriever.isAnySubordinateAttempt(upperOrgOid, lowerObjectOids);
                 } catch (RuntimeException ex) {
-                    attempt = logOperationAttempt(upperOrgOid, "isAnySubordinate", attempt, ex, null);
+                    attempt = baseHelper.logOperationAttempt(upperOrgOid, "isAnySubordinate", attempt, ex, null);
                     pm.registerOperationNewTrial(opHandle, attempt);
                 }
             }
@@ -830,7 +833,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 try {
                     return sequenceHelper.advanceSequenceAttempt(oid, result);
                 } catch (RuntimeException ex) {
-                    attempt = logOperationAttempt(oid, "advanceSequence", attempt, ex, null);
+                    attempt = baseHelper.logOperationAttempt(oid, "advanceSequence", attempt, ex, null);
                     pm.registerOperationNewTrial(opHandle, attempt);
                 }
             }
@@ -867,7 +870,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     sequenceHelper.returnUnusedValuesToSequenceAttempt(oid, unusedValues, result);
                     return;
                 } catch (RuntimeException ex) {
-                    attempt = logOperationAttempt(oid, "returnUnusedValuesToSequence", attempt, ex, null);
+                    attempt = baseHelper.logOperationAttempt(oid, "returnUnusedValuesToSequence", attempt, ex, null);
                     pm.registerOperationNewTrial(opHandle, attempt);
                 }
             }
@@ -897,7 +900,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 try {
                     return objectRetriever.executeArbitraryQueryAttempt(query, subResult);
                 } catch (RuntimeException ex) {
-                    attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
+                    attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, subResult);
                     pm.registerOperationNewTrial(opHandle, attempt);
                 }
             }

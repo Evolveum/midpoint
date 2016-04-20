@@ -62,9 +62,6 @@ public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabP
 	
 	protected static final String ID_FOCUS_FORM = "focusDetails";
 	
-	protected static final String ID_TASK_TABLE = "taskTable";
-	protected static final String ID_TASKS = "tasks";
-
 	private static final Trace LOGGER = TraceManager.getTrace(FocusDetailsTabPanel.class);
 
 	public FocusDetailsTabPanel(String id, Form mainForm, 
@@ -79,73 +76,8 @@ public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabP
 	private void initLayout() {
 
 		PrismObjectPanel<F> panel = new PrismObjectPanel<F>(ID_FOCUS_FORM, getObjectWrapperModel(),
-				new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), getMainForm(), getPageBase()) {
-
-			@Override
-			protected IModel<String> createDescription(IModel<ObjectWrapper<F>> model) {
-				return createStringResource("pageAdminFocus.description");
-			}
-		};
+				new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), getMainForm(), getPageBase());
 		add(panel);
-
-		WebMarkupContainer tasks = new WebMarkupContainer(ID_TASKS);
-		tasks.setOutputMarkupId(true);
-		add(tasks);
-		initTasks(tasks);
-
-	}
-
-	private void initTasks(WebMarkupContainer tasks) {
-		List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
-		final TaskDtoProvider taskDtoProvider = new TaskDtoProvider(getPageBase(), TaskDtoProviderOptions.minimalOptions());
-		taskDtoProvider.setQuery(createTaskQuery(null));
-		TablePanel taskTable = new TablePanel<TaskDto>(ID_TASK_TABLE, taskDtoProvider, taskColumns) {
-
-			@Override
-			protected void onInitialize() {
-				super.onInitialize();
-				StringValue oidValue = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-
-				taskDtoProvider.setQuery(createTaskQuery(oidValue != null ? oidValue.toString() : null));
-			}
-		};
-		tasks.add(taskTable);
-
-		tasks.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return taskDtoProvider.size() > 0;
-			}
-		});
-	}
-
-	private ObjectQuery createTaskQuery(String oid) {
-		List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
-
-		if (oid == null) {
-			oid = "non-existent"; // TODO !!!!!!!!!!!!!!!!!!!!
-		}
-		try {
-			filters.add(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class,
-					getPrismContext(), oid));
-			filters.add(NotFilter.createNot(EqualFilter.createEqual(TaskType.F_EXECUTION_STATUS,
-					TaskType.class, getPrismContext(), null, TaskExecutionStatusType.CLOSED)));
-			filters.add(EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null));
-		} catch (SchemaException e) {
-			throw new SystemException("Unexpected SchemaException when creating task filter", e);
-		}
-
-		return new ObjectQuery().createObjectQuery(AndFilter.createAnd(filters));
-	}
-
-	private List<IColumn<TaskDto, String>> initTaskColumns() {
-		List<IColumn<TaskDto, String>> columns = new ArrayList<IColumn<TaskDto, String>>();
-
-		columns.add(PageTasks.createTaskNameColumn(this, "pageAdminFocus.task.name"));
-		columns.add(PageTasks.createTaskCategoryColumn(this, "pageAdminFocus.task.category"));
-		columns.add(PageTasks.createTaskExecutionStatusColumn(this, "pageAdminFocus.task.execution"));
-		columns.add(PageTasks.createTaskResultStatusColumn(this, "pageAdminFocus.task.status"));
-		return columns;
 	}
 
 }

@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -37,7 +38,6 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -87,35 +87,35 @@ public class ProjectionValuesProcessor {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ProjectionValuesProcessor.class);
 	
-	@Autowired(required = true)
+	@Autowired
     private OutboundProcessor outboundProcessor;
 	
-	@Autowired(required = true)
+	@Autowired
     private ConsolidationProcessor consolidationProcessor;
 	
-	@Autowired(required = true)
+	@Autowired
     private AssignmentProcessor assignmentProcessor;
 	
-	@Autowired(required = true)
+	@Autowired
 	@Qualifier("cacheRepositoryService")
 	RepositoryService repositoryService;
 	
-	@Autowired(required = true)
+	@Autowired
 	private ExpressionFactory expressionFactory;
 	
-	@Autowired(required = true)
+	@Autowired
 	private PrismContext prismContext;
 	
-	@Autowired(required = true)
+	@Autowired
 	private CorrelationConfirmationEvaluator correlationConfirmationEvaluator;
 	
-	@Autowired(required = true)
+	@Autowired
 	private SynchronizationService synchronizationService;
 
-	@Autowired(required=true)
+	@Autowired
     private ContextLoader contextLoader;
 	
-	@Autowired(required=true)
+	@Autowired
 	private ProvisioningService provisioningService;
 	
 	private List<LensProjectionContext> conflictingAccountContexts = new ArrayList<LensProjectionContext>();

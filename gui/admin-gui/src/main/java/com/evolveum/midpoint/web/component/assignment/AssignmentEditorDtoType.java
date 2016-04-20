@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -28,20 +29,22 @@ import javax.xml.namespace.QName;
  */
 public enum AssignmentEditorDtoType {
 
-    ORG_UNIT(OrgType.class, OrgType.COMPLEX_TYPE),
+    ORG_UNIT(OrgType.class, OrgType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_ORG_ICON_COLORED),
 
-    ROLE(RoleType.class, RoleType.COMPLEX_TYPE),
+    ROLE(RoleType.class, RoleType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED),
     
-    SERVICE(ServiceType.class, ServiceType.COMPLEX_TYPE),
+    SERVICE(ServiceType.class, ServiceType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED),
 
-    ACCOUNT_CONSTRUCTION(null, null);
+    CONSTRUCTION(null, null, GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED);
 
     private Class<? extends ObjectType> type;
     private QName qname;
+    private String coloredIconCssClass;
 
-    private AssignmentEditorDtoType(Class<? extends ObjectType> type, QName qname) {
+    private AssignmentEditorDtoType(Class<? extends ObjectType> type, QName qname, String coloredIconCssClass) {
         this.type = type;
         this.qname = qname;
+        this.coloredIconCssClass = coloredIconCssClass;
     }
 
     public Class<? extends ObjectType> getType() {
@@ -54,7 +57,7 @@ public enum AssignmentEditorDtoType {
 
     public static AssignmentEditorDtoType getType(Class<? extends ObjectType> type) {
         if (type == null) {
-            return ACCOUNT_CONSTRUCTION;
+            return CONSTRUCTION;
         }
 
         for (AssignmentEditorDtoType e : AssignmentEditorDtoType.values()) {
@@ -68,7 +71,7 @@ public enum AssignmentEditorDtoType {
     
     public static AssignmentEditorDtoType getType(QName type) {
         if (type == null) {
-            return ACCOUNT_CONSTRUCTION;
+            return CONSTRUCTION;
         }
 
         for (AssignmentEditorDtoType e : AssignmentEditorDtoType.values()) {
@@ -79,4 +82,8 @@ public enum AssignmentEditorDtoType {
 
         throw new IllegalArgumentException("Unknown assignment type '" + type + "'.");
     }
+
+	public String getColoredIconCssClass() {
+		return coloredIconCssClass;
+	}
 }

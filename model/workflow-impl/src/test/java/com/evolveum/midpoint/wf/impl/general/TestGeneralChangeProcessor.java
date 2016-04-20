@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.AbstractWfTest;
 import com.evolveum.midpoint.wf.impl.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
@@ -87,9 +88,6 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
 	@Autowired(required = true)
 	private TaskManager taskManager;
-
-    @Autowired(required = true)
-    private WorkflowManagerImpl workflowServiceImpl;
 
     @Autowired
     private WfTaskUtil wfTaskUtil;

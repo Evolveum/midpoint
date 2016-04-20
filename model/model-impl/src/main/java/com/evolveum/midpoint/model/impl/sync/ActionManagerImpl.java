@@ -17,18 +17,16 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.model.impl.controller.ModelController;
+import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.sync.action.BaseAction;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
 import org.apache.commons.lang.Validate;
 
 import java.util.ArrayList;
@@ -48,9 +46,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
     private ProvisioningService provisioningService;
     private ContextFactory contextFactory;
     private AuditService auditService;
-    
-    @Deprecated
-    private ModelController model;
+    private ModelObjectResolver modelObjectResolver;
 
     @Override
     public void setActionMapping(Map<String, Class<T>> actionMap) {
@@ -77,7 +73,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
                 baseAction.setAuditService(auditService);
                 baseAction.setProvisioningService(provisioningService);
                 baseAction.setContextFactory(contextFactory);
-                baseAction.setModel(model);
+                baseAction.setModelObjectResolver(modelObjectResolver);
             }
         } catch (Exception ex) {
             LoggingUtils.logException(trace, "Couldn't create action instance", ex);
@@ -104,9 +100,8 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
         this.changeExecutor = executor;
     }
 
-    @Deprecated
-    public void setModel(ModelController model) {
-        this.model = model;
+    public void setModelObjectResolver(ModelObjectResolver modelObjectResolver) {
+        this.modelObjectResolver = modelObjectResolver;
     }
 
     public void setPrismContext(PrismContext prismContext) {

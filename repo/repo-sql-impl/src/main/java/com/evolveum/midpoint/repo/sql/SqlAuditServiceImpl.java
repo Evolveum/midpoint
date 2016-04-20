@@ -25,6 +25,7 @@ import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
+import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -58,11 +59,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import org.hibernate.FlushMode;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author lazyman
  */
 public class SqlAuditServiceImpl extends SqlBaseService implements AuditService {
+
+	@Autowired
+	private BaseHelper baseHelper;
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceImpl.class);
     private static final Integer CLEANUP_AUDIT_BATCH_SIZE = 500;
@@ -84,7 +89,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 auditAttempt(record);
                 return;
             } catch (RuntimeException ex) {
-                attempt = logOperationAttempt(null, operation, attempt, ex, null);
+                attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, null);
             }
         }
     }
@@ -98,7 +103,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             try {
                 return listRecordsAttempt(query, params);
             } catch (RuntimeException ex) {
-                attempt = logOperationAttempt(null, operation, attempt, ex, null);
+                attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, null);
             }
         }
     }
@@ -107,7 +112,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         Session session = null;
         List<AuditEventRecord> auditRecords = null;
         try {
-            session = beginTransaction();
+            session = baseHelper.beginTransaction();
             session.setFlushMode(FlushMode.MANUAL);
             Query q = session.createQuery(query);
             Set<Entry<String, Object>> paramSet = params.entrySet();
@@ -150,11 +155,11 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             session.getTransaction().commit();
 
         } catch (DtoTranslationException | SchemaException ex) {
-            handleGeneralCheckedException(ex, session, null);
+			baseHelper.handleGeneralCheckedException(ex, session, null);
         } catch (RuntimeException ex) {
-            handleGeneralRuntimeException(ex, session, null);
+			baseHelper.handleGeneralRuntimeException(ex, session, null);
         } finally {
-            cleanupSessionAndResult(session, null);
+			baseHelper.cleanupSessionAndResult(session, null);
         }
         return auditRecords;
 
@@ -179,18 +184,18 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private void auditAttempt(AuditEventRecord record) {
         Session session = null;
         try {
-            session = beginTransaction();
+            session = baseHelper.beginTransaction();
 
             RAuditEventRecord newRecord = RAuditEventRecord.toRepo(record, getPrismContext());
             session.save(newRecord);
 
             session.getTransaction().commit();
         } catch (DtoTranslationException ex) {
-            handleGeneralCheckedException(ex, session, null);
+			baseHelper.handleGeneralCheckedException(ex, session, null);
         } catch (RuntimeException ex) {
-            handleGeneralRuntimeException(ex, session, null);
+			baseHelper.handleGeneralRuntimeException(ex, session, null);
         } finally {
-            cleanupSessionAndResult(session, null);
+			baseHelper.cleanupSessionAndResult(session, null);
         }
     }
 
@@ -217,7 +222,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         duration.addTo(minValue);
 
         // factored out because it produces INFO-level message
-        Dialect dialect = Dialect.getDialect(getSessionFactoryBean().getHibernateProperties());
+        Dialect dialect = Dialect.getDialect(baseHelper.getSessionFactoryBean().getHibernateProperties());
         if (!dialect.supportsTemporaryTables()) {
             LOGGER.error("Dialect {} doesn't support temporary tables, couldn't cleanup audit logs.", dialect);
             throw new SystemException("Dialect " + dialect + " doesn't support temporary tables, couldn't cleanup audit logs.");
@@ -241,7 +246,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     } while (count > 0);
                     return;
                 } catch (RuntimeException ex) {
-                    attempt = logOperationAttempt(null, operation, attempt, ex, parentResult);
+                    attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, parentResult);
                     pm.registerOperationNewTrial(opHandle, attempt);
                 }
             }
@@ -260,7 +265,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         Session session = null;
         try {
-            session = beginTransaction();
+            session = baseHelper.beginTransaction();
 
             int count = cleanupAuditAttempt(minValue, session, dialect);
 
@@ -271,10 +276,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             return count;
         } catch (RuntimeException ex) {
             LOGGER.debug("Audit cleanup batch finishing with exception in {} milliseconds; exception = {}", System.currentTimeMillis()-start, ex.getMessage());
-            handleGeneralRuntimeException(ex, session, subResult);
+			baseHelper.handleGeneralRuntimeException(ex, session, subResult);
             throw new AssertionError("We shouldn't get here.");         // just because of the need to return a value
         } finally {
-            cleanupSessionAndResult(session, subResult);
+			baseHelper.cleanupSessionAndResult(session, subResult);
         }
     }
 

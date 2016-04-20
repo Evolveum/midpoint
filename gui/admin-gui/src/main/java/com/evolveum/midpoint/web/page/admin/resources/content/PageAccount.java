@@ -136,13 +136,7 @@ public class PageAccount extends PageAdminResources {
         mainForm.add(protectedMessage);
 
         PrismObjectPanel<ShadowType> userForm = new PrismObjectPanel<ShadowType>("account", accountModel, new PackageResourceReference(
-                ImgResources.class, ImgResources.HDD_PRISM), mainForm, this) {
-
-            @Override
-            protected IModel<String> createDescription(IModel<ObjectWrapper<ShadowType>> model) {
-                return createStringResource("pageAccount.description");
-            }
-        };
+                ImgResources.class, ImgResources.HDD_PRISM), mainForm, this);
         mainForm.add(userForm);
 
         initButtons(mainForm);

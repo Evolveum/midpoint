@@ -149,7 +149,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		} else if (assignment.getTargetRef() != null) {
 			return AssignmentEditorDtoType.getType(assignment.getTargetRef().getType());
 		} // account assignment through account construction
-		return AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION;
+		return AssignmentEditorDtoType.CONSTRUCTION;
 
 	}
 

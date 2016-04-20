@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.component;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.WicketRuntimeException;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -32,6 +34,10 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.util.lang.Args;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.CountModelProvider;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -47,6 +53,10 @@ public class TabbedPanel<T extends ITab> extends Panel {
     public static final String TAB_PANEL_ID = "panel";
     public static final String RIGHT_SIDE_TAB_ITEM_ID = "rightSideTabItem";
     public static final String RIGHT_SIDE_TAB_ID = "rightSideTab";
+    
+	protected static final String ID_TITLE = "title";
+	protected static final String ID_COUNT = "count";
+	protected static final String ID_LINK = "link";
 
     private final IModel<List<T>> tabs;
     /**
@@ -110,10 +120,36 @@ public class TabbedPanel<T extends ITab> extends Panel {
                 final int index = item.getIndex();
                 final T tab = TabbedPanel.this.tabs.getObject().get(index);
 
-                final WebMarkupContainer titleLink = newLink("link", index);
+                final WebMarkupContainer titleLink = newLink(ID_LINK, index);
 
-                titleLink.add(newTitle("title", tab.getTitle(), index));
+                titleLink.add(newTitle(ID_TITLE, tab.getTitle(), index));
                 item.add(titleLink);
+                
+                final IModel<String> countModel;
+                if (tab instanceof CountModelProvider) {
+                	countModel = ((CountModelProvider)tab).getCountModel();
+                } else {
+                	countModel = null;
+                }
+				Label countLabel = new Label(ID_COUNT, countModel);
+				countLabel.setVisible(countModel != null);
+				countLabel.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public String getObject() {
+						if (countModel == null) {
+							return GuiStyleConstants.CLASS_BADGE_PASSIVE;
+						}
+						String count = countModel.getObject();
+						if ("0".equals(count)) {
+							return GuiStyleConstants.CLASS_BADGE_PASSIVE;
+						} else {
+							return GuiStyleConstants.CLASS_BADGE_ACTIVE;
+						}
+					}
+				}));
+                titleLink.add(countLabel);
             }
 
             @Override

@@ -97,7 +97,7 @@ public class ObjectRetriever {
     private CertificationCaseHelper caseHelper;
 
     @Autowired
-    private TransactionHelper transactionHelper;
+    private BaseHelper baseHelper;
 
     @Autowired
     private NameResolutionHelper nameResolutionHelper;
@@ -114,23 +114,23 @@ public class ObjectRetriever {
 
         Session session = null;
         try {
-            session = transactionHelper.beginReadOnlyTransaction();
+            session = baseHelper.beginReadOnlyTransaction();
 
             objectType = getObjectInternal(session, type, oid, options, false, result);
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
             GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-            transactionHelper.rollbackTransaction(session, ex, result, !GetOperationOptions.isAllowNotFound(rootOptions));
+            baseHelper.rollbackTransaction(session, ex, result, !GetOperationOptions.isAllowNotFound(rootOptions));
             throw ex;
         } catch (SchemaException ex) {
-            transactionHelper.rollbackTransaction(session, ex, "Schema error while getting object with oid: "
+            baseHelper.rollbackTransaction(session, ex, "Schema error while getting object with oid: "
                     + oid + ". Reason: " + ex.getMessage(), result, true);
             throw ex;
         } catch (DtoTranslationException | RuntimeException ex) {
-            transactionHelper.handleGeneralException(ex, session, result);
+            baseHelper.handleGeneralException(ex, session, result);
         } finally {
-            transactionHelper.cleanupSessionAndResult(session, result);
+            baseHelper.cleanupSessionAndResult(session, result);
         }
 
         if (LOGGER.isTraceEnabled()) {
@@ -234,7 +234,7 @@ public class ObjectRetriever {
     }
 
     protected SqlRepositoryConfiguration getConfiguration() {
-        return ((SqlRepositoryServiceImpl) repositoryService).getConfiguration();
+        return baseHelper.getConfiguration();
     }
 
     private <T extends ObjectType> PrismObject<T> throwObjectNotFoundException(Class<T> type, String oid)
@@ -248,7 +248,7 @@ public class ObjectRetriever {
         PrismObject<F> owner = null;
         Session session = null;
         try {
-            session = transactionHelper.beginReadOnlyTransaction();
+            session = baseHelper.beginReadOnlyTransaction();
             LOGGER.trace("Selecting account shadow owner for account {}.", new Object[]{shadowOid});
             Query query = session.getNamedQuery("searchShadowOwner.getOwner");
             query.setString("oid", shadowOid);
@@ -274,9 +274,9 @@ public class ObjectRetriever {
             session.getTransaction().commit();
 
         } catch (SchemaException | RuntimeException ex) {
-            transactionHelper.handleGeneralException(ex, session, result);
+            baseHelper.handleGeneralException(ex, session, result);
         } finally {
-            transactionHelper.cleanupSessionAndResult(session, result);
+            baseHelper.cleanupSessionAndResult(session, result);
         }
 
         return owner;
@@ -288,7 +288,7 @@ public class ObjectRetriever {
         PrismObject<UserType> userType = null;
         Session session = null;
         try {
-            session = transactionHelper.beginReadOnlyTransaction();
+            session = baseHelper.beginReadOnlyTransaction();
             Query query = session.getNamedQuery("listAccountShadowOwner.getUser");
             query.setString("oid", accountOid);
             query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
@@ -312,9 +312,9 @@ public class ObjectRetriever {
 
             session.getTransaction().commit();
         } catch (SchemaException | RuntimeException ex) {
-            transactionHelper.handleGeneralException(ex, session, result);
+            baseHelper.handleGeneralException(ex, session, result);
         } finally {
-            transactionHelper.cleanupSessionAndResult(session, result);
+            baseHelper.cleanupSessionAndResult(session, result);
         }
 
         return userType;
@@ -329,7 +329,7 @@ public class ObjectRetriever {
         try {
             Class<? extends RObject> hqlType = ClassMapper.getHQLTypeClass(type);
 
-            session = transactionHelper.beginReadOnlyTransaction();
+            session = baseHelper.beginReadOnlyTransaction();
             Number longCount;
             if (query == null || query.getFilter() == null) {
                 // this is 5x faster than count with 3 inner joins, it can probably improved also for queries which
@@ -351,9 +351,9 @@ public class ObjectRetriever {
             LOGGER.trace("Found {} objects.", longCount);
             count = longCount != null ? longCount.intValue() : 0;
         } catch (QueryException | RuntimeException ex) {
-            transactionHelper.handleGeneralException(ex, session, result);
+            baseHelper.handleGeneralException(ex, session, result);
         } finally {
-            transactionHelper.cleanupSessionAndResult(session, result);
+            baseHelper.cleanupSessionAndResult(session, result);
         }
 
         return count;
@@ -367,7 +367,7 @@ public class ObjectRetriever {
         List<PrismObject<T>> list = new ArrayList<>();
         Session session = null;
         try {
-            session = transactionHelper.beginReadOnlyTransaction();
+            session = baseHelper.beginReadOnlyTransaction();
             RQuery rQuery;
 
             if (isUseNewQueryInterpreter(query)) {
@@ -388,9 +388,9 @@ public class ObjectRetriever {
 
             session.getTransaction().commit();
         } catch (QueryException | RuntimeException ex) {
-            transactionHelper.handleGeneralException(ex, session, result);
+            baseHelper.handleGeneralException(ex, session, result);
         } finally {
-            transactionHelper.cleanupSessionAndResult(session, result);
+            baseHelper.cleanupSessionAndResult(session, result);
         }
 
         return new SearchResultList<PrismObject<T>>(list);
@@ -408,7 +408,7 @@ public class ObjectRetriever {
         List<C> list = new ArrayList<>();
         Session session = null;
         try {
-            session = transactionHelper.beginReadOnlyTransaction();
+            session = baseHelper.beginReadOnlyTransaction();
 
             QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
             RQuery rQuery = engine.interpret(query, type, options, false, session);
@@ -424,9 +424,9 @@ public class ObjectRetriever {
 
             session.getTransaction().commit();
         } catch (QueryException | RuntimeException ex) {
-            transactionHelper.handleGeneralException(ex, session, result);
+            baseHelper.handleGeneralException(ex, session, result);
         } finally {
-            transactionHelper.cleanupSessionAndResult(session, result);
+            baseHelper.cleanupSessionAndResult(session, result);
         }
 
         return new SearchResultList<C>(list);
@@ -546,7 +546,7 @@ public class ObjectRetriever {
         List<PrismObject<T>> list = new ArrayList<>();
         Session session = null;
         try {
-            session = transactionHelper.beginReadOnlyTransaction();
+            session = baseHelper.beginReadOnlyTransaction();
             Query query = session.getNamedQuery("listResourceObjectShadows");
             query.setString("oid", resourceOid);
             query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
@@ -563,9 +563,9 @@ public class ObjectRetriever {
             }
             session.getTransaction().commit();
         } catch (SchemaException | RuntimeException ex) {
-            transactionHelper.handleGeneralException(ex, session, result);
+            baseHelper.handleGeneralException(ex, session, result);
         } finally {
-            transactionHelper.cleanupSessionAndResult(session, result);
+            baseHelper.cleanupSessionAndResult(session, result);
         }
 
         return list;
@@ -593,7 +593,7 @@ public class ObjectRetriever {
         String version = null;
         Session session = null;
         try {
-            session = transactionHelper.beginReadOnlyTransaction();
+            session = baseHelper.beginReadOnlyTransaction();
             Query query = session.getNamedQuery("getVersion");
             query.setString("oid", oid);
 
@@ -604,9 +604,9 @@ public class ObjectRetriever {
             }
             version = versionLong.toString();
         } catch (RuntimeException ex) {
-            transactionHelper.handleGeneralRuntimeException(ex, session, result);
+            baseHelper.handleGeneralRuntimeException(ex, session, result);
         } finally {
-            transactionHelper.cleanupSessionAndResult(session, result);
+            baseHelper.cleanupSessionAndResult(session, result);
         }
 
         return version;
@@ -618,7 +618,7 @@ public class ObjectRetriever {
                                                                      OperationResult result) throws SchemaException {
         Session session = null;
         try {
-            session = transactionHelper.beginReadOnlyTransaction();
+            session = baseHelper.beginReadOnlyTransaction();
             RQuery rQuery;
             if (isUseNewQueryInterpreter(query)) {
                 QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
@@ -647,9 +647,9 @@ public class ObjectRetriever {
 
             session.getTransaction().commit();
         } catch (SchemaException | QueryException | RuntimeException ex) {
-            transactionHelper.handleGeneralException(ex, session, result);
+            baseHelper.handleGeneralException(ex, session, result);
         } finally {
-            transactionHelper.cleanupSessionAndResult(session, result);
+            baseHelper.cleanupSessionAndResult(session, result);
         }
     }
 
@@ -769,7 +769,7 @@ main:       for (;;) {
     public boolean isAnySubordinateAttempt(String upperOrgOid, Collection<String> lowerObjectOids) {
         Session session = null;
         try {
-            session = transactionHelper.beginTransaction();
+            session = baseHelper.beginTransaction();
 
             Query query;
             if (lowerObjectOids.size() == 1) {
@@ -784,9 +784,9 @@ main:       for (;;) {
             Number number = (Number) query.uniqueResult();
             return number != null && number.longValue() != 0L;
         } catch (RuntimeException ex) {
-            transactionHelper.handleGeneralException(ex, session, null);
+            baseHelper.handleGeneralException(ex, session, null);
         } finally {
-            transactionHelper.cleanupSessionAndResult(session, null);
+            baseHelper.cleanupSessionAndResult(session, null);
         }
 
         throw new SystemException("isAnySubordinateAttempt failed somehow, this really should not happen.");
@@ -798,7 +798,7 @@ main:       for (;;) {
         Session session = null;
         StringBuffer answer = new StringBuffer();
         try {
-            session = transactionHelper.beginReadOnlyTransaction();       // beware, not all databases support read-only transactions!
+            session = baseHelper.beginReadOnlyTransaction();       // beware, not all databases support read-only transactions!
 
             Query query = session.createQuery(queryString);
             List results = query.list();
@@ -823,9 +823,9 @@ main:       for (;;) {
             }
             session.getTransaction().rollback();
         } catch (RuntimeException ex) {
-            transactionHelper.handleGeneralException(ex, session, result);
+            baseHelper.handleGeneralException(ex, session, result);
         } finally {
-            transactionHelper.cleanupSessionAndResult(session, result);
+            baseHelper.cleanupSessionAndResult(session, result);
         }
 
         if (LOGGER.isTraceEnabled()) {

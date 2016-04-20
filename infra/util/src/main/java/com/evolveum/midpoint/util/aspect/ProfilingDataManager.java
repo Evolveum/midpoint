@@ -45,11 +45,11 @@ public class ProfilingDataManager {
 
     private static boolean profilingTest = false;
 
-    public static enum Subsystem{
+    public static enum Subsystem {
         REPOSITORY,
         TASK_MANAGER,
         PROVISIONING,
-        RESOURCE_OBJECT_CHANGE_LISTENER,
+		SYNCHRONIZATION_SERVICE,
         MODEL,
         UCF,
         WORKFLOW,
@@ -65,7 +65,7 @@ public class ProfilingDataManager {
     private static boolean isRepositoryProfiled = false;
     private static boolean isTaskManagerProfiled = false;
     private static boolean isProvisioningProfiled = false;
-    private static boolean isResourceObjectChangeListenerProfiled = false;
+    private static boolean isSynchronizationServiceProfiled = false;
     private static boolean isModelProfiled = false;
     private static boolean isUcfProfiled = false;
     private static boolean isWorkflowProfiled = false;
@@ -107,9 +107,9 @@ public class ProfilingDataManager {
         isPerformanceProfiled = performance;
 
         if(subsystemProfilingActive || isPerformanceProfiled || request){
-            MidpointAspect.activateSubsystemProfiling();
+            MidpointInterceptor.activateSubsystemProfiling();
         }else {
-            MidpointAspect.deactivateSubsystemProfiling();
+            MidpointInterceptor.deactivateSubsystemProfiling();
         }
 
         subsystemConfiguration(profiledSubsystems);
@@ -152,8 +152,8 @@ public class ProfilingDataManager {
         } else if (isUcfProfiled && Subsystem.UCF.equals(subsystem)){
             updateOverallStatistics(performanceMap, profilingEvent, key, Subsystem.UCF);
 
-        } else if(isResourceObjectChangeListenerProfiled && Subsystem.RESOURCE_OBJECT_CHANGE_LISTENER.equals(subsystem)){
-            updateOverallStatistics(performanceMap, profilingEvent, key, Subsystem.RESOURCE_OBJECT_CHANGE_LISTENER);
+        } else if(isSynchronizationServiceProfiled && Subsystem.SYNCHRONIZATION_SERVICE.equals(subsystem)){
+            updateOverallStatistics(performanceMap, profilingEvent, key, Subsystem.SYNCHRONIZATION_SERVICE);
 
         } else if(isWorkflowProfiled && Subsystem.WORKFLOW.equals(subsystem)){
             updateOverallStatistics(performanceMap, profilingEvent, key, Subsystem.WORKFLOW);
@@ -229,8 +229,8 @@ public class ProfilingDataManager {
         if(isWorkflowProfiled){
             printMap(performanceMap, Subsystem.WORKFLOW, afterTest);
         }
-        if(isResourceObjectChangeListenerProfiled) {
-            printMap(performanceMap, Subsystem.RESOURCE_OBJECT_CHANGE_LISTENER, afterTest);
+        if(isSynchronizationServiceProfiled) {
+            printMap(performanceMap, Subsystem.SYNCHRONIZATION_SERVICE, afterTest);
         }
         if(isWebProfiled){
             printMap(performanceMap, Subsystem.WEB, afterTest);
@@ -280,7 +280,7 @@ public class ProfilingDataManager {
         isModelProfiled = isSubsystemProfiled(Subsystem.MODEL, subsystems);
         isProvisioningProfiled = isSubsystemProfiled(Subsystem.PROVISIONING, subsystems);
         isRepositoryProfiled = isSubsystemProfiled(Subsystem.REPOSITORY, subsystems);
-        isResourceObjectChangeListenerProfiled = isSubsystemProfiled(Subsystem.RESOURCE_OBJECT_CHANGE_LISTENER, subsystems);
+        isSynchronizationServiceProfiled = isSubsystemProfiled(Subsystem.SYNCHRONIZATION_SERVICE, subsystems);
         isTaskManagerProfiled = isSubsystemProfiled(Subsystem.TASK_MANAGER, subsystems);
         isUcfProfiled = isSubsystemProfiled(Subsystem.UCF, subsystems);
         isWorkflowProfiled = isSubsystemProfiled(Subsystem.WORKFLOW, subsystems);
@@ -352,11 +352,11 @@ public class ProfilingDataManager {
     }
 
     public void appendProfilingToTest(){
-        MidpointAspect.activateSubsystemProfiling();
+        MidpointInterceptor.activateSubsystemProfiling();
     }
 
     public void stopProfilingAfterTest(){
-        MidpointAspect.deactivateSubsystemProfiling();
+        MidpointInterceptor.deactivateSubsystemProfiling();
     }
 
     public void printMapAfterTest(){

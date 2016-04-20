@@ -59,7 +59,7 @@ public class ProfilingTest {
         profMap.put(ProfilingDataManager.Subsystem.MODEL, true);
         profMap.put(ProfilingDataManager.Subsystem.PROVISIONING, false);
         profMap.put(ProfilingDataManager.Subsystem.REPOSITORY, false);
-        profMap.put(ProfilingDataManager.Subsystem.RESOURCE_OBJECT_CHANGE_LISTENER, false);
+        profMap.put(ProfilingDataManager.Subsystem.SYNCHRONIZATION_SERVICE, false);
         profMap.put(ProfilingDataManager.Subsystem.TASK_MANAGER, false);
         profMap.put(ProfilingDataManager.Subsystem.UCF, false);
         profMap.put(ProfilingDataManager.Subsystem.WORKFLOW, false);
@@ -155,7 +155,7 @@ public class ProfilingTest {
         Map<ProfilingDataManager.Subsystem, Boolean> confMap = new HashMap<>();
         confMap.put(ProfilingDataManager.Subsystem.MODEL, true);
         confMap.put(ProfilingDataManager.Subsystem.REPOSITORY, true);
-        confMap.put(ProfilingDataManager.Subsystem.RESOURCE_OBJECT_CHANGE_LISTENER, false);
+        confMap.put(ProfilingDataManager.Subsystem.SYNCHRONIZATION_SERVICE, false);
         confMap.put(ProfilingDataManager.Subsystem.WEB, false);
         confMap.put(ProfilingDataManager.Subsystem.WORKFLOW, false);
         confMap.put(ProfilingDataManager.Subsystem.PROVISIONING, false);

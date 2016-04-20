@@ -21,9 +21,8 @@
 	<wicket:panel>
 		<div class="row">
 			<div class="col-md-12">
-				<div wicket:id="resourcePopup" />
-				<div wicket:id="shadows">
-					<div class="row assignable-header">
+				<div class="projections" wicket:id="shadows">
+					<div class="row assignable-header projections-header">
 						<div class="col-xs-10">
 							<input type="checkbox" wicket:id="shadowCheckAll" />
 							<h3>
@@ -33,8 +32,9 @@
 						<div class="col-xs-2 cog" wicket:id="shadowMenu"
 							about="shadowMenu" />
 					</div>
-					<div wicket:id="shadowList">
-						<div wicket:id="shadow" />
+					<div class="box projection" wicket:id="shadowList">
+						<div class="box-header with-border" wicket:id="shadowHeader"/>
+						<div class="box-body" wicket:id="shadow" />
 					</div>
 				</div>
 			</div>

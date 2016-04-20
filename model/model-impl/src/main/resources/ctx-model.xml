@@ -330,8 +330,8 @@
                  -->
             </map>
         </property>
-        <property name="model">
-            <ref bean="modelController"/>
+        <property name="modelObjectResolver">
+            <ref bean="modelObjectResolver"/>
         </property>
         <property name="clockwork">
             <ref bean="clockwork"/>

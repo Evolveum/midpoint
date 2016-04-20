@@ -2269,7 +2269,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				// .. and pass it to the handler
 				boolean cont = handler.handle(resourceObject);
 				if (!cont) {
-					result.recordPartialError("Stopped on request from the handler");
+					result.recordWarning("Stopped on request from the handler");
 				}
 				recordResume();
 				return cont;
@@ -3278,6 +3278,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			LOGGER.error("Unable to decrypt value of element {}: {}",
 					new Object[] { propertyName, e.getMessage(), e });
 			throw new SystemException("Unable to decrypt value of element " + propertyName + ": "
+					+ e.getMessage(), e);
+		} catch (RuntimeException e) {
+			// The ConnId will mask encryption exceptions into RuntimeException
+			throw new SystemException("Unable to re-enctyt value of element " + propertyName + ": "
 					+ e.getMessage(), e);
 		}
 	}
