@@ -115,10 +115,10 @@ public class WorkItemsPanel extends BasePanel {
                     }
             });
 			if (view == FULL_LIST) {
-				columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.assigned"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
+				columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.actors"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
 			}
 		} else {
-			columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.assigned"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
+			columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.actors"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
 			columns.add(createNameColumn());
             columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.created"), WorkItemDto.F_CREATED_FORMATTED));
 		}
