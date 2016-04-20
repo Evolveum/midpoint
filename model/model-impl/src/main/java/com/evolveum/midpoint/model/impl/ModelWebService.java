@@ -15,17 +15,8 @@
  */
 package com.evolveum.midpoint.model.impl;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelPort;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.ScriptExecutionResult;
-import com.evolveum.midpoint.model.api.ScriptingService;
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.common.util.AbstractModelWebService;
-import com.evolveum.midpoint.model.impl.controller.ModelController;
-import com.evolveum.midpoint.model.impl.scripting.Data;
-import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.api.ScriptExecutionException;
-import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -42,42 +33,13 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.AuthorizationException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteScriptsOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.OutputFormatType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ScriptOutputsType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualifiedGetOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SingleScriptOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectShadowChangeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.CommunicationFaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.ConfigurationFaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.IllegalArgumentFaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.ObjectAlreadyExistsFaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.ObjectNotFoundFaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.PolicyViolationFaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.SchemaViolationFaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.SystemFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.fault_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponseType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
@@ -85,7 +47,6 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ItemListType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.wss4j.common.ext.WSSecurityException;
@@ -96,7 +57,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -114,10 +74,6 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 	@Autowired(required = true)
 	private ModelCrudService model;
 	
-    // for more complicated interactions (like executeChanges)
-    @Autowired
-    private ModelController modelController;
-		
     @Autowired
     private ScriptingService scriptingService;
 
@@ -185,7 +141,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
                 prismContext.adopt(delta);
             }
             ModelExecuteOptions options = ModelExecuteOptions.fromModelExecutionOptionsType(optionsType);
-            Collection<ObjectDeltaOperation<? extends ObjectType>> objectDeltaOperations = modelController.executeChanges((Collection) deltas, options, task, operationResult);        // brutally eliminating type-safety compiler barking
+            Collection<ObjectDeltaOperation<? extends ObjectType>> objectDeltaOperations = modelService.executeChanges((Collection) deltas, options, task, operationResult);        // brutally eliminating type-safety compiler barking
 			ObjectDeltaOperationListType retval = new ObjectDeltaOperationListType();
             for (ObjectDeltaOperation objectDeltaOperation : objectDeltaOperations) {
                 ObjectDeltaOperationType objectDeltaOperationType = DeltaConvertor.toObjectDeltaOperationType(objectDeltaOperation, null);

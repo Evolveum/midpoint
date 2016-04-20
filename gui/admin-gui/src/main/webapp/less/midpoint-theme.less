@@ -259,6 +259,34 @@ th.cog, td.cog {
 	#box-object(@object-resource-color);
 }
 
+#box-thin-object(@color) {
+	border: 1px solid @color;
+	
+	.box-header {
+		border-bottom: 1px solid @color;
+	}
+}
+
+.object-user-box-thin {
+	#box-thin-object(@object-user-color);
+}
+
+.object-role-box-thin {
+	#box-thin-object(@object-role-color);
+}
+
+.object-org-box-thin {
+	#box-thin-object(@object-org-color);
+}
+
+.object-service-box-thin {
+	#box-thin-object(@object-service-color);
+}
+
+.object-resource-box-thin {
+	#box-thin-object(@object-resource-color);
+}
+
 // Summary panel (panel above the edit user/role/org forms)
 
 #info-box-summary-panel(@color) {
@@ -529,7 +557,9 @@ div.dashAssignmentHeader {
 // Prism containers and attributes
 
 .prism-object {
-	
+	& > div.prism-header {
+		padding-left: 15px; // to match container header padding
+	}
 }
 
 .prism-container {
@@ -639,7 +669,7 @@ div.dashAssignmentHeader {
 	}
 }
 
-// Projection tab (focus pages)
+// Projections tab (focus pages)
 
 .projections {
 	
@@ -655,7 +685,7 @@ div.dashAssignmentHeader {
 
 .projection {
 	margin-bottom: 10px;
-	border-top-color: @box-projection-color; 
+	#box-thin-object(@box-projection-color); 
 	
 	.box-header {
 		
@@ -663,4 +693,14 @@ div.dashAssignmentHeader {
 			margin-top: 5px;
 		}
 	}
+}
+
+// Assignments tab (focus pages)
+
+.assignments {
+	
+}
+
+.assignment {
+	margin-bottom: 10px;
 }

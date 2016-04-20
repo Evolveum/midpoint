@@ -146,8 +146,8 @@ public class ProfilingConfigPanel extends SimplePanel<ProfilingDto> {
         CheckBox subsystemModel = WebComponentUtil.createAjaxCheckBox("subsystemModel", new PropertyModel<Boolean>(getModel(), "subsystemModel"));
         CheckBox subsystemRepository = WebComponentUtil.createAjaxCheckBox("subsystemRepository", new PropertyModel<Boolean>(getModel(), "subsystemRepository"));
         CheckBox subsystemProvisioning = WebComponentUtil.createAjaxCheckBox("subsystemProvisioning", new PropertyModel<Boolean>(getModel(), "subsystemProvisioning"));
-        CheckBox subsystemUcf = WebComponentUtil.createAjaxCheckBox("subsystemUcf", new PropertyModel<Boolean>(getModel(), "subsystemUcf"));
-        CheckBox subsystemResourceObjectChangeListener = WebComponentUtil.createAjaxCheckBox("subsystemResourceObjectChangeListener", new PropertyModel<Boolean>(getModel(), "subsystemResourceObjectChangeListener"));
+        //CheckBox subsystemUcf = WebComponentUtil.createAjaxCheckBox("subsystemUcf", new PropertyModel<Boolean>(getModel(), "subsystemUcf"));
+        CheckBox subsystemResourceObjectChangeListener = WebComponentUtil.createAjaxCheckBox("subsystemSynchronizationService", new PropertyModel<Boolean>(getModel(), "subsystemSynchronizationService"));
         CheckBox subsystemTaskManager = WebComponentUtil.createAjaxCheckBox("subsystemTaskManager", new PropertyModel<Boolean>(getModel(), "subsystemTaskManager"));
         CheckBox subsystemWorkflow = WebComponentUtil.createAjaxCheckBox("subsystemWorkflow", new PropertyModel<Boolean>(getModel(), "subsystemWorkflow"));
         add(requestFilter);
@@ -155,7 +155,7 @@ public class ProfilingConfigPanel extends SimplePanel<ProfilingDto> {
         add(subsystemModel);
         add(subsystemRepository);
         add(subsystemProvisioning);
-        add(subsystemUcf);
+        //add(subsystemUcf);
         add(subsystemResourceObjectChangeListener);
         add(subsystemTaskManager);
         add(subsystemWorkflow);

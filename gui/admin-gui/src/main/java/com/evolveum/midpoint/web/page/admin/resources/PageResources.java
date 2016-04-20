@@ -176,7 +176,7 @@ public class PageResources extends PageAdminResources {
 			
 			@Override
         	protected String getBoxCssClasses() {
-        		return GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES;
+        		return GuiStyleConstants.CLASS_BOX + " " + GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES;
         	}
 		};
 		resourceListPanel.setOutputMarkupId(true);

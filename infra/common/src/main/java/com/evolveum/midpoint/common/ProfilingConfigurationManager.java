@@ -97,7 +97,7 @@ public class ProfilingConfigurationManager {
 
         profiledSubsystems.put(ProfilingDataManager.Subsystem.PROVISIONING, checkXsdBooleanValue(profilingConfig.isProvisioning()));
         profiledSubsystems.put(ProfilingDataManager.Subsystem.REPOSITORY, checkXsdBooleanValue(profilingConfig.isRepository()));
-        profiledSubsystems.put(ProfilingDataManager.Subsystem.RESOURCE_OBJECT_CHANGE_LISTENER, checkXsdBooleanValue(profilingConfig.isResourceObjectChangeListener()));
+        profiledSubsystems.put(ProfilingDataManager.Subsystem.SYNCHRONIZATION_SERVICE, checkXsdBooleanValue(profilingConfig.isSynchronizationService()));
         profiledSubsystems.put(ProfilingDataManager.Subsystem.TASK_MANAGER, checkXsdBooleanValue(profilingConfig.isTaskManager()));
         profiledSubsystems.put(ProfilingDataManager.Subsystem.UCF, checkXsdBooleanValue(profilingConfig.isUcf()));
         profiledSubsystems.put(ProfilingDataManager.Subsystem.MODEL, checkXsdBooleanValue(profilingConfig.isModel()));

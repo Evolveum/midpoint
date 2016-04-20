@@ -153,7 +153,7 @@ public class PageRoles extends PageAdminRoles {
 			
 			@Override
         	protected String getBoxCssClasses() {
-        		return GuiStyleConstants.CLASS_OBJECT_ROLE_BOX_CSS_CLASSES;
+        		return GuiStyleConstants.CLASS_BOX + " " + GuiStyleConstants.CLASS_OBJECT_ROLE_BOX_CSS_CLASSES;
         	}
 		};
 		roleListPanel.setOutputMarkupId(true);

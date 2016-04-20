@@ -50,10 +50,10 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 			protected void initialize(WorkItemType workItem) {
 				if (workItem.getAssigneeRef() != null) {
 					setIconCssClass("fa fa-fw fa-lg fa-lock");
-					setLabel(getString("WorkItemSummaryPanel.assigned"));
+					setLabel(getString("WorkItemSummaryPanel.allocated"));
 				} else {
 					setIconCssClass("fa fa-fw fa-lg fa-unlock");
-					setLabel(getString("WorkItemSummaryPanel.notAssigned"));
+					setLabel(getString("WorkItemSummaryPanel.notAllocated"));
 				}
 			}
 		};

@@ -39,7 +39,7 @@ public class ProfilingDto implements Serializable {
 	private boolean subsystemRepository;
 	private boolean subsystemProvisioning;
 	private boolean subsystemUcf;
-	private boolean subsystemResourceObjectChangeListener;
+	private boolean subsystemSynchronizationService;
 	private boolean subsystemTaskManager;
 	private boolean subsystemWorkflow;
 	private Integer dumpInterval;
@@ -70,8 +70,7 @@ public class ProfilingDto implements Serializable {
 			subsystemModel = checkXsdBooleanValue(profilingConfiguration.isModel());
 			subsystemProvisioning = checkXsdBooleanValue(profilingConfiguration.isProvisioning());
 			subsystemRepository = checkXsdBooleanValue(profilingConfiguration.isRepository());
-			subsystemResourceObjectChangeListener = checkXsdBooleanValue(
-					profilingConfiguration.isResourceObjectChangeListener());
+			subsystemSynchronizationService = checkXsdBooleanValue(profilingConfiguration.isSynchronizationService());
 			subsystemTaskManager = checkXsdBooleanValue(profilingConfiguration.isTaskManager());
 			subsystemUcf = checkXsdBooleanValue(profilingConfiguration.isUcf());
 			subsystemWorkflow = checkXsdBooleanValue(profilingConfiguration.isWorkflow());
@@ -119,12 +118,12 @@ public class ProfilingDto implements Serializable {
 		return null;
 	}
 
-	public ProfilingConfigurationType getNewObejct() {
+	public ProfilingConfigurationType getNewObject() {
 		
 		ProfilingConfigurationType config = new ProfilingConfigurationType();
 
 		if (isPerformanceStatistics() || isRequestFilter() || isSubsystemModel() || isSubsystemRepository()
-				|| isSubsystemProvisioning() || isSubsystemResourceObjectChangeListener() || isSubsystemUcf()
+				|| isSubsystemProvisioning() || isSubsystemSynchronizationService() || isSubsystemUcf()
 				|| isSubsystemTaskManager() || isSubsystemWorkflow())
 			config.setEnabled(true);
 		else
@@ -137,7 +136,7 @@ public class ProfilingDto implements Serializable {
 		config.setProvisioning(isSubsystemProvisioning());
 		config.setRepository(isSubsystemRepository());
 		config.setUcf(isSubsystemUcf());
-		config.setResourceObjectChangeListener(isSubsystemResourceObjectChangeListener());
+		config.setSynchronizationService(isSubsystemSynchronizationService());
 		config.setTaskManager(isSubsystemTaskManager());
 		config.setWorkflow(isSubsystemWorkflow());
 
@@ -207,12 +206,12 @@ public class ProfilingDto implements Serializable {
 		this.subsystemUcf = subsystemUcf;
 	}
 
-	public boolean isSubsystemResourceObjectChangeListener() {
-		return subsystemResourceObjectChangeListener;
+	public boolean isSubsystemSynchronizationService() {
+		return subsystemSynchronizationService;
 	}
 
-	public void setSubsystemResourceObjectChangeListener(boolean subsystemResourceObjectChangeListener) {
-		this.subsystemResourceObjectChangeListener = subsystemResourceObjectChangeListener;
+	public void setSubsystemSynchronizationService(boolean subsystemSynchronizationService) {
+		this.subsystemSynchronizationService = subsystemSynchronizationService;
 	}
 
 	public boolean isSubsystemTaskManager() {

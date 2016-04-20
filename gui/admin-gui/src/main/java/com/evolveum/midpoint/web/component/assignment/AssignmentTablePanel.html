@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,20 +18,18 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <div wicket:id="assignments" about="assignments">
-        <div class="row assignable-header">
+    <div class="assignments" wicket:id="assignments" about="assignments">
+        <div class="row assignable-header assignments-header">
 
             <div class="col-xs-10">
                 <input type="checkbox" wicket:id="assignmentsCheckAll" />
                 <h3><span wicket:id="assignmentsHeader" /></h3>
             </div>
-
             <div class="col-xs-2 cog" wicket:id="assignmentsMenu" />
-
         </div>
 
         <div wicket:id="assignmentList">
-            <div class="assignment-item" wicket:id="assignmentEditor"/>
+            <div class="box assignment" wicket:id="assignmentEditor"/>
         </div>
     </div>
 </wicket:panel>

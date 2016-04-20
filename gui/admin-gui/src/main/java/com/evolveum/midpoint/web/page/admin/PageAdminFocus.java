@@ -252,6 +252,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		ObjectWrapper<ShadowType> shadowWrapperOld = shadowWrapperDto.getObject();
 		Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
 		FocusSubwrapperDto<ShadowType> shadowWrapperDtoNew = loadSubWrapperDto(ShadowType.class, shadowWrapperOld.getObject().getOid(), false, task);
+		if (shadowWrapperDtoNew == null) {
+			// No access or error. The status is in the last subresult of task result. TODO: pass the result explicitly to loadSubWrapperDto
+			OperationResult subresult = task.getResult().getLastSubresult();
+			shadowWrapperDto.getObject().setFetchResult(subresult);
+			return;
+		}
 		ObjectWrapper<ShadowType> shadowWrapperNew = shadowWrapperDtoNew.getObject();
 		shadowWrapperOld.copyRuntimeStateTo(shadowWrapperNew);
 		shadowWrapperDto.setObject(shadowWrapperNew);
@@ -310,7 +316,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			PrismObject<S> projection = WebModelServiceUtils.loadObject(type, oid, loadOptions, this,
 					task, subResult);
 			if (projection == null) {
-				// No access, just skip it
+				// No access or error
 				return null;
 			}
 			S projectionType = projection.asObjectable();
@@ -349,6 +355,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		} catch (Exception ex) {
 			subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
 			LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
+			subResult.computeStatus();
 			return new FocusSubwrapperDto<S>(false, resourceName, subResult);
 		}
 	}

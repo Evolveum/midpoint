@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -70,6 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author shood
  */
 public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<AssignmentEditorDto>> {
+	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentTablePanel.class);
 
@@ -115,11 +117,26 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		assignments.add(assignmentMenu);
 
 		ListView<AssignmentEditorDto> list = new ListView<AssignmentEditorDto>(ID_LIST, getModel()) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(ListItem<AssignmentEditorDto> item) {
+			protected void populateItem(final ListItem<AssignmentEditorDto> item) {
 				AssignmentEditorPanel editor = new AssignmentEditorPanel(ID_ROW, item.getModel());
 				item.add(editor);
+				
+				editor.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+		            public String getObject() {
+		                AssignmentEditorDto dto = item.getModel().getObject();
+		                ObjectReferenceType targetRef = dto.getTargetRef();
+		                if (targetRef != null && targetRef.getType() != null) {
+		                	return WebComponentUtil.getBoxThinCssClasses(targetRef.getType());
+		                }
+		                return "";
+		            }
+		        }));
 			}
 		};
 		list.setOutputMarkupId(true);

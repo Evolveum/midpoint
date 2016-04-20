@@ -21,6 +21,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.crypto.Protector;
 
@@ -32,7 +34,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.model.impl.controller.ModelUtils;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -42,7 +43,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.PrismValidate;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ResourceEventDescription;
@@ -92,7 +92,10 @@ public class ModelCrudService {
 	private static final Trace LOGGER = TraceManager.getTrace(ModelCrudService.class);
 	
 	@Autowired(required = true)
-	ModelController modelController;
+	ModelService modelService;
+
+	@Autowired
+	TaskService taskService;
 	
 	@Autowired(required = true)
 	PrismContext prismContext;
@@ -110,14 +113,14 @@ public class ModelCrudService {
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		return modelController.getObject(clazz, oid, options, task, parentResult);
+		return modelService.getObject(clazz, oid, options, task, parentResult);
 	}	
 
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
-		return modelController.searchObjects(type, query, options, task, parentResult);
+		return modelService.searchObjects(type, query, options, task, parentResult);
 	}
 	
 	public void notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, OperationResult parentResult, Task task) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectNotFoundException, GenericConnectorException, ObjectAlreadyExistsException{
@@ -281,7 +284,7 @@ public class ModelCrudService {
 			
 			ObjectDelta<T> objectDelta = ObjectDelta.createAddDelta(object);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-			modelController.executeChanges(deltas, options, task, result);
+			modelService.executeChanges(deltas, options, task, result);
 			
 			oid = objectDelta.getOid();
 
@@ -363,7 +366,7 @@ public class ModelCrudService {
 			LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
 			
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-			modelController.executeChanges(deltas, options, task, result);
+			modelService.executeChanges(deltas, options, task, result);
 
 			result.recordSuccess();
 
@@ -461,7 +464,7 @@ public class ModelCrudService {
 
 			ObjectDelta<T> objectDelta = (ObjectDelta<T>) ObjectDelta.createModifyDelta(oid, modifications, type, prismContext);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-			modelController.executeChanges(deltas, options, task, result);
+			modelService.executeChanges(deltas, options, task, result);
 
             result.computeStatus();
 			
@@ -492,80 +495,80 @@ public class ModelCrudService {
 
 	public PrismObject<UserType> findShadowOwner(String accountOid, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException {
-		return modelController.findShadowOwner(accountOid, task, parentResult);
+		return modelService.findShadowOwner(accountOid, task, parentResult);
 	}
 
 	public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass,
 			ObjectPaging paging, Task task, OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		return modelController.listResourceObjects(resourceOid, objectClass, paging, task, parentResult);
+		return modelService.listResourceObjects(resourceOid, objectClass, paging, task, parentResult);
 	}
 
 	public void importFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		modelController.importFromResource(resourceOid, objectClass, task, parentResult);
+		modelService.importFromResource(resourceOid, objectClass, task, parentResult);
 	}
 
 	public OperationResult testResource(String resourceOid, Task task) throws ObjectNotFoundException {
-		return modelController.testResource(resourceOid, task);
+		return modelService.testResource(resourceOid, task);
 	}
 	
 	
 	//TASK AREA
     public boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-        return modelController.suspendTasks(taskOids, waitForStop, parentResult);
+        return taskService.suspendTasks(taskOids, waitForStop, parentResult);
     }
 
     public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-        modelController.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, parentResult);
+		taskService.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, parentResult);
     }
 
     public void resumeTasks(Collection<String> taskOids, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-        modelController.resumeTasks(taskOids, parentResult);
+		taskService.resumeTasks(taskOids, parentResult);
     }
 
     public void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-        modelController.scheduleTasksNow(taskOids, parentResult);
+		taskService.scheduleTasksNow(taskOids, parentResult);
     }
 
     public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
-        return modelController.getTaskByIdentifier(identifier, options, parentResult);
+        return taskService.getTaskByIdentifier(identifier, options, parentResult);
     }
 
     public boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult) throws SchemaException, SecurityViolationException {
-        return modelController.deactivateServiceThreads(timeToWait, parentResult);
+        return taskService.deactivateServiceThreads(timeToWait, parentResult);
     }
 
     public void reactivateServiceThreads(OperationResult parentResult) throws SchemaException, SecurityViolationException {
-        modelController.reactivateServiceThreads(parentResult);
+		taskService.reactivateServiceThreads(parentResult);
     }
 
     public boolean getServiceThreadsActivationState() {
-        return modelController.getServiceThreadsActivationState();
+        return taskService.getServiceThreadsActivationState();
     }
 
     public void stopSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-        modelController.stopSchedulers(nodeIdentifiers, parentResult);
+		taskService.stopSchedulers(nodeIdentifiers, parentResult);
     }
 
     public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-        return modelController.stopSchedulersAndTasks(nodeIdentifiers, waitTime, parentResult);
+        return taskService.stopSchedulersAndTasks(nodeIdentifiers, waitTime, parentResult);
     }
 
     public void startSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-        modelController.startSchedulers(nodeIdentifiers, parentResult);
+		taskService.startSchedulers(nodeIdentifiers, parentResult);
     }
 
     public void synchronizeTasks(OperationResult parentResult) throws SchemaException, SecurityViolationException {
-    	modelController.synchronizeTasks(parentResult);
+		taskService.synchronizeTasks(parentResult);
     }
 
     public List<String> getAllTaskCategories() {
-        return modelController.getAllTaskCategories();
+        return taskService.getAllTaskCategories();
     }
 
     public String getHandlerUriForCategory(String category) {
-        return modelController.getHandlerUriForCategory(category);
+        return taskService.getHandlerUriForCategory(category);
     }
 
 }

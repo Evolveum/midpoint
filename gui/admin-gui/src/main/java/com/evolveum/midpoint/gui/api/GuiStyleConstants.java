@@ -21,29 +21,37 @@ package com.evolveum.midpoint.gui.api;
  */
 public class GuiStyleConstants {
 	
+	public static final String CLASS_BOX = "box";
+	
 	public static final String CLASS_OBJECT_USER_ICON = "fa fa-user";
 	public static final String CLASS_OBJECT_USER_ICON_COLORED = CLASS_OBJECT_USER_ICON + " object-user-color";
-	public static final String CLASS_OBJECT_USER_BOX_CSS_CLASSES = "box object-user-box";
+	public static final String CLASS_OBJECT_USER_BOX_CSS_CLASSES = "object-user-box";
+	public static final String CLASS_OBJECT_USER_BOX_THIN_CSS_CLASSES = "object-user-box-thin";
 	
 	public static final String CLASS_OBJECT_ROLE_ICON = "fa fa-street-view";
 	public static final String CLASS_OBJECT_ROLE_ICON_COLORED = CLASS_OBJECT_ROLE_ICON + " object-role-color";
-	public static final String CLASS_OBJECT_ROLE_BOX_CSS_CLASSES = "box object-role-box";
+	public static final String CLASS_OBJECT_ROLE_BOX_CSS_CLASSES = "object-role-box";
+	public static final String CLASS_OBJECT_ROLE_BOX_THIN_CSS_CLASSES = "object-role-box-thin";
 	
 	public static final String CLASS_OBJECT_ORG_ICON = "fa fa-building";
 	public static final String CLASS_OBJECT_ORG_ICON_COLORED = CLASS_OBJECT_ORG_ICON + " object-org-color";
-	public static final String CLASS_OBJECT_ORG_BOX_CSS_CLASSES = "box object-org-box";
+	public static final String CLASS_OBJECT_ORG_BOX_CSS_CLASSES = "object-org-box";
+	public static final String CLASS_OBJECT_ORG_BOX_THIN_CSS_CLASSES = "object-org-box-thin";
 	
 	public static final String CLASS_OBJECT_SERVICE_ICON = "fa fa-cloud";
 	public static final String CLASS_OBJECT_SERVICE_ICON_COLORED = CLASS_OBJECT_SERVICE_ICON + " object-service-color";
-	public static final String CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES = "box object-service-box";
+	public static final String CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES = "object-service-box";
+	public static final String CLASS_OBJECT_SERVICE_BOX_THIN_CSS_CLASSES = "object-service-box-thin";
 	
 	public static final String CLASS_OBJECT_RESOURCE_ICON = "fa fa-database";
 	public static final String CLASS_OBJECT_RESOURCE_ICON_COLORED = CLASS_OBJECT_RESOURCE_ICON + " object-resource-color";
-	public static final String CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES = "box object-resource-box";
+	public static final String CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES = "object-resource-box";
+	public static final String CLASS_OBJECT_RESOURCE_BOX_THIN_CSS_CLASSES = "object-resource-box-thin";
 	
 	public static final String CLASS_OBJECT_TASK_ICON = "fa fa-tasks";
 	public static final String CLASS_OBJECT_TASK_ICON_COLORED = CLASS_OBJECT_TASK_ICON + " object-task-color";
-	public static final String CLASS_OBJECT_TASK_BOX_CSS_CLASSES = "box object-task-box";
+	public static final String CLASS_OBJECT_TASK_BOX_CSS_CLASSES = "object-task-box";
+	public static final String CLASS_OBJECT_TASK_BOX_THIN_CSS_CLASSES = "object-task-box-thin";
 
 	public static final String CLASS_OBJECT_WORK_ITEM_ICON = "fa fa-inbox";
 	public static final String CLASS_OBJECT_WORK_ITEM_ICON_COLORED = CLASS_OBJECT_WORK_ITEM_ICON + " object-task-color";		// TODO

@@ -172,6 +172,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	}
 
 	protected void addDefaultTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
+		
 		tabs.add(
 				new PanelTab(parentPage.createStringResource("pageAdminFocus.basic")){
 					private static final long serialVersionUID = 1L;
@@ -181,6 +182,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 						return createFocusDetailsTabPanel(panelId, parentPage); 
 					}
 				});
+		
 		tabs.add(
                 new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.projections")){
                 	private static final long serialVersionUID = 1L;
@@ -195,6 +197,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 						return Integer.toString(projectionModel.getObject() == null ? 0 : projectionModel.getObject().size());
 					}
 				});
+		
 		tabs.add(
 				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.assignments")) {
 					private static final long serialVersionUID = 1L;
@@ -209,6 +212,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 						return Integer.toString(assignmentsModel.getObject() == null ? 0 : assignmentsModel.getObject().size());
 					}
 				});
+		
         if (!(parentPage instanceof PageSelfProfile)) {
             tabs.add(
                     new PanelTab(parentPage.createStringResource("pageAdminFocus.request")) {

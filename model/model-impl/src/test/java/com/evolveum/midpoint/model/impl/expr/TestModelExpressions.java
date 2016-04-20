@@ -28,6 +28,7 @@ import java.util.Set;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,9 +92,6 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
     @Autowired(required=true)
 	private ScriptExpressionFactory scriptExpressionFactory;
-
-    @Autowired(required = true)
-    private ModelController modelController;
 
     @Autowired(required = true)
     private TaskManager taskManager;
