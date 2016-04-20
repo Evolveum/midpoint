@@ -207,7 +207,7 @@ public class MidpointInterceptor implements MethodInterceptor {
 		if (className.startsWith("com.evolveum.midpoint.repo")) {
 			return ProfilingDataManager.Subsystem.REPOSITORY;
 		} else if (className.startsWith("com.evolveum.midpoint.model.impl.sync")) {
-			return ProfilingDataManager.Subsystem.RESOURCE_OBJECT_CHANGE_LISTENER;
+			return ProfilingDataManager.Subsystem.SYNCHRONIZATION_SERVICE;
 		} else if (className.startsWith("com.evolveum.midpoint.model")) {
 			return ProfilingDataManager.Subsystem.MODEL;
 		} else if (className.startsWith("com.evolveum.midpoint.provisioning")) {

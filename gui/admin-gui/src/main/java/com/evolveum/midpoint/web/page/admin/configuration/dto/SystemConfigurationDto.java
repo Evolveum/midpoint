@@ -213,7 +213,7 @@ public class SystemConfigurationDto implements Serializable {
 
 		newObject.setNotificationConfiguration(notificationConfig.getNewObject(newObject));
 
-		newObject.setProfilingConfiguration(profilingDto.getNewObejct());
+		newObject.setProfilingConfiguration(profilingDto.getNewObject());
 		ClassLoggerConfigurationType profilingClassLogger = profilingDto.getProfilingClassLogerConfig();
 		if (newObject.getLogging() != null) {
 			newObject.getLogging().getClassLogger().add(profilingClassLogger);

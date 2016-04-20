@@ -10709,9 +10709,25 @@
 			<xsd:element name="model" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
 			<xsd:element name="repository" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
 			<xsd:element name="provisioning" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
-			<xsd:element name="ucf" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
-			<xsd:element name="resourceObjectChangeListener" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
-			<xsd:element name="taskManager" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
+			<xsd:element name="ucf" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This profiling option is currently not supported.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+			<xsd:element name="synchronizationService" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
+            <xsd:element name="resourceObjectChangeListener" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This profiling option is currently not supported. It was partially replaced by synchronizationService property.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskManager" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
             <xsd:element name="workflow" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
 			<!-- Subsystems end -->
         </xsd:sequence>
