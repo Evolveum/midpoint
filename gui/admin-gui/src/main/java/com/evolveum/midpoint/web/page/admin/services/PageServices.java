@@ -95,7 +95,7 @@ public class PageServices extends PageAdminServices {
 	        	
 	        	@Override
 	        	protected String getBoxCssClasses() {
-	        		return GuiStyleConstants.CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES;
+	        		return GuiStyleConstants.CLASS_BOX + " " + GuiStyleConstants.CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES;
 	        	}
 	        	
 	        };

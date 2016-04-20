@@ -259,6 +259,34 @@ th.cog, td.cog {
 	#box-object(@object-resource-color);
 }
 
+#box-thin-object(@color) {
+	border: 1px solid @color;
+	
+	.box-header {
+		border-bottom: 1px solid @color;
+	}
+}
+
+.object-user-box-thin {
+	#box-thin-object(@object-user-color);
+}
+
+.object-role-box-thin {
+	#box-thin-object(@object-role-color);
+}
+
+.object-org-box-thin {
+	#box-thin-object(@object-org-color);
+}
+
+.object-service-box-thin {
+	#box-thin-object(@object-service-color);
+}
+
+.object-resource-box-thin {
+	#box-thin-object(@object-resource-color);
+}
+
 // Summary panel (panel above the edit user/role/org forms)
 
 #info-box-summary-panel(@color) {
@@ -529,7 +557,7 @@ div.dashAssignmentHeader {
 // Prism containers and attributes
 
 .prism-object {
-	.prism-header {
+	& > div.prism-header {
 		padding-left: 15px; // to match container header padding
 	}
 }
@@ -573,6 +601,7 @@ div.dashAssignmentHeader {
   border-bottom: 2px solid @table-divider-color;
   margin: 0px;
   margin-bottom: 10px;
+  padding-left: 5px; // align with the checkboxes below
 
   div.col-xs-10 {
     padding: 0 5px;
@@ -641,7 +670,15 @@ div.dashAssignmentHeader {
 	}
 }
 
-// Projection tab (focus pages)
+.box-header.add {
+	background-color: #caffca;
+}
+
+.box-header.delete {
+	background-color: #ffcaca;
+}
+
+// Projections tab (focus pages)
 
 .projections {
 	
@@ -649,15 +686,28 @@ div.dashAssignmentHeader {
 
 .projections-header {
 	
-	& > div {
-		padding-left: 20px !important; // align with the checkboxes below
-	}
-	
 }
 
 .projection {
 	margin-bottom: 10px;
-	border-top-color: @box-projection-color; 
+	#box-thin-object(@box-projection-color); 
+	
+	.box-header {
+		
+		.box-tools {
+			margin-top: 5px;
+		}
+	}
+}
+
+// Assignments tab (focus pages)
+
+.assignments {
+	
+}
+
+.assignment {
+	margin-bottom: 10px;
 	
 	.box-header {
 		
