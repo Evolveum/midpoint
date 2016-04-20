@@ -240,7 +240,7 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
         rowModel.getObject().setSelected(!rowModel.getObject().isSelected());
         List<AssignmentEditorDto> providerList = ((BaseSortableDataProvider) getProvider()).getAvailableData();
         for (AssignmentEditorDto dto : providerList){
-            if (dto.getTargetRef().getOid().equals(((AssignmentEditorDto) rowModel.getObject()).getTargetRef().getOid())){
+            if (dto.equals(rowModel.getObject())){
                 dto.setSelected(rowModel.getObject().isSelected());
                 break;
             }
@@ -270,13 +270,6 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
         BoxedTablePanel panel = getTable();
         panel.setCurrentPage(null);
         provider.setQuery(query);
-//        Iterator it = provider.internalIterator(0, provider.size());
-
-//        if (provider instanceof ListDataProvider){
-//            applyQueryToListProvider();
-//        }
-//        replaceTable(target);
-
         target.add(panel);
     }
 
