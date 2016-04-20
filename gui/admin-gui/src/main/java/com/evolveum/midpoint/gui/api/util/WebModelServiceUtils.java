@@ -171,6 +171,33 @@ public class WebModelServiceUtils {
     	
     }
     
+    public static void runTask(Collection<TaskType> tasksToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase){
+//    	try {
+    		
+    		for (TaskType taskToRun : tasksToRun){
+    			runTask(tasksToRun, operationalTask, parentResult, pageBase);
+    		}
+    		
+//    		}
+//			ObjectDelta<TaskType> delta = ObjectDelta.createAddDelta(taskToRun.asPrismObject());
+//			pageBase.getPrismContext().adopt(delta);
+//			pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
+//					operationalTask, parentResult);
+//			parentResult.recordInProgress();
+//			parentResult.setBackgroundTaskOid(delta.getOid());
+//			pageBase.showResult(parentResult);
+//	    	return delta.getOid();
+//		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+//				| ExpressionEvaluationException | CommunicationException | ConfigurationException
+//				| PolicyViolationException | SecurityViolationException e) {
+//			// TODO Auto-generated catch block
+////			error(pageBase.getString("pageUsers.message.nothingSelected") + e.getMessage());
+//			parentResult.recordFatalError("Couldn't run task " + e.getMessage(), e);
+//			LoggingUtils.logException(LOGGER, "Couldn't run task " + e.getMessage(), e);
+//			return null;
+//		}
+    	
+    }
 
     public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
                                                                    PageBase page, Task task, OperationResult result) {

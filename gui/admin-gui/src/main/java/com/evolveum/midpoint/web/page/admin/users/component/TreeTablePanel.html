@@ -51,47 +51,8 @@
             </div>
         </div>
         <div class="col-md-8">
-            <div class="box box-success">
-                <div class="box-body">
-                    <form class="clearfix form-horizontal" wicket:id="form">
-<!--                         <div wicket:id="childOrgContainer"> -->
-<!--                             <div class="tree-table-header"> -->
-<!--                                 <wicket:message key="TreeTablePanel.childOrg"/> -->
-<!--                             </div> -->
-<!--                             <div wicket:id="childUnitTable" about="childUnitTable"/> -->
-<!--                         </div> -->
-
-                        <div wicket:id="managerContainer">
-                        <div class="tree-table-header">
-                                <wicket:message key="TreeTablePanel.managers"/>
-                            </div>
-                            <div class="col-md-12" wicket:id="managerTable">
-                            <div class="pull-right">
-                            	<div wicket:id="editManager" class="fa fa-edit"></div>
-                            	<div wicket:id="removeManager" class="fa fa-trash-o"></div>
-                            	</div>
-                            	<div wicket:id="managerSummary" ></div>
-                            	
-                            </div>
-                        </div>
-<div>
-                <div class="form-group form-inline pull-right search-form">
-	                <select class="form-control input-sm" wicket:id="searchScope"/>
-	                <select class="form-control input-sm" wicket:id="searchByType"/>
-	            </div>
-     </div>      
-           
-
-                        <div wicket:id="memberContainer">
-                            <div class="tree-table-header">
-                                <wicket:message key="TreeTablePanel.members"/>
-                            </div>
-                            <div wicket:id="memberTable"/>
-                        </div>
-
-                    </form>
-                </div>
-            </div>
+            <div wicket:id="memberPanel"></div>
         </div>
+        
     </div>
 </wicket:panel>
