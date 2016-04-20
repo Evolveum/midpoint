@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -254,7 +255,7 @@ public class ProvisioningContext extends StateReporter {
 			ConnectorInstance connector = connectorManager.getConfiguredConnectorInstance(getResource().asPrismObject(), false, parentResult);
 			connectorResult.recordSuccess();
 			return connector;
-		} catch (ObjectNotFoundException | SchemaException |  CommunicationException | ConfigurationException e){
+		} catch (ObjectNotFoundException | SchemaException |  CommunicationException | ConfigurationException | SystemException e){
 			connectorResult.recordPartialError("Could not get connector instance " + getDesc() + ": " +  e.getMessage(),  e);
 			throw e;
 		}

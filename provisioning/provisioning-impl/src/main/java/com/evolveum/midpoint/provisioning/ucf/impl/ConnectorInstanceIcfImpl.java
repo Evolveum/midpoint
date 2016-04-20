@@ -3279,6 +3279,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					new Object[] { propertyName, e.getMessage(), e });
 			throw new SystemException("Unable to decrypt value of element " + propertyName + ": "
 					+ e.getMessage(), e);
+		} catch (RuntimeException e) {
+			// The ConnId will mask encryption exceptions into RuntimeException
+			throw new SystemException("Unable to re-enctyt value of element " + propertyName + ": "
+					+ e.getMessage(), e);
 		}
 	}
 

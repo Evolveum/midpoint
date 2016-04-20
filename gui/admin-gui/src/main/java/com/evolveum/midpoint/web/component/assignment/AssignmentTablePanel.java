@@ -70,6 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author shood
  */
 public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<AssignmentEditorDto>> {
+	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentTablePanel.class);
 

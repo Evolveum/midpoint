@@ -17,9 +17,10 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.util.List;
 
-import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
@@ -38,9 +39,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  */
 public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
+	private static final long serialVersionUID = 1L;
 	
-	private LoadableModel<List<AssignmentEditorDto>> inducementsModel;
-
 	public RoleMainPanel(String id, LoadableModel<ObjectWrapper<RoleType>> objectModel, 
 			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, 
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel, 
@@ -49,19 +49,22 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 	}
 
 	@Override
-	protected List createTabs(final PageAdminObjectDetails<RoleType> parentPage) {
-		List tabs = super.createTabs(parentPage);
+	protected List<ITab> createTabs(final PageAdminObjectDetails<RoleType> parentPage) {
+		List<ITab> tabs = super.createTabs(parentPage);
 		
-		tabs.add(new AbstractTab(parentPage.createStringResource("AbstractRoleType.policyConstraints")) {
+		tabs.add(new PanelTab(parentPage.createStringResource("AbstractRoleType.policyConstraints")) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
-			public WebMarkupContainer getPanel(String panelId) {
+			public WebMarkupContainer createPanel(String panelId) {
 				return new RolePolicyPanel(panelId, getObject());
 			}
 		});
 
-		tabs.add(new AbstractTab(parentPage.createStringResource("pageRole.members")) {
+		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.members")) {
+			private static final long serialVersionUID = 1L;
 			@Override
-			public WebMarkupContainer getPanel(String panelId) {
+			public WebMarkupContainer createPanel(String panelId) {
 				return new RoleMemberPanel<UserType>(panelId, getObject().getOid(), getDetailsPage());
 			}
 			
