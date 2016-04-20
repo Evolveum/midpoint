@@ -313,7 +313,7 @@ public class TreeTablePanel extends BasePanel<String> {
 		return items;
 	}
 
-
+ 
 	protected static Map<Class, Class> objectDetailsMap;
 
 	static {

@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -14,11 +15,15 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -57,10 +62,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
-import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.MenuLinkPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
 import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -78,6 +87,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	protected static final String ID_SEARCH_SCOPE = "searchScope";
 	protected static final String ID_SEARCH_BY_TYPE = "searchByType";
 
+	protected static final String ID_MANAGER_MENU = "managerMenu";
+	protected static final String ID_MANAGER_MENU_BODY = "managerMenuBody";
+	
 	protected static final String SEARCH_SCOPE_SUBTREE = "subtree";
 	protected static final String SEARCH_SCOPE_ONE = "one";
 
@@ -196,8 +208,34 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		}
 
 		managerContainer.add(view);
+		
+		InlineMenu menupanel = new InlineMenu(ID_MANAGER_MENU, new Model((Serializable)createManagersHeaderInlineMenu()));
+//		ListView<InlineMenuItem> menupanel = new ListView<InlineMenuItem>(ID_MANAGER_MENU, new Model((Serializable) createManagersHeaderInlineMenu())) {
+//
+//	         @Override
+//	         protected void populateItem(ListItem<InlineMenuItem> item) {
+//	             initMenuItem(item);
+//	         }
+//	     };
+//	     
+	     add(menupanel);
+		menupanel.setOutputMarkupId(true);
+		managerContainer.add(menupanel);
+		
 		return managerContainer;
 	}
+	
+	 
+
+
+private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
+     final InlineMenuItem item = menuItem.getModelObject();
+
+     WebMarkupContainer menuItemBody = new MenuLinkPanel(ID_MANAGER_MENU_BODY, menuItem.getModel());
+     menuItemBody.setRenderBodyOnly(true);
+     menuItem.add(menuItemBody);
+ }
+
 
 	private void removeManagerPerformed(FocusType manager, AjaxRequestTarget target) {
 		OperationResult parentResult = new OperationResult("Remove manager");
@@ -222,6 +260,52 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			getPageBase().showResult(parentResult);
 		}
 		target.add(getPageBase().getFeedbackPanel());
+
+	}
+
+	private List<InlineMenuItem> createManagersHeaderInlineMenu() {
+		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
+
+		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createManager"),
+				false, new HeaderMenuAction(this) {
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						OrgMemberPanel.this.createFocusMemberPerformed(SchemaConstants.ORG_MANAGER, target);
+					}
+				}));
+		headerMenuItems.add(new InlineMenuItem());
+
+		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addManagers"), false,
+				new HeaderMenuAction(this) {
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						OrgMemberPanel.this.addMembers(SchemaConstants.ORG_MANAGER, target);
+					}
+				}));
+		headerMenuItems.add(new InlineMenuItem());
+
+		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.removeManagersAll"),
+				false, new HeaderMenuAction(this) {
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						removeManagersPerformed(QueryScope.ALL, target);
+					}
+				}));
+
+		headerMenuItems
+				.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeManagersAll"),
+						false, new HeaderMenuAction(this) {
+
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								recomputeManagersPerformed(QueryScope.ALL, target);
+							}
+						}));
+
+		return headerMenuItems;
 	}
 
 	protected void refreshTable(AjaxRequestTarget target) {
@@ -238,18 +322,19 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
 	}
 
-	private TablePanel getManagerTable() {
-		return (TablePanel) get(createComponentPath(ID_FORM, ID_CONTAINER_MANAGER, ID_MANAGER_TABLE));
-	}
-
-	private void selectTreeItemPerformed(AjaxRequestTarget target) {
-
-		getMemberTable().refreshTable(null, target);
-
-		Form mainForm = (Form) get(ID_FORM);
-		mainForm.addOrReplace(createManagerContainer());
-		target.add(mainForm);
-	}
+	// private TablePanel getManagerTable() {
+	// return (TablePanel) get(createComponentPath(ID_FORM,
+	// ID_CONTAINER_MANAGER, ID_MANAGER_TABLE));
+	// }
+	//
+	// private void selectTreeItemPerformed(AjaxRequestTarget target) {
+	//
+	// getMemberTable().refreshTable(null, target);
+	//
+	// Form mainForm = (Form) get(ID_FORM);
+	// mainForm.addOrReplace(createManagerContainer());
+	// target.add(mainForm);
+	// }
 
 	private QName getSearchType() {
 		DropDownChoice<ObjectTypes> searchByTypeChoice = (DropDownChoice) get(
@@ -294,9 +379,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	@Override
-	protected void addMembersPerformed(QName type, List selected, AjaxRequestTarget target) {
+	protected void addMembersPerformed(QName type, QName relation, List selected, AjaxRequestTarget target) {
 		Task operationalTask = getPageBase().createSimpleTask("Add members");
-		ObjectDelta delta = prepareDelta(MemberOperation.ADD, type, null, operationalTask.getResult(),
+		ObjectDelta delta = prepareDelta(MemberOperation.ADD, type, relation, operationalTask.getResult(),
 				target);
 		if (delta == null) {
 			return;
@@ -306,16 +391,53 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	}
 
+	protected void addManagersPerformed(QName type, List selected, AjaxRequestTarget target) {
+		Task operationalTask = getPageBase().createSimpleTask("Add members");
+		ObjectDelta delta = prepareDelta(MemberOperation.ADD, type, SchemaConstants.ORG_MANAGER,
+				operationalTask.getResult(), target);
+		if (delta == null) {
+			return;
+		}
+		executeMemberOperation(operationalTask, type, createQueryForAdd(selected), delta,
+				TaskCategory.EXECUTE_CHANGES, target);
+
+	}
+
+	protected void removeManagersPerformed(QueryScope scope, AjaxRequestTarget target) {
+
+		Task operationalTask = getPageBase().createSimpleTask("Remove managers " + scope.name());
+
+		// ObjectDelta delta = prepareDelta(MemberOperation.REMOVE,
+		// FocusType.COMPLEX_TYPE, null,
+		// operationalTask.getResult(), target);
+		// if (delta != null) {
+		// executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE,
+		// createQueryForMemberAction(scope, true), delta,
+		// TaskCategory.EXECUTE_CHANGES, target);
+		// }
+
+		ObjectDelta delta = prepareDelta(MemberOperation.REMOVE, FocusType.COMPLEX_TYPE,
+				SchemaConstants.ORG_MANAGER, operationalTask.getResult(), target);
+		if (delta == null) {
+			return;
+		}
+		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE,
+				createQueryForMemberAction(scope, SchemaConstants.ORG_MANAGER, true), delta,
+				TaskCategory.EXECUTE_CHANGES, target);
+
+	}
+
 	@Override
 	protected void removeMembersPerformed(QueryScope scope, AjaxRequestTarget target) {
-	
+
 		Task operationalTask = getPageBase().createSimpleTask("Remove members " + scope.name());
-		
+
 		ObjectDelta delta = prepareDelta(MemberOperation.REMOVE, FocusType.COMPLEX_TYPE, null,
 				operationalTask.getResult(), target);
 		if (delta != null) {
 			executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE,
-					createQueryForMemberAction(scope, true), delta, TaskCategory.EXECUTE_CHANGES, target);
+					createQueryForMemberAction(scope, null, true), delta, TaskCategory.EXECUTE_CHANGES,
+					target);
 		}
 
 		delta = prepareDelta(MemberOperation.REMOVE, ObjectType.COMPLEX_TYPE, null,
@@ -324,15 +446,22 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			return;
 		}
 		executeMemberOperation(operationalTask, ObjectType.COMPLEX_TYPE,
-				createQueryForMemberAction(scope, false), delta, TaskCategory.EXECUTE_CHANGES, target);
-	
+				createQueryForMemberAction(scope, null, false), delta, TaskCategory.EXECUTE_CHANGES, target);
+
 	}
 
 	@Override
 	protected void recomputeMembersPerformed(QueryScope scope, AjaxRequestTarget target) {
 		Task operationalTask = getPageBase().createSimpleTask("Recompute members " + scope.name());
 		executeMemberOperation(operationalTask, ObjectType.COMPLEX_TYPE,
-				createQueryForMemberAction(scope, true), null, TaskCategory.RECOMPUTATION, target);
+				createQueryForMemberAction(scope, null, true), null, TaskCategory.RECOMPUTATION, target);
+	}
+
+	protected void recomputeManagersPerformed(QueryScope scope, AjaxRequestTarget target) {
+		Task operationalTask = getPageBase().createSimpleTask("Recompute members " + scope.name());
+		executeMemberOperation(operationalTask, ObjectType.COMPLEX_TYPE,
+				createQueryForMemberAction(scope, SchemaConstants.ORG_MANAGER, true), null,
+				TaskCategory.RECOMPUTATION, target);
 	}
 
 	@Override
@@ -383,7 +512,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	}
 
-	protected ObjectQuery createQueryForMemberAction(QueryScope scope, boolean isFocus) {
+	private ObjectQuery createQueryForMemberAction(QueryScope scope, QName orgRelation, boolean isFocus) {
 
 		ObjectQuery query = null;
 		switch (scope) {
@@ -399,7 +528,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				query = ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
 				break;
 			case ALL:
-				query = createQueryForAll(isFocus);
+				query = createQueryForAll(isFocus, orgRelation);
 				break;
 			default:
 				break;
@@ -420,14 +549,14 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		return false;
 	}
 
-	private ObjectQuery createQueryForAll(boolean isFocus) {
+	private ObjectQuery createQueryForAll(boolean isFocus, QName relation) {
 		OrgType org = getModelObject();
 		if (!isFocus) {
 
 			PrismReferenceDefinition def = org.asPrismObject().getDefinition()
 					.findReferenceDefinition(UserType.F_PARENT_ORG_REF);
 			ObjectFilter orgFilter = RefFilter.createReferenceEqual(new ItemPath(ObjectType.F_PARENT_ORG_REF),
-					def, ObjectTypeUtil.createObjectRef(org).asReferenceValue());
+					def, createReference(relation).asReferenceValue());
 			TypeFilter typeFilter = TypeFilter.createType(FocusType.COMPLEX_TYPE, null);
 			return ObjectQuery
 					.createObjectQuery(AndFilter.createAnd(NotFilter.createNot(typeFilter), orgFilter));
@@ -439,7 +568,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 					.findReferenceDefinition(new ItemPath(OrgType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF));
 			ObjectFilter orgASsignmentFilter = RefFilter.createReferenceEqual(
 					new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), def,
-					ObjectTypeUtil.createObjectRef(org).asReferenceValue());
+					createReference(relation).asReferenceValue());
 			return ObjectQuery
 					.createObjectQuery(TypeFilter.createType(FocusType.COMPLEX_TYPE, orgASsignmentFilter));
 		}
@@ -460,7 +589,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
 	}
 
-	
 	protected ObjectDelta createMemberDelta(MemberOperation operation, QName type, QName relation)
 			throws SchemaException {
 		Class classType = qnameToClass(type);
@@ -484,11 +612,11 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				if (isFocus(type)) {
 					delta = ObjectDelta.createModificationDeleteContainer(classType, "fakeOid",
 							FocusType.F_ASSIGNMENT, getPageBase().getPrismContext(),
-							createAssignmentToModify(FocusType.COMPLEX_TYPE, null));
+							createAssignmentToModify(FocusType.COMPLEX_TYPE, relation));
 				} else {
 					delta = ObjectDelta.createModificationDeleteReference(classType, "fakeOid",
 							ObjectType.F_PARENT_ORG_REF, getPageBase().getPrismContext(),
-							createReference(null).asReferenceValue());
+							createReference(relation).asReferenceValue());
 				}
 				break;
 			default:

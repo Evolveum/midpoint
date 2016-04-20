@@ -202,15 +202,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 					}
 				}));
 
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createManager"),
-				false, new HeaderMenuAction(this) {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						createFocusMemberPerformed(SchemaConstants.ORG_MANAGER, target);
-					}
-				}));
-		headerMenuItems.add(new InlineMenuItem());
+		
 
 		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addMembers"), false,
 				new HeaderMenuAction(this) {
@@ -271,7 +263,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	}
 	
 	
-	private void createFocusMemberPerformed(final QName relation, AjaxRequestTarget target) {
+	protected void createFocusMemberPerformed(final QName relation, AjaxRequestTarget target) {
 
 		ChooseFocusTypeDialogPanel chooseTypePopupContent = new ChooseFocusTypeDialogPanel(
 				getPageBase().getMainPopupBodyId()) {
@@ -328,7 +320,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 	}
 
-	private void addMembers(final QName relation, AjaxRequestTarget target) {
+	protected void addMembers(final QName relation, AjaxRequestTarget target) {
 
 		List<QName> types = new ArrayList<>(ObjectTypes.values().length);
 		for (ObjectTypes t : ObjectTypes.values()) {
@@ -339,7 +331,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 			@Override
 			protected void addPerformed(AjaxRequestTarget target, QName type, List selected) {
-				AbstractRoleMemberPanel.this.addMembersPerformed(type, selected, target);
+				AbstractRoleMemberPanel.this.addMembersPerformed(type, relation, selected, target);
 
 			}
 		};
@@ -361,7 +353,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
 	}
 	
-	protected abstract void addMembersPerformed(QName type, List selected, AjaxRequestTarget target);
+	protected abstract void addMembersPerformed(QName type, QName relation, List selected, AjaxRequestTarget target);
 	protected abstract void removeMembersPerformed(QueryScope scope, AjaxRequestTarget target);
 	protected abstract void recomputeMembersPerformed(QueryScope scope, AjaxRequestTarget target);
 	
@@ -399,6 +391,12 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	
 	protected ObjectReferenceType createReference(QName relation) {
 		ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getModelObject());
+		ref.setRelation(relation);
+		return ref;
+	}
+	
+	protected ObjectReferenceType createReference(ObjectType obj, QName relation) {
+		ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(obj);
 		ref.setRelation(relation);
 		return ref;
 	}
