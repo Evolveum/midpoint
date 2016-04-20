@@ -121,6 +121,7 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 
 		final WebMarkupContainer resourceRefContainer = new WebMarkupContainer(ID_RESOURCE_REF_CONTAINER);
 		resourceRefContainer.add(visibleForResourceCoordinates);
+		resourceRefContainer.setOutputMarkupId(true);
 		add(resourceRefContainer);
 
 		final DropDownChoice<TaskAddResourcesDto> resourceRef = new DropDownChoice<>(ID_RESOURCE_REF,
