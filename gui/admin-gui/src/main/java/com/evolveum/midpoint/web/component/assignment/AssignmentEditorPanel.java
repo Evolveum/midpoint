@@ -88,7 +88,6 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
     private static final String OPERATION_LOAD_ATTRIBUTES = DOT_CLASS + "loadAttributes";
 
-    private static final String ID_MAIN = "main";
     private static final String ID_HEADER_ROW = "headerRow";
     private static final String ID_SELECTED = "selected";
     private static final String ID_TYPE_IMAGE = "typeImage";
@@ -143,6 +142,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     }
 
     private void initLayout() {
+    	setOutputMarkupId(true);
         WebMarkupContainer headerRow = new WebMarkupContainer(ID_HEADER_ROW);
         headerRow.add(AttributeModifier.append("class", createHeaderClassModel(getModel())));
         headerRow.setOutputMarkupId(true);
@@ -204,11 +204,8 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         Label activation = new Label(ID_ACTIVATION, createActivationModel());
         headerRow.add(activation);
 
-        WebMarkupContainer main = new WebMarkupContainer(ID_MAIN);
-        main.setOutputMarkupId(true);
-        add(main);
-
         WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
+        body.setOutputMarkupId(true);
         body.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -217,7 +214,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 return !editorDto.isMinimized();
             }
         });
-        main.add(body);
+        add(body);
 
         initBodyLayout(body);
     }
@@ -259,10 +256,11 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
     private IModel<String> createHeaderClassModel(final IModel<AssignmentEditorDto> model) {
         return new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public String getObject() {
-                AssignmentEditorDto dto = model.getObject();
+                AssignmentEditorDto dto = model.getObject();                
                 return dto.getStatus().name().toLowerCase();
             }
         };
@@ -270,6 +268,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
     private IModel<String> createActivationModel() {
         return new AbstractReadOnlyModel<String>() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
@@ -421,7 +420,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             @Override
             public boolean isVisible() {
                 AssignmentEditorDto dto = getModel().getObject();
-                return !AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION.equals(dto.getType());
+                return !AssignmentEditorDtoType.CONSTRUCTION.equals(dto.getType());
             }
         });
         body.add(targetContainer);
@@ -435,7 +434,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             @Override
             public boolean isVisible() {
                 AssignmentEditorDto dto = getModel().getObject();
-                return AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION.equals(dto.getType());
+                return AssignmentEditorDtoType.CONSTRUCTION.equals(dto.getType());
             }
         });
         body.add(constructionContainer);
@@ -579,7 +578,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             @Override
             public boolean isVisible() {
                 AssignmentEditorDto dto = getModel().getObject();
-                return AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION.equals(dto.getType());
+                return AssignmentEditorDtoType.CONSTRUCTION.equals(dto.getType());
             }
         });
         attributes.setEnabled(getModel().getObject().isEditable());
@@ -634,7 +633,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         AssignmentEditorDto dto = AssignmentEditorPanel.this.getModel().getObject();
         dto.setShowEmpty(!dto.isShowEmpty());
 
-        WebMarkupContainer parent = (WebMarkupContainer) get(createComponentPath(ID_MAIN, ID_BODY,
+        WebMarkupContainer parent = (WebMarkupContainer) get(createComponentPath(ID_BODY,
                 ID_CONSTRUCTION_CONTAINER));
 
         target.add(parent.get(ID_ATTRIBUTES), parent.get(createComponentPath(ID_SHOW_EMPTY, ID_SHOW_EMPTY_LABEL)),
@@ -713,7 +712,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
         dto.setAttributes(attributes);
 
-            getPageBase().showResult(result, false);
+        getPageBase().showResult(result, false);
         
         return dto.getAttributes();
     }
@@ -759,15 +758,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             @Override
             public String getObject() {
                 AssignmentEditorDtoType type = model.getObject();
-                switch (type) {
-                    case ROLE:
-                        return "silk-user_suit";
-                    case ORG_UNIT:
-                        return "silk-building";
-                    case ACCOUNT_CONSTRUCTION:
-                    default:
-                        return "silk-drive";
-                }
+                return type.getColoredIconCssClass();
             }
         };
     }
@@ -775,14 +766,9 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     private void nameClickPerformed(AjaxRequestTarget target) {
         AssignmentEditorDto dto = getModel().getObject();
         boolean minimized = dto.isMinimized();
-        if (minimized) {
-//            dto.startEditing();//todo ???
-        }
-
         dto.setMinimized(!minimized);
 
-        target.add(get(ID_MAIN));
-        target.add(get(ID_HEADER_ROW));
+        target.add(this);
     }
 
     private IModel<String> createTargetModel() {

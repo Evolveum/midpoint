@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,134 +17,133 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-        <div class="row header" wicket:id="headerRow">
-            <div class="col-xs-10">
-                <input type="checkbox" wicket:id="selected"/>
-                <i wicket:id="typeImage"></i>
-                <i class="fa fa-fw fa-exclamation-circle text-danger" wicket:id="errorIcon"></i>
-                <a wicket:id="name">
-                    <span wicket:id="nameLabel"/>
-                </a>
-                <a wicket:id="errorLink" style="font-size: 1em; font-weight: normal;">
-                    <span><wicket:message key="AssignmentEditorPanel.showMore" /></span>
-                </a>
-                <span wicket:id="activation"/>
+        <div class="box-header with-border" wicket:id="headerRow">
+        	<div class="check-table-header">
+	            <input type="checkbox" wicket:id="selected"/>
+	            <div class="check-table-label">
+		            <i class="check-table-header-icon" wicket:id="typeImage"></i>
+		            <a class="check-table-header-name" wicket:id="name">
+		                <span class="name" wicket:id="nameLabel"/>
+		            </a>
+		            <span class="check-table-header-description" wicket:id="activation"/>
+		            <i class="check-table-header-additional-icon fa fa-fw fa-exclamation-circle text-danger" wicket:id="errorIcon"></i>
+		            <a class="check-table-header-show-more" wicket:id="errorLink">
+		                <wicket:message key="AssignmentEditorPanel.showMore" />
+		            </a>
+	            </div>
             </div>
-            <div class="col-xs-2 cog"/>
         </div>
-        <div class="row" wicket:id="main">
-            <div wicket:id="body">
-                <div class="row">
-                    <div class="col-xs-4">
-                        <span><wicket:message key="AssignmentEditorPanel.description"/></span>
-                    </div>
-                    <div class="col-xs-8">
-                        <div class="row">
-                            <div class="col-xs-9">
-                                <textarea class="form-control input-sm" rows="2" wicket:id="description"></textarea>
-                            </div>
+        <div class="box-body" wicket:id="body">
+            <div class="row">
+                <div class="col-xs-4">
+                    <span><wicket:message key="AssignmentEditorPanel.description"/></span>
+                </div>
+                <div class="col-xs-8">
+                    <div class="row">
+                        <div class="col-xs-9">
+                            <textarea class="form-control input-sm" rows="2" wicket:id="description"></textarea>
                         </div>
                     </div>
                 </div>
-                <div class="row" wicket:id="relationContainer">
-                    <div class="col-xs-4">
-                        <span><wicket:message key="AssignmentEditorPanel.relation"/></span>
-                    </div>
-                    <div class="col-xs-8">
-                        <div class="row">
-                            <div class="col-xs-9">
-                                <div wicket:id="relation" />
-                                <span wicket:id="relationLabel" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div wicket:id="tenantRefContainer" class="row">
-                    <div class="col-xs-4">
-                        <span><wicket:message key="AssignmentEditorPanel.tenantRef" /></span>
-                    </div>
-                    <div wicket:id="tenantRefChooser"/>
-                </div>
-                <div wicket:id="orgRefContainer" class="row">
-                    <div class="col-xs-4">
-                        <span><wicket:message key="AssignmentEditorPanel.orgRef" /></span>
-                    </div>
-                    <div wicket:id="orgRefChooser"/>
-                </div>
-
-                <div class="row" wicket:id="activationBlock">
-                    <div class="col-xs-12">
-                        <h4>
-                            <wicket:message key="ActivationType.title"/>
-                        </h4>
-                        <div class="row">
-                            <div class="col-xs-4">
-                                <span><wicket:message key="ActivationType.administrativeStatus"/></span>
-                            </div>
-                            <div class="col-xs-8">
-                                <div class="row">
-                                    <div class="col-xs-9">
-                                        <div wicket:id="administrativeStatus"/>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-xs-4">
-                                <span><wicket:message key="ActivationType.validFrom"/></span>
-                            </div>
-                            <div class="col-xs-8">
-                                <div class="row">
-                                    <div class="col-xs-9">
-                                        <div wicket:id="validFrom" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-xs-4">
-                                <span><wicket:message key="ActivationType.validTo"/></span>
-                            </div>
-                            <div class="col-xs-8">
-                                <div class="row">
-                                    <div class="col-xs-9">
-                                        <div wicket:id="validTo" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-                <div wicket:id="targetContainer" class="assignmentBlock">
-                    <h4>
-                        <wicket:message key="AssignmentEditorPanel.target"/>
-                    </h4>
-                    <div class="assignmentContent">
-                    	<span wicket:id="target"/>
-                    </div>
-                    
-                </div>
-
-                <div wicket:id="constructionContainer" class="assignmentBlock">
-                    <h4>
-                        <wicket:message key="AssignmentEditorPanel.attributes"/>
-                    </h4>
-                    <div class="assignmentContent">
-                    	<a wicket:id="showEmpty"><span wicket:id="showEmptyLabel"/></a>
-                    </div>
-
-                    <div wicket:id="attributes">
-                        <div wicket:id="attribute">
-                            <div wicket:id="acAttribute"/>
-                        </div>
-                    </div>
-                </div>
-
-                <!--todo implement extension-->
             </div>
+            <div class="row" wicket:id="relationContainer">
+                <div class="col-xs-4">
+                    <span><wicket:message key="AssignmentEditorPanel.relation"/></span>
+                </div>
+                <div class="col-xs-8">
+                    <div class="row">
+                        <div class="col-xs-9">
+                            <div wicket:id="relation" />
+                            <span wicket:id="relationLabel" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div wicket:id="tenantRefContainer" class="row">
+                <div class="col-xs-4">
+                    <span><wicket:message key="AssignmentEditorPanel.tenantRef" /></span>
+                </div>
+                <div wicket:id="tenantRefChooser"/>
+            </div>
+            <div wicket:id="orgRefContainer" class="row">
+                <div class="col-xs-4">
+                    <span><wicket:message key="AssignmentEditorPanel.orgRef" /></span>
+                </div>
+                <div wicket:id="orgRefChooser"/>
+            </div>
+
+            <div class="row" wicket:id="activationBlock">
+                <div class="col-xs-12">
+                    <h4>
+                        <wicket:message key="ActivationType.title"/>
+                    </h4>
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <span><wicket:message key="ActivationType.administrativeStatus"/></span>
+                        </div>
+                        <div class="col-xs-8">
+                            <div class="row">
+                                <div class="col-xs-9">
+                                    <div wicket:id="administrativeStatus"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <span><wicket:message key="ActivationType.validFrom"/></span>
+                        </div>
+                        <div class="col-xs-8">
+                            <div class="row">
+                                <div class="col-xs-9">
+                                    <div wicket:id="validFrom" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <span><wicket:message key="ActivationType.validTo"/></span>
+                        </div>
+                        <div class="col-xs-8">
+                            <div class="row">
+                                <div class="col-xs-9">
+                                    <div wicket:id="validTo" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div wicket:id="targetContainer" class="assignmentBlock">
+                <h4>
+                    <wicket:message key="AssignmentEditorPanel.target"/>
+                </h4>
+                <div class="assignmentContent">
+                	<span wicket:id="target"/>
+                </div>
+                
+            </div>
+
+            <div wicket:id="constructionContainer" class="assignmentBlock">
+                <h4>
+                    <wicket:message key="AssignmentEditorPanel.attributes"/>
+                </h4>
+                <div class="assignmentContent">
+                	<a wicket:id="showEmpty"><span wicket:id="showEmptyLabel"/></a>
+                </div>
+
+                <div wicket:id="attributes">
+                    <div wicket:id="attribute">
+                        <div wicket:id="acAttribute"/>
+                    </div>
+                </div>
+            </div>
+
+            <!--todo implement extension-->
         </div>
 </wicket:panel>
 </html>
