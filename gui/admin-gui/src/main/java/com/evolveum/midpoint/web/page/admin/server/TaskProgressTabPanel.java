@@ -47,6 +47,7 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskProgressTabPanel.class);
 
+	private IterativeInformationPanel iterativeInformationPanel;
 	private SynchronizationInformationPanel synchronizationInformationPanelBefore;
 	private SynchronizationInformationPanel synchronizationInformationPanelAfter;
 	private ActionsExecutedInformationPanel actionsExecutedInformationPanel;
@@ -61,13 +62,14 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 
 	private void initLayout(final IModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		final TaskCurrentStateDtoModel model = new TaskCurrentStateDtoModel(taskDtoModel);
-		final IterativeInformationPanel iterativeInformationPanel = new IterativeInformationPanel(ID_ITERATIVE_INFORMATION_PANEL, model, pageBase);
+		iterativeInformationPanel = new IterativeInformationPanel(ID_ITERATIVE_INFORMATION_PANEL, model, pageBase);
 		iterativeInformationPanel.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
 				return model.getObject().getIterativeTaskInformationType() != null;
 			}
 		});
+		iterativeInformationPanel.setOutputMarkupId(true);
 		add(iterativeInformationPanel);
 
 		synchronizationInformationPanelBefore = new SynchronizationInformationPanel(ID_SYNCHRONIZATION_INFORMATION_PANEL_BEFORE,
@@ -108,6 +110,7 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 	@Override
 	public Collection<Component> getComponentsToUpdate() {
 		List<Component> rv = new ArrayList<>();
+		rv.add(iterativeInformationPanel);
 		rv.add(synchronizationInformationPanelBefore);
 		rv.add(synchronizationInformationPanelAfter);
 		rv.addAll(actionsExecutedInformationPanel.getComponentsToUpdate());

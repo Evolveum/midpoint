@@ -31,7 +31,7 @@ import java.util.List;
  *     average length of method call - MEAN
  *     number of method calls - USAGE_COUNT
  *
- *  We also update these statistics every time specific method call is captured by MidpointAspect class and then
+ *  We also update these statistics every time specific method call is captured by MidpointInterceptor class and then
  *  processed by AspectProfilingFilters. This is performed in update() method that is synchronized for obvious
  *  reasons.
  *

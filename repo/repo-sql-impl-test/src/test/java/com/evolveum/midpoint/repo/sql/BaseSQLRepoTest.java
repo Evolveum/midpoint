@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.query.RQueryCriteriaImpl;
@@ -75,7 +76,9 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     @Autowired
     protected LocalSessionFactoryBean sessionFactoryBean;
     @Autowired
-    protected SqlRepositoryServiceImpl repositoryService;
+    protected RepositoryService repositoryService;
+	@Autowired
+	protected BaseHelper baseHelper;
     @Autowired
     protected AuditService auditService;
     @Autowired
@@ -180,7 +183,7 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
 
         LOGGER.info("QUERY TYPE TO CONVERT : {}", (query.getFilter() != null ? query.getFilter().debugDump(3) : null));
 
-        QueryEngine engine = new QueryEngine(repositoryService.getConfiguration(), prismContext);
+        QueryEngine engine = new QueryEngine(baseHelper.getConfiguration(), prismContext);
         RQuery rQuery = engine.interpret(query, type, null, interpretCount, session);
         //just test if DB will handle it or throws some exception
         if (interpretCount) {

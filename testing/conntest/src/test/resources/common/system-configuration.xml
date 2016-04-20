@@ -45,7 +45,7 @@
       	</classLogger>
         <classLogger>
 	        <level>TRACE</level>
-	        <package>com.evolveum.midpoint.model.impl.sync.SynchronizationService</package>
+	        <package>com.evolveum.midpoint.model.impl.sync.SynchronizationServiceImpl</package>
       	</classLogger>
         <classLogger>
 	        <level>INFO</level>

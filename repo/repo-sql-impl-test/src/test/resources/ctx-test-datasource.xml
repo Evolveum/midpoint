@@ -79,7 +79,7 @@ It fakes JNDI context with simple H2 file DataSource.
         <constructor-arg value="config-test-datasource.xml" />
     </bean>
 
-    <import resource="ctx-repository.xml" />
+    <import resource="ctx-repository-test.xml" />
     <import resource="classpath:ctx-repo-cache.xml" />
     <import resource="classpath:ctx-common.xml" />
     <import resource="ctx-configuration-sql-test.xml" />

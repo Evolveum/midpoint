@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -42,7 +43,7 @@ import org.testng.annotations.Test;
 public class ControllerSearchObjectsTest extends AbstractTestNGSpringContextTests {
 
 	@Autowired(required = true)
-	private ModelController controller;
+	private ModelService controller;
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repository;

@@ -42,7 +42,7 @@ import static org.testng.AssertJUnit.assertTrue;
 @ContextConfiguration(locations = {"classpath:ctx-task.xml",
         "classpath:ctx-repo-cache.xml",
         "classpath:ctx-provisioning.xml",
-        "classpath*:ctx-repository.xml",
+        "classpath*:ctx-repository-test.xml",
         "classpath:ctx-configuration-test.xml",
         "classpath:ctx-common.xml",
         "classpath:ctx-security.xml",

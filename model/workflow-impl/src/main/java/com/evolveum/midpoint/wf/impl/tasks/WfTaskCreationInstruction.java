@@ -249,7 +249,7 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
     }
 
 	public void setObjectRef(ObjectReferenceType ref, OperationResult result) {
-		ref = getChangeProcessor().getWorkflowManager().getMiscDataUtil().resolveObjectReferenceName(ref, result);
+		ref = getChangeProcessor().getMiscDataUtil().resolveObjectReferenceName(ref, result);
 		wfContext.setObjectRef(ref);
 	}
 
@@ -259,7 +259,7 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 	}
 
 	public void setTargetRef(ObjectReferenceType ref, OperationResult result) {
-		ref = getChangeProcessor().getWorkflowManager().getMiscDataUtil().resolveObjectReferenceName(ref, result);
+		ref = getChangeProcessor().getMiscDataUtil().resolveObjectReferenceName(ref, result);
 		wfContext.setTargetRef(ref);
 	}
 

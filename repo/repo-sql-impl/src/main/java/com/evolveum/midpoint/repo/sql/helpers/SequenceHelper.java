@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.sql.SerializationRelatedException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -50,7 +49,7 @@ public class SequenceHelper {
     private ObjectUpdater objectUpdater;
 
     @Autowired
-    private TransactionHelper transactionHelper;
+    private BaseHelper baseHelper;
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
     private static final Trace LOGGER_PERFORMANCE = TraceManager.getTrace(SqlRepositoryServiceImpl.PERFORMANCE_LOG_NAME);
@@ -65,7 +64,7 @@ public class SequenceHelper {
 
         Session session = null;
         try {
-            session = transactionHelper.beginTransaction();
+            session = baseHelper.beginTransaction();
 
             PrismObject<SequenceType> prismObject = objectRetriever.getObjectInternal(session, SequenceType.class, oid, null, true, result);
             if (LOGGER.isTraceEnabled()) {
@@ -120,16 +119,16 @@ public class SequenceHelper {
 
             return returnValue;
         } catch (ObjectNotFoundException ex) {
-            transactionHelper.rollbackTransaction(session, ex, result, true);
+            baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
         } catch (SchemaException ex) {
-            transactionHelper.rollbackTransaction(session, ex, result, true);
+            baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
         } catch (DtoTranslationException | RuntimeException ex) {
-            transactionHelper.handleGeneralException(ex, session, result);                                            // should always throw an exception
+            baseHelper.handleGeneralException(ex, session, result);                                            // should always throw an exception
             throw new SystemException("Exception " + ex + " was not handled correctly", ex);        // ...so this shouldn't occur at all
         } finally {
-            transactionHelper.cleanupSessionAndResult(session, result);
+            baseHelper.cleanupSessionAndResult(session, result);
             LOGGER.trace("Session cleaned up.");
         }
     }
@@ -142,7 +141,7 @@ public class SequenceHelper {
 
         Session session = null;
         try {
-            session = transactionHelper.beginTransaction();
+            session = baseHelper.beginTransaction();
 
             PrismObject<SequenceType> prismObject = objectRetriever.getObjectInternal(session, SequenceType.class, oid, null, true, result);
             if (LOGGER.isTraceEnabled()) {
@@ -179,16 +178,16 @@ public class SequenceHelper {
             session.getTransaction().commit();
             LOGGER.trace("Committed!");
         } catch (ObjectNotFoundException ex) {
-            transactionHelper.rollbackTransaction(session, ex, result, true);
+            baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
         } catch (SchemaException ex) {
-            transactionHelper.rollbackTransaction(session, ex, result, true);
+            baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
         } catch (DtoTranslationException | RuntimeException ex) {
-            transactionHelper.handleGeneralException(ex, session, result);                                            // should always throw an exception
+            baseHelper.handleGeneralException(ex, session, result);                                            // should always throw an exception
             throw new SystemException("Exception " + ex + " was not handled correctly", ex);        // ...so this shouldn't occur at all
         } finally {
-            transactionHelper.cleanupSessionAndResult(session, result);
+            baseHelper.cleanupSessionAndResult(session, result);
             LOGGER.trace("Session cleaned up.");
         }
     }

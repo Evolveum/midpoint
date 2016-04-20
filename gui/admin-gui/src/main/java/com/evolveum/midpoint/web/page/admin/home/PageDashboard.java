@@ -515,7 +515,7 @@ public class PageDashboard extends PageAdminHome {
                 }
             }
 
-            return new AssignmentItemDto(AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION, name, description, null);
+            return new AssignmentItemDto(AssignmentEditorDtoType.CONSTRUCTION, name, description, null);
         }
 
         PrismReferenceValue refValue = targetRef.getValue();

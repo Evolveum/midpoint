@@ -55,6 +55,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
@@ -111,7 +112,7 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
     protected TaskManager taskManager;
 
     @Autowired
-    protected WorkflowManagerImpl workflowServiceImpl;
+    protected WorkflowManager workflowManager;
 
     @Autowired
     protected WfTaskUtil wfTaskUtil;
@@ -430,7 +431,7 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
 
                 boolean approve = testDetails.decideOnApproval(executionId);
 
-                workflowServiceImpl.approveOrRejectWorkItem(t.getId(), approve, null, result);
+                workflowManager.approveOrRejectWorkItem(t.getId(), approve, null, result);
                 login(userAdministrator);
             }
         }

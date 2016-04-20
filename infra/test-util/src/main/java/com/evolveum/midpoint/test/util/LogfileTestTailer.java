@@ -18,21 +18,18 @@ package com.evolveum.midpoint.test.util;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.evolveum.midpoint.util.aspect.MidpointAspect;
+import com.evolveum.midpoint.util.aspect.MidpointInterceptor;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -297,13 +294,13 @@ public class LogfileTestTailer {
 	
 	private void logAllLevels(Trace logger, String subsystemName) {
 		String message = MARKER+" "+subsystemName;
-		String previousSubsystem = MidpointAspect.swapSubsystemMark(subsystemName);
+		String previousSubsystem = MidpointInterceptor.swapSubsystemMark(subsystemName);
 		logger.trace(message);
 		logger.debug(message);
 		logger.info(message);
 		logger.warn(message);
 		logger.error(message);
-		MidpointAspect.swapSubsystemMark(previousSubsystem);
+		MidpointInterceptor.swapSubsystemMark(previousSubsystem);
 	}
 	
 	public void logAndTail() throws IOException {

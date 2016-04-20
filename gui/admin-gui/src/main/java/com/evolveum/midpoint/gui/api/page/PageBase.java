@@ -291,7 +291,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return taskManager;
 	}
 
-	protected WorkflowService getWorkflowService() {
+	public WorkflowService getWorkflowService() {
 		return workflowService;
 	}
 

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -433,7 +434,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return isReadable(new ItemPath(TaskType.F_EXTENSION, name));
 	}
 
-	public boolean isReadableSomeOf(QName... names) {
+	boolean isReadableSomeOf(QName... names) {
 		for (QName name : names) {
 			if (isReadable(new ItemPath(name))) {
 				return true;
@@ -444,5 +445,31 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 	public Form getForm() {
 		return mainPanel.getMainForm();
+	}
+
+	boolean canSuspend() {
+		return isAuthorized(ModelAuthorizationAction.SUSPEND_TASK);
+	}
+
+	boolean canResume() {
+		return isAuthorized(ModelAuthorizationAction.RESUME_TASK);
+	}
+
+	boolean canRunNow() {
+		return isAuthorized(ModelAuthorizationAction.RUN_TASK_IMMEDIATELY);
+	}
+
+	boolean canStop() {
+		return isAuthorized(ModelAuthorizationAction.STOP_APPROVAL_PROCESS_INSTANCE);
+	}
+
+	private boolean isAuthorized(ModelAuthorizationAction action) {
+		try {
+			return getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)
+					|| getSecurityEnforcer().isAuthorized(action.getUrl(), null, taskDtoModel.getObject().getTaskType().asPrismObject(), null, null, null);
+		} catch (SchemaException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine authorization for {}", e, action);
+			return true;			// it is only GUI thing
+		}
 	}
 }

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.controller;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
 
@@ -68,7 +69,7 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 	private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerGetObjectTest.class);
 	@Autowired(required = true)
-	private ModelController controller;
+	private ModelService controller;
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repository;

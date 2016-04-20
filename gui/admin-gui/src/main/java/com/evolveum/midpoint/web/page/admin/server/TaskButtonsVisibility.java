@@ -20,6 +20,7 @@ class TaskButtonsVisibility implements Serializable {
     private boolean suspendVisible;
     private boolean resumeVisible;
     private boolean runNowVisible;
+    private boolean stopVisible;
 
     public boolean computeBackVisible(PageTaskEdit parentPage) {
         backVisible = !parentPage.isEdit();
@@ -46,7 +47,8 @@ class TaskButtonsVisibility implements Serializable {
 
     public boolean computeSuspendVisible(PageTaskEdit parentPage) {
 		final TaskDto taskDto = parentPage.getTaskDto();
-		suspendVisible = !parentPage.isEdit() && taskDto.isRunnableOrRunning() && (!taskDto.isWorkflow() || parentPage.isShowAdvanced());
+		suspendVisible = !parentPage.isEdit() && taskDto.isRunnableOrRunning() && (!taskDto.isWorkflow() || parentPage.isShowAdvanced())
+			&& parentPage.canSuspend();
         return suspendVisible;
     }
 
@@ -54,7 +56,8 @@ class TaskButtonsVisibility implements Serializable {
 		final TaskDto taskDto = parentPage.getTaskDto();
 		resumeVisible = !parentPage.isEdit()
 				&& (taskDto.isSuspended() || (taskDto.isClosed() && taskDto.isRecurring()))
-				&& (!taskDto.isWorkflow() || parentPage.isShowAdvanced());
+				&& (!taskDto.isWorkflow() || parentPage.isShowAdvanced())
+				&& parentPage.canResume();
         return resumeVisible;
     }
 
@@ -62,9 +65,18 @@ class TaskButtonsVisibility implements Serializable {
 		final TaskDto taskDto = parentPage.getTaskDto();
 		runNowVisible = !parentPage.isEdit()
 				&& (taskDto.isRunnable() || (taskDto.isClosed() && !taskDto.isRecurring()))
-				&& (!taskDto.isWorkflow() || parentPage.isShowAdvanced());
+				&& (!taskDto.isWorkflow() || parentPage.isShowAdvanced())
+				&& parentPage.canRunNow();
         return runNowVisible;
     }
+
+	public boolean computeStopVisible(PageTaskEdit parentPage) {
+		final TaskDto taskDto = parentPage.getTaskDto();
+		stopVisible = !parentPage.isEdit()
+				&& taskDto.isWorkflowChild()
+				&& parentPage.canStop();
+		return stopVisible;
+	}
 
 	public void computeAll(PageTaskEdit parentPage) {
 		computeBackVisible(parentPage);
@@ -74,6 +86,7 @@ class TaskButtonsVisibility implements Serializable {
 		computeSuspendVisible(parentPage);
 		computeResumeVisible(parentPage);
 		computeRunNowVisible(parentPage);
+		computeStopVisible(parentPage);
 	}
 
 	public boolean isBackVisible() {
@@ -104,32 +117,47 @@ class TaskButtonsVisibility implements Serializable {
         return runNowVisible;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+	public boolean isStopVisible() {
+		return stopVisible;
+	}
 
-        TaskButtonsVisibility that = (TaskButtonsVisibility) o;
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
 
-        if (backVisible != that.backVisible) return false;
-        if (editVisible != that.editVisible) return false;
-        if (cancelEditVisible != that.cancelEditVisible) return false;
-        if (saveVisible != that.saveVisible) return false;
-        if (suspendVisible != that.suspendVisible) return false;
-        if (resumeVisible != that.resumeVisible) return false;
-        return runNowVisible == that.runNowVisible;
+		TaskButtonsVisibility that = (TaskButtonsVisibility) o;
 
-    }
+		if (backVisible != that.backVisible)
+			return false;
+		if (editVisible != that.editVisible)
+			return false;
+		if (cancelEditVisible != that.cancelEditVisible)
+			return false;
+		if (saveVisible != that.saveVisible)
+			return false;
+		if (suspendVisible != that.suspendVisible)
+			return false;
+		if (resumeVisible != that.resumeVisible)
+			return false;
+		if (runNowVisible != that.runNowVisible)
+			return false;
+		return stopVisible == that.stopVisible;
 
-    @Override
-    public int hashCode() {
-        int result = (backVisible ? 1 : 0);
-        result = 31 * result + (editVisible ? 1 : 0);
-        result = 31 * result + (cancelEditVisible ? 1 : 0);
-        result = 31 * result + (saveVisible ? 1 : 0);
-        result = 31 * result + (suspendVisible ? 1 : 0);
-        result = 31 * result + (resumeVisible ? 1 : 0);
-        result = 31 * result + (runNowVisible ? 1 : 0);
-        return result;
-    }
+	}
+
+	@Override
+	public int hashCode() {
+		int result = (backVisible ? 1 : 0);
+		result = 31 * result + (editVisible ? 1 : 0);
+		result = 31 * result + (cancelEditVisible ? 1 : 0);
+		result = 31 * result + (saveVisible ? 1 : 0);
+		result = 31 * result + (suspendVisible ? 1 : 0);
+		result = 31 * result + (resumeVisible ? 1 : 0);
+		result = 31 * result + (runNowVisible ? 1 : 0);
+		result = 31 * result + (stopVisible ? 1 : 0);
+		return result;
+	}
 }

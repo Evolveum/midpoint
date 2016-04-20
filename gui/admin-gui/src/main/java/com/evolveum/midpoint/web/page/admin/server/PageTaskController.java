@@ -19,25 +19,29 @@ package com.evolveum.midpoint.web.page.admin.server;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskBinding;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddResourcesDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskEditableState;
+import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstances;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
@@ -94,19 +98,15 @@ public class PageTaskController implements Serializable {
 
 		TaskDto dto = parentPage.getTaskDto();
 		Task operationTask = parentPage.createSimpleTask(PageTaskEdit.OPERATION_SAVE_TASK);
-		TaskManager manager = parentPage.getTaskManager();
 
 		try {
-			// TODO rework this
-			TaskType taskType = parentPage.getTaskDto().getTaskType();
-			Task task = manager.createTaskInstance(taskType.asPrismObject(), result);
-			TaskType originalTaskType = taskType.clone();
-			updateTask(dto, task);
+			List<ItemDelta<?, ?>> itemDeltas = getDeltasToExecute(dto);
+			ObjectDelta<TaskType> delta = ObjectDelta.createModifyDelta(dto.getOid(), itemDeltas, TaskType.class, parentPage.getPrismContext());
+			final Collection<ObjectDelta<? extends ObjectType>> deltas = Collections.<ObjectDelta<? extends ObjectType>>singletonList(delta);
 
-			final Collection<ObjectDelta<? extends ObjectType>> deltas = prepareChanges(originalTaskType, task.getTaskPrismObject().asObjectable());
-			//if (LOGGER.isTraceEnabled()) {
-				LOGGER.info("Saving task modifications:\n{}", DebugUtil.debugDump(deltas));
-			//}
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Saving task modifications:\n{}", DebugUtil.debugDump(deltas));
+			}
 			parentPage.getModelService().executeChanges(deltas, null, operationTask, result);
 
 			result.recomputeStatus();
@@ -118,56 +118,60 @@ public class PageTaskController implements Serializable {
 		afterSave(target, result);
 	}
 
-	private List<ObjectDelta<? extends ObjectType>> prepareChanges(TaskType original, TaskType updated) {
-		ObjectDelta<TaskType> delta = original.asPrismObject().diff(updated.asPrismObject());
-		return Collections.<ObjectDelta<? extends ObjectType>>singletonList(delta);
+	private List<ItemDelta<?, ?>> getDeltasToExecute(TaskDto dto) throws SchemaException {
+
+		List<ItemDelta<?, ?>> rv = new ArrayList<>();
+
+		TaskEditableState orig = dto.getOriginalEditableState();
+		TaskEditableState curr = dto.getCurrentEditableState();
+
+		if (!StringUtils.equals(orig.getName(), curr.getName())) {
+			String name = curr.getName() != null ? curr.getName() : "";
+			addDelta(rv, TaskType.F_NAME, new PolyString(name));
+		}
+
+		if (!StringUtils.equals(orig.getDescription(), curr.getDescription())) {
+			addDelta(rv, TaskType.F_DESCRIPTION, curr.getDescription());
+		}
+
+		ScheduleType origSchedule = orig.getScheduleType();
+		ScheduleType currSchedule = curr.getScheduleType();
+		if (!origSchedule.equals(currSchedule)) {
+			if (dto.getTaskType().getSchedule() != null) {
+				currSchedule.setLatestFinishTime(dto.getTaskType().getSchedule().getLatestFinishTime());
+			}
+			addDelta(rv, TaskType.F_SCHEDULE, currSchedule);
+		}
+
+		if (orig.isRecurring() != curr.isRecurring()) {
+			addDelta(rv, TaskType.F_RECURRENCE, curr.isRecurring() ? TaskRecurrenceType.RECURRING : TaskRecurrenceType.SINGLE);
+		}
+
+		if (orig.isBound() != curr.isBound()) {
+			addDelta(rv, TaskType.F_BINDING, curr.isBound() ? TaskBindingType.TIGHT : TaskBindingType.LOOSE);
+		}
+
+		if (orig.getThreadStopActionType() != curr.getThreadStopActionType()) {
+			addDelta(rv, TaskType.F_THREAD_STOP_ACTION, curr.getThreadStopActionType());
+		}
+
+		if (!ObjectUtils.equals(orig.getWorkerThreads(), curr.getWorkerThreads())) {
+			SchemaRegistry registry = parentPage.getPrismContext().getSchemaRegistry();
+			PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
+			rv.add(DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
+					.item(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS), def).replace(curr.getWorkerThreads())
+					.asItemDelta());
+		}
+
+		rv.addAll(dto.getHandlerDto().getDeltasToExecute(orig.getHandlerSpecificState(), curr.getHandlerSpecificState(), parentPage.getPrismContext()));
+
+		return rv;
 	}
 
-	private Task updateTask(TaskDto dto, Task existingTask) throws SchemaException {
-
-		existingTask.setName(WebComponentUtil.createPolyFromOrigString(dto.getName()));
-		existingTask.setDescription(dto.getDescription());
-
-		dto.getHandlerDto().updateTask(existingTask, parentPage);
-
-		ScheduleType schedule = new ScheduleType();
-		schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(dto.getNotStartBefore()));
-		schedule.setLatestStartTime(MiscUtil.asXMLGregorianCalendar(dto.getNotStartAfter()));
-		if (existingTask.getSchedule() != null) {
-			schedule.setLatestFinishTime(existingTask.getSchedule().getLatestFinishTime());
-		}
-		schedule.setMisfireAction(dto.getMisfireActionType());
-		if (!dto.isBound() && dto.getCronSpecification() != null) {
-			schedule.setCronLikePattern(dto.getCronSpecification());
-		} else {
-			schedule.setInterval(dto.getInterval());
-		}
-		if (!dto.isRecurring()) {
-			existingTask.makeSingle(schedule);
-		} else {
-			existingTask.makeRecurring(schedule);
-		}
-		existingTask.setBinding(dto.isBound() ? TaskBinding.TIGHT : TaskBinding.LOOSE);
-		existingTask.setThreadStopAction(dto.getThreadStopActionType());
-
-		SchemaRegistry registry = parentPage.getPrismContext().getSchemaRegistry();
-
-		if (dto.getWorkerThreads() != null) {
-			PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
-			PrismProperty workerThreads = new PrismProperty(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
-			workerThreads.setDefinition(def);
-			workerThreads.setRealValue(dto.getWorkerThreads());
-
-			existingTask.setExtensionProperty(workerThreads);
-		} else {
-			PrismProperty workerThreads = existingTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
-
-			if(workerThreads != null){
-				existingTask.deleteExtensionProperty(workerThreads);
-			}
-		}
-
-		return existingTask;
+	private void addDelta(List<ItemDelta<?, ?>> deltas, QName itemName, Object itemRealValue) throws SchemaException {
+		deltas.add(DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
+			.item(itemName).replace(itemRealValue)
+			.asItemDelta());
 	}
 
 	void suspendPerformed(AjaxRequestTarget target) {
@@ -185,6 +189,24 @@ public class PageTaskController implements Serializable {
 	void runNowPerformed(AjaxRequestTarget target) {
 		String oid = parentPage.getTaskDto().getOid();
 		OperationResult result = TaskOperationUtils.runNowPerformed(parentPage.getTaskService(), Arrays.asList(oid));
+		afterStateChangingOperation(target, result);
+	}
+
+	void stopApprovalProcessPerformed(AjaxRequestTarget target) {
+		String instanceId = parentPage.getTaskDto().getProcessInstanceId();
+		if (instanceId == null) {
+			return;
+		}
+		OperationResult result = new OperationResult(PageProcessInstances.OPERATION_STOP_PROCESS_INSTANCE);
+		try {
+			parentPage.getWorkflowService().stopProcessInstance(instanceId,
+					WebComponentUtil.getOrigStringFromPoly(SecurityUtils.getPrincipalUser().getName()),
+					result);
+			result.computeStatusIfUnknown();
+		} catch (SchemaException|ObjectNotFoundException|SecurityViolationException|RuntimeException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop approval process instance {}", e, instanceId);
+			result.recordFatalError("Couldn't stop approval process instance " + instanceId + ": " + e.getMessage(), e);
+		}
 		afterStateChangingOperation(target, result);
 	}
 

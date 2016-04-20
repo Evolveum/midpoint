@@ -23,8 +23,6 @@ import static org.testng.AssertJUnit.assertFalse;
 
 import java.io.File;
 
-import javax.xml.bind.JAXBException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -37,7 +35,6 @@ import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.mock.MockLensDebugListener;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -72,10 +69,10 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
 	private static final String INTENT_GROUP = "group";
 		
-	@Autowired(required = true)
+	@Autowired
 	SynchronizationService synchronizationService;
 	
-	@Autowired(required = true)
+	@Autowired
 	Clockwork clockwork;
 	
 	private String accountShadowJackDummyOid = null;
@@ -176,7 +173,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         
         assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
         assertEquals("Unexpected number of executed deltas", 1, context.getFocusContext().getExecutedDeltas().size());
-        ObjectDelta<UserType> userSecondaryDelta = (ObjectDelta<UserType>) context.getFocusContext().getExecutedDeltas().iterator().next().getObjectDelta();
+        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getExecutedDeltas().iterator().next().getObjectDelta();
         assertNotNull("No user secondary delta", userSecondaryDelta);
         assertEquals("Unexpected number of modifications in user secondary delta", 3, userSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_COST_CENTER, "999");
@@ -237,7 +234,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         
         assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
         assertEquals("Unexpected number of executed deltas", 1, context.getFocusContext().getExecutedDeltas().size());
-        ObjectDelta<UserType> userSecondaryDelta = (ObjectDelta<UserType>) context.getFocusContext().getExecutedDeltas().iterator().next().getObjectDelta();
+        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getExecutedDeltas().iterator().next().getObjectDelta();
 //        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         assertNotNull("No user secondary delta", userSecondaryDelta);
         assertEquals("Unexpected number of modifications in user secondary delta", 3, userSecondaryDelta.getModifications().size());

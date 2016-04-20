@@ -149,7 +149,7 @@ public class ResourceTasksPanel extends Panel{
 			
 			@Override
         	protected String getBoxCssClasses() {
-        		return GuiStyleConstants.CLASS_OBJECT_TASK_BOX_CSS_CLASSES;
+        		return GuiStyleConstants.CLASS_BOX + " " + GuiStyleConstants.CLASS_OBJECT_TASK_BOX_CSS_CLASSES;
         	}
 		};
 //		final ObjectListPanel<TaskType> tasksPanel = new ObjectListPanel<TaskType>(ID_TASKS_TABLE, TaskType.class, pageBase){

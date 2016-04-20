@@ -41,7 +41,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 		"classpath:ctx-task.xml",
         "classpath:ctx-audit-test.xml",
         "classpath:ctx-repo-cache.xml",
-        "classpath:ctx-repository.xml",
+        "classpath:ctx-repository-test.xml",
         "classpath:ctx-configuration-test.xml"})
 public class TestAuditServiceImpl extends AbstractTestNGSpringContextTests {
 	

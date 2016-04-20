@@ -98,39 +98,27 @@ public class PrismHeaderPanel extends Panel {
         };
         sortPropertiesButton.add(buttonsVisibleBehaviour);
         add(sortPropertiesButton);
-
-        IModel<String> headerLabelModel = new PropertyModel<>(model, "displayName");
-//
-//        if (model.getObject().isMain()){
-////            headerLabelModel = new StringResourceModel(resourceKey, this);
-//            ContainerWrapper wrappper = model.getObject();
-//            ObjectWrapper objwrapper = wrappper.getObject();
-//            ObjectWrapper objectWrapper = getObjectWrapper(model);
-//            final String key = objwrapper != null ? objwrapper.getDisplayName() : "";
-//
-//            headerLabelModel = new IModel<String>() {
-//                @Override
-//                public String getObject() {
-//                    String displayName = PageBase.createStringResourceStatic(getPage(), key).getString();
-//                    if (displayName.equals(key)){
-//                        displayName = (new PropertyModel<String>(model, "displayName")).getObject();
-//                    }
-//                    return displayName;
-//                }
-//
-//                @Override
-//                public void setObject(String o) {
-//
-//                }
-//
-//                @Override
-//                public void detach() {
-//
-//                }
-//            };
-//        } else {
-//            headerLabelModel = new PropertyModel<>(model, "displayName");
-//        }
+        
+        IModel<String> headerLabelModel = new AbstractReadOnlyModel<String>() {
+        	private static final long serialVersionUID = 1L;
+        	
+			@Override
+			public String getObject() {
+				
+				Object wrapper = model.getObject();
+				String displayName = null;
+		    	if (wrapper instanceof ContainerWrapper) {
+		    		displayName = ((ContainerWrapper)wrapper).getDisplayName();
+		    	} else if (wrapper instanceof ObjectWrapper) {
+		    		// HACK HACK HACK
+			        // If we would display label for the object itself, display label for main container instead
+			        // the "object label" is actually displayed in front of main container
+		    		displayName = ((ObjectWrapper)wrapper).findMainContainerWrapper().getDisplayName();
+		    	}
+		    	return getString(displayName, null, displayName);
+			}
+		};
+        
         add(new Label(ID_LABEL, headerLabelModel));
     }
     
