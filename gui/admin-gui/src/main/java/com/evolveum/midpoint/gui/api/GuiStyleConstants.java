@@ -96,4 +96,7 @@ public class GuiStyleConstants {
 	public static final String CLASS_OP_RESULT_STATUS_ICON_HANDLED_ERROR_COLORED = "fa fa-minus-circle text-warning";
 	public static final String CLASS_OP_RESULT_STATUS_ICON_NOT_APPLICABLE_COLORED = "fa fa-check-circle text-muted";
 	public static final String CLASS_OP_RESULT_STATUS_ICON_IN_PROGRESS_COLORED = "fa fa-clock-o text-info";
+
+	public static final String CLASS_BUTTON_TOGGLE_OFF = "btn-default";
+	public static final String CLASS_BUTTON_TOGGLE_ON = "btn-info";
 }

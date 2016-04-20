@@ -25,30 +25,30 @@ import org.apache.wicket.model.Model;
  * 
  * @author semancik
  */
-public abstract class ToggleButton<T> extends AjaxLink<T> {
+public abstract class ToggleIconButton<T> extends AjaxLink<T> {
 	private static final long serialVersionUID = 1L;
 
 	private String cssClassOff;
 	private String cssClassOn;
 	
-	public ToggleButton(String id) {
+	public ToggleIconButton(String id) {
 		super(id);
 		initLayout();
 	}
 	
-	public ToggleButton(String id, String cssClassOff, String cssClassOn) {
+	public ToggleIconButton(String id, String cssClassOff, String cssClassOn) {
 		super(id);
 		this.cssClassOff = cssClassOff;
 		this.cssClassOn = cssClassOn;
 		initLayout();
 	}
 
-	public ToggleButton(String id, IModel<T> model) {
+	public ToggleIconButton(String id, IModel<T> model) {
 		super(id, model);
 		initLayout();
 	}
 
-	public ToggleButton(String id, IModel<T> model, String cssClassOff, String cssClassOn) {
+	public ToggleIconButton(String id, IModel<T> model, String cssClassOff, String cssClassOn) {
 		super(id, model);
 		this.cssClassOff = cssClassOff;
 		this.cssClassOn = cssClassOn;
