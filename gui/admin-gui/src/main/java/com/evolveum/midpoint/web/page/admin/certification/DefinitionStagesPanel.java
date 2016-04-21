@@ -149,7 +149,7 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 		getModelObject().add(newStageDefinitionDto);
 		recreateTabs();
 		tabPanel.setSelectedTab(getModelObject().size()-1);
-		target.add(this);
+		target.add(parentPage.getTabPanel());
     }
 
 	private void deleteConfirmedPerformed(AjaxRequestTarget target) {
@@ -159,7 +159,7 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 		if (tabPanel.getSelectedTab() >= getModelObject().size()) {
 			tabPanel.setSelectedTab(getModelObject().size()-1);
 		}
-		target.add(this);
+		target.add(parentPage.getTabPanel());
 	}
 
 	private void moveLeftPerformed(AjaxRequestTarget target) {

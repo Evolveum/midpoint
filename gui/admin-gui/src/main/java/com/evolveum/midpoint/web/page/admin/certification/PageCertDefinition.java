@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
+import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -183,12 +184,16 @@ public class PageCertDefinition extends PageAdminCertification {
                 return new DefinitionScopePanel(panelId, new PropertyModel<DefinitionScopeDto>(definitionModel, CertDefinitionDto.F_SCOPE_DEFINITION));
             }
         });
-		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.stagesDefinition")) {
-            @Override
-            public WebMarkupContainer getPanel(String panelId) {
-                return new DefinitionStagesPanel(panelId, new PropertyModel<List<StageDefinitionDto>>(definitionModel, CertDefinitionDto.F_STAGE_DEFINITION), PageCertDefinition.this);
-            }
-        });
+		tabs.add(new CountablePanelTab(createStringResource("PageCertDefinition.stagesDefinition")) {
+			@Override
+			public WebMarkupContainer createPanel(String panelId) {
+				return new DefinitionStagesPanel(panelId, new PropertyModel<List<StageDefinitionDto>>(definitionModel, CertDefinitionDto.F_STAGE_DEFINITION), PageCertDefinition.this);
+			}
+			@Override
+			public String getCount() {
+				return String.valueOf(definitionModel.getObject().getNumberOfStages());
+			}
+		});
 
 //		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.campaigns")) {
 //            @Override
@@ -207,6 +212,9 @@ public class PageCertDefinition extends PageAdminCertification {
 		mainForm.add(tabPanel);
 	}
 
+	public TabbedPanel getTabPanel() {
+		return (TabbedPanel) get(createComponentPath(ID_MAIN_FORM, ID_TAB_PANEL));
+	}
 
 	private void initButtons(final Form mainForm) {
 		AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON, createStringResource("PageCertDefinition.button.back")) {
