@@ -245,7 +245,7 @@ private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
 			ObjectDelta delta = ObjectDelta.createModificationDeleteContainer(
 					manager.asPrismObject().getCompileTimeClass(), manager.getOid(), FocusType.F_ASSIGNMENT,
 					getPageBase().getPrismContext(),
-					createAssignmentToModify(manager.asPrismObject().getDefinition().getTypeName(),
+					createAssignmentToModify(
 							SchemaConstants.ORG_MANAGER));
 
 			getPageBase().getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta),
@@ -600,7 +600,7 @@ private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
 
 					delta = ObjectDelta.createModificationAddContainer(classType, "fakeOid",
 							FocusType.F_ASSIGNMENT, getPageBase().getPrismContext(),
-							createAssignmentToModify(type, relation));
+							createAssignmentToModify(relation));
 				} else {
 					delta = ObjectDelta.createModificationAddReference(classType, "fakeOid",
 							ObjectType.F_PARENT_ORG_REF, getPageBase().getPrismContext(),
@@ -612,7 +612,7 @@ private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
 				if (isFocus(type)) {
 					delta = ObjectDelta.createModificationDeleteContainer(classType, "fakeOid",
 							FocusType.F_ASSIGNMENT, getPageBase().getPrismContext(),
-							createAssignmentToModify(FocusType.COMPLEX_TYPE, relation));
+							createAssignmentToModify(relation));
 				} else {
 					delta = ObjectDelta.createModificationDeleteReference(classType, "fakeOid",
 							ObjectType.F_PARENT_ORG_REF, getPageBase().getPrismContext(),

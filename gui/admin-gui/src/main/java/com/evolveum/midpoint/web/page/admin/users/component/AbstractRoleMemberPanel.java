@@ -212,14 +212,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 						addMembers(null, target);
 					}
 				}));
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addManagers"), false,
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						addMembers(SchemaConstants.ORG_MANAGER, target);
-					}
-				}));
+		
 		headerMenuItems.add(new InlineMenuItem());
 
 		headerMenuItems
@@ -331,6 +324,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 			@Override
 			protected void addPerformed(AjaxRequestTarget target, QName type, List selected) {
+				AbstractRoleMemberPanel.this.getPageBase().hideMainPopup(target);
 				AbstractRoleMemberPanel.this.addMembersPerformed(type, relation, selected, target);
 
 			}
@@ -378,7 +372,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		target.add(getPageBase().getFeedbackPanel());
 	}
 	
-	protected AssignmentType createAssignmentToModify(QName type, QName relation) throws SchemaException {
+	protected AssignmentType createAssignmentToModify(QName relation) throws SchemaException {
 
 		AssignmentType assignmentToModify = new AssignmentType();
 
@@ -395,9 +389,13 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		return ref;
 	}
 	
-	protected ObjectReferenceType createReference(ObjectType obj, QName relation) {
+	protected ObjectReferenceType createReference() {
+		ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getModelObject());
+		return ref;
+	}
+	
+	protected ObjectReferenceType createReference(ObjectType obj) {
 		ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(obj);
-		ref.setRelation(relation);
 		return ref;
 	}
 	

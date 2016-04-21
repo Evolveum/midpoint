@@ -95,8 +95,10 @@ public abstract class MainObjectListPanel<T extends ObjectType> extends ObjectLi
 
                 @Override
                 public void onClick(AjaxRequestTarget target) {
-                    Table table = mainObjectListPanel.getTable();
-                    target.add((Component) table);
+                	mainObjectListPanel.clearCache();
+                	mainObjectListPanel.refreshTable(mainObjectListPanel.getType(), target);
+                    
+                    target.add((Component) mainObjectListPanel.getTable());
                 }
             };
             add(refreshIcon);

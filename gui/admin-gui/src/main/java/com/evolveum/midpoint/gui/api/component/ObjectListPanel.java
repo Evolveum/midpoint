@@ -390,7 +390,11 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 	}
 
 	public void clearCache() {
-		getDataProvider().clearCache();
+		BaseSortableDataProvider provider = getDataProvider();
+		provider.clearCache();
+		if (provider instanceof ObjectDataProvider2){
+			((ObjectDataProvider2) provider).clearSelectedObjects();
+		}
 	}
 
 	public ObjectQuery getQuery() {
@@ -438,12 +442,12 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		return columns;
 	}
 
-	private void clearSearchPerformed(AjaxRequestTarget target) {
-		BaseSortableDataProvider<SelectableBean<T>> provider = getDataProvider();
-		provider.setQuery(null);
-
-		target.add(getTable());
-	}
+//	private void clearSearchPerformed(AjaxRequestTarget target) {
+//		BaseSortableDataProvider<SelectableBean<T>> provider = getDataProvider();
+//		provider.setQuery(null);
+//
+//		target.add(getTable());
+//	}
 
 	public void addPerformed(AjaxRequestTarget target, List<T> selected) {
 		parentPage.hideMainPopup(target);
