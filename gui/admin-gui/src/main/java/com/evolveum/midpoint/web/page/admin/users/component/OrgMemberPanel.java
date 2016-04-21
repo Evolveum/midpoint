@@ -1,3 +1,18 @@
+/**
+ * Copyright (c) 2015-2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.admin.users.component;
 
 import java.io.Serializable;
@@ -15,15 +30,11 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -47,7 +58,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -62,10 +72,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.MenuLinkPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
@@ -108,7 +116,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	public OrgMemberPanel(String id, IModel<OrgType> model, PageBase parentPage) {
 		super(id, model, parentPage);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
@@ -210,32 +217,13 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		managerContainer.add(view);
 		
 		InlineMenu menupanel = new InlineMenu(ID_MANAGER_MENU, new Model((Serializable)createManagersHeaderInlineMenu()));
-//		ListView<InlineMenuItem> menupanel = new ListView<InlineMenuItem>(ID_MANAGER_MENU, new Model((Serializable) createManagersHeaderInlineMenu())) {
-//
-//	         @Override
-//	         protected void populateItem(ListItem<InlineMenuItem> item) {
-//	             initMenuItem(item);
-//	         }
-//	     };
-//	     
+
 	     add(menupanel);
 		menupanel.setOutputMarkupId(true);
 		managerContainer.add(menupanel);
 		
 		return managerContainer;
 	}
-	
-	 
-
-
-private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
-     final InlineMenuItem item = menuItem.getModelObject();
-
-     WebMarkupContainer menuItemBody = new MenuLinkPanel(ID_MANAGER_MENU_BODY, menuItem.getModel());
-     menuItemBody.setRenderBodyOnly(true);
-     menuItem.add(menuItemBody);
- }
-
 
 	private void removeManagerPerformed(FocusType manager, AjaxRequestTarget target) {
 		OperationResult parentResult = new OperationResult("Remove manager");
@@ -322,20 +310,6 @@ private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
 				createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
 	}
 
-	// private TablePanel getManagerTable() {
-	// return (TablePanel) get(createComponentPath(ID_FORM,
-	// ID_CONTAINER_MANAGER, ID_MANAGER_TABLE));
-	// }
-	//
-	// private void selectTreeItemPerformed(AjaxRequestTarget target) {
-	//
-	// getMemberTable().refreshTable(null, target);
-	//
-	// Form mainForm = (Form) get(ID_FORM);
-	// mainForm.addOrReplace(createManagerContainer());
-	// target.add(mainForm);
-	// }
-
 	private QName getSearchType() {
 		DropDownChoice<ObjectTypes> searchByTypeChoice = (DropDownChoice) get(
 				createComponentPath(ID_FORM, ID_SEARCH_BY_TYPE));
@@ -406,16 +380,6 @@ private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
 	protected void removeManagersPerformed(QueryScope scope, AjaxRequestTarget target) {
 
 		Task operationalTask = getPageBase().createSimpleTask("Remove managers " + scope.name());
-
-		// ObjectDelta delta = prepareDelta(MemberOperation.REMOVE,
-		// FocusType.COMPLEX_TYPE, null,
-		// operationalTask.getResult(), target);
-		// if (delta != null) {
-		// executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE,
-		// createQueryForMemberAction(scope, true), delta,
-		// TaskCategory.EXECUTE_CHANGES, target);
-		// }
-
 		ObjectDelta delta = prepareDelta(MemberOperation.REMOVE, FocusType.COMPLEX_TYPE,
 				SchemaConstants.ORG_MANAGER, operationalTask.getResult(), target);
 		if (delta == null) {
