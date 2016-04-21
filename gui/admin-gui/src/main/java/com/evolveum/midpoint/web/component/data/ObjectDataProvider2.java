@@ -70,6 +70,10 @@ public class ObjectDataProvider2<W extends Serializable, T extends ObjectType>
         this.type = type;
     }
     
+    public void clearSelectedObjects(){
+    	selected.clear();
+    }
+    
     public List<T> getSelectedData() {
     	preprocessSelectedDataInternal();
     	for (Serializable s : super.getAvailableData()){
@@ -174,9 +178,7 @@ public class ObjectDataProvider2<W extends Serializable, T extends ObjectType>
     			selectable.setSelected(true);
     		}
     	}
-//    	if (selected.contains(obj)){
-//    		selectable.setSelected(true);
-//    	}
+
         return (W) selectable;
     }
 

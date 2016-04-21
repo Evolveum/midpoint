@@ -93,13 +93,13 @@ public class WorkItemProvider {
     private static final String OPERATION_ACTIVITI_TASK_TO_WORK_ITEM = DOT_CLASS + "activitiTaskToWorkItem";
 
 	public Integer countWorkItems(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
-		TaskQuery taskQuery = createTaskQuery(query, options, result);
+		TaskQuery taskQuery = createTaskQuery(query, false, options, result);
 		return (int) taskQuery.count();
 	}
 
 	public SearchResultList<WorkItemType> searchWorkItems(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
 			throws SchemaException {
-		TaskQuery taskQuery = createTaskQuery(query, options, result);
+		TaskQuery taskQuery = createTaskQuery(query, true, options, result);
 		Integer offset = query != null ? query.getOffset() : null;
 		Integer maxSize = query != null ? query.getMaxSize() : null;
 		List<Task> tasks;
@@ -113,7 +113,7 @@ public class WorkItemProvider {
 	}
 
 	// primitive 'query interpreter'
-    private TaskQuery createTaskQuery(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+    private TaskQuery createTaskQuery(ObjectQuery query, boolean includeVariables, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
         FilterComponents components = factorOutQuery(query, F_ASSIGNEE_REF, F_CANDIDATE_ROLES_REF, F_WORK_ITEM_ID);
         if (components.hasRemainder()) {
             throw new SchemaException("Unsupported clause(s) in search filter: " + components.getRemainderClauses());
@@ -169,9 +169,13 @@ public class WorkItemProvider {
             }
         }
 
-        return taskQuery
-                .includeTaskLocalVariables()
-                .includeProcessVariables();
+		if (includeVariables) {
+			return taskQuery
+					.includeTaskLocalVariables()
+					.includeProcessVariables();
+		} else {
+			return taskQuery;
+		}
     }
 
 	private List<String> prismReferenceValueListToGroupNames(Collection<PrismReferenceValue> refs) {

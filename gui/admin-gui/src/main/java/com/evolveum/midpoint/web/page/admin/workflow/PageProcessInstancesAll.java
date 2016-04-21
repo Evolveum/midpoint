@@ -47,8 +47,4 @@ public class PageProcessInstancesAll extends PageProcessInstances {
         super(false, false);
     }
 
-    @Override
-    public PageBase reinitialize() {
-        return new PageProcessInstancesAll();
-    }
 }

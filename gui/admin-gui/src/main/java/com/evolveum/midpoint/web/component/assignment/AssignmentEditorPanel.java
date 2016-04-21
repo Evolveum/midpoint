@@ -20,7 +20,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleButton;
+import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -218,7 +218,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         Label activation = new Label(ID_ACTIVATION, createActivationModel());
         headerRow.add(activation);
         
-        ToggleButton expandButton = new ToggleButton(ID_EXPAND,
+        ToggleIconButton expandButton = new ToggleIconButton(ID_EXPAND,
         		GuiStyleConstants.CLASS_ICON_EXPAND, GuiStyleConstants.CLASS_ICON_COLLAPSE) {
         	private static final long serialVersionUID = 1L;
         	

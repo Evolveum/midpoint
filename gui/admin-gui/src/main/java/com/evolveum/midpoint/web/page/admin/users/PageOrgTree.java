@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,93 +94,9 @@ public class PageOrgTree extends PageAdminUsers {
 				return new TreeTablePanel(id, model, PageOrgTree.this);
 			}
 		};
-//        final IModel<List<ITab>> tabModel = new LoadableModel<List<ITab>>(false) {
-//
-//            @Override
-//            protected List<ITab> load() {
-//                LOGGER.debug("Loading org. roots for tabs for tabbed panel.");
-//                List<PrismObject<OrgType>> roots = loadOrgRoots();
-//
-//                final List<ITab> tabs = new ArrayList<>();
-//                for (PrismObject<OrgType> root : roots) {
-//                    final String oid = root.getOid();
-//                    tabs.add(new AbstractTab(createTabTitle(root)) {
-//                        private int tabId = tabs.size();
-//
-//                        @Override
-//                        public WebMarkupContainer getPanel(String panelId) {
-//                            add(new AjaxEventBehavior("onload") {
-//                                    protected void onEvent(final AjaxRequestTarget target) {
-//                                        SessionStorage storage = getSessionStorage();
-//                                        storage.getUsers().setSelectedTabId(tabId);
-//                                    }
-//                                }
-//                            );
-////                            return new OrgChildrenPanel(panelId, new Model(oid), PageOrgTree.this);
-//                            return new TreeTablePanel(panelId, new Model(oid), PageOrgTree.this);
-//                        }
-//                    });
-//                }
-//
-//                LOGGER.debug("Tab count is {}", new Object[]{tabs.size()});
-//
-//                return tabs;
-//            }
-//        };
-//
-//        SessionStorage storage = getSessionStorage();
-//        int selectedTab = storage.getUsers().getSelectedTabId() == -1 ? 0 : storage.getUsers().getSelectedTabId();
-//        List<ITab> tabsList = tabModel.getObject();
-//        if (tabsList == null || (selectedTab > tabsList.size() - 1)){
-//            storage.getUsers().setSelectedTabId(0);
-//            selectedTab = 0;
-//        }
-//        TabbedPanel tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<>(selectedTab), null);
+
         tabbedPanel.setOutputMarkupId(true);
-//        if (tabsList == null || tabsList.size() == 0){
-//            tabbedPanel.setVisible(false);
-//        }
         add(tabbedPanel);
     }
 
-//    private IModel<String> createTabTitle(final PrismObject<OrgType> org) {
-//        return new AbstractReadOnlyModel<String>() {
-//
-//            @Override
-//            public String getObject() {
-//                PolyString displayName = org.getPropertyRealValue(OrgType.F_DISPLAY_NAME, PolyString.class);
-//                if (displayName != null) {
-//                    return displayName.getOrig();
-//                }
-//
-//                return WebComponentUtil.getName(org);
-//            }
-//        };
-//    }
-//
-//    private List<PrismObject<OrgType>> loadOrgRoots() {
-//        Task task = createSimpleTask(OPERATION_LOAD_ORG_UNIT);
-//        OperationResult result = new OperationResult(OPERATION_LOAD_ORG_UNIT);
-//
-//        List<PrismObject<OrgType>> list = new ArrayList<>();
-//        try {
-//            ObjectQuery query = ObjectQueryUtil.createRootOrgQuery(getPrismContext());
-//            list = getModelService().searchObjects(OrgType.class, query, null, task, result);
-//
-//            if (list.isEmpty()) {
-//                warn(getString("PageOrgTree.message.noOrgStructDefined"));
-//            }
-//        } catch (Exception ex) {
-//            LoggingUtils.logException(LOGGER, "Unable to load org. unit", ex);
-//            result.recordFatalError("Unable to load org unit", ex);
-//        } finally {
-//            result.computeStatus();
-//        }
-//
-//        if (WebComponentUtil.showResultInPage(result)) {
-//            showResult(result);
-//        }
-//
-//        return list;
-//    }
 }

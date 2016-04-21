@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleButton;
+import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -152,7 +152,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
         });
         add(description);
         
-        ToggleButton expandButton = new ToggleButton(ID_EXPAND,
+        ToggleIconButton expandButton = new ToggleIconButton(ID_EXPAND,
         		GuiStyleConstants.CLASS_ICON_EXPAND, GuiStyleConstants.CLASS_ICON_COLLAPSE) {
         	private static final long serialVersionUID = 1L;
         	

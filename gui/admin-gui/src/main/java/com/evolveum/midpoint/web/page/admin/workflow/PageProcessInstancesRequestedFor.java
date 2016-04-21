@@ -47,8 +47,4 @@ public class PageProcessInstancesRequestedFor extends PageProcessInstances {
         super(false, true);
     }
 
-    @Override
-    public PageBase reinitialize() {
-        return new PageProcessInstancesRequestedFor();
-    }
 }

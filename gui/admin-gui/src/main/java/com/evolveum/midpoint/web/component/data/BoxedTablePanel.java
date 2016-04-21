@@ -44,6 +44,7 @@ import org.apache.wicket.model.IModel;
  * @author Viliam Repan (lazyman)
  */
 public class BoxedTablePanel<T> extends BasePanel implements Table {
+	private static final long serialVersionUID = 1L;
 
 	private static final String ID_BOX = "box";
 	private static final String ID_HEADER = "header";

@@ -139,14 +139,8 @@ public class PageCreatedReports extends PageAdminReports {
 
     }
 
-	public PageCreatedReports() {
-        this(new PageParameters(), null);
-    }
-
-    public PageCreatedReports(PageParameters pageParameters, PageBase previousPage) {
+    public PageCreatedReports(PageParameters pageParameters) {
         super(pageParameters);
-
-        setPreviousPage(previousPage);
 
         searchModel = new LoadableModel<ReportOutputSearchDto>(false) {
 

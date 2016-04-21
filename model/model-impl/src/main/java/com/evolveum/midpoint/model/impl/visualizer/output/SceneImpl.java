@@ -236,4 +236,44 @@ public class SceneImpl implements Scene, DebugDumpable {
 		}
 		return true;
 	}
+
+	// owner must not be tested here!
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		SceneImpl scene = (SceneImpl) o;
+
+		if (operational != scene.operational) return false;
+		if (name != null ? !name.equals(scene.name) : scene.name != null) return false;
+		if (changeType != scene.changeType) return false;
+		if (partialScenes != null ? !partialScenes.equals(scene.partialScenes) : scene.partialScenes != null)
+			return false;
+		if (items != null ? !items.equals(scene.items) : scene.items != null) return false;
+		if (sourceRelPath != null ? !sourceRelPath.equals(scene.sourceRelPath) : scene.sourceRelPath != null)
+			return false;
+		if (sourceAbsPath != null ? !sourceAbsPath.equals(scene.sourceAbsPath) : scene.sourceAbsPath != null)
+			return false;
+		if (sourceValue != null ? !sourceValue.equals(scene.sourceValue) : scene.sourceValue != null) return false;
+		if (sourceDefinition != null ? !sourceDefinition.equals(scene.sourceDefinition) : scene.sourceDefinition != null)
+			return false;
+		return !(sourceDelta != null ? !sourceDelta.equals(scene.sourceDelta) : scene.sourceDelta != null);
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = name != null ? name.hashCode() : 0;
+		result = 31 * result + (changeType != null ? changeType.hashCode() : 0);
+		result = 31 * result + (partialScenes != null ? partialScenes.hashCode() : 0);
+		result = 31 * result + (items != null ? items.hashCode() : 0);
+		result = 31 * result + (operational ? 1 : 0);
+		result = 31 * result + (sourceRelPath != null ? sourceRelPath.hashCode() : 0);
+		result = 31 * result + (sourceAbsPath != null ? sourceAbsPath.hashCode() : 0);
+		result = 31 * result + (sourceValue != null ? sourceValue.hashCode() : 0);
+		result = 31 * result + (sourceDefinition != null ? sourceDefinition.hashCode() : 0);
+		result = 31 * result + (sourceDelta != null ? sourceDelta.hashCode() : 0);
+		return result;
+	}
 }

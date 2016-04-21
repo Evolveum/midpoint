@@ -67,8 +67,7 @@ public class PagePreviewChanges extends PageAdminWorkItems {		// TODO extends
 	private IModel<SceneDto> primaryDeltasModel;
 	private IModel<SceneDto> secondaryDeltasModel;
 
-	public PagePreviewChanges(ModelContext<? extends ObjectType> modelContext, ModelInteractionService modelInteractionService, PageBase previousPage) {		// TODO remove previousPage
-		setPreviousPage(previousPage);
+	public PagePreviewChanges(ModelContext<? extends ObjectType> modelContext, ModelInteractionService modelInteractionService) {
 		final List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
 		final List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
 		final List<? extends Scene> primaryScenes;
@@ -143,7 +142,7 @@ public class PagePreviewChanges extends PageAdminWorkItems {		// TODO extends
 	}
 
 	private void cancelPerformed(AjaxRequestTarget target) {
-		goBack(PageDashboard.class);
+		redirectBack();
 	}
 
 }

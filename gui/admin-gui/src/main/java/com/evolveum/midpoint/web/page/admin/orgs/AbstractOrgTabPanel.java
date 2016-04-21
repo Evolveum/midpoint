@@ -70,9 +70,9 @@ public abstract class AbstractOrgTabPanel extends BasePanel{
                                     }
                                 }
                             );
-//                            return new OrgChildrenPanel(panelId, new Model(oid), PageOrgTree.this);
-                            return createTreePanel(panelId, new Model(oid), getPageBase());
-//                            return new TreeTablePanel(panelId, new Model(oid), AbstractOrgTabPanel.this);
+                            Panel panel = createTreePanel(panelId, new Model(oid), getPageBase());
+                            panel.setOutputMarkupId(true);
+                            return panel;
                         }
                         
                         

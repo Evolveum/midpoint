@@ -17,21 +17,33 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -66,19 +78,21 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import javax.xml.namespace.QName;
 
 /**
- * Created by Honchar
  * Creates a panel with the list of focus type items
  * with the possibility to filter by user (show only
  * assigned to the specified user items), to search
  * through the list and to reset the list to the
  * initial state
+ * 
+ * @author Kate Honchar
  */
-public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<List<AssignmentEditorDto>> {
+public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType> extends BasePanel<List<AssignmentEditorDto>> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(MultipleAssignmentSelector.class);
     private static final String DOT_CLASS = MultipleAssignmentSelector.class.getName() + ".";
     private static final String OPERATION_LOAD_AVAILABLE_ROLES = DOT_CLASS + "loadAvailableRoles";
+    private static final String OPERATION_LOAD_FILTER_OBJECT = DOT_CLASS + "loadFilterObject";
 
     private static final String ID_USER_CHOOSER_DIALOG = "userChooserDialog";
     private static final String ID_TABLE = "table";
@@ -94,20 +108,20 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
     private IModel<Search> searchModel;
     private BaseSortableDataProvider provider;
     private Class type;
-    private Class<F> targetFocusClass;
+    private Class<H> targetFocusClass;
     private String labelValue ="";
     private IModel<ObjectFilter> filterModel = null;
     private ObjectFilter authorizedRolesFilter = null;
     private ObjectQuery searchQuery = null;
-    private PrismObject<UserType> user;
-    private F filterObject = null;
+    private PrismObject<F> focus;
+    private H filterObject = null;
 
     public MultipleAssignmentSelector(String id, IModel<List<AssignmentEditorDto>> selectorModel, BaseSortableDataProvider provider,
-                                      Class<F> targetFocusClass, Class type, PrismObject<UserType> user) {
+                                      Class<H> targetFocusClass, Class type, PrismObject<F> focus) {
         super(id, selectorModel);
-        this.provider = provider == null ? getListDataProvider(user.asObjectable()) : provider;
+        this.provider = provider == null ? getListDataProvider(null) : provider;
         this.type = type;
-        this.user=user;
+        this.focus=focus;
         this.targetFocusClass = targetFocusClass;
         filterModel = getFilterModel();
         searchModel = new LoadableModel<Search>(false) {
@@ -155,7 +169,7 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
         add(filterButtonContainer);
 
         initSearchPanel();
-        add(initTablePanel(provider));
+        add(initTablePanel());
     }
 
     private Component createRowLink(String id, final IModel<SelectableBean<AssignmentEditorDto>> rowModel) {
@@ -163,13 +177,10 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
 
             @Override
             public IModel<?> getBody() {
-                ObjectReferenceType obj = ((AssignmentEditorDto)rowModel.getObject()).getTargetRef();
-                if (obj != null && obj.getTargetName() == null){
-                    obj.setTargetName(getAssignmentName(obj.getOid()));
-                }
                 AssignmentEditorDto dto =(AssignmentEditorDto) rowModel.getObject();
-                String str = dto.getNameForTargetObject();
-                return new Model<String>(str);
+                String name = StringUtils.isNotEmpty(dto.getNameForTargetObject()) ?
+                        dto.getNameForTargetObject() : dto.getName();
+                return new Model<String>(name);
             }
 
             @Override
@@ -193,6 +204,12 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
                 }
             }
         };
+        button.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                return ((AssignmentEditorDto)rowModel.getObject()).getStatus() != UserDtoStatus.DELETE;
+            }
+        });
         button.setOutputMarkupId(true);
         return button;
     }
@@ -210,10 +227,9 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
     }
 
     private void updateBoxedTablePanelStyles(BoxedTablePanel panel) {
-        panel.getDataTable().add(new AttributeModifier("class", ""));
-        panel.getDataTable().add(new AttributeAppender("style", "width: 100%;"));
-        panel.getDataTableContainer().add(new AttributeAppender("style", "min-height: 415px;"));
-        panel.getFooterPaging().getParent().add(new AttributeModifier("class", "col-md-10"));
+    	panel.getDataTableContainer().add(new AttributeAppender("class", " multiple-assignment-selector-table-container"));
+        panel.getDataTable().add(new AttributeModifier("class", "multiple-assignment-selector-table"));
+        panel.getFooterPaging().getParent().add(new AttributeModifier("class", "multiple-assignment-selector-table-footer"));
     }
 
     public BaseSortableDataProvider getProvider() {
@@ -224,7 +240,7 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
         rowModel.getObject().setSelected(!rowModel.getObject().isSelected());
         List<AssignmentEditorDto> providerList = ((BaseSortableDataProvider) getProvider()).getAvailableData();
         for (AssignmentEditorDto dto : providerList){
-            if (dto.getTargetRef().getOid().equals(((AssignmentEditorDto) rowModel.getObject()).getTargetRef().getOid())){
+            if (dto.equals(rowModel.getObject())){
                 dto.setSelected(rowModel.getObject().isSelected());
                 break;
             }
@@ -253,11 +269,7 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
 
         BoxedTablePanel panel = getTable();
         panel.setCurrentPage(null);
-//        DataTable table = panel.getDataTable();
-//        BaseSortableDataProvider provider = (BaseSortableDataProvider) table.getDataProvider();
-//        provider.setQuery(query);
-        this.provider.setQuery(query);
-
+        provider.setQuery(query);
         target.add(panel);
     }
 
@@ -265,10 +277,10 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
         return (BoxedTablePanel) get(ID_TABLE);
     }
 
-    private BoxedTablePanel initTablePanel(BaseSortableDataProvider tableProvider){
+    private BoxedTablePanel initTablePanel(){
         List<IColumn<SelectableBean<AssignmentEditorDto>, String>> columns = initColumns();
 
-        BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, tableProvider, columns,
+        BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns,
                 UserProfileStorage.TableId.TABLE_ROLES, ITEMS_PER_PAGE);
         updateBoxedTablePanelStyles(table);
         //hide footer menu
@@ -279,29 +291,15 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
         return table;
     }
 
-    private PolyStringType getAssignmentName(String oid){
-        ObjectDataProvider temporaryProvider = new ObjectDataProvider(MultipleAssignmentSelector.this, type);
-        Iterator it = temporaryProvider.internalIterator(0, temporaryProvider.size());
-        while (it.hasNext()) {
-            SelectableBean selectableBean = (SelectableBean) it.next();
-            F object = (F) selectableBean.getValue();
-            if (object.getOid().equals(oid)) {
-                return object.getName();
-            }
-        }
-        return new PolyStringType("");
-
-    }
-
     private void initUserDialog(IModel<String> title, AjaxRequestTarget target) {
 
         List<QName> supportedTypes = new ArrayList<>();
         supportedTypes.add(getPageBase().getPrismContext().getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(targetFocusClass).getTypeName());
-        FocusBrowserPanel<F> focusBrowser = new FocusBrowserPanel<F>(getPageBase().getMainPopupBodyId(),
+        FocusBrowserPanel<H> focusBrowser = new FocusBrowserPanel<H>(getPageBase().getMainPopupBodyId(),
                 targetFocusClass, supportedTypes, false, getPageBase()) {
             @Override
-    		protected void onSelectPerformed(AjaxRequestTarget target, F filterUser) {
+    		protected void onSelectPerformed(AjaxRequestTarget target, H filterUser) {
                 super.onSelectPerformed(target, filterUser);
                 filterObject = filterUser;
                 filterByUserPerformed();
@@ -316,7 +314,14 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
 
 
     private void filterByUserPerformed(){
-        provider =  getListDataProvider(filterObject);
+        //we need to load filter object (e.g. user) totally because we
+        //need to know its assignments' tenantRef data (name)
+        //and orgRef data (name)
+        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_FILTER_OBJECT);
+        OperationResult result = task.getResult();
+        PrismObject<H> loadedObject = WebModelServiceUtils.loadObject(targetFocusClass, filterObject.getOid(), null, getPageBase(), task,
+                result);
+        provider =  getListDataProvider(loadedObject != null ? loadedObject.asObjectable() : filterObject);
     }
 
     private void deleteFilterPerformed(AjaxRequestTarget target){
@@ -327,7 +332,7 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
     }
 
     private  void replaceTable(AjaxRequestTarget target){
-        BoxedTablePanel table = initTablePanel(provider);
+        BoxedTablePanel table = initTablePanel();
         MultipleAssignmentSelector.this.replace(table);
         target.add(MultipleAssignmentSelector.this);
     }
@@ -358,15 +363,15 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
         return get(createComponentPath(ID_FILTER_BUTTON_CONTAINER, ID_FILTER_BY_USER_BUTTON));
     }
 
-    public <T extends FocusType> BaseSortableDataProvider getListDataProvider(final T filterUser) {
+    public <T extends FocusType> BaseSortableDataProvider getListDataProvider(final FocusType focus) {
         BaseSortableDataProvider provider;
-        if (filterUser == null){
-            provider = getAvailableAssignmentsDataProvider();
-        } else {
+//        if (filterObject == null){
+//            provider = getAvailableAssignmentsDataProvider();
+//        } else {
             provider = new ListDataProvider<AssignmentEditorDto>(this, new IModel<List<AssignmentEditorDto>>() {
                 @Override
                 public List<AssignmentEditorDto> getObject() {
-                    return getAvailableAssignmentsDataList(filterUser);
+                    return getAvailableAssignmentsDataList(focus);
                 }
 
                 @Override
@@ -378,33 +383,31 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
 
                 }
             });
-        }
+//        }
         return provider;
     }
 
-    private <T extends FocusType> List<AssignmentEditorDto> getAvailableAssignmentsDataList(T filterUser){
+    private <T extends FocusType> List<AssignmentEditorDto> getAvailableAssignmentsDataList(FocusType focus){
         ObjectQuery query = provider.getQuery() == null ? new ObjectQuery() : provider.getQuery();
 
-
-        List<AssignmentEditorDto> assignmentsList = getAssignmentEditorDtoList(filterUser.getAssignment());
-        List<AssignmentEditorDto> currentAssignments = getAssignmentsByType(assignmentsList);
-        if (filterUser != null) {
-            if (type.equals(RoleType.class)) {
-                for (AssignmentEditorDto dto : currentAssignments) {
-                    dto.setTenantRef(null);
-                    dto.setOrgRef(null);
-                }
+        List<AssignmentEditorDto> assignmentsList = getListProviderDataList();
+        if (assignmentsList == null) {
+            if (focus != null) {
+                assignmentsList = getAssignmentEditorDtoList(focus.getAssignment());
+            } else {
+                assignmentsList = getModelObject();
             }
         }
+        List<AssignmentEditorDto> currentAssignments = getAssignmentsByType(assignmentsList);
 
+        if (filterModel != null && filterModel.getObject() != null) {
+            query.addFilter(filterModel.getObject());
+        }
+        return applyQueryToListProvider(query, currentAssignments);
+    }
 
-
-        if (filterModel != null && filterModel.getObject() != null){
-                query.addFilter(filterModel.getObject());
-            }
-            return applyQueryToListProvider(query, currentAssignments);
-
-
+    protected List<AssignmentEditorDto> getListProviderDataList(){
+        return null;
     }
 
     private List<AssignmentEditorDto> getAssignmentsByType(List<AssignmentEditorDto> assignmentsList) {
@@ -463,7 +466,7 @@ public class MultipleAssignmentSelector<F extends FocusType> extends BasePanel<L
         try {
             PageBase pb = getPageBase();
             ModelInteractionService mis = pb.getModelInteractionService();
-            RoleSelectionSpecification roleSpec = mis.getAssignableRoleSpecification(user, result);
+            RoleSelectionSpecification roleSpec = mis.getAssignableRoleSpecification(focus, result);
             authorizedRolesFilter = roleSpec.getFilter();
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't load available roles", ex);

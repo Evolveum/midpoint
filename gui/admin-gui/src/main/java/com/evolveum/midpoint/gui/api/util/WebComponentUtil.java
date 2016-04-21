@@ -1289,15 +1289,15 @@ public final class WebComponentUtil {
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, objectRef.getOid());
 		if (RoleType.COMPLEX_TYPE.equals(type)) {
-			page.setResponsePage(new PageRole(parameters, page));
+			page.setResponsePage(PageRole.class, parameters);
 		} else if (OrgType.COMPLEX_TYPE.equals(type)) {
-			page.setResponsePage(new PageOrgUnit(parameters, page));
+			page.setResponsePage(PageOrgUnit.class, parameters);
 		} else if (UserType.COMPLEX_TYPE.equals(type)) {
-			page.setResponsePage(new PageUser(parameters, page));
+			page.setResponsePage(PageUser.class, parameters);
 		} else if (ResourceType.COMPLEX_TYPE.equals(type)) {
-			page.setResponsePage(new PageResource(parameters, page));
+			page.setResponsePage(PageResource.class, parameters);
 		} else if (TaskType.COMPLEX_TYPE.equals(type)) {
-			page.setResponsePage(new PageTaskEdit(parameters));		// TODO: "back" page
+			page.setResponsePage(PageTaskEdit.class, parameters);
 		} else if (ReportType.COMPLEX_TYPE.equals(type)) {
 			page.setResponsePage(PageReport.class, parameters);
 		} else {
