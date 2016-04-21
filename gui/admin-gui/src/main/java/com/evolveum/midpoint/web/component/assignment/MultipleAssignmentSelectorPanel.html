@@ -22,13 +22,23 @@
     <form wicket:id="form">
         <div class="row">
             <div class="col-md-12">
-                <div class="col-md-4">
-                    <label class="control-label">
-                        <wicket:message key="MultipleAssignmentSelectorPanel.availableRoles"/>
-                    </label>
-                    <div wicket:id="availableAssignments"/>
+                
+                
+                <div class="col-md-4 request-role-col-available">
+                	<div class="box object-role-box box-solid">
+                		<div class="box-header with-border">
+                    		<h3 class="box-title">
+                        		<wicket:message key="MultipleAssignmentSelectorPanel.availableRoles"/>
+                        	</h3>
+                        </div>
+                        <div class="box-body">
+                    		<div wicket:id="availableAssignments"/>
+                    	</div>
+                    </div>
                 </div>
-                <div class="col-md-4" style="margin-top: 100px;">
+                
+                
+                <div class="col-md-4 request-role-col-control" style="margin-top: 100px;">
                     <div class="centre" style="width: 80%; min-height:140px;">
                         <div class="box box-default collapsed-box">
                             <div class="box-header with-border">
@@ -58,12 +68,22 @@
                     </div>
 
                 </div>
-                <div class="col-md-4">
-                    <label class="control-label">
-                        <wicket:message key="MultipleAssignmentSelectorPanel.currentRoles"/>
-                    </label>
-                    <div wicket:id="currentAssignments"/>
+                
+                
+                <div class="col-md-4 request-role-col-current">
+                	<div class="box object-user-box box-solid">
+                		<div class="box-header with-border">
+                    		<h3 class="box-title">
+                        		<wicket:message key="MultipleAssignmentSelectorPanel.currentRoles"/>
+                        	</h3>
+                        </div>
+                        <div class="box-body">
+                    		<div wicket:id="currentAssignments"/>
+                    	</div>
+                    </div>
                 </div>
+                
+                
             </div>
         </div>
     </form>

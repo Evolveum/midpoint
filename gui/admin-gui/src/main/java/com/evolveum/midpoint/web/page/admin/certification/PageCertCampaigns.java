@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
-import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
@@ -49,7 +48,6 @@ import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.SingleButtonColumn;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
@@ -60,14 +58,12 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
@@ -748,7 +744,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 	private void campaignDetailsPerformed(AjaxRequestTarget target, String oid) {
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-		setResponsePage(new PageCertCampaign(parameters, PageCertCampaigns.this));
+		setResponsePage(PageCertCampaign.class, parameters);
 	}
 
 	private void deleteCampaignsPerformed(AjaxRequestTarget target,

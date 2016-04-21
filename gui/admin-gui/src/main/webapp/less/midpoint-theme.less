@@ -237,6 +237,17 @@ th.cog, td.cog {
 
 #box-object(@color) {
 	border-top-color: @color;
+	
+	&.box-solid {
+		border: 1px solid @color;
+	}
+	
+	&.box-solid > .box-header {
+		color: #fff;
+		background: @color;
+		background-color: @color;
+	}
+	
 }
 
 .object-user-box {
@@ -253,6 +264,10 @@ th.cog, td.cog {
 
 .object-service-box {
 	#box-object(@object-service-color);
+}
+
+.object-task-box {
+	#box-object(@object-task-color);
 }
 
 .object-resource-box {
@@ -678,6 +693,26 @@ div.dashAssignmentHeader {
 	background-color: #ffcaca;
 }
 
+.option-checkbox {
+	float: left;
+	border: 1px solid @table-divider-color;
+	margin-right: 10px;
+	padding-bottom: 5px;
+	padding-left: 6px;
+	padding-right: 6px;
+}
+
+// Badge colors used in object details tabs (and maybe elsewhere)
+
+.badge-active {
+	background-color: #3c8dbc !important;
+}
+
+.badge-passive {
+	color: #fff;
+	background-color: #d2d6de !important;
+}
+
 // Projections tab (focus pages)
 
 .projections {
@@ -715,4 +750,29 @@ div.dashAssignmentHeader {
 			margin-top: 5px;
 		}
 	}
+}
+
+// Request role page
+
+.request-role-col-available {
+	padding-right: 0px;
+}
+
+.request-role-col-control {
+	
+}
+
+.request-role-col-current {
+	padding-left: 0px;
+}
+
+.multiple-assignment-selector {
+	
+}
+
+.multiple-assignment-selector-section {
+	min-height: 42px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	border-top: 2px solid @table-divider-color;
 }

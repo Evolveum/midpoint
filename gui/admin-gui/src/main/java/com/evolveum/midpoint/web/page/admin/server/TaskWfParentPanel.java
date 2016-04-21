@@ -26,6 +26,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskChangesDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkflowRequestsPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
+import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -33,6 +34,8 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -44,24 +47,33 @@ public class TaskWfParentPanel extends Panel {
 
 	private static final String ID_REQUESTS = "requests";
 	private static final String ID_REQUESTS_HELP = "requestsHelp";
+	private static final String ID_CHANGES_CONTAINER = "changesContainer";
 	private static final String ID_CHANGES_PREFIX = "changes";				// e.g. changes3Content
 	public static final String ID_CHANGES_CONTENT_SUFFIX = "Content";
 	public static final int CHANGES_NUMBER = 6;
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskApprovalsTabPanel.class);
 
-	public TaskWfParentPanel(String id, IModel<TaskDto> taskDtoModel, PageBase pageBase) {
+	private PageTaskEdit parentPage;
+	private WorkflowRequestsPanel workflowRequestsPanel;
+	private WebMarkupContainer changesContainer;
+
+	public TaskWfParentPanel(String id, IModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
 		super(id);
-		initLayout(taskDtoModel, pageBase);
+		this.parentPage = parentPage;
+		initLayout(taskDtoModel);
 		setOutputMarkupId(true);
 	}
 
-	private void initLayout(final IModel<TaskDto> taskDtoModel, PageBase pageBase) {
+	private void initLayout(final IModel<TaskDto> taskDtoModel) {
 		final PropertyModel<List<ProcessInstanceDto>> requestsModel = new PropertyModel<>(taskDtoModel, TaskDto.F_WORKFLOW_REQUESTS);
 		final ISortableDataProvider<ProcessInstanceDto, String> requestsProvider = new ListDataProvider<>(this, requestsModel);
-		add(new WorkflowRequestsPanel(ID_REQUESTS, requestsProvider, null, 10, WorkflowRequestsPanel.View.TASKS_FOR_PROCESS, null));
+		workflowRequestsPanel = new WorkflowRequestsPanel(ID_REQUESTS, requestsProvider, null, 10, WorkflowRequestsPanel.View.TASKS_FOR_PROCESS, null);
+		workflowRequestsPanel.setOutputMarkupId(true);
+		add(workflowRequestsPanel);
 		add(WebComponentUtil.createHelp(ID_REQUESTS_HELP));
 
+		changesContainer = new WebMarkupContainer(ID_CHANGES_CONTAINER);
 		for (int i = 1; i <= CHANGES_NUMBER; i++) {
 			final int index = i;
 			final String changesId = ID_CHANGES_PREFIX + i;
@@ -81,8 +93,24 @@ public class TaskWfParentPanel extends Panel {
 					return changesModel.getObject() != null;
 				}
 			});
-			add(changes);
+			changesContainer.add(changes);
 		}
+		changesContainer.setOutputMarkupId(true);
+		add(changesContainer);
+	}
+
+	public Collection<Component> getComponentsToUpdate() {
+
+		TaskDto curr = parentPage.getCurrentTaskDto();
+		TaskDto prev = parentPage.getPreviousTaskDto();
+		boolean changesChanged = prev == null || prev.getChangesCategorizationList() == null || !prev.getChangesCategorizationList().equals(curr.getChangesCategorizationList());
+
+		List<Component> rv = new ArrayList<>();
+		if (changesChanged) {
+			rv.add(changesContainer);
+		}
+		rv.add(workflowRequestsPanel);
+		return rv;
 	}
 
 }

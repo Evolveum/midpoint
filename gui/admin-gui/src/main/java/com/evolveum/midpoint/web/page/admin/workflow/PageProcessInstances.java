@@ -196,8 +196,6 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         //refresh feedback and table
         target.add(getFeedbackPanel());
         target.add(getTable());
-
-        setReinitializePreviousPages(true);
     }
 
 	private void deleteProcessInstancesPerformed(AjaxRequestTarget target) {
@@ -238,8 +236,6 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 		//refresh feedback and table
 		target.add(getFeedbackPanel());
 		target.add(getTable());
-
-		setReinitializePreviousPages(true);
 	}
 
 }

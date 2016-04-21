@@ -33,6 +33,6 @@ public interface ResultHandler<T extends ShadowType> {
      * @param object Resource object to process.
      * @return true if the operation shoudl proceed, false if it should stop
      */
-    public boolean handle(PrismObject<T> object);
+	boolean handle(PrismObject<T> object);
     
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import java.util.List;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -36,48 +36,78 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
-import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
-import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
+ * @author mederly
  * @author semancik
  */
-public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabPanel<F> {
+public class FocusTasksTabPanel<F extends FocusType> 
+		extends AbstractObjectTabPanel<F> {
 	private static final long serialVersionUID = 1L;
 	
-	protected static final String ID_FOCUS_FORM = "focusDetails";
+	protected static final String ID_TASK_TABLE = "taskTable";
+	protected static final String ID_LABEL = "label";
 	
-	private static final Trace LOGGER = TraceManager.getTrace(FocusDetailsTabPanel.class);
-
-	public FocusDetailsTabPanel(String id, Form mainForm, 
-			LoadableModel<ObjectWrapper<F>> focusWrapperModel, 
-			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, 
-			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
-			PageBase pageBase) {
-		super(id, mainForm, focusWrapperModel, assignmentsModel, projectionModel, pageBase);
-		initLayout();
+	private static final Trace LOGGER = TraceManager.getTrace(FocusTasksTabPanel.class);
+	
+	private TaskDtoProvider taskDtoProvider;
+	
+	public FocusTasksTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel, 
+			TaskDtoProvider taskDtoProvider, PageBase page) {
+		super(id, mainForm, focusModel, page);
+		this.taskDtoProvider = taskDtoProvider;
+		initLayout(page);
 	}
 	
-	private void initLayout() {
+	private void initLayout(final PageBase page) {
+		
+		Label label = new Label(ID_LABEL, new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
 
-		PrismObjectPanel<F> panel = new PrismObjectPanel<F>(ID_FOCUS_FORM, getObjectWrapperModel(),
-				new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), getMainForm(), getPageBase());
-		add(panel);
+			@Override
+			public String getObject() {
+				if (taskDtoProvider.size() > 0) {
+					return getString("pageAdminFocus.task.descriptionHasTasks");
+				} else {
+					return getString("pageAdminFocus.task.descriptionNoTasks");
+				}
+			}
+		});
+		add(label);
+		
+		List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
+		TablePanel taskTable = new TablePanel<TaskDto>(ID_TASK_TABLE, taskDtoProvider, taskColumns);
+		add(taskTable);
+
+		taskTable.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return taskDtoProvider.size() > 0;
+			}
+		});
 	}
+	
+	private List<IColumn<TaskDto, String>> initTaskColumns() {
+		List<IColumn<TaskDto, String>> columns = new ArrayList<IColumn<TaskDto, String>>();
+
+		columns.add(PageTasks.createTaskNameColumn(this, "pageAdminFocus.task.name"));
+		columns.add(PageTasks.createTaskCategoryColumn(this, "pageAdminFocus.task.category"));
+		columns.add(PageTasks.createTaskExecutionStatusColumn(this, "pageAdminFocus.task.execution"));
+		columns.add(PageTasks.createTaskResultStatusColumn(this, "pageAdminFocus.task.status"));
+		return columns;
+	}
+
 
 }

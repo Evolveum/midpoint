@@ -60,4 +60,23 @@ public class TaskChangesDto implements Serializable {
 	public SceneDto getPrimaryDeltas() {
         return primarySceneDto;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TaskChangesDto that = (TaskChangesDto) o;
+
+        if (titleKey != null ? !titleKey.equals(that.titleKey) : that.titleKey != null) return false;
+        return !(primarySceneDto != null ? !primarySceneDto.equals(that.primarySceneDto) : that.primarySceneDto != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = titleKey != null ? titleKey.hashCode() : 0;
+        result = 31 * result + (primarySceneDto != null ? primarySceneDto.hashCode() : 0);
+        return result;
+    }
 }

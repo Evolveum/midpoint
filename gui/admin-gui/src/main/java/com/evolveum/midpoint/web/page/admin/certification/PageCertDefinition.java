@@ -103,7 +103,6 @@ public class PageCertDefinition extends PageAdminCertification {
 	}
 
 	public PageCertDefinition(PageParameters parameters, PageBase previousPage) {
-		setPreviousPage(previousPage);
 		getPageParameters().overwriteWith(parameters);
 		initModels();
 		initLayout();
@@ -231,7 +230,7 @@ public class PageCertDefinition extends PageAdminCertification {
 		AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON, createStringResource("PageCertDefinition.button.back")) {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				goBack(PageCertDefinitions.class);
+				redirectBack();
 			}
 		};
 		mainForm.add(backButton);

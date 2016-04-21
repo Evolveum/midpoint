@@ -213,14 +213,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	@SpringBean
 	private MidpointFormValidatorRegistry formValidatorRegistry;
 
-	private PageBase previousPage; // experimental -- where to return e.g. when
-									// 'Back' button is clicked [NOT a class, in
-									// order to eliminate reinitialization when
-									// it is not needed]
-	private boolean reinitializePreviousPages; // experimental -- should we
-												// reinitialize all the chain of
-												// previous pages?
-
 	private boolean initialized = false;
 
 	public PageBase(PageParameters parameters) {
@@ -767,82 +759,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return modal;
 	}
 
-	public boolean isReinitializePreviousPages() {
-		return reinitializePreviousPages;
-	}
-
-	public void setReinitializePreviousPages(boolean reinitializePreviousPages) {
-		this.reinitializePreviousPages = reinitializePreviousPages;
-	}
-
-	public PageBase getPreviousPage() {
-		return previousPage;
-	}
-
-	public void setPreviousPage(PageBase previousPage) {
-		this.previousPage = previousPage;
-	}
-
-	// experimental -- all pages should know how to reinitialize themselves
-	// (most hardcore way is to construct a new instance of themselves)
-	public PageBase reinitialize() {
-		// by default there is nothing to do -- our pages have to know how to
-		// reinitialize themselves
-		LOGGER.trace("Default no-op implementation of reinitialize() called.");
-		return this;
-	}
-
-	// experimental -- go to previous page (either with reinitialization e.g.
-	// when something changed, or without - typically when 'back' button is
-	// pressed)
-	public void goBack(Class<? extends Page> defaultBackPageClass) {
-		LOGGER.trace("goBack called; page = {}, previousPage = {}, reinitializePreviousPages = {}",
-				new Object[] { this, previousPage, reinitializePreviousPages });
-		if (previousPage != null) {
-			setResponsePage(getPreviousPageToGoTo());
-		} else {
-			LOGGER.trace("...going to default back page {}", defaultBackPageClass);
-			setResponsePage(defaultBackPageClass);
-		}
-	}
-
-	// returns previous page ready to go to (i.e. reinitialized, if necessary)
-	public PageBase getPreviousPageToGoTo() {
-		if (previousPage == null) {
-			return null;
-		}
-
-		if (isReinitializePreviousPages()) {
-			LOGGER.trace("...calling reinitialize on previousPage ({})", previousPage);
-
-			previousPage.setReinitializePreviousPages(true); // we set this flag
-																// on the
-																// original
-																// previous
-																// page...
-			PageBase reinitialized = previousPage.reinitialize();
-			reinitialized.setReinitializePreviousPages(true); // ...but on the
-																// returned
-																// value, as it
-																// is probably
-																// different
-																// object
-			return reinitialized;
-		} else {
-			return previousPage;
-		}
-	}
-
 	// returns to previous page via restart response exception
 	public RestartResponseException getRestartResponseException(Class<? extends Page> defaultBackPageClass) {
-		LOGGER.trace("getRestartResponseException called; page = {}, previousPage = {}, reinitializePreviousPages = {}",
-				new Object[] { this, previousPage, reinitializePreviousPages });
-		if (previousPage != null) {
-			return new RestartResponseException(getPreviousPageToGoTo());
-		} else {
-			LOGGER.trace("...going to default back page {}", defaultBackPageClass);
-			return new RestartResponseException(defaultBackPageClass);
-		}
+		return new RestartResponseException(defaultBackPageClass);
 	}
 
 	protected <P extends Object> void validateObject(String xmlObject, final Holder<P> objectHolder,

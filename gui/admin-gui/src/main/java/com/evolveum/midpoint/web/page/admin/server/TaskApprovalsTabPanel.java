@@ -42,6 +42,7 @@ public class TaskApprovalsTabPanel extends AbstractObjectTabPanel<TaskType> impl
 	private PageTaskEdit parentPage;
 
 	private TaskWfChildPanel childPanel;
+	private TaskWfParentPanel parentPanel;
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskApprovalsTabPanel.class);
 
@@ -65,7 +66,7 @@ public class TaskApprovalsTabPanel extends AbstractObjectTabPanel<TaskType> impl
 		});
 		add(childPanel);
 
-		TaskWfParentPanel parentPanel = new TaskWfParentPanel(ID_WORKFLOW_PARENT_PANEL, taskDtoModel, parentPage);
+		parentPanel = new TaskWfParentPanel(ID_WORKFLOW_PARENT_PANEL, taskDtoModel, parentPage);
 		parentPanel.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
@@ -79,7 +80,10 @@ public class TaskApprovalsTabPanel extends AbstractObjectTabPanel<TaskType> impl
 	public Collection<Component> getComponentsToUpdate() {
 		if (parentPage.getTaskDto().isWorkflowChild()) {
 			return childPanel.getComponentsToUpdate();
+		} else if (parentPage.getTaskDto().isWorkflowParent()) {
+			return parentPanel.getComponentsToUpdate();
 		} else {
+			// shouldn't occur
 			return Collections.<Component>singleton(this);
 		}
 	}

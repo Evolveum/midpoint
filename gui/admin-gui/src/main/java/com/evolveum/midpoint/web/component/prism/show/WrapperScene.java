@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -155,5 +156,28 @@ public class WrapperScene implements Scene {
 	@Override
 	public String debugDump(int indent) {
 		return DebugUtil.debugDump(partialScenes, indent);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		WrapperScene that = (WrapperScene) o;
+
+		if (displayNameKey != null ? !displayNameKey.equals(that.displayNameKey) : that.displayNameKey != null)
+			return false;
+		// Probably incorrect - comparing Object[] arrays with Arrays.equals
+		if (!Arrays.equals(displayNameParameters, that.displayNameParameters)) return false;
+		return !(partialScenes != null ? !partialScenes.equals(that.partialScenes) : that.partialScenes != null);
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = displayNameKey != null ? displayNameKey.hashCode() : 0;
+		result = 31 * result + (displayNameParameters != null ? Arrays.hashCode(displayNameParameters) : 0);
+		result = 31 * result + (partialScenes != null ? partialScenes.hashCode() : 0);
+		return result;
 	}
 }

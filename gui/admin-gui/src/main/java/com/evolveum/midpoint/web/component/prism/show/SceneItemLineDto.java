@@ -71,4 +71,29 @@ public class SceneItemLineDto implements Serializable {
 	public boolean isDeltaScene() {
 		return sceneItemDto.isDeltaScene();
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		SceneItemLineDto that = (SceneItemLineDto) o;
+
+		if (index != that.index) return false;
+		if (isDelta != that.isDelta) return false;
+		if (sceneItemOldValue != null ? !sceneItemOldValue.equals(that.sceneItemOldValue) : that.sceneItemOldValue != null)
+			return false;
+		return !(sceneItemNewValue != null ? !sceneItemNewValue.equals(that.sceneItemNewValue) : that.sceneItemNewValue != null);
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = 1;
+		result = 31 * result + (sceneItemOldValue != null ? sceneItemOldValue.hashCode() : 0);
+		result = 31 * result + (sceneItemNewValue != null ? sceneItemNewValue.hashCode() : 0);
+		result = 31 * result + index;
+		result = 31 * result + (isDelta ? 1 : 0);
+		return result;
+	}
 }

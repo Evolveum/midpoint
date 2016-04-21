@@ -146,8 +146,6 @@ public class PageCreatedReports extends PageAdminReports {
     public PageCreatedReports(PageParameters pageParameters, PageBase previousPage) {
         super(pageParameters);
 
-        setPreviousPage(previousPage);
-
         searchModel = new LoadableModel<ReportOutputSearchDto>(false) {
 
             @Override

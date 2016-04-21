@@ -35,7 +35,6 @@ private static final Trace LOGGER = TraceManager.getTrace(PageService.class);
 
 	public PageService(PageParameters parameters, PageBase previousPage) {
 		getPageParameters().overwriteWith(parameters);
-		setPreviousPage(previousPage);
 		initialize(null);
 	}
 	
