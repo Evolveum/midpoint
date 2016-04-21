@@ -766,13 +766,52 @@ div.dashAssignmentHeader {
 	padding-left: 0px;
 }
 
+.request-role-box {
+	.box-body {
+		padding-bottom: 0px;
+	}
+}
+
 .multiple-assignment-selector {
 	
+	.multiple-assignment-selector-section:first-child {
+		border-top-width: 0px;
+		padding-top: 0px;
+		min-height: 36px;
+	}
+	
+	.multiple-assignment-selector-section:last-child {
+		padding-bottom: 0px;
+	}
 }
 
 .multiple-assignment-selector-section {
-	min-height: 42px;
-	padding-top: 5px;
-	padding-bottom: 5px;
+	min-height: 48px;
+	padding-top: 8px;
+	padding-bottom: 8px;
 	border-top: 2px solid @table-divider-color;
+}
+
+.multiple-assignment-selector-section-table {
+	.box {
+		border-width: 0px;
+	}
+}
+
+.multiple-assignment-selector-table-container {
+	min-height: 415px;
+}
+
+.multiple-assignment-selector-table {
+	width: 100%;
+}
+
+.multiple-assignment-selector-table-footer {
+	float: left;
+}
+
+.request-role-control-button {
+	&.btn-primary > i {
+		font-size: 32px;
+	}
 }

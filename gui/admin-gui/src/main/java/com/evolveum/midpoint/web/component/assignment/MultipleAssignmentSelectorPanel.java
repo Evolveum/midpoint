@@ -58,7 +58,7 @@ import java.util.List;
  * the list of assigned items of the same type with the
  * possibility of editing the list of assignments.
  * 
- * @author Kate Honchar.
+ * @author Kate Honchar
  */
 public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends FocusType, G extends FocusType>
         extends BasePanel<List<AssignmentEditorDto>> {          //G - type of the object which is to be assigned (a.g. assign a role (RoleType))
