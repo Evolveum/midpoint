@@ -58,6 +58,7 @@ public class GuiStyleConstants {
 
 	public static final String CLASS_OBJECT_CERT_DEF_ICON = "fa fa-certificate";
 	public static final String CLASS_OBJECT_CERT_DEF_ICON_COLORED = CLASS_OBJECT_CERT_DEF_ICON + " object-task-color";		// TODO
+	public static final String CLASS_OBJECT_CERT_DEF_BOX_CSS_CLASSES = "object-task-box";									// TODO
 
 	public static final String CLASS_OBJECT_CERT_CAMPAIGN_ICON = "fa fa-gavel";
 	public static final String CLASS_OBJECT_CERT_CAMPAIGN_ICON_COLORED = CLASS_OBJECT_CERT_CAMPAIGN_ICON + " object-task-color";		// TODO

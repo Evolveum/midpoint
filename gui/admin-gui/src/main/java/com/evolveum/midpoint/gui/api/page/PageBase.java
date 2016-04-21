@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.gui.api.page;
 
+import com.evolveum.midpoint.web.page.admin.certification.*;
 import com.evolveum.midpoint.web.page.self.PageRequestRole;
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -56,10 +57,6 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
