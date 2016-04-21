@@ -62,7 +62,7 @@ public class PageUser extends PageAdminFocus<UserType> {
         initialize(null);
     }
 
-    public PageUser(PageParameters parameters, PageBase previousPage) {
+    public PageUser(PageParameters parameters) {
         getPageParameters().overwriteWith(parameters);
         initialize(null);
     }

@@ -238,7 +238,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	private void finishPreviewProcessing(AjaxRequestTarget target, OperationResult result) {
 		showResult(result);
 		target.add(getFeedbackPanel());
-		setResponsePage(new PagePreviewChanges(getProgressReporter().getPreviewResult(), getModelInteractionService(), this));
+		setResponsePage(new PagePreviewChanges(getProgressReporter().getPreviewResult(), getModelInteractionService()));
 		// TODO implement "back" functionality correctly
 	}
 

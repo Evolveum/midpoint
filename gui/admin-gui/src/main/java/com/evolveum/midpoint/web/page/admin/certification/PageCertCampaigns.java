@@ -120,9 +120,10 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 	// campaign on which close-stage/close-campaign/delete has to be executed (if chosen directly from row menu)
 	private CertCampaignListItemDto relevantCampaign;
+	private String definitionOid;
 
 	public PageCertCampaigns(PageParameters parameters) {
-		getPageParameters().overwriteWith(parameters);
+		definitionOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER).toString();
 		initLayout();
 	}
 
@@ -148,7 +149,6 @@ public class PageCertCampaigns extends PageAdminCertification {
 		// TODO filtering based on e.g. campaign state/stage (not started,
 		// active, finished)
 		ObjectQuery query = new ObjectQuery();
-		String definitionOid = getDefinitionOid();
 		if (definitionOid != null) {
 			ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(
 					definitionOid, ObjectTypes.ACCESS_CERTIFICATION_DEFINITION);
@@ -167,12 +167,6 @@ public class PageCertCampaigns extends PageAdminCertification {
 		return query;
 	}
 
-	private String getDefinitionOid() {
-		StringValue definitionOid = getPageParameters().get(
-				OnePageParameterEncoder.PARAMETER);
-		return definitionOid != null ? definitionOid.toString() : null;
-	}
-
 	// endregion
 
 	// region Layout
@@ -184,7 +178,6 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 			@Override
 			public String getObject() {
-				String definitionOid = getDefinitionOid();
 				if (definitionOid == null) {
 					return createStringResource("PageCertCampaigns.title", "").getString();
 				}

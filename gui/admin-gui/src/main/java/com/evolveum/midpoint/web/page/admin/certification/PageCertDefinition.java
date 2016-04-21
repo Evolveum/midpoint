@@ -95,15 +95,12 @@ public class PageCertDefinition extends PageAdminCertification {
 	private static final String ID_TAB_PANEL = "tabPanel";
 
 	private LoadableModel<CertDefinitionDto> definitionModel;
+	private String definitionOid;
 
 	CertDecisionHelper helper = new CertDecisionHelper();
 
 	public PageCertDefinition(PageParameters parameters) {
-		this(parameters, null);
-	}
-
-	public PageCertDefinition(PageParameters parameters, PageBase previousPage) {
-		getPageParameters().overwriteWith(parameters);
+		definitionOid = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
 		initModels();
 		initLayout();
 	}
@@ -113,7 +110,6 @@ public class PageCertDefinition extends PageAdminCertification {
 		definitionModel = new LoadableModel<CertDefinitionDto>(false) {
 			@Override
 			protected CertDefinitionDto load() {
-				String definitionOid = getDefinitionOid();
 				if (definitionOid != null) {
 					return loadDefinition(definitionOid);
 				} else {
@@ -165,11 +161,6 @@ public class PageCertDefinition extends PageAdminCertification {
 		CertDefinitionDto definitionDto = new CertDefinitionDto(definition, PageCertDefinition.this,
 				getPrismContext());
 		return definitionDto;
-	}
-
-	private String getDefinitionOid() {
-		StringValue campaignOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-		return campaignOid != null ? campaignOid.toString() : null;
 	}
 	//endregion
 
