@@ -126,7 +126,6 @@ public class PageResource extends PageAdminResources {
 
 	public PageResource(PageParameters parameters, PageBase previousPage) {
 		getPageParameters().overwriteWith(parameters);
-		setPreviousPage(previousPage);
 		initialize();
 	}
 
@@ -265,11 +264,7 @@ public class PageResource extends PageAdminResources {
 
 	            @Override
 	            public void onClick(AjaxRequestTarget target) {
-	                if (getPreviousPage() != null) {
-	                    goBack(PageDashboard.class);            // the parameter is never used really
-	                } else {
-	                    setResponsePage(new PageResources(false));
-	                }
+	                redirectBack();
 	            }
 	        };
 	        add(back);

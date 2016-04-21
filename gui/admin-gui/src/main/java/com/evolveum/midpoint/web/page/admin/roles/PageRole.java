@@ -92,7 +92,6 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
 	
 	public PageRole(PageParameters parameters, PageBase previousPage) {
 		getPageParameters().overwriteWith(parameters);
-		setPreviousPage(previousPage);
 		initialize(null);
 	}
 

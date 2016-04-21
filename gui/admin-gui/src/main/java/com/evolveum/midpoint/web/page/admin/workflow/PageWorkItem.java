@@ -104,8 +104,6 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     public PageWorkItem(PageParameters parameters, PageBase previousPage, boolean reinitializePreviousPage) {
 
-        setPreviousPage(previousPage);
-        setReinitializePreviousPages(reinitializePreviousPage);
 		getPageParameters().overwriteWith(parameters);					// TODO eliminate this hack
 
         workItemDtoModel = new LoadableModel<WorkItemDto>(false) {
@@ -309,7 +307,6 @@ public class PageWorkItem extends PageAdminWorkItems {
         try {
 			WorkItemDto dto = workItemDtoModel.getObject();
             getWorkflowService().approveOrRejectWorkItem(dto.getWorkItemId(), decision, dto.getApproverComment(), result);
-            setReinitializePreviousPages(true);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save work item.", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save work item", ex);
@@ -322,7 +319,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             target.add(getFeedbackPanel());
         } else {
         	showResult(result);
-            goBack(PageWorkItems.class);
+            redirectBack();
         }
     }
 
@@ -332,7 +329,6 @@ public class PageWorkItem extends PageAdminWorkItems {
         WorkflowService workflowService = getWorkflowService();
         try {
             workflowService.claimWorkItem(workItemDtoModel.getObject().getWorkItemId(), result);
-            setReinitializePreviousPages(true);
         } catch (SecurityViolationException | ObjectNotFoundException | RuntimeException e) {
             result.recordFatalError("Couldn't claim work item due to an unexpected exception.", e);
         }
@@ -343,7 +339,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             target.add(getFeedbackPanel());
         } else {
         	showResult(result);
-            goBack(PageWorkItems.class);
+            redirectBack();
         }
     }
 
@@ -353,7 +349,6 @@ public class PageWorkItem extends PageAdminWorkItems {
         WorkflowService workflowService = getWorkflowService();
         try {
             workflowService.releaseWorkItem(workItemDtoModel.getObject().getWorkItem().getWorkItemId(), result);
-            setReinitializePreviousPages(true);
         } catch (SecurityViolationException | ObjectNotFoundException | RuntimeException e) {
             result.recordFatalError("Couldn't release work item due to an unexpected exception.", e);
         }
@@ -364,13 +359,8 @@ public class PageWorkItem extends PageAdminWorkItems {
             target.add(getFeedbackPanel());
         } else {
         	showResult(result);
-            goBack(PageWorkItems.class);
+            redirectBack();
         }
-    }
-
-    @Override
-    public PageBase reinitialize() {
-        return new PageWorkItem(getPageParameters(), getPreviousPage(), true);
     }
 
 }
