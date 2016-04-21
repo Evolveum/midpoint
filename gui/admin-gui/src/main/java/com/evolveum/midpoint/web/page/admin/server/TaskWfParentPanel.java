@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -24,7 +23,7 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskChangesDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.web.page.admin.workflow.WorkflowRequestsPanel;
+import com.evolveum.midpoint.web.page.admin.workflow.ProcessInstancesPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -55,7 +54,7 @@ public class TaskWfParentPanel extends Panel {
 	private static final Trace LOGGER = TraceManager.getTrace(TaskApprovalsTabPanel.class);
 
 	private PageTaskEdit parentPage;
-	private WorkflowRequestsPanel workflowRequestsPanel;
+	private ProcessInstancesPanel processInstancesPanel;
 	private WebMarkupContainer changesContainer;
 
 	public TaskWfParentPanel(String id, IModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
@@ -68,9 +67,9 @@ public class TaskWfParentPanel extends Panel {
 	private void initLayout(final IModel<TaskDto> taskDtoModel) {
 		final PropertyModel<List<ProcessInstanceDto>> requestsModel = new PropertyModel<>(taskDtoModel, TaskDto.F_WORKFLOW_REQUESTS);
 		final ISortableDataProvider<ProcessInstanceDto, String> requestsProvider = new ListDataProvider<>(this, requestsModel);
-		workflowRequestsPanel = new WorkflowRequestsPanel(ID_REQUESTS, requestsProvider, null, 10, WorkflowRequestsPanel.View.TASKS_FOR_PROCESS, null);
-		workflowRequestsPanel.setOutputMarkupId(true);
-		add(workflowRequestsPanel);
+		processInstancesPanel = new ProcessInstancesPanel(ID_REQUESTS, requestsProvider, null, 10, ProcessInstancesPanel.View.TASKS_FOR_PROCESS, null);
+		processInstancesPanel.setOutputMarkupId(true);
+		add(processInstancesPanel);
 		add(WebComponentUtil.createHelp(ID_REQUESTS_HELP));
 
 		changesContainer = new WebMarkupContainer(ID_CHANGES_CONTAINER);
@@ -109,7 +108,7 @@ public class TaskWfParentPanel extends Panel {
 		if (changesChanged) {
 			rv.add(changesContainer);
 		}
-		rv.add(workflowRequestsPanel);
+		rv.add(processInstancesPanel);
 		return rv;
 	}
 

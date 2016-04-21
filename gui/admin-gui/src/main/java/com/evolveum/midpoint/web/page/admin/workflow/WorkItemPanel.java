@@ -115,8 +115,8 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		final IModel<List<ProcessInstanceDto>> relatedWorkflowRequestsModel = new PropertyModel<>(getModel(), WorkItemDto.F_RELATED_WORKFLOW_REQUESTS);
 		final ISortableDataProvider<ProcessInstanceDto, String> relatedWorkflowRequestsProvider = new ListDataProvider<>(this, relatedWorkflowRequestsModel);
 		relatedWorkflowRequestsContainer.add(
-				new WorkflowRequestsPanel(ID_RELATED_REQUESTS, relatedWorkflowRequestsProvider, null, 10,
-						WorkflowRequestsPanel.View.TASKS_FOR_PROCESS, new PropertyModel<String>(getModel(), WorkItemDto.F_PROCESS_INSTANCE_ID)));
+				new ProcessInstancesPanel(ID_RELATED_REQUESTS, relatedWorkflowRequestsProvider, null, 10,
+						ProcessInstancesPanel.View.TASKS_FOR_PROCESS, new PropertyModel<String>(getModel(), WorkItemDto.F_PROCESS_INSTANCE_ID)));
 		final VisibleEnableBehaviour relatedWorkflowRequestsContainerVisible = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
