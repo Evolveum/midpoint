@@ -178,9 +178,7 @@ public class ObjectDataProvider2<W extends Serializable, T extends ObjectType>
     			selectable.setSelected(true);
     		}
     	}
-//    	if (selected.contains(obj)){
-//    		selectable.setSelected(true);
-//    	}
+
         return (W) selectable;
     }
 

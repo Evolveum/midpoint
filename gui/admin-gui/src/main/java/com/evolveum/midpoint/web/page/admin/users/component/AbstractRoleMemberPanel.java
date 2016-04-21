@@ -185,9 +185,6 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		};
 		childrenListPanel.setOutputMarkupId(true);
 		memberContainer.add(childrenListPanel);
-
-//		WebMarkupContainer managerContainer = createManagerContainer();
-//		form.addOrReplace(managerContainer);
 	}
 	
 	
@@ -461,8 +458,6 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	}
 	
 	protected abstract ObjectQuery createMemberQuery();
-	
-//	protected abstract List<InlineMenuItem> createMembersHeaderInlineMenu();
 	
 	protected Class qnameToClass(QName type) {
 		return getPageBase().getPrismContext().getSchemaRegistry().determineCompileTimeClass(type);
