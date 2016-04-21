@@ -163,7 +163,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 				if (oid != null) {
 					PageParameters parameters = new PageParameters();
 					parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-					setResponsePage(new PageUser(parameters, parentPage));
+					setResponsePage(PageUser.class, parameters);
 				}
 			}
 		};

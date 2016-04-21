@@ -89,22 +89,14 @@ public class PageWorkItem extends PageAdminWorkItems {
     private static final Trace LOGGER = TraceManager.getTrace(PageWorkItem.class);
 
     private LoadableModel<WorkItemDto> workItemDtoModel;
+	private String taskId;
 
-    public PageWorkItem() {
-        this(new PageParameters(), null);
-    }
+    public PageWorkItem(PageParameters parameters) {
 
-	public PageWorkItem(PageParameters parameters) {
-		this(parameters, null);
-	}
-
-    public PageWorkItem(PageParameters parameters, PageBase previousPage) {
-        this(parameters, previousPage, false);
-    }
-
-    public PageWorkItem(PageParameters parameters, PageBase previousPage, boolean reinitializePreviousPage) {
-
-		getPageParameters().overwriteWith(parameters);					// TODO eliminate this hack
+		taskId = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
+		if (taskId == null) {
+			throw new IllegalStateException("Work item ID not specified.");
+		}
 
         workItemDtoModel = new LoadableModel<WorkItemDto>(false) {
             @Override
@@ -129,19 +121,15 @@ public class PageWorkItem extends PageAdminWorkItems {
         OperationResult result = task.getResult();
         WorkItemDto workItemDto = null;
         try {
-            String id = getPageParameters().get(OnePageParameterEncoder.PARAMETER).toString();
-			if (id == null) {
-				throw new IllegalStateException("Work item ID not specified.");
-			}
             final ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
-                    .item(F_WORK_ITEM_ID).eq(id)
+                    .item(F_WORK_ITEM_ID).eq(taskId)
                     .build();
 			final Collection<SelectorOptions<GetOperationOptions>> options = resolveItemsNamed(F_ASSIGNEE_REF);
 			List<WorkItemType> workItems = getModelService().searchContainers(WorkItemType.class, query, options, task, result);
             if (workItems.size() > 1) {
-                throw new SystemException("More than one work item with ID of " + id);
+                throw new SystemException("More than one work item with ID of " + taskId);
             } else if (workItems.size() == 0) {
-                throw new SystemException("No work item with ID of " + id);
+                throw new SystemException("No work item with ID of " + taskId);
             }
 			final WorkItemType workItem = workItems.get(0);
 

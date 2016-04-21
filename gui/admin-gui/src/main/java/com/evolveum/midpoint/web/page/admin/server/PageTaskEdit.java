@@ -106,8 +106,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	private IModel<Boolean> showAdvancedFeaturesModel;
 
 	public PageTaskEdit(PageParameters parameters) {
-		getPageParameters().overwriteWith(parameters);
-		taskOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER).toString();
+		taskOid = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
 		taskDtoModel = new LoadableModel<TaskDto>(false) {
 			@Override
 			protected TaskDto load() {

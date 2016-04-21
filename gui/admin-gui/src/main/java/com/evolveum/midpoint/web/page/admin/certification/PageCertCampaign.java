@@ -54,6 +54,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.namespace.QName;
@@ -122,8 +123,8 @@ public class PageCertCampaign extends PageAdminCertification {
 
 	CertDecisionHelper helper = new CertDecisionHelper();
 
-	public PageCertCampaign() {
-		StringValue campaignOidValue = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+	public PageCertCampaign(PageParameters parameters) {
+		StringValue campaignOidValue = parameters.get(OnePageParameterEncoder.PARAMETER);
 		if (campaignOidValue != null) {
 			campaignOid = campaignOidValue.toString();
 		}

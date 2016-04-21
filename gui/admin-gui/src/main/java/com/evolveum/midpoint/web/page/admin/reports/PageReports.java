@@ -210,7 +210,7 @@ public class PageReports extends PageAdminReports {
     private void reportTypeFilterPerformed(AjaxRequestTarget target, String oid) {
         PageParameters params = new PageParameters();
         params.add(OnePageParameterEncoder.PARAMETER, oid);
-        setResponsePage(new PageCreatedReports(params, PageReports.this));
+        setResponsePage(PageCreatedReports.class, params);
     }
 
     //    @Override

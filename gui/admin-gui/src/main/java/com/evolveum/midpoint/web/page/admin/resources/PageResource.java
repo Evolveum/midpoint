@@ -115,22 +115,14 @@ public class PageResource extends PageAdminResources {
 
 	private ListModel testConnectionModel = new ListModel();
 
-	public PageResource() {
-
-	}
+	private String resourceOid;
 
 	public PageResource(PageParameters parameters) {
-		getPageParameters().overwriteWith(parameters);
-		initialize();
-	}
-
-	public PageResource(PageParameters parameters, PageBase previousPage) {
-		getPageParameters().overwriteWith(parameters);
+		resourceOid = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
 		initialize();
 	}
 
 	private void initialize() {
-
 		resourceModel = new LoadableModel<PrismObject<ResourceType>>() {
 
 			@Override
@@ -138,13 +130,11 @@ public class PageResource extends PageAdminResources {
 				return loadResource();
 			}
 		};
-
 		initLayout();
 	}
 
 	protected String getResourceOid() {
-		StringValue resourceOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-		return resourceOid != null ? resourceOid.toString() : null;
+		return resourceOid;
 	}
 
 	private PrismObject<ResourceType> loadResource() {

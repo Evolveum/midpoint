@@ -90,7 +90,7 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
 		initialize(roleToEdit);
 	}
 	
-	public PageRole(PageParameters parameters, PageBase previousPage) {
+	public PageRole(PageParameters parameters) {
 		getPageParameters().overwriteWith(parameters);
 		initialize(null);
 	}

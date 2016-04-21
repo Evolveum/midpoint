@@ -275,7 +275,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
     private void definitionDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        setResponsePage(new PageCertDefinition(parameters, PageCertDefinitions.this));
+        setResponsePage(PageCertDefinition.class, parameters);
     }
 
     //endregion
