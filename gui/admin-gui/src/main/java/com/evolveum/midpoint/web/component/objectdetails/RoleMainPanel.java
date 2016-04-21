@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -65,7 +66,7 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
-				return new RoleMemberPanel<UserType>(panelId, getObject().getOid(), getDetailsPage());
+				return new RoleMemberPanel(panelId, new Model<RoleType>(getObject().asObjectable()), getDetailsPage());
 			}
 			
 			@Override

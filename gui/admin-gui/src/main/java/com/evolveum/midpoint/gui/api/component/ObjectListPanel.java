@@ -72,9 +72,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T> {
 	private static final long serialVersionUID = 1L;
 
-	// private static final String ID_SEARCH_FORM = "searchForm";
 	private static final String ID_MAIN_FORM = "mainForm";
-	private static final String ID_BUTTON_CANCEL = "cancelButton";
 
 	private static final String ID_TABLE = "table";
 
@@ -108,8 +106,6 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		storageMap.put(PageReports.class, SessionStorage.KEY_REPORTS);
 		storageMap.put(PageRoles.class, SessionStorage.KEY_ROLES);
 		storageMap.put(PageServices.class, SessionStorage.KEY_SERVICES);
-		// storageMap.put(ObjectType.class, SessionStorage.KEY_CONFIGURATION);
-		// storageMap.put(FocusType.class, SessionStorage.KEY_ROLE_MEMBERS);
 
 	}
 
@@ -187,7 +183,6 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		BoxedTablePanel<SelectableBean<T>> table = createTable();
 		mainForm.add(table);
 
-		// saveSearch();
 	}
 
 	protected BaseSortableDataProvider<SelectableBean<T>> getProvider() {
@@ -237,23 +232,6 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 			@Override
 			protected WebMarkupContainer createHeader(String headerId) {
 				return initSearch(headerId);
-//				SearchFormPanel searchPanel = new SearchFormPanel(headerId, searchModel) {
-//
-//					private static final long serialVersionUID = 1L;
-//
-//					@Override
-//					protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-//						ObjectListPanel.this.searchPerformed(query, target);
-//					}
-//
-//				};
-////				searchPanel.add(new VisibleEnableBehaviour() {
-////					@Override
-////					public boolean isVisible() {
-////						return !type.equals(ObjectType.class);
-////					}
-////				});
-//				return searchPanel;
 			}
 			
 			@Override
@@ -269,7 +247,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 			}
 		};
 		table.setOutputMarkupId(true);
-		String storageKey = getStorageKey();//storageMap.get(type);
+		String storageKey = getStorageKey();
 		if (StringUtils.isNotEmpty(storageKey)) {
 			PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
 			if (storage != null) {
@@ -365,12 +343,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 			}
 
 		};
-//		searchPanel.add(new VisibleEnableBehaviour() {
-//			@Override
-//			public boolean isVisible() {
-//				return !type.equals(ObjectType.class);
-//			}
-//		});
+
 		return searchPanel;
 	}
 	
@@ -390,7 +363,11 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 	}
 
 	public void clearCache() {
-		getDataProvider().clearCache();
+		BaseSortableDataProvider provider = getDataProvider();
+		provider.clearCache();
+		if (provider instanceof ObjectDataProvider2){
+			((ObjectDataProvider2) provider).clearSelectedObjects();
+		}
 	}
 
 	public ObjectQuery getQuery() {
@@ -416,8 +393,6 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 	protected abstract List<IColumn<SelectableBean<T>, String>> createColumns();
 	protected abstract List<InlineMenuItem> createInlineMenu();
 
-	// protected abstract void saveSearch(ObjectPaging paging);
-
 	protected List<IColumn<SelectableBean<T>, String>> initColumns() {
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
 
@@ -438,12 +413,6 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		return columns;
 	}
 
-	private void clearSearchPerformed(AjaxRequestTarget target) {
-		BaseSortableDataProvider<SelectableBean<T>> provider = getDataProvider();
-		provider.setQuery(null);
-
-		target.add(getTable());
-	}
 
 	public void addPerformed(AjaxRequestTarget target, List<T> selected) {
 		parentPage.hideMainPopup(target);

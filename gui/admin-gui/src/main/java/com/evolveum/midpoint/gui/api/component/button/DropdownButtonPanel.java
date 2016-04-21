@@ -30,11 +30,10 @@ import com.evolveum.midpoint.web.component.menu.cog.MenuLinkPanel;
 
 public class DropdownButtonPanel extends BasePanel<DropdownButtonDto>{
 
-	private static final String ID_BUTTON = "button";
+	private static final long serialVersionUID = 1L;
 	private static final String ID_INFO = "info";
 	private static final String ID_ICON = "icon";
 	private static final String ID_LABEL = "label";
-	private static final String ID_MENU = "menu";
 	
 	private static String ID_MENU_ITEM = "menuItem";
     private static String ID_MENU_ITEM_BODY = "menuItemBody";

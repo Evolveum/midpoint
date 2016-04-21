@@ -105,50 +105,6 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
         super(id, rootOid);
     }
 
-//    protected void initSearch() {
-//        Form form = new Form(ID_SEARCH_FORM);
-//        form.setOutputMarkupId(true);
-//        add(form);
-//        
-//        
-//        DropDownChoice<String> seachScrope = new DropDownChoice<String>(ID_SEARCH_SCOPE, Model.of(SEARCH_SCOPE_SUBTREE),
-//        		SEARCH_SCOPE_VALUES, new StringResourceChoiceRenderer("TreeTablePanel.search.scope"));
-//        seachScrope.add(new OnChangeAjaxBehavior(){
-//        	@Override
-//        	protected void onUpdate(AjaxRequestTarget target) {
-//        		tableSearchPerformed(target);
-//        	}
-//        });
-//        form.add(seachScrope);
-//        
-//        DropDownChoice<ObjectTypes> objectType = new DropDownChoice<ObjectTypes>(ID_SEARCH_BY_TYPE, Model.of(OBJECT_TYPES_DEFAULT),
-//        		Arrays.asList(ObjectTypes.values()), new EnumChoiceRenderer<ObjectTypes>());
-//        objectType.add(new OnChangeAjaxBehavior() {
-//			
-//			@Override
-//			protected void onUpdate(AjaxRequestTarget target) {
-//				tableSearchPerformed(target);
-//				
-//			}
-//		});
-//        form.add(objectType);
-//
-//        
-//        BasicSearchPanel basicSearch = new BasicSearchPanel(ID_BASIC_SEARCH, new Model()) {
-//
-//            @Override
-//            protected void clearSearchPerformed(AjaxRequestTarget target) {
-//                clearTableSearchPerformed(target);
-//            }
-//
-//            @Override
-//            protected void searchPerformed(AjaxRequestTarget target) {
-//                tableSearchPerformed(target);
-//            }
-//        };
-//        form.add(basicSearch);
-//    }
-
 
     protected SelectableBean<OrgType> getRootFromProvider() {
         TableTree<SelectableBean<OrgType>, String> tree = getTree();
@@ -157,16 +113,6 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
 
         return iterator.hasNext() ? iterator.next() : null;
     }
-
-
-//    protected PrismReferenceValue createPrismRefValue(OrgDto dto) {
-//        PrismReferenceValue value = new PrismReferenceValue();
-//        value.setOid(dto.getOid());
-//        value.setRelation(dto.getRelation());
-//        value.setTargetType(ObjectTypes.getObjectType(dto.getType()).getTypeQName());
-//        return value;
-//    }
-
 
     protected void refreshTabbedPanel(AjaxRequestTarget target) {
         PageBase page = getPageBase();
@@ -248,16 +194,5 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
         return query;
     }
 
-//    protected abstract void refreshTable(AjaxRequestTarget target);
-    
-//    protected void clearTableSearchPerformed(AjaxRequestTarget target) {
-//        BasicSearchPanel basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
-//        basicSearch.getModel().setObject(null);
-//
-//        refreshTable(target);
-//    }
-//
-//    protected void tableSearchPerformed(AjaxRequestTarget target) {
-//        refreshTable(target);
-//    }
+
 }
