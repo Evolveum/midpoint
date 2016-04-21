@@ -20,9 +20,9 @@ import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.api.visualizer.SceneDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.SceneItem;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -162,5 +162,17 @@ public class SceneDto implements Serializable {
 		result = 31 * result + (items != null ? items.hashCode() : 0);
 		result = 31 * result + (partialScenes != null ? partialScenes.hashCode() : 0);
 		return result;
+	}
+
+	public void applyFoldingFrom(@NotNull SceneDto source) {
+		minimized = source.minimized;
+		int partialDst = partialScenes.size();
+		int partialSrc = source.getPartialScenes().size();
+		if (partialDst != partialSrc) {
+			return;	// shouldn't occur
+		}
+		for (int i = 0; i < partialDst; i++) {
+			partialScenes.get(i).applyFoldingFrom(source.getPartialScenes().get(i));
+		}
 	}
 }

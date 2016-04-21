@@ -102,11 +102,17 @@ public class TaskWfParentPanel extends Panel {
 
 		TaskDto curr = parentPage.getCurrentTaskDto();
 		TaskDto prev = parentPage.getPreviousTaskDto();
-		boolean changesChanged = prev == null || prev.getChangesCategorizationList() == null || !prev.getChangesCategorizationList().equals(curr.getChangesCategorizationList());
+		List<TaskChangesDto> prevList = prev != null ? prev.getChangesCategorizationList() : null;
+		List<TaskChangesDto> currList = curr.getChangesCategorizationList();
+		boolean changesChanged = prev == null || !prevList.equals(currList);
 
 		List<Component> rv = new ArrayList<>();
 		if (changesChanged) {
 			rv.add(changesContainer);
+		} else {
+			for (int i = 0; i < currList.size(); i++) {
+				currList.get(i).applyFoldingFrom(prevList.get(i));
+			}
 		}
 		rv.add(processInstancesPanel);
 		return rv;
