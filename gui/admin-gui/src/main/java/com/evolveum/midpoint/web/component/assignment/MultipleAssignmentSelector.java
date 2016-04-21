@@ -227,10 +227,9 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
     }
 
     private void updateBoxedTablePanelStyles(BoxedTablePanel panel) {
-        panel.getDataTable().add(new AttributeModifier("class", ""));
-        panel.getDataTable().add(new AttributeAppender("style", "width: 100%;"));
-        panel.getDataTableContainer().add(new AttributeAppender("style", "min-height: 415px;"));
-        panel.getFooterPaging().getParent().add(new AttributeModifier("class", "col-md-10"));
+    	panel.getDataTableContainer().add(new AttributeAppender("class", " multiple-assignment-selector-table-container"));
+        panel.getDataTable().add(new AttributeModifier("class", "multiple-assignment-selector-table"));
+        panel.getFooterPaging().getParent().add(new AttributeModifier("class", "multiple-assignment-selector-table-footer"));
     }
 
     public BaseSortableDataProvider getProvider() {
