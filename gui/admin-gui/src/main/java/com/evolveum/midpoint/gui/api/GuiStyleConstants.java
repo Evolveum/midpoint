@@ -67,6 +67,7 @@ public class GuiStyleConstants {
 	public static final String CLASS_ICON_STYLE_DISABLED = "icon-style-disabled";
 	public static final String CLASS_ICON_STYLE_ARCHIVED = "icon-style-archived";
 	public static final String CLASS_ICON_STYLE_PRIVILEGED = "icon-style-privileged";
+	public static final String CLASS_ICON_STYLE_END_USER = "icon-style-end-user";
 	public static final String CLASS_ICON_STYLE_WARNING = "icon-style-warning";
 	public static final String CLASS_ICON_STYLE_UP = "icon-style-up";
 	public static final String CLASS_ICON_STYLE_DOWN = "icon-style-down";

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,11 @@ import java.util.List;
  * @author Viliam Repan (lazyman)
  */
 public class MainMenuItem extends BaseMenuItem {
+	private static final long serialVersionUID = 1L;
 
-    public static final String F_ITEMS = "items";
+	public static final String F_ITEMS = "items";
     public static final String F_ICON_CLASS = "iconClass";
+    public static final String F_BUBBLE_LABEL = "bubbleLabel";
 
     private String iconClass;
     private List<MenuItem> items;
@@ -63,5 +65,9 @@ public class MainMenuItem extends BaseMenuItem {
             items = new ArrayList<>();
         }
         return items;
+    }
+    
+    public String getBubbleLabel() {
+    	return null;
     }
 }
