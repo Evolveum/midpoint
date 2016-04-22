@@ -53,7 +53,7 @@ public class ProcessInstancesPanel extends BasePanel {
 
 	public enum View {
 		FULL_LIST,				// selectable, full information
-		INFO_ONLY, 				// not selectable (e.g. on dashboard)
+		DASHBOARD, 				// view for dashboard (not selectable, maybe reduced view)
 		TASKS_FOR_PROCESS		// tasks for a process
 	}
 
