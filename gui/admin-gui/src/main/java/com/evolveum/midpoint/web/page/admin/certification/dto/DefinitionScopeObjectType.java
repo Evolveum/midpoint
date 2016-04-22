@@ -8,5 +8,6 @@ public enum DefinitionScopeObjectType {
     AbstractRoleType,
     RoleType,
     UserType,
-    OrgType
+    OrgType,
+	ServiceType
 }

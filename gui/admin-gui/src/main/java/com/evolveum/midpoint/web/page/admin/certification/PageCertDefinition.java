@@ -194,14 +194,6 @@ public class PageCertDefinition extends PageAdminCertification {
 				return String.valueOf(definitionModel.getObject().getNumberOfStages());
 			}
 		});
-
-//		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.campaigns")) {
-//            @Override
-//            public WebMarkupContainer getPanel(String panelId) {
-//                // TODO campaigns panel (extract from PageCertCampaigns)
-//                return new WebMarkupContainer(panelId);
-//            }
-//        });
 		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.xmlDefinition")) {
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {

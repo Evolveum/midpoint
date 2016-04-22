@@ -20,81 +20,71 @@
   <div class="box box-success">
     <div class="box-body no-padding">
       <table class="table table-striped">
-        <tr>
-          <td><wicket:message key="PageCertDefinition.scopeName"/></td>
-          <td>
-              <div class="col-md-6">
-                  <input type="text" class="form-control input-sm" wicket:id="name"/>
-              </div>
+        <tr class="row">
+          <td class="col-md-3"><wicket:message key="PageCertDefinition.scopeName"/></td>
+          <td class="col-md-9">
+              <input type="text" class="form-control input-sm" wicket:id="name"/>
           </td>
         </tr>
-        <tr>
-          <td><wicket:message key="PageCertDefinition.scopeDescription"/></td>
-          <td>
-              <div class="col-md-6">
-                  <textarea wicket:id="description" class="form-control input-sm" rows="2"></textarea>
-              </div>
+        <tr class="row">
+          <td class="col-md-3"><wicket:message key="PageCertDefinition.scopeDescription"/></td>
+          <td class="col-md-9">
+              <textarea wicket:id="description" class="form-control input-sm" rows="2"></textarea>
           </td>
         </tr>
-        <tr>
-          <td><wicket:message key="PageCertDefinition.scopeObjectType"/></td>
-          <td>
-              <div class="col-xs-8">
-                  <div class="row">
-                      <div class="col-xs-9">
-                          <div wicket:id="objectTypeChooser"/>
-                      </div>
-                  </div>
-              </div>
+        <tr class="row">
+          <td class="col-md-3"><wicket:message key="PageCertDefinition.scopeObjectType"/> <i wicket:id="scopeObjectTypeHelp" wicket:message="title:PageCertDefinition.scopeObjectTypeHelp"/></td>
+          <td class="col-md-9">
+              <div wicket:id="objectTypeChooser"/>
           </td>
         </tr>
-        <tr>
-          <td><wicket:message key="PageCertDefinition.scopeSearchFilter"/></td>
-          <td>
+        <tr class="row">
+          <td class="col-md-3"><wicket:message key="PageCertDefinition.scopeSearchFilter"/> <i wicket:id="scopeSearchFilterHelp" wicket:message="title:PageCertDefinition.scopeSearchFilterHelp"/></td>
+          <td class="col-md-9">
               <textarea wicket:id="searchFilterEditor" class="form-control input-sm" rows="4"></textarea>
           </td>
         </tr>
-        <tr>
-          <td><wicket:message key="PageCertDefinition.scopeAssignmentsInducements"/></td>
-          <td>
-            <div>
-              <label style="margin-left:30px;">
+        <tr class="row">
+          <td class="col-md-3"><wicket:message key="PageCertDefinition.scopeAssignmentsInducements"/> <i wicket:id="scopeAssignmentsInducementsHelp" wicket:message="title:PageCertDefinition.scopeAssignmentsInducementsHelp"/></td>
+          <td class="col-md-9">
+              <span>
                   <input type="checkbox" wicket:id="includeAssignments">
                 <wicket:message key="PageCertDefinition.scopeIncludeAssignments"/>
-              </label>
-              <label>
+              </span>
+              <span style="margin-left: 30px;">
                   <input type="checkbox" wicket:id="includeInducements">
                   <wicket:message key="PageCertDefinition.scopeIncludeInducements"/>
-              </label>
-            </div>
+              </span>
           </td>
         </tr>
-        <tr>
-          <td><wicket:message key="PageCertDefinition.scopeIncludeTargetTypes"/></td>
-          <td>
-            <div>
-              <label style="margin-left:30px;">
-                  <input type="checkbox" wicket:id="includeResources">
-                <wicket:message key="PageCertDefinition.scopeIncludeResources"/>
-              </label>
-              <label style="margin-left:30px;">
-                  <input type="checkbox" wicket:id="includeRoles">
-                <wicket:message key="PageCertDefinition.scopeIncludeRoles"/>
-              </label>
-              <label>
-                  <input type="checkbox" wicket:id="includeOrgs">
-                <wicket:message key="PageCertDefinition.scopeIncludeOrgs"/>
-              </label>
-            </div>
+        <tr class="row">
+          <td class="col-md-3"><wicket:message key="PageCertDefinition.scopeIncludeTargetTypes"/> <i wicket:id="scopeIncludeTargetTypesHelp" wicket:message="title:PageCertDefinition.scopeIncludeTargetTypesHelp"/></td>
+          <td class="col-md-9">
+                <span>
+                    <input type="checkbox" wicket:id="includeResources">
+                    <wicket:message key="PageCertDefinition.scopeIncludeResources"/>
+                </span>
+                <span style="margin-left: 30px;">
+                    <input type="checkbox" wicket:id="includeRoles">
+                    <wicket:message key="PageCertDefinition.scopeIncludeRoles"/>
+                </span>
+                <span style="margin-left: 30px;">
+                    <input type="checkbox" wicket:id="includeOrgs">
+                    <wicket:message key="PageCertDefinition.scopeIncludeOrgs"/>
+                </span>
+                <span style="margin-left: 30px;">
+                    <input type="checkbox" wicket:id="includeServices">
+                    <wicket:message key="PageCertDefinition.scopeIncludeServices"/>
+                </span>
           </td>
         </tr>
-        <tr>
-          <td><wicket:message key="PageCertDefinition.scopeIncludeByStatus"/></td>
-          <td>
-            <label style="margin-left:30px;">
+        <tr class="row">
+          <td class="col-md-3"><wicket:message key="PageCertDefinition.scopeIncludeByStatus"/> <i wicket:id="scopeIncludeByStatusHelp" wicket:message="title:PageCertDefinition.scopeIncludeByStatusHelp"/></td>
+          <td class="col-md-9">
+            <span>
                 <input type="checkbox" wicket:id="includeEnabledItemsOnly">
                 <wicket:message key="PageCertDefinition.scopeEnabledItemsOnly"/>
-            </label>
+            </span>
           </td>
         </tr>
       </table>

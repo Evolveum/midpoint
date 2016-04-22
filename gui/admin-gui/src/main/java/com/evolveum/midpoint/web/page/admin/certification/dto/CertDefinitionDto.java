@@ -225,6 +225,7 @@ public class CertDefinitionDto implements Serializable {
         dto.setIncludeResources(true);
         dto.setIncludeRoles(true);
         dto.setIncludeOrgs(true);
+        dto.setIncludeServices(true);
         dto.setEnabledItemsOnly(true);
 
         if (scopeTypeObj != null) {
@@ -244,6 +245,7 @@ public class CertDefinitionDto implements Serializable {
                     dto.setIncludeResources(!Boolean.FALSE.equals(assignmentScope.isIncludeResources()));
                     dto.setIncludeRoles(!Boolean.FALSE.equals(assignmentScope.isIncludeRoles()));
                     dto.setIncludeOrgs(!Boolean.FALSE.equals(assignmentScope.isIncludeOrgs()));
+                    dto.setIncludeServices(!Boolean.FALSE.equals(assignmentScope.isIncludeServices()));
                     dto.setEnabledItemsOnly(!Boolean.FALSE.equals(assignmentScope.isEnabledItemsOnly()));
                 }
             }
@@ -307,6 +309,7 @@ public class CertDefinitionDto implements Serializable {
             scopeTypeObj.setIncludeInducements(definitionScopeDto.isIncludeInducements());
             scopeTypeObj.setIncludeResources(definitionScopeDto.isIncludeResources());
             scopeTypeObj.setIncludeOrgs(definitionScopeDto.isIncludeOrgs());
+            scopeTypeObj.setIncludeServices(definitionScopeDto.isIncludeServices());
             scopeTypeObj.setEnabledItemsOnly(definitionScopeDto.isEnabledItemsOnly());
             // needed because of prism implementation limitation (because the scopeDefinition is declared as AccessCertificationScopeType)
             scopeTypeObj.asPrismContainerValue().setConcreteType(AccessCertificationAssignmentReviewScopeType.COMPLEX_TYPE);

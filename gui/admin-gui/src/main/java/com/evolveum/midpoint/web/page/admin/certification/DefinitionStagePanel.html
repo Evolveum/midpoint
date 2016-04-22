@@ -20,161 +20,127 @@
     <div class="box box-success">
         <div class="box-body no-padding">
             <table class="table table-striped">
-                <tr>
-                    <td><wicket:message key="StageDefinitionPanel.stageName"/></td>
-                    <td>
-                        <div class="col-md-6">
-                            <input type="text" class="form-control input-sm" wicket:id="name"/>
-                        </div>
+                <tr class="row">
+                    <td class="col-md-4"><wicket:message key="StageDefinitionPanel.stageName"/></td>
+                    <td class="col-md-8">
+                        <input type="text" class="form-control input-sm" wicket:id="name"/>
                     </td>
                 </tr>
-                <tr>
-                    <td><wicket:message key="StageDefinitionPanel.stageDescription"/></td>
-                    <td>
-                        <div class="col-md-6">
-                            <textarea class="form-control input-sm" rows="2" wicket:id="description"/>
-                        </div>
+                <tr class="row">
+                    <td class="col-md-4"><wicket:message key="StageDefinitionPanel.stageDescription"/></td>
+                    <td class="col-md-8">
+                        <textarea class="form-control input-sm" rows="2" wicket:id="description"/>
                     </td>
                 </tr>
-                <tr>
-                    <td><wicket:message key="StageDefinitionPanel.stageDuration"/></td>
-                    <td>
-                        <div class="col-md-6">
-                            <input class="form-control input-sm" rows="2" wicket:id="duration"/>
-                        </div>
+                <tr class="row">
+                    <td class="col-md-4"><wicket:message key="StageDefinitionPanel.stageDuration"/> <i wicket:id="stageDurationHelp" wicket:message="title:StageDefinitionPanel.stageDurationHelp"/></td>
+                    <td class="col-md-8">
+                        <input class="form-control input-sm" rows="2" wicket:id="duration"/>
                     </td>
                 </tr>
-                <tr>
-                    <td><wicket:message key="StageDefinitionPanel.notifyBeforeDeadline"/></td>
-                    <td>
-                        <div class="col-md-6">
-                            <input type="text" class="form-control input-sm" wicket:id="notifyBeforeDeadline"/>
-                        </div>
+                <tr class="row">
+                    <td class="col-md-4"><wicket:message key="StageDefinitionPanel.notifyBeforeDeadline"/> <i wicket:id="notifyBeforeDeadlineHelp" wicket:message="title:StageDefinitionPanel.notifyBeforeDeadlineHelp"/></td>
+                    <td class="col-md-8">
+                        <input type="text" class="form-control input-sm" wicket:id="notifyBeforeDeadline"/>
                     </td>
                 </tr>
-                <tr>
-                    <td><wicket:message key="StageDefinitionPanel.notifyWhenNoDecision"/></td>
-                    <td>
-                        <div class="col-md-6">
-                                <input type="checkbox" wicket:id="notifyOnlyWhenNoDecision">
-                        </div>
+                <tr class="row">
+                    <td class="col-md-4"><wicket:message key="StageDefinitionPanel.notifyWhenNoDecision"/> <i wicket:id="notifyWhenNoDecisionHelp" wicket:message="title:StageDefinitionPanel.notifyWhenNoDecisionHelp"/></td>
+                    <td class="col-md-8">
+                        <input type="checkbox" wicket:id="notifyOnlyWhenNoDecision">
                     </td>
                 </tr>
-                <tr>
+                <tr class="row">
                     <td colspan="2"  style="font-weight:bold"><wicket:message key="StageDefinitionPanel.reviewerSpecification"/></td>
                 </tr>
-                <tr>
-                    <td><wicket:message key="StageDefinitionPanel.reviewerSpecificationName"/></td>
-                    <td>
-                        <div class="col-md-6">
-                            <input type="text" class="form-control input-sm" wicket:id="reviewerName"/>
-                        </div>
+                <tr class="row">
+                    <td class="col-md-4"><wicket:message key="StageDefinitionPanel.reviewerSpecificationName"/></td>
+                    <td class="col-md-8">
+                        <input type="text" class="form-control input-sm" wicket:id="reviewerName"/>
                     </td>
                 </tr>
-                <tr>
-                    <td><wicket:message key="StageDefinitionPanel.reviewerSpecificationDescription"/></td>
-                    <td>
-                        <div class="col-md-6">
-                            <textarea class="form-control input-sm" rows="2" wicket:id="reviewerDescription"/>
-                        </div>
+                <tr class="row">
+                    <td class="col-md-4"><wicket:message key="StageDefinitionPanel.reviewerSpecificationDescription"/></td>
+                    <td class="col-md-8">
+                        <textarea class="form-control input-sm" rows="2" wicket:id="reviewerDescription"/>
                     </td>
                 </tr>
-                <tr>
-                    <td><wicket:message key="StageDefinitionPanel.reviewerSpecificationTarget"/></td>
-                    <td>
-                        <div style="margin-left:30px;">
+                <tr class="row">
+                    <td class="col-md-4"><wicket:message key="StageDefinitionPanel.reviewerSpecificationTarget"/> <i wicket:id="reviewerSpecificationTargetHelp" wicket:message="title:StageDefinitionPanel.reviewerSpecificationTargetHelp"/></td>
+                    <td class="col-md-8">
+                        <span>
                             <input type="checkbox" wicket:id="useTargetOwner">
                             <wicket:message key="StageDefinitionPanel.reviewerUseTargetOwner"/>
-                        </div>
-                        <div style="margin-left:30px;">
+                        </span>
+                        <span style="margin-left:30px;">
                             <input type="checkbox" wicket:id="useTargetApprover">
                             <wicket:message key="StageDefinitionPanel.reviewerUseTargetApprover"/>
-                        </div>
+                        </span>
                     </td>
-                    </tr>
-                <tr>
-                    <td><wicket:message key="StageDefinitionPanel.reviewerSpecificationObject"/></td>
-                    <td>
-                        <div style="margin-left:30px;">
+                </tr>
+                <tr class="row">
+                    <td class="col-md-4"><wicket:message key="StageDefinitionPanel.reviewerSpecificationObject"/> <i wicket:id="reviewerSpecificationObjectHelp" wicket:message="title:StageDefinitionPanel.reviewerSpecificationObjectHelp"/></td>
+                    <td class="col-md-8">
+                        <span>
                             <input type="checkbox" wicket:id="useObjectOwner">
                             <wicket:message key="StageDefinitionPanel.reviewerUseObjectOwner"/>
-                        </div>
-                        <div style="margin-left:30px;">
+                        </span>
+                        <span style="margin-left:30px;">
                             <input type="checkbox" wicket:id="useObjectApprover">
                             <wicket:message key="StageDefinitionPanel.reviewerUseObjectApprover"/>
-                        </div>
+                        </span>
                     </td>
                 </tr>
-                <tr>
-                    <td>
-                        <wicket:message key="StageDefinitionPanel.reviewerUseObjectManager"/>
+                <tr class="row">
+                    <td class="col-md-4">
+                        <wicket:message key="StageDefinitionPanel.reviewerUseObjectManager"/> <i wicket:id="reviewerUseObjectManagerHelp" wicket:message="title:StageDefinitionPanel.reviewerUseObjectManagerHelp"/>
                     </td>
-                    <td>
-                        <wicket:message key="StageDefinitionPanel.reviewerUseObjectManagerOrgType"/>
-                        <div class="col-md-6">
-                            <input type="text" class="form-control input-sm" wicket:id="objectManagerOrgType"/>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td>
-                        <div style="margin-left:30px;">
+                    <td class="col-md-8">
+                        <wicket:message key="StageDefinitionPanel.reviewerUseObjectManagerOrgType"/> <i wicket:id="reviewerUseObjectManagerOrgTypeHelp" wicket:message="title:StageDefinitionPanel.reviewerUseObjectManagerOrgTypeHelp"/>
+                        <input type="text" class="form-control input-sm" wicket:id="objectManagerOrgType"/>
+                        <div style="margin-top:10px;">
                             <input type="checkbox" wicket:id="useObjectManagerAllowSelf">
-                            <wicket:message key="StageDefinitionPanel.reviewerUseObjectManagerAllowSelf"/>
+                            <wicket:message key="StageDefinitionPanel.reviewerUseObjectManagerAllowSelf"/> <i wicket:id="reviewerUseObjectManagerAllowSelfHelp" wicket:message="title:StageDefinitionPanel.reviewerUseObjectManagerAllowSelfHelp"/>
                         </div>
                     </td>
                 </tr>
-                <tr>
-                    <td><wicket:message key="StageDefinitionPanel.defaultReviewerRef"/></td>
-                    <td>
-                        <div class="col-md-6">
-                                <div wicket:id="defaultReviewerRef"/>
-                        </div>
+                <tr class="row">
+                    <td class="col-md-4"><wicket:message key="StageDefinitionPanel.defaultReviewerRef"/> <i wicket:id="defaultReviewerRefHelp" wicket:message="title:StageDefinitionPanel.defaultReviewerRefHelp"/></td>
+                    <td class="col-md-8">
+                        <div wicket:id="defaultReviewerRef"/>
                     </td>
                 </tr>
-                <tr>
-                    <td><wicket:message key="StageDefinitionPanel.additionalReviewerRef"/></td>
-                    <td>
-                        <div class="col-md-6">
-                                <div wicket:id="additionalReviewerRef"/>
-                        </div>
+                <tr class="row">
+                    <td class="col-md-4"><wicket:message key="StageDefinitionPanel.additionalReviewerRef"/> <i wicket:id="additionalReviewerRefHelp" wicket:message="title:StageDefinitionPanel.additionalReviewerRefHelp"/></td>
+                    <td class="col-md-8">
+                        <div wicket:id="additionalReviewerRef"/>
                     </td>
                 </tr>
-                <tr>
-                    <td><wicket:message key="StageDefinitionPanel.outcomeStrategy"/></td>
-                    <td>
-                        <div class="col-xs-8">
-                            <div class="row">
-                                <div class="col-xs-9">
-                                    <select class="form-control input-sm" wicket:id="outcomeStrategy"/>
-                                </div>
-                            </div>
-                        </div>
+                <tr class="row">
+                    <td class="col-md-4"><wicket:message key="StageDefinitionPanel.outcomeStrategy"/> <i wicket:id="outcomeStrategyHelp" wicket:message="title:StageDefinitionPanel.outcomeStrategyHelp"/></td>
+                    <td class="col-md-8">
+                        <select class="form-control input-sm" wicket:id="outcomeStrategy"/>
                     </td>
                 </tr>
-                <tr>
-                    <td><wicket:message key="StageDefinitionPanel.outcomeIfNoReviewers"/></td>
-                    <td>
-                        <div class="col-xs-8">
-                            <div class="row">
-                                <div class="col-xs-9">
-                                    <select class="form-control input-sm" wicket:id="outcomeIfNoReviewers"/>
-                                </div>
-                            </div>
-                        </div>
+                <tr class="row">
+                    <td class="col-md-4"><wicket:message key="StageDefinitionPanel.outcomeIfNoReviewers"/> <i wicket:id="outcomeIfNoReviewersHelp" wicket:message="title:StageDefinitionPanel.outcomeIfNoReviewersHelp"/></td>
+                    <td class="col-md-8">
+                        <select class="form-control input-sm" wicket:id="outcomeIfNoReviewers"/>
                     </td>
                 </tr>
-                <tr>
-                    <td><wicket:message key="StageDefinitionPanel.stopReviewOn"/></td>
-                    <td>
-                        <div class="col-xs-8">
-                            <div class="row">
-                                <div class="col-xs-9">
-                                    <div wicket:id="stopReviewOn"></div>
-                                </div>
-                            </div>
-                        </div>
+                <tr class="row">
+                    <td class="col-md-4"><wicket:message key="StageDefinitionPanel.stopReviewOn"/> <i wicket:id="stopReviewOnHelp" wicket:message="title:StageDefinitionPanel.stopReviewOnHelp"/></td>
+                    <td class="col-md-8">
+                        <div wicket:id="stopReviewOn"></div>
+                    </td>
+                </tr>
+                <tr class="row">
+                    <td colspan="2">
+                        <span class="help-block">
+                                        <wicket:message key="StageDefinitionPanel.configurationHelpLabel" />
+                                        <a href="https://wiki.evolveum.com/display/midPoint/Configuring+certification+campaign+stages"
+                                           target="_blank"><wicket:message key="StageDefinitionPanel.configurationHelpLink" /></a>
+                                    </span>
                     </td>
                 </tr>
             </table>
