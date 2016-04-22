@@ -255,14 +255,16 @@ public class WfTaskController {
 		String stateDescription = pmi.getState(event.getVariables());
 		if (stateDescription == null || stateDescription.isEmpty()) {
 			if (event instanceof ProcessStartedEvent) {
-				stateDescription = "Workflow process instance has been created (process id " + event.getPid() + ")";
+				stateDescription = "Approval process has been started";
 			} else if (event instanceof ProcessFinishedEvent) {
-				stateDescription = "Workflow process instance has ended (process id " + event.getPid() + ")";
+				stateDescription = "Approval process has finished";
 			} else {
-				stateDescription = "Workflow process instance has proceeded further (process id " + event.getPid() + ")";
+				stateDescription = null;
 			}
 		}
-		wfTask.setProcessInstanceState(stateDescription);
+        if (stateDescription != null) {
+            wfTask.setProcessInstanceState(stateDescription);
+        }
 
 		wfTask.commitChanges(result);
 
