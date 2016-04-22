@@ -909,6 +909,7 @@ public final class WebComponentUtil {
 		UserType user = object.asObjectable();
 
 		// if user has superuser role assigned, it's superuser
+		boolean isEndUser = false;
 		for (AssignmentType assignment : user.getAssignment()) {
 			ObjectReferenceType targetRef = assignment.getTargetRef();
 			if (targetRef == null) {
@@ -917,9 +918,21 @@ public final class WebComponentUtil {
 			if (StringUtils.equals(targetRef.getOid(), SystemObjectsType.ROLE_SUPERUSER.value())) {
 				return GuiStyleConstants.CLASS_OBJECT_USER_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_PRIVILEGED;
 			}
+			if (StringUtils.equals(targetRef.getOid(), SystemObjectsType.ROLE_END_USER.value())) {
+				isEndUser = true;
+			}
 		}
 
-		return getIconEnabledDisabled(object, GuiStyleConstants.CLASS_OBJECT_USER_ICON);
+		String additionalStyle = getIconEnabledDisabled(object);
+		if (additionalStyle == null) {
+			if (isEndUser) {
+				// Set end-user icon only as a last resort. All other colors have priority.
+				additionalStyle = GuiStyleConstants.CLASS_ICON_STYLE_END_USER;
+			} else {
+				additionalStyle = GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
+			}
+		}
+		return GuiStyleConstants.CLASS_OBJECT_USER_ICON + " " + additionalStyle;
 	}
 	
 	
@@ -942,16 +955,25 @@ public final class WebComponentUtil {
 	}
 
 	private static <F extends FocusType> String getIconEnabledDisabled(PrismObject<F> object, String baseIcon) {
+		String additionalStyle = getIconEnabledDisabled(object);
+		if (additionalStyle == null) {
+			return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
+		} else {
+			return baseIcon + " " + additionalStyle;
+		}
+	}
+	
+	private static <F extends FocusType> String getIconEnabledDisabled(PrismObject<F> object) {
 		ActivationType activation = object.asObjectable().getActivation();
 		if (activation != null) {
 			if (ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())) {
-				return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_DISABLED;
+				return GuiStyleConstants.CLASS_ICON_STYLE_DISABLED;
 			} else if (ActivationStatusType.ARCHIVED.equals(activation.getEffectiveStatus())) {
-				return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_ARCHIVED;
+				return GuiStyleConstants.CLASS_ICON_STYLE_ARCHIVED;
 			}
 		}
 
-		return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
+		return null;
 	}
 
 	public static String createResourceIcon(PrismObject<ResourceType> object) {

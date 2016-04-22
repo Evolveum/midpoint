@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -65,7 +66,7 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
     private static final String ID_BUTTON_GROUP = "buttonGroup";
     private static final String ID_EDIT = "edit";
 
-    protected static final String ID_MODAL_EDITOR = "modalEditor";
+//    protected static final String ID_MODAL_EDITOR = "modalEditor";
 
     private static final String CLASS_MULTI_VALUE = "multivalue-form";
 
@@ -173,15 +174,18 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
             }
         };
 
-        initDialog();
         add(repeater);
     }
 
-    /**
-     *  Override to provide a dialog that serves to edit
-     *  the object
-     * */
-    protected void initDialog(){}
+    protected void showDialog(Component dialogContent, IModel<String> dialogTitle, AjaxRequestTarget target){
+        setDialogSize();
+        getPageBase().showMainPopup(dialogContent, dialogTitle, target);
+    }
+
+    protected void setDialogSize(){
+        getPageBase().getMainPopup().setInitialWidth(625);
+        getPageBase().getMainPopup().setInitialHeight(400);
+    }
 
     /**
      * @return css class for off-setting other values (not first, left to the first there is a label)
@@ -309,8 +313,7 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
     }
 
     public void closeModalWindow(AjaxRequestTarget target){
-        ModalWindow window = (ModalWindow) get(ID_MODAL_EDITOR);
-        window.close(target);
+        getPageBase().hideMainPopup(target);
     }
 
     protected boolean getLabelVisibility(){
