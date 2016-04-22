@@ -49,16 +49,18 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
 	private static final String ID_NAME = "name";
 	private static final String ID_DESCRIPTION = "description";
 	private static final String ID_OWNER = "owner";
-	private static final String ID_NUMBER_OF_STAGES = "numberOfStages";
 	private static final String ID_REVIEW_STAGE_CAMPAIGNS = "campaignsInReviewStage";
 	private static final String ID_CAMPAIGNS_TOTAL = "campaignsTotal";
 	private static final String ID_LAST_STARTED = "campaignLastStarted";
+	private static final String ID_LAST_STARTED_HELP = "campaignLastStartedHelp";
 	private static final String ID_LAST_CLOSED = "campaignLastClosed";
+	private static final String ID_LAST_CLOSED_HELP = "campaignLastClosedHelp";
 	//	private static final String ID_OWNER_VALUE_CONTAINER = "ownerValueContainer";
 	//	private static final String ID_OWNER_INPUT = "ownerInput";
 	private static final String ID_OWNER_REF_CHOOSER = "ownerRefChooser";
 	private static final String ID_REMEDIATION = "remediation";
 	private static final String ID_OUTCOME_STRATEGY = "outcomeStrategy";
+	private static final String ID_OUTCOME_STRATEGY_HELP = "outcomeStrategyHelp";
 	private static final String ID_STOP_REVIEW_ON = "stopReviewOn";
 
 
@@ -91,8 +93,6 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
 		ownerRefChooser.setOutputMarkupId(true);
 		add(ownerRefChooser);
 
-		add(new Label(ID_NUMBER_OF_STAGES, new PropertyModel<>(getModel(), CertDefinitionDto.F_NUMBER_OF_STAGES)));
-
 		DropDownChoice remediation = new DropDownChoice<>(ID_REMEDIATION, new Model<AccessCertificationRemediationStyleType>() {
 
 			@Override
@@ -115,6 +115,8 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
 						new EnumChoiceRenderer<AccessCertificationCaseOutcomeStrategyType>(this));
 		add(outcomeStrategy);
 
+		add(WebComponentUtil.createHelp(ID_OUTCOME_STRATEGY_HELP));
+
 		Label stopReviewOn = new Label(ID_STOP_REVIEW_ON, new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
@@ -128,6 +130,8 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
 		//        add(new Label(ID_CAMPAIGNS_TOTAL, new PropertyModel<>(getModel(), CertDefinitionDto.F_NUMBER_OF_STAGES)));
 		add(new Label(ID_LAST_STARTED, new PropertyModel<>(getModel(), CertDefinitionDto.F_LAST_STARTED)));
 		add(new Label(ID_LAST_CLOSED, new PropertyModel<>(getModel(), CertDefinitionDto.F_LAST_CLOSED)));
+		add(WebComponentUtil.createHelp(ID_LAST_STARTED_HELP));
+		add(WebComponentUtil.createHelp(ID_LAST_CLOSED_HELP));
 	}
 
 	private WebMarkupContainer createOwnerRefChooser(String id) {
