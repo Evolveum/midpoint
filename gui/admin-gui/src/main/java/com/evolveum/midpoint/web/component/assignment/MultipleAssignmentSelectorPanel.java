@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -47,6 +48,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -346,16 +348,34 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
 
             @Override
             protected void editValuePerformed(AjaxRequestTarget target, IModel<OrgType> rowModel) {
-                OrgTreeAssignablePanel tenantPanel = new OrgTreeAssignablePanel(
-                        getPageBase().getMainPopupBodyId(), false, getPageBase()) {
+                List<QName> supportedTypes = new ArrayList<>();
+                supportedTypes.add(getPageBase().getPrismContext().getSchemaRegistry()
+                        .findObjectDefinitionByCompileTimeClass(OrgType.class).getTypeName());
 
+                    ObjectFilter filter = EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class,
+                            getPageBase().getPrismContext(), null, true);
+
+                FocusBrowserPanel<OrgType> tenantPanel = new FocusBrowserPanel<OrgType>(getPageBase().getMainPopupBodyId(),
+                        OrgType.class, supportedTypes, false, getPageBase(), filter) {
                     @Override
-                    protected void onItemSelect(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
-                        closeModalWindow(target);
+                    protected void onSelectPerformed(AjaxRequestTarget target, OrgType org) {
+                        super.onSelectPerformed(target, org);
                         tenantEditorObject.clear();
-                        tenantEditorObject.add(selected.getValue());
-                        target.add(getTenantEditorContainer());                    }
+                        tenantEditorObject.add(org);
+                        target.add(getTenantEditorContainer());
+                    }
                 };
+
+//                OrgTreeAssignablePanel tenantPanel = new OrgTreeAssignablePanel(
+//                        getPageBase().getMainPopupBodyId(), false, getPageBase()) {
+//
+//                    @Override
+//                    protected void onItemSelect(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
+//                        closeModalWindow(target);
+//                        tenantEditorObject.clear();
+//                        tenantEditorObject.add(selected.getValue());
+//                        target.add(getTenantEditorContainer());                    }
+//                };
                 getPageBase().showMainPopup(tenantPanel, new Model<String>("Select tenant"), target, 900, 700);
             }
 
@@ -409,16 +429,29 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
 
             @Override
             protected void editValuePerformed(AjaxRequestTarget target, IModel<OrgType> rowModel) {
-                OrgTreeAssignablePanel orgPanel = new OrgTreeAssignablePanel(
-                        getPageBase().getMainPopupBodyId(), false, getPageBase()) {
-
+                List<QName> supportedTypes = new ArrayList<>();
+                supportedTypes.add(getPageBase().getPrismContext().getSchemaRegistry()
+                        .findObjectDefinitionByCompileTimeClass(OrgType.class).getTypeName());
+                FocusBrowserPanel<OrgType> orgPanel = new FocusBrowserPanel<OrgType>(getPageBase().getMainPopupBodyId(),
+                        OrgType.class, supportedTypes, false, getPageBase()) {
                     @Override
-                    protected void onItemSelect(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
-                        closeModalWindow(target);
-                        tenantEditorObject.clear();
-                        tenantEditorObject.add(selected.getValue());
-                        target.add(getTenantEditorContainer());                    }
+                    protected void onSelectPerformed(AjaxRequestTarget target, OrgType org) {
+                        super.onSelectPerformed(target, org);
+                        orgEditorObject.clear();
+                        orgEditorObject.add(org);
+                        target.add(getOrgUnitEditorContainer());
+                    }
                 };
+//                OrgTreeAssignablePanel orgPanel = new OrgTreeAssignablePanel(
+//                        getPageBase().getMainPopupBodyId(), false, getPageBase()) {
+//
+//                    @Override
+//                    protected void onItemSelect(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
+//                        closeModalWindow(target);
+//                        tenantEditorObject.clear();
+//                        tenantEditorObject.add(selected.getValue());
+//                        target.add(getTenantEditorContainer());                    }
+//                };
                 getPageBase().showMainPopup(orgPanel, new Model<String>("Select organization"), target);
             }
 
