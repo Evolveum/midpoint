@@ -21,7 +21,6 @@ import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabe
 import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -49,28 +48,22 @@ public class AdminGuiConfigPanel extends BasePanel<SystemConfigurationDto> {
                 createStringResource("AdminGuiConfigPanel.dashboardLinksConfig"), LABEL_SIZE, INPUT_SIZE, true){
 
             @Override
-            protected void initDialog() {
-                ModalWindow dialog = new RichHyperlinkConfigDialog(ID_MODAL_EDITOR, null, false, "AdminGuiConfigPanel.dashboardLinkDialogTitle.title"){
-
-                    @Override
-                    protected void savePerformed(AjaxRequestTarget target) {
-                        closeModalWindow(target);
-                        target.add(getDashboardLinkEditorContainer());
-                    }
-                };
-                add(dialog);
-            }
-
-            @Override
             protected IModel<String> createTextModel(final IModel<RichHyperlinkType> model) {
                 return new PropertyModel<String>(model, "label");
             }
 
             @Override
             protected void editValuePerformed(AjaxRequestTarget target, IModel<RichHyperlinkType> rowModel) {
-                RichHyperlinkConfigDialog window = (RichHyperlinkConfigDialog) get(ID_MODAL_EDITOR);
-                window.updateModel(target, rowModel.getObject());
-                window.show(target);
+                RichHyperlinkConfigPanel contentPanel = new RichHyperlinkConfigPanel(getPageBase().getMainPopupBodyId(),
+                        rowModel.getObject(), false){
+                    @Override
+                    protected void savePerformed(AjaxRequestTarget target) {
+                        closeModalWindow(target);
+                        target.add(getDashboardLinkEditorContainer());
+                    }
+                };
+                showDialog(contentPanel, createStringResource("AdminGuiConfigPanel.dashboardLinkDialogTitle.title"),
+                        target);
             }
 
             @Override
@@ -88,28 +81,22 @@ public class AdminGuiConfigPanel extends BasePanel<SystemConfigurationDto> {
                 createStringResource("AdminGuiConfigPanel.additionalMenuItemConfig"), LABEL_SIZE, INPUT_SIZE, true){
 
             @Override
-            protected void initDialog() {
-                ModalWindow dialog = new RichHyperlinkConfigDialog(ID_MODAL_EDITOR, null, true, "AdminGuiConfigPanel.additionalMenuItemDialog.title"){
-
-                    @Override
-                    protected void savePerformed(AjaxRequestTarget target) {
-                        closeModalWindow(target);
-                        target.add(getAdditionalMenuItemContainer());
-                    }
-                };
-                add(dialog);
-            }
-
-            @Override
             protected IModel<String> createTextModel(final IModel<RichHyperlinkType> model) {
                 return new PropertyModel<String>(model, "label");
             }
 
             @Override
             protected void editValuePerformed(AjaxRequestTarget target, IModel<RichHyperlinkType> rowModel) {
-                RichHyperlinkConfigDialog window = (RichHyperlinkConfigDialog) get(ID_MODAL_EDITOR);
-                window.updateModel(target, rowModel.getObject());
-                window.show(target);
+                RichHyperlinkConfigPanel contentPanel = new RichHyperlinkConfigPanel(getPageBase().getMainPopupBodyId(),
+                        rowModel.getObject(), true){
+                    @Override
+                    protected void savePerformed(AjaxRequestTarget target) {
+                        closeModalWindow(target);
+                        target.add(getAdditionalMenuItemContainer());
+                    }
+                };
+                showDialog(contentPanel, createStringResource("AdminGuiConfigPanel.additionalMenuItemDialog.title"),
+                        target);
             }
 
             @Override
@@ -131,6 +118,4 @@ public class AdminGuiConfigPanel extends BasePanel<SystemConfigurationDto> {
     private WebMarkupContainer getAdditionalMenuItemContainer(){
         return (WebMarkupContainer) get(ID_ADDITIONAL_MENU_ITEM_EDITOR);
     }
-
-//    private IModel
 }
