@@ -62,9 +62,8 @@ public class PageUser extends PageAdminFocus<UserType> {
         initialize(null);
     }
 
-    public PageUser(PageParameters parameters, PageBase previousPage) {
+    public PageUser(PageParameters parameters) {
         getPageParameters().overwriteWith(parameters);
-        setPreviousPage(previousPage);
         initialize(null);
     }
 
@@ -96,17 +95,6 @@ public class PageUser extends PageAdminFocus<UserType> {
         // }
     }
     
-
-    // many things could change (e.g. assignments, tasks) - here we deal only with tasks
-    @Override
-    public PageBase reinitialize() {
-        TablePanel taskTable = (TablePanel) get(createComponentPath(ID_MAIN_PANEL, ID_TASKS, ID_TASK_TABLE));
-        TaskDtoProvider provider = (TaskDtoProvider) taskTable.getDataTable().getDataProvider();
-
-        provider.clearCache();
-        taskTable.modelChanged();
-        return this;
-    }
 
 	@Override
 	protected UserType createNewObject() {

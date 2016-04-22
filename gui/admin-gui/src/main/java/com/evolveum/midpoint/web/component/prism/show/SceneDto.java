@@ -20,9 +20,9 @@ import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.api.visualizer.SceneDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.SceneItem;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -135,5 +135,44 @@ public class SceneDto implements Serializable {
 
 	public void setBoxClassOverride(String boxClassOverride) {
 		this.boxClassOverride = boxClassOverride;
+	}
+
+	// minimized is NOT included in equality check - because the SceneDto's are compared in order to determine
+	// whether they should be redrawn (i.e. their content is important, not the presentation)
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		SceneDto sceneDto = (SceneDto) o;
+
+		if (scene != null ? !scene.equals(sceneDto.scene) : sceneDto.scene != null) return false;
+		if (boxClassOverride != null ? !boxClassOverride.equals(sceneDto.boxClassOverride) : sceneDto.boxClassOverride != null)
+			return false;
+		if (items != null ? !items.equals(sceneDto.items) : sceneDto.items != null) return false;
+		return !(partialScenes != null ? !partialScenes.equals(sceneDto.partialScenes) : sceneDto.partialScenes != null);
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = scene != null ? scene.hashCode() : 0;
+		result = 31 * result + (boxClassOverride != null ? boxClassOverride.hashCode() : 0);
+		result = 31 * result + (items != null ? items.hashCode() : 0);
+		result = 31 * result + (partialScenes != null ? partialScenes.hashCode() : 0);
+		return result;
+	}
+
+	public void applyFoldingFrom(@NotNull SceneDto source) {
+		minimized = source.minimized;
+		int partialDst = partialScenes.size();
+		int partialSrc = source.getPartialScenes().size();
+		if (partialDst != partialSrc) {
+			return;	// shouldn't occur
+		}
+		for (int i = 0; i < partialDst; i++) {
+			partialScenes.get(i).applyFoldingFrom(source.getPartialScenes().get(i));
+		}
 	}
 }

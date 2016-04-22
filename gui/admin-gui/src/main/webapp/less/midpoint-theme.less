@@ -165,6 +165,10 @@ th.cog, td.cog {
 	color: #a94442;
 }
 
+.icon-style-end-user {
+	color: #357ca5;
+}
+
 .icon-style-warning {
 	color: #8a6d3b;
 }
@@ -237,6 +241,17 @@ th.cog, td.cog {
 
 #box-object(@color) {
 	border-top-color: @color;
+	
+	&.box-solid {
+		border: 1px solid @color;
+	}
+	
+	&.box-solid > .box-header {
+		color: #fff;
+		background: @color;
+		background-color: @color;
+	}
+	
 }
 
 .object-user-box {
@@ -507,7 +522,7 @@ th.cog, td.cog {
   //.border-radius(2px);
 
   > li > a {
-    color: #ddd;
+    color: #444;
     text-decoration: none;
     display: inline-block;
 
@@ -738,5 +753,69 @@ div.dashAssignmentHeader {
 		.box-tools {
 			margin-top: 5px;
 		}
+	}
+}
+
+// Request role page
+
+.request-role-col-available {
+	padding-right: 0px;
+}
+
+.request-role-col-control {
+	
+}
+
+.request-role-col-current {
+	padding-left: 0px;
+}
+
+.request-role-box {
+	.box-body {
+		padding-bottom: 0px;
+	}
+}
+
+.multiple-assignment-selector {
+	
+	.multiple-assignment-selector-section:first-child {
+		border-top-width: 0px;
+		padding-top: 0px;
+		min-height: 36px;
+	}
+	
+	.multiple-assignment-selector-section:last-child {
+		padding-bottom: 0px;
+	}
+}
+
+.multiple-assignment-selector-section {
+	min-height: 48px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+	border-top: 2px solid @table-divider-color;
+}
+
+.multiple-assignment-selector-section-table {
+	.box {
+		border-width: 0px;
+	}
+}
+
+.multiple-assignment-selector-table-container {
+	min-height: 415px;
+}
+
+.multiple-assignment-selector-table {
+	width: 100%;
+}
+
+.multiple-assignment-selector-table-footer {
+	float: left;
+}
+
+.request-role-control-button {
+	&.btn-primary > i {
+		font-size: 32px;
 	}
 }

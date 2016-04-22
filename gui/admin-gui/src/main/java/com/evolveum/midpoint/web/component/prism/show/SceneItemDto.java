@@ -95,4 +95,23 @@ public class SceneItemDto implements Serializable {
 	public boolean isDeltaScene() {
 		return sceneDto.containsDeltaItems();
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		SceneItemDto that = (SceneItemDto) o;
+
+		if (!sceneItem.equals(that.sceneItem)) return false;
+		return lines.equals(that.lines);
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = sceneItem.hashCode();
+		result = 31 * result + lines.hashCode();
+		return result;
+	}
 }

@@ -133,9 +133,8 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 		initialize(unitToEdit);
 	}
 
-	public PageOrgUnit(PageParameters parameters, PageBase previousPage) {
+	public PageOrgUnit(PageParameters parameters) {
 		getPageParameters().overwriteWith(parameters);
-		setPreviousPage(previousPage);
 		initialize(null);
 	}
 	

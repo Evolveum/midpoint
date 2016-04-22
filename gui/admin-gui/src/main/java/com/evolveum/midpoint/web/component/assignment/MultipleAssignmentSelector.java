@@ -78,12 +78,13 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import javax.xml.namespace.QName;
 
 /**
- * Created by Honchar
  * Creates a panel with the list of focus type items
  * with the possibility to filter by user (show only
  * assigned to the specified user items), to search
  * through the list and to reset the list to the
  * initial state
+ * 
+ * @author Kate Honchar
  */
 public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType> extends BasePanel<List<AssignmentEditorDto>> {
     private static final long serialVersionUID = 1L;
@@ -226,10 +227,9 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
     }
 
     private void updateBoxedTablePanelStyles(BoxedTablePanel panel) {
-        panel.getDataTable().add(new AttributeModifier("class", ""));
-        panel.getDataTable().add(new AttributeAppender("style", "width: 100%;"));
-        panel.getDataTableContainer().add(new AttributeAppender("style", "min-height: 415px;"));
-        panel.getFooterPaging().getParent().add(new AttributeModifier("class", "col-md-10"));
+    	panel.getDataTableContainer().add(new AttributeAppender("class", " multiple-assignment-selector-table-container"));
+        panel.getDataTable().add(new AttributeModifier("class", "multiple-assignment-selector-table"));
+        panel.getFooterPaging().getParent().add(new AttributeModifier("class", "multiple-assignment-selector-table-footer"));
     }
 
     public BaseSortableDataProvider getProvider() {

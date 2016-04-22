@@ -49,4 +49,23 @@ public class SceneItemValueImpl implements SceneItemValue {
 	public String toString() {
 		return "'" + text + "'" + (sourceValue != null ? "*" : "");
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		SceneItemValueImpl that = (SceneItemValueImpl) o;
+
+		if (text != null ? !text.equals(that.text) : that.text != null) return false;
+		return !(sourceValue != null ? !sourceValue.equals(that.sourceValue) : that.sourceValue != null);
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = text != null ? text.hashCode() : 0;
+		result = 31 * result + (sourceValue != null ? sourceValue.hashCode() : 0);
+		return result;
+	}
 }

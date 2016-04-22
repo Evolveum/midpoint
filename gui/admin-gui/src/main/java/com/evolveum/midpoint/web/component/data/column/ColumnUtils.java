@@ -22,6 +22,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -40,15 +42,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class ColumnUtils {
 
@@ -134,6 +127,8 @@ public class ColumnUtils {
 			return getTaskIconColumn();
 		} else if (type.equals(ResourceType.class)) {
 			return getResourceIconColumn();
+		} else if (type.equals(AccessCertificationDefinitionType.class)) {
+			return getAccessCertificationDefinitionIconColumn();
 		} else {
 			return getEmptyIconColumn();
 //			throw new UnsupportedOperationException("Will be implemented eventually");
@@ -312,7 +307,26 @@ private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getTask
 	};
 }
 
-private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getResourceIconColumn(){
+	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getAccessCertificationDefinitionIconColumn(){
+		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
+				return new AbstractReadOnlyModel<String>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public String getObject() {
+						return GuiStyleConstants.CLASS_OBJECT_CERT_DEF_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
+					}
+				};
+			}
+		};
+	}
+
+
+	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getResourceIconColumn(){
 	return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
 		private static final long serialVersionUID = 1L;
 

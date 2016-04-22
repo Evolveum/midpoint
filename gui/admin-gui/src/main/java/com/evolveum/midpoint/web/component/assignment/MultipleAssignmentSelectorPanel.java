@@ -51,15 +51,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Honchar.
  * Panel contains available list of focus type items and
  * the list of assigned items of the same type with the
  * possibility of editing the list of assignments.
+ * 
+ * @author Kate Honchar
  */
 public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends FocusType, G extends FocusType>
         extends BasePanel<List<AssignmentEditorDto>> {          //G - type of the object which is to be assigned (a.g. assign a role (RoleType))
                                                                 //F - type of the focus which is opened for editing (e.g. edit user - UserType)
                                                                 //H - a type of filter object (e.g. Filter by user - UserType)
+	private static final long serialVersionUID = 1L;
+	
     private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
     private static final String ID_BUTTON_REMOVE = "remove";
     private static final String ID_BUTTON_ADD = "add";

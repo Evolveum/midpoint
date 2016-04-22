@@ -138,7 +138,7 @@ public class WorkItemsPanel extends BasePanel {
 				public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
 					PageParameters parameters = new PageParameters();
 					parameters.add(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getWorkItemId());
-					setResponsePage(new PageWorkItem(parameters, (PageBase) WorkItemsPanel.this.getPage()));
+					setResponsePage(PageWorkItem.class, parameters);
 				}
 			};
         } else {
