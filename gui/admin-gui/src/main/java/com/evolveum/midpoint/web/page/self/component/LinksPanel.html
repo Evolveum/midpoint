@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,21 +16,19 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <table width="100%">
-        <tr wicket:id="linksRow" class="row">
-            <td wicket:id="linksColumn" class="col-sm-6">
-                <a href="#" wicket:id="link">
-                    <div class="info-box">
-                        <div class="info-box-icon bg-blue fa fa-tasks" wicket:id="imageId"/>
-
-                        <div class="info-box-content">
-                            <span class="info-box-number" wicket:id="labelId"/>
-                            <span wicket:id="descriptionId"/>
-                        </div>
-                    </div>
-                </a>
-            </td>
-        </tr>
-    </table>
+	<div class="row" wicket:id="linksRow">
+	    <div class="col-sm-6" wicket:id="linksColumn">
+	        <a href="#" wicket:id="link">
+	            <div class="info-box">
+	                <div class="info-box-icon bg-blue fa fa-tasks" wicket:id="imageId"/>
+	
+	                <div class="info-box-content">
+	                    <span class="info-box-number" wicket:id="labelId"/>
+	                    <span wicket:id="descriptionId"/>
+	                </div>
+	            </div>
+	        </a>
+	    </div>
+	</div>
 </wicket:panel>
 </html>
