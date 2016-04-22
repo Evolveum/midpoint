@@ -133,4 +133,31 @@ public class SceneItemImpl implements SceneItem, DebugDumpable {
 	public ItemDefinition<?> getSourceDefinition() {
 		return sourceItem != null ? sourceItem.getDefinition() : null;
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		SceneItemImpl sceneItem = (SceneItemImpl) o;
+
+		if (operational != sceneItem.operational) return false;
+		if (descriptive != sceneItem.descriptive) return false;
+		if (name != null ? !name.equals(sceneItem.name) : sceneItem.name != null) return false;
+		if (newValues != null ? !newValues.equals(sceneItem.newValues) : sceneItem.newValues != null) return false;
+		if (sourceItem != null ? !sourceItem.equals(sceneItem.sourceItem) : sceneItem.sourceItem != null) return false;
+		return !(sourceRelPath != null ? !sourceRelPath.equals(sceneItem.sourceRelPath) : sceneItem.sourceRelPath != null);
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = name != null ? name.hashCode() : 0;
+		result = 31 * result + (newValues != null ? newValues.hashCode() : 0);
+		result = 31 * result + (operational ? 1 : 0);
+		result = 31 * result + (sourceItem != null ? sourceItem.hashCode() : 0);
+		result = 31 * result + (sourceRelPath != null ? sourceRelPath.hashCode() : 0);
+		result = 31 * result + (descriptive ? 1 : 0);
+		return result;
+	}
 }

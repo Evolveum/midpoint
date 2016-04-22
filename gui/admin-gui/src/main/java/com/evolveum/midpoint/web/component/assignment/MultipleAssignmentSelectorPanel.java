@@ -54,12 +54,18 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Created by Honchar.
  * Panel contains available list of focus type items and
  * the list of assigned items of the same type with the
  * possibility of editing the list of assignments.
+ * 
+ * @author Kate Honchar
  */
-public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends FocusType> extends BasePanel<List<AssignmentEditorDto>> {
+public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends FocusType, G extends FocusType>
+        extends BasePanel<List<AssignmentEditorDto>> {          //G - type of the object which is to be assigned (a.g. assign a role (RoleType))
+                                                                //F - type of the focus which is opened for editing (e.g. edit user - UserType)
+                                                                //H - a type of filter object (e.g. Filter by user - UserType)
+	private static final long serialVersionUID = 1L;
+	
     private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
     private static final String ID_BUTTON_REMOVE = "remove";
     private static final String ID_BUTTON_ADD = "add";
@@ -76,23 +82,23 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
 
     private static final String DOT_CLASS = MultipleAssignmentSelectorPanel.class.getName();
     private static final String OPERATION_LOAD_AVAILABLE_ROLES = DOT_CLASS + "loadAvailableRoles";
-    private Class<F> type;
+    private Class<G> type;
 
     private BaseSortableDataProvider dataProvider;
     private List<OrgType> tenantEditorObject = new ArrayList<>();
     private List<OrgType> orgEditorObject = new ArrayList<>();
-    private PrismObject<UserType> user;
+    private PrismObject<F> focus;
     private ObjectQuery dataProviderQuery;
     private ObjectFilter authorizedRolesFilter = null;
     private IModel<ObjectFilter> filterModel = null;
     private static final Trace LOGGER = TraceManager.getTrace(MultipleAssignmentSelectorPanel.class);
 
     public MultipleAssignmentSelectorPanel(String id, LoadableModel<List<AssignmentEditorDto>> assignmentsModel,
-                                           PrismObject<UserType> user, Class<H> targetFocusClass, Class<F> type) {
+                                           PrismObject<F> focus, Class<H> targetFocusClass, Class<G> type) {
         super(id, assignmentsModel);
         this.assignmentsModel = assignmentsModel;
         this.type = type;
-        this.user = user;
+        this.focus = focus;
         filterModel = getFilterModel();
         tenantEditorObject.add(new OrgType());
         orgEditorObject.add(new OrgType());
@@ -104,15 +110,28 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
 
         IModel<List<AssignmentEditorDto>> availableAssignmentModel = createAvailableAssignmentModel();
         dataProvider = getAvailableAssignmentsDataProvider();
-        final MultipleAssignmentSelector availableAssignmentsPanel = new MultipleAssignmentSelector<H>(ID_AVAILABLE_ASSIGNMENTS,
-                availableAssignmentModel, dataProvider, targetFocusClass, type, user);
-        final MultipleAssignmentSelector currentAssignmentsPanel = new MultipleAssignmentSelector<H>(ID_CURRENT_ASSIGNMENTS,
-                assignmentsModel, null, targetFocusClass, type, user);
+        final MultipleAssignmentSelector availableAssignmentsPanel = new MultipleAssignmentSelector<F, H>(ID_AVAILABLE_ASSIGNMENTS,
+                availableAssignmentModel, dataProvider, targetFocusClass, type, focus);
+        final MultipleAssignmentSelector currentAssignmentsPanel = new MultipleAssignmentSelector<F, H>(ID_CURRENT_ASSIGNMENTS,
+                assignmentsModel,
+                null, targetFocusClass, type, focus){
+            @Override
+        protected List<AssignmentEditorDto> getListProviderDataList(){
+                return assignmentsModel.getObject();
+            }
+        };
         currentAssignmentsPanel.setFilterButtonVisibility(false);
 
         AjaxButton add = new AjaxButton(ID_BUTTON_ADD) {
             @Override
             protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form form) {
+                List<AssignmentEditorDto> list = assignmentsModel.getObject();
+                for (AssignmentEditorDto dto : list){
+                    String n = dto.getName();
+                    if (n != null){
+                        String f = "";
+                    }
+                }
                 addToAssignmentsModel(target, availableAssignmentsPanel, currentAssignmentsPanel);
             }
         };
@@ -205,7 +224,9 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         for (AssignmentEditorDto dto : fromProviderList) {
             if (dto.isSelected()) {
                 for (AssignmentEditorDto assignmentDto : assignmentsList) {
-                    if (assignmentDto.getTargetRef().getOid().equals(dto.getTargetRef().getOid())) {
+                    if (assignmentDto.getTargetRef().getOid().equals(dto.getTargetRef().getOid()) &&
+                            areEqualReferenceObjects(assignmentDto.getTenantRef(), dto.getTenantRef()) &&
+                            areEqualReferenceObjects(assignmentDto.getOrgRef(), dto.getOrgRef())) {
                         if (assignmentDto.getStatus().equals(UserDtoStatus.ADD)) {
                             listToBeRemoved.add(assignmentDto);
                         } else {
@@ -222,10 +243,10 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
     }
 
     public ObjectDataProvider getAvailableAssignmentsDataProvider() {
-        ObjectDataProvider<AssignmentEditorDto, F> provider = new ObjectDataProvider<AssignmentEditorDto, F>(this, type) {
+        ObjectDataProvider<AssignmentEditorDto, G> provider = new ObjectDataProvider<AssignmentEditorDto, G>(this, type) {
 
             @Override
-            public AssignmentEditorDto createDataObjectWrapper(PrismObject<F> obj) {
+            public AssignmentEditorDto createDataObjectWrapper(PrismObject<G> obj) {
                 return AssignmentEditorDto.createDtoFromObject(obj.asObjectable(), UserDtoStatus.MODIFY, getPageBase());
             }
 
@@ -277,7 +298,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         try {
             PageBase pb = getPageBase();
             ModelInteractionService mis = pb.getModelInteractionService();
-            RoleSelectionSpecification roleSpec = mis.getAssignableRoleSpecification(user, result);
+            RoleSelectionSpecification roleSpec = mis.getAssignableRoleSpecification(focus, result);
             authorizedRolesFilter = roleSpec.getFilter();
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't load available roles", ex);

@@ -16,9 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
-
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
@@ -44,12 +42,7 @@ import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseDtoProvide
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -65,23 +58,11 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.namespace.QName;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns.OP_CLOSE_CAMPAIGN;
-import static com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns.OP_CLOSE_STAGE;
-import static com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns.OP_OPEN_NEXT_STAGE;
-import static com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns.OP_START_CAMPAIGN;
-import static com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns.OP_START_REMEDIATION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.F_MARKED_AS_ACCEPT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.F_MARKED_AS_DELEGATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.F_MARKED_AS_NOT_DECIDE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.F_MARKED_AS_REDUCE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.F_MARKED_AS_REDUCE_AND_REMEDIED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.F_MARKED_AS_REVOKE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.F_MARKED_AS_REVOKE_AND_REMEDIED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.F_WITHOUT_RESPONSE;
+import static com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.*;
 
 /**
  * @author mederly
@@ -138,15 +119,15 @@ public class PageCertCampaign extends PageAdminCertification {
 	private LoadableModel<AccessCertificationCasesStatisticsType> statModel;
 	private LoadableModel<CertCampaignDto> campaignModel;
 
+	private String campaignOid;
+
 	CertDecisionHelper helper = new CertDecisionHelper();
 
 	public PageCertCampaign(PageParameters parameters) {
-		this(parameters, null);
-	}
-
-	public PageCertCampaign(PageParameters parameters, PageBase previousPage) {
-		setPreviousPage(previousPage);
-		getPageParameters().overwriteWith(parameters);
+		StringValue campaignOidValue = parameters.get(OnePageParameterEncoder.PARAMETER);
+		if (campaignOidValue != null) {
+			campaignOid = campaignOidValue.toString();
+		}
 		initModels();
 		initLayout();
 	}
@@ -172,7 +153,7 @@ public class PageCertCampaign extends PageAdminCertification {
 		AccessCertificationCasesStatisticsType stat = null;
 		try {
 			Task task = createSimpleTask("dummy");  // todo
-			stat = getCertificationService().getCampaignStatistics(getCampaignOid(), false, task, result);
+			stat = getCertificationService().getCampaignStatistics(campaignOid, false, task, result);
 			result.recordSuccessIfUnknown();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get campaign statistics", ex);
@@ -192,7 +173,7 @@ public class PageCertCampaign extends PageAdminCertification {
 		AccessCertificationCampaignType campaign = null;
 		try {
 			PrismObject<AccessCertificationCampaignType> campaignObject =
-					WebModelServiceUtils.loadObject(AccessCertificationCampaignType.class, getCampaignOid(), PageCertCampaign.this, task, result);
+					WebModelServiceUtils.loadObject(AccessCertificationCampaignType.class, campaignOid, PageCertCampaign.this, task, result);
 			if (campaignObject != null) {
 				campaign = campaignObject.asObjectable();
 			}
@@ -263,7 +244,7 @@ public class PageCertCampaign extends PageAdminCertification {
 	private void initTableLayout(Form mainForm) {
 		CertCaseDtoProvider provider = new CertCaseDtoProvider(PageCertCampaign.this);
 		provider.setQuery(createCaseQuery());
-		provider.setCampaignOid(getCampaignOid());
+		provider.setCampaignOid(campaignOid);
 		provider.setSort(AccessCertificationCaseType.F_OBJECT_REF.getLocalPart(), SortOrder.ASCENDING);        // default sorting
 		int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_CAMPAIGN_OUTCOMES_PANEL);
 		BoxedTablePanel table = new BoxedTablePanel<>(ID_OUTCOMES_TABLE, provider, initColumns(),
@@ -382,7 +363,7 @@ public class PageCertCampaign extends PageAdminCertification {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				goBack(PageCertCampaigns.class);
+				redirectBack();
 			}
 		};
 		mainForm.add(backButton);
@@ -478,19 +459,19 @@ public class PageCertCampaign extends PageAdminCertification {
 				case OP_START_CAMPAIGN:
 				case OP_OPEN_NEXT_STAGE:
 					task = createSimpleTask(OPERATION_OPEN_NEXT_STAGE);
-					acs.openNextStage(getCampaignOid(), currentStage + 1, task, result);
+					acs.openNextStage(campaignOid, currentStage + 1, task, result);
 					break;
 				case OP_CLOSE_STAGE:
 					task = createSimpleTask(OPERATION_CLOSE_STAGE);
-					acs.closeCurrentStage(getCampaignOid(), currentStage, task, result);
+					acs.closeCurrentStage(campaignOid, currentStage, task, result);
 					break;
 				case OP_START_REMEDIATION:
 					task = createSimpleTask(OPERATION_START_REMEDIATION);
-					acs.startRemediation(getCampaignOid(), task, result);
+					acs.startRemediation(campaignOid, task, result);
 					break;
 				case OP_CLOSE_CAMPAIGN:
 					task = createSimpleTask(OPERATION_CLOSE_CAMPAIGN);
-					acs.closeCampaign(getCampaignOid(), task, result);
+					acs.closeCampaign(campaignOid, task, result);
 					break;
 				default:
 					throw new IllegalStateException("Unknown action: " + action);
@@ -519,12 +500,7 @@ public class PageCertCampaign extends PageAdminCertification {
 		return (Table) get(createComponentPath(ID_MAIN_FORM, ID_OUTCOMES_TABLE));
 	}
 
-	private String getCampaignOid() {
-		StringValue campaignOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-		return campaignOid != null ? campaignOid.toString() : null;
-	}
-
-	public String getCampaignHandlerUri() {
+	String getCampaignHandlerUri() {
 		return campaignModel.getObject().getHandlerUri();
 	}
 }

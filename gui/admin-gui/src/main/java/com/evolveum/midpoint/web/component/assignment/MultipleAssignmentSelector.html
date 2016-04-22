@@ -17,20 +17,20 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div>
-        <div class="form-group" wicket:id="filterButtonContainer" style="min-height: 30px;">
+    <div class="multiple-assignment-selector">
+        <div class="multiple-assignment-selector-section" wicket:id="filterButtonContainer">
             <a wicket:id="filterByUserButton" class="btn btn-sm btn-default">
                 <span wicket:id="label"/>
                 <i wicket:id="deleteButton" class="fa fa-times-circle fa-lg text-danger" style="margin-left: 10px;"/>
             </a>
         </div>
-        <div class="form-group" style="min-height: 30px;">
+        <div class="multiple-assignment-selector-section">
             <form class="form-inline pull-left search-form" wicket:id="searchForm">
                 <div wicket:id="search"/>
             </form>
         </div>
-        <div class="form-group">
-            <div wicket:id="table" class=""/>
+        <div class="multiple-assignment-selector-section">
+            <div wicket:id="table" class="multiple-assignment-selector-section-table"/>
         </div>
     </div>
 </wicket:panel>

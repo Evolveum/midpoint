@@ -16,13 +16,16 @@
 
 package com.evolveum.midpoint.web.page.admin.server.handlers.dto;
 
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * @author mederly
@@ -49,6 +52,13 @@ public class HandlerDto implements Serializable {
 		return taskDto.getObjectRef();
 	}
 
-	public void updateTask(Task existingTask, PageTaskEdit parentPage) throws SchemaException {
+	public HandlerDtoEditableState getEditableState() {
+		return null;
+	}
+
+	@NotNull
+	public Collection<? extends ItemDelta<?, ?>> getDeltasToExecute(HandlerDtoEditableState origState, HandlerDtoEditableState currState, PrismContext prismContext)
+			throws SchemaException {
+		return new ArrayList<>();
 	}
 }

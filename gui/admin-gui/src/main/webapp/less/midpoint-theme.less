@@ -165,6 +165,10 @@ th.cog, td.cog {
 	color: #a94442;
 }
 
+.icon-style-end-user {
+	color: #357ca5;
+}
+
 .icon-style-warning {
 	color: #8a6d3b;
 }
@@ -237,6 +241,17 @@ th.cog, td.cog {
 
 #box-object(@color) {
 	border-top-color: @color;
+	
+	&.box-solid {
+		border: 1px solid @color;
+	}
+	
+	&.box-solid > .box-header {
+		color: #fff;
+		background: @color;
+		background-color: @color;
+	}
+	
 }
 
 .object-user-box {
@@ -253,6 +268,10 @@ th.cog, td.cog {
 
 .object-service-box {
 	#box-object(@object-service-color);
+}
+
+.object-task-box {
+	#box-object(@object-task-color);
 }
 
 .object-resource-box {
@@ -503,7 +522,7 @@ th.cog, td.cog {
   //.border-radius(2px);
 
   > li > a {
-    color: #ddd;
+    color: #444;
     text-decoration: none;
     display: inline-block;
 
@@ -601,6 +620,7 @@ div.dashAssignmentHeader {
   border-bottom: 2px solid @table-divider-color;
   margin: 0px;
   margin-bottom: 10px;
+  padding-left: 5px; // align with the checkboxes below
 
   div.col-xs-10 {
     padding: 0 5px;
@@ -669,6 +689,34 @@ div.dashAssignmentHeader {
 	}
 }
 
+.box-header.add {
+	background-color: #caffca;
+}
+
+.box-header.delete {
+	background-color: #ffcaca;
+}
+
+.option-checkbox {
+	float: left;
+	border: 1px solid @table-divider-color;
+	margin-right: 10px;
+	padding-bottom: 5px;
+	padding-left: 6px;
+	padding-right: 6px;
+}
+
+// Badge colors used in object details tabs (and maybe elsewhere)
+
+.badge-active {
+	background-color: #3c8dbc !important;
+}
+
+.badge-passive {
+	color: #fff;
+	background-color: #d2d6de !important;
+}
+
 // Projections tab (focus pages)
 
 .projections {
@@ -676,10 +724,6 @@ div.dashAssignmentHeader {
 }
 
 .projections-header {
-	
-	& > div {
-		padding-left: 20px !important; // align with the checkboxes below
-	}
 	
 }
 
@@ -703,4 +747,75 @@ div.dashAssignmentHeader {
 
 .assignment {
 	margin-bottom: 10px;
+	
+	.box-header {
+		
+		.box-tools {
+			margin-top: 5px;
+		}
+	}
+}
+
+// Request role page
+
+.request-role-col-available {
+	padding-right: 0px;
+}
+
+.request-role-col-control {
+	
+}
+
+.request-role-col-current {
+	padding-left: 0px;
+}
+
+.request-role-box {
+	.box-body {
+		padding-bottom: 0px;
+	}
+}
+
+.multiple-assignment-selector {
+	
+	.multiple-assignment-selector-section:first-child {
+		border-top-width: 0px;
+		padding-top: 0px;
+		min-height: 36px;
+	}
+	
+	.multiple-assignment-selector-section:last-child {
+		padding-bottom: 0px;
+	}
+}
+
+.multiple-assignment-selector-section {
+	min-height: 48px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+	border-top: 2px solid @table-divider-color;
+}
+
+.multiple-assignment-selector-section-table {
+	.box {
+		border-width: 0px;
+	}
+}
+
+.multiple-assignment-selector-table-container {
+	min-height: 415px;
+}
+
+.multiple-assignment-selector-table {
+	width: 100%;
+}
+
+.multiple-assignment-selector-table-footer {
+	float: left;
+}
+
+.request-role-control-button {
+	&.btn-primary > i {
+		font-size: 32px;
+	}
 }

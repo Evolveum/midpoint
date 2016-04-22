@@ -58,6 +58,7 @@ public class GuiStyleConstants {
 
 	public static final String CLASS_OBJECT_CERT_DEF_ICON = "fa fa-certificate";
 	public static final String CLASS_OBJECT_CERT_DEF_ICON_COLORED = CLASS_OBJECT_CERT_DEF_ICON + " object-task-color";		// TODO
+	public static final String CLASS_OBJECT_CERT_DEF_BOX_CSS_CLASSES = "object-task-box";									// TODO
 
 	public static final String CLASS_OBJECT_CERT_CAMPAIGN_ICON = "fa fa-gavel";
 	public static final String CLASS_OBJECT_CERT_CAMPAIGN_ICON_COLORED = CLASS_OBJECT_CERT_CAMPAIGN_ICON + " object-task-color";		// TODO
@@ -66,6 +67,7 @@ public class GuiStyleConstants {
 	public static final String CLASS_ICON_STYLE_DISABLED = "icon-style-disabled";
 	public static final String CLASS_ICON_STYLE_ARCHIVED = "icon-style-archived";
 	public static final String CLASS_ICON_STYLE_PRIVILEGED = "icon-style-privileged";
+	public static final String CLASS_ICON_STYLE_END_USER = "icon-style-end-user";
 	public static final String CLASS_ICON_STYLE_WARNING = "icon-style-warning";
 	public static final String CLASS_ICON_STYLE_UP = "icon-style-up";
 	public static final String CLASS_ICON_STYLE_DOWN = "icon-style-down";
@@ -96,4 +98,10 @@ public class GuiStyleConstants {
 	public static final String CLASS_OP_RESULT_STATUS_ICON_HANDLED_ERROR_COLORED = "fa fa-minus-circle text-warning";
 	public static final String CLASS_OP_RESULT_STATUS_ICON_NOT_APPLICABLE_COLORED = "fa fa-check-circle text-muted";
 	public static final String CLASS_OP_RESULT_STATUS_ICON_IN_PROGRESS_COLORED = "fa fa-clock-o text-info";
+
+	public static final String CLASS_BUTTON_TOGGLE_OFF = "btn-default";
+	public static final String CLASS_BUTTON_TOGGLE_ON = "btn-info";
+
+	public static final String CLASS_BADGE_ACTIVE = "badge-active";
+	public static final String CLASS_BADGE_PASSIVE = "badge-passive";
 }

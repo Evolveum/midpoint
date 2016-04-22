@@ -112,4 +112,31 @@ public class SceneDeltaItemImpl extends SceneItemImpl implements SceneDeltaItem,
 		sb.append("UNCHANGED: ").append(unchangedValues);
 		return sb.toString();
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		if (!super.equals(o)) return false;
+
+		SceneDeltaItemImpl that = (SceneDeltaItemImpl) o;
+
+		if (!oldValues.equals(that.oldValues)) return false;
+		if (!addedValues.equals(that.addedValues)) return false;
+		if (!deletedValues.equals(that.deletedValues)) return false;
+		if (!unchangedValues.equals(that.unchangedValues)) return false;
+		return !(sourceDelta != null ? !sourceDelta.equals(that.sourceDelta) : that.sourceDelta != null);
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = super.hashCode();
+		result = 31 * result + oldValues.hashCode();
+		result = 31 * result + addedValues.hashCode();
+		result = 31 * result + deletedValues.hashCode();
+		result = 31 * result + unchangedValues.hashCode();
+		result = 31 * result + (sourceDelta != null ? sourceDelta.hashCode() : 0);
+		return result;
+	}
 }

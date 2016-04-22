@@ -214,7 +214,7 @@ public class PageCertDecisions extends PageAdminCertification {
                 CertDecisionDto dto = rowModel.getObject();
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, dto.getCampaignRef().getOid());
-                setResponsePage(new PageCertCampaign(parameters, PageCertDecisions.this));
+                setResponsePage(PageCertCampaign.class, parameters);
             }
         };
         columns.add(column);

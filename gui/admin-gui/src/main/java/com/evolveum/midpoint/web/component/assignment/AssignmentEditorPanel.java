@@ -18,7 +18,9 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -35,12 +37,18 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.TwoStateBooleanPanel;
+import com.evolveum.midpoint.web.component.prism.CheckTableHeader;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
@@ -80,8 +88,9 @@ import java.util.*;
  * @author lazyman
  */
 public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
+	private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(AssignmentEditorPanel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(AssignmentEditorPanel.class);
 
     private static final String DOT_CLASS = AssignmentEditorPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
@@ -95,6 +104,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     private static final String ID_NAME = "name";
     private static final String ID_ACTIVATION = "activation";
     private static final String ID_ACTIVATION_BLOCK = "activationBlock";
+    private static final String ID_EXPAND = "expand";
     private static final String ID_BODY = "body";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_RELATION_CONTAINER = "relationContainer";
@@ -150,6 +160,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
         AjaxCheckBox selected = new AjaxCheckBox(ID_SELECTED,
                 new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_SELECTED)) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -159,14 +170,14 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         headerRow.add(selected);
 
         WebMarkupContainer typeImage = new WebMarkupContainer(ID_TYPE_IMAGE);
-        typeImage.add(AttributeModifier.replace("class",
-                createImageTypeModel(new PropertyModel<AssignmentEditorDtoType>(getModel(), AssignmentEditorDto.F_TYPE))));
+        typeImage.add(AttributeModifier.append("class", createImageTypeModel(getModel())));
         headerRow.add(typeImage);
 
         Label errorIcon = new Label(ID_ERROR_ICON);
         errorIcon.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public boolean isVisible() {
                 return !isTargetValid();
             }
@@ -174,6 +185,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         headerRow.add(errorIcon);
 
         AjaxLink name = new AjaxLink(ID_NAME) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -183,13 +195,15 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         headerRow.add(name);
 
         AjaxLink errorLink = new AjaxLink(ID_BUTTON_SHOW_MORE) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 showErrorPerformed(target);
             }
         };
-        errorLink.add(new VisibleEnableBehaviour(){
+        errorLink.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -203,6 +217,22 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
         Label activation = new Label(ID_ACTIVATION, createActivationModel());
         headerRow.add(activation);
+        
+        ToggleIconButton expandButton = new ToggleIconButton(ID_EXPAND,
+        		GuiStyleConstants.CLASS_ICON_EXPAND, GuiStyleConstants.CLASS_ICON_COLLAPSE) {
+        	private static final long serialVersionUID = 1L;
+        	
+        	@Override
+            public void onClick(AjaxRequestTarget target) {
+        		nameClickPerformed(target);
+            }
+        	
+        	@Override
+			public boolean isOn() {
+				return !AssignmentEditorPanel.this.getModelObject().isMinimized();
+			}
+        };
+        headerRow.add(expandButton);
 
         WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
         body.setOutputMarkupId(true);
@@ -752,13 +782,28 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         return construction;
     }
 
-    private IModel<String> createImageTypeModel(final IModel<AssignmentEditorDtoType> model) {
+    private IModel<String> createImageTypeModel(final IModel<AssignmentEditorDto> model) {
         return new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public String getObject() {
-                AssignmentEditorDtoType type = model.getObject();
-                return type.getColoredIconCssClass();
+            	AssignmentEditorDto assignmentEditorDto = model.getObject();
+            	
+            	PrismObject targetObject = null;
+                try {
+                	targetObject = getTargetObject(assignmentEditorDto);
+                } catch (Exception ex) {
+                    LoggingUtils.logException(LOGGER, "Couldn't load object", ex);
+                    // Otherwise ignore, will be pocessed by the fallback code below
+                }
+                
+                if (targetObject == null) {
+                	AssignmentEditorDtoType type = assignmentEditorDto.getType();
+                    return type.getColoredIconCssClass();
+                } else {
+                	return WebComponentUtil.createDefaultIcon(targetObject);
+                }                
             }
         };
     }
@@ -773,46 +818,59 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
     private IModel<String> createTargetModel() {
         return new LoadableModel<String>(false) {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             protected String load() {
                 AssignmentEditorDto dto = getModel().getObject();
-                PrismContainerValue assignment = dto.getOldValue();
-
-                PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
-                if (targetRef == null) {
-                    return getString("AssignmentEditorPanel.undefined");
-                }
-
-                PrismReferenceValue refValue = targetRef.getValue();
-                if (refValue != null && refValue.getObject() != null) {
-                    PrismObject object = refValue.getObject();
-                    return WebComponentUtil.getName(object);
-                }
-
-                String oid = targetRef.getOid();
-                OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT);
+                
+                PrismObject targetObject;
                 try {
-                    PageBase page = getPageBase();
-                    ModelService model = page.getMidpointApplication().getModel();
-                    Task task = page.createSimpleTask(OPERATION_LOAD_OBJECT);
-
-                    Collection<SelectorOptions<GetOperationOptions>> options =
-                            SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-                    Class type = ObjectType.class;
-                    if (refValue.getTargetType() != null){
-                    	type = getPageBase().getPrismContext().getSchemaRegistry().determineCompileTimeClass(refValue.getTargetType());
-                    }
-                    PrismObject object = model.getObject(type, oid, options, task, result);
-
-                    return WebComponentUtil.getName(object);
+                	targetObject = getTargetObject(dto);
                 } catch (Exception ex) {
                     LoggingUtils.logException(LOGGER, "Couldn't load object", ex);
+                    return getString("AssignmentEditorPanel.loadError");
                 }
-
-                return oid;
+                
+                if (targetObject == null) {
+                	return getString("AssignmentEditorPanel.undefined");
+                }
+                
+                return WebComponentUtil.getName(targetObject);
             }
         };
+    }
+    
+    private <O extends ObjectType> PrismObject<O> getTargetObject(AssignmentEditorDto dto) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+    	PrismContainerValue<AssignmentType> assignment = dto.getOldValue();
+
+        PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
+        if (targetRef == null) {
+        	return null;
+        }
+
+        PrismReferenceValue refValue = targetRef.getValue();
+        if (refValue != null && refValue.getObject() != null) {
+            PrismObject object = refValue.getObject();
+            return object;
+        }
+
+        String oid = targetRef.getOid();
+        OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT);
+        
+	    PageBase page = getPageBase();
+	    ModelService model = page.getMidpointApplication().getModel();
+	    Task task = page.createSimpleTask(OPERATION_LOAD_OBJECT);
+	
+	    Collection<SelectorOptions<GetOperationOptions>> options =
+	            SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+	    Class<O> type = (Class<O>) ObjectType.class;
+	    if (refValue.getTargetType() != null){
+	    	type = getPageBase().getPrismContext().getSchemaRegistry().determineCompileTimeClass(refValue.getTargetType());
+	    }
+	    PrismObject<O> object = model.getObject(type, oid, options, task, result);
+	    refValue.setObject(object);
+	    return object;
     }
 
     private void showErrorPerformed(AjaxRequestTarget target){

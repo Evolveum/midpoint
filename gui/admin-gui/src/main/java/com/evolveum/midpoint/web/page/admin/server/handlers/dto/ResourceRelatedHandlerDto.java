@@ -3,11 +3,11 @@ package com.evolveum.midpoint.web.page.admin.server.handlers.dto;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -16,7 +16,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddResourcesDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -24,15 +23,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
  * @author mederly
  */
-public class ResourceRelatedHandlerDto extends HandlerDto {
+public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoEditableState {
 
 	public static final String F_DRY_RUN = "dryRun";
 	public static final String F_KIND = "kind";
@@ -51,6 +52,10 @@ public class ResourceRelatedHandlerDto extends HandlerDto {
 	private String objectClass;
 	private List<QName> objectClassList;
 	private TaskAddResourcesDto resourceRef;
+
+	private ResourceRelatedHandlerDto(TaskDto taskDto) {
+		super(taskDto);
+	}
 
 	public ResourceRelatedHandlerDto(TaskDto taskDto, PageBase pageBase, Task opTask, OperationResult thisOpResult) {
 		super(taskDto);
@@ -173,74 +178,72 @@ public class ResourceRelatedHandlerDto extends HandlerDto {
 		taskDto.setObjectRef(resource != null ? resource.asObjectReferenceType() : null);
 	}
 
+	@NotNull
 	@Override
-	public void updateTask(Task existingTask, PageTaskEdit parentPage) throws SchemaException {
+	public Collection<ItemDelta<?, ?>> getDeltasToExecute(HandlerDtoEditableState origState, HandlerDtoEditableState currState, PrismContext prismContext)
+			throws SchemaException {
 
-		if (resourceRef != null) {
+		List<ItemDelta<?, ?>> rv = new ArrayList<>();
+
+		// we can safely assume this; also that both are non-null
+		ResourceRelatedHandlerDto orig = (ResourceRelatedHandlerDto) origState;
+		ResourceRelatedHandlerDto curr = (ResourceRelatedHandlerDto) currState;
+
+		String origResourceOid = orig.getResourceRef() != null ? orig.getResourceRef().getOid() : null;
+		String currResourceOid = curr.getResourceRef() != null ? curr.getResourceRef().getOid() : null;
+		if (!StringUtils.equals(origResourceOid, currResourceOid)) {
 			ObjectReferenceType resourceObjectRef = new ObjectReferenceType();
-			resourceObjectRef.setOid(resourceRef.getOid());
+			resourceObjectRef.setOid(curr.getResourceRef().getOid());
 			resourceObjectRef.setType(ResourceType.COMPLEX_TYPE);
-			existingTask.setObjectRef(resourceObjectRef);
+			rv.add(DeltaBuilder.deltaFor(TaskType.class, prismContext)
+					.item(TaskType.F_OBJECT_REF).replace(resourceObjectRef.asReferenceValue()).asItemDelta());
 		}
 
-		SchemaRegistry registry = parentPage.getPrismContext().getSchemaRegistry();
-		if (dryRun) {
-			PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-			PrismProperty dryRunProperty = new PrismProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-			dryRunProperty.setDefinition(def);
-			dryRunProperty.setRealValue(true);
-			existingTask.addExtensionProperty(dryRunProperty);
-		} else {
-			PrismProperty dryRunProperty = existingTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-			if (dryRunProperty != null) {
-				existingTask.deleteExtensionProperty(dryRunProperty);
-			}
+		if (orig.isDryRun() != curr.isDryRun()) {
+			addExtensionDelta(rv, SchemaConstants.MODEL_EXTENSION_DRY_RUN, curr.isDryRun(), prismContext);
 		}
 
-		if (kind != null) {
-			PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_KIND);
-			PrismProperty kindProperty = new PrismProperty(SchemaConstants.MODEL_EXTENSION_KIND);
-			kindProperty.setDefinition(def);
-			kindProperty.setRealValue(kind);
-			existingTask.addExtensionProperty(kindProperty);
-		} else {
-			PrismProperty kindProperty = existingTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_KIND);
-			if (kindProperty != null) {
-				existingTask.deleteExtensionProperty(kindProperty);
-			}
+		if (orig.getKind() != curr.getKind()) {
+			addExtensionDelta(rv, SchemaConstants.MODEL_EXTENSION_KIND, curr.getKind(), prismContext);
 		}
 
-		if (StringUtils.isNotEmpty(intent)) {
-			PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_INTENT);
-			PrismProperty intentProperty = new PrismProperty(SchemaConstants.MODEL_EXTENSION_INTENT);
-			intentProperty.setDefinition(def);
-			intentProperty.setRealValue(intent);
-			existingTask.addExtensionProperty(intentProperty);
-		} else {
-			PrismProperty intentProperty = existingTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_INTENT);
-			if (intentProperty != null) {
-				existingTask.deleteExtensionProperty(intentProperty);
-			}
+		if (!StringUtils.equals(orig.getIntent(), curr.getIntent())) {
+			addExtensionDelta(rv, SchemaConstants.MODEL_EXTENSION_INTENT, curr.getIntent(), prismContext);
 		}
 
-		if (StringUtils.isNotEmpty(objectClass)) {
-			PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.OBJECTCLASS_PROPERTY_NAME);
-			PrismProperty objectClassProperty = new PrismProperty(SchemaConstants.OBJECTCLASS_PROPERTY_NAME);
-			objectClassProperty.setRealValue(def);
-
+		if (!StringUtils.equals(orig.getObjectClass(), curr.getObjectClass())) {
 			QName objectClassQName = null;
 			for (QName q: getObjectClassList()) {
 				if (q.getLocalPart().equals(objectClass)) {
 					objectClassQName = q;
 				}
 			}
-			objectClassProperty.setRealValue(objectClassQName);
-			existingTask.addExtensionProperty(objectClassProperty);
-		} else {
-			PrismProperty objectClassProperty = existingTask.getExtensionProperty(SchemaConstants.OBJECTCLASS_PROPERTY_NAME);
-			if (objectClassProperty != null){
-				existingTask.deleteExtensionProperty(objectClassProperty);
-			}
+			addExtensionDelta(rv, SchemaConstants.OBJECTCLASS_PROPERTY_NAME, objectClassQName, prismContext);
 		}
+		return rv;
+	}
+
+	private void addExtensionDelta(List<ItemDelta<?, ?>> rv, QName itemName, Object realValue, PrismContext prismContext)
+			throws SchemaException {
+		PrismPropertyDefinition def = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(itemName);
+		rv.add(DeltaBuilder.deltaFor(TaskType.class, prismContext)
+				.item(new ItemPath(TaskType.F_EXTENSION, itemName), def).replace(realValue).asItemDelta());
+	}
+
+	@Override
+	public HandlerDtoEditableState getEditableState() {
+		return this;
+	}
+
+	// TODO implement seriously
+	public ResourceRelatedHandlerDto clone() {
+		ResourceRelatedHandlerDto clone = new ResourceRelatedHandlerDto(taskDto);
+		clone.dryRun = dryRun;
+		clone.kind = kind;
+		clone.intent = intent;
+		clone.objectClass = objectClass;
+		clone.objectClassList = CloneUtil.clone(objectClassList);
+		clone.resourceRef = CloneUtil.clone(resourceRef);
+		return clone;
 	}
 }

@@ -1738,7 +1738,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         for (PrismObject<TaskType> rootTaskPrism : obsoleteTasks) {
 
             if (!executionTask.canRun()) {
-                result.recordPartialError("Interrupted");
+                result.recordWarning("Interrupted");
                 LOGGER.warn("Task cleanup was interrupted.");
                 interrupted = true;
                 break;

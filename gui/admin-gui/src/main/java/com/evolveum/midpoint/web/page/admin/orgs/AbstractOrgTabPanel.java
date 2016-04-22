@@ -63,16 +63,16 @@ public abstract class AbstractOrgTabPanel extends BasePanel{
 
                         @Override
                         public WebMarkupContainer getPanel(String panelId) {
-                            add(new AjaxEventBehavior("onload") {
+                            add(new AjaxEventBehavior("load") {
                                     protected void onEvent(final AjaxRequestTarget target) {
                                         SessionStorage storage = getPageBase().getSessionStorage();
                                         storage.getUsers().setSelectedTabId(tabId);
                                     }
                                 }
                             );
-//                            return new OrgChildrenPanel(panelId, new Model(oid), PageOrgTree.this);
-                            return createTreePanel(panelId, new Model(oid), getPageBase());
-//                            return new TreeTablePanel(panelId, new Model(oid), AbstractOrgTabPanel.this);
+                            Panel panel = createTreePanel(panelId, new Model(oid), getPageBase());
+                            panel.setOutputMarkupId(true);
+                            return panel;
                         }
                         
                         

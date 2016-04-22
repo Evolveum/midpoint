@@ -35,6 +35,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -133,8 +134,9 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		                ObjectReferenceType targetRef = dto.getTargetRef();
 		                if (targetRef != null && targetRef.getType() != null) {
 		                	return WebComponentUtil.getBoxThinCssClasses(targetRef.getType());
+		                } else {
+		                	return GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_THIN_CSS_CLASSES;
 		                }
-		                return "";
 		            }
 		        }));
 			}

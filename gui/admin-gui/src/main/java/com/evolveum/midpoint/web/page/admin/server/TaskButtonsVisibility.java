@@ -74,6 +74,7 @@ class TaskButtonsVisibility implements Serializable {
 		final TaskDto taskDto = parentPage.getTaskDto();
 		stopVisible = !parentPage.isEdit()
 				&& taskDto.isWorkflowChild()
+				&& !taskDto.isClosed()
 				&& parentPage.canStop();
 		return stopVisible;
 	}
