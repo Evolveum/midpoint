@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 	<version>3.4-SNAPSHOT</version>
 	<properties>
 		<project.source.version>1.7</project.source.version>
+    	<cxf.version>3.1.6</cxf.version>
 	</properties>
 	<organization>
 		<name>Evolveum</name>
@@ -41,7 +42,7 @@
         <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
         <url>https://fisheye.evolveum.com/browse/midPoint</url>
     </scm>
-
+    
     <distributionManagement>
       <repository>
         <id>evolveum-nexus</id>
@@ -149,22 +150,22 @@
 		<dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-core</artifactId>
-            <version>3.0.0</version>
+            <version>${cxf.version}</version>
         </dependency>
 		<dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxws</artifactId>
-            <version>3.0.0</version>
+            <version>${cxf.version}</version>
         </dependency>
         <dependency>
 			<groupId>org.apache.cxf</groupId>
 			<artifactId>cxf-rt-transports-http</artifactId>
-			<version>3.0.0</version>
+			<version>${cxf.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.cxf</groupId>
 			<artifactId>cxf-rt-ws-security</artifactId>
-			<version>3.0.0</version>
+			<version>${cxf.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>

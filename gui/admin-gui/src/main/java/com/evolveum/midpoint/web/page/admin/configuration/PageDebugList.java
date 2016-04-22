@@ -252,7 +252,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		};
 		DebugSearchDto search = searchModel.getObject();
 		ObjectQuery query = search.getSearch().createObjectQuery(getPrismContext());
-		provider.setQuery(query);
+		provider.setQuery(createQuery(query));
 
 		addOrReplaceTable(provider);
 

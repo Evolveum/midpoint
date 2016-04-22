@@ -556,6 +556,12 @@
                     </exclusion>
                 </exclusions>
 	        </dependency>
+	        <dependency>
+				<!-- make this dependency explicit to detect conflicts with older versions -->
+			  <groupId>org.codehaus.woodstox</groupId>
+			  <artifactId>stax2-api</artifactId>
+			  <version>3.1.4</version>
+			</dependency>
             <dependency>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>org.osgi.core</artifactId>
@@ -1403,6 +1409,9 @@
 										<!-- There is some kind of conflict between these. TODO: clean up -->
 										<ignoredUnusedDeclaredDependency>xml-apis:xml-apis</ignoredUnusedDeclaredDependency>
 										<ignoredUnusedDeclaredDependency>stax:stax-api</ignoredUnusedDeclaredDependency>
+										
+										<!-- We are making this dependency explicit to detect conflicts early -->
+										<ignoredUnusedDeclaredDependency>org.codehaus.woodstox:stax2-api</ignoredUnusedDeclaredDependency>
 									
 										<!-- The xjc-plugin does not compile without dependency on this -->
 										<ignoredUnusedDeclaredDependency>org.apache.cxf:cxf-tools-common</ignoredUnusedDeclaredDependency>
