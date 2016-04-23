@@ -16,20 +16,10 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Pattern;
-
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import org.apache.commons.lang.Validate;
-
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -39,6 +29,14 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import org.apache.commons.lang.Validate;
+
+import javax.xml.namespace.QName;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T>> {
 	
@@ -81,7 +79,16 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 	
 	public static <T> SubstringFilter createSubstring(ItemPath path, PrismProperty<T> item, QName matchingRule,
 			boolean anchorStart, boolean anchorEnd) {
-		return createSubstring(path, item.getDefinition(), matchingRule, item.getValue(), anchorStart, anchorEnd);
+		List<PrismPropertyValue<T>> values = item.getValues();
+		PrismPropertyValue<T> value;
+		if (values.size() > 1) {
+			throw new IllegalArgumentException("Expected at most 1 value, got " + values);
+		} else if (values.size() == 1) {
+			value = values.get(0);
+		} else {
+			value = null;
+		}
+		return createSubstring(path, item.getDefinition(), matchingRule, value, anchorStart, anchorEnd);
 	}
 		
 	public static <T> SubstringFilter createSubstring(QName path, PrismPropertyDefinition itemDefinition, PrismPropertyValue<T> values) {

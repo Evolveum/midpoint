@@ -372,7 +372,9 @@ public class TestQueryConvertor {
 		
 		File[] userQueriesToTest = new File[] { new File(TEST_DIR, "filter-user-by-fullName.xml"),
 				new File(TEST_DIR, "filter-user-by-name.xml"),
-				new File(TEST_DIR, "filter-user-substring-fullName.xml") };
+				new File(TEST_DIR, "filter-user-substring-fullName.xml"),
+				new File(TEST_DIR, "filter-user-substring-employeeType.xml")
+		};
 		// prismContext.silentMarshalObject(queryTypeNew, LOGGER);
 		for (File file : userQueriesToTest) {
 			SearchFilterType filterType = PrismTestUtil.parseAtomicValue(file, SearchFilterType.COMPLEX_TYPE);
