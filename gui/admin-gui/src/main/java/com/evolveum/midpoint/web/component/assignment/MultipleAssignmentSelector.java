@@ -128,7 +128,7 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
 
             @Override
             public Search load() {
-                Search search =  SearchFactory.createSearch(RoleType.class, getPageBase().getPrismContext(), false);
+                Search search =  SearchFactory.createSearch(RoleType.class, getPageBase().getPrismContext(), true);
                 return search;
             }
         };
@@ -253,7 +253,7 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
         add(searchForm);
         searchForm.setOutputMarkupId(true);
 
-        SearchPanel search = new SearchPanel(ID_SEARCH, (IModel) searchModel) {
+        SearchPanel search = new SearchPanel(ID_SEARCH, (IModel) searchModel, false) {
 
             @Override
             public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
