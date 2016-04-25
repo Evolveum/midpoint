@@ -117,15 +117,6 @@ public class PrismContainerPanel extends Panel {
         addOrReplaceProperties(model, form, false);
     }
 
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("fixStripingOnPrismForm('").append(getMarkupId()).append("', '").append(STRIPED_CLASS).append("');");
-        response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
-    }
-
     public PageBase getPageBase(){
         return pageBase;
     }
