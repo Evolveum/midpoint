@@ -1,0 +1,36 @@
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="056f714a-efac-476f-b38e-9588b4907e5b"
+      version="0">
+    <name>role (activity group) metarole</name>
+
+    <iteration>0</iteration>
+    <iterationToken/>
+    <inducement>
+        <construction>
+            <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                         oid="e307a460-2310-4f18-9644-6534d62fa999"
+                         type="tns:ResourceType"></resourceRef>
+            <kind>account</kind>
+            <association>
+                <c:ref>ri:roles</c:ref>
+                <outbound>
+                    <strength>normal</strength>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <intent>roles</intent>
+                            </projectionDiscriminator>
+                        </associationFromLink>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+        <order>2</order>
+    </inducement>
+</role>

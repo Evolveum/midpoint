@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	<org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+     oid="b579d7b9-26f9-4cbd-87c7-74f549ce97e0"
+     version="0">
+   <name>sap-profiles</name>
+   <displayName>SAP Profiles</displayName>
+   <identifier>sap-profiles</identifier>
+   <orgType>sap-root</orgType>
+</org>
+	<org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+     oid="293e12ed-553a-468a-a7d1-99460b264fa1"
+     version="0">
+   <name>sap-groups</name>
+   <displayName>SAP Groups</displayName>
+   <identifier>sap-groups</identifier>
+   <orgType>sap-root</orgType>
+</org>
+	<org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+     oid="d13f5205-3348-4742-aedb-874d272806eb"
+     version="1">
+   <name>sap-roles</name>
+   <displayName>SAP Roles</displayName>
+   <identifier>sap-roles</identifier>
+   <orgType>sap-root</orgType>
+</org>
+</objects>
