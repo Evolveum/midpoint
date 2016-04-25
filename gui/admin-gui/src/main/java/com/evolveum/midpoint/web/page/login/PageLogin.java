@@ -20,12 +20,12 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.forgetpassword.PageForgetPassword;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
@@ -33,7 +33,6 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.RequiredTextField;
@@ -52,6 +51,7 @@ public class PageLogin extends PageBase {
 
     private static final String ID_USERNAME = "username";
     private static final String ID_PASSWORD = "password";
+    private static final String ID_FORGET_PASSWORD = "forgetpassword";
 
     protected static final String OPERATION_LOAD_RESET_PASSWORD_POLICY = "LOAD PASSWORD RESET POLICY";
 
@@ -63,7 +63,6 @@ public class PageLogin extends PageBase {
         }
 
         Form form = new Form(ID_LOGIN_FORM) {
-
 
             @Override
             protected void onSubmit() {
@@ -81,20 +80,31 @@ public class PageLogin extends PageBase {
                 }
             }
         };
-        OperationResult parentResult = new OperationResult(OPERATION_LOAD_RESET_PASSWORD_POLICY);
 
-        CredentialsPolicyType creds = null;
-        try {
-            creds = getModelInteractionService().getCredentialsPolicy(null, (Task) null, parentResult);
-        } catch (ObjectNotFoundException | SchemaException e) {
-            LOGGER.warn("Cannot read credentials policy: "+e.getMessage(), e);
-        }
-        BookmarkablePageLink<String> link = new BookmarkablePageLink<String>("forgetpassword", PageForgetPassword.class);
-        boolean linkIsVisible = false;
-        if (creds != null && creds.getSecurityQuestions() != null && creds.getSecurityQuestions().getQuestionNumber() != null) {
-            linkIsVisible = true;
-        }
-        link.setVisible(linkIsVisible);
+        BookmarkablePageLink<String> link = new BookmarkablePageLink<>(ID_FORGET_PASSWORD, PageForgetPassword.class);
+        link.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                OperationResult parentResult = new OperationResult(OPERATION_LOAD_RESET_PASSWORD_POLICY);
+
+                CredentialsPolicyType creds = null;
+                try {
+                    creds = getModelInteractionService().getCredentialsPolicy(null, null, parentResult);
+                } catch (ObjectNotFoundException | SchemaException e) {
+                    LOGGER.warn("Cannot read credentials policy: "+e.getMessage(), e);
+                }
+
+                boolean linkIsVisible = false;
+                if (creds != null
+                        && creds.getSecurityQuestions() != null
+                        && creds.getSecurityQuestions().getQuestionNumber() != null) {
+                    linkIsVisible = true;
+                }
+
+                return linkIsVisible;
+            }
+        });
         form.add(link);
 
         form.add(new RequiredTextField(ID_USERNAME, new Model<String>()));
