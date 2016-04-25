@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,25 +15,23 @@
   ~ limitations under the License.
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <div class="box-body">
-        <form wicket:id="searchForm">
-           <div class="input-group">
-                <input wicket:id="searchInput" class="form-control" type="text" />
-                <div class="input-group-btn">
-                    <button wicket:id="searchButton" class="btn btn-primary">
-                        <i class="fa fa-search"/>&nbsp;
-                        <span wicket:id="buttonLabel"/>
-                    </button>
-                    <button aria-expanded="false" type="button" class="btn btn-primary dropdown-toggle"
-                            data-toggle="dropdown">
-                        <span class="caret"></span>
-                        <span class="sr-only">Toggle Dropdown</span>
-                    </button>
-                    <ul class="dropdown-menu" role="menu" wicket:id="searchTypes">
-                        <li><a wicket:id="searchTypeItem" href="#"><span wicket:id="linkLabel"/></a></li>
-                    </ul>
-                </div>
-            </div>
-        </form>
-    </div>
+	<form wicket:id="searchForm">
+	   <div class="input-group">
+	        <input wicket:id="searchInput" class="form-control" type="text" />
+	        <div class="input-group-btn">
+	            <button wicket:id="searchButton" class="btn btn-primary">
+	                <i class="fa fa-search"/>&nbsp;
+	                <span wicket:id="buttonLabel"/>
+	            </button>
+	            <button aria-expanded="false" type="button" class="btn btn-primary dropdown-toggle"
+	                    data-toggle="dropdown">
+	                <span class="caret"></span>
+	                <span class="sr-only">Toggle Dropdown</span>
+	            </button>
+	            <ul class="dropdown-menu" role="menu" wicket:id="searchTypes">
+	                <li><a wicket:id="searchTypeItem" href="#"><span wicket:id="linkLabel"/></a></li>
+	            </ul>
+	        </div>
+	    </div>
+	</form>
 </wicket:panel>

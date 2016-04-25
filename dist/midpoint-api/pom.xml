@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -52,25 +52,25 @@
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-api</artifactId>
             <version>3.4-SNAPSHOT</version>
-            <scope>runtime</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>common</artifactId>
             <version>3.4-SNAPSHOT</version>
-            <scope>runtime</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
             <version>3.4-SNAPSHOT</version>
-            <scope>runtime</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
             <version>3.4-SNAPSHOT</version>
-            <scope>runtime</scope>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
     <build>
@@ -104,23 +104,31 @@
                         <dependencySourceIncludes>
                             <dependencySourceInclude>com.evolveum.*:*</dependencySourceInclude>
                         </dependencySourceIncludes>
+                        <quiet>false</quiet>
+                        <debug>true</debug>
                 </configuration>
                 <executions>
                   <execution>
                     <id>javadoc-jar</id>
                     <phase>package</phase> <!-- bind to the packaging phase -->
                     <goals>
-                      <goal>jar</goal>
+						<goal>jar</goal>
                     </goals>
                   </execution>
                 </executions>
             </plugin>
             <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                  <configuration>
-                    <skip>true</skip>
-                  </configuration>
-                </plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+            <plugin>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
         </plugins>
     </build>
 </project>

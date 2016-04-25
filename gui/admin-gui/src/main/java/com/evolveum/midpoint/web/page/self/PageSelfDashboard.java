@@ -159,7 +159,7 @@ public class PageSelfDashboard extends PageSelf {
                     @Override
                     protected Component getMainComponent(String markupId) {
 						ISortableDataProvider provider = new ListDataProvider(this, new PropertyModel<List<WorkItemDto>>(getModel(), CallableResult.F_VALUE));
-						return new WorkItemsPanel(markupId, provider, null, 10, WorkItemsPanel.View.INFO_ONLY);
+						return new WorkItemsPanel(markupId, provider, null, 10, WorkItemsPanel.View.DASHBOARD);
                     }
                 };
 
@@ -193,7 +193,7 @@ public class PageSelfDashboard extends PageSelf {
                     @Override
                     protected Component getMainComponent(String markupId) {
 						ISortableDataProvider provider = new ListDataProvider(this, new PropertyModel<List<ProcessInstanceDto>>(getModel(), CallableResult.F_VALUE));
-                        return new ProcessInstancesPanel(markupId, provider, null, 10, ProcessInstancesPanel.View.INFO_ONLY, null);
+                        return new ProcessInstancesPanel(markupId, provider, null, 10, ProcessInstancesPanel.View.DASHBOARD, null);
                     }
                 };
 
