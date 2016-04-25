@@ -253,7 +253,7 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
         add(searchForm);
         searchForm.setOutputMarkupId(true);
 
-        SearchPanel search = new SearchPanel(ID_SEARCH, (IModel) searchModel) {
+        SearchPanel search = new SearchPanel(ID_SEARCH, (IModel) searchModel, false) {
 
             @Override
             public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
