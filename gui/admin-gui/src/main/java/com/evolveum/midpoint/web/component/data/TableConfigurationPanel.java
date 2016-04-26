@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -27,13 +28,14 @@ import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.validation.validator.RangeValidator;
 
 /**
  * @author Viliam Repan (lazyman)
  */
-public class TableConfigurationPanel extends SimplePanel {
+public class TableConfigurationPanel extends BasePanel {
 
     private static final String ID_COG_BUTTON = "cogButton";
     private static final String ID_PAGE_SIZE = "pageSize";
@@ -42,10 +44,13 @@ public class TableConfigurationPanel extends SimplePanel {
     private static final String ID_FORM = "form";
     private static final String ID_INPUT = "input";
     private static final String ID_BUTTON = "button";
+    
+    private static final String ID_FEEDBACK = "feedback";
 
     public TableConfigurationPanel(String id) {
         super(id);
         setRenderBodyOnly(true);
+        initLayout();
     }
 
     @Override
@@ -62,7 +67,7 @@ public class TableConfigurationPanel extends SimplePanel {
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
     }
 
-    @Override
+//    @Override
     protected void initLayout() {
         WebMarkupContainer cogButton = new WebMarkupContainer(ID_COG_BUTTON);
         cogButton.setOutputMarkupId(true);
@@ -97,7 +102,7 @@ public class TableConfigurationPanel extends SimplePanel {
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getPageBase().getFeedbackPanel());
+                target.add(TableConfigurationPanel.this.get(createComponentPath(ID_POPOVER, ID_FORM, ID_FEEDBACK)));
             }
 
             @Override
@@ -112,6 +117,10 @@ public class TableConfigurationPanel extends SimplePanel {
         input.setLabel(createStringResource("PageSizePopover.title"));
         input.add(new SearchFormEnterBehavior(button));
         input.setType(Integer.class);
+        
+        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
+		feedback.setOutputMarkupId(true);
+		form.add(feedback);
         form.add(input);
     }
 
@@ -152,5 +161,9 @@ public class TableConfigurationPanel extends SimplePanel {
     }
 
     protected void pageSizeChanged(AjaxRequestTarget target) {
+    }
+    
+    protected void onPageSizeChangedError(AjaxRequestTarget target) {
+    	
     }
 }
