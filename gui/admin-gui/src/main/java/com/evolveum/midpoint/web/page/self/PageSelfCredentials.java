@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2010-2016 Evolveum
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.self;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -65,7 +80,9 @@ import java.util.List;
                 label = "PageSelfCredentials.auth.credentials.label",
                 description = "PageSelfCredentials.auth.credentials.description")})
 public class PageSelfCredentials extends PageSelf {
-    private static final String ID_MAIN_FORM = "mainForm";
+	private static final long serialVersionUID = 1L;
+
+	private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TAB_PANEL = "tabPanel";
     private static final String ID_SAVE_BUTTON = "save";
     private static final String ID_CANCEL_BUTTON = "cancel";
@@ -87,6 +104,7 @@ public class PageSelfCredentials extends PageSelf {
 
     public PageSelfCredentials() {
         model = new LoadableModel<MyPasswordsDto>(false) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected MyPasswordsDto load() {
@@ -102,11 +120,12 @@ public class PageSelfCredentials extends PageSelf {
         super.createBreadcrumb();
 
         Breadcrumb bc = getSessionStorage().peekBreadcrumb();
-        bc.setIcon(new Model("fa fa-shield"));
+        bc.setIcon(new Model<String>("fa fa-shield"));
     }
 
     public PageSelfCredentials(final MyPasswordsDto myPasswordsDto) {
         model = new LoadableModel<MyPasswordsDto>(myPasswordsDto, false) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected MyPasswordsDto load() {
@@ -199,6 +218,7 @@ public class PageSelfCredentials extends PageSelf {
 
         List<ITab> tabs = new ArrayList<>();
         tabs.add(new AbstractTab(createStringResource("PageSelfCredentials.tabs.password")) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
@@ -206,10 +226,13 @@ public class PageSelfCredentials extends PageSelf {
             }
         });
 
-        TabbedPanel credentialsTabPanel = new TabbedPanel(ID_TAB_PANEL, tabs) {
+        TabbedPanel<ITab> credentialsTabPanel = new TabbedPanel<ITab>(ID_TAB_PANEL, tabs) {
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             protected WebMarkupContainer newLink(String linkId, final int index) {
                 return new AjaxSubmitLink(linkId) {
+                	private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void onError(AjaxRequestTarget target, Form<?> form) {
