@@ -28,6 +28,10 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchPanel;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -607,25 +611,33 @@ public class PageDebugList extends PageAdminConfiguration {
 		options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
 
 		OperationResult result = new OperationResult(OPERATION_LAXATIVE_DELETE);
+        String taskOid = null;
 		try {
 			if (dto.getDeleteUsers()) {
 				ObjectQuery query = createDeleteAllUsersQuery();
-				deleteObjectsAsync(UserType.COMPLEX_TYPE, query, true, "Delete all users", result);
+                taskOid = deleteObjectsAsync(UserType.COMPLEX_TYPE, query, true, "Delete all users", result);
 			}
 			if (dto.getDeleteOrgs()) {
-				deleteObjectsAsync(OrgType.COMPLEX_TYPE, null, true, "Delete all orgs", result);
+                taskOid = deleteObjectsAsync(OrgType.COMPLEX_TYPE, null, true, "Delete all orgs", result);
 			}
 			if (dto.getDeleteAccountShadow()) {
-				deleteAllShadowsConfirmed(result, true);
+                taskOid = deleteAllShadowsConfirmed(result, true);
 			}
 			if (dto.getDeleteNonAccountShadow()) {
-				deleteAllShadowsConfirmed(result, false);
+                taskOid = deleteAllShadowsConfirmed(result, false);
 			}
 		} catch (Exception ex) {
 			result.computeStatus(getString("pageDebugList.message.laxativeProblem"));
 			LoggingUtils.logException(LOGGER, getString("pageDebugList.message.laxativeProblem"), ex);
 		}
 
+        if (taskOid != null) {
+            PageParameters parameters = new PageParameters();
+            parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
+            setResponsePage(PageTaskEdit.class, parameters);
+        } else {
+            setResponsePage(PageTasks.class);
+        }
 		target.add(getFeedbackPanel());
 
 		result.recomputeStatus();
@@ -639,7 +651,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		return ObjectQuery.createObjectQuery(not);
 	}
 
-	private void deleteAllShadowsConfirmed(OperationResult result, boolean deleteAccountShadows)
+	private String deleteAllShadowsConfirmed(OperationResult result, boolean deleteAccountShadows)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
 
 		ObjectFilter kind = EqualFilter.createEqual(ShadowType.F_KIND, ShadowType.class, getPrismContext(),
@@ -655,7 +667,8 @@ public class PageDebugList extends PageAdminConfiguration {
 			query = ObjectQuery.createObjectQuery(NotFilter.createNot(kind));
 		}
 
-		deleteObjectsAsync(ShadowType.COMPLEX_TYPE, query, true, taskName, result);
+		return deleteObjectsAsync(ShadowType.COMPLEX_TYPE, query, true, taskName, result);
+
 	}
 
 	private void exportSelected(AjaxRequestTarget target, DebugObjectItem item) {
@@ -737,6 +750,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		LOGGER.debug("Deleting all of type {}", dto.getType());
 
 		OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
+        String taskOid = null;
 		try {
 			ObjectQuery query = null;
 			if (ObjectTypes.USER.equals(dto.getType())) {
@@ -745,7 +759,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 			QName type = dto.getType().getTypeQName();
 
-			deleteObjectsAsync(type, query, true, "Delete all of type " + type.getLocalPart(), result);
+			taskOid = deleteObjectsAsync(type, query, true, "Delete all of type " + type.getLocalPart(), result);
 
 			info(getString("pageDebugList.messsage.deleteAllOfType", dto.getType()));
 		} catch (Exception ex) {
@@ -756,6 +770,13 @@ public class PageDebugList extends PageAdminConfiguration {
 		}
 
 		showResult(result);
+        if (taskOid != null) {
+            PageParameters parameters = new PageParameters();
+            parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
+            setResponsePage(PageTaskEdit.class, parameters);
+        } else {
+            setResponsePage(PageTasks.class);
+        }
 		target.add(getFeedbackPanel());
 	}
 
@@ -849,6 +870,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		LOGGER.debug("Deleting shadows on resource {}", resourceOid);
 
 		OperationResult result = new OperationResult(OPERATION_DELETE_SHADOWS);
+        String taskOid = null;
 		try {
 			RefFilter ref = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
 					getPrismContext(), dto.getResource().getOid());
@@ -856,7 +878,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 			QName type = ShadowType.COMPLEX_TYPE;
 
-			deleteObjectsAsync(type, objectQuery, true, "Delete shadows on " + dto.getResource().getName(),
+			taskOid = deleteObjectsAsync(type, objectQuery, true, "Delete shadows on " + dto.getResource().getName(),
 					result);
 
 			info(getString("pageDebugList.messsage.deleteAllShadowsStarted", dto.getResource().getName()));
@@ -868,10 +890,17 @@ public class PageDebugList extends PageAdminConfiguration {
 		}
 
 		showResult(result);
+        if (taskOid != null) {
+            PageParameters parameters = new PageParameters();
+            parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
+            setResponsePage(PageTaskEdit.class, parameters);
+        } else {
+            setResponsePage(PageTasks.class);
+        }
 		target.add(getFeedbackPanel());
 	}
 
-	private void deleteObjectsAsync(QName type, ObjectQuery objectQuery, boolean raw, String taskName,
+	private String deleteObjectsAsync(QName type, ObjectQuery objectQuery, boolean raw, String taskName,
 			OperationResult result)
 					throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 
@@ -908,6 +937,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		TaskManager taskManager = getTaskManager();
 		taskManager.switchToBackground(task, result);
 		result.setBackgroundTaskOid(task.getOid());
+        return task.getOid();
 	}
 
 	private static class SearchFragment extends Fragment {

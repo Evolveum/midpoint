@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
@@ -51,13 +52,13 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
     private boolean visible = true;
 
     @Override
-    public Component getHeader(String componentId) {
+    public Component getHeader(final String componentId) {
         final IModel<Boolean> model = new Model<Boolean>(false);
         CheckBoxPanel panel = new CheckBoxPanel(componentId, model, getEnabled()) {
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {
-                DataTable table = findParent(DataTable.class);
+            	DataTable table = findParent(DataTable.class);
                 boolean selected = model.getObject() != null ? model.getObject() : false;
 
                 onUpdateHeader(target, selected, table);

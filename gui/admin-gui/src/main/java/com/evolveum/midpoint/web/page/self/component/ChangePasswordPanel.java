@@ -1,24 +1,26 @@
+/*
+ * Copyright (c) 2010-2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.self.component;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.web.component.data.SelectableDataTable;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.*;
-import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
-import com.evolveum.midpoint.web.component.input.PasswordPanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.wizard.resource.component.WizardHelpDialog;
-import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
-import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPropagationUserControlType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordChangeSecurityType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -33,17 +35,32 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import java.util.*;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.data.column.ImagePanel;
+import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
+import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPropagationUserControlType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordChangeSecurityType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
- * Created by Kate on 09.10.2015.
+ * @author Kate Honchar
  */
-public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
-    private static final String ID_PASSWORD_PANEL = "passwordPanel";
+public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
+	private static final long serialVersionUID = 1L;
+
+	private static final String ID_PASSWORD_PANEL = "passwordPanel";
     private static final String ID_OLD_PASSWORD_FIELD = "oldPassword";
     private static final String ID_PASSWORD_LABEL = "passwordLabel";
     private static final String ID_OLD_PASSWORD_LABEL = "oldPasswordLabel";
-    private static final String ID_CONFIRM_PASSWORD_LABEL = "confirmPasswordLabel";
     public static final String ID_ACCOUNTS_TABLE = "accounts";
     public static final String ID_ACCOUNTS_CONTAINER = "accountsContainer";
     private static final String ID_BUTTON_HELP = "help";
@@ -58,15 +75,16 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
 
     public ChangePasswordPanel(String id) {
         super(id);
+        initLayout();
     }
 
     public ChangePasswordPanel(String id, LoadableModel<MyPasswordsDto> model, MyPasswordsDto myPasswordsDto) {
         super(id, model);
+        initLayout();
     }
 
-    @Override
-    protected void initLayout() {
-        model = (LoadableModel) getModel();
+    private void initLayout() {
+        model = (LoadableModel<MyPasswordsDto>) getModel();
 
         Label oldPasswordLabel = new Label(ID_OLD_PASSWORD_LABEL, createStringResource("PageSelfCredentials.oldPasswordLabel"));
         add(oldPasswordLabel);
@@ -74,11 +92,8 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
         Label passwordLabel = new Label(ID_PASSWORD_LABEL, createStringResource("PageSelfCredentials.passwordLabel1"));
         add(passwordLabel);
 
-        Label confirmPasswordLabel = new Label(ID_CONFIRM_PASSWORD_LABEL, createStringResource("PageSelfCredentials.passwordLabel2"));
-        add(confirmPasswordLabel);
-
         PasswordTextField oldPasswordField =
-                new PasswordTextField(ID_OLD_PASSWORD_FIELD, new PropertyModel(model, MyPasswordsDto.F_OLD_PASSWORD));
+                new PasswordTextField(ID_OLD_PASSWORD_FIELD, new PropertyModel<String>(model, MyPasswordsDto.F_OLD_PASSWORD));
         oldPasswordField.setRequired(false);
         oldPasswordField.setResetPassword(false);
         add(oldPasswordField);
@@ -108,6 +123,8 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
         accountContainer.add(accounts);
 
         AjaxLink help = new AjaxLink(ID_BUTTON_HELP) {
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public void onClick(AjaxRequestTarget target) {
                 showHelpPerformed(target);
@@ -122,9 +139,13 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
         List<IColumn<PasswordAccountDto, String>> columns = new ArrayList<IColumn<PasswordAccountDto, String>>();
 
         IColumn column = new IconColumn<PasswordAccountDto>(new Model<String>()) {
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             protected IModel<String> createIconModel(final IModel<PasswordAccountDto> rowModel) {
                 return new AbstractReadOnlyModel<String>() {
+                	private static final long serialVersionUID = 1L;
+                	
                     @Override
                     public String getObject() {
                         PasswordAccountDto item = rowModel.getObject();
@@ -151,6 +172,8 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
                 final PasswordAccountDto passwordAccountDto = rowModel.getObject();
 
                 imagePanel.add(new AjaxEventBehavior("click") {
+                	private static final long serialVersionUID = 1L;
+                	
                                    protected void onEvent(final AjaxRequestTarget target) {
                                        if (!passwordAccountDto.isMidpoint()) {
                                            if (passwordAccountDto.getCssClass().equals(PROPAGATED_ACCOUNT_ICON_CSS)) {
@@ -185,11 +208,13 @@ public class ChangePasswordPanel extends SimplePanel<MyPasswordsDto> {
         columns.add(column);
 
         columns.add(new AbstractColumn<PasswordAccountDto, String>(createStringResource("ChangePasswordPanel.name")) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<PasswordAccountDto>> item, String componentId,
                                      final IModel<PasswordAccountDto> rowModel) {
                 item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+                	private static final long serialVersionUID = 1L;
 
                     @Override
                     public Object getObject() {
