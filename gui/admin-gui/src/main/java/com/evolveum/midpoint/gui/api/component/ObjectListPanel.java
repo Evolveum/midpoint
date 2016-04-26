@@ -64,6 +64,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -88,7 +89,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 	private Collection<SelectorOptions<GetOperationOptions>> options;
 
 	private int pageSize = 10;
-	
+
 	private boolean multiselect;
 
 	private TableId tableId = TableId.TABLE_USERS;
@@ -117,9 +118,8 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		this.options = options;
 		initLayout();
 	}
-	
-	ObjectListPanel(String id, Class<T> type, boolean multiselect,
-			PageBase parentPage) {
+
+	ObjectListPanel(String id, Class<T> type, boolean multiselect, PageBase parentPage) {
 		super(id);
 		this.type = type;
 		this.parentPage = parentPage;
@@ -130,7 +130,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 	public boolean isMultiselect() {
 		return multiselect;
 	}
-	
+
 	public void setProvider(BaseSortableDataProvider<SelectableBean<T>> provider) {
 		this.provider = provider;
 	}
@@ -142,7 +142,6 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 	public void setTableId(TableId tableId) {
 		this.tableId = tableId;
 	}
-
 
 	public List<T> getSelectedObjects() {
 		BaseSortableDataProvider<SelectableBean<T>> dataProvider = getDataProvider();
@@ -164,7 +163,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 
 			@Override
 			public Search load() {
-				String storageKey = getStorageKey();//storageMap.get(parentPage.getClass());
+				String storageKey = getStorageKey();// storageMap.get(parentPage.getClass());
 				Search search = null;
 				if (StringUtils.isNotEmpty(storageKey)) {
 					PageStorage storage = getSession().getSessionStorage().getPageStorageMap()
@@ -193,7 +192,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 				parentPage, type) {
 			@Override
 			protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-				String storageKey = getStorageKey();//storageMap.get(type);
+				String storageKey = getStorageKey();// storageMap.get(type);
 				if (StringUtils.isNotEmpty(storageKey)) {
 					PageStorage storage = getSession().getSessionStorage().getPageStorageMap()
 							.get(storageKey);
@@ -207,13 +206,21 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 			public SelectableBean<T> createDataObjectWrapper(T obj) {
 				SelectableBean<T> bean = super.createDataObjectWrapper(obj);
 				List<InlineMenuItem> inlineMenu = createInlineMenu();
-				if (inlineMenu != null){
+				if (inlineMenu != null) {
 					bean.getMenuItems().addAll(inlineMenu);
 				}
 				return bean;
 			}
 		};
-		if (options != null) {
+		if (options == null){
+			if (ResourceType.class.equals(type)) {
+				options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+			}
+		} else {
+			if (ResourceType.class.equals(type)) {
+				GetOperationOptions root = SelectorOptions.findRootOptions(options);
+				root.setNoFetch(Boolean.TRUE);
+			}
 			objProvider.setOptions(options);
 		}
 		provider = objProvider;
@@ -233,7 +240,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 			protected WebMarkupContainer createHeader(String headerId) {
 				return initSearch(headerId);
 			}
-			
+
 			@Override
 			protected String getBoxCssClasses() {
 				return ObjectListPanel.this.getBoxCssClasses();
@@ -241,7 +248,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 
 			@Override
 			protected WebMarkupContainer createButtonToolbar(String id) {
-				WebMarkupContainer bar =  ObjectListPanel.this.createTableButtonToolbar(id);
+				WebMarkupContainer bar = ObjectListPanel.this.createTableButtonToolbar(id);
 
 				return bar != null ? bar : super.createButtonToolbar(id);
 			}
@@ -264,7 +271,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 
 	/**
 	 * there's no way to do it properly...
-     */
+	 */
 	@Deprecated
 	protected WebMarkupContainer createTableButtonToolbar(String id) {
 		return null;
@@ -281,8 +288,8 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 	protected BoxedTablePanel<SelectableBean<T>> getTable() {
 		return (BoxedTablePanel<SelectableBean<T>>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
 	}
-	
-	private String getStorageKey(){
+
+	private String getStorageKey() {
 		return storageMap.get(parentPage.getClass());
 	}
 
@@ -307,32 +314,31 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		target.add(parentPage.getFeedbackPanel());
 
 	}
-	
+
 	public void refreshTable(Class<T> newType, AjaxRequestTarget target) {
 		BaseSortableDataProvider<SelectableBean<T>> provider = getDataProvider();
 		provider.setQuery(getQuery());
-		if (newType !=null && provider instanceof ObjectDataProvider2){
+		if (newType != null && provider instanceof ObjectDataProvider2) {
 			((ObjectDataProvider2) provider).setType(newType);
 		}
-		
-		if (newType != null && !this.type.equals(newType)){
+
+		if (newType != null && !this.type.equals(newType)) {
 			this.type = newType;
 			searchModel.reset();
 		} else {
 			saveSearchModel();
 		}
-		
-		
+
 		BoxedTablePanel table = getTable();
-		
-		((WebMarkupContainer)table.get("box")).addOrReplace(initSearch("header"));
+
+		((WebMarkupContainer) table.get("box")).addOrReplace(initSearch("header"));
 		table.setCurrentPage(null);
 		target.add((Component) table);
 		target.add(parentPage.getFeedbackPanel());
 
 	}
-	
-	private SearchFormPanel initSearch(String headerId){
+
+	private SearchFormPanel initSearch(String headerId) {
 		SearchFormPanel searchPanel = new SearchFormPanel(headerId, searchModel) {
 
 			private static final long serialVersionUID = 1L;
@@ -346,8 +352,8 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 
 		return searchPanel;
 	}
-	
-	private void saveSearchModel(){
+
+	private void saveSearchModel() {
 		String storageKey = getStorageKey();
 		if (StringUtils.isNotEmpty(storageKey)) {
 			PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
@@ -365,7 +371,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 	public void clearCache() {
 		BaseSortableDataProvider provider = getDataProvider();
 		provider.clearCache();
-		if (provider instanceof ObjectDataProvider2){
+		if (provider instanceof ObjectDataProvider2) {
 			((ObjectDataProvider2) provider).clearSelectedObjects();
 		}
 	}
@@ -379,13 +385,13 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 	protected ObjectQuery createContentQuery() {
 		Search search = searchModel.getObject();
 		ObjectQuery query = search.createObjectQuery(parentPage.getPrismContext());
-        query = addFilterToContentQuery(query);
+		query = addFilterToContentQuery(query);
 		return query;
 	}
 
-    protected ObjectQuery addFilterToContentQuery(ObjectQuery query){
-        return query;
-    }
+	protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+		return query;
+	}
 
 	public StringResourceModel createStringResource(String resourceKey, Object... objects) {
 		return PageBase.createStringResourceStatic(this, resourceKey, objects);
@@ -396,6 +402,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 	protected abstract IColumn<SelectableBean<T>, String> createNameColumn();
 
 	protected abstract List<IColumn<SelectableBean<T>, String>> createColumns();
+
 	protected abstract List<InlineMenuItem> createInlineMenu();
 
 	protected List<IColumn<SelectableBean<T>, String>> initColumns() {
@@ -418,11 +425,8 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		return columns;
 	}
 
-
 	public void addPerformed(AjaxRequestTarget target, List<T> selected) {
 		parentPage.hideMainPopup(target);
 	}
-
-
 
 }
