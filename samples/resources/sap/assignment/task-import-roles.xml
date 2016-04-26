@@ -1,0 +1,22 @@
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="9f405793-8b3a-4f9b-8812-a86316dcb7fa">
+   <name>import role (activity groups)</name>
+   <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+      <mext:kind>entitlement</mext:kind>
+      <mext:intent>roles</mext:intent>
+      <mext:objectclass>ri:CustomACTIVITYGROUPObjectClass</mext:objectclass>
+   </extension>
+   <ownerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></ownerRef>
+   <executionStatus>suspended</executionStatus>
+   <category>ImportingAccounts</category>
+   <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</handlerUri>
+   <objectRef oid="e307a460-2310-4f18-9644-6534d62fa999" type="c:ResourceType"><!-- SAP --></objectRef>
+   <recurrence>single</recurrence>
+   <binding>loose</binding>
+   <threadStopAction>restart</threadStopAction>
+</task>

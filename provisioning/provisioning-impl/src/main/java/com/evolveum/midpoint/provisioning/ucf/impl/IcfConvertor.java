@@ -162,12 +162,18 @@ public class IcfConvertor {
 			if (icfAttr.getName().equals(OperationalAttributes.PASSWORD_NAME)) {
 				// password has to go to the credentials section
 				ProtectedStringType password = getSingleValue(icfAttr, ProtectedStringType.class);
+				if (password == null) {
+					continue;
+				}
 				ShadowUtil.setPassword(shadow, password);
 				LOGGER.trace("Converted password: {}", password);
 				continue;
 			}
 			if (icfAttr.getName().equals(OperationalAttributes.ENABLE_NAME)) {
 				Boolean enabled = getSingleValue(icfAttr, Boolean.class);
+				if (enabled == null) {
+					continue;
+				}
 				ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
 				ActivationStatusType activationStatusType;
 				if (enabled) {
@@ -183,6 +189,9 @@ public class IcfConvertor {
 			
 			if (icfAttr.getName().equals(OperationalAttributes.ENABLE_DATE_NAME)) {
 				Long millis = getSingleValue(icfAttr, Long.class);
+				if (millis == null) {
+					continue;
+				}
 				ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
 				activationType.setValidFrom(XmlTypeConverter.createXMLGregorianCalendar(millis));
 				continue;
@@ -190,6 +199,9 @@ public class IcfConvertor {
 
 			if (icfAttr.getName().equals(OperationalAttributes.DISABLE_DATE_NAME)) {
 				Long millis = getSingleValue(icfAttr, Long.class);
+				if (millis == null) {
+					continue;
+				}
 				ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
 				activationType.setValidTo(XmlTypeConverter.createXMLGregorianCalendar(millis));
 				continue;
@@ -197,6 +209,9 @@ public class IcfConvertor {
 			
 			if (icfAttr.getName().equals(OperationalAttributes.LOCK_OUT_NAME)) {
 				Boolean lockOut = getSingleValue(icfAttr, Boolean.class);
+				if (lockOut == null) {
+					continue;
+				}
 				if (lockOut != null){
 					ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
 					LockoutStatusType lockoutStatusType;
