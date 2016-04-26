@@ -84,50 +84,50 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * @author semancik
  */
-public class FocusProjectionsTabPanel<F extends FocusType> 
-		extends AbstractObjectTabPanel<F> {
+public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final String ID_SHADOW_LIST = "shadowList";
 	private static final String ID_SHADOWS = "shadows";
 	private static final String ID_SHADOW_HEADER = "shadowHeader";
 	private static final String ID_SHADOW = "shadow";
 	private static final String ID_SHADOW_MENU = "shadowMenu";
 	private static final String ID_SHADOW_CHECK_ALL = "shadowCheckAll";
-	
+
 	private static final String MODAL_ID_RESOURCE = "resourcePopup";
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(FocusProjectionsTabPanel.class);
-	
+
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
 
-	public FocusProjectionsTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel, 
+	public FocusProjectionsTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel, PageBase page) {
 		super(id, mainForm, focusModel, page);
 		Validate.notNull(projectionModel, "Null projection model");
 		this.projectionModel = projectionModel;
-		initLayout(page );
+		initLayout(page);
 	}
-	
+
 	private void initLayout(final PageBase page) {
 
 		final WebMarkupContainer shadows = new WebMarkupContainer(ID_SHADOWS);
 		shadows.setOutputMarkupId(true);
 		add(shadows);
-		
+
 		InlineMenu accountMenu = new InlineMenu(ID_SHADOW_MENU, new Model((Serializable) createShadowMenu()));
 		shadows.add(accountMenu);
 
-		final ListView<FocusSubwrapperDto<ShadowType>> projectionList = new ListView<FocusSubwrapperDto<ShadowType>>(ID_SHADOW_LIST,
-				projectionModel) {
+		final ListView<FocusSubwrapperDto<ShadowType>> projectionList = new ListView<FocusSubwrapperDto<ShadowType>>(
+				ID_SHADOW_LIST, projectionModel) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void populateItem(final ListItem<FocusSubwrapperDto<ShadowType>> item) {
 				PackageResourceReference packageRef;
 				final FocusSubwrapperDto<ShadowType> dto = item.getModelObject();
-				final PropertyModel<ObjectWrapper<F>> objectWrapperModel = new PropertyModel<ObjectWrapper<F>>(item.getModel(), "object");
-				
+				final PropertyModel<ObjectWrapper<F>> objectWrapperModel = new PropertyModel<ObjectWrapper<F>>(
+						item.getModel(), "object");
+
 				final Panel shadowPanel;
 
 				if (dto.isLoadedOK()) {
@@ -152,7 +152,7 @@ public class FocusProjectionsTabPanel<F extends FocusType>
 				}
 
 				shadowPanel.setOutputMarkupId(true);
-				
+
 				shadowPanel.add(new VisibleEnableBehaviour() {
 					private static final long serialVersionUID = 1L;
 
@@ -162,12 +162,13 @@ public class FocusProjectionsTabPanel<F extends FocusType>
 						ObjectWrapper<ShadowType> shadowWrapper = shadowWrapperDto.getObject();
 						return !shadowWrapper.isMinimalized();
 					}
-					
+
 				});
-				
+
 				item.add(shadowPanel);
-				
-				CheckTableHeader<F> shadowHeader = new CheckTableHeader<F>(ID_SHADOW_HEADER, objectWrapperModel) {
+
+				CheckTableHeader<F> shadowHeader = new CheckTableHeader<F>(ID_SHADOW_HEADER,
+						objectWrapperModel) {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -201,7 +202,6 @@ public class FocusProjectionsTabPanel<F extends FocusType>
 		shadows.add(projectionList);
 	}
 
-	
 	private void onExpandCollapse(AjaxRequestTarget target, IModel<FocusSubwrapperDto<ShadowType>> dtoModel) {
 		FocusSubwrapperDto<ShadowType> shadowWrapperDto = dtoModel.getObject();
 		ObjectWrapper<ShadowType> shadowWrapper = shadowWrapperDto.getObject();
@@ -209,7 +209,7 @@ public class FocusProjectionsTabPanel<F extends FocusType>
 			return;
 		}
 		if (WebModelServiceUtils.isNoFetch(shadowWrapper.getLoadOptions())) {
-			((PageAdminFocus)getPage()).loadFullShadow(shadowWrapperDto);
+			((PageAdminFocus) getPage()).loadFullShadow(shadowWrapperDto);
 		}
 	}
 
@@ -237,7 +237,8 @@ public class FocusProjectionsTabPanel<F extends FocusType>
 					LOGGER.trace("Refined schema for {}\n{}", resource, refinedSchema.debugDump());
 				}
 
-				RefinedObjectClassDefinition accountDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+				RefinedObjectClassDefinition accountDefinition = refinedSchema
+						.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 				if (accountDefinition == null) {
 					error(getString("pageAdminFocus.message.couldntCreateAccountNoAccountSchema",
 							resource.getName()));
@@ -250,15 +251,15 @@ public class FocusProjectionsTabPanel<F extends FocusType>
 				getPrismContext().adopt(shadow);
 
 				ObjectWrapper<ShadowType> wrapper = ObjectWrapperUtil.createObjectWrapper(
-						WebComponentUtil.getOrigStringFromPoly(resource.getName()), null, shadow.asPrismObject(),
-						ContainerStatus.ADDING, getPageBase());
+						WebComponentUtil.getOrigStringFromPoly(resource.getName()), null,
+						shadow.asPrismObject(), ContainerStatus.ADDING, getPageBase());
 				if (wrapper.getResult() != null
 						&& !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
 					showResult(wrapper.getResult(), false);
 				}
 
 				wrapper.setShowEmpty(true);
-				wrapper.setMinimalized(false);
+				wrapper.setMinimalized(true);
 				projectionModel.getObject().add(new FocusSubwrapperDto(wrapper, UserDtoStatus.ADD));
 			} catch (Exception ex) {
 				error(getString("pageAdminFocus.message.couldntCreateAccount", resource.getName(),
@@ -266,111 +267,120 @@ public class FocusProjectionsTabPanel<F extends FocusType>
 				LoggingUtils.logException(LOGGER, "Couldn't create account", ex);
 			}
 		}
+		target.add(get(ID_SHADOWS));
 	}
-	
+
 	private List<InlineMenuItem> createShadowMenu() {
 		List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
 
-        PrismObjectDefinition def = getObjectWrapper().getObject().getDefinition();
-        PrismReferenceDefinition ref = def.findReferenceDefinition(UserType.F_LINK_REF);
-        InlineMenuItem item ;
-        if (ref.canRead() && ref.canAdd()){
-            item = new InlineMenuItem(createStringResource("pageAdminFocus.button.addShadow"),
-                    new InlineMenuItemAction() {
+		PrismObjectDefinition def = getObjectWrapper().getObject().getDefinition();
+		PrismReferenceDefinition ref = def.findReferenceDefinition(UserType.F_LINK_REF);
+		InlineMenuItem item;
+		if (ref.canRead() && ref.canAdd()) {
+			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.addShadow"),
+					new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
 						@Override
-                        public void onClick(AjaxRequestTarget target) {
+						public void onClick(AjaxRequestTarget target) {
 							List<QName> supportedTypes = new ArrayList<>(1);
 							supportedTypes.add(ResourceType.COMPLEX_TYPE);
 							PageBase pageBase = FocusProjectionsTabPanel.this.getPageBase();
-							FocusBrowserPanel<ResourceType> resourceSelectionPanel = new FocusBrowserPanel<ResourceType>(pageBase.getMainPopupBodyId(), ResourceType.class, supportedTypes, true, pageBase){
-								
+							FocusBrowserPanel<ResourceType> resourceSelectionPanel = new FocusBrowserPanel<ResourceType>(
+									pageBase.getMainPopupBodyId(), ResourceType.class, supportedTypes, true,
+									pageBase) {
+
 								@Override
 								protected void addPerformed(AjaxRequestTarget target, QName type,
 										List<ResourceType> selected) {
 									// TODO Auto-generated method stub
-									FocusProjectionsTabPanel.this.addSelectedAccountPerformed(target, selected);
+									FocusProjectionsTabPanel.this.addSelectedAccountPerformed(target,
+											selected);
 								}
 							};
 							resourceSelectionPanel.setOutputMarkupId(true);
-                            pageBase.showMainPopup(resourceSelectionPanel, new Model<String>("Select resrouces"), target, 900, 700);
-                        }
-                    });
-            items.add(item);
-            items.add(new InlineMenuItem());
-        }
-        PrismPropertyDefinition prop = def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
-        if (prop.canRead() && prop.canModify()) {
-            item = new InlineMenuItem(createStringResource("pageAdminFocus.button.enable"),
-                    new InlineMenuItemAction() {
+							pageBase.showMainPopup(resourceSelectionPanel,
+									new Model<String>("Select resrouces"), target, 900, 700);
+						}
+					});
+			items.add(item);
+			items.add(new InlineMenuItem());
+		}
+		PrismPropertyDefinition prop = def
+				.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+		if (prop.canRead() && prop.canModify()) {
+			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.enable"),
+					new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
 						@Override
-                        public void onClick(AjaxRequestTarget target) {
-                            updateShadowActivation(target, getSelectedProjections(projectionModel), true);
-                        }
-                    });
-            items.add(item);
-            item = new InlineMenuItem(createStringResource("pageAdminFocus.button.disable"),
-                    new InlineMenuItemAction() {
+						public void onClick(AjaxRequestTarget target) {
+							updateShadowActivation(target, getSelectedProjections(projectionModel), true);
+						}
+					});
+			items.add(item);
+			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.disable"),
+					new InlineMenuItemAction() {
 
-                        /**
+						/**
 						 * 
 						 */
 						private static final long serialVersionUID = 1L;
 
 						@Override
-                        public void onClick(AjaxRequestTarget target) {
-                            updateShadowActivation(target, getSelectedProjections(projectionModel), false);
-                        }
-                    });
-            items.add(item);
-        }
-        if (ref.canRead() && ref.canAdd()) {
-            item = new InlineMenuItem(createStringResource("pageAdminFocus.button.unlink"),
-                    new InlineMenuItemAction() {
+						public void onClick(AjaxRequestTarget target) {
+							updateShadowActivation(target, getSelectedProjections(projectionModel), false);
+						}
+					});
+			items.add(item);
+		}
+		if (ref.canRead() && ref.canAdd()) {
+			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.unlink"),
+					new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
 						@Override
-                        public void onClick(AjaxRequestTarget target) {
-                            unlinkProjectionPerformed(target, projectionModel, getSelectedProjections(projectionModel), ID_SHADOWS);
-                        }
-                    });
-            items.add(item);
-        }
-        prop = def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
-        if (prop.canRead() && prop.canModify()) {
-            item = new InlineMenuItem(createStringResource("pageAdminFocus.button.unlock"),
-                    new InlineMenuItemAction() {
+						public void onClick(AjaxRequestTarget target) {
+							unlinkProjectionPerformed(target, projectionModel,
+									getSelectedProjections(projectionModel), ID_SHADOWS);
+						}
+					});
+			items.add(item);
+		}
+		prop = def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
+		if (prop.canRead() && prop.canModify()) {
+			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.unlock"),
+					new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
 						@Override
-                        public void onClick(AjaxRequestTarget target) {
-                            unlockShadowPerformed(target, projectionModel, getSelectedProjections(projectionModel));
-                        }
-                    });
-            items.add(item);
-        }
-        prop = def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
-        if (prop.canRead() && prop.canModify()) {
-            items.add(new InlineMenuItem());
-            item = new InlineMenuItem(createStringResource("pageAdminFocus.button.delete"),
-                    new InlineMenuItemAction() {
+						public void onClick(AjaxRequestTarget target) {
+							unlockShadowPerformed(target, projectionModel,
+									getSelectedProjections(projectionModel));
+						}
+					});
+			items.add(item);
+		}
+		prop = def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+		if (prop.canRead() && prop.canModify()) {
+			items.add(new InlineMenuItem());
+			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.delete"),
+					new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
 						@Override
-                        public void onClick(AjaxRequestTarget target) {
-                            deleteProjectionPerformed(target, projectionModel);
-                        }
-                    });
-            items.add(item);
-        }
+						public void onClick(AjaxRequestTarget target) {
+							deleteProjectionPerformed(target, projectionModel);
+						}
+					});
+			items.add(item);
+		}
 
 		return items;
 	}
-	
-	private List<FocusSubwrapperDto<ShadowType>> getSelectedProjections(IModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel) {
+
+	private List<FocusSubwrapperDto<ShadowType>> getSelectedProjections(
+			IModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel) {
 		List<FocusSubwrapperDto<ShadowType>> selected = new ArrayList<>();
 
 		List<FocusSubwrapperDto<ShadowType>> all = projectionModel.getObject();
@@ -382,16 +392,17 @@ public class FocusProjectionsTabPanel<F extends FocusType>
 
 		return selected;
 	}
-	
-	private void deleteProjectionPerformed(AjaxRequestTarget target, IModel<List<FocusSubwrapperDto<ShadowType>>> model) {
+
+	private void deleteProjectionPerformed(AjaxRequestTarget target,
+			IModel<List<FocusSubwrapperDto<ShadowType>>> model) {
 		if (!isAnyProjectionSelected(target, model)) {
 			return;
 		}
 
 		showModalWindow(getDeleteProjectionPopupContent(),
-                createStringResource("pageAdminFocus.title.confirmDelete"), target);
+				createStringResource("pageAdminFocus.title.confirmDelete"), target);
 	}
-	
+
 	private boolean isAnyProjectionSelected(AjaxRequestTarget target,
 			IModel<List<FocusSubwrapperDto<ShadowType>>> model) {
 		List<FocusSubwrapperDto<ShadowType>> selected = getSelectedProjections(model);
@@ -404,8 +415,8 @@ public class FocusProjectionsTabPanel<F extends FocusType>
 		return true;
 	}
 
-	private void updateShadowActivation(AjaxRequestTarget target, List<FocusSubwrapperDto<ShadowType>> accounts,
-			boolean enabled) {
+	private void updateShadowActivation(AjaxRequestTarget target,
+			List<FocusSubwrapperDto<ShadowType>> accounts, boolean enabled) {
 		if (!isAnyProjectionSelected(target, projectionModel)) {
 			return;
 		}
@@ -416,7 +427,8 @@ public class FocusProjectionsTabPanel<F extends FocusType>
 			}
 
 			ObjectWrapper<ShadowType> wrapper = account.getObject();
-			ContainerWrapper<ActivationType> activation = wrapper.findContainerWrapper(new ItemPath(ShadowType.F_ACTIVATION));
+			ContainerWrapper<ActivationType> activation = wrapper
+					.findContainerWrapper(new ItemPath(ShadowType.F_ACTIVATION));
 			if (activation == null) {
 				warn(getString("pageAdminFocus.message.noActivationFound", wrapper.getDisplayName()));
 				continue;
@@ -438,8 +450,9 @@ public class FocusProjectionsTabPanel<F extends FocusType>
 
 		target.add(getFeedbackPanel(), get(createComponentPath(ID_SHADOWS)));
 	}
-	
-	private void unlockShadowPerformed(AjaxRequestTarget target, IModel<List<FocusSubwrapperDto<ShadowType>>> model,
+
+	private void unlockShadowPerformed(AjaxRequestTarget target,
+			IModel<List<FocusSubwrapperDto<ShadowType>>> model,
 			List<FocusSubwrapperDto<ShadowType>> selected) {
 		if (!isAnyProjectionSelected(target, model)) {
 			return;
@@ -449,9 +462,10 @@ public class FocusProjectionsTabPanel<F extends FocusType>
 			// TODO: implement unlock
 		}
 	}
-	
-	private void unlinkProjectionPerformed(AjaxRequestTarget target, IModel<List<FocusSubwrapperDto<ShadowType>>> model,
-			List<FocusSubwrapperDto<ShadowType>> selected, String componentPath) {
+
+	private void unlinkProjectionPerformed(AjaxRequestTarget target,
+			IModel<List<FocusSubwrapperDto<ShadowType>>> model, List<FocusSubwrapperDto<ShadowType>> selected,
+			String componentPath) {
 		if (!isAnyProjectionSelected(target, model)) {
 			return;
 		}
@@ -465,42 +479,42 @@ public class FocusProjectionsTabPanel<F extends FocusType>
 		target.add(get(createComponentPath(componentPath)));
 	}
 
-    private Component getDeleteProjectionPopupContent(){
-        ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                new AbstractReadOnlyModel<String>() {
+	private Component getDeleteProjectionPopupContent() {
+		ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
+				new AbstractReadOnlyModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-                    public String getObject() {
-                        return createStringResource("pageAdminFocus.message.deleteAccountConfirm",
-                                getSelectedProjections(projectionModel).size()).getString();
-                    }
-                }) {
-					private static final long serialVersionUID = 1L;
+					public String getObject() {
+						return createStringResource("pageAdminFocus.message.deleteAccountConfirm",
+								getSelectedProjections(projectionModel).size()).getString();
+					}
+				}) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                ModalWindow modalWindow = findParent(ModalWindow.class);
-                if (modalWindow != null) {
-                    modalWindow.close(target);
-                    deleteAccountConfirmedPerformed(target, getSelectedProjections(projectionModel));
-                }
-            }
-        };
-        return dialog;
-    }
+			public void yesPerformed(AjaxRequestTarget target) {
+				ModalWindow modalWindow = findParent(ModalWindow.class);
+				if (modalWindow != null) {
+					modalWindow.close(target);
+					deleteAccountConfirmedPerformed(target, getSelectedProjections(projectionModel));
+				}
+			}
+		};
+		return dialog;
+	}
 
-    private void deleteAccountConfirmedPerformed(AjaxRequestTarget target,
-                                                 List<FocusSubwrapperDto<ShadowType>> selected) {
-        List<FocusSubwrapperDto<ShadowType>> accounts = projectionModel.getObject();
-        for (FocusSubwrapperDto<ShadowType> account : selected) {
-            if (UserDtoStatus.ADD.equals(account.getStatus())) {
-                accounts.remove(account);
-            } else {
-                account.setStatus(UserDtoStatus.DELETE);
-            }
-        }
-        target.add(get(createComponentPath(ID_SHADOWS)));
-    }
+	private void deleteAccountConfirmedPerformed(AjaxRequestTarget target,
+			List<FocusSubwrapperDto<ShadowType>> selected) {
+		List<FocusSubwrapperDto<ShadowType>> accounts = projectionModel.getObject();
+		for (FocusSubwrapperDto<ShadowType> account : selected) {
+			if (UserDtoStatus.ADD.equals(account.getStatus())) {
+				accounts.remove(account);
+			} else {
+				account.setStatus(UserDtoStatus.DELETE);
+			}
+		}
+		target.add(get(createComponentPath(ID_SHADOWS)));
+	}
 
 }
