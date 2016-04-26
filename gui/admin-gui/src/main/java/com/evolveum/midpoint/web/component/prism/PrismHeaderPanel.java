@@ -113,7 +113,12 @@ public class PrismHeaderPanel extends Panel {
 		    		// HACK HACK HACK
 			        // If we would display label for the object itself, display label for main container instead
 			        // the "object label" is actually displayed in front of main container
-		    		displayName = ((ObjectWrapper)wrapper).findMainContainerWrapper().getDisplayName();
+					ContainerWrapper mainContainerWrapper = ((ObjectWrapper) wrapper).findMainContainerWrapper();
+					if (mainContainerWrapper != null) {
+						displayName = mainContainerWrapper.getDisplayName();
+					} else {
+						displayName = ((ObjectWrapper) wrapper).getDisplayName();		// e.g. resource wizard needs this
+					}
 		    	}
 		    	return getString(displayName, null, displayName);
 			}

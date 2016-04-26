@@ -312,23 +312,14 @@ public class PageResource extends PageAdminResources {
 
 		OperationResult result = new OperationResult(OPERATION_TEST_CONNECTION);
 		PrismObject<ResourceType> resource = null;
-		List<TestConnectionResultDto> resultsDto = new ArrayList<TestConnectionResultDto>();
+		List<TestConnectionResultDto> resultsDto = new ArrayList<>();
 		try {
 
 			Task task = createSimpleTask(OPERATION_TEST_CONNECTION);
 
 			result = getModelService().testResource(dto.getOid(), task);
 
-			for (ConnectorTestOperation connectorOperation : ConnectorTestOperation.values()) {
-				for (OperationResult testResult : result.getSubresults()) {
-					if (connectorOperation.getOperation().equals(testResult.getOperation())) {
-						TestConnectionResultDto resultDto = new TestConnectionResultDto(
-								getString("operation." + connectorOperation.getOperation()), testResult.getStatus(),
-								testResult.getMessage());
-						resultsDto.add(resultDto);
-					}
-				}
-			}
+			resultsDto = TestConnectionResultDto.getResultDtoList(result, this);
 
 			resource = getModelService().getObject(ResourceType.class, dto.getOid(), null, task, result);
 

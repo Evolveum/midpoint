@@ -20,6 +20,8 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -30,15 +32,15 @@ import com.evolveum.midpoint.web.component.wizard.resource.*;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.wizard.WizardModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * @author lazyman
@@ -53,36 +55,33 @@ import org.apache.wicket.util.string.StringValue;
 public class PageResourceWizard extends PageAdminResources {
 
     private static final String ID_WIZARD = "wizard";
-    private IModel<PrismObject<ResourceType>> model;
-    private PageParameters parameters;
-    private boolean isNewResource;
+    private LoadableModel<PrismObject<ResourceType>> model;
+    private String editedResourceOid;
 
-    public PageResourceWizard(PageParameters parameters) {
-        this.parameters = parameters;
+    public PageResourceWizard(@NotNull PageParameters parameters) {
+        getPageParameters().overwriteWith(parameters);						// to be available in the constructor as well
 
-        if(!isResourceOidAvailable()){
-            isNewResource = true;
-        }
+        editedResourceOid = getResourceOid();
 
         model = new LoadableModel<PrismObject<ResourceType>>(false) {
 
             @Override
             protected PrismObject<ResourceType> load() {
                 try {
-                    if (!isResourceOidAvailable()) {
+                    if (editedResourceOid == null) {
                         ResourceType resource = new ResourceType();
                         PageResourceWizard.this.getPrismContext().adopt(resource);
                         return resource.asPrismObject();
                     }
 
-                    Task task = createSimpleTask("loadResource");
-                    PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class, getResourceOid(),
-                            PageResourceWizard.this, task, task.getResult());
+					PrismObject<ResourceType> resource = loadResource();
+					if (resource == null) {
+						throw new RestartResponseException(PageError.class);
+					}
 
-                    PageResourceWizard.this.getPrismContext().adopt(resource);
-                    if (resource == null) {
-                        throw new RestartResponseException(PageError.class);
-                    }
+					// TODO try raw if some problems
+
+					resource.revive(PageResourceWizard.this.getPrismContext());
 
                     return resource;
                 } catch (Exception ex) {
@@ -95,27 +94,23 @@ public class PageResourceWizard extends PageAdminResources {
         initLayout();
     }
 
-    @Override
-    protected boolean isResourceOidAvailable(){
-        if(parameters != null){
-            StringValue resourceOid = parameters.get(OnePageParameterEncoder.PARAMETER);
-            return resourceOid != null && StringUtils.isNotEmpty(resourceOid.toString());
-        } else {
-            return false;
-        }
-    }
+	public String getEditedResourceOid() {
+		return editedResourceOid;
+	}
 
-    @Override
-    protected String getResourceOid() {
-        if(parameters != null){
-            StringValue resourceOid = parameters.get(OnePageParameterEncoder.PARAMETER);
-            return resourceOid != null ? resourceOid.toString() : null;
-        } else {
-            return null;
-        }
-    }
+	public void setEditedResourceOid(String editedResourceOid) {
+		this.editedResourceOid = editedResourceOid;
+	}
 
-    @Override
+	public PrismObject<ResourceType> loadResource() {
+		Task task = createSimpleTask("loadResource");
+		Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
+		options.add(SelectorOptions.create(GetOperationOptions.createNoFetch()));
+		options.add(SelectorOptions.create(ResourceType.F_CONNECTOR_REF, GetOperationOptions.createResolve()));
+		return WebModelServiceUtils.loadObject(ResourceType.class, editedResourceOid, options, this, task, task.getResult());
+	}
+
+	@Override
     protected IModel<String> createPageTitleModel() {
         return new LoadableModel<String>(false) {
 
@@ -134,7 +129,7 @@ public class PageResourceWizard extends PageAdminResources {
     private void initLayout() {
         WizardModel wizardModel = new WizardModel();
         wizardModel.add(new NameStep(model, this));
-        wizardModel.add(new ConfigurationStep(model, isNewResource, this));
+        wizardModel.add(new ConfigurationStep(model, this));
         wizardModel.add(new SchemaStep(model, this));
         wizardModel.add(new SchemaHandlingStep(model, this));
         wizardModel.add(new CapabilityStep(model, this));
@@ -145,7 +140,8 @@ public class PageResourceWizard extends PageAdminResources {
         add(wizard);
     }
 
+	// questionable
     public boolean isNewResource() {
-        return isNewResource;
+        return editedResourceOid != null;
     }
 }

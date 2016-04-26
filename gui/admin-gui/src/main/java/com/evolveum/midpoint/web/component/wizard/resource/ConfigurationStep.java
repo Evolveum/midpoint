@@ -22,32 +22,32 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
+import com.evolveum.midpoint.web.page.admin.resources.dto.TestConnectionResultDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
+import org.apache.wicket.model.util.ListModel;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -64,28 +64,26 @@ public class ConfigurationStep extends WizardStep {
     private static final String ID_TIMEOUTS = "timeouts";
     private static final String ID_TEST_CONNECTION = "testConnection";
 
-    private IModel<PrismObject<ResourceType>> resourceModel;
-    private boolean isNewResource;
-    private IModel<ObjectWrapper> configurationProperties;
+    final private LoadableModel<PrismObject<ResourceType>> resourceModel;
+	final private LoadableModel<ObjectWrapper> configurationProperties;
 
-    public ConfigurationStep(IModel<PrismObject<ResourceType>> resourceModel, boolean isNewResource, PageBase pageBase) {
+    public ConfigurationStep(LoadableModel<PrismObject<ResourceType>> resourceModelParam, PageBase pageBase) {
         super(pageBase);
-        this.resourceModel = resourceModel;
-        this.isNewResource = isNewResource;
+        this.resourceModel = resourceModelParam;
 
         this.configurationProperties = new LoadableModel<ObjectWrapper>(false) {
 
             @Override
             protected ObjectWrapper load() {
-            	ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(null, null, ConfigurationStep.this.resourceModel.getObject(),
+
+				PrismObject<ResourceType> resource = resourceModel.getObject();
+				ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(null, null, resource,
                         ContainerStatus.MODIFYING, getPageBase());
-//                ObjectWrapper wrapper = new ObjectWrapper(null, null, ConfigurationStep.this.resourceModel.getObject(),
-//                        ContainerStatus.MODIFYING);
                 wrapper.setMinimalized(false);
                 wrapper.setShowEmpty(true);
 
-                    getPageBase().showResult(wrapper.getResult(), false);
-           
+				getPageBase().showResult(wrapper.getResult(), false);
+
                 return wrapper;
             }
         };
@@ -93,13 +91,17 @@ public class ConfigurationStep extends WizardStep {
         initLayout();
     }
 
-    private void initLayout() {
+	@Override
+	protected void onConfigure() {
+		configurationProperties.reset();
+	}
+
+	private void initLayout() {
     	com.evolveum.midpoint.web.component.form.Form form = new com.evolveum.midpoint.web.component.form.Form<>("main", true);
         form.setOutputMarkupId(true);
         add(form);
         
-        final PrismObjectPanel configuration = new PrismObjectPanel(ID_CONFIGURATION, configurationProperties, null, null, getPageBase());
-        form.add(configuration);
+        form.add(new PrismObjectPanel(ID_CONFIGURATION, configurationProperties, null, null, getPageBase()));
 
         AjaxSubmitButton testConnection = new AjaxSubmitButton(ID_TEST_CONNECTION,
                 createStringResource("ConfigurationStep.button.testConnection")) {
@@ -117,33 +119,47 @@ public class ConfigurationStep extends WizardStep {
         add(testConnection);
     }
 
-    private void testConnectionPerformed(AjaxRequestTarget target) {
-        saveChanges();
+	// copied from PageResource, TODO deduplicate
+	private void testConnectionPerformed(AjaxRequestTarget target) {
+		saveChanges();
 
-        PageBase page = getPageBase();
-        ModelService model = page.getModelService();
+		PageBase page = getPageBase();
+		ModelService model = page.getModelService();
 
-        OperationResult result = null;
-        try {
-            Task task = page.createSimpleTask(TEST_CONNECTION);
-            String oid = resourceModel.getObject().getOid();
-            result = model.testResource(oid, task);
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Error occurred during resource test connection", ex);
-            if (result == null) {
-                result = new OperationResult(TEST_CONNECTION);
-            }
+		OperationResult result = new OperationResult(TEST_CONNECTION);
+		List<TestConnectionResultDto> resultDtoList = new ArrayList<>();
+		try {
+			Task task = page.createSimpleTask(TEST_CONNECTION);
+			String oid = resourceModel.getObject().getOid();
+			result = model.testResource(oid, task);
+			resultDtoList = TestConnectionResultDto.getResultDtoList(result, this);
+		} catch (ObjectNotFoundException ex) {
+			result.recordFatalError("Failed to test resource connection", ex);
+		}
 
-            result.recordFatalError("Couldn't perform test connection.", ex);
-        } finally {
-            result.computeStatusIfUnknown();
-        }
+		page.setMainPopupContent(createConnectionResultTable(new ListModel<>(resultDtoList)));
+		page.getMainPopup().setInitialHeight(400);
+		page.getMainPopup().setInitialWidth(600);
+		page.showMainPopup(target);
 
-        page.showResult(result);
-        target.add(page.getFeedbackPanel());
-    }
+		page.showResult(result, "Test connection failed", false);
+		target.add(page.getFeedbackPanel());
+	}
 
-    @Override
+	private TablePanel createConnectionResultTable(ListModel<TestConnectionResultDto> model) {
+		ListDataProvider<TestConnectionResultDto> listprovider = new ListDataProvider<TestConnectionResultDto>(this,
+				model);
+		List<ColumnTypeDto> columns = Arrays.asList(new ColumnTypeDto<String>("Operation Name", "operationName", null),
+				new ColumnTypeDto("Status", "status", null),
+				new ColumnTypeDto<String>("Error Message", "errorMessage", null));
+
+		TablePanel table = new TablePanel(getPageBase().getMainPopupBodyId(), listprovider, ColumnUtils.createColumns(columns));
+		table.setOutputMarkupId(true);
+		return table;
+	}
+
+
+	@Override
     public void applyState() {
         saveChanges();
     }
@@ -154,29 +170,13 @@ public class ConfigurationStep extends WizardStep {
         Task task = page.createSimpleTask(OPERATION_SAVE);
         OperationResult result = task.getResult();
         try {
-            PrismObject<ResourceType> newResource = resourceModel.getObject();
-            //apply configuration to old resource
             ObjectWrapper wrapper = configurationProperties.getObject();
             ObjectDelta delta = wrapper.getObjectDelta();
-            delta.applyTo(newResource);
 
-            page.getPrismContext().adopt(newResource);
+			LOGGER.info("Applying delta:\n{}", delta.debugDump());
+			WebModelServiceUtils.save(delta, result, page);
 
-            PrismObject<ResourceType> oldResource;
-
-            if(isNewResource){
-                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
-                oldResource = WebModelServiceUtils.loadObject(ResourceType.class, newResource.getOid(), options, page, task, result);
-            } else {
-                oldResource = WebModelServiceUtils.loadObject(ResourceType.class, newResource.getOid(), page, task, result);
-            }
-
-            delta = DiffUtil.diff(oldResource, newResource);
-
-            WebModelServiceUtils.save(delta, result, page);
-
-            newResource = WebModelServiceUtils.loadObject(ResourceType.class, newResource.getOid(), page, task, result);
-            resourceModel.setObject(newResource);
+			resourceModel.reset();
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Error occurred during resource test connection", ex);
             result.recordFatalError("Couldn't save configuration changes.", ex);
@@ -188,5 +188,7 @@ public class ConfigurationStep extends WizardStep {
         if (WebComponentUtil.showResultInPage(result)) {
             page.showResult(result);
         }
-    }
+
+		configurationProperties.reset();
+	}
 }
