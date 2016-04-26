@@ -316,7 +316,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		getPageBase().hideMainPopup(target);
 		if (newAssignments.isEmpty()) {
 			warn(getString("AssignmentTablePanel.message.noAssignmentSelected"));
-			// target.add(getPageBase().getFeedbackPanel());
+			target.add(getPageBase().getFeedbackPanel());
 			return;
 		}
 
