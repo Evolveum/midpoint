@@ -20,13 +20,11 @@
     <!-- obsolete will be removed -->
     <group name="midpoint">
         <css>/less/midpoint/midpoint.less</css>
-        <js>/js/midpoint/ace-editor.js</js>
-        <js>/js/midpoint/dropdown-multiple.js</js>
-        <js>/js/midpoint/midpoint.js</js>
     </group>
 
     <group name="midpoint-theme">
         <css>/less/midpoint-theme.less</css>
+        <js>/js/midpoint/ace-editor.js</js>
         <js>/js/midpoint-theme.js</js>
     </group>
 

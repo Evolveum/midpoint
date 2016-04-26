@@ -85,9 +85,15 @@ public class SearchPanel extends BasePanel<Search> {
     private static final String ID_ADVANCED_ERROR= "advancedError";
 
     private LoadableModel<MoreDialogDto> moreDialogModel;
+    boolean advancedSearch = true;
 
     public SearchPanel(String id, IModel<Search> model) {
+        this(id, model, true);
+    }
+
+    public SearchPanel(String id, IModel<Search> model, boolean advancedSearch) {
         super(id, model);
+        this.advancedSearch = advancedSearch;
         initLayout();
     }
 
@@ -177,6 +183,12 @@ public class SearchPanel extends BasePanel<Search> {
                 advancedPerformed(target);
             }
         };
+        advanced.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible() {
+                return advancedSearch;
+            }
+        });
         form.add(advanced);
 
         initPopover();

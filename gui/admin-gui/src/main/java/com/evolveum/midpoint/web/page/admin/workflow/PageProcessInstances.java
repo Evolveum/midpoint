@@ -83,9 +83,9 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         add(mainForm);
 
 		ISortableDataProvider<ProcessInstanceDto, String> provider = new ProcessInstanceDtoProvider(PageProcessInstances.this, requestedBy, requestedFor);
-		WorkflowRequestsPanel panel = new WorkflowRequestsPanel(ID_PROCESS_INSTANCES_TABLE, provider,
+		ProcessInstancesPanel panel = new ProcessInstancesPanel(ID_PROCESS_INSTANCES_TABLE, provider,
 				UserProfileStorage.TableId.PAGE_WORKFLOW_REQUESTS, (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_WORKFLOW_REQUESTS),
-				WorkflowRequestsPanel.View.FULL_LIST, null);
+				ProcessInstancesPanel.View.FULL_LIST, null);
 		panel.setOutputMarkupId(true);
 		mainForm.add(panel);
 
@@ -129,7 +129,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
     }
 
     private BoxedTablePanel<?> getTable() {
-        return ((WorkflowRequestsPanel) get(createComponentPath(ID_MAIN_FORM, ID_PROCESS_INSTANCES_TABLE))).getTablePanel();
+        return ((ProcessInstancesPanel) get(createComponentPath(ID_MAIN_FORM, ID_PROCESS_INSTANCES_TABLE))).getTablePanel();
     }
 
 	private boolean isSomeItemSelected(List<ProcessInstanceDto> instances, boolean stoppable, AjaxRequestTarget target) {

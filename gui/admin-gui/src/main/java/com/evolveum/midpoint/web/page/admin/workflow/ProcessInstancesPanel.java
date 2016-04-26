@@ -36,8 +36,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
-import static com.evolveum.midpoint.web.page.admin.workflow.WorkflowRequestsPanel.View.FULL_LIST;
-import static com.evolveum.midpoint.web.page.admin.workflow.WorkflowRequestsPanel.View.TASKS_FOR_PROCESS;
+import static com.evolveum.midpoint.web.page.admin.workflow.ProcessInstancesPanel.View.FULL_LIST;
+import static com.evolveum.midpoint.web.page.admin.workflow.ProcessInstancesPanel.View.TASKS_FOR_PROCESS;
 import static com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto.*;
 
 /**
@@ -45,7 +45,7 @@ import static com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceD
  * @author mederly
  */
 
-public class WorkflowRequestsPanel extends BasePanel {
+public class ProcessInstancesPanel extends BasePanel {
 
     private static final String ID_REQUESTS_TABLE = "requestsTable";
 
@@ -53,11 +53,11 @@ public class WorkflowRequestsPanel extends BasePanel {
 
 	public enum View {
 		FULL_LIST,				// selectable, full information
-		INFO_ONLY, 				// not selectable (e.g. on dashboard)
+		DASHBOARD, 				// view for dashboard (not selectable, maybe reduced view)
 		TASKS_FOR_PROCESS		// tasks for a process
 	}
 
-	public WorkflowRequestsPanel(String id, ISortableDataProvider<ProcessInstanceDto, String> provider,
+	public ProcessInstancesPanel(String id, ISortableDataProvider<ProcessInstanceDto, String> provider,
 			UserProfileStorage.TableId tableId, int pageSize, View view, @Nullable IModel<String> currentInstanceIdModel) {
 		super(id);
 		this.provider = provider;

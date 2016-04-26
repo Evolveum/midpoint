@@ -206,7 +206,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 //        return StringResourceModelMigration.of(doc, null, doc).getString();
     }
 
-    private IModel<String> createStyleClassModel(final IModel<ValueWrapper> value) {
+    protected IModel<String> createStyleClassModel(final IModel<ValueWrapper> value) {
         return new AbstractReadOnlyModel<String>() {
 
             @Override

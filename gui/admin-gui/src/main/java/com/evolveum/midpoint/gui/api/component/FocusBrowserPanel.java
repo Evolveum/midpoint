@@ -19,6 +19,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -49,11 +51,18 @@ public class FocusBrowserPanel<T extends ObjectType> extends BasePanel<T> {
 	private IModel<QName> typeModel;
 
 	private PageBase parentPage;
+	private ObjectFilter queryFilter;
 
 	public FocusBrowserPanel(String id, final Class<T> type, List<QName> supportedTypes, boolean multiselect,
 			PageBase parentPage) {
+		this(id, type, supportedTypes, multiselect, parentPage, null);
+	}
+
+	public FocusBrowserPanel(String id, final Class<T> type, List<QName> supportedTypes, boolean multiselect,
+			PageBase parentPage, ObjectFilter queryFilter) {
 		super(id);
 		this.parentPage = parentPage;
+        this.queryFilter = queryFilter;
 		typeModel = new LoadableModel<QName>(false) {
 
 			@Override
@@ -135,7 +144,18 @@ public class FocusBrowserPanel<T extends ObjectType> extends BasePanel<T> {
 			protected void onSelectPerformed(AjaxRequestTarget target, T object) {
 				FocusBrowserPanel.this.onSelectPerformed(target, object);
 			}
-		};
+
+            @Override
+            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+                if (queryFilter != null){
+                    if (query == null){
+                        query = new ObjectQuery();
+                    }
+                    query.addFilter(queryFilter);
+                }
+                return query;
+            }
+        };
 
 		// ObjectListPanel<T> listPanel = new ObjectListPanel<T>(ID_TABLE, type,
 		// parentPage) {

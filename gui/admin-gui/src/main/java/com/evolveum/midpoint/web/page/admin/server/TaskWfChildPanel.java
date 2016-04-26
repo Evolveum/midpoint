@@ -25,7 +25,7 @@ import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalHistoryPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskChangesDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.web.page.admin.workflow.WorkflowRequestsPanel;
+import com.evolveum.midpoint.web.page.admin.workflow.ProcessInstancesPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -122,8 +122,8 @@ public class TaskWfChildPanel extends Panel {
 		relatedRequestsContainer.setOutputMarkupId(true);
 		add(relatedRequestsContainer);
 		ISortableDataProvider<ProcessInstanceDto, String> requestsProvider = new ListDataProvider(this, relatedRequestsModel);
-		relatedRequestsContainer.add(new WorkflowRequestsPanel(ID_RELATED_REQUESTS, requestsProvider, null, 10,
-				WorkflowRequestsPanel.View.TASKS_FOR_PROCESS, null));
+		relatedRequestsContainer.add(new ProcessInstancesPanel(ID_RELATED_REQUESTS, requestsProvider, null, 10,
+				ProcessInstancesPanel.View.TASKS_FOR_PROCESS, null));
 		relatedRequestsContainer.add(WebComponentUtil.createHelp(ID_RELATED_REQUESTS_HELP));
 
 		add(new AjaxFallbackLink(ID_SHOW_PARENT) {
@@ -148,6 +148,8 @@ public class TaskWfChildPanel extends Panel {
 		List<Component> rv = new ArrayList<>();
 		if (changesChanged) {
 			rv.add(get(ID_CHANGES));
+		} else {
+			curr.getChangesBeingApproved().applyFoldingFrom(prev.getChangesBeingApproved());
 		}
 		rv.add(get(ID_HISTORY));
 		rv.add(get(ID_CURRENT_WORK_ITEMS_CONTAINER));

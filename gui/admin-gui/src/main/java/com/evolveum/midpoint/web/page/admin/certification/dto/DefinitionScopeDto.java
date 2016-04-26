@@ -24,6 +24,7 @@ public class DefinitionScopeDto implements Serializable {
     public static final String F_INCLUDE_RESOURCES = "includeResources";
     public static final String F_INCLUDE_ROLES = "includeRoles";
     public static final String F_INCLUDE_ORGS = "includeOrgs";
+    public static final String F_INCLUDE_SERVICES = "includeServices";
     public static final String F_INCLUDE_ENABLED_ITEMS_ONLY = "enabledItemsOnly";
 
     private String name;
@@ -35,6 +36,7 @@ public class DefinitionScopeDto implements Serializable {
     private boolean includeResources;
     private boolean includeRoles;
     private boolean includeOrgs;
+    private boolean includeServices;
     private boolean enabledItemsOnly;
 
     public void loadSearchFilter(SearchFilterType searchFilterType, PrismContext prismContext)  {
@@ -138,7 +140,15 @@ public class DefinitionScopeDto implements Serializable {
         this.includeOrgs = includeOrgs;
     }
 
-    public boolean isEnabledItemsOnly() {
+	public boolean isIncludeServices() {
+		return includeServices;
+	}
+
+	public void setIncludeServices(boolean includeServices) {
+		this.includeServices = includeServices;
+	}
+
+	public boolean isEnabledItemsOnly() {
         return enabledItemsOnly;
     }
 

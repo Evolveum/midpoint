@@ -111,6 +111,11 @@
 		  <groupId>org.jvnet.jaxb2_commons</groupId>
 		  <artifactId>jaxb2-basics-runtime</artifactId>
 		</dependency>
+		<dependency>
+			<!-- make this dependency explicit to detect conflicts with older versions -->
+		  <groupId>org.codehaus.woodstox</groupId>
+		  <artifactId>stax2-api</artifactId>
+		</dependency>
 
         <!-- Xtext for schema IDE tooling (experimental) -->
 <!--        <dependency>

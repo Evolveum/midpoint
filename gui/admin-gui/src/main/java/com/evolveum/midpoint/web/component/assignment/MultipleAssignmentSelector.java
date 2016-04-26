@@ -128,7 +128,7 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
 
             @Override
             public Search load() {
-                Search search =  SearchFactory.createSearch(RoleType.class, getPageBase().getPrismContext(), false);
+                Search search =  SearchFactory.createSearch(RoleType.class, getPageBase().getPrismContext(), true);
                 return search;
             }
         };
@@ -227,10 +227,9 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
     }
 
     private void updateBoxedTablePanelStyles(BoxedTablePanel panel) {
-        panel.getDataTable().add(new AttributeModifier("class", ""));
-        panel.getDataTable().add(new AttributeAppender("style", "width: 100%;"));
-        panel.getDataTableContainer().add(new AttributeAppender("style", "min-height: 415px;"));
-        panel.getFooterPaging().getParent().add(new AttributeModifier("class", "col-md-10"));
+    	panel.getDataTableContainer().add(new AttributeAppender("class", " multiple-assignment-selector-table-container"));
+        panel.getDataTable().add(new AttributeModifier("class", "multiple-assignment-selector-table"));
+        panel.getFooterPaging().getParent().add(new AttributeModifier("class", "multiple-assignment-selector-table-footer"));
     }
 
     public BaseSortableDataProvider getProvider() {
@@ -254,7 +253,7 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
         add(searchForm);
         searchForm.setOutputMarkupId(true);
 
-        SearchPanel search = new SearchPanel(ID_SEARCH, (IModel) searchModel) {
+        SearchPanel search = new SearchPanel(ID_SEARCH, (IModel) searchModel, false) {
 
             @Override
             public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {

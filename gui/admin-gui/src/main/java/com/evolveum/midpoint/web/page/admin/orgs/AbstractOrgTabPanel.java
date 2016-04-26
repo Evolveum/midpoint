@@ -63,7 +63,7 @@ public abstract class AbstractOrgTabPanel extends BasePanel{
 
                         @Override
                         public WebMarkupContainer getPanel(String panelId) {
-                            add(new AjaxEventBehavior("onload") {
+                            add(new AjaxEventBehavior("load") {
                                     protected void onEvent(final AjaxRequestTarget target) {
                                         SessionStorage storage = getPageBase().getSessionStorage();
                                         storage.getUsers().setSelectedTabId(tabId);

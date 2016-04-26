@@ -933,6 +933,35 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test116QuerySubstringMultivalued() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .item(UserType.F_EMPLOYEE_TYPE).contains("abc")
+                    .build();
+            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String expected = "select\n" +
+                    "  o.fullObject,\n" +
+                    "  o.stringsCount,\n" +
+                    "  o.longsCount,\n" +
+                    "  o.datesCount,\n" +
+                    "  o.referencesCount,\n" +
+                    "  o.polysCount,\n" +
+                    "  o.booleansCount\n" +
+                    "from\n" +
+                    "  RObject o\n" +
+                    "    left join o.employeeType e\n" +
+                    "where\n" +
+                    "  e like :e\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+
+    @Test
     public void test120QueryConnectorByType() throws Exception {
         Session session = open();
 

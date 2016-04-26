@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  */
 package com.evolveum.midpoint.web.component.menu;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -44,7 +44,8 @@ import java.util.List;
 /**
  * @author Viliam Repan (lazyman)
  */
-public class MainMenuPanel extends SimplePanel<MainMenuItem> {
+public class MainMenuPanel extends BasePanel<MainMenuItem> {
+	private static final long serialVersionUID = 1L;
 
     private static final String ID_ITEM = "item";
     private static final String ID_LINK = "link";
@@ -52,22 +53,24 @@ public class MainMenuPanel extends SimplePanel<MainMenuItem> {
     private static final String ID_ICON = "icon";
     private static final String ID_SUBMENU = "submenu";
     private static final String ID_ARROW = "arrow";
+    private static final String ID_BUBBLE = "bubble";
     private static final String ID_SUB_ITEM = "subItem";
     private static final String ID_SUB_LINK = "subLink";
     private static final String ID_SUB_LABEL = "subLabel";
 
     public MainMenuPanel(String id, IModel<MainMenuItem> model) {
         super(id, model);
+        initLayout();
     }
 
-    @Override
-    protected void initLayout() {
+    private void initLayout() {
         final MainMenuItem menu = getModelObject();
 
         WebMarkupContainer item = new WebMarkupContainer(ID_ITEM);
         item.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public String getObject() {
                 if (menu.isMenuActive((WebPage) getPage())) {
                     return "active";
@@ -104,13 +107,40 @@ public class MainMenuPanel extends SimplePanel<MainMenuItem> {
 
         Label label = new Label(ID_LABEL, menu.getName());
         link.add(label);
+        
+        final PropertyModel<String> bubbleModel = new PropertyModel<>(menu, MainMenuItem.F_BUBBLE_LABEL);
+                
+        Label bubble = new Label(ID_BUBBLE, bubbleModel);
+        bubble.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				return bubbleModel.getObject() != null;
+			}
+        });
+        link.add(bubble);
 
         WebMarkupContainer arrow = new WebMarkupContainer(ID_ARROW);
-        arrow.add(createMenuVisibilityBehaviour(menu));
+        arrow.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+		
+			@Override
+		    public boolean isVisible() {
+		        return !menu.getItems().isEmpty() && bubbleModel.getObject() == null;
+		    }
+		});
         link.add(arrow);
-
+        
         WebMarkupContainer submenu = new WebMarkupContainer(ID_SUBMENU);
-        submenu.add(createMenuVisibilityBehaviour(menu));
+        submenu.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+		
+			@Override
+		    public boolean isVisible() {
+		        return !menu.getItems().isEmpty();
+		    }
+		});
         item.add(submenu);
 
         ListView<MenuItem> subItem = new ListView<MenuItem>(ID_SUB_ITEM, new Model((Serializable) menu.getItems())) {
@@ -121,16 +151,6 @@ public class MainMenuPanel extends SimplePanel<MainMenuItem> {
             }
         };
         submenu.add(subItem);
-    }
-
-    private VisibleEnableBehaviour createMenuVisibilityBehaviour(final MainMenuItem menu) {
-        return new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return !menu.getItems().isEmpty();
-            }
-        };
     }
 
     private void createSubmenu(final ListItem<MenuItem> listItem) {

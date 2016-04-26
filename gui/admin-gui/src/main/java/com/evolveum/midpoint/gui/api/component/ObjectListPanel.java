@@ -379,8 +379,13 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 	protected ObjectQuery createContentQuery() {
 		Search search = searchModel.getObject();
 		ObjectQuery query = search.createObjectQuery(parentPage.getPrismContext());
+        query = addFilterToContentQuery(query);
 		return query;
 	}
+
+    protected ObjectQuery addFilterToContentQuery(ObjectQuery query){
+        return query;
+    }
 
 	public StringResourceModel createStringResource(String resourceKey, Object... objects) {
 		return PageBase.createStringResourceStatic(this, resourceKey, objects);

@@ -2,9 +2,8 @@ package com.evolveum.midpoint.web.page.admin.roles;
 
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.midpoint.web.page.admin.roles.component.MultiplicityPolicyPanel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -13,7 +12,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.roles.component.MultiplicityPolicyDialog;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -71,28 +69,20 @@ public class RolePolicyPanel extends SimplePanel<RoleType>{
                 minAssignmentModel, createStringResource("PageRoleEditor.label.minAssignments"), ID_LABEL_SIZE, ID_INPUT_SIZE, true){
 
             @Override
-            protected void initDialog() {
-                ModalWindow dialog = new MultiplicityPolicyDialog(ID_MODAL_EDITOR, null){
-
-                    @Override
-                    protected void savePerformed(AjaxRequestTarget target) {
-                        closeModalWindow(target);
-                        target.add(getMinAssignmentsContainer());
-                    }
-                };
-                add(dialog);
-            }
-
-            @Override
             protected IModel<String> createTextModel(IModel<MultiplicityPolicyConstraintType> model) {
                 return createMultiplicityPolicyLabel(model);
             }
 
             @Override
             protected void editValuePerformed(AjaxRequestTarget target, IModel<MultiplicityPolicyConstraintType> rowModel) {
-                MultiplicityPolicyDialog window = (MultiplicityPolicyDialog) get(ID_MODAL_EDITOR);
-                window.updateModel(target, rowModel.getObject());
-                window.show(target);
+                MultiplicityPolicyPanel window = new MultiplicityPolicyPanel(getPageBase().getMainPopupBodyId(), rowModel.getObject()){
+                    @Override
+                    protected void savePerformed(AjaxRequestTarget target) {
+                        closeModalWindow(target);
+                        target.add(getMinAssignmentsContainer());
+                    }
+                };
+                showDialog(window, createStringResource("MultiplicityPolicyDialog.label"), target);
             }
 
             @Override
@@ -107,28 +97,21 @@ public class RolePolicyPanel extends SimplePanel<RoleType>{
                 maxAssignmentsModel, createStringResource("PageRoleEditor.label.maxAssignments"), ID_LABEL_SIZE, ID_INPUT_SIZE, true){
 
             @Override
-            protected void initDialog() {
-                ModalWindow dialog = new MultiplicityPolicyDialog(ID_MODAL_EDITOR, null){
-
-                    @Override
-                    protected void savePerformed(AjaxRequestTarget target) {
-                        closeModalWindow(target);
-                        target.add(getMaxAssignmentsContainer());
-                    }
-                };
-                add(dialog);
-            }
-
-            @Override
             protected IModel<String> createTextModel(IModel<MultiplicityPolicyConstraintType> model) {
                 return createMultiplicityPolicyLabel(model);
             }
 
             @Override
             protected void editValuePerformed(AjaxRequestTarget target, IModel<MultiplicityPolicyConstraintType> rowModel) {
-                MultiplicityPolicyDialog window = (MultiplicityPolicyDialog) get(ID_MODAL_EDITOR);
-                window.updateModel(target, rowModel.getObject());
-                window.show(target);
+                MultiplicityPolicyPanel window = new MultiplicityPolicyPanel(getPageBase().getMainPopupBodyId(), rowModel.getObject()){
+                    @Override
+                    protected void savePerformed(AjaxRequestTarget target) {
+                        closeModalWindow(target);
+                        target.add(getMaxAssignmentsContainer());
+                    }
+
+                };
+                showDialog(window, createStringResource("MultiplicityPolicyDialog.label"), target);
             }
 
             @Override

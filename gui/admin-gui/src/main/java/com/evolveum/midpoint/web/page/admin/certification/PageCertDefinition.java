@@ -17,8 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
+import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -39,12 +39,9 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto;
-import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
-import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -52,15 +49,10 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -192,20 +184,16 @@ public class PageCertDefinition extends PageAdminCertification {
                 return new DefinitionScopePanel(panelId, new PropertyModel<DefinitionScopeDto>(definitionModel, CertDefinitionDto.F_SCOPE_DEFINITION));
             }
         });
-		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.stagesDefinition")) {
-            @Override
-            public WebMarkupContainer getPanel(String panelId) {
-                return new DefinitionStagesPanel(panelId, new PropertyModel<List<StageDefinitionDto>>(definitionModel, CertDefinitionDto.F_STAGE_DEFINITION), PageCertDefinition.this);
-            }
-        });
-
-//		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.campaigns")) {
-//            @Override
-//            public WebMarkupContainer getPanel(String panelId) {
-//                // TODO campaigns panel (extract from PageCertCampaigns)
-//                return new WebMarkupContainer(panelId);
-//            }
-//        });
+		tabs.add(new CountablePanelTab(createStringResource("PageCertDefinition.stagesDefinition")) {
+			@Override
+			public WebMarkupContainer createPanel(String panelId) {
+				return new DefinitionStagesPanel(panelId, new PropertyModel<List<StageDefinitionDto>>(definitionModel, CertDefinitionDto.F_STAGE_DEFINITION), PageCertDefinition.this);
+			}
+			@Override
+			public String getCount() {
+				return String.valueOf(definitionModel.getObject().getNumberOfStages());
+			}
+		});
 		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.xmlDefinition")) {
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
@@ -216,6 +204,9 @@ public class PageCertDefinition extends PageAdminCertification {
 		mainForm.add(tabPanel);
 	}
 
+	public TabbedPanel getTabPanel() {
+		return (TabbedPanel) get(createComponentPath(ID_MAIN_FORM, ID_TAB_PANEL));
+	}
 
 	private void initButtons(final Form mainForm) {
 		AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON, createStringResource("PageCertDefinition.button.back")) {

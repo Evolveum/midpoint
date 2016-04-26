@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -32,11 +33,9 @@ import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.page.admin.users.component.*;
-import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
+import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -44,13 +43,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -58,7 +57,7 @@ import java.util.List;
  * the list of assigned items of the same type with the
  * possibility of editing the list of assignments.
  * 
- * @author Kate Honchar.
+ * @author Kate Honchar
  */
 public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends FocusType, G extends FocusType>
         extends BasePanel<List<AssignmentEditorDto>> {          //G - type of the object which is to be assigned (a.g. assign a role (RoleType))
@@ -317,30 +316,6 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
                 createStringResource("MultipleAssignmentSelector.tenant"), LABEL_SIZE, INPUT_SIZE, false){
 
             @Override
-            protected void initDialog() {
-                ModalWindow dialog = new OrgUnitBrowser(ID_MODAL_EDITOR){
-                    @Override
-                    protected void rowSelected(AjaxRequestTarget target, IModel<OrgTableDto> row, Operation operation) {
-                        closeModalWindow(target);
-                        tenantEditorObject.clear();
-                        tenantEditorObject.add((OrgType)row.getObject().getObject());
-                        target.add(getTenantEditorContainer());
-                    }
-
-                    @Override
-                    protected ObjectQuery createSearchQuery() {
-                        ObjectQuery query = new ObjectQuery();
-                        ObjectFilter filter = EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class,
-                                getPageBase().getPrismContext(), null, true);
-                        query.setFilter(filter);
-
-                        return query;
-                    }
-                };
-                add(dialog);
-            }
-
-            @Override
             protected boolean getLabelVisibility(){
                 return false;
             }
@@ -373,8 +348,41 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
 
             @Override
             protected void editValuePerformed(AjaxRequestTarget target, IModel<OrgType> rowModel) {
-                OrgUnitBrowser window = (OrgUnitBrowser) get(ID_MODAL_EDITOR);
-                window.show(target);
+                List<QName> supportedTypes = new ArrayList<>();
+                supportedTypes.add(getPageBase().getPrismContext().getSchemaRegistry()
+                        .findObjectDefinitionByCompileTimeClass(OrgType.class).getTypeName());
+
+                    ObjectFilter filter = EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class,
+                            getPageBase().getPrismContext(), null, true);
+
+                FocusBrowserPanel<OrgType> tenantPanel = new FocusBrowserPanel<OrgType>(getPageBase().getMainPopupBodyId(),
+                        OrgType.class, supportedTypes, false, getPageBase(), filter) {
+                    @Override
+                    protected void onSelectPerformed(AjaxRequestTarget target, OrgType org) {
+                        super.onSelectPerformed(target, org);
+                        tenantEditorObject.clear();
+                        tenantEditorObject.add(org);
+                        target.add(getTenantEditorContainer());
+                    }
+                };
+
+//                OrgTreeAssignablePanel tenantPanel = new OrgTreeAssignablePanel(
+//                        getPageBase().getMainPopupBodyId(), false, getPageBase()) {
+//
+//                    @Override
+//                    protected void onItemSelect(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
+//                        closeModalWindow(target);
+//                        tenantEditorObject.clear();
+//                        tenantEditorObject.add(selected.getValue());
+//                        target.add(getTenantEditorContainer());                    }
+//                };
+                getPageBase().showMainPopup(tenantPanel, new Model<String>("Select tenant"), target, 900, 700);
+            }
+
+            @Override
+            protected void setDialogSize() {
+                getPageBase().getMainPopup().setInitialWidth(900);
+                getPageBase().getMainPopup().setInitialHeight(700);
             }
 
 
@@ -387,25 +395,6 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         final GenericMultiValueLabelEditPanel orgUnitEditor = new GenericMultiValueLabelEditPanel<OrgType>(ID_ORG_EDITOR,
                 createOrgUnitModel(),
                 createStringResource("MultipleAssignmentSelector.orgUnit"), LABEL_SIZE, INPUT_SIZE, false){
-
-            @Override
-            protected void initDialog() {
-                ModalWindow dialog = new OrgUnitBrowser(ID_MODAL_EDITOR){
-                    @Override
-                    protected void rowSelected(AjaxRequestTarget target, IModel<OrgTableDto> row, Operation operation) {
-                        closeModalWindow(target);
-                        orgEditorObject.clear();
-                        orgEditorObject.add((OrgType)row.getObject().getObject());
-                        target.add(getOrgUnitEditorContainer());
-                    }
-
-                    @Override
-                    protected ObjectQuery createSearchQuery() {
-                        return new ObjectQuery();
-                    }
-                };
-                add(dialog);
-            }
 
             @Override
             protected boolean getLabelVisibility(){
@@ -440,8 +429,36 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
 
             @Override
             protected void editValuePerformed(AjaxRequestTarget target, IModel<OrgType> rowModel) {
-                OrgUnitBrowser window = (OrgUnitBrowser) get(ID_MODAL_EDITOR);
-                window.show(target);
+                List<QName> supportedTypes = new ArrayList<>();
+                supportedTypes.add(getPageBase().getPrismContext().getSchemaRegistry()
+                        .findObjectDefinitionByCompileTimeClass(OrgType.class).getTypeName());
+                FocusBrowserPanel<OrgType> orgPanel = new FocusBrowserPanel<OrgType>(getPageBase().getMainPopupBodyId(),
+                        OrgType.class, supportedTypes, false, getPageBase()) {
+                    @Override
+                    protected void onSelectPerformed(AjaxRequestTarget target, OrgType org) {
+                        super.onSelectPerformed(target, org);
+                        orgEditorObject.clear();
+                        orgEditorObject.add(org);
+                        target.add(getOrgUnitEditorContainer());
+                    }
+                };
+//                OrgTreeAssignablePanel orgPanel = new OrgTreeAssignablePanel(
+//                        getPageBase().getMainPopupBodyId(), false, getPageBase()) {
+//
+//                    @Override
+//                    protected void onItemSelect(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
+//                        closeModalWindow(target);
+//                        tenantEditorObject.clear();
+//                        tenantEditorObject.add(selected.getValue());
+//                        target.add(getTenantEditorContainer());                    }
+//                };
+                getPageBase().showMainPopup(orgPanel, new Model<String>("Select organization"), target);
+            }
+
+            @Override
+            protected void setDialogSize() {
+                getPageBase().getMainPopup().setInitialWidth(900);
+                getPageBase().getMainPopup().setInitialHeight(700);
             }
         };
         orgUnitEditor.setOutputMarkupId(true);

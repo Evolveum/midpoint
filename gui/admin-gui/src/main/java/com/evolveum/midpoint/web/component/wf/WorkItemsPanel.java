@@ -64,7 +64,7 @@ public class WorkItemsPanel extends BasePanel {
 
 	public enum View {
 		FULL_LIST,				// selectable, full information
-		INFO_ONLY, 				// not selectable (e.g. on dashboard)
+		DASHBOARD, 				// not selectable, reduced info (on dashboard)
 		ITEMS_FOR_PROCESS		// work items for a process
 	};
 
@@ -90,18 +90,20 @@ public class WorkItemsPanel extends BasePanel {
 			columns.add(createTypeIconColumn(false));
 			columns.add(createTargetNameColumn("WorkItemsPanel.target"));
 			columns.add(createNameColumn());
-			columns.add(new AbstractColumn<WorkItemDto, String>(createStringResource("WorkItemsPanel.started")){
-                @Override
-                public void populateItem(Item<ICellPopulator<WorkItemDto>> cellItem, String componentId, final IModel<WorkItemDto> rowModel) {
-                        cellItem.add(new DateLabelComponent(componentId, new AbstractReadOnlyModel<Date>() {
+			if (view == FULL_LIST) {
+				columns.add(new AbstractColumn<WorkItemDto, String>(createStringResource("WorkItemsPanel.started")) {
+					@Override
+					public void populateItem(Item<ICellPopulator<WorkItemDto>> cellItem, String componentId, final IModel<WorkItemDto> rowModel) {
+						cellItem.add(new DateLabelComponent(componentId, new AbstractReadOnlyModel<Date>() {
 
-                            @Override
-                            public Date getObject() {
-                                return rowModel.getObject().getStartedDate();
-                            }
-                        }, DateLabelComponent.LONG_MEDIUM_STYLE));
-                    }
-            });
+							@Override
+							public Date getObject() {
+								return rowModel.getObject().getStartedDate();
+							}
+						}, DateLabelComponent.LONG_MEDIUM_STYLE));
+					}
+				});
+			}
 			columns.add(new AbstractColumn<WorkItemDto, String>(createStringResource("WorkItemsPanel.created")){
                 @Override
                 public void populateItem(Item<ICellPopulator<WorkItemDto>> cellItem, String componentId, final IModel<WorkItemDto> rowModel) {

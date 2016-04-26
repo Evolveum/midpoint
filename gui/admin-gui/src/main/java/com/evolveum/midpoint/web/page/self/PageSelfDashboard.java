@@ -38,7 +38,7 @@ import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.AsyncDashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.DashboardColor;
 import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
-import com.evolveum.midpoint.web.page.admin.workflow.WorkflowRequestsPanel;
+import com.evolveum.midpoint.web.page.admin.workflow.ProcessInstancesPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDtoProvider;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
@@ -159,7 +159,7 @@ public class PageSelfDashboard extends PageSelf {
                     @Override
                     protected Component getMainComponent(String markupId) {
 						ISortableDataProvider provider = new ListDataProvider(this, new PropertyModel<List<WorkItemDto>>(getModel(), CallableResult.F_VALUE));
-						return new WorkItemsPanel(markupId, provider, null, 10, WorkItemsPanel.View.INFO_ONLY);
+						return new WorkItemsPanel(markupId, provider, null, 10, WorkItemsPanel.View.DASHBOARD);
                     }
                 };
 
@@ -193,7 +193,7 @@ public class PageSelfDashboard extends PageSelf {
                     @Override
                     protected Component getMainComponent(String markupId) {
 						ISortableDataProvider provider = new ListDataProvider(this, new PropertyModel<List<ProcessInstanceDto>>(getModel(), CallableResult.F_VALUE));
-                        return new WorkflowRequestsPanel(markupId, provider, null, 10, WorkflowRequestsPanel.View.INFO_ONLY, null);
+                        return new ProcessInstancesPanel(markupId, provider, null, 10, ProcessInstancesPanel.View.DASHBOARD, null);
                     }
                 };
 

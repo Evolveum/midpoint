@@ -58,6 +58,7 @@ public class GuiStyleConstants {
 
 	public static final String CLASS_OBJECT_CERT_DEF_ICON = "fa fa-certificate";
 	public static final String CLASS_OBJECT_CERT_DEF_ICON_COLORED = CLASS_OBJECT_CERT_DEF_ICON + " object-task-color";		// TODO
+	public static final String CLASS_OBJECT_CERT_DEF_BOX_CSS_CLASSES = "object-task-box";									// TODO
 
 	public static final String CLASS_OBJECT_CERT_CAMPAIGN_ICON = "fa fa-gavel";
 	public static final String CLASS_OBJECT_CERT_CAMPAIGN_ICON_COLORED = CLASS_OBJECT_CERT_CAMPAIGN_ICON + " object-task-color";		// TODO
@@ -66,6 +67,7 @@ public class GuiStyleConstants {
 	public static final String CLASS_ICON_STYLE_DISABLED = "icon-style-disabled";
 	public static final String CLASS_ICON_STYLE_ARCHIVED = "icon-style-archived";
 	public static final String CLASS_ICON_STYLE_PRIVILEGED = "icon-style-privileged";
+	public static final String CLASS_ICON_STYLE_END_USER = "icon-style-end-user";
 	public static final String CLASS_ICON_STYLE_WARNING = "icon-style-warning";
 	public static final String CLASS_ICON_STYLE_UP = "icon-style-up";
 	public static final String CLASS_ICON_STYLE_DOWN = "icon-style-down";
