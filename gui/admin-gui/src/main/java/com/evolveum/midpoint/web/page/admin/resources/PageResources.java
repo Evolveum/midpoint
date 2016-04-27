@@ -152,6 +152,7 @@ public class PageResources extends PageAdminResources {
 
 		MainObjectListPanel<ResourceType> resourceListPanel = new MainObjectListPanel<ResourceType>(ID_TABLE,
 				ResourceType.class, TableId.TABLE_RESOURCES, options, this) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected List<InlineMenuItem> createInlineMenu() {
@@ -174,23 +175,21 @@ public class PageResources extends PageAdminResources {
 				setResponsePage(PageResourceWizard.class);
 
 			}
-			
-			@Override
-        	protected String getBoxCssClasses() {
-        		return GuiStyleConstants.CLASS_BOX + " " + GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES;
-        	}
 		};
 		resourceListPanel.setOutputMarkupId(true);
+		resourceListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES);
 		mainForm.add(resourceListPanel);
 
 		BoxedTablePanel connectorHosts = new BoxedTablePanel(ID_CONNECTOR_TABLE,
 				new ObjectDataProvider(PageResources.this, ConnectorHostType.class),
 				initConnectorHostsColumns(), UserProfileStorage.TableId.PAGE_RESOURCES_CONNECTOR_HOSTS,
 				(int) getItemsPerPage(UserProfileStorage.TableId.PAGE_RESOURCES_CONNECTOR_HOSTS)) {
-
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			protected WebMarkupContainer createHeader(String headerId) {
 				return new SearchFormPanel(headerId, chSearchModel) {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {

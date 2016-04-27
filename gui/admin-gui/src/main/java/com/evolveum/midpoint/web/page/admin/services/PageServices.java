@@ -71,9 +71,9 @@ public class PageServices extends PageAdminServices {
 	        
 	      
 	        MainObjectListPanel<ServiceType> servicePanel = new MainObjectListPanel<ServiceType>(ID_TABLE, ServiceType.class, TableId.TABLE_SERVICES, null, this){
-	        	
-	        
-	        	@Override
+				private static final long serialVersionUID = 1L;
+
+				@Override
 	        	public void objectDetailsPerformed(AjaxRequestTarget target, ServiceType service) {
 	        		PageServices.this.serviceDetailsPerformed(target, service);
 	        	}
@@ -93,13 +93,8 @@ public class PageServices extends PageAdminServices {
 	        	protected void newObjectPerformed(AjaxRequestTarget target) {
 	        		setResponsePage(PageService.class);	
 	        	}
-	        	
-	        	@Override
-	        	protected String getBoxCssClasses() {
-	        		return GuiStyleConstants.CLASS_BOX + " " + GuiStyleConstants.CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES;
-	        	}
-	        	
 	        };
+	        servicePanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES);
 	        mainForm.add(servicePanel);
 	  
 	    }

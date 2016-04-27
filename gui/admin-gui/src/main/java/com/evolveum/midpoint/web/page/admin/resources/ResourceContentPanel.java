@@ -23,15 +23,10 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.event.Broadcast;
-import org.apache.wicket.event.IEventSink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -41,28 +36,34 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.request.component.IRequestablePage;
+import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -73,6 +74,7 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -84,24 +86,22 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider2;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentTabPanel.Operation;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -110,8 +110,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.fasterxml.jackson.databind.ser.std.CollectionSerializer;
 
 
 /**
@@ -125,6 +125,7 @@ public abstract class ResourceContentPanel extends Panel {
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceContentPanel.class);
 
 	private static final String DOT_CLASS = ResourceContentTabPanel.class.getName() + ".";
+	private static final String OPERATION_SEARCH_TASKS_FOR_RESOURCE = DOT_CLASS + "seachTasks";
 	private static final String OPERATION_CHANGE_OWNER = DOT_CLASS + "changeOwner";
 	private static final String OPERATION_LOAD_SHADOW_OWNER = DOT_CLASS + "loadOwner";
 	private static final String OPERATION_UPDATE_STATUS = DOT_CLASS + "updateStatus";
@@ -133,6 +134,10 @@ public abstract class ResourceContentPanel extends Panel {
 
 	private static final String ID_TABLE = "table";
 	private static final String ID_LABEL = "label";
+	
+	private static final String ID_IMPORT = "import";
+	private static final String ID_RECONCILIATION = "reconciliation";
+	private static final String ID_LIVE_SYNC = "liveSync";
 
 	private PageBase pageBase;
 	private ShadowKindType kind;
@@ -142,6 +147,17 @@ public abstract class ResourceContentPanel extends Panel {
 //	private LoadableModel<Search> searchModel;
 	
 	IModel<PrismObject<ResourceType>> resourceModel;
+	
+	public ResourceContentPanel(String id, IModel<PrismObject<ResourceType>> resourceModel,
+			QName objectClass, ShadowKindType kind, String intent, PageBase pageBase) {
+		super(id);
+		this.pageBase = pageBase;
+		this.kind = kind;
+		this.resourceModel = resourceModel;
+		this.intent = intent;
+		this.objectClass = objectClass;
+		initLayout();
+	}
 
 	public PageBase getPageBase() {
 		return pageBase;
@@ -175,17 +191,6 @@ public abstract class ResourceContentPanel extends Panel {
 				.getRefinedSchema(resourceModel.getObject(), getPageBase().getPrismContext());
 		return refinedSchema.getRefinedDefinition(getObjectClass());
 
-	}
-
-	public ResourceContentPanel(String id, IModel<PrismObject<ResourceType>> resourceModel,
-			QName objectClass, ShadowKindType kind, String intent, PageBase pageBase) {
-		super(id);
-		this.pageBase = pageBase;
-		this.kind = kind;
-		this.resourceModel = resourceModel;
-		this.intent = intent;
-		this.objectClass = objectClass;
-		initLayout();
 	}
 
 	private void initLayout() {
@@ -267,6 +272,7 @@ public abstract class ResourceContentPanel extends Panel {
 				return createQuery() != null;
 			}
 		});
+		shadowListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_SHADOW_BOX_CSS_CLASSES);
 		add(shadowListPanel);
 		
 		Label label = new Label(ID_LABEL, "Nothing to show. Select intent to search");
@@ -305,8 +311,132 @@ public abstract class ResourceContentPanel extends Panel {
 //		}; // parentPage.getItemsPerPage(UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL)
 //		table.setOutputMarkupId(true);
 //		add(table);
+		
+		OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
+
+		List<PrismObject<TaskType>> tasks = WebModelServiceUtils
+				.searchObjects(TaskType.class,
+						ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF,
+								TaskType.class, getPageBase().getPrismContext(),
+								getResourceModel().getObject().getOid())),
+						result, getPageBase());
+
+		List<TaskType> tasksForKind = getTasksForKind(tasks);
+
+		List<TaskType> importTasks = new ArrayList<>();
+		List<TaskType> syncTasks = new ArrayList<>();
+		List<TaskType> reconTasks = new ArrayList<>();
+		for (TaskType task : tasksForKind) {
+			if (TaskCategory.RECONCILIATION.equals(task.getCategory())) {
+				reconTasks.add(task);
+			} else if (TaskCategory.LIVE_SYNCHRONIZATION.equals(task.getCategory())) {
+				syncTasks.add(task);
+			} else if (TaskCategory.IMPORTING_ACCOUNTS.equals(task.getCategory())) {
+				importTasks.add(task);
+			}
+		}
+
+		initButton(ID_IMPORT, "Import", " fa-download", TaskCategory.IMPORTING_ACCOUNTS, importTasks);
+		initButton(ID_RECONCILIATION, "Reconciliation", " fa-link", TaskCategory.RECONCILIATION, reconTasks);
+		initButton(ID_LIVE_SYNC, "Live Sync", " fa-refresh", TaskCategory.LIVE_SYNCHRONIZATION, syncTasks);
+
 
 		initCustomLayout();
+	}
+	
+	private void initButton(String id, String label, String icon, final String category,
+			final List<TaskType> tasks) {
+
+		List<InlineMenuItem> items = new ArrayList<>();
+
+		InlineMenuItem item = new InlineMenuItem(
+				getPageBase().createStringResource("ResourceContentResourcePanel.showExisting"),
+				new InlineMenuItemAction() {
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						runTask(tasks, target);
+					}
+				});
+		items.add(item);
+
+		item = new InlineMenuItem(getPageBase().createStringResource("ResourceContentResourcePanel.newTask"),
+				new InlineMenuItemAction() {
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						newTaskPerformed(category, target);
+					}
+				});
+		items.add(item);
+
+		DropdownButtonPanel button = new DropdownButtonPanel(id,
+				new DropdownButtonDto(String.valueOf(tasks.size()), icon, label, items));
+		add(button);
+
+	}
+	
+	private void newTaskPerformed(String category, AjaxRequestTarget target) {
+		TaskType taskType = new TaskType();
+		PrismProperty<ShadowKindType> pKind;
+		try {
+			pKind = taskType.asPrismObject().findOrCreateProperty(
+					new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
+			pKind.setRealValue(getKind());
+		} catch (SchemaException e) {
+			getSession().warn("Could not set kind for new task " + e.getMessage());
+		}
+
+		PrismProperty<String> pIntent;
+		try {
+			pIntent = taskType.asPrismObject().findOrCreateProperty(
+					new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
+			pIntent.setRealValue(getIntent());
+		} catch (SchemaException e) {
+			getSession().warn("Could not set kind for new task " + e.getMessage());
+		}
+
+		PrismObject<ResourceType> resource = getResourceModel().getObject();
+		taskType.setObjectRef(ObjectTypeUtil.createObjectRef(resource));
+
+		taskType.setCategory(category);
+		setResponsePage(new PageTaskAdd(taskType));
+		;
+	}
+
+	private void runTask(List<TaskType> tasks, AjaxRequestTarget target) {
+
+		ResourceTasksPanel tasksPanel = new ResourceTasksPanel(getPageBase().getMainPopupBodyId(), false, 
+				new ListModel<>(tasks), getPageBase());
+		getPageBase().showMainPopup(tasksPanel, new Model<String>("Defined tasks"), target, 900, 500);
+
+	}
+
+	private List<TaskType> getTasksForKind(List<PrismObject<TaskType>> tasks) {
+		List<TaskType> tasksForKind = new ArrayList<>();
+		for (PrismObject<TaskType> task : tasks) {
+			PrismProperty<ShadowKindType> taskKind = task
+					.findProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
+			ShadowKindType taskKindValue = null;
+			if (taskKind != null) {
+				taskKindValue = taskKind.getRealValue();
+
+				PrismProperty<String> taskIntent = task.findProperty(
+						new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
+				String taskIntentValue = null;
+				if (taskIntent != null) {
+					taskIntentValue = taskIntent.getRealValue();
+				}
+				if (StringUtils.isNotEmpty(getIntent())) {
+					if (getKind() == taskKindValue && getIntent().equals(taskIntentValue)) {
+						tasksForKind.add(task.asObjectable());
+					}
+				} else if (getKind() == taskKindValue) {
+					tasksForKind.add(task.asObjectable());
+				}
+			}
+		}
+		return tasksForKind;
 	}
 	
 	private ObjectDataProvider2<SelectableBean<ShadowType>, ShadowType> initProvider(){
@@ -385,7 +515,9 @@ public abstract class ResourceContentPanel extends Panel {
 
 //	}
 	
-	protected abstract void initCustomLayout();
+	protected void initCustomLayout() {
+		// Nothing to do, for subclass extension
+	};
 
 	protected ObjectQuery createQuery(){
 		ObjectQuery baseQuery = null;

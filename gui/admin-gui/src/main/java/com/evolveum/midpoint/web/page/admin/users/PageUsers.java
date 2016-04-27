@@ -173,12 +173,9 @@ public class PageUsers extends PageAdminUsers {
 				
 			}
 			
-			@Override
-        	protected String getBoxCssClasses() {
-        		return GuiStyleConstants.CLASS_BOX + " " + GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES;
-        	}
 		};
 
+		userListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES);
 		userListPanel.setOutputMarkupId(true);
 		mainForm.add(userListPanel);
 	}

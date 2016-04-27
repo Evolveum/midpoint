@@ -17,29 +17,26 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-
-<div class="row">
-<div class="form-group">
-		<label><wicket:message key="ResourceContentResourcePanel.realSearch" /></label>
-			<label wicket:id="objectClass" />
-		
-	</div>
-</div>
-		<div class="table-responsive" wicket:id="table" />
-		<div wicket:id="label" />
+	<div class="table-responsive" wicket:id="table" />
+	<div wicket:id="label" />
 	
-	<div class="box">
-	<div class="form-group">
-		<div class=btn-group>
-			<div wicket:id="import" />
+	<div class="box object-task-box">
+		<div class="box-header with-border">
+			<h3 class="box-title"><wicket:message key="pageResource.synchronizationTasks"/></h3>
 		</div>
-		<div class=btn-group>
-			<div wicket:id="reconciliation" />
+		<div class="box-body">
+			<div class="form-group">
+				<div class=btn-group>
+					<div wicket:id="import" />
+				</div>
+				<div class=btn-group>
+					<div wicket:id="reconciliation" />
+				</div>
+				<div class=btn-group>
+					<div wicket:id="liveSync" />
+				</div>
+			</div>
 		</div>
-		<div class=btn-group>
-			<div wicket:id="liveSync" />
-		</div>
-	</div>
 	</div>
 
 </wicket:panel>

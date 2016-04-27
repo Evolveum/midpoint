@@ -18,32 +18,40 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 	<div class="container">
-		<div class="row">
-			<div class="form-horizontal">
-	
-				<div class="form-group">
-					<label class="col-md-2" wicket:id="intentLabel"></label>
-					<div class="col-md-3" wicket:id="intent" />
-				</div>
-				<div class="form-group">
-					<label class="col-md-2" wicket:id="objectClassLabel"></label>
-					<div class="col-md-3" wicket:id="objectClass" />
-				</div>
-				
+		<div class="row form-horizontal resource-content-selection">
 		
+			<div class="col-md-7">
 				<div class="form-group">
-					<label class="col-md-2"><wicket:message key="ResourceContentTabPanel.searchType" /></label>
-					<div class="btn-group col-md-3">
-						<a class="btn btn-default" wicket:id="repositorySearch"> 
-							<label><wicket:message key="ResourceContentTabPanel.searchType.repository" /></label>
+					<wicket:enclosure child="intent">
+						<label class="col-md-2 control-label"><wicket:message key="ShadowType.intent"/></label>
+						<div class="col-md-4" wicket:id="intent" />
+						<wicket:enclosure child="realObjectClass">
+							<span class="col-md-6 control-label control-suffix">(<wicket:message key="ShadowType.objectClass"/>: <span wicket:id="realObjectClass"/>)</span>
+						</wicket:enclosure>
+					</wicket:enclosure>
+					<wicket:enclosure child="objectClass">
+						<label class="col-md-2 control-label"><wicket:message key="ShadowType.objectClass"/></label>
+						<div class="col-md-10" wicket:id="objectClass" />
+					</wicket:enclosure>
+				</div>
+			</div>
+			
+			<div class="col-md-1"></div>
+			
+			<div class="col-md-4">
+				<div class="form-group">
+					<label class="col-md-4 control-label"><wicket:message key="ResourceContentTabPanel.searchType" /></label>
+					<div class="btn-group col-md-6">
+						<a class="btn btn-sm btn-default" wicket:id="repositorySearch"> 
+							<wicket:message key="ResourceContentTabPanel.searchType.repository" />
 						</a>
-						<a class="btn btn-default" wicket:id="resourceSearch"> 
-							<label><wicket:message key="ResourceContentTabPanel.searchType.resource" /></label>
+						<a class="btn btn-sm btn-default" wicket:id="resourceSearch"> 
+							<wicket:message key="ResourceContentTabPanel.searchType.resource" />
 						</a>
 					</div>
 				</div>
-	
 			</div>
+			
 		</div>
 	
 		<div class="row">

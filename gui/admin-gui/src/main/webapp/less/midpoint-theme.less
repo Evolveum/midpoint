@@ -213,6 +213,11 @@ th.cog, td.cog {
 	color: @object-task-color;
 }
 
+.object-shadow-color {
+	color: @object-shadow-color;
+}
+
+
 .object-user-bg {
 	background-color: @object-user-color !important;
 	color: #fff !important;
@@ -240,6 +245,11 @@ th.cog, td.cog {
 
 .object-task-bg {
 	background-color: @object-task-color !important;
+	color: #fff !important;
+}
+
+.object-shadow-bg {
+	background-color: @object-shadow-color !important;
 	color: #fff !important;
 }
 
@@ -284,6 +294,10 @@ th.cog, td.cog {
 	#box-object(@object-resource-color);
 }
 
+.object-shadow-box {
+	#box-object(@object-shadow-color);
+}
+
 #box-thin-object(@color) {
 	border: 1px solid @color;
 	
@@ -312,6 +326,10 @@ th.cog, td.cog {
 	#box-thin-object(@object-resource-color);
 }
 
+.object-shadow-box-thin {
+	#box-thin-object(@object-shadow-color);
+}
+
 // Summary panel (panel above the edit user/role/org forms)
 
 #info-box-summary-panel(@color) {
@@ -337,6 +355,10 @@ th.cog, td.cog {
 
 .info-box.summary-panel-resource {
 	#info-box-summary-panel(@object-resource-color);
+}
+
+.info-box.summary-panel-shadow {
+	#info-box-summary-panel(@object-shadow-color);
 }
 
 #info-box-icon-summary-panel(@color){
@@ -367,6 +389,10 @@ th.cog, td.cog {
 
 .info-box-icon.summary-panel-resource {
 	#info-box-icon-summary-panel(@object-resource-color);
+}
+
+.info-box-icon.summary-panel-shadow {
+	#info-box-icon-summary-panel(@object-shadow-color);
 }
 
 // End-user home (PageSelfDashboard)
@@ -406,12 +432,29 @@ th.cog, td.cog {
 }
 
 // capability buttons in resource details page
+
 .btn-resource-capability {
 	width: 90px;
 	height: 75px;
 	padding-top: 10px;
 	white-space: normal;
 }
+
+// resource content pages (ResourceContentPanel)
+
+.resource-content-selection {
+	
+	.form-group {
+		margin-bottom: 5px;
+	}
+}
+
+.control-suffix {
+	text-align: left !important;
+	padding-left: 0px;
+}
+
+// Feedback messages ???
 
 .feedback-message.box {
 	box-shadow: 0 0px 0px rgba(0, 0, 0, 0.1);
@@ -779,7 +822,7 @@ div.dashAssignmentHeader {
 
 .projection {
 	margin-bottom: 10px;
-	#box-thin-object(@box-projection-color); 
+	#box-thin-object(@object-shadow-color); 
 	
 	.box-header {
 		

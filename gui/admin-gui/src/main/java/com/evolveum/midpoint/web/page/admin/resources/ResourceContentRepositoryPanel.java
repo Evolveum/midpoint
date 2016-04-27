@@ -39,11 +39,6 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 	}
 
 	@Override
-	protected void initCustomLayout() {
-	
-	}
-
-	@Override
 	protected SelectorOptions<GetOperationOptions> addAdditionalOptions() {
 		return new SelectorOptions<GetOperationOptions>(GetOperationOptions.createNoFetch());
 	}

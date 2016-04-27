@@ -151,13 +151,9 @@ public class PageRoles extends PageAdminRoles {
 			setResponsePage(PageRole.class);
 				
 			}
-			
-			@Override
-        	protected String getBoxCssClasses() {
-        		return GuiStyleConstants.CLASS_BOX + " " + GuiStyleConstants.CLASS_OBJECT_ROLE_BOX_CSS_CLASSES;
-        	}
 		};
 		roleListPanel.setOutputMarkupId(true);
+		roleListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_ROLE_BOX_CSS_CLASSES);
 		mainForm.add(roleListPanel);
 
 //        ObjectDataProvider provider = new ObjectDataProvider(PageRoles.this, RoleType.class) {

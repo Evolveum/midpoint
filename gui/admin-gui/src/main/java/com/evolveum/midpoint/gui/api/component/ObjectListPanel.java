@@ -85,6 +85,8 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 	
 	private TableId tableId;
 
+	private String addutionalBoxCssClasses;
+
 	public Class<T> getType() {
 		return type;
 	}
@@ -235,8 +237,8 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 			}
 
 			@Override
-			protected String getBoxCssClasses() {
-				return ObjectListPanel.this.getBoxCssClasses();
+			public String getAdditionalBoxCssClasses() {
+				return ObjectListPanel.this.getAdditionalBoxCssClasses();
 			}
 
 			@Override
@@ -258,8 +260,12 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		return table;
 	}
 
-	protected String getBoxCssClasses() {
-		return null;
+	public String getAdditionalBoxCssClasses() {
+		return addutionalBoxCssClasses;
+	}
+
+	public void setAdditionalBoxCssClasses(String boxCssClasses) {
+		this.addutionalBoxCssClasses = boxCssClasses;
 	}
 
 	/**

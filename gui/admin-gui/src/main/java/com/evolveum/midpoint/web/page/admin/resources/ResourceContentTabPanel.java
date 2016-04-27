@@ -34,6 +34,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -61,9 +62,8 @@ public class ResourceContentTabPanel extends Panel {
 	private static final String DOT_CLASS = ResourceContentTabPanel.class.getName() + ".";
 
 	private static final String ID_INTENT = "intent";
+	private static final String ID_REAL_OBJECT_CLASS = "realObjectClass";
 	private static final String ID_OBJECT_CLASS = "objectClass";
-	private static final String ID_INTENT_LABEL = "intentLabel";
-	private static final String ID_OBJECT_CLASS_LABEL = "objectClassLabel";
 	private static final String ID_MAIN_FORM = "mainForm";
 
 	private static final String ID_REPO_SEARCH = "repositorySearch";
@@ -100,28 +100,16 @@ public class ResourceContentTabPanel extends Panel {
 		intentModel = new Model<String>();
 		objectClassModel = new Model<QName>();
 	
-		initLayout(model);
+		initLayout(model, parentPage);
 	}
 
 	
-	private void initLayout(final IModel<PrismObject<ResourceType>> model) {
-			
+	private void initLayout(final IModel<PrismObject<ResourceType>> model, final PageBase parentPage) {
 		setOutputMarkupId(true);
 
-		Label intentLabel = new Label(ID_INTENT_LABEL, parentPage.createStringResource("ShadowType.intent"));
-		intentLabel.add(new VisibleEnableBehaviour() {
-			
-			@Override
-			public boolean isVisible() {
-				return !useObjectClass;
-			}
-		});
-		add(intentLabel);
 		AutoCompleteTextPanel<String> intent = new AutoCompleteTextPanel<String>(ID_INTENT, intentModel,
 				String.class) {
-
-		
-					private static final long serialVersionUID = 1L;
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public Iterator<String> getIterator(String input) {
@@ -136,12 +124,8 @@ public class ResourceContentTabPanel extends Panel {
 				return RefinedResourceSchema.getIntentsForKind(refinedSchema, kind).iterator();
 
 			}
-			
-			
-
 		};
 		intent.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
-			
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -154,6 +138,8 @@ public class ResourceContentTabPanel extends Panel {
 		});
 		intent.setOutputMarkupId(true);
 		intent.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public boolean isVisible() {
 				return !useObjectClass;
@@ -161,8 +147,30 @@ public class ResourceContentTabPanel extends Panel {
 		});
 		add(intent);
 		
+		Label realObjectClassLabel = new Label(ID_REAL_OBJECT_CLASS, new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getObject() {
+				RefinedObjectClassDefinition ocDef;
+				try {
+					RefinedResourceSchema refinedSchema = RefinedResourceSchema
+							.getRefinedSchema(model.getObject(), parentPage.getPrismContext());
+					ocDef = refinedSchema.getRefinedDefinition(kind, intentModel.getObject());
+					if (ocDef != null) {
+						return ocDef.getObjectClassDefinition().getTypeName().getLocalPart();
+					}
+				} catch (SchemaException e) {
+				}
+
+				return "NOT FOUND";
+			}
+		});
+		add(realObjectClassLabel);
+		
 		DropDownChoicePanel<QName> objectClass = new DropDownChoicePanel<QName>(ID_OBJECT_CLASS, objectClassModel, createObjectClassChoices(model), new QNameChoiceRenderer());
 		objectClass.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+			private static final long serialVersionUID = 1L;
 			
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
@@ -174,6 +182,7 @@ public class ResourceContentTabPanel extends Panel {
 		});
 		
 		objectClass.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 			
 			@Override
 			public boolean isVisible() {
@@ -182,18 +191,8 @@ public class ResourceContentTabPanel extends Panel {
 		});
 		add(objectClass);
 		
-		Label objectClassLabel = new Label(ID_OBJECT_CLASS_LABEL, parentPage.createStringResource("ShadowType.objectClass"));
-		objectClassLabel.add(new VisibleEnableBehaviour() {
-			
-			@Override
-			public boolean isVisible() {
-				return useObjectClass;
-			}
-		});
-		add(objectClassLabel);
-		
-
 		AjaxButton repoSearch = new AjaxButton(ID_REPO_SEARCH) {
+			private static final long serialVersionUID = 1L;
 			
 			@Override
 			public void onClick(AjaxRequestTarget target) {
@@ -203,18 +202,19 @@ public class ResourceContentTabPanel extends Panel {
 				mainForm.addOrReplace(initRepoContent(model));
 				target.add(getParent().addOrReplace(mainForm));
 				target.add(this);
-				target.add(getParent().get(ID_RESOURCE_SEARCH).add(AttributeModifier.replace("class", "btn btn-default")));
+				target.add(getParent().get(ID_RESOURCE_SEARCH).add(AttributeModifier.replace("class", "btn btn-sm btn-default")));
 			}
 			
 			@Override
 			protected void onBeforeRender() {
 				super.onBeforeRender();
-				if (!ResourceContentTabPanel.this.resourceSearchModel.getObject()) add(AttributeModifier.append("class", " active"));
+				if (!ResourceContentTabPanel.this.resourceSearchModel.getObject()) add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));
 			}
 		};
 		add(repoSearch);
 		
 		AjaxButton resourceSearch = new AjaxButton(ID_RESOURCE_SEARCH) {
+			private static final long serialVersionUID = 1L;
 			
 			@Override
 			public void onClick(AjaxRequestTarget target) {
@@ -225,14 +225,14 @@ public class ResourceContentTabPanel extends Panel {
 //				mainForm.addOrReplace(initRepoContent(model));
 				target.add(getParent().addOrReplace(mainForm));
 				target.add(this.add(AttributeModifier.append("class", " active")));
-				target.add(getParent().get(ID_REPO_SEARCH).add(AttributeModifier.replace("class", "btn btn-default")));
+				target.add(getParent().get(ID_REPO_SEARCH).add(AttributeModifier.replace("class", "btn btn-sm btn-default")));
 			}
 			
 
 			@Override
 			protected void onBeforeRender() {
 				super.onBeforeRender();
-				if (ResourceContentTabPanel.this.resourceSearchModel.getObject()) add(AttributeModifier.append("class", " active"));
+				if (ResourceContentTabPanel.this.resourceSearchModel.getObject()) add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));
 			}
 		};
 		add(resourceSearch);

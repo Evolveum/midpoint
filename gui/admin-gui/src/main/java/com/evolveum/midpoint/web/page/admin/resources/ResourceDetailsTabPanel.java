@@ -151,14 +151,8 @@ public class ResourceDetailsTabPanel extends Panel{
 		tableColumns.add(tasksColumn);
 
 		BoxedTablePanel<ResourceConfigurationDto> resourceConfig = new BoxedTablePanel(
-				"resourceConfig", resourceConfigProvider, tableColumns) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected String getBoxCssClasses() {
-				return "box box-success";
-			}
-		};
+				"resourceConfig", resourceConfigProvider, tableColumns);
+		resourceConfig.setAdditionalBoxCssClasses("box-success");
 		add(resourceConfig);
 		
 		

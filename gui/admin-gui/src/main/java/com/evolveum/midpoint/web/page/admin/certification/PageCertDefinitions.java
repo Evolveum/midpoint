@@ -86,6 +86,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 		add(mainForm);
 
 		MainObjectListPanel<AccessCertificationDefinitionType> mainPanel = new MainObjectListPanel<AccessCertificationDefinitionType>(ID_TABLE, AccessCertificationDefinitionType.class, TableId.PAGE_CERT_DEFINITIONS_PANEL, null, this) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected IColumn<SelectableBean<AccessCertificationDefinitionType>, String> createCheckboxColumn() {
@@ -111,13 +112,8 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 			protected void newObjectPerformed(AjaxRequestTarget target) {
 				setResponsePage(PageCertDefinition.class);
 			}
-
-			@Override
-			protected String getBoxCssClasses() {
-				return GuiStyleConstants.CLASS_BOX + " " + GuiStyleConstants.CLASS_OBJECT_CERT_DEF_BOX_CSS_CLASSES;
-			}
-
 		};
+		mainPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_CERT_DEF_BOX_CSS_CLASSES);
 		mainForm.add(mainPanel);
 	}
 
