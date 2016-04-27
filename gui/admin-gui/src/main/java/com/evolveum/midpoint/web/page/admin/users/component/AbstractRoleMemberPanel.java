@@ -63,6 +63,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -107,20 +108,20 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	protected static final String ID_MANAGER_TABLE = "managerTable";
 	protected static final String ID_MEMBER_TABLE = "memberTable";
 	
-	public AbstractRoleMemberPanel(String id, IModel<T> model, PageBase parentPage) {
+	public AbstractRoleMemberPanel(String id, TableId tableId, IModel<T> model, PageBase parentPage) {
 		super(id, model);
 		setParent(parentPage);
-		initLayout();
+		initLayout(tableId);
 	}
 	
-	private void initLayout(){
+	private void initLayout(TableId tableId){
 		Form form = new Form(ID_FORM);
 		form.setOutputMarkupId(true);
 		add(form);
 
 		initSearch(form);
 		
-		initMemberTable(form);
+		initMemberTable(tableId, form);
 		
 		initCustomLayout(form);
 	}
@@ -129,14 +130,14 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	
 	protected abstract void initSearch(Form form);
 
-	private void initMemberTable(Form form){
+	private void initMemberTable(TableId tableId, Form form){
 		WebMarkupContainer memberContainer = new WebMarkupContainer(ID_CONTAINER_MEMBER);
 		memberContainer.setOutputMarkupId(true);
 		memberContainer.setOutputMarkupPlaceholderTag(true);
 		form.add(memberContainer);
 
 		MainObjectListPanel<ObjectType> childrenListPanel = new MainObjectListPanel<ObjectType>(
-				ID_MEMBER_TABLE, ObjectType.class, null, getPageBase()) {
+				ID_MEMBER_TABLE, ObjectType.class, tableId, null, getPageBase()) {
 
 			@Override
 			protected void objectDetailsPerformed(AjaxRequestTarget target, ObjectType object) {

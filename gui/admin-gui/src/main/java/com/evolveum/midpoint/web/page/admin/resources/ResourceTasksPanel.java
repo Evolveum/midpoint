@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider2;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -113,7 +114,7 @@ public class ResourceTasksPanel extends Panel{
 	}
 	
 	private void initLayout(final ListModel<TaskType> tasks){
-		final MainObjectListPanel<TaskType> tasksPanel = new MainObjectListPanel<TaskType>(ID_TASKS_TABLE, TaskType.class, null, pageBase) {
+		final MainObjectListPanel<TaskType> tasksPanel = new MainObjectListPanel<TaskType>(ID_TASKS_TABLE, TaskType.class, TableId.PAGE_RESOURCE_TASKS_PANEL, null, pageBase) {
 			
 			@Override
 			protected BaseSortableDataProvider<SelectableBean<TaskType>> getProvider() {

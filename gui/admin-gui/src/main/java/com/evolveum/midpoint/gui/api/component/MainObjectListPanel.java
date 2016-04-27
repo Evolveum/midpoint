@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -48,8 +49,8 @@ public abstract class MainObjectListPanel<T extends ObjectType> extends ObjectLi
     private static final String ID_IMPORT_OBJECT = "importObject";
     private static final String ID_BUTTON_BAR = "buttonBar";
 
-    public MainObjectListPanel(String id, Class<T> type, Collection<SelectorOptions<GetOperationOptions>> options, PageBase parentPage) {
-        super(id, type, options, parentPage);
+    public MainObjectListPanel(String id, Class<T> type, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options, PageBase parentPage) {
+        super(id, type, tableId, options, parentPage);
     }
 
     @Override

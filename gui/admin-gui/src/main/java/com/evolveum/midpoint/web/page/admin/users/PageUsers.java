@@ -62,6 +62,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -149,7 +150,7 @@ public class PageUsers extends PageAdminUsers {
 //		options.add(SelectorOptions.create(UserType.F_ASSIGNMENT,
 //				GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
 		MainObjectListPanel<UserType> userListPanel = new MainObjectListPanel<UserType>(ID_TABLE,
-				UserType.class, options, this) {
+				UserType.class, TableId.TABLE_USERS, options, this) {
 
 			@Override
 			protected List<IColumn<SelectableBean<UserType>, String>> createColumns() {

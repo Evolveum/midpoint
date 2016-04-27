@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import org.apache.wicket.Component;
@@ -84,7 +85,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 		Form mainForm = new Form(ID_MAIN_FORM);
 		add(mainForm);
 
-		MainObjectListPanel<AccessCertificationDefinitionType> mainPanel = new MainObjectListPanel<AccessCertificationDefinitionType>(ID_TABLE, AccessCertificationDefinitionType.class, null, this) {
+		MainObjectListPanel<AccessCertificationDefinitionType> mainPanel = new MainObjectListPanel<AccessCertificationDefinitionType>(ID_TABLE, AccessCertificationDefinitionType.class, TableId.PAGE_CERT_DEFINITIONS_PANEL, null, this) {
 
 			@Override
 			protected IColumn<SelectableBean<AccessCertificationDefinitionType>, String> createCheckboxColumn() {

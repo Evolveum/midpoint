@@ -82,6 +82,8 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 	private Collection<SelectorOptions<GetOperationOptions>> options;
 
 	private boolean multiselect;
+	
+	private TableId tableId;
 
 	public Class<T> getType() {
 		return type;
@@ -98,23 +100,24 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		storageMap.put(PageServices.class, SessionStorage.KEY_SERVICES);
 	}
 	
-	private static Map<Class, TableId> tablePagingMap;
+//	private static Map<Class, TableId> tablePagingMap;
 
-	static {
-		tablePagingMap = new HashMap<Class, TableId>();
-		tablePagingMap.put(PageResources.class, TableId.PAGE_RESOURCES_PANEL);
-		tablePagingMap.put(PageReports.class, TableId.PAGE_REPORTS);
-		tablePagingMap.put(PageRoles.class, TableId.TABLE_ROLES);
-		tablePagingMap.put(PageServices.class, TableId.TABLE_SERVICES);
-		tablePagingMap.put(PageUsers.class, TableId.TABLE_USERS);
-	}
+//	static {
+//		tablePagingMap = new HashMap<Class, TableId>();
+//		tablePagingMap.put(PageResources.class, TableId.PAGE_RESOURCES_PANEL);
+//		tablePagingMap.put(PageReports.class, TableId.PAGE_REPORTS);
+//		tablePagingMap.put(PageRoles.class, TableId.TABLE_ROLES);
+//		tablePagingMap.put(PageServices.class, TableId.TABLE_SERVICES);
+//		tablePagingMap.put(PageUsers.class, TableId.TABLE_USERS);
+//	}
 
-	public ObjectListPanel(String id, Class<T> type, Collection<SelectorOptions<GetOperationOptions>> options,
+	public ObjectListPanel(String id, Class<T> type, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
 			PageBase parentPage) {
 		super(id);
 		this.type = type;
 		this.parentPage = parentPage;
 		this.options = options;
+		this.tableId = tableId;
 		initLayout();
 	}
 
@@ -221,9 +224,9 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		provider = getProvider();
 		provider.setQuery(getQuery());
 
-		TableId tableId = tablePagingMap.get(parentPage.getClass());
+//		TableId tableId = tablePagingMap.get(parentPage.getClass());
 		BoxedTablePanel<SelectableBean<T>> table = new BoxedTablePanel<SelectableBean<T>>(ID_TABLE, provider,
-				columns, tableId, parentPage.getSessionStorage().getUserProfile().getPagingSize(tableId)) {
+				columns, tableId, tableId == null ? 10 : parentPage.getSessionStorage().getUserProfile().getPagingSize(tableId)) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
