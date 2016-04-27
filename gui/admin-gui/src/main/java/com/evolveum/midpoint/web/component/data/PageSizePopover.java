@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.web.component.data;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -17,7 +18,7 @@ import org.apache.wicket.validation.validator.RangeValidator;
 /**
  * @author lazyman
  */
-public class PageSizePopover extends SimplePanel {
+public class PageSizePopover extends BasePanel {
 
     private static final String ID_POP_BUTTON = "popButton";
     private static final String ID_POPOVER = "popover";
@@ -28,6 +29,7 @@ public class PageSizePopover extends SimplePanel {
     public PageSizePopover(String id) {
         super(id);
         setRenderBodyOnly(true);
+        initLayout();
     }
 
     @Override
@@ -46,7 +48,6 @@ public class PageSizePopover extends SimplePanel {
     }
 
 
-    @Override
     protected void initLayout() {
         Button popButton = new Button(ID_POP_BUTTON);
         popButton.setOutputMarkupId(true);

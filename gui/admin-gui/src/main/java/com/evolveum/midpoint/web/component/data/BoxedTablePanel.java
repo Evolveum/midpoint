@@ -22,6 +22,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -62,6 +63,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
 	private UserProfileStorage.TableId tableId;
 	private boolean showPaging;
+	private String additionalBoxCssClasses = null;
 
 	public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
 		this(id, provider, columns, null, Integer.MAX_VALUE);
@@ -82,10 +84,19 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
 	private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider, int pageSize) {
 		WebMarkupContainer box = new WebMarkupContainer(ID_BOX);
-		String boxCssClasses = getBoxCssClasses();
-		if (boxCssClasses != null) {
-			box.add(new AttributeModifier("class", boxCssClasses));
-		}
+		box.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getObject() {
+				String boxCssClasses = getAdditionalBoxCssClasses();
+				if (boxCssClasses == null) {
+					return "";
+				} else {
+					return " " + boxCssClasses;
+				}
+			}
+		}));
 		add(box);
 
 		WebMarkupContainer tableContainer = new WebMarkupContainer(ID_TABLE_CONTAINER);
@@ -110,8 +121,12 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 		box.add(createFooter(ID_FOOTER));
 	}
 
-	protected String getBoxCssClasses() {
-		return null;
+	public String getAdditionalBoxCssClasses() {
+		return additionalBoxCssClasses;
+	}
+
+	public void setAdditionalBoxCssClasses(String boxCssClasses) {
+		this.additionalBoxCssClasses = boxCssClasses;
 	}
 
 	// TODO better name?

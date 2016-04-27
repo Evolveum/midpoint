@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ public class ValueOperation extends Operation {
 			try {
 				QName propName = valueFilter.getDefinition().getName();
 				String icfName = icfNameMapper.convertAttributeNameToIcf(propName, getInterpreter()
-						.getObjectClassDefinition());
+						.getObjectClassDefinition(), "(attribute in the filter)");
 				
 				if (objectFilter instanceof EqualFilter) {
 					EqualFilter<T> eq = (EqualFilter<T>) objectFilter;

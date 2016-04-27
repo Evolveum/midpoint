@@ -123,6 +123,8 @@ public class ColumnUtils {
 			return getOrgIconColumn();
 		} else if (ServiceType.class.equals(type)) {
 			return getServiceIconColumn();
+		} else if (ShadowType.class.equals(type)) {
+			return getShadowIconColumn();
 		} else if (type.equals(TaskType.class)) {
 			return getTaskIconColumn();
 		} else if (type.equals(ResourceType.class)) {

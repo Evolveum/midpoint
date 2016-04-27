@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.session;
 
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +38,10 @@ public class UserProfileStorage implements Serializable {
     public enum TableId {
         TABLE_ROLES,
         TABLE_USERS,
+        TABLE_SERVICES,
+        TABLE_RESOURCES,
+        ROLE_MEMEBER_PANEL,
+        ORG_MEMEBER_PANEL,
         TREE_TABLE_PANEL_CHILD,
         TREE_TABLE_PANEL_MEMBER,
         TREE_TABLE_PANEL_MANAGER,
@@ -44,6 +50,7 @@ public class UserProfileStorage implements Serializable {
         PAGE_CREATED_REPORTS_PANEL,
         PAGE_RESOURCE_PANEL,
         PAGE_RESOURCES_PANEL,
+        PAGE_RESOURCE_TASKS_PANEL,
         PAGE_RESOURCE_ACCOUNTS_PANEL,
         PAGE_TASKS_PANEL,
         PAGE_TASKS_NODES_PANEL,
@@ -59,6 +66,7 @@ public class UserProfileStorage implements Serializable {
 		PAGE_WORK_ITEM_HISTORY_PANEL,
 		PAGE_TASK_HISTORY_PANEL,
 		PAGE_TASK_CURRENT_WORK_ITEMS_PANEL
+		
     }
 
     private Map<TableId, Integer> tables = new HashMap<TableId, Integer>();

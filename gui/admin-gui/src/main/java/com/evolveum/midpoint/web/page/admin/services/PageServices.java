@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
@@ -69,10 +70,10 @@ public class PageServices extends PageAdminServices {
 	        add(mainForm);
 	        
 	      
-	        MainObjectListPanel<ServiceType> servicePanel = new MainObjectListPanel<ServiceType>(ID_TABLE, ServiceType.class, null, this){
-	        	
-	        
-	        	@Override
+	        MainObjectListPanel<ServiceType> servicePanel = new MainObjectListPanel<ServiceType>(ID_TABLE, ServiceType.class, TableId.TABLE_SERVICES, null, this){
+				private static final long serialVersionUID = 1L;
+
+				@Override
 	        	public void objectDetailsPerformed(AjaxRequestTarget target, ServiceType service) {
 	        		PageServices.this.serviceDetailsPerformed(target, service);
 	        	}
@@ -92,13 +93,8 @@ public class PageServices extends PageAdminServices {
 	        	protected void newObjectPerformed(AjaxRequestTarget target) {
 	        		setResponsePage(PageService.class);	
 	        	}
-	        	
-	        	@Override
-	        	protected String getBoxCssClasses() {
-	        		return GuiStyleConstants.CLASS_BOX + " " + GuiStyleConstants.CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES;
-	        	}
-	        	
 	        };
+	        servicePanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES);
 	        mainForm.add(servicePanel);
 	  
 	    }

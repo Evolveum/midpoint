@@ -79,6 +79,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -115,7 +116,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	private static final long serialVersionUID = 1L;
 
 	public OrgMemberPanel(String id, IModel<OrgType> model, PageBase parentPage) {
-		super(id, model, parentPage);
+		super(id, TableId.ORG_MEMEBER_PANEL, model, parentPage);
 	}
 
 	@Override
