@@ -36,6 +36,7 @@ public class UserProfileStorage implements Serializable {
     public enum TableId {
         TABLE_ROLES,
         TABLE_USERS,
+        TABLE_SERVICES,
         TREE_TABLE_PANEL_CHILD,
         TREE_TABLE_PANEL_MEMBER,
         TREE_TABLE_PANEL_MANAGER,

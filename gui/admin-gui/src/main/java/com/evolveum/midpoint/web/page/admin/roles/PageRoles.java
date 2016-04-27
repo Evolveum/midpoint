@@ -94,7 +94,7 @@ public class PageRoles extends PageAdminRoles {
     private IModel<Search> searchModel;
 
     public PageRoles() {
-        this(true);
+        this(false);
     }
 
     public PageRoles(boolean clearPagingInSession) {
