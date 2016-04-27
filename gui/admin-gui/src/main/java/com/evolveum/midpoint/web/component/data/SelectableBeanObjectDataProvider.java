@@ -46,24 +46,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author lazyman
+ * @author semancik
  */
-public class ObjectDataProvider2<W extends Serializable, T extends ObjectType>
-        extends BaseSortableDataProvider<W> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(ObjectDataProvider2.class);
-    private static final String DOT_CLASS = ObjectDataProvider2.class.getName() + ".";
+public class SelectableBeanObjectDataProvider<O extends ObjectType> extends BaseSortableDataProvider<SelectableBean<O>> {
+	private static final long serialVersionUID = 1L;
+	
+	private static final Trace LOGGER = TraceManager.getTrace(SelectableBeanObjectDataProvider.class);
+    private static final String DOT_CLASS = SelectableBeanObjectDataProvider.class.getName() + ".";
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
 
-    private Set<T> selected = new HashSet<>();
+    private Set<O> selected = new HashSet<>();
     
     private boolean emptyListOnNullQuery = false;
     private boolean useObjectCounting = true;
     
-    private Class<T> type;
+    private Class<O> type;
     private Collection<SelectorOptions<GetOperationOptions>> options;
 
-    public ObjectDataProvider2(Component component, Class<T> type) {
+    public SelectableBeanObjectDataProvider(Component component, Class<O> type) {
         super(component, true, true);
 
         Validate.notNull(type);
@@ -74,17 +75,15 @@ public class ObjectDataProvider2<W extends Serializable, T extends ObjectType>
     	selected.clear();
     }
     
-    public List<T> getSelectedData() {
+    public List<O> getSelectedData() {
     	preprocessSelectedDataInternal();
-    	for (Serializable s : super.getAvailableData()){
-    		if (s instanceof SelectableBean){
-    			SelectableBean<T> selectable = (SelectableBean<T>) s;
-    			if (selectable.isSelected()){
-    				selected.add(selectable.getValue());
-    			}
-    		}
+    	for (SelectableBean<O> s : super.getAvailableData()){
+			SelectableBean<O> selectable = (SelectableBean<O>) s;
+			if (selectable.isSelected()){
+				selected.add(selectable.getValue());
+			}
     	}
-    	List<T> allSelected = new ArrayList<>();
+    	List<O> allSelected = new ArrayList<>();
     	allSelected.addAll(selected);
     	return allSelected;
     }
@@ -95,35 +94,30 @@ public class ObjectDataProvider2<W extends Serializable, T extends ObjectType>
     }
     
     private void preprocessSelectedDataInternal(){
-    	for (W available : getAvailableData()){
-         	if (available instanceof SelectableBean){
-         		SelectableBean<T> selectableBean = (SelectableBean<T>) available;
-         		if (selectableBean.isSelected()){
-         			selected.add(selectableBean.getValue());
-         		}
-         	}
+    	for (SelectableBean<O> available : getAvailableData()){
+     		SelectableBean<O> selectableBean = (SelectableBean<O>) available;
+     		if (selectableBean.isSelected()){
+     			selected.add(selectableBean.getValue());
+     		}
          }
          
-         for (W available : getAvailableData()){
-         	if (available instanceof SelectableBean){
-         		SelectableBean<T> selectableBean = (SelectableBean<T>) available;
-         		if (!selectableBean.isSelected()){
-         			if (selected.contains(selectableBean.getValue())){
-         				selected.remove(selectableBean.getValue());
-         			}
-         		}
-         	}
+         for (SelectableBean<O> available : getAvailableData()){
+     		SelectableBean<O> selectableBean = (SelectableBean<O>) available;
+     		if (!selectableBean.isSelected()){
+     			if (selected.contains(selectableBean.getValue())){
+     				selected.remove(selectableBean.getValue());
+     			}
+     		}
          }
     }
     
    
     @Override
-    public Iterator<W> internalIterator(long first, long count) {
+    public Iterator<SelectableBean<O>> internalIterator(long first, long count) {
         LOGGER.trace("begin::iterator() from {} count {}.", new Object[]{first, count});
         
         preprocessSelectedData();
         
-
         OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
         try {
             ObjectPaging paging = createPaging(first, count);
@@ -132,7 +126,7 @@ public class ObjectDataProvider2<W extends Serializable, T extends ObjectType>
             ObjectQuery query = getQuery();
             if (query == null){
             	if (emptyListOnNullQuery){
-            		return new ArrayList<W>().iterator();
+            		return new ArrayList<SelectableBean<O>>().iterator();
             	}
             	query = new ObjectQuery();
             }
@@ -142,13 +136,13 @@ public class ObjectDataProvider2<W extends Serializable, T extends ObjectType>
             	LOGGER.trace("Query {} with {}", type.getSimpleName(), query.debugDump());
             }
 
-            List<PrismObject<T>> list = getModel().searchObjects(type, query, options, task, result);
+            List<PrismObject<O>> list = getModel().searchObjects(type, query, options, task, result);
             
             if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("Query {} resulted in {} objects", type.getSimpleName(), list.size());
             }
             
-            for (PrismObject<T> object : list) {
+            for (PrismObject<O> object : list) {
                 getAvailableData().add(createDataObjectWrapper(object.asObjectable()));
             }
         } catch (Exception ex) {
@@ -159,27 +153,34 @@ public class ObjectDataProvider2<W extends Serializable, T extends ObjectType>
         }
 
         if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-            handleNotSuccessOrHandledErrorInIterator(result);
+            return handleNotSuccessOrHandledErrorInIterator(result);
         }
 
-        LOGGER.trace("end::iterator()");
+        LOGGER.trace("end::iterator() {}", result);
         return getAvailableData().iterator();
     }
 
-    protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result){
-        getPage().showResult(result);
-        throw new RestartResponseException(PageError.class);
+    protected Iterator<SelectableBean<O>> handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
+    	LOGGER.trace("handling non-success result {}", result);
+        // page.showResult() will not work here. We are too deep in the rendering now.
+        // Also do NOT re-throw not redirect to to error page. That will break the page.
+    	// Just return a SelectableBean that indicates the error.
+        List<SelectableBean<O>> errorList = new ArrayList<>(1);
+        SelectableBean<O> bean = new SelectableBean<>();
+		bean.setResult(result);
+        errorList.add(bean);
+        return errorList.iterator();
     }
 
-    public W createDataObjectWrapper(T obj) {
-    	SelectableBean<T> selectable = new SelectableBean<T>(obj);
-    	for (T s : selected){
+    public SelectableBean<O> createDataObjectWrapper(O obj) {
+    	SelectableBean<O> selectable = new SelectableBean<O>(obj);
+    	for (O s : selected){
     		if (s.getOid().equals(obj.getOid())){
     			selectable.setSelected(true);
     		}
     	}
 
-        return (W) selectable;
+        return selectable;
     }
 
     @Override
@@ -220,7 +221,7 @@ public class ObjectDataProvider2<W extends Serializable, T extends ObjectType>
         cache.put(new TypedCacheKey(getQuery(), type), newSize);
     }
 
-    public void setType(Class<T> type) {
+    public void setType(Class<O> type) {
         Validate.notNull(type, "Class must not be null.");
         this.type = type;
 

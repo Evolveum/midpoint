@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,27 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 
 /**
  * @author lazyman
  */
-public class SelectableBean<T extends Serializable> extends Selectable implements InlineMenuable{
+public class SelectableBean<T extends Serializable> extends Selectable implements InlineMenuable {
+	private static final long serialVersionUID = 1L;
 
-    public static final String F_VALUE = "value";
+	public static final String F_VALUE = "value";
 
+    /**
+     * Value of object that this bean represents. It may be null in case that non-success result is set.
+     */
     private T value;
+    
+    /**
+     * Result of object retrieval (or attempt of object retrieval). It case that it is not error the result is optional.
+     */
+    private OperationResult result;
     
     private List<InlineMenuItem> menuItems;
 
@@ -49,26 +59,57 @@ public class SelectableBean<T extends Serializable> extends Selectable implement
         this.value = value;
     }
     
-    public List<InlineMenuItem> getMenuItems() {
+    public OperationResult getResult() {
+		return result;
+	}
+
+	public void setResult(OperationResult result) {
+		this.result = result;
+	}
+
+	public List<InlineMenuItem> getMenuItems() {
     	if (menuItems == null) {
     		menuItems = new ArrayList<InlineMenuItem>();
     	}
 		return menuItems;
 	}
-    
-    @Override
-    public boolean equals(Object obj) {
-    	if (!(obj instanceof SelectableBean)){
-    		return false;
-    	}
-    	
-    	T object = ((SelectableBean<T>) obj).getValue();
-    	return object.equals(value);
-    }
-    
-    @Override
-    public int hashCode() {
-    	int result = (value != null ? value.hashCode() : 0);
-    	return result;
-    }
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((this.result == null) ? 0 : this.result.hashCode());
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		SelectableBean other = (SelectableBean) obj;
+		if (result == null) {
+			if (other.result != null) {
+				return false;
+			}
+		} else if (!result.equals(other.result)) {
+			return false;
+		}
+		if (value == null) {
+			if (other.value != null) {
+				return false;
+			}
+		} else if (!value.equals(other.value)) {
+			return false;
+		}
+		return true;
+	}
+
 }

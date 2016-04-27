@@ -137,7 +137,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 
 		PropertyModel<String> nameModel = new PropertyModel<>(model, SceneDto.F_NAME);
 		Label headerNameLabel = new Label(ID_HEADER_NAME_LABEL, nameModel);
-		LinkPanel<String> headerNameLink = new LinkPanel<String>(ID_HEADER_NAME_LINK, nameModel) {
+		LinkPanel headerNameLink = new LinkPanel(ID_HEADER_NAME_LINK, nameModel) {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
