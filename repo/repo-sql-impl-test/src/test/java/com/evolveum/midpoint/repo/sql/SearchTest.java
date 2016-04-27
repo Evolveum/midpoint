@@ -476,4 +476,15 @@ public class SearchTest extends BaseSQLRepoTest {
         }
     }
 
+	@Test
+	public void testResourceUp() throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(ResourceType.class, prismContext)
+				.item(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS).eq(AvailabilityStatusType.UP)
+				.build();
+		OperationResult result = new OperationResult("search");
+		List<PrismObject<ResourceType>> resources = repositoryService.searchObjects(ResourceType.class, query, null, result);
+		result.recomputeStatus();
+		assertTrue(result.isSuccess());
+		assertEquals("Should find one resource", 1, resources.size());
+	}
 }
