@@ -17,45 +17,41 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-
-
-    <div class="clearfix">
-    <div class="box">
-	<div class="form-inline search-form">
-		<!--         <row class="form-inline pull-right search-form"> -->
-		<div class="form-group col-md-4">
-			<label wicket:id="intentLabel"></label>
-			<span wicket:id="intent" />
-		</div>
-		<div class="form-group col-md-4">
-			<label wicket:id="objectClassLabel"></label>
-			<span wicket:id="objectClass" />
-		</div>
+	<div class="container">
+		<div class="row">
+			<div class="form-horizontal">
+	
+				<div class="form-group">
+					<label class="col-md-2" wicket:id="intentLabel"></label>
+					<div class="col-md-3" wicket:id="intent" />
+				</div>
+				<div class="form-group">
+					<label class="col-md-2" wicket:id="objectClassLabel"></label>
+					<div class="col-md-3" wicket:id="objectClass" />
+				</div>
+				
 		
-
-		<div class="form-group col-md-4">
-			<label><wicket:message key="ResourceContentTabPanel.searchType" /></label>
-			<a class="btn btn-default" wicket:id="repositorySearch"> 
-				<label><wicket:message key="ResourceContentTabPanel.searchType.repository" /></label>
-			</a>
-			<a class="btn btn-default" wicket:id="resourceSearch"> 
-				<label><wicket:message key="ResourceContentTabPanel.searchType.resource" /></label>
-			</a>
-		
+				<div class="form-group">
+					<label class="col-md-2"><wicket:message key="ResourceContentTabPanel.searchType" /></label>
+					<div class="btn-group col-md-3">
+						<a class="btn btn-default" wicket:id="repositorySearch"> 
+							<label><wicket:message key="ResourceContentTabPanel.searchType.repository" /></label>
+						</a>
+						<a class="btn btn-default" wicket:id="resourceSearch"> 
+							<label><wicket:message key="ResourceContentTabPanel.searchType.resource" /></label>
+						</a>
+					</div>
+				</div>
+	
+			</div>
 		</div>
-
-
+	
+		<div class="row">
+			<form wicket:id="mainForm">
+					<div wicket:id="table" />
+			</form>
+		</div>
 	</div>
-	</div>
-
-</div>
-
-<form wicket:id="mainForm">
-		<div wicket:id="table" />
-		
-</form>
-
-
 
 </wicket:panel>
 </html>

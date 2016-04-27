@@ -115,14 +115,10 @@ import com.fasterxml.jackson.databind.ser.std.CollectionSerializer;
 
 /**
  * Implementation classes : ResourceContentResourcePanel, ResourceContentRepositoryPanel
- * @author katka
+ * @author katkav
  *
  */
 public abstract class ResourceContentPanel extends Panel {
-
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceContentPanel.class);
@@ -202,8 +198,8 @@ public abstract class ResourceContentPanel extends Panel {
 //			}
 //		};
 
-MainObjectListPanel<ShadowType> shadowListPanel = new MainObjectListPanel<ShadowType>(ID_TABLE, ShadowType.class, null, pageBase) {
-			
+		MainObjectListPanel<ShadowType> shadowListPanel = new MainObjectListPanel<ShadowType>(ID_TABLE, ShadowType.class, null, pageBase) {
+			private static final long serialVersionUID = 1L;
 			
 			@Override
 			protected List<InlineMenuItem> createInlineMenu() {
@@ -263,6 +259,8 @@ MainObjectListPanel<ShadowType> shadowListPanel = new MainObjectListPanel<Shadow
 		};
 		shadowListPanel.setOutputMarkupId(true);
 		shadowListPanel.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public boolean isVisible() {
 				return createQuery() != null;
@@ -274,6 +272,8 @@ MainObjectListPanel<ShadowType> shadowListPanel = new MainObjectListPanel<Shadow
 		add(label);
 		label.setOutputMarkupId(true);
 		label.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public boolean isVisible() {
 				return createQuery() == null;
@@ -311,6 +311,7 @@ MainObjectListPanel<ShadowType> shadowListPanel = new MainObjectListPanel<Shadow
 	private ObjectDataProvider2<SelectableBean<ShadowType>, ShadowType> initProvider(){
 		ObjectDataProvider2<SelectableBean<ShadowType>, ShadowType> provider = new ObjectDataProvider2<SelectableBean<ShadowType>, ShadowType>(
 				this, ShadowType.class) {
+			private static final long serialVersionUID = 1L;
 			
 			@Override
 			public SelectableBean<ShadowType> createDataObjectWrapper(ShadowType obj) {
@@ -489,6 +490,7 @@ MainObjectListPanel<ShadowType> shadowListPanel = new MainObjectListPanel<Shadow
 		columns.addAll((Collection) ColumnUtils.createColumns(columnDefs));
 		column = new LinkColumn<SelectableBean<ShadowType>>(createStringResource("pageContentAccounts.owner"),
 				true) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected IModel createLinkModel(final IModel<SelectableBean<ShadowType>> rowModel) {
@@ -517,11 +519,13 @@ MainObjectListPanel<ShadowType> shadowListPanel = new MainObjectListPanel<Shadow
 		};
 		columns.add(column);
 		
-		columns.add(new LinkColumn<SelectableBean<ShadowType>>(createStringResource("PageAccounts.accounts.result")){
+		columns.add(new LinkColumn<SelectableBean<ShadowType>>(createStringResource("PageAccounts.accounts.result")) {
+			private static final long serialVersionUID = 1L;
 
             @Override
             protected IModel<String> createLinkModel(final IModel<SelectableBean<ShadowType>> rowModel){
                 return new AbstractReadOnlyModel<String>() {
+                	private static final long serialVersionUID = 1L;
 
                     @Override
                     public String getObject() {

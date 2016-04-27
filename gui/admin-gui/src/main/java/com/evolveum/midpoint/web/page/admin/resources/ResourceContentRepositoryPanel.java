@@ -30,11 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-public class ResourceContentRepositoryPanel extends ResourceContentPanel{
-
-	/**
-	 * 
-	 */
+public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 	private static final long serialVersionUID = 1L;
 
 	public ResourceContentRepositoryPanel(String id, IModel<PrismObject<ResourceType>> resourceModel,
@@ -46,7 +42,6 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel{
 	protected void initCustomLayout() {
 	
 	}
-
 
 	@Override
 	protected SelectorOptions<GetOperationOptions> addAdditionalOptions() {
