@@ -628,8 +628,8 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		// THEN
 		result.computeStatus();
 		display("getObject result", result);
-		assertEquals("Expected partial errror in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
-		
+		TestUtil.assertSuccess(result);
+
 		assertNoObject(ResourceType.class, RESOURCE_DUMMY_NO_CONFIGURATION_OID, task, result);
 	}
 
