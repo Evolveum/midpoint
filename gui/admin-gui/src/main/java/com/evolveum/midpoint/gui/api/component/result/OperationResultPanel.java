@@ -62,6 +62,8 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 	private static final String ID_MESSAGE = "message";
 	private static final String ID_MESSAGE_LABEL = "messageLabel";
 	private static final String ID_BACKGROUND_TASK = "backgroundTask";
+	private static final String ID_SHOW_ALL = "showAll";
+	private static final String ID_HIDE_ALL = "hideAll";
 
 	static final String OPERATION_RESOURCE_KEY_PREFIX = "operation.";
 
@@ -96,22 +98,22 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 				OpResult message = getModelObject();
 
 				switch (message.getStatus()) {
-				case IN_PROGRESS:
-				case NOT_APPLICABLE:
-					sb.append(" fa-info");
-					break;
-				case SUCCESS:
-					sb.append(" fa-check");
-					break;
-				case FATAL_ERROR:
-					sb.append(" fa-ban");
-					break;
-				case PARTIAL_ERROR:
-				case UNKNOWN:
-				case WARNING:
-				case HANDLED_ERROR:
-				default:
-					sb.append(" fa-warning");
+					case IN_PROGRESS:
+					case NOT_APPLICABLE:
+						sb.append(" fa-info");
+						break;
+					case SUCCESS:
+						sb.append(" fa-check");
+						break;
+					case FATAL_ERROR:
+						sb.append(" fa-ban");
+						break;
+					case PARTIAL_ERROR:
+					case UNKNOWN:
+					case WARNING:
+					case HANDLED_ERROR:
+					default:
+						sb.append(" fa-warning");
 				}
 
 				return sb.toString();
@@ -119,7 +121,6 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		}));
 
 		box.add(iconType);
-		
 
 		Label message = createMessage();
 
@@ -147,7 +148,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 				final OpResult opResult = OperationResultPanel.this.getModelObject();
 				String oid = opResult.getBackgroundTaskOid();
 				if (oid == null || !opResult.isBackgroundTaskVisible()) {
-					return;		// just for safety
+					return; // just for safety
 				}
 				ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(oid, ObjectTypes.TASK);
 				WebComponentUtil.dispatchToObjectDetailsPage(ref, getPageBase());
@@ -156,12 +157,13 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		backgroundTask.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return getModelObject().getBackgroundTaskOid() != null && getModelObject().isBackgroundTaskVisible();
+				return getModelObject().getBackgroundTaskOid() != null
+						&& getModelObject().isBackgroundTaskVisible();
 			}
 		});
 		box.add(backgroundTask);
 
-		AjaxLink showAll = new AjaxLink("showAll") {
+		AjaxLink showAll = new AjaxLink(ID_SHOW_ALL) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -170,10 +172,17 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 				showHideAll(true, OperationResultPanel.this.getModelObject(), target);
 			}
 		};
+		showAll.add(new VisibleEnableBehaviour() {
+
+			@Override
+			public boolean isVisible() {
+				return !OperationResultPanel.this.getModelObject().isShowMore();
+			}
+		});
 
 		box.add(showAll);
 
-		AjaxLink hideAll = new AjaxLink("hideAll") {
+		AjaxLink hideAll = new AjaxLink(ID_HIDE_ALL) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -182,9 +191,16 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 				showHideAll(false, OperationResultPanel.this.getModel().getObject(), target);
 			}
 		};
+		hideAll.add(new VisibleEnableBehaviour() {
+
+			@Override
+			public boolean isVisible() {
+				return OperationResultPanel.this.getModelObject().isShowMore();
+			}
+		});
 
 		box.add(hideAll);
-		
+
 		AjaxLink close = new AjaxLink("close") {
 
 			private static final long serialVersionUID = 1L;
@@ -192,7 +208,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				close(target);
-				
+
 			}
 		};
 
@@ -221,13 +237,11 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		box.add(downloadXml);
 	}
 
-	public void close(AjaxRequestTarget target){
+	public void close(AjaxRequestTarget target) {
 		this.setVisible(false);
 		target.add(this);
 	}
-	
-	
-	
+
 	private Label createMessage() {
 		Label message = null;
 		if (StringUtils.isNotBlank(getModelObject().getMessage())) {
@@ -251,7 +265,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 	}
 
 	private void initDetails(WebMarkupContainer box) {
-		
+
 		final WebMarkupContainer details = new WebMarkupContainer("details", getModel());
 		details.setOutputMarkupId(true);
 		details.add(new VisibleEnableBehaviour() {
@@ -263,7 +277,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		});
 
 		box.add(details);
-		
+
 		WebMarkupContainer operationPanel = new WebMarkupContainer("type");
 		operationPanel.setOutputMarkupId(true);
 		operationPanel.add(new AttributeAppender("class", new LoadableModel<String>() {
@@ -274,7 +288,8 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		}, " "));
 		details.add(operationPanel);
 
-		Label operationLabel = new Label("operationLabel", getString("FeedbackAlertMessageDetails.operation"));
+		Label operationLabel = new Label("operationLabel",
+				getString("FeedbackAlertMessageDetails.operation"));
 		operationLabel.setOutputMarkupId(true);
 		operationPanel.add(operationLabel);
 
@@ -303,9 +318,10 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		operationPanel.add(count);
 		operationPanel.add(initCountPanel(getModel()));
 
-		Label message = new Label("resultMessage", new PropertyModel<String>(getModel(), "message").getObject());// PageBase.new
-																											// PropertyModel<String>(model,
-																											// "message"));
+		Label message = new Label("resultMessage",
+				new PropertyModel<String>(getModel(), "message").getObject());// PageBase.new
+		// PropertyModel<String>(model,
+		// "message"));
 		message.setOutputMarkupId(true);
 
 		message.add(new VisibleEnableBehaviour() {
@@ -535,20 +551,20 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 				}
 
 				switch (result.getStatus()) {
-				case IN_PROGRESS:
-				case NOT_APPLICABLE:
-					return " box-info";
-				case SUCCESS:
-					return " box-success";
-				case FATAL_ERROR:
-				
-					return " box-danger";
-				case UNKNOWN:
-				case PARTIAL_ERROR:
-				case HANDLED_ERROR: // TODO:
-				case WARNING:
-				default:
-					return " box-warning";
+					case IN_PROGRESS:
+					case NOT_APPLICABLE:
+						return " box-info";
+					case SUCCESS:
+						return " box-success";
+					case FATAL_ERROR:
+
+						return " box-danger";
+					case UNKNOWN:
+					case PARTIAL_ERROR:
+					case HANDLED_ERROR: // TODO:
+					case WARNING:
+					default:
+						return " box-warning";
 				}
 			}
 
@@ -601,20 +617,20 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		}
 
 		switch (result.getStatus()) {
-		case IN_PROGRESS:
-		case NOT_APPLICABLE:
-			return "left-info";
-		case SUCCESS:
-			return "left-success";
-		case FATAL_ERROR:
-		
-			return "left-danger";
-		case UNKNOWN:
-		case PARTIAL_ERROR:
-		case HANDLED_ERROR: // TODO:
-		case WARNING:
-		default:
-			return "left-warning";
+			case IN_PROGRESS:
+			case NOT_APPLICABLE:
+				return "left-info";
+			case SUCCESS:
+				return "left-success";
+			case FATAL_ERROR:
+
+				return "left-danger";
+			case UNKNOWN:
+			case PARTIAL_ERROR:
+			case HANDLED_ERROR: // TODO:
+			case WARNING:
+			default:
+				return "left-warning";
 		}
 	}
 
@@ -626,43 +642,42 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		}
 
 		switch (result.getStatus()) {
-		case IN_PROGRESS:
-		case NOT_APPLICABLE:
-			return "fa-info-circle  text-info";
-		case SUCCESS:
-			return "fa-check-circle-o text-success";
-		case FATAL_ERROR:
-		
-			return "fa-times-circle-o text-danger";
-		case UNKNOWN:
-		case PARTIAL_ERROR:
-		case HANDLED_ERROR: // TODO:
-		case WARNING:
-		default:
-			return "fa-warning text-warning";
+			case IN_PROGRESS:
+			case NOT_APPLICABLE:
+				return "fa-info-circle  text-info";
+			case SUCCESS:
+				return "fa-check-circle-o text-success";
+			case FATAL_ERROR:
+
+				return "fa-times-circle-o text-danger";
+			case UNKNOWN:
+			case PARTIAL_ERROR:
+			case HANDLED_ERROR: // TODO:
+			case WARNING:
+			default:
+				return "fa-warning text-warning";
 		}
 	}
 
 	static String createMessageTooltip(final IModel<FeedbackMessage> model) {
 		FeedbackMessage message = model.getObject();
 		switch (message.getLevel()) {
-		case FeedbackMessage.INFO:
-			return "info";
-		case FeedbackMessage.SUCCESS:
-			return "success";
-		case FeedbackMessage.ERROR:
-			return "partialError";
-		case FeedbackMessage.FATAL:
-			return "fatalError";
-		case FeedbackMessage.UNDEFINED:
-			return "undefined";
-		case FeedbackMessage.DEBUG:
-			return "debug";
-		case FeedbackMessage.WARNING:
-		default:
-			return "warn";
+			case FeedbackMessage.INFO:
+				return "info";
+			case FeedbackMessage.SUCCESS:
+				return "success";
+			case FeedbackMessage.ERROR:
+				return "partialError";
+			case FeedbackMessage.FATAL:
+				return "fatalError";
+			case FeedbackMessage.UNDEFINED:
+				return "undefined";
+			case FeedbackMessage.DEBUG:
+				return "debug";
+			case FeedbackMessage.WARNING:
+			default:
+				return "warn";
 		}
 	}
 
-	
 }
