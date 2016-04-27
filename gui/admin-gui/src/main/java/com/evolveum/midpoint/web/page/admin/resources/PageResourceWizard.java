@@ -40,6 +40,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -55,44 +56,59 @@ import java.util.Collection;
 public class PageResourceWizard extends PageAdminResources {
 
     private static final String ID_WIZARD = "wizard";
-    private LoadableModel<PrismObject<ResourceType>> model;
+
+	// these models should be reset after each 'save' operation, in order to fetch current data (on demand)
+	// each step should use corresponding model
+	// these models have always non-null content
+    private LoadableModel<PrismObject<ResourceType>> modelRaw;				// contains resolved connector as well
+    private LoadableModel<PrismObject<ResourceType>> modelNoFetch;
+    private LoadableModel<PrismObject<ResourceType>> modelFull;
+
+	// for new resources: should be set after first save; for others: should be set on page creation
     private String editedResourceOid;
 
     public PageResourceWizard(@NotNull PageParameters parameters) {
         getPageParameters().overwriteWith(parameters);						// to be available in the constructor as well
 
-        editedResourceOid = getResourceOid();
+        editedResourceOid = getResourceOid();								// might be null at this moment
 
-        model = new LoadableModel<PrismObject<ResourceType>>(false) {
-
-            @Override
-            protected PrismObject<ResourceType> load() {
-                try {
-                    if (editedResourceOid == null) {
-                        ResourceType resource = new ResourceType();
-                        PageResourceWizard.this.getPrismContext().adopt(resource);
-                        return resource.asPrismObject();
-                    }
-
-					PrismObject<ResourceType> resource = loadResource();
-					if (resource == null) {
-						throw new RestartResponseException(PageError.class);
-					}
-
-					// TODO try raw if some problems
-
-					resource.revive(PageResourceWizard.this.getPrismContext());
-
-                    return resource;
-                } catch (Exception ex) {
-                    LoggingUtils.logException(LOGGER, "Couldn't load resource", ex);
-                    throw new RestartResponseException(PageError.class);
-                }
-            }
-        };
+        modelRaw = createResourceModel(Arrays.asList(
+				SelectorOptions.create(ResourceType.F_CONNECTOR_REF, GetOperationOptions.createResolve()),
+				SelectorOptions.create(GetOperationOptions.createRaw())));
+		modelNoFetch = createResourceModel(GetOperationOptions.createNoFetchCollection());
+		modelFull = createResourceModel(null);
 
         initLayout();
     }
+
+	@NotNull
+	private LoadableModel<PrismObject<ResourceType>> createResourceModel(final Collection<SelectorOptions<GetOperationOptions>> options) {
+		return new LoadableModel<PrismObject<ResourceType>>(false) {
+			@Override
+			protected PrismObject<ResourceType> load() {
+				try {
+					if (editedResourceOid == null) {
+						return getPrismContext().createObject(ResourceType.class);
+					}
+					PrismObject<ResourceType> resource = loadResourceModelObject(options);
+					if (resource == null) {
+						throw new RestartResponseException(PageError.class);
+					}
+					return resource;
+				} catch (Exception ex) {
+					LoggingUtils.logException(LOGGER, "Couldn't load resource", ex);
+					throw new RestartResponseException(PageError.class);
+				}
+			}
+		};
+	}
+
+	// named differently from "loadResource", as this is used in the superclass
+	public PrismObject<ResourceType> loadResourceModelObject(Collection<SelectorOptions<GetOperationOptions>> options) {
+		Task task = createSimpleTask("loadResource");
+		return WebModelServiceUtils.loadObject(ResourceType.class, editedResourceOid, options, this, task, task.getResult());
+	}
+
 
 	public String getEditedResourceOid() {
 		return editedResourceOid;
@@ -102,25 +118,16 @@ public class PageResourceWizard extends PageAdminResources {
 		this.editedResourceOid = editedResourceOid;
 	}
 
-	public PrismObject<ResourceType> loadResource() {
-		Task task = createSimpleTask("loadResource");
-		Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
-		options.add(SelectorOptions.create(GetOperationOptions.createNoFetch()));
-		options.add(SelectorOptions.create(ResourceType.F_CONNECTOR_REF, GetOperationOptions.createResolve()));
-		return WebModelServiceUtils.loadObject(ResourceType.class, editedResourceOid, options, this, task, task.getResult());
-	}
-
 	@Override
     protected IModel<String> createPageTitleModel() {
         return new LoadableModel<String>(false) {
 
             @Override
             protected String load() {
-                if (!isResourceOidAvailable()) {
+                if (editedResourceOid == null) {
                     return PageResourceWizard.super.createPageTitleModel().getObject();
                 }
-
-                String name = WebComponentUtil.getName(model.getObject());
+                String name = WebComponentUtil.getName(modelRaw.getObject());
                 return createStringResource("PageResourceWizard.title.edit", name).getString();
             }
         };
@@ -128,17 +135,23 @@ public class PageResourceWizard extends PageAdminResources {
 
     private void initLayout() {
         WizardModel wizardModel = new WizardModel();
-        wizardModel.add(new NameStep(model, this));
-        wizardModel.add(new ConfigurationStep(model, this));
-        wizardModel.add(new SchemaStep(model, this));
-        wizardModel.add(new SchemaHandlingStep(model, this));
-        wizardModel.add(new CapabilityStep(model, this));
-        wizardModel.add(new SynchronizationStep(model, this));
+        wizardModel.add(new NameStep(modelRaw, this));
+        wizardModel.add(new ConfigurationStep(modelNoFetch, this));
+        wizardModel.add(new SchemaStep(modelFull, this));
+        wizardModel.add(new SchemaHandlingStep(modelFull, this));
+        wizardModel.add(new CapabilityStep(modelFull, this));
+        wizardModel.add(new SynchronizationStep(modelFull, this));
 
         Wizard wizard = new Wizard(ID_WIZARD, new Model(wizardModel));
         wizard.setOutputMarkupId(true);
         add(wizard);
     }
+
+	public void resetModels() {
+		modelRaw.reset();
+		modelNoFetch.reset();
+		modelFull.reset();
+	}
 
 	// questionable
     public boolean isNewResource() {

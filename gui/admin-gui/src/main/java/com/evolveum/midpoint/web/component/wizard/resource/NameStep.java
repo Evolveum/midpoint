@@ -59,7 +59,7 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -85,7 +85,7 @@ public class NameStep extends WizardStep {
     private static final String ID_CONNECTOR_HOST = "connectorHost";
     private static final String ID_CONNECTOR = "connector";
 
-	final private LoadableModel<PrismObject<ResourceType>> resourceModel;
+	final private LoadableModel<PrismObject<ResourceType>> resourceModelRaw;
 
 	final private LoadableModel<String> resourceNameModel;
 	final private LoadableModel<String> resourceDescriptionModel;
@@ -97,14 +97,17 @@ public class NameStep extends WizardStep {
 	final private IModel<String> schemaChangeWarningModel;
 	final private List<LoadableModel<?>> resetOnConfigure = new ArrayList<>();
 
-    public NameStep(LoadableModel<PrismObject<ResourceType>> model, PageBase pageBase) {
-        super(pageBase);
-        this.resourceModel = model;
+	final private PageResourceWizard parentPage;
+
+    public NameStep(@NotNull LoadableModel<PrismObject<ResourceType>> modelRaw, @NotNull final PageResourceWizard parentPage) {
+        super(parentPage);
+		this.parentPage = parentPage;
+        this.resourceModelRaw = modelRaw;
 
 		resourceNameModel = new LoadableModel<String>() {
 			@Override
 			protected String load() {
-				return PolyString.getOrig(resourceModel.getObject().getName());
+				return PolyString.getOrig(resourceModelRaw.getObject().getName());
 			}
 		};
 		resetOnConfigure.add(resourceNameModel);
@@ -112,7 +115,7 @@ public class NameStep extends WizardStep {
 		resourceDescriptionModel = new LoadableModel<String>() {
 			@Override
 			protected String load() {
-				return resourceModel.getObject().asObjectable().getDescription();
+				return resourceModelRaw.getObject().asObjectable().getDescription();
 			}
 		};
 		resetOnConfigure.add(resourceDescriptionModel);
@@ -120,7 +123,7 @@ public class NameStep extends WizardStep {
 		allHostsModel = new LoadableModel<List<PrismObject<ConnectorHostType>>>(false) {
 			@Override
 			protected List<PrismObject<ConnectorHostType>> load() {
-				return WebModelServiceUtils.searchObjects(ConnectorHostType.class, null, null, getPageBase());
+				return WebModelServiceUtils.searchObjects(ConnectorHostType.class, null, null, NameStep.this.parentPage);
 			}
 		};
 		resetOnConfigure.add(allHostsModel);
@@ -136,7 +139,7 @@ public class NameStep extends WizardStep {
 		allConnectorsModel = new LoadableModel<List<PrismObject<ConnectorType>>>(false) {
 			@Override
 			protected List<PrismObject<ConnectorType>> load() {
-				return WebModelServiceUtils.searchObjects(ConnectorType.class, null, null, getPageBase());
+				return WebModelServiceUtils.searchObjects(ConnectorType.class, null, null, NameStep.this.parentPage);
 			}
 		};
 		resetOnConfigure.add(allConnectorsModel);
@@ -238,7 +241,7 @@ public class NameStep extends WizardStep {
 			return true;		// shouldn't occur
 		}
 
-		PrismContainer<?> configuration = ResourceTypeUtil.getConfigurationContainer(resourceModel.getObject());
+		PrismContainer<?> configuration = ResourceTypeUtil.getConfigurationContainer(resourceModelRaw.getObject());
 		if (configuration == null || configuration.isEmpty() || configuration.getValue() == null || isEmpty(configuration.getValue().getItems())) {
 			return true;			// no config -> no loss
 		}
@@ -267,7 +270,7 @@ public class NameStep extends WizardStep {
 	@SuppressWarnings("unchecked")
 	@Nullable
 	private PrismObject<ConnectorType> getExistingConnector() {
-		PrismReference existingConnectorRef = resourceModel.getObject().findReference(ResourceType.F_CONNECTOR_REF);
+		PrismReference existingConnectorRef = resourceModelRaw.getObject().findReference(ResourceType.F_CONNECTOR_REF);
 		if (existingConnectorRef == null || existingConnectorRef.isEmpty()) {
 			return null;
 		}
@@ -288,7 +291,7 @@ public class NameStep extends WizardStep {
 		return null;
 	}
 
-	@Contract(" -> !null")
+	@NotNull
 	private DropDownFormGroup<PrismObject<ConnectorHostType>> createHostDropDown() {
         return new DropDownFormGroup<PrismObject<ConnectorHostType>>(ID_CONNECTOR_HOST, selectedHostModel,
 				allHostsModel, new IChoiceRenderer<PrismObject<ConnectorHostType>>() {
@@ -417,20 +420,20 @@ public class NameStep extends WizardStep {
 
     @Override
     public void applyState() {
-        PageResourceWizard page = (PageResourceWizard) getPage();
-		PrismContext prismContext = page.getPrismContext();
-        Task task = page.createSimpleTask(OPERATION_SAVE_RESOURCE);
+		PrismContext prismContext = parentPage.getPrismContext();
+        Task task = parentPage.createSimpleTask(OPERATION_SAVE_RESOURCE);
         OperationResult result = task.getResult();
 
         try {
-            PrismObject<ResourceType> resource = resourceModel.getObject();
+            PrismObject<ResourceType> resource = resourceModelRaw.getObject();
 			PrismObject<ConnectorType> connector = getSelectedConnector();
 			if (connector == null) {
 				throw new IllegalStateException("No connector selected");		// should be treated by form validation
 			}
 
 			ObjectDelta delta;
-			if (resource.getOid() == null) {
+			boolean isNew = resource.getOid() == null;
+			if (isNew) {
 				resource = prismContext.createObject(ResourceType.class);
 				ResourceType resourceType = resource.asObjectable();
 				resourceType.setName(PolyStringType.fromOrig(resourceNameModel.getObject()));
@@ -448,13 +451,15 @@ public class NameStep extends WizardStep {
 				delta = i.asObjectDelta(resource.getOid());
 			}
 			LOGGER.info("Applying delta:\n{}", delta.debugDump());
-            WebModelServiceUtils.save(delta, ModelExecuteOptions.createRaw(), result, page);
+            WebModelServiceUtils.save(delta, ModelExecuteOptions.createRaw(), result, parentPage);
 
-			page.setEditedResourceOid(delta.getOid());
-			resourceModel.reset();
+			if (isNew) {
+				parentPage.setEditedResourceOid(delta.getOid());
+			}
+			parentPage.resetModels();
 
         } catch (RuntimeException|SchemaException ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't save resource", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save resource", ex);
             result.recordFatalError("Couldn't save resource, reason: " + ex.getMessage(), ex);
         } finally {
             result.computeStatusIfUnknown();
@@ -462,7 +467,7 @@ public class NameStep extends WizardStep {
         }
 
         if (WebComponentUtil.showResultInPage(result)) {
-            page.showResult(result);
+            parentPage.showResult(result);
         }
     }
 }
