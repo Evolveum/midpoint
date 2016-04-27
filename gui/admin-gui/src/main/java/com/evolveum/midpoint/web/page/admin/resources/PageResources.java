@@ -71,6 +71,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.ResourcesStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -150,7 +151,7 @@ public class PageResources extends PageAdminResources {
 				GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
 
 		MainObjectListPanel<ResourceType> resourceListPanel = new MainObjectListPanel<ResourceType>(ID_TABLE,
-				ResourceType.class, options, this) {
+				ResourceType.class, TableId.TABLE_RESOURCES, options, this) {
 
 			@Override
 			protected List<InlineMenuItem> createInlineMenu() {

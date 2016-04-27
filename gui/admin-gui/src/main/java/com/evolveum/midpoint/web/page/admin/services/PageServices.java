@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
@@ -69,7 +70,7 @@ public class PageServices extends PageAdminServices {
 	        add(mainForm);
 	        
 	      
-	        MainObjectListPanel<ServiceType> servicePanel = new MainObjectListPanel<ServiceType>(ID_TABLE, ServiceType.class, null, this){
+	        MainObjectListPanel<ServiceType> servicePanel = new MainObjectListPanel<ServiceType>(ID_TABLE, ServiceType.class, TableId.TABLE_SERVICES, null, this){
 	        	
 	        
 	        	@Override

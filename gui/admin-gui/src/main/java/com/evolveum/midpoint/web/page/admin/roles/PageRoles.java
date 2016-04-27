@@ -50,6 +50,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.RolesStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import org.apache.wicket.Component;
@@ -94,7 +95,7 @@ public class PageRoles extends PageAdminRoles {
     private IModel<Search> searchModel;
 
     public PageRoles() {
-        this(true);
+        this(false);
     }
 
     public PageRoles(boolean clearPagingInSession) {
@@ -126,7 +127,7 @@ public class PageRoles extends PageAdminRoles {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
         
-        MainObjectListPanel<RoleType> roleListPanel = new MainObjectListPanel<RoleType>(ID_TABLE, RoleType.class, null, this) {
+        MainObjectListPanel<RoleType> roleListPanel = new MainObjectListPanel<RoleType>(ID_TABLE, RoleType.class, TableId.TABLE_ROLES, null, this) {
 			
 			
 			@Override

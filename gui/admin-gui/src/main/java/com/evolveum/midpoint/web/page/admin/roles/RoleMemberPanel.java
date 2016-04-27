@@ -60,6 +60,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.ObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -78,7 +79,7 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 	private static String ID_PROJECT = "project";
 	
 	public RoleMemberPanel(String id, IModel<RoleType> model, PageBase pageBase) {
-		super(id, model, pageBase);
+		super(id, TableId.ROLE_MEMEBER_PANEL, model, pageBase);
 		
 	}
 

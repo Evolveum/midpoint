@@ -102,6 +102,7 @@ import com.evolveum.midpoint.web.page.admin.resources.ResourceContentTabPanel.Op
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -198,7 +199,7 @@ public abstract class ResourceContentPanel extends Panel {
 //			}
 //		};
 
-		MainObjectListPanel<ShadowType> shadowListPanel = new MainObjectListPanel<ShadowType>(ID_TABLE, ShadowType.class, null, pageBase) {
+		MainObjectListPanel<ShadowType> shadowListPanel = new MainObjectListPanel<ShadowType>(ID_TABLE, ShadowType.class, TableId.PAGE_RESOURCE_ACCOUNTS_PANEL, null, pageBase) {
 			private static final long serialVersionUID = 1L;
 			
 			@Override
