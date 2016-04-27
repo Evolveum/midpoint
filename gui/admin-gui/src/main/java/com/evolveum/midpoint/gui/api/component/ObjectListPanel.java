@@ -47,25 +47,18 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchFormPanel;
-import com.evolveum.midpoint.web.component.search.SearchPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider2;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author katkav
@@ -88,11 +81,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 
 	private Collection<SelectorOptions<GetOperationOptions>> options;
 
-//	private int pageSize = 10;
-
 	private boolean multiselect;
-
-//	private TableId tableId = TableId.TABLE_USERS;
 
 	public Class<T> getType() {
 		return type;
@@ -145,14 +134,6 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		this.provider = provider;
 	}
 
-//	public void setPageSize(int pageSize) {
-//		this.pageSize = pageSize;
-//	}
-//
-//	public void setTableId(TableId tableId) {
-//		this.tableId = tableId;
-//	}
-
 	public List<T> getSelectedObjects() {
 		BaseSortableDataProvider<SelectableBean<T>> dataProvider = getDataProvider();
 		if (dataProvider instanceof ObjectDataProvider2) {
@@ -173,12 +154,10 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 
 			@Override
 			public Search load() {
-				String storageKey = getStorageKey();// storageMap.get(parentPage.getClass());
+				String storageKey = getStorageKey();
 				Search search = null;
 				if (StringUtils.isNotEmpty(storageKey)) {
 					PageStorage storage = getPageStorage(storageKey);
-//							getSession().getSessionStorage().getPageStorageMap()
-//							.get(storageKey);
 					if (storage != null) {
 						search = storage.getSearch();
 					}
@@ -203,11 +182,9 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 				parentPage, type) {
 			@Override
 			protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-				String storageKey = getStorageKey();// storageMap.get(type);
+				String storageKey = getStorageKey();
 				if (StringUtils.isNotEmpty(storageKey)) {
 					PageStorage storage = getPageStorage(storageKey);
-//							getSession().getSessionStorage().getPageStorageMap()
-//							.get(storageKey);
 					if (storage != null) {
 						storage.setPaging(paging);
 					}
@@ -270,7 +247,6 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		String storageKey = getStorageKey();
 		if (StringUtils.isNotEmpty(storageKey)) {
 			PageStorage storage = getPageStorage(storageKey); 
-//					getSession().getSessionStorage().getPageStorageMap().get(storageKey);
 			if (storage != null) {
 				table.setCurrentPage(storage.getPaging());
 			}
@@ -320,10 +296,6 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		provider.setQuery(query);
 		String storageKey = getStorageKey();
 		if (StringUtils.isNotEmpty(storageKey)) {
-//			PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
-//			if (storage == null) {
-//				storage = getSession().getSessionStorage().initPageStorage(storageKey);
-//			}
 			PageStorage storage = getPageStorage(storageKey);
 			if (storage != null) {
 				storage.setSearch(searchModel.getObject());
@@ -355,7 +327,7 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		BoxedTablePanel table = getTable();
 
 		((WebMarkupContainer) table.get("box")).addOrReplace(initSearch("header"));
-//		table.setCurrentPage(null);
+		table.setCurrentPage(null);
 		target.add((Component) table);
 		target.add(parentPage.getFeedbackPanel());
 
@@ -380,10 +352,6 @@ public abstract class ObjectListPanel<T extends ObjectType> extends BasePanel<T>
 		String storageKey = getStorageKey();
 		if (StringUtils.isNotEmpty(storageKey)) {
 			PageStorage storage = getPageStorage(storageKey);
-//			PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
-//			if (storage == null) {
-//				storage = getSession().getSessionStorage().initPageStorage(storageKey);
-//			}
 			if (storage != null) {
 				storage.setSearch(searchModel.getObject());
 				storage.setPaging(null);
