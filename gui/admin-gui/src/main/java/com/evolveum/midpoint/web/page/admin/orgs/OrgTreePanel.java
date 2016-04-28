@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -50,16 +51,18 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		selected = new LoadableModel<SelectableBean<OrgType>>() {
 			@Override
 			protected SelectableBean<OrgType> load() {
-				TabbedPanel currentTabbedPanel = null;
+                TabbedPanel currentTabbedPanel = null;
 				MidPointAuthWebSession session = OrgTreePanel.this.getSession();
 				SessionStorage storage = session.getSessionStorage();
-				if (getTree().findParent(TabbedPanel.class) != null) {
-					currentTabbedPanel = getTree().findParent(TabbedPanel.class);
-					int tabId = currentTabbedPanel.getSelectedTab();
-					if (storage.getUsers().getSelectedTabId() != -1
-							&& tabId != storage.getUsers().getSelectedTabId()) {
-						storage.getUsers().setSelectedItem(null);
-					}
+				if (getTree().findParent(PageOrgTree.class) != null) {
+					currentTabbedPanel = getTree().findParent(PageOrgTree.class).getTabPanel().getTabbedPanel();
+                    if (currentTabbedPanel != null) {
+                        int tabId = currentTabbedPanel.getSelectedTab();
+                        if (storage.getUsers().getSelectedTabId() != -1
+                                && tabId != storage.getUsers().getSelectedTabId()) {
+                            storage.getUsers().setSelectedItem(null);
+                        }
+                    }
 				}
 				if (storage.getUsers().getSelectedItem() != null) {
 					return storage.getUsers().getSelectedItem();
@@ -74,6 +77,10 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
 	public SelectableBean<OrgType> getSelected() {
 		return selected.getObject();
+	}
+
+	public void setSelected(SelectableBean<OrgType> org) {
+		selected.setObject(org);
 	}
 
 	public List<OrgType> getSelectedOrgs() {

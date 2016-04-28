@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema.util;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -104,6 +105,15 @@ public class ResourceTypeUtil {
 		} else {
 			return null;
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static PrismObject<ConnectorType> getConnectorIfPresent(PrismObject<ResourceType> resource) {
+		PrismReference existingConnectorRef = resource.findReference(ResourceType.F_CONNECTOR_REF);
+		if (existingConnectorRef == null || existingConnectorRef.isEmpty()) {
+			return null;
+		}
+		return (PrismObject<ConnectorType>) existingConnectorRef.getValue().getObject();
 	}
 
 	public static Element getResourceXsdSchema(ResourceType resource) {

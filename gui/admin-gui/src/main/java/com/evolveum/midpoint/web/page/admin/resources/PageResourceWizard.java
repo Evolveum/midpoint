@@ -61,7 +61,7 @@ public class PageResourceWizard extends PageAdminResources {
 	// each step should use corresponding model
 	// these models have always non-null content
     private LoadableModel<PrismObject<ResourceType>> modelRaw;				// contains resolved connector as well
-    private LoadableModel<PrismObject<ResourceType>> modelNoFetch;
+    private LoadableModel<PrismObject<ResourceType>> modelNoFetch;			// contains resolved connector as well
     private LoadableModel<PrismObject<ResourceType>> modelFull;
 
 	// for new resources: should be set after first save; for others: should be set on page creation
@@ -75,7 +75,9 @@ public class PageResourceWizard extends PageAdminResources {
         modelRaw = createResourceModel(Arrays.asList(
 				SelectorOptions.create(ResourceType.F_CONNECTOR_REF, GetOperationOptions.createResolve()),
 				SelectorOptions.create(GetOperationOptions.createRaw())));
-		modelNoFetch = createResourceModel(GetOperationOptions.createNoFetchCollection());
+		modelNoFetch = createResourceModel(Arrays.asList(
+				SelectorOptions.create(ResourceType.F_CONNECTOR_REF, GetOperationOptions.createResolve()),
+				SelectorOptions.create(GetOperationOptions.createNoFetch())));
 		modelFull = createResourceModel(null);
 
         initLayout();

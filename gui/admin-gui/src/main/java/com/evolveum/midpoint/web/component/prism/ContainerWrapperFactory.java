@@ -96,11 +96,11 @@ public class ContainerWrapperFactory {
         return cWrapper;
     }
 
-	public <T extends PrismContainer> ContainerWrapper createContainerWrapper(T container, ContainerStatus status, boolean readonly) {
+	public <T extends PrismContainer> ContainerWrapper createContainerWrapper(T container, ContainerStatus status, ItemPath path, boolean readonly) {
 
 		result = new OperationResult(CREATE_PROPERTIES);
 
-		ContainerWrapper cWrapper = new ContainerWrapper(container, status, readonly);
+		ContainerWrapper cWrapper = new ContainerWrapper(container, status, path, readonly);
 
 		List<ItemWrapper> properties = createProperties(cWrapper, result);
 		cWrapper.setProperties(properties);

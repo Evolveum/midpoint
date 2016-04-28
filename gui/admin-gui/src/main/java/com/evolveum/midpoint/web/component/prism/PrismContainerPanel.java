@@ -48,10 +48,6 @@ public class PrismContainerPanel extends Panel {
 
     private PageBase pageBase;
 
-    public PrismContainerPanel(String id, IModel<ContainerWrapper> model, Form form) {
-        this(id, model, true, form, null);
-    }
-
     public PrismContainerPanel(String id, final IModel<ContainerWrapper> model, boolean showHeader, Form form, PageBase pageBase) {
         super(id);
         this.pageBase = pageBase;

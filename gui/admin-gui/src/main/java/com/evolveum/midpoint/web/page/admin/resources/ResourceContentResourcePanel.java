@@ -21,8 +21,6 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
