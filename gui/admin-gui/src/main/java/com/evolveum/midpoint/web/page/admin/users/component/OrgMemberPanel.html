@@ -17,46 +17,41 @@
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
 
-        <div>
-            <div class="box box-success">
-                <div class="box-body">
-                    <form class="clearfix form-horizontal" wicket:id="form">
-                        <div wicket:id="managerContainer">
-                        <div class="tree-table-header">
-                                <wicket:message key="TreeTablePanel.managers"/>
-                                 <div class="pull-right" wicket:id="managerMenu" />
-                            </div>
-                            
-                            
-					               
-					              
-                            <div class="col-md-12" wicket:id="managerTable">
-                            <div class="pull-right">
-                            	<div wicket:id="editManager" class="fa fa-edit"></div>
-                            	<div wicket:id="removeManager" class="fa fa-trash-o"></div>
-                            	</div>
-                            	<div wicket:id="managerSummary" ></div>
-                            	
-                            </div>
-                        </div>
-<div>
-                <div class="form-group form-inline pull-right search-form">
+	<form class="clearfix form-horizontal" wicket:id="form">
+
+		 <div class="box box-solid object-user-box" wicket:id="managerContainer">
+		 	<div class="box-header with-border">
+		 		<h3 class="box-title"><wicket:message key="TreeTablePanel.managers"/></h3>
+		 		<div class="box-tools pull-right">
+		 			<div class="cog" wicket:id="managerMenu"/>
+		 		</div>
+		 	</div>
+			<div class="box-body">
+                <div class="col-md-12" wicket:id="managerTable">
+					<div class="manager-tools">
+						<div wicket:id="editManager" class="manager-btn fa fa-edit"></div>
+						<div wicket:id="removeManager" class="manager-btn fa fa-times"></div>
+					</div>
+					<div wicket:id="managerSummary" />
+				</div>
+			</div>
+		</div>
+		
+		<div class="box box-solid box-primary">
+			<div class="box-header with-border">
+				<h3 class="box-title"><wicket:message key="TreeTablePanel.members"/></h3>
+			</div>		
+			<div class="box-body">
+                <div class="form-group form-inline search-form org-members-additional-search">
 	                <select class="form-control input-sm" wicket:id="searchScope"/>
 	                <select class="form-control input-sm" wicket:id="searchByType"/>
 	            </div>
-     </div>      
-           
+	            <div wicket:id="memberContainer">
+					<div wicket:id="memberTable"/>
+				</div>
+			</div>
+		</div>
 
-                        <div wicket:id="memberContainer">
-                            <div class="tree-table-header">
-                                <wicket:message key="TreeTablePanel.members"/>
-                            </div>
-                            <div wicket:id="memberTable"/>
-                        </div>
-
-                    </form>
-                </div>
-            </div>
-        </div>
+	</form>
 
 </wicket:panel>
