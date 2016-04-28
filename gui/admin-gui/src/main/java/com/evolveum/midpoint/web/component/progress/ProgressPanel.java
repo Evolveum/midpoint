@@ -22,7 +22,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Page;
@@ -111,7 +111,7 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
                                 if (statusType == null) {
                                     return null;
                                 } else {
-                                    return OperationResultStatusIcon.parseOperationalResultStatus(statusType).getIcon();
+                                    return OperationResultStatusPresentationProperties.parseOperationalResultStatus(statusType).getIcon();
                                 }
                             }
                         },

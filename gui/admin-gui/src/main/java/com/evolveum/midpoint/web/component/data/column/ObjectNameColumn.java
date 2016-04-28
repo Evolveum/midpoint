@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.component.data.column;
 
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -26,6 +27,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
+import com.evolveum.midpoint.web.page.error.PageOperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -42,7 +45,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 	}
 
 	@Override
-	public void populateItem(Item<ICellPopulator<SelectableBean<O>>> cellItem, String componentId,
+	public void populateItem(final Item<ICellPopulator<SelectableBean<O>>> cellItem, String componentId,
 			final IModel<SelectableBean<O>> rowModel) {
 		
 		IModel<String> labelModel = new AbstractReadOnlyModel<String>() {
@@ -54,7 +57,8 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 				O value = selectableBean.getValue();
 				if (value == null) {
 					OperationResult result = selectableBean.getResult();
-					return result.getStatus().toString();
+					OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
+					return cellItem.getString(props.getStatusLabelKey());
 				} else {
 					return value.getName().getOrig();
 				}
@@ -66,7 +70,14 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
         	
         	@Override
             public void onClick(AjaxRequestTarget target) {
-        		ObjectNameColumn.this.onClick(target, rowModel);
+        		SelectableBean<O> selectableBean = rowModel.getObject();
+				O value = selectableBean.getValue();
+				if (value == null) {
+					OperationResult result = selectableBean.getResult();
+					throw new RestartResponseException(new PageOperationResult(result));
+				} else {
+					ObjectNameColumn.this.onClick(target, rowModel);
+				}
             }
 
             @Override

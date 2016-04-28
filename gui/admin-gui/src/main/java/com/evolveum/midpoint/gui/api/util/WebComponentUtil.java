@@ -126,7 +126,7 @@ import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
-import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -1040,7 +1040,7 @@ public final class WebComponentUtil {
 	
 	public static String createErrorIcon(OperationResult result) {
 		OperationResultStatus status = result.getStatus();
-		OperationResultStatusIcon icon = OperationResultStatusIcon.parseOperationalResultStatus(status);
+		OperationResultStatusPresentationProperties icon = OperationResultStatusPresentationProperties.parseOperationalResultStatus(status);
 		return icon.getIcon();
 	}
 

@@ -684,19 +684,19 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 .setDefaultValue(resourceKey).setParameters(objects);
     }
 
-    public void showResult(OperationResult result, String errorMessageKey) {
-        showResult(result, errorMessageKey, true);
+    public OpResult showResult(OperationResult result, String errorMessageKey) {
+        return showResult(result, errorMessageKey, true);
     }
 
-    public void showResult(OperationResult result, boolean showSuccess) {
-        showResult(result, null, showSuccess);
+    public OpResult showResult(OperationResult result, boolean showSuccess) {
+    	return showResult(result, null, showSuccess);
     }
 
-    public void showResult(OperationResult result) {
-        showResult(result, null, true);
+    public OpResult showResult(OperationResult result) {
+    	return showResult(result, null, true);
     }
 
-    public void showResult(OperationResult result, String errorMessageKey, boolean showSuccess) {
+    public OpResult showResult(OperationResult result, String errorMessageKey, boolean showSuccess) {
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
 
@@ -725,7 +725,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 getSession().warn(opResult);
 
         }
-
+        return opResult;
     }
 
    

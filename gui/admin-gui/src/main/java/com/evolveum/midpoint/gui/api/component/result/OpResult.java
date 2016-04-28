@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -257,5 +257,23 @@ public class OpResult implements Serializable, Visitable {
 			result.accept(visitor);
 		}
 		
+	}
+	
+	public void setShowMoreAll(final boolean show) {
+		Visitor visitor = new Visitor() {
+
+			@Override
+			public void visit(Visitable visitable) {
+				if (!(visitable instanceof OpResult)) {
+					return;
+				}
+
+				OpResult result = (OpResult) visitable;
+				result.setShowMore(show);
+
+			}
+		};
+
+		accept(visitor);
 	}
 }
