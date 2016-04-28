@@ -17,13 +17,21 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
@@ -32,17 +40,16 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
  */
 public class ContainerWrapper<C extends Containerable> implements ItemWrapper, Serializable, DebugDumpable {
 
-    private String displayName;
+	private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapper.class);
+
+	private String displayName;
     private ObjectWrapper<? extends ObjectType> objectWrapper;
     private PrismContainer<C> container;
     private ContainerStatus status;
@@ -71,7 +78,7 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
 		containerDefinition = getItemDefinition();
 	}
 
-	public ContainerWrapper(PrismContainer<C> container, ContainerStatus status, boolean readOnly) {
+	public ContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readOnly) {
         Validate.notNull(container, "container must not be null.");
         Validate.notNull(container.getDefinition(), "container definition must not be null.");
         Validate.notNull(status, "Container status must not be null.");
@@ -79,7 +86,7 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
         this.container = container;
 		this.containerDefinition = container.getDefinition();
         this.status = status;
-        this.path = null;
+        this.path = path;
         main = path == null;
         this.readonly = readOnly;
         showInheritedObjectAttributes = false;
@@ -446,5 +453,184 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
 	public void setStripe(boolean isStripe) {
 		// Does not make much sense, but it is given by the interface
 	}
+
+	public <O extends ObjectType> void collectModifications(ObjectDelta<O> delta) throws SchemaException {
+		if (getItemDefinition().getName().equals(ShadowType.F_ASSOCIATION)) {
+			//create ContainerDelta for association container
+			//HACK HACK HACK create correct procession for association container data
+			//according to its structure
+			ContainerDelta<ShadowAssociationType> associationDelta =
+					ContainerDelta.createDelta(ShadowType.F_ASSOCIATION,
+							(PrismContainerDefinition<ShadowAssociationType>) getItemDefinition());
+			for (ItemWrapper itemWrapper : getItems()) {
+				AssociationWrapper associationItemWrapper = (AssociationWrapper) itemWrapper;
+				List<ValueWrapper> assocValueWrappers = associationItemWrapper.getValues();
+				for (ValueWrapper assocValueWrapper : assocValueWrappers) {
+					PrismContainerValue<ShadowAssociationType> assocValue = (PrismContainerValue<ShadowAssociationType>) assocValueWrapper.getValue();
+					if (assocValueWrapper.getStatus() == ValueStatus.DELETED) {
+						associationDelta.addValueToDelete(assocValue.clone());
+					} else if (assocValueWrapper.getStatus().equals(ValueStatus.ADDED)) {
+						associationDelta.addValueToAdd(assocValue.clone());
+					}
+				}
+			}
+			delta.addModification(associationDelta);
+		} else {
+			if (!hasChanged()) {
+				return;
+			}
+
+			for (ItemWrapper itemWrapper : getItems()) {
+				if (!itemWrapper.hasChanged()) {
+					continue;
+				}
+				ItemPath containerPath = getPath() != null ? getPath() : new ItemPath();
+				if (itemWrapper instanceof PropertyWrapper) {
+					ItemDelta pDelta = computePropertyDeltas((PropertyWrapper) itemWrapper, containerPath);
+					if (!pDelta.isEmpty()) {
+						//HACK to remove a password replace delta is to be created
+						if (getName().equals(CredentialsType.F_PASSWORD)) {
+							if (pDelta.getValuesToDelete() != null){
+								pDelta.resetValuesToDelete();
+								pDelta.setValuesToReplace(new ArrayList());
+							}
+						}
+						delta.addModification(pDelta);
+					}
+				} else if (itemWrapper instanceof ReferenceWrapper) {
+					ReferenceDelta pDelta = computeReferenceDeltas((ReferenceWrapper) itemWrapper, containerPath);
+					if (!pDelta.isEmpty()) {
+						delta.addModification(pDelta);
+					}
+				} else {
+					LOGGER.trace("Delta from wrapper: ignoring {}", itemWrapper);
+				}
+			}
+		}
+	}
+
+	private ItemDelta computePropertyDeltas(PropertyWrapper propertyWrapper, ItemPath containerPath) {
+		ItemDefinition itemDef = propertyWrapper.getItem().getDefinition();
+		ItemDelta pDelta = itemDef.createEmptyDelta(containerPath.subPath(itemDef.getName()));
+		addItemDelta(propertyWrapper, pDelta, itemDef, containerPath);
+		return pDelta;
+	}
+
+	private ReferenceDelta computeReferenceDeltas(ReferenceWrapper referenceWrapper, ItemPath containerPath) {
+		PrismReferenceDefinition propertyDef = referenceWrapper.getItem().getDefinition();
+		ReferenceDelta pDelta = new ReferenceDelta(containerPath, propertyDef.getName(), propertyDef,
+				propertyDef.getPrismContext());
+		addItemDelta(referenceWrapper, pDelta, propertyDef, containerPath.subPath(propertyDef.getName()));
+		return pDelta;
+	}
+
+	private void addItemDelta(ItemWrapper<? extends Item, ? extends ItemDefinition> itemWrapper, ItemDelta pDelta, ItemDefinition propertyDef,
+			ItemPath containerPath) {
+		for (ValueWrapper valueWrapper : itemWrapper.getValues()) {
+			valueWrapper.normalize(propertyDef.getPrismContext());
+			ValueStatus valueStatus = valueWrapper.getStatus();
+			if (!valueWrapper.hasValueChanged()
+					&& (ValueStatus.NOT_CHANGED.equals(valueStatus) || ValueStatus.ADDED.equals(valueStatus))) {
+				continue;
+			}
+
+			// TODO: need to check if the resource has defined
+			// capabilities
+			// todo this is bad hack because now we have not tri-state
+			// checkbox
+			if (SchemaConstants.PATH_ACTIVATION.equivalent(containerPath) && getObject() != null) {
+
+				PrismObject<?> object = getObject().getObject();
+				if (object.asObjectable() instanceof ShadowType
+						&& (((ShadowType) object.asObjectable()).getActivation() == null || ((ShadowType) object
+						.asObjectable()).getActivation().getAdministrativeStatus() == null)) {
+
+					if (!getObject().hasResourceCapability(((ShadowType) object.asObjectable()).getResource(),
+							ActivationCapabilityType.class)) {
+						continue;
+					}
+				}
+			}
+
+			PrismValue newValCloned = ObjectWrapper.clone(valueWrapper.getValue());
+			PrismValue oldValCloned = ObjectWrapper.clone(valueWrapper.getOldValue());
+			switch (valueWrapper.getStatus()) {
+				case ADDED:
+					if (newValCloned != null) {
+						if (SchemaConstants.PATH_PASSWORD.equivalent(containerPath)) {
+							// password change will always look like add,
+							// therefore we push replace
+							if (LOGGER.isTraceEnabled()) {
+								LOGGER.trace("Delta from wrapper: {} (password) ADD -> replace {}", pDelta.getPath(), newValCloned);
+							}
+							pDelta.setValuesToReplace(Arrays.asList(newValCloned));
+						} else if (propertyDef.isSingleValue()) {
+							// values for single-valued properties
+							// should be pushed via replace
+							// in order to prevent problems e.g. with
+							// summarizing deltas for
+							// unreachable resources
+							if (LOGGER.isTraceEnabled()) {
+								LOGGER.trace("Delta from wrapper: {} (single,new) ADD -> replace {}", pDelta.getPath(), newValCloned);
+							}
+							pDelta.setValueToReplace(newValCloned);
+						} else {
+							if (LOGGER.isTraceEnabled()) {
+								LOGGER.trace("Delta from wrapper: {} (multi,new) ADD -> add {}", pDelta.getPath(), newValCloned);
+							}
+							pDelta.addValueToAdd(newValCloned);
+						}
+					}
+					break;
+				case DELETED:
+					if (newValCloned != null) {
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("Delta from wrapper: {} (new) DELETE -> delete {}", pDelta.getPath(), newValCloned);
+						}
+						pDelta.addValueToDelete(newValCloned);
+					}
+					if (oldValCloned != null) {
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("Delta from wrapper: {} (old) DELETE -> delete {}", pDelta.getPath(), oldValCloned);
+						}
+						pDelta.addValueToDelete(oldValCloned);
+					}
+					break;
+				case NOT_CHANGED:
+					// this is modify...
+					if (propertyDef.isSingleValue()) {
+						// newValCloned.isEmpty()
+						if (newValCloned != null && !newValCloned.isEmpty()) {
+							if (LOGGER.isTraceEnabled()) {
+								LOGGER.trace("Delta from wrapper: {} (single,new) NOT_CHANGED -> replace {}", pDelta.getPath(), newValCloned);
+							}
+							pDelta.setValuesToReplace(Arrays.asList(newValCloned));
+						} else {
+							if (oldValCloned != null) {
+								if (LOGGER.isTraceEnabled()) {
+									LOGGER.trace("Delta from wrapper: {} (single,old) NOT_CHANGED -> delete {}", pDelta.getPath(), oldValCloned);
+								}
+								pDelta.addValueToDelete(oldValCloned);
+							}
+						}
+					} else {
+						if (newValCloned != null && !newValCloned.isEmpty()) {
+							if (LOGGER.isTraceEnabled()) {
+								LOGGER.trace("Delta from wrapper: {} (multi,new) NOT_CHANGED -> add {}", pDelta.getPath(), newValCloned);
+							}
+							pDelta.addValueToAdd(newValCloned);
+						}
+						if (oldValCloned != null) {
+							if (LOGGER.isTraceEnabled()) {
+								LOGGER.trace("Delta from wrapper: {} (multi,old) NOT_CHANGED -> delete {}", pDelta.getPath(), oldValCloned);
+							}
+							pDelta.addValueToDelete(oldValCloned);
+						}
+					}
+					break;
+			}
+		}
+	}
+
 
 }
