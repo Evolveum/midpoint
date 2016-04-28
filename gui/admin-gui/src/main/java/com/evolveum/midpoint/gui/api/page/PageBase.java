@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.gui.api.page;
 
-import com.evolveum.midpoint.web.page.admin.certification.*;
-import com.evolveum.midpoint.web.page.self.PageRequestRole;
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.validator.EventHandler;
@@ -61,6 +59,10 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
@@ -84,6 +86,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.workflow.*;
 import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.web.page.self.PageRequestRole;
 import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.page.self.PageSelfProfile;
@@ -99,7 +102,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfiguratio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.*;
@@ -682,19 +684,19 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 .setDefaultValue(resourceKey).setParameters(objects);
     }
 
-    public void showResult(OperationResult result, String errorMessageKey) {
-        showResult(result, errorMessageKey, true);
+    public OpResult showResult(OperationResult result, String errorMessageKey) {
+        return showResult(result, errorMessageKey, true);
     }
 
-    public void showResult(OperationResult result, boolean showSuccess) {
-        showResult(result, null, showSuccess);
+    public OpResult showResult(OperationResult result, boolean showSuccess) {
+    	return showResult(result, null, showSuccess);
     }
 
-    public void showResult(OperationResult result) {
-        showResult(result, null, true);
+    public OpResult showResult(OperationResult result) {
+    	return showResult(result, null, true);
     }
 
-    public void showResult(OperationResult result, String errorMessageKey, boolean showSuccess) {
+    public OpResult showResult(OperationResult result, String errorMessageKey, boolean showSuccess) {
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
 
@@ -723,7 +725,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 getSession().warn(opResult);
 
         }
-
+        return opResult;
     }
 
    

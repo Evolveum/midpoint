@@ -30,6 +30,7 @@ import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -84,7 +85,6 @@ import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 		@AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL, label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL, description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
 		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCE_URL, label = "PageResource.auth.resource.label", description = "PageResource.auth.resource.description") })
 public class PageResource extends PageAdminResources {
-
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageResource.class);
@@ -124,6 +124,7 @@ public class PageResource extends PageAdminResources {
 
 	private void initialize() {
 		resourceModel = new LoadableModel<PrismObject<ResourceType>>() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected PrismObject<ResourceType> load() {
@@ -164,44 +165,56 @@ public class PageResource extends PageAdminResources {
 
 		List<ITab> tabs = new ArrayList<ITab>();
 
-		tabs.add(new AbstractTab(createStringResource("PageResource.tab.details")) {
+		tabs.add(new PanelTab(createStringResource("PageResource.tab.details")) {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
-			public WebMarkupContainer getPanel(String panelId) {
+			public WebMarkupContainer createPanel(String panelId) {
 				return new ResourceDetailsTabPanel(panelId, resourceModel, PageResource.this);
 			}
 		});
 		
-		tabs.add(new AbstractTab(createStringResource("PageResource.tab.content.tasks")) {
+		tabs.add(new PanelTab(createStringResource("PageResource.tab.content.tasks")) {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
-			public WebMarkupContainer getPanel(String panelId) {
+			public WebMarkupContainer createPanel(String panelId) {
 				return new ResourceTasksPanel(panelId, true, resourceModel, PageResource.this);
 			}
 		});
 		
-		tabs.add(new AbstractTab(createStringResource("PageResource.tab.content.account")) {
+		tabs.add(new PanelTab(createStringResource("PageResource.tab.content.account")) {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
-			public WebMarkupContainer getPanel(String panelId) {
+			public WebMarkupContainer createPanel(String panelId) {
 				return new ResourceContentTabPanel(panelId, ShadowKindType.ACCOUNT, resourceModel, PageResource.this);
 			}
 		});
 		
-		tabs.add(new AbstractTab(createStringResource("PageResource.tab.content.entitlement")) {
+		tabs.add(new PanelTab(createStringResource("PageResource.tab.content.entitlement")) {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
-			public WebMarkupContainer getPanel(String panelId) {
+			public WebMarkupContainer createPanel(String panelId) {
 				return new ResourceContentTabPanel(panelId, ShadowKindType.ENTITLEMENT, resourceModel, PageResource.this);
 			}
 		});
 		
-		tabs.add(new AbstractTab(createStringResource("PageResource.tab.content.generic")) {
+		tabs.add(new PanelTab(createStringResource("PageResource.tab.content.generic")) {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
-			public WebMarkupContainer getPanel(String panelId) {
+			public WebMarkupContainer createPanel(String panelId) {
 				return new ResourceContentTabPanel(panelId, ShadowKindType.GENERIC, resourceModel, PageResource.this);
 			}
 		});
 		
-		tabs.add(new AbstractTab(createStringResource("PageResource.tab.content.others")) {
+		tabs.add(new PanelTab(createStringResource("PageResource.tab.content.others")) {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
-			public WebMarkupContainer getPanel(String panelId) {
+			public WebMarkupContainer createPanel(String panelId) {
 				return new ResourceContentTabPanel(panelId, null, resourceModel, PageResource.this);
 			}
 		});
@@ -211,7 +224,8 @@ public class PageResource extends PageAdminResources {
 		add(resourceTabs);
 
 		AjaxButton test = new AjaxButton(BUTTON_TEST_CONNECTION_ID, createStringResource("pageResource.button.test")) {
-
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				testConnectionPerformed(target);
@@ -221,6 +235,7 @@ public class PageResource extends PageAdminResources {
 
 		AjaxButton refreshSchema = new AjaxButton(BUTTON_REFRESH_SCHEMA_ID,
 				createStringResource("pageResource.button.refreshSchema")) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
@@ -229,6 +244,7 @@ public class PageResource extends PageAdminResources {
 		};
 		add(refreshSchema);
 		AjaxButton editXml = new AjaxButton(BUTTON_EDIT_XML_ID, createStringResource("pageResource.button.editXml")) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
@@ -240,6 +256,7 @@ public class PageResource extends PageAdminResources {
 		};
 		add(editXml);
 		AjaxButton wizard = new AjaxButton(BUTTON_WIZARD_ID, createStringResource("pageResource.button.wizard")) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
@@ -251,6 +268,7 @@ public class PageResource extends PageAdminResources {
 		add(wizard);
 		
 		 AjaxButton back = new AjaxButton(ID_BUTTON_BACK, createStringResource("pageResource.button.back")) {
+			 private static final long serialVersionUID = 1L;
 
 	            @Override
 	            public void onClick(AjaxRequestTarget target) {
@@ -312,23 +330,14 @@ public class PageResource extends PageAdminResources {
 
 		OperationResult result = new OperationResult(OPERATION_TEST_CONNECTION);
 		PrismObject<ResourceType> resource = null;
-		List<TestConnectionResultDto> resultsDto = new ArrayList<TestConnectionResultDto>();
+		List<TestConnectionResultDto> resultsDto = new ArrayList<>();
 		try {
 
 			Task task = createSimpleTask(OPERATION_TEST_CONNECTION);
 
 			result = getModelService().testResource(dto.getOid(), task);
 
-			for (ConnectorTestOperation connectorOperation : ConnectorTestOperation.values()) {
-				for (OperationResult testResult : result.getSubresults()) {
-					if (connectorOperation.getOperation().equals(testResult.getOperation())) {
-						TestConnectionResultDto resultDto = new TestConnectionResultDto(
-								getString("operation." + connectorOperation.getOperation()), testResult.getStatus(),
-								testResult.getMessage());
-						resultsDto.add(resultDto);
-					}
-				}
-			}
+			resultsDto = TestConnectionResultDto.getResultDtoList(result, this);
 
 			resource = getModelService().getObject(ResourceType.class, dto.getOid(), null, task, result);
 

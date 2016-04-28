@@ -56,11 +56,15 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable {
 	public static <T> SelectorOptions<T> create(ItemPath path, T options) {
 		return new SelectorOptions<T>(new ObjectSelector(path), options);
 	}
-	
+
 	public static <T> SelectorOptions<T> create(QName pathQName, T options) {
 		return new SelectorOptions<T>(new ObjectSelector(new ItemPath(pathQName)), options);
 	}
-		
+
+	public static <T> SelectorOptions<T> create(T options) {
+		return new SelectorOptions<T>(options);
+	}
+
 	public static <T> Collection<SelectorOptions<T>> createCollection(ItemPath path, T options) {
 		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<SelectorOptions<T>>(1);
 		optionsCollection.add(create(path, options));

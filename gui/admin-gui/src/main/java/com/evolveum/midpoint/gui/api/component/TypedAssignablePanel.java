@@ -162,12 +162,19 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> {
 	protected void onClick(AjaxRequestTarget target, T focus) {
 		parentPage.hideMainPopup(target);
 	}
+	
+	private void refreshCounts(AjaxRequestTarget target) {
+		addOrReplace(createCountContainer());
+		target.add(get(ID_COUNT_CONTAINER));
+	}
 
 	private PopupObjectListPanel<T> createObjectListPanel(String id, final String countId, final QName type) {
 		PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(id, qnameToCompileTimeClass(type), true, parentPage) {
 			@Override
 			protected void onUpdateCheckbox(AjaxRequestTarget target) {
-				target.add(getParent().getParent().addOrReplace(createCountContainer()));
+				refreshCounts(target);
+//				TypedAssignablePanel.this.get(ID_COUNT_CONTAINER)
+//				target.add(getParent().getParent().addOrReplace(createCountContainer()));
 			}
 		
 		};

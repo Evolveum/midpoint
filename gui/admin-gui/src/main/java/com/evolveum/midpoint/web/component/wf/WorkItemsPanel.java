@@ -85,11 +85,11 @@ public class WorkItemsPanel extends BasePanel {
 			if (view == FULL_LIST) {
 				columns.add(new CheckBoxHeaderColumn<WorkItemDto>());
 			}
+			columns.add(createNameColumn());
 			columns.add(createTypeIconColumn(true));
 			columns.add(createObjectNameColumn("WorkItemsPanel.object"));
 			columns.add(createTypeIconColumn(false));
 			columns.add(createTargetNameColumn("WorkItemsPanel.target"));
-			columns.add(createNameColumn());
 			if (view == FULL_LIST) {
 				columns.add(new AbstractColumn<WorkItemDto, String>(createStringResource("WorkItemsPanel.started")) {
 					@Override
@@ -120,8 +120,8 @@ public class WorkItemsPanel extends BasePanel {
 				columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.actors"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
 			}
 		} else {
-			columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.actors"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
 			columns.add(createNameColumn());
+			columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.actors"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
             columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.created"), WorkItemDto.F_CREATED_FORMATTED));
 		}
 

@@ -389,8 +389,8 @@ public class WebModelServiceUtils {
             Task task = page.createSimpleTask(result.getOperation());
             page.getModelService().executeChanges(deltas, options, task, result);
         } catch (Exception ex) {
-            subResult.recordFatalError("WebModelUtils.couldntSearchObjects", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't search objects", ex);
+            subResult.recordFatalError("WebModelUtils.couldntSaveObject", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save object", ex);
         } finally {
             subResult.computeStatus();
         }

@@ -99,7 +99,7 @@ public class ConnectorTypeUtil {
 		return connectorSchema;
 	}
 	
-	public static PrismContainerDefinition<ConnectorConfigurationType> findConfigurationContainerDefintion(ConnectorType connectorType, PrismSchema connectorSchema) {
+	public static PrismContainerDefinition<ConnectorConfigurationType> findConfigurationContainerDefinition(ConnectorType connectorType, PrismSchema connectorSchema) {
 		QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
 		return connectorSchema.findContainerDefinitionByElementName(configContainerQName);
 	}

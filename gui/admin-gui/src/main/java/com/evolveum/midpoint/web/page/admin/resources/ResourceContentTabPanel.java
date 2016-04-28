@@ -34,7 +34,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteQNamePanel;
+import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -42,14 +45,18 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.input.AutoCompleteTextPanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
+/**
+ * @author katkav
+ * @author semancik
+ */
 public class ResourceContentTabPanel extends Panel {
+	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceContentTabPanel.class);
 
@@ -60,9 +67,8 @@ public class ResourceContentTabPanel extends Panel {
 	private static final String DOT_CLASS = ResourceContentTabPanel.class.getName() + ".";
 
 	private static final String ID_INTENT = "intent";
+	private static final String ID_REAL_OBJECT_CLASS = "realObjectClass";
 	private static final String ID_OBJECT_CLASS = "objectClass";
-	private static final String ID_INTENT_LABEL = "intentLabel";
-	private static final String ID_OBJECT_CLASS_LABEL = "objectClassLabel";
 	private static final String ID_MAIN_FORM = "mainForm";
 
 	private static final String ID_REPO_SEARCH = "repositorySearch";
@@ -99,28 +105,21 @@ public class ResourceContentTabPanel extends Panel {
 		intentModel = new Model<String>();
 		objectClassModel = new Model<QName>();
 	
-		initLayout(model);
+		initLayout(model, parentPage);
 	}
 
 	
-	private void initLayout(final IModel<PrismObject<ResourceType>> model) {
-			
+	private void initLayout(final IModel<PrismObject<ResourceType>> model, final PageBase parentPage) {
 		setOutputMarkupId(true);
 
-		Label intentLabel = new Label(ID_INTENT_LABEL, parentPage.createStringResource("ShadowType.intent"));
-		intentLabel.add(new VisibleEnableBehaviour() {
-			
-			@Override
-			public boolean isVisible() {
-				return !useObjectClass;
-			}
-		});
-		add(intentLabel);
+		final Form mainForm = new Form(ID_MAIN_FORM);
+		mainForm.setOutputMarkupId(true);
+		mainForm.addOrReplace(initTable(model));
+		add(mainForm);
+		
 		AutoCompleteTextPanel<String> intent = new AutoCompleteTextPanel<String>(ID_INTENT, intentModel,
 				String.class) {
-
-		
-					private static final long serialVersionUID = 1L;
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public Iterator<String> getIterator(String input) {
@@ -135,24 +134,21 @@ public class ResourceContentTabPanel extends Panel {
 				return RefinedResourceSchema.getIntentsForKind(refinedSchema, kind).iterator();
 
 			}
-			
-			
-
 		};
 		intent.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
-			
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				Form mainForm = (Form) get(ID_MAIN_FORM);
 				mainForm.addOrReplace(initTable(model));
-				target.add(addOrReplace(mainForm));
+				target.add(mainForm);
 
 			}
 		});
 		intent.setOutputMarkupId(true);
 		intent.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public boolean isVisible() {
 				return !useObjectClass;
@@ -160,107 +156,115 @@ public class ResourceContentTabPanel extends Panel {
 		});
 		add(intent);
 		
-		DropDownChoicePanel<QName> objectClass = new DropDownChoicePanel<QName>(ID_OBJECT_CLASS, objectClassModel, createObjectClassChoices(model), new QNameChoiceRenderer());
-		objectClass.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
-			
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				Form mainForm = (Form) get(ID_MAIN_FORM);
-				mainForm.addOrReplace(initTable(model));
-				target.add(addOrReplace(mainForm));
-				
-			}
-		});
-		
-		objectClass.add(new VisibleEnableBehaviour() {
-			
-			@Override
-			public boolean isVisible() {
-				return useObjectClass;
-			}
-		});
-		add(objectClass);
-		
-		Label objectClassLabel = new Label(ID_OBJECT_CLASS_LABEL, parentPage.createStringResource("ShadowType.objectClass"));
-		objectClassLabel.add(new VisibleEnableBehaviour() {
-			
-			@Override
-			public boolean isVisible() {
-				return useObjectClass;
-			}
-		});
-		add(objectClassLabel);
-		
+		Label realObjectClassLabel = new Label(ID_REAL_OBJECT_CLASS, new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
 
+			@Override
+			public String getObject() {
+				RefinedObjectClassDefinition ocDef;
+				try {
+					RefinedResourceSchema refinedSchema = RefinedResourceSchema
+							.getRefinedSchema(model.getObject(), parentPage.getPrismContext());
+					ocDef = refinedSchema.getRefinedDefinition(kind, intentModel.getObject());
+					if (ocDef != null) {
+						return ocDef.getObjectClassDefinition().getTypeName().getLocalPart();
+					}
+				} catch (SchemaException e) {
+				}
+
+				return "NOT FOUND";
+			}
+		});
+		add(realObjectClassLabel);
+		
+		AutoCompleteQNamePanel objectClassPanel = new AutoCompleteQNamePanel(ID_OBJECT_CLASS, objectClassModel) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public Collection<QName> loadChoices() {
+				return createObjectClassChoices(model);
+			}
+			
+			@Override
+			protected void onChange(AjaxRequestTarget target) {
+				LOGGER.trace("Object class panel update: {}", objectClassModel.getObject());
+				mainForm.addOrReplace(initTable(model));
+				target.add(mainForm);
+			}
+			
+		};
+		
+		objectClassPanel.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			
+			@Override
+			public boolean isVisible() {
+				return useObjectClass;
+			}
+		});
+		add(objectClassPanel);
+		
 		AjaxButton repoSearch = new AjaxButton(ID_REPO_SEARCH) {
+			private static final long serialVersionUID = 1L;
 			
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				resourceSearchModel.setObject(Boolean.FALSE);
-				Form mainForm = (Form) getParent().get(ID_MAIN_FORM);
 //				mainForm.addOrReplace(initResourceContent(model));
 				mainForm.addOrReplace(initRepoContent(model));
 				target.add(getParent().addOrReplace(mainForm));
 				target.add(this);
-				target.add(getParent().get(ID_RESOURCE_SEARCH).add(AttributeModifier.replace("class", "btn btn-default")));
+				target.add(getParent().get(ID_RESOURCE_SEARCH).add(AttributeModifier.replace("class", "btn btn-sm btn-default")));
 			}
 			
 			@Override
 			protected void onBeforeRender() {
 				super.onBeforeRender();
-				if (!ResourceContentTabPanel.this.resourceSearchModel.getObject()) add(AttributeModifier.append("class", " active"));
+				if (!ResourceContentTabPanel.this.resourceSearchModel.getObject()) add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));
 			}
 		};
 		add(repoSearch);
 		
 		AjaxButton resourceSearch = new AjaxButton(ID_RESOURCE_SEARCH) {
+			private static final long serialVersionUID = 1L;
 			
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				resourceSearchModel.setObject(Boolean.TRUE);
-				Form mainForm = (Form) getParent().get(ID_MAIN_FORM);
-				
 				mainForm.addOrReplace(initResourceContent(model));
 //				mainForm.addOrReplace(initRepoContent(model));
 				target.add(getParent().addOrReplace(mainForm));
 				target.add(this.add(AttributeModifier.append("class", " active")));
-				target.add(getParent().get(ID_REPO_SEARCH).add(AttributeModifier.replace("class", "btn btn-default")));
+				target.add(getParent().get(ID_REPO_SEARCH).add(AttributeModifier.replace("class", "btn btn-sm btn-default")));
 			}
 			
 
 			@Override
 			protected void onBeforeRender() {
 				super.onBeforeRender();
-				if (ResourceContentTabPanel.this.resourceSearchModel.getObject()) add(AttributeModifier.append("class", " active"));
+				if (ResourceContentTabPanel.this.resourceSearchModel.getObject()) add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));
 			}
 		};
 		add(resourceSearch);
-		
-		Form mainForm = new Form(ID_MAIN_FORM);
-		mainForm.setOutputMarkupId(true);
-		mainForm.addOrReplace(initTable(model));
-		add(mainForm);
-		
-		
 
 	}
 	
 	
-	private ListModel<QName> createObjectClassChoices(IModel<PrismObject<ResourceType>> model) {
+	private List<QName> createObjectClassChoices(IModel<PrismObject<ResourceType>> model) {
 		RefinedResourceSchema refinedSchema;
 		try {
 			refinedSchema = RefinedResourceSchema
 					.getRefinedSchema(model.getObject(),parentPage.getPrismContext());
 		} catch (SchemaException e) {
 			warn("Could not determine defined obejct classes for resource");
-			return new ListModel<QName>(new ArrayList<QName>());
+			return new ArrayList<QName>();
 		}
 		Collection<ObjectClassComplexTypeDefinition> defs = refinedSchema.getObjectClassDefinitions();
 		List<QName> objectClasses = new ArrayList<QName>(defs.size());
 		for (ObjectClassComplexTypeDefinition def : defs ) { 
 			objectClasses.add(def.getTypeName());
 		}
-		return new ListModel<>(objectClasses);
+		return objectClasses;
 	}
 
 

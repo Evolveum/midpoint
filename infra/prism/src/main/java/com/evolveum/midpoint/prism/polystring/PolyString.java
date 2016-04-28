@@ -261,4 +261,8 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 	public static PolyStringType toPolyStringType(PolyString value) {
 		return value != null ? new PolyStringType(value) : null;
 	}
+
+	public static PolyString fromOrig(String orig) {
+		return new PolyString(orig);
+	}
 }

@@ -2197,9 +2197,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-    public <T extends ShadowType> SearchResultMetadata search(final ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query, final ResultHandler<T> handler, AttributesToReturn attributesToReturn, PagedSearchCapabilityType pagedSearchCapabilityType, SearchHierarchyConstraints searchHierarchyConstraints, final StateReporter reporter,
-															  OperationResult parentResult)
-            throws CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException,
+    public <T extends ShadowType> SearchResultMetadata search(final ObjectClassComplexTypeDefinition objectClassDefinition, 
+    		final ObjectQuery query, final ResultHandler<T> handler, AttributesToReturn attributesToReturn, 
+    		PagedSearchCapabilityType pagedSearchCapabilityType, SearchHierarchyConstraints searchHierarchyConstraints, 
+    		final StateReporter reporter, OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException, SecurityViolationException, SchemaException,
             			ObjectNotFoundException {
 
 		// Result type for this operation
@@ -2281,52 +2283,62 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		};
 		
 		OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
-		convertToIcfAttrsToGet(objectClassDefinition, attributesToReturn, optionsBuilder);
-		if (query != null && query.isAllowPartialResults()) {
-			optionsBuilder.setAllowPartialResults(query.isAllowPartialResults());
+		
+		try {
+			convertToIcfAttrsToGet(objectClassDefinition, attributesToReturn, optionsBuilder);
+			if (query != null && query.isAllowPartialResults()) {
+				optionsBuilder.setAllowPartialResults(query.isAllowPartialResults());
+			}
+	        // preparing paging-related options
+	        if (useConnectorPaging && query != null && query.getPaging() != null) {
+	            ObjectPaging paging = query.getPaging();
+	            if (paging.getOffset() != null) {
+	                optionsBuilder.setPagedResultsOffset(paging.getOffset() + 1);       // ConnId API says the numbering starts at 1
+	            }
+	            if (paging.getMaxSize() != null) {
+	                optionsBuilder.setPageSize(paging.getMaxSize());
+	            }
+	            QName orderByAttributeName;
+	            boolean isAscending;
+				ItemPath orderByPath = paging.getOrderBy();
+				String desc;
+	            if (orderByPath != null && !orderByPath.isEmpty()) {
+	            	orderByAttributeName = ShadowUtil.getAttributeName(orderByPath, "OrderBy path");
+	                if (SchemaConstants.C_NAME.equals(orderByAttributeName)) {
+	                	orderByAttributeName = SchemaConstants.ICFS_NAME;
+	                }
+	                isAscending = paging.getDirection() != OrderDirection.DESCENDING;
+	                desc = "(explicitly specified orderBy attribute)";
+	            } else {
+	            	orderByAttributeName = pagedSearchCapabilityType.getDefaultSortField();
+	                isAscending = pagedSearchCapabilityType.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
+	                desc = "(default orderBy attribute from capability definition)";
+	            }
+	            if (orderByAttributeName != null) {
+	                String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(orderByAttributeName, objectClassDefinition, desc);
+	                optionsBuilder.setSortKeys(new SortKey(orderByIcfName, isAscending));
+	            }
+	        }
+	        if (searchHierarchyConstraints != null) {
+	        	ResourceObjectIdentification baseContextIdentification = searchHierarchyConstraints.getBaseContext();
+	        	// Only LDAP connector really supports base context. And this one will work better with
+	        	// DN. And DN is secondary identifier (__NAME__). This is ugly, but practical. It works around ConnId problems.
+	        	ResourceAttribute<?> secondaryIdentifier = baseContextIdentification.getSecondaryIdentifier();
+	        	if (secondaryIdentifier == null) {
+	        		SchemaException e = new SchemaException("No secondary identifier in base context identification "+baseContextIdentification);
+	        		result.recordFatalError(e);
+	        		throw e;
+	        	}
+	        	String secondaryIdentifierValue = secondaryIdentifier.getRealValue(String.class);
+	        	ObjectClass baseContextIcfObjectClass = icfNameMapper.objectClassToIcf(baseContextIdentification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
+	        	QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(secondaryIdentifierValue));
+				optionsBuilder.setContainer(containerQualifiedUid);
+	        }
+	        
+		} catch (SchemaException e) {
+			result.recordFatalError(e);
+			throw e;
 		}
-        // preparing paging-related options
-        if (useConnectorPaging && query != null && query.getPaging() != null) {
-            ObjectPaging paging = query.getPaging();
-            if (paging.getOffset() != null) {
-                optionsBuilder.setPagedResultsOffset(paging.getOffset() + 1);       // ConnId API says the numbering starts at 1
-            }
-            if (paging.getMaxSize() != null) {
-                optionsBuilder.setPageSize(paging.getMaxSize());
-            }
-            QName orderByAttributeName;
-            boolean isAscending;
-			ItemPath orderByPath = paging.getOrderBy();
-            if (orderByPath != null && !orderByPath.isEmpty()) {
-            	orderByAttributeName = ShadowUtil.getAttributeName(orderByPath, "OrderBy path");
-                if (SchemaConstants.C_NAME.equals(orderByAttributeName)) {
-                	orderByAttributeName = SchemaConstants.ICFS_NAME;
-                }
-                isAscending = paging.getDirection() != OrderDirection.DESCENDING;
-            } else {
-            	orderByAttributeName = pagedSearchCapabilityType.getDefaultSortField();
-                isAscending = pagedSearchCapabilityType.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
-            }
-            if (orderByAttributeName != null) {
-                String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(orderByAttributeName, objectClassDefinition);
-                optionsBuilder.setSortKeys(new SortKey(orderByIcfName, isAscending));
-            }
-        }
-        if (searchHierarchyConstraints != null) {
-        	ResourceObjectIdentification baseContextIdentification = searchHierarchyConstraints.getBaseContext();
-        	// Only LDAP connector really supports base context. And this one will work better with
-        	// DN. And DN is secondary identifier (__NAME__). This is ugly, but practical. It works around ConnId problems.
-        	ResourceAttribute<?> secondaryIdentifier = baseContextIdentification.getSecondaryIdentifier();
-        	if (secondaryIdentifier == null) {
-        		SchemaException e = new SchemaException("No secondary identifier in base context identification "+baseContextIdentification);
-        		result.recordFatalError(e);
-        		throw e;
-        	}
-        	String secondaryIdentifierValue = secondaryIdentifier.getRealValue(String.class);
-        	ObjectClass baseContextIcfObjectClass = icfNameMapper.objectClassToIcf(baseContextIdentification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
-        	QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(secondaryIdentifierValue));
-			optionsBuilder.setContainer(containerQualifiedUid);
-        }
         
         // Relax completeness requirements. This is a search, not get. So it is OK to
         // return incomplete member lists and similar attributes.
@@ -2442,7 +2454,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
         optionsBuilder.setPagedResultsOffset(1);
         optionsBuilder.setPageSize(1);
         if (pagedSearchCapabilityType.getDefaultSortField() != null) {
-            String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(pagedSearchCapabilityType.getDefaultSortField(), objectClassDefinition);
+            String orderByIcfName = icfNameMapper.convertAttributeNameToIcf(pagedSearchCapabilityType.getDefaultSortField(), objectClassDefinition, "(default sorting field)");
             boolean isAscending = pagedSearchCapabilityType.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
             optionsBuilder.setSortKeys(new SortKey(orderByIcfName, isAscending));
         }

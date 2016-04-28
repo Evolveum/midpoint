@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.resources.dto;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -9,6 +10,7 @@ import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import org.apache.wicket.Component;
 
 public class TestConnectionResultDto implements Serializable {
 
@@ -17,9 +19,6 @@ public class TestConnectionResultDto implements Serializable {
 	private String operationName;
 	private OperationResultStatus status;
 	private String errorMessage;
-	
-	
-	
 	
 	public TestConnectionResultDto(String operationName, OperationResultStatus status, String errorMessage) {
 		super();
@@ -50,6 +49,21 @@ public class TestConnectionResultDto implements Serializable {
 
 	public void setErrorMessage(String errorMessage) {
 		this.errorMessage = errorMessage;
+	}
+
+	public static List<TestConnectionResultDto> getResultDtoList(OperationResult result, Component component) {
+		List<TestConnectionResultDto> resultsDto = new ArrayList<>();
+		for (ConnectorTestOperation connectorOperation : ConnectorTestOperation.values()) {
+			for (OperationResult testResult : result.getSubresults()) {
+				if (connectorOperation.getOperation().equals(testResult.getOperation())) {
+					TestConnectionResultDto resultDto = new TestConnectionResultDto(
+							component.getString("operation." + connectorOperation.getOperation()), testResult.getStatus(),
+							testResult.getMessage());
+					resultsDto.add(resultDto);
+				}
+			}
+		}
+		return resultsDto;
 	}
 
 //	public OperationResult getOverall() {

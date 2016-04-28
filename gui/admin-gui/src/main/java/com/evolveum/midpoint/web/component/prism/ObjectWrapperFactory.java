@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -321,18 +320,20 @@ public class ObjectWrapperFactory {
         ConnectorType connectorType = connector.asObjectable();
         PrismSchema schema = ConnectorTypeUtil.parseConnectorSchema(connectorType,
                 connector.getPrismContext());
-        PrismContainerDefinition<ConnectorConfigurationType> definition = ConnectorTypeUtil.findConfigurationContainerDefintion(
+        PrismContainerDefinition<ConnectorConfigurationType> definition = ConnectorTypeUtil.findConfigurationContainerDefinition(
                 connectorType, schema);
 
-        ContainerStatus status = container != null ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
-        if (container == null) {
-            // brutal hack - the definition has (errorneously) set maxOccurs =
-            // unbounded. But there can be only one configuration container.
-            // See MID-2317 and related issues
-            PrismContainerDefinition definitionFixed = definition.clone();
-            definitionFixed.setMaxOccurs(1);
+		// brutal hack - the definition has (errorneously) set maxOccurs =
+		// unbounded. But there can be only one configuration container.
+		// See MID-2317 and related issues
+		PrismContainerDefinition definitionFixed = definition.clone();
+		definitionFixed.setMaxOccurs(1);
+
+		if (container == null) {
             container = definitionFixed.instantiate();
-        }
+        } else {
+			container.setDefinition(definitionFixed);
+		}
 
         addContainerWrappers(containerWrappers, oWrapper, container, new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION), result);
     }

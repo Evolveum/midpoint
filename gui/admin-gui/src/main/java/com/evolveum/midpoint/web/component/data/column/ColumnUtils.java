@@ -45,8 +45,8 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 
 public class ColumnUtils {
 
-	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> createColumns(List<ColumnTypeDto> columns) {
-		List<IColumn<SelectableBean<T>, String>> tableColumns = new ArrayList<IColumn<SelectableBean<T>, String>>();
+	public static <T> List<IColumn<T, String>> createColumns(List<ColumnTypeDto> columns) {
+		List<IColumn<T, String>> tableColumns = new ArrayList<>();
 		for (ColumnTypeDto column : columns) {
 			PropertyColumn tableColumn = null;
 			if (column.isSortable()) {
@@ -123,6 +123,8 @@ public class ColumnUtils {
 			return getOrgIconColumn();
 		} else if (ServiceType.class.equals(type)) {
 			return getServiceIconColumn();
+		} else if (ShadowType.class.equals(type)) {
+			return getShadowIconColumn();
 		} else if (type.equals(TaskType.class)) {
 			return getTaskIconColumn();
 		} else if (type.equals(ResourceType.class)) {
@@ -211,7 +213,11 @@ public class ColumnUtils {
 					@Override
 					public String getObject() {
 						T shadow = rowModel.getObject().getValue();
-						return WebComponentUtil.createShadowIcon(shadow.asPrismContainer());
+						if (shadow == null) {
+							return WebComponentUtil.createErrorIcon(rowModel.getObject().getResult());
+						} else {
+							return WebComponentUtil.createShadowIcon(shadow.asPrismContainer());
+						}
 					}
 				};
 			}
@@ -364,7 +370,7 @@ private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getTask
 						SelectableBean.F_VALUE + ".emailAddress", false)
 
 		);
-		columns.addAll((Collection)createColumns(columnsDefs));
+		columns.addAll(ColumnUtils.<SelectableBean<T>>createColumns(columnsDefs));
 
 		return columns;
 
@@ -434,7 +440,7 @@ private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getTask
 		List<ColumnTypeDto> columnsDefs = Arrays.asList(
 				new ColumnTypeDto("TaskType.executionStatus", TaskType.F_EXECUTION_STATUS.getLocalPart(),
 						SelectableBean.F_VALUE + ".executionStatus", false));
-		columns.addAll((Collection)createColumns(columnsDefs));
+		columns.addAll(ColumnUtils.<SelectableBean<T>>createColumns(columnsDefs));
 
 		return columns;
 
@@ -503,7 +509,7 @@ private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getTask
 
 		);
 
-		columns.addAll((Collection) createColumns(columnsDefs));
+		columns.addAll(ColumnUtils.<SelectableBean<T>>createColumns(columnsDefs));
 
 		return columns;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,12 +56,15 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
  * @author katkav
  */
 public class OperationResultPanel extends BasePanel<OpResult> {
+	private static final long serialVersionUID = 1L;
 
 	private static final String ID_DETAILS_BOX = "detailsBox";
 	private static final String ID_ICON_TYPE = "iconType";
 	private static final String ID_MESSAGE = "message";
 	private static final String ID_MESSAGE_LABEL = "messageLabel";
 	private static final String ID_BACKGROUND_TASK = "backgroundTask";
+	private static final String ID_SHOW_ALL = "showAll";
+	private static final String ID_HIDE_ALL = "hideAll";
 
 	static final String OPERATION_RESOURCE_KEY_PREFIX = "operation.";
 
@@ -88,30 +91,32 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 	private void initHeader(WebMarkupContainer box) {
 		WebMarkupContainer iconType = new WebMarkupContainer(ID_ICON_TYPE);
 		iconType.setOutputMarkupId(true);
-		iconType.add(new AttributeAppender("class", new AbstractReadOnlyModel() {
+		iconType.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
-			public Object getObject() {
+			public String getObject() {
 				StringBuilder sb = new StringBuilder();
 
 				OpResult message = getModelObject();
 
 				switch (message.getStatus()) {
-				case IN_PROGRESS:
-				case NOT_APPLICABLE:
-					sb.append(" fa-info");
-					break;
-				case SUCCESS:
-					sb.append(" fa-check");
-					break;
-				case FATAL_ERROR:
-					sb.append(" fa-ban");
-					break;
-				case PARTIAL_ERROR:
-				case UNKNOWN:
-				case WARNING:
-				case HANDLED_ERROR:
-				default:
-					sb.append(" fa-warning");
+					case IN_PROGRESS:
+					case NOT_APPLICABLE:
+						sb.append(" fa-info");
+						break;
+					case SUCCESS:
+						sb.append(" fa-check");
+						break;
+					case FATAL_ERROR:
+						sb.append(" fa-ban");
+						break;
+					case PARTIAL_ERROR:
+					case UNKNOWN:
+					case WARNING:
+					case HANDLED_ERROR:
+					default:
+						sb.append(" fa-warning");
 				}
 
 				return sb.toString();
@@ -119,12 +124,10 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		}));
 
 		box.add(iconType);
-		
 
 		Label message = createMessage();
 
-		AjaxLink showMore = new AjaxLink(ID_MESSAGE) {
-
+		AjaxLink<String> showMore = new AjaxLink<String>(ID_MESSAGE) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -138,8 +141,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		showMore.add(message);
 		box.add(showMore);
 
-		AjaxLink backgroundTask = new AjaxLink(ID_BACKGROUND_TASK) {
-
+		AjaxLink<String> backgroundTask = new AjaxLink<String>(ID_BACKGROUND_TASK) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -147,22 +149,24 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 				final OpResult opResult = OperationResultPanel.this.getModelObject();
 				String oid = opResult.getBackgroundTaskOid();
 				if (oid == null || !opResult.isBackgroundTaskVisible()) {
-					return;		// just for safety
+					return; // just for safety
 				}
 				ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(oid, ObjectTypes.TASK);
 				WebComponentUtil.dispatchToObjectDetailsPage(ref, getPageBase());
 			}
 		};
 		backgroundTask.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public boolean isVisible() {
-				return getModelObject().getBackgroundTaskOid() != null && getModelObject().isBackgroundTaskVisible();
+				return getModelObject().getBackgroundTaskOid() != null
+						&& getModelObject().isBackgroundTaskVisible();
 			}
 		});
 		box.add(backgroundTask);
 
-		AjaxLink showAll = new AjaxLink("showAll") {
-
+		AjaxLink<String> showAll = new AjaxLink<String>(ID_SHOW_ALL) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -170,11 +174,18 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 				showHideAll(true, OperationResultPanel.this.getModelObject(), target);
 			}
 		};
+		showAll.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			
+			@Override
+			public boolean isVisible() {
+				return !OperationResultPanel.this.getModelObject().isShowMore();
+			}
+		});
 
 		box.add(showAll);
 
-		AjaxLink hideAll = new AjaxLink("hideAll") {
-
+		AjaxLink<String> hideAll = new AjaxLink<String>(ID_HIDE_ALL) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -182,23 +193,31 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 				showHideAll(false, OperationResultPanel.this.getModel().getObject(), target);
 			}
 		};
+		hideAll.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			
+			@Override
+			public boolean isVisible() {
+				return OperationResultPanel.this.getModelObject().isShowMore();
+			}
+		});
 
 		box.add(hideAll);
-		
-		AjaxLink close = new AjaxLink("close") {
 
+		AjaxLink<String> close = new AjaxLink<String>("close") {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				close(target);
-				
+
 			}
 		};
 
 		box.add(close);
 
 		DownloadLink downloadXml = new DownloadLink("downloadXml", new AbstractReadOnlyModel<File>() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public File getObject() {
@@ -221,13 +240,11 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		box.add(downloadXml);
 	}
 
-	public void close(AjaxRequestTarget target){
+	public void close(AjaxRequestTarget target) {
 		this.setVisible(false);
 		target.add(this);
 	}
-	
-	
-	
+
 	private Label createMessage() {
 		Label message = null;
 		if (StringUtils.isNotBlank(getModelObject().getMessage())) {
@@ -235,6 +252,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 			message = new Label(ID_MESSAGE_LABEL, messageModel);
 		} else {
 			message = new Label(ID_MESSAGE_LABEL, new LoadableModel<Object>() {
+				private static final long serialVersionUID = 1L;
 
 				@Override
 				protected Object load() {
@@ -251,10 +269,11 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 	}
 
 	private void initDetails(WebMarkupContainer box) {
-		
+
 		final WebMarkupContainer details = new WebMarkupContainer("details", getModel());
 		details.setOutputMarkupId(true);
 		details.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
@@ -263,10 +282,12 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		});
 
 		box.add(details);
-		
+
 		WebMarkupContainer operationPanel = new WebMarkupContainer("type");
 		operationPanel.setOutputMarkupId(true);
 		operationPanel.add(new AttributeAppender("class", new LoadableModel<String>() {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			protected String load() {
 				return getLabelCss(getModel());
@@ -274,11 +295,13 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		}, " "));
 		details.add(operationPanel);
 
-		Label operationLabel = new Label("operationLabel", getString("FeedbackAlertMessageDetails.operation"));
+		Label operationLabel = new Label("operationLabel",
+				getString("FeedbackAlertMessageDetails.operation"));
 		operationLabel.setOutputMarkupId(true);
 		operationPanel.add(operationLabel);
 
 		Label operation = new Label("operation", new LoadableModel<Object>() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected Object load() {
@@ -293,6 +316,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 
 		Label count = new Label("countLabel", getString("FeedbackAlertMessageDetails.count"));
 		count.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
@@ -303,12 +327,14 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		operationPanel.add(count);
 		operationPanel.add(initCountPanel(getModel()));
 
-		Label message = new Label("resultMessage", new PropertyModel<String>(getModel(), "message").getObject());// PageBase.new
-																											// PropertyModel<String>(model,
-																											// "message"));
+		Label message = new Label("resultMessage",
+				new PropertyModel<String>(getModel(), "message").getObject());// PageBase.new
+		// PropertyModel<String>(model,
+		// "message"));
 		message.setOutputMarkupId(true);
 
 		message.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
@@ -322,6 +348,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		messageLabel.setOutputMarkupId(true);
 
 		messageLabel.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
@@ -341,6 +368,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		Label paramsLabel = new Label("paramsLabel", getString("FeedbackAlertMessageDetails.params"));
 		paramsLabel.setOutputMarkupId(true);
 		paramsLabel.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
@@ -351,6 +379,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		operationContent.add(paramsLabel);
 
 		ListView<Param> params = new ListView<Param>("params", createParamsModel(model)) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void populateItem(ListItem<Param> item) {
@@ -360,6 +389,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		};
 		params.setOutputMarkupId(true);
 		params.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
@@ -370,6 +400,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		operationContent.add(params);
 
 		ListView<OpResult> subresults = new ListView<OpResult>("subresults", createSubresultsModel(model)) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void populateItem(final ListItem<OpResult> item) {
@@ -380,6 +411,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		};
 		subresults.setOutputMarkupId(true);
 		subresults.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
@@ -396,6 +428,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		Label contextsLabel = new Label("contextsLabel", getString("FeedbackAlertMessageDetails.contexts"));
 		contextsLabel.setOutputMarkupId(true);
 		contextsLabel.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
@@ -406,6 +439,8 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		operationContent.add(contextsLabel);
 
 		ListView<Context> contexts = new ListView<Context>("contexts", createContextsModel(model)) {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			protected void populateItem(ListItem<Context> item) {
 				item.add(new Label("contextName", new PropertyModel<Object>(item.getModel(), "name")));
@@ -414,6 +449,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		};
 		contexts.setOutputMarkupId(true);
 		contexts.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
@@ -426,6 +462,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 	private void initError(WebMarkupContainer operationPanel, final IModel<OpResult> model) {
 		Label errorLabel = new Label("errorLabel", getString("FeedbackAlertMessageDetails.error"));
 		errorLabel.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
@@ -439,6 +476,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 
 		Label errorMessage = new Label("errorMessage", new PropertyModel<String>(model, "exceptionMessage"));
 		errorMessage.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
@@ -453,6 +491,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		final Label errorStackTrace = new Label("errorStackTrace",
 				new PropertyModel<String>(model, "exceptionsStackTrace"));
 		errorStackTrace.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
@@ -465,6 +504,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		operationPanel.add(errorStackTrace);
 
 		AjaxLink errorStackTraceLink = new AjaxLink("errorStackTraceLink") {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
@@ -475,6 +515,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		};
 		errorStackTraceLink.setOutputMarkupId(true);
 		errorStackTraceLink.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
@@ -489,6 +530,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 	private Label initCountPanel(final IModel<OpResult> model) {
 		Label count = new Label("count", new PropertyModel<String>(model, "count"));
 		count.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
@@ -500,31 +542,15 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 
 	}
 
-	private void showHideAll(final boolean show, OpResult object, AjaxRequestTarget target) {
-
-		Visitor visitor = new Visitor() {
-
-			@Override
-			public void visit(Visitable visitable) {
-				if (!(visitable instanceof OpResult)) {
-					return;
-				}
-
-				OpResult result = (OpResult) visitable;
-				result.setShowMore(show);
-
-			}
-		};
-
-		object.accept(visitor);
-
+	private void showHideAll(final boolean show, OpResult opresult, AjaxRequestTarget target) {
+		opresult.setShowMoreAll(show);
 		target.add(OperationResultPanel.this);
-
 	}
 
 	private IModel<String> createHeaderCss() {
 
 		return new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public String getObject() {
@@ -535,20 +561,20 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 				}
 
 				switch (result.getStatus()) {
-				case IN_PROGRESS:
-				case NOT_APPLICABLE:
-					return " box-info";
-				case SUCCESS:
-					return " box-success";
-				case FATAL_ERROR:
-				
-					return " box-danger";
-				case UNKNOWN:
-				case PARTIAL_ERROR:
-				case HANDLED_ERROR: // TODO:
-				case WARNING:
-				default:
-					return " box-warning";
+					case IN_PROGRESS:
+					case NOT_APPLICABLE:
+						return " box-info";
+					case SUCCESS:
+						return " box-success";
+					case FATAL_ERROR:
+
+						return " box-danger";
+					case UNKNOWN:
+					case PARTIAL_ERROR:
+					case HANDLED_ERROR: // TODO:
+					case WARNING:
+					default:
+						return " box-warning";
 				}
 			}
 
@@ -557,6 +583,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 
 	static IModel<List<Param>> createParamsModel(final IModel<OpResult> model) {
 		return new LoadableModel<List<Param>>(false) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected List<Param> load() {
@@ -568,6 +595,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 
 	static IModel<List<Context>> createContextsModel(final IModel<OpResult> model) {
 		return new LoadableModel<List<Context>>(false) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected List<Context> load() {
@@ -579,6 +607,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 
 	private IModel<List<OpResult>> createSubresultsModel(final IModel<OpResult> model) {
 		return new LoadableModel<List<OpResult>>(false) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected List<OpResult> load() {
@@ -601,20 +630,20 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		}
 
 		switch (result.getStatus()) {
-		case IN_PROGRESS:
-		case NOT_APPLICABLE:
-			return "left-info";
-		case SUCCESS:
-			return "left-success";
-		case FATAL_ERROR:
-		
-			return "left-danger";
-		case UNKNOWN:
-		case PARTIAL_ERROR:
-		case HANDLED_ERROR: // TODO:
-		case WARNING:
-		default:
-			return "left-warning";
+			case IN_PROGRESS:
+			case NOT_APPLICABLE:
+				return "left-info";
+			case SUCCESS:
+				return "left-success";
+			case FATAL_ERROR:
+
+				return "left-danger";
+			case UNKNOWN:
+			case PARTIAL_ERROR:
+			case HANDLED_ERROR: // TODO:
+			case WARNING:
+			default:
+				return "left-warning";
 		}
 	}
 
@@ -626,43 +655,42 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 		}
 
 		switch (result.getStatus()) {
-		case IN_PROGRESS:
-		case NOT_APPLICABLE:
-			return "fa-info-circle  text-info";
-		case SUCCESS:
-			return "fa-check-circle-o text-success";
-		case FATAL_ERROR:
-		
-			return "fa-times-circle-o text-danger";
-		case UNKNOWN:
-		case PARTIAL_ERROR:
-		case HANDLED_ERROR: // TODO:
-		case WARNING:
-		default:
-			return "fa-warning text-warning";
+			case IN_PROGRESS:
+			case NOT_APPLICABLE:
+				return "fa-info-circle  text-info";
+			case SUCCESS:
+				return "fa-check-circle-o text-success";
+			case FATAL_ERROR:
+
+				return "fa-times-circle-o text-danger";
+			case UNKNOWN:
+			case PARTIAL_ERROR:
+			case HANDLED_ERROR: // TODO:
+			case WARNING:
+			default:
+				return "fa-warning text-warning";
 		}
 	}
 
 	static String createMessageTooltip(final IModel<FeedbackMessage> model) {
 		FeedbackMessage message = model.getObject();
 		switch (message.getLevel()) {
-		case FeedbackMessage.INFO:
-			return "info";
-		case FeedbackMessage.SUCCESS:
-			return "success";
-		case FeedbackMessage.ERROR:
-			return "partialError";
-		case FeedbackMessage.FATAL:
-			return "fatalError";
-		case FeedbackMessage.UNDEFINED:
-			return "undefined";
-		case FeedbackMessage.DEBUG:
-			return "debug";
-		case FeedbackMessage.WARNING:
-		default:
-			return "warn";
+			case FeedbackMessage.INFO:
+				return "info";
+			case FeedbackMessage.SUCCESS:
+				return "success";
+			case FeedbackMessage.ERROR:
+				return "partialError";
+			case FeedbackMessage.FATAL:
+				return "fatalError";
+			case FeedbackMessage.UNDEFINED:
+				return "undefined";
+			case FeedbackMessage.DEBUG:
+				return "debug";
+			case FeedbackMessage.WARNING:
+			default:
+				return "warn";
 		}
 	}
 
-	
 }

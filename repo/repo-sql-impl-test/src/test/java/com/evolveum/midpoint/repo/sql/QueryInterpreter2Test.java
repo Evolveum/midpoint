@@ -3503,7 +3503,34 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
 	}
 
-//    @Test
+	@Test
+	public void testAdHoc101AvailabilityStatus() throws Exception {
+		Session session = open();
+		try {
+			ObjectQuery query = QueryBuilder.queryFor(ResourceType.class, prismContext)
+					.item(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS).eq(AvailabilityStatusType.UP)
+					.build();
+			String real = getInterpretedQuery2(session, ResourceType.class, query);
+			String expected = "select\n"
+					+ "  r.fullObject,\n"
+					+ "  r.stringsCount,\n"
+					+ "  r.longsCount,\n"
+					+ "  r.datesCount,\n"
+					+ "  r.referencesCount,\n"
+					+ "  r.polysCount,\n"
+					+ "  r.booleansCount\n"
+					+ "from\n"
+					+ "  RResource r\n"
+					+ "where\n"
+					+ "  r.operationalState.lastAvailabilityStatus = :lastAvailabilityStatus\n";
+			assertEqualsIgnoreWhitespace(expected, real);
+		} finally {
+			close(session);
+		}
+
+	}
+
+	//    @Test
 //    public void test930OrganizationEqualsCostCenter() throws Exception {
 //        Session session = open();
 //

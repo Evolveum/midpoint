@@ -77,6 +77,10 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
         add(containers);
     }
 
+	public void removeAllContainerWrappers() {
+		((ListView<ContainerWrapper>) get(ID_CONTAINERS)).removeAll();
+	}
+
     protected Component createHeader(String id, IModel<ObjectWrapper<O>> model) {
     	PrismHeaderPanel header = new PrismHeaderPanel(ID_HEADER, model) {
 			private static final long serialVersionUID = 1L;

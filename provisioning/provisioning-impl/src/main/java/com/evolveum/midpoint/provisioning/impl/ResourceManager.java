@@ -65,7 +65,6 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
@@ -529,24 +528,26 @@ public class ResourceManager {
 		if (connectorSchema == null) {
 			throw new SchemaException("No connector schema in "+connectorType);
 		}
-		PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefintion = ConnectorTypeUtil
-				.findConfigurationContainerDefintion(connectorType, connectorSchema);
-		if (configurationContainerDefintion == null) {
+		PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition = ConnectorTypeUtil
+				.findConfigurationContainerDefinition(connectorType, connectorSchema);
+		if (configurationContainerDefinition == null) {
 			throw new SchemaException("No configuration container definition in schema of " + connectorType);
 		}
+
+		configurationContainerDefinition = configurationContainerDefinition.clone();
 		PrismContainer<ConnectorConfigurationType> configurationContainer = ResourceTypeUtil
 				.getConfigurationContainer(resource);
-		if (configurationContainer == null) {
-			throw new SchemaException("No configuration container in " + resource);
-		}
-		configurationContainerDefintion = configurationContainerDefintion.clone();
 		// We want element name, minOccurs/maxOccurs and similar definition to be taken from the original, not the schema
 		// the element is global in the connector schema. therefore it does not have correct maxOccurs
-		configurationContainerDefintion.adoptElementDefinitionFrom(configurationContainer.getDefinition());
-		configurationContainer.applyDefinition(configurationContainerDefintion, true);
-		
+		if (configurationContainer != null) {
+			configurationContainerDefinition.adoptElementDefinitionFrom(configurationContainer.getDefinition());
+			configurationContainer.applyDefinition(configurationContainerDefinition, true);
+		} else {
+			configurationContainerDefinition.adoptElementDefinitionFrom(resource.getDefinition().findContainerDefinition(ResourceType.F_CONNECTOR_CONFIGURATION));
+		}
+
 		PrismObjectDefinition<ResourceType> objectDefinition = resource.getDefinition();
-		PrismObjectDefinition<ResourceType> clonedObjectDefinition = objectDefinition.cloneWithReplacedDefinition(ResourceType.F_CONNECTOR_CONFIGURATION, configurationContainerDefintion);
+		PrismObjectDefinition<ResourceType> clonedObjectDefinition = objectDefinition.cloneWithReplacedDefinition(ResourceType.F_CONNECTOR_CONFIGURATION, configurationContainerDefinition);
 		resource.setDefinition(clonedObjectDefinition);
 	}
 

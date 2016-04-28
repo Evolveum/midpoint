@@ -48,6 +48,11 @@ public class GuiStyleConstants {
 	public static final String CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES = "object-resource-box";
 	public static final String CLASS_OBJECT_RESOURCE_BOX_THIN_CSS_CLASSES = "object-resource-box-thin";
 	
+	public static final String CLASS_OBJECT_SHADOW_ICON = "fa fa-eye";
+	public static final String CLASS_OBJECT_SHADOW_ICON_COLORED = CLASS_OBJECT_RESOURCE_ICON + " object-shadow-color";
+	public static final String CLASS_OBJECT_SHADOW_BOX_CSS_CLASSES = "object-shadow-box";
+	public static final String CLASS_OBJECT_SHADOW_BOX_THIN_CSS_CLASSES = "object-shadow-box-thin";
+	
 	public static final String CLASS_OBJECT_TASK_ICON = "fa fa-tasks";
 	public static final String CLASS_OBJECT_TASK_ICON_COLORED = CLASS_OBJECT_TASK_ICON + " object-task-color";
 	public static final String CLASS_OBJECT_TASK_BOX_CSS_CLASSES = "object-task-box";
@@ -104,4 +109,5 @@ public class GuiStyleConstants {
 
 	public static final String CLASS_BADGE_ACTIVE = "badge-active";
 	public static final String CLASS_BADGE_PASSIVE = "badge-passive";
+
 }

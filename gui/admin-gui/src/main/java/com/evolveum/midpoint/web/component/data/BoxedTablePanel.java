@@ -22,12 +22,14 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataViewBase;
@@ -43,7 +45,7 @@ import org.apache.wicket.model.IModel;
 /**
  * @author Viliam Repan (lazyman)
  */
-public class BoxedTablePanel<T> extends BasePanel implements Table {
+public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_BOX = "box";
@@ -61,6 +63,7 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 
 	private UserProfileStorage.TableId tableId;
 	private boolean showPaging;
+	private String additionalBoxCssClasses = null;
 
 	public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
 		this(id, provider, columns, null, Integer.MAX_VALUE);
@@ -81,14 +84,23 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 
 	private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider, int pageSize) {
 		WebMarkupContainer box = new WebMarkupContainer(ID_BOX);
-		String boxCssClasses = getBoxCssClasses();
-		if (boxCssClasses != null) {
-			box.add(new AttributeModifier("class", boxCssClasses));
-		}
+		box.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getObject() {
+				String boxCssClasses = getAdditionalBoxCssClasses();
+				if (boxCssClasses == null) {
+					return "";
+				} else {
+					return " " + boxCssClasses;
+				}
+			}
+		}));
 		add(box);
-		
-        WebMarkupContainer tableContainer = new WebMarkupContainer(ID_TABLE_CONTAINER);
-        tableContainer.setOutputMarkupId(true);
+
+		WebMarkupContainer tableContainer = new WebMarkupContainer(ID_TABLE_CONTAINER);
+		tableContainer.setOutputMarkupId(true);
 
 		DataTable<T, String> table = new SelectableDataTable<T>(ID_TABLE, columns, provider, pageSize) {
 			@Override
@@ -98,7 +110,7 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 			}
 		};
 		table.setOutputMarkupId(true);
-        tableContainer.add(table);
+		tableContainer.add(table);
 		box.add(tableContainer);
 
 		TableHeadersToolbar headersTop = new TableHeadersToolbar(table, provider);
@@ -109,8 +121,12 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 		box.add(createFooter(ID_FOOTER));
 	}
 
-	protected String getBoxCssClasses() {
-		return null;
+	public String getAdditionalBoxCssClasses() {
+		return additionalBoxCssClasses;
+	}
+
+	public void setAdditionalBoxCssClasses(String boxCssClasses) {
+		this.additionalBoxCssClasses = boxCssClasses;
 	}
 
 	// TODO better name?
@@ -173,17 +189,16 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 	}
 
 	public Component getFooterMenu() {
-		return ((PagingFooter)getFooter()).getFooterMenu();
+		return ((PagingFooter) getFooter()).getFooterMenu();
 	}
 
-
 	public Component getFooterCountLabel() {
-		return ((PagingFooter)getFooter()).getFooterCountLabel();
+		return ((PagingFooter) getFooter()).getFooterCountLabel();
 	}
 
 	public Component getFooterPaging() {
-		return ((PagingFooter)getFooter()).getFooterPaging();
-    }
+		return ((PagingFooter) getFooter()).getFooterPaging();
+	}
 
 	@Override
 	public void setCurrentPage(ObjectPaging paging) {
@@ -213,8 +228,8 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 			add(buttonToolbar);
 
 			final DataTable dataTable = table.getDataTable();
-            WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
-            footerContainer.setOutputMarkupId(true);
+			WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
+			footerContainer.setOutputMarkupId(true);
 
 			final Label count = new Label(ID_COUNT, new AbstractReadOnlyModel<String>() {
 
@@ -233,7 +248,7 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 					target.add(count);
 				}
 			};
-            footerContainer.add(nb2);
+			footerContainer.add(nb2);
 
 			TableConfigurationPanel menu = new TableConfigurationPanel(ID_MENU) {
 
@@ -249,22 +264,23 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 					target.add(findParent(PagingFooter.class));
 					target.add((Component) table);
 				}
+
 			};
-            footerContainer.add(menu);
-            add(footerContainer);
+			footerContainer.add(menu);
+			add(footerContainer);
 		}
 
-        public Component getFooterMenu(){
-            return get(ID_FOOTER_CONTAINER).get(ID_MENU);
-        }
+		public Component getFooterMenu() {
+			return get(ID_FOOTER_CONTAINER).get(ID_MENU);
+		}
 
-        public Component getFooterCountLabel(){
-            return get(ID_FOOTER_CONTAINER).get(ID_COUNT);
-        }
+		public Component getFooterCountLabel() {
+			return get(ID_FOOTER_CONTAINER).get(ID_COUNT);
+		}
 
-        public Component getFooterPaging(){
-            return get(ID_FOOTER_CONTAINER).get(ID_PAGING);
-        }
+		public Component getFooterPaging() {
+			return get(ID_FOOTER_CONTAINER).get(ID_PAGING);
+		}
 
 		private String createCountString(IPageable pageable) {
 			long from = 0;
@@ -298,7 +314,7 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 					return PageBase.createStringResourceStatic(PagingFooter.this, "CountToolbar.lable",
 							new Object[] { from, to }).getString();
 				}
-				
+
 				return PageBase.createStringResourceStatic(PagingFooter.this, "CountToolbar.label",
 						new Object[] { from, to, count }).getString();
 
@@ -307,7 +323,8 @@ public class BoxedTablePanel<T> extends BasePanel implements Table {
 				// new Object[]{from, to, count}).getString();
 			}
 
-			return PageBase.createStringResourceStatic(PagingFooter.this, "CountToolbar.noFound", new Object[] {})
+			return PageBase
+					.createStringResourceStatic(PagingFooter.this, "CountToolbar.noFound", new Object[] {})
 					.getString();
 		}
 	}

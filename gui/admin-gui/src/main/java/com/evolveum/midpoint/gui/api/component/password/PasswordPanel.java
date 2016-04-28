@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.input;
+package com.evolveum.midpoint.gui.api.component.password;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +45,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author lazyman
  */
 public class PasswordPanel extends InputPanel {
+	private static final long serialVersionUID = 1L;
 
 	private static final String ID_LINK_CONTAINER = "linkContainer";
 	private static final String ID_PASSWORD_SET = "passwordSet";

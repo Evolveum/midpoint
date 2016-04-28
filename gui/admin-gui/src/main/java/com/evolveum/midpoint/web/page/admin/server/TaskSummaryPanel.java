@@ -29,7 +29,7 @@ import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.ContainerableFromPrismObjectModel;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
-import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -83,7 +83,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 			@Override
 			protected void initialize(TaskType taskType) {
 				OperationResultStatusType resultStatus = taskType.getResultStatus();
-				String icon = OperationResultStatusIcon.parseOperationalResultStatus(resultStatus).getIcon();
+				String icon = OperationResultStatusPresentationProperties.parseOperationalResultStatus(resultStatus).getIcon();
 				setIconCssClass(icon);
 				if (resultStatus != null) {
 					setLabel(PageBase.createStringResourceStatic(TaskSummaryPanel.this, resultStatus).getString());

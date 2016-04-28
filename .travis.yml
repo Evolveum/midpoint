@@ -1,2 +1,8 @@
+sudo: required
+dist: trusty
 language: java
-script: "travis_wait 70 mvn clean install"
+addons:
+  hostname: short-hostname
+jdk:
+  - openjdk7
+  - oraclejdk7

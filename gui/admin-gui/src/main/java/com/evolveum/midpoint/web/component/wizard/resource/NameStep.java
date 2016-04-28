@@ -22,16 +22,19 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -40,20 +43,31 @@ import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ConnectorHostTypeComparator;
-import com.evolveum.midpoint.web.model.ContainerableFromPrismObjectModel;
-import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromContainerableModel;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 /**
  * @author lazyman
@@ -68,179 +82,119 @@ public class NameStep extends WizardStep {
 
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
-    private static final String ID_LOCATION = "location";
-    private static final String ID_CONNECTOR_TYPE = "connectorType";
+    private static final String ID_CONNECTOR_HOST = "connectorHost";
+    private static final String ID_CONNECTOR = "connector";
 
-    private static final ConnectorHostType NOT_USED_HOST = new ConnectorHostType();
+	final private LoadableModel<PrismObject<ResourceType>> resourceModelRaw;
 
-    private IModel<PrismObject<ResourceType>> resourceModel;
+	final private LoadableModel<String> resourceNameModel;
+	final private LoadableModel<String> resourceDescriptionModel;
+	final private LoadableModel<List<PrismObject<ConnectorHostType>>> allHostsModel;
+	final private LoadableModel<PrismObject<ConnectorHostType>> selectedHostModel;
+	final private LoadableModel<List<PrismObject<ConnectorType>>> allConnectorsModel;
+	final private LoadableModel<List<PrismObject<ConnectorType>>> relevantConnectorsModel;		    // filtered, based on selected host
+	final private LoadableModel<PrismObject<ConnectorType>> selectedConnectorModel;
+	final private IModel<String> schemaChangeWarningModel;
+	final private List<LoadableModel<?>> resetOnConfigure = new ArrayList<>();
 
-    //all objects
-    private LoadableModel<List<PrismObject<ConnectorHostType>>> connectorHostsModel;
-    private LoadableModel<List<PrismObject<ConnectorType>>> connectorsModel;
+	final private PageResourceWizard parentPage;
 
-    //filtered, based on selection
-    private LoadableModel<List<PrismObject<ConnectorType>>> connectorTypes;
+    public NameStep(@NotNull LoadableModel<PrismObject<ResourceType>> modelRaw, @NotNull final PageResourceWizard parentPage) {
+        super(parentPage);
+		this.parentPage = parentPage;
+        this.resourceModelRaw = modelRaw;
 
-    public NameStep(IModel<PrismObject<ResourceType>> model, PageBase pageBase) {
-        super(pageBase);
-        this.resourceModel = model;
+		resourceNameModel = new LoadableModel<String>() {
+			@Override
+			protected String load() {
+				return PolyString.getOrig(resourceModelRaw.getObject().getName());
+			}
+		};
+		resetOnConfigure.add(resourceNameModel);
 
-        connectorsModel = new LoadableModel<List<PrismObject<ConnectorType>>>(false) {
+		resourceDescriptionModel = new LoadableModel<String>() {
+			@Override
+			protected String load() {
+				return resourceModelRaw.getObject().asObjectable().getDescription();
+			}
+		};
+		resetOnConfigure.add(resourceDescriptionModel);
 
-            @Override
-            protected List<PrismObject<ConnectorType>> load() {
-                return WebModelServiceUtils.searchObjects(ConnectorType.class, null, null, getPageBase());
-            }
-        };
-        connectorHostsModel = new LoadableModel<List<PrismObject<ConnectorHostType>>>(false) {
+		allHostsModel = new LoadableModel<List<PrismObject<ConnectorHostType>>>(false) {
+			@Override
+			protected List<PrismObject<ConnectorHostType>> load() {
+				return WebModelServiceUtils.searchObjects(ConnectorHostType.class, null, null, NameStep.this.parentPage);
+			}
+		};
+		resetOnConfigure.add(allHostsModel);
 
-            @Override
-            protected List<PrismObject<ConnectorHostType>> load() {
-                return WebModelServiceUtils.searchObjects(ConnectorHostType.class, null, null, getPageBase());
-            }
-        };
+		selectedHostModel = new LoadableModel<PrismObject<ConnectorHostType>>(false) {
+			@Override
+			protected PrismObject<ConnectorHostType> load() {
+				return getExistingConnectorHost();
+			}
+		};
+		resetOnConfigure.add(selectedHostModel);
 
+		allConnectorsModel = new LoadableModel<List<PrismObject<ConnectorType>>>(false) {
+			@Override
+			protected List<PrismObject<ConnectorType>> load() {
+				return WebModelServiceUtils.searchObjects(ConnectorType.class, null, null, NameStep.this.parentPage);
+			}
+		};
+		resetOnConfigure.add(allConnectorsModel);
+
+		relevantConnectorsModel = new LoadableModel<List<PrismObject<ConnectorType>>>(false) {
+			@Override
+			protected List<PrismObject<ConnectorType>> load() {
+				return loadConnectors(selectedHostModel.getObject());
+			}
+		};
+		resetOnConfigure.add(relevantConnectorsModel);
+
+		selectedConnectorModel = new LoadableModel<PrismObject<ConnectorType>>(false) {
+			@Override
+			protected PrismObject<ConnectorType> load() {
+				return getExistingConnector();
+			}
+		};
+		resetOnConfigure.add(selectedConnectorModel);
+
+		schemaChangeWarningModel = new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				PrismObject<ConnectorType> selectedConnector = getConnectorDropDown().getInput().getModel().getObject();
+				return isConfigurationSchemaCompatible(selectedConnector) ? "" : getString("NameStep.configurationWillBeLost");
+			}
+		};
         initLayout();
     }
 
-    private void initLayout() {
-        IModel<ResourceType> resourceContainerableModel = new ContainerableFromPrismObjectModel<>(resourceModel);
-        TextFormGroup name = new TextFormGroup(ID_NAME, 
-        		new PrismPropertyRealValueFromContainerableModel<String, ResourceType>(resourceContainerableModel, UserType.F_NAME),
-                createStringResource("NameStep.name"), "col-md-3", "col-md-3", true);
-        add(name);
+	@Override
+	protected void onConfigure() {
+		for (LoadableModel<?> model : resetOnConfigure) {
+			model.reset();
+		}
+	}
 
-        TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
-                new PrismPropertyRealValueFromContainerableModel<String, ResourceType>(resourceContainerableModel, UserType.F_DESCRIPTION),
-                createStringResource("NameStep.description"), "col-md-3", "col-md-3");
-        description.setRows(3);
-        add(description);
-
-        DropDownFormGroup<PrismObject<ConnectorHostType>> location = createLocationDropDown();
-        add(location);
-
-        DropDownFormGroup<PrismObject<ConnectorType>> connectorType = createConnectorTypeDropDown(location.getModel());
-        add(connectorType);
+	private void initLayout() {
+        add(new TextFormGroup(ID_NAME, resourceNameModel, createStringResource("NameStep.name"), "col-md-3", "col-md-3", true));
+        add(new TextAreaFormGroup(ID_DESCRIPTION, resourceDescriptionModel, createStringResource("NameStep.description"), "col-md-3", "col-md-3", false, 3));
+        add(createHostDropDown());
+        add(createConnectorDropDown());
     }
 
-    private IModel<PrismObject<ConnectorHostType>> createConnectorHostModel() {
-        return new IModel<PrismObject<ConnectorHostType>>() {
+	@SuppressWarnings("unchecked")
+	private DropDownFormGroup<PrismObject<ConnectorType>> getConnectorDropDown() {
+		return (DropDownFormGroup<PrismObject<ConnectorType>>) get(ID_CONNECTOR);
+	}
 
-            private PrismObject<ConnectorHostType> connectorHost;
+    private DropDownFormGroup<PrismObject<ConnectorType>> createConnectorDropDown() {
 
-            @Override
-            public PrismObject<ConnectorHostType> getObject() {
-                if (connectorHost != null) {
-                    return connectorHost;
-                }
-
-                PrismObject<ResourceType> resource = resourceModel.getObject();
-                PrismReference ref = resource.findReference(ResourceType.F_CONNECTOR_REF);
-                if (ref == null || ref.getOid() == null) {
-                    connectorHost = null;
-                    return connectorHost;
-                }
-
-                PrismObject<ConnectorType> connector = null;
-                List<PrismObject<ConnectorType>> connectors = connectorsModel.getObject();
-                for (PrismObject<ConnectorType> conn : connectors) {
-                    if (ref.getOid().equals(conn.getOid())) {
-                        connector = conn;
-                        break;
-                    }
-                }
-
-                if (connector == null || connector.findReference(ConnectorType.F_CONNECTOR_HOST_REF) == null) {
-                    connectorHost = null;
-                    return connectorHost;
-                }
-
-                PrismReference hostRef = connector.findReference(ConnectorType.F_CONNECTOR_HOST_REF);
-                if (hostRef.getOid() == null) {
-                    connectorHost = null;
-                    return connectorHost;
-                }
-
-                for (PrismObject<ConnectorHostType> host : connectorHostsModel.getObject()) {
-                    if (hostRef.getOid().equals(host.getOid())) {
-                        connectorHost = host;
-                        return connectorHost;
-                    }
-                }
-
-                connectorHost = null;
-                return connectorHost;
-            }
-
-            @Override
-            public void setObject(PrismObject<ConnectorHostType> object) {
-                connectorHost = object;
-            }
-
-            @Override
-            public void detach() {
-            }
-        };
-    }
-
-    private PrismObject<ConnectorType> getConnectorFromResource(List<PrismObject<ConnectorType>> connectors) {
-        PrismReference ref = resourceModel.getObject().findReference(ResourceType.F_CONNECTOR_REF);
-        if (ref == null || ref.getOid() == null) {
-            return null;
-        }
-
-        for (PrismObject<ConnectorType> connector : connectors) {
-            if (ref.getOid().equals(connector.getOid())) {
-                return connector;
-            }
-        }
-
-        return null;
-    }
-
-    private IModel<PrismObject<ConnectorType>> createReadonlyUsedConnectorModel() {
-        return new IModel<PrismObject<ConnectorType>>() {
-
-            private PrismObject<ConnectorType> selected;
-
-            @Override
-            public PrismObject<ConnectorType> getObject() {
-                if (selected != null) {
-                    return selected;
-                }
-
-                List<PrismObject<ConnectorType>> connectors = connectorsModel.getObject();
-                selected = getConnectorFromResource(connectors);
-
-                return selected;
-            }
-
-            @Override
-            public void setObject(PrismObject<ConnectorType> object) {
-                selected = object;
-            }
-
-            @Override
-            public void detach() {
-            }
-        };
-    }
-
-    private DropDownFormGroup<PrismObject<ConnectorType>> createConnectorTypeDropDown(
-            final IModel<PrismObject<ConnectorHostType>> hostModel) {
-        connectorTypes = new LoadableModel<List<PrismObject<ConnectorType>>>(false) {
-
-            @Override
-            protected List<PrismObject<ConnectorType>> load() {
-                return loadConnectorTypes(hostModel.getObject());
-            }
-        };
-
-        return new DropDownFormGroup<PrismObject<ConnectorType>>(
-                ID_CONNECTOR_TYPE, createReadonlyUsedConnectorModel(), connectorTypes,
+		return new DropDownFormGroup<PrismObject<ConnectorType>>(
+				ID_CONNECTOR, selectedConnectorModel, relevantConnectorsModel,
                 new IChoiceRenderer<PrismObject<ConnectorType>>() {
-                	
+
                 	@Override
                 	public PrismObject<ConnectorType> getObject(String id,
                 			IModel<? extends List<? extends PrismObject<ConnectorType>>> choices) {
@@ -259,19 +213,83 @@ public class NameStep extends WizardStep {
                 }, createStringResource("NameStep.connectorType"), "col-md-3", "col-md-3", true) {
 
             @Override
-            protected DropDownChoice createDropDown(String id, IModel<List<PrismObject<ConnectorType>>> choices,
+            protected DropDownChoice<PrismObject<ConnectorType>> createDropDown(String id, IModel<List<PrismObject<ConnectorType>>> choices,
                                                     IChoiceRenderer<PrismObject<ConnectorType>> renderer, boolean required) {
-                DropDownChoice choice = super.createDropDown(id, choices, renderer, required);
-                choice.setOutputMarkupId(true);
-
+				DropDownChoice<PrismObject<ConnectorType>> choice = super.createDropDown(id, choices, renderer, required);
+				choice.add(new AjaxFormComponentUpdatingBehavior("change") {
+					@Override
+					protected void onUpdate(AjaxRequestTarget target) {
+						target.add(getConnectorDropDown().getAdditionalInfoComponent());
+					}
+				});
+				choice.setOutputMarkupId(true);
                 return choice;
             }
-        };
+
+			@Override
+			protected Component createAdditionalInfoComponent(String id) {
+				Label l = new Label(id, schemaChangeWarningModel);
+				l.add(new AttributeAppender("class", "text-danger"));
+				l.setOutputMarkupId(true);
+				return l;
+			}
+		};
     }
 
-    private DropDownFormGroup<PrismObject<ConnectorHostType>> createLocationDropDown() {
-        return new DropDownFormGroup<PrismObject<ConnectorHostType>>(ID_LOCATION, createConnectorHostModel(),
-                        connectorHostsModel, new IChoiceRenderer<PrismObject<ConnectorHostType>>() {
+	private boolean isConfigurationSchemaCompatible(PrismObject<ConnectorType> newConnectorObject) {
+		if (newConnectorObject == null) {
+			return true;		// shouldn't occur
+		}
+
+		PrismContainer<?> configuration = ResourceTypeUtil.getConfigurationContainer(resourceModelRaw.getObject());
+		if (configuration == null || configuration.isEmpty() || configuration.getValue() == null || isEmpty(configuration.getValue().getItems())) {
+			return true;			// no config -> no loss
+		}
+
+		// for the time being let us simply compare namespaces of the current and old connector
+		PrismObject<ConnectorType> existingConnectorObject = getExistingConnector();
+		if (existingConnectorObject == null) {
+			return true;
+		}
+
+		ConnectorType existingConnector = existingConnectorObject.asObjectable();
+		ConnectorType newConnector = newConnectorObject.asObjectable();
+		return StringUtils.equals(existingConnector.getNamespace(), newConnector.getNamespace());
+	}
+
+	@Nullable
+	private PrismObject<ConnectorType> getSelectedConnector() {
+		PrismObject<ConnectorType> connector = null;
+		DropDownFormGroup<PrismObject<ConnectorType>> connectorTypeDropDown = getConnectorDropDown();
+		if (connectorTypeDropDown != null && connectorTypeDropDown.getInput() != null && connectorTypeDropDown.getInput().getModelObject() != null) {
+			connector = connectorTypeDropDown.getInput().getModel().getObject();
+		}
+		return connector;
+	}
+
+	@Nullable
+	private PrismObject<ConnectorType> getExistingConnector() {
+		return ResourceTypeUtil.getConnectorIfPresent(resourceModelRaw.getObject());
+	}
+
+	@Nullable
+	private PrismObject<ConnectorHostType> getExistingConnectorHost() {
+		PrismObject<ConnectorType> connector = getExistingConnector();
+		if (connector == null || connector.asObjectable().getConnectorHostRef() == null) {
+			return null;
+		}
+		for (PrismObject<ConnectorHostType> host : allHostsModel.getObject()) {
+			if (connector.asObjectable().getConnectorHostRef().getOid().equals(host.getOid())) {
+				return host;
+			}
+		}
+		return null;
+	}
+
+	@NotNull
+	private DropDownFormGroup<PrismObject<ConnectorHostType>> createHostDropDown() {
+        return new DropDownFormGroup<PrismObject<ConnectorHostType>>(ID_CONNECTOR_HOST, selectedHostModel,
+				allHostsModel, new IChoiceRenderer<PrismObject<ConnectorHostType>>() {
 
         	@Override
         	public PrismObject<ConnectorHostType> getObject(String id,
@@ -298,9 +316,9 @@ public class NameStep extends WizardStep {
                 createStringResource("NameStep.connectorHost"), "col-md-3", "col-md-3", false) {
 
             @Override
-            protected DropDownChoice createDropDown(String id, IModel<List<PrismObject<ConnectorHostType>>> choices,
+            protected DropDownChoice<PrismObject<ConnectorHostType>> createDropDown(String id, IModel<List<PrismObject<ConnectorHostType>>> choices,
                                                     IChoiceRenderer<PrismObject<ConnectorHostType>> renderer, boolean required) {
-                DropDownChoice choice = super.createDropDown(id, choices, renderer, required);
+                DropDownChoice<PrismObject<ConnectorHostType>> choice = super.createDropDown(id, choices, renderer, required);
                 choice.add(new AjaxFormComponentUpdatingBehavior("change") {
 
                     @Override
@@ -313,8 +331,8 @@ public class NameStep extends WizardStep {
         };
     }
 
-    private List<PrismObject<ConnectorType>> loadConnectorTypes(PrismObject<ConnectorHostType> host) {
-        List<PrismObject<ConnectorType>> filtered = filterConnectorTypes(host, null);
+    private List<PrismObject<ConnectorType>> loadConnectors(PrismObject<ConnectorHostType> host) {
+        List<PrismObject<ConnectorType>> filtered = filterConnectors(host);
 
         Collections.sort(filtered, new Comparator<PrismObject<ConnectorType>>() {
 
@@ -330,68 +348,51 @@ public class NameStep extends WizardStep {
         return filtered;
     }
 
-    private List<PrismObject<ConnectorType>> filterConnectorTypes(PrismObject<ConnectorHostType> host,
-                                                                  PrismObject<ConnectorType> type) {
-        List<PrismObject<ConnectorType>> connectors = connectorsModel.getObject();
-        final String connectorType = type == null ? null :
-                type.getPropertyRealValue(ConnectorType.F_CONNECTOR_TYPE, String.class);
-
-        Set<String> alreadyAddedTypes = new HashSet<>();
+    private List<PrismObject<ConnectorType>> filterConnectors(PrismObject<ConnectorHostType> host) {
         List<PrismObject<ConnectorType>> filtered = new ArrayList<>();
-        for (PrismObject<ConnectorType> connector : connectors) {
-            if (host != null && !isConnectorOnHost(connector, host)) {
-                continue;
+        for (PrismObject<ConnectorType> connector : allConnectorsModel.getObject()) {
+            if (isConnectorOnHost(connector, host)) {
+				filtered.add(connector);
             }
-
-            String cType = connector.getPropertyRealValue(ConnectorType.F_CONNECTOR_TYPE, String.class);
-            if (connectorType != null && (!StringUtils.equals(connectorType, cType) || alreadyAddedTypes.contains(cType))) {
-                //filter out connector if connectorType is not equal to parameter type.connectorType
-                //and we remove same connector types if we filtering connector based on types...
-                continue;
-            }
-
-            alreadyAddedTypes.add(cType);
-            filtered.add(connector);
         }
-
         return filtered;
     }
 
-    private boolean isConnectorOnHost(PrismObject<ConnectorType> connector, PrismObject<ConnectorHostType> host) {
-        PrismReference hostRef = connector.findReference(ConnectorType.F_CONNECTOR_HOST_REF);
-        if (hostRef == null && host == null) {
-            return true;
-        }
+    private boolean isConnectorOnHost(PrismObject<ConnectorType> connector, @Nullable PrismObject<ConnectorHostType> host) {
+        PrismReference connHostRef = connector.findReference(ConnectorType.F_CONNECTOR_HOST_REF);
+		String connHostOid = connHostRef != null ? connHostRef.getOid() : null;
+		String hostOid = host != null ? host.getOid() : null;
+		return ObjectUtils.equals(connHostOid, hostOid);
+	}
 
-        if (hostRef != null && host == null) {
-            return false;
-        }
+	@SuppressWarnings("unchecked")
+	private void discoverConnectorsPerformed(AjaxRequestTarget target) {
+        DropDownChoice<PrismObject<ConnectorHostType>> connectorHostChoice =
+				((DropDownFormGroup<PrismObject<ConnectorHostType>>) get(ID_CONNECTOR_HOST)).getInput();
+        PrismObject<ConnectorHostType> connectorHostObject = connectorHostChoice.getModelObject();
+        ConnectorHostType host = connectorHostObject != null ? connectorHostObject.asObjectable() : null;
 
-        if (hostRef != null && hostRef.getOid() != null && hostRef.getOid().equals(host.getOid())) {
-            return true;
-        }
-
-        return false;
-    }
-
-    private void discoverConnectorsPerformed(AjaxRequestTarget target) {
-        DropDownFormGroup<PrismObject<ConnectorHostType>> group = (DropDownFormGroup) get(ID_LOCATION);
-        DropDownChoice<PrismObject<ConnectorHostType>> location = group.getInput();
-        PrismObject<ConnectorHostType> prism = location.getModelObject();
-        ConnectorHostType host = prism.asObjectable();
-
-        if (!NOT_USED_HOST.equals(host)) {
+        if (host != null) {
             discoverConnectors(host);
-            connectorsModel.reset();
+            allConnectorsModel.reset();
         }
+        relevantConnectorsModel.reset();
 
-        connectorTypes.reset();
-
-        PageBase page = (PageBase) getPage();
-
-        DropDownFormGroup type = (DropDownFormGroup) get(ID_CONNECTOR_TYPE);
-
-        target.add(type.getInput(), page.getFeedbackPanel());
+        DropDownFormGroup<PrismObject<ConnectorType>> connectorDropDown = getConnectorDropDown();
+		PrismObject<ConnectorType> selectedConnector = connectorDropDown.getInput().getModelObject();
+		if (selectedConnector != null) {
+			if (!isConnectorOnHost(selectedConnector, connectorHostObject)) {
+				PrismObject<ConnectorType> compatibleConnector = null;
+				for (PrismObject<ConnectorType> relevantConnector : relevantConnectorsModel.getObject()) {
+					if (isConfigurationSchemaCompatible(relevantConnector)) {
+						compatibleConnector = relevantConnector;
+						break;
+					}
+				}
+				selectedConnectorModel.setObject(compatibleConnector);
+			}
+		}
+        target.add(connectorDropDown.getInput(), connectorDropDown.getAdditionalInfoComponent(), ((PageBase) getPage()).getFeedbackPanel());
     }
 
     private void discoverConnectors(ConnectorHostType host) {
@@ -414,76 +415,54 @@ public class NameStep extends WizardStep {
 
     @Override
     public void applyState() {
-        PageBase page = (PageBase) getPage();
-        Task task = page.createSimpleTask(OPERATION_SAVE_RESOURCE);
+		PrismContext prismContext = parentPage.getPrismContext();
+        Task task = parentPage.createSimpleTask(OPERATION_SAVE_RESOURCE);
         OperationResult result = task.getResult();
-        boolean newResource;
 
         try {
-            PrismObject<ResourceType> resource = resourceModel.getObject();
+            PrismObject<ResourceType> resource = resourceModelRaw.getObject();
+			PrismObject<ConnectorType> connector = getSelectedConnector();
+			if (connector == null) {
+				throw new IllegalStateException("No connector selected");		// should be treated by form validation
+			}
 
-            if(StringUtils.isNotEmpty(resource.getOid())){
-                newResource = false;
-            } else {
-                newResource = true;
-            }
+			ObjectDelta delta;
+			boolean isNew = resource.getOid() == null;
+			if (isNew) {
+				resource = prismContext.createObject(ResourceType.class);
+				ResourceType resourceType = resource.asObjectable();
+				resourceType.setName(PolyStringType.fromOrig(resourceNameModel.getObject()));
+				resourceType.setDescription(resourceDescriptionModel.getObject());
+				resourceType.setConnectorRef(ObjectTypeUtil.createObjectRef(connector));
+				delta = ObjectDelta.createAddDelta(resource);
+			} else {
+				S_ItemEntry i = DeltaBuilder.deltaFor(ResourceType.class, prismContext)
+						.item(ResourceType.F_NAME).replace(PolyString.fromOrig(resourceNameModel.getObject()))
+						.item(ResourceType.F_DESCRIPTION).replace(resourceDescriptionModel.getObject())
+						.item(ResourceType.F_CONNECTOR_REF).replace(ObjectTypeUtil.createObjectRef(connector).asReferenceValue());
+				if (!isConfigurationSchemaCompatible(connector)) {
+					i = i.item(ResourceType.F_CONNECTOR_CONFIGURATION).replace();
+				}
+				delta = i.asObjectDelta(resource.getOid());
+			}
+			LOGGER.info("Applying delta:\n{}", delta.debugDump());
+            WebModelServiceUtils.save(delta, ModelExecuteOptions.createRaw(), result, parentPage);
 
-            page.getPrismContext().adopt(resource);
+			if (isNew) {
+				parentPage.setEditedResourceOid(delta.getOid());
+			}
+			parentPage.resetModels();
 
-            if(newResource){
-                resource.findOrCreateContainer(ResourceType.F_CONNECTOR_CONFIGURATION)
-                        .findOrCreateContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES)
-                        .createNewValue();
-            }
-
-            DropDownFormGroup connectorTypeDropDown = ((DropDownFormGroup)get(ID_CONNECTOR_TYPE));
-            if(connectorTypeDropDown != null && connectorTypeDropDown.getInput() != null){
-
-                if(connectorTypeDropDown.getInput().getModelObject() != null){
-                    PrismObject<ConnectorType> connectorTypeReference = (PrismObject<ConnectorType>)connectorTypeDropDown.getInput().getModel().getObject();
-                    PrismReference ref = resource.findOrCreateReference(ResourceType.F_CONNECTOR_REF);
-
-                    if(connectorTypeReference == null){
-                        resource.removeReference(ResourceType.F_CONNECTOR_REF);
-                    } else {
-                        PrismReferenceValue val = new PrismReferenceValue();
-                        val.setObject(connectorTypeReference);
-                        ref.replace(val);
-                    }
-                }
-            }
-
-            ObjectDelta delta;
-            if (!newResource) {
-                PrismObject<ResourceType> oldResource = WebModelServiceUtils.loadObject(ResourceType.class, resource.getOid(),
-                        page, task, result);
-
-                delta = DiffUtil.diff(oldResource, resource);
-            } else {
-                delta = ObjectDelta.createAddDelta(resource);
-            }
-
-            WebModelServiceUtils.save(delta, ModelExecuteOptions.createRaw(), result, page);
-
-            if(!newResource){
-                resource = WebModelServiceUtils.loadObject(ResourceType.class, delta.getOid(), page, task, result);
-            } else {
-                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
-                resource = WebModelServiceUtils.loadObject(ResourceType.class, delta.getOid(), options , page, task, result);
-            }
-
-            resourceModel.setObject(resource);
-
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't save resource", ex);
+        } catch (RuntimeException|SchemaException ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save resource", ex);
             result.recordFatalError("Couldn't save resource, reason: " + ex.getMessage(), ex);
         } finally {
-            result.computeStatus();
+            result.computeStatusIfUnknown();
             setResult(result);
         }
 
         if (WebComponentUtil.showResultInPage(result)) {
-            page.showResult(result);
+            parentPage.showResult(result);
         }
     }
 }
